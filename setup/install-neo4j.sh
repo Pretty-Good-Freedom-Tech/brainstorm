@@ -84,7 +84,14 @@ sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max
 echo "=== Starting Neo4j service ==="
 systemctl restart neo4j
 systemctl enable neo4j
-systemctl status neo4j
+# Use systemctl is-active instead of status to avoid hanging
+echo "Checking Neo4j service status..."
+if systemctl is-active --quiet neo4j; then
+  echo "Neo4j service is running"
+else
+  echo "Neo4j service failed to start"
+  exit 1
+fi
 
 # Step 7: Set up Neo4j constraints and indices
 echo "=== Setting up Neo4j constraints and indices ==="

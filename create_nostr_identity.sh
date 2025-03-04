@@ -17,12 +17,15 @@ if ! command -v jq &> /dev/null; then
     sudo apt-get install -y jq
 fi
 
+# Get the directory where the script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
 # Create directory for storing keys if it doesn't exist
-KEYS_DIR="/home/ubuntu/hasenpfeffr/nostr/keys"
+KEYS_DIR="${SCRIPT_DIR}/nostr/keys"
 mkdir -p "$KEYS_DIR"
 
 # Create a project directory for Node.js dependencies
-NOSTR_PROJECT_DIR="/home/ubuntu/hasenpfeffr/nostr/node_project"
+NOSTR_PROJECT_DIR="${SCRIPT_DIR}/nostr/node_project"
 mkdir -p "$NOSTR_PROJECT_DIR"
 
 # Initialize npm project and install required packages
@@ -83,12 +86,14 @@ if [ -f "/etc/hasenpfeffr.conf" ]; then
     # Check if keys already exist in the config
     if grep -q "HASENPFEFFR_RELAY_PUBKEY" /etc/hasenpfeffr.conf; then
         echo "Keys already exist in config. Updating..."
-        sudo sed -i "/HASENPFEFFR_RELAY_PUBKEY/c\HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" /etc/hasenpfeffr.conf
-        sudo sed -i "/HASENPFEFFR_RELAY_NPUB/c\HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" /etc/hasenpfeffr.conf
+        sudo sed -i "/HASENPFEFFR_RELAY_PUBKEY/c\export HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" /etc/hasenpfeffr.conf
+        sudo sed -i "/HASENPFEFFR_RELAY_NPUB/c\export HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" /etc/hasenpfeffr.conf
+        sudo sed -i "/HASENPFEFFR_RELAY_NSEC/c\export HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" /etc/hasenpfeffr.conf
     else
         echo "Adding new keys to config..."
-        echo "HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" | sudo tee -a /etc/hasenpfeffr.conf
-        echo "HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" | sudo tee -a /etc/hasenpfeffr.conf
+        echo "export HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" | sudo tee -a /etc/hasenpfeffr.conf
+        echo "export HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" | sudo tee -a /etc/hasenpfeffr.conf
+        echo "export HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" | sudo tee -a /etc/hasenpfeffr.conf
     fi
 else
     echo "Warning: /etc/hasenpfeffr.conf not found. Only storing keys in $KEYS_FILE."
@@ -99,4 +104,4 @@ echo "PUBKEY: $HASENPFEFFR_RELAY_PUBKEY"
 echo "NPUB: $HASENPFEFFR_RELAY_NPUB"
 echo "Keys stored securely in JSON format in $KEYS_FILE"
 echo "Shell-compatible keys also stored in $KEYS_SH_FILE for backward compatibility"
-echo "IMPORTANT: Keep your private key secure and never share it!"
+echo "Keys have also been added to /etc/hasenpfeffr.conf (if it exists)"

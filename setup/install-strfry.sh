@@ -22,13 +22,25 @@ STRFRY_DATA_DIR="/var/lib/strfry"
 STRFRY_CONF="/etc/strfry.conf"
 STRFRY_SERVICE="/etc/systemd/system/strfry.service"
 NGINX_CONF="/etc/nginx/sites-available/default"
+HASENPFEFFR_CONF="/etc/hasenpfeffr.conf"
 DOMAIN_NAME=""
 
-# Ask for domain name
-read -p "Enter your relay domain name (e.g., relay.yourdomain.com): " DOMAIN_NAME
+# Try to get domain name from config file
+if [ -f "$HASENPFEFFR_CONF" ]; then
+  source "$HASENPFEFFR_CONF"
+  if [ ! -z "$STRFRY_DOMAIN" ]; then
+    DOMAIN_NAME="$STRFRY_DOMAIN"
+    echo "Using domain name from configuration: $DOMAIN_NAME"
+  fi
+fi
+
+# If domain name is still empty, ask for it
 if [ -z "$DOMAIN_NAME" ]; then
-  echo "Domain name is required. Exiting."
-  exit 1
+  read -p "Enter your relay domain name (e.g., relay.yourdomain.com): " DOMAIN_NAME
+  if [ -z "$DOMAIN_NAME" ]; then
+    echo "Domain name is required. Exiting."
+    exit 1
+  fi
 fi
 
 # Step 1: Install dependencies
@@ -70,6 +82,16 @@ fi
 # Get system hard limit for file descriptors
 NOFILES=$(ulimit -Hn)
 
+# Get relay pubkey from config if available
+RELAY_PUBKEY=""
+if [ -f "$HASENPFEFFR_CONF" ]; then
+  source "$HASENPFEFFR_CONF"
+  if [ ! -z "$HASENPFEFFR_RELAY_PUBKEY" ]; then
+    RELAY_PUBKEY="$HASENPFEFFR_RELAY_PUBKEY"
+    echo "Using relay pubkey from configuration"
+  fi
+fi
+
 # Create strfry.conf
 cat > "$STRFRY_CONF" << EOF
 # strfry relay configuration
@@ -96,7 +118,7 @@ relay {
     contact = "admin@${DOMAIN_NAME}"
     
     # Pubkey for the relay admin
-    pubkey = ""
+    pubkey = "${RELAY_PUBKEY}"
     
     # Supported NIPs
     supported_nips = [1, 2, 4, 9, 11, 12, 15, 16, 20, 22, 28, 33, 40]
@@ -174,6 +196,16 @@ systemctl enable strfry.service
 systemctl start strfry.service
 systemctl restart nginx
 
+# Check if strfry service is running
+echo "Checking Strfry service status..."
+if systemctl is-active --quiet strfry; then
+  echo "Strfry service is running"
+else
+  echo "Strfry service failed to start"
+  echo "Check logs with: journalctl -u strfry"
+  # Don't exit with error as this is not critical
+fi
+
 # Step 10: Set up SSL certificate
 echo "=== Setting up SSL certificate ==="
 echo "Would you like to set up an SSL certificate now? (y/n)"
@@ -192,7 +224,7 @@ echo "You can access your relay at: https://$DOMAIN_NAME"
 echo "You can access the control panel at: https://$DOMAIN_NAME/control/"
 echo ""
 echo "To check the status of the strfry service, run:"
-echo "sudo systemctl status strfry"
+echo "sudo systemctl is-active strfry"
 echo ""
 echo "To view logs, run:"
 echo "sudo journalctl -u strfry"
