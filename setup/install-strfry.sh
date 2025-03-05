@@ -52,10 +52,12 @@ apt install -y git build-essential libyaml-perl libtemplate-perl libregexp-gramm
 
 # Step 2: Clone and build strfry
 echo "=== Cloning and building strfry ==="
-if [ ! -d "/tmp/strfry" ]; then
-  git clone "$STRFRY_REPO" /tmp/strfry
+STRFRY_SRC_DIR="/home/$SUDO_USER/strfry"
+if [ ! -d "$STRFRY_SRC_DIR" ]; then
+  git clone "$STRFRY_REPO" "$STRFRY_SRC_DIR"
+  chown -R $SUDO_USER:$SUDO_USER "$STRFRY_SRC_DIR"
 fi
-cd /tmp/strfry
+cd "$STRFRY_SRC_DIR"
 git submodule update --init
 make setup-golpe
 make -j2
@@ -79,9 +81,6 @@ if [ -f "$STRFRY_CONF" ]; then
   cp "$STRFRY_CONF" "${STRFRY_CONF}.backup"
 fi
 
-# Get system hard limit for file descriptors
-NOFILES=$(ulimit -Hn)
-
 # Get relay pubkey from config if available
 RELAY_PUBKEY=""
 if [ -f "$HASENPFEFFR_CONF" ]; then
@@ -92,43 +91,21 @@ if [ -f "$HASENPFEFFR_CONF" ]; then
   fi
 fi
 
-# Create strfry.conf
-cat > "$STRFRY_CONF" << EOF
-# strfry relay configuration
+# Copy the default strfry.conf from the repository and modify it
+cp "$STRFRY_SRC_DIR/strfry.conf" "$STRFRY_CONF"
 
-relay {
-  # Directory where the database will be stored
-  db = "$STRFRY_DATA_DIR"
+# Modify the config file to set nofiles to 0 and update other necessary settings
+sed -i "s|^  db = .*|  db = \"$STRFRY_DATA_DIR\"|" "$STRFRY_CONF"
+sed -i "s|^  nofiles = .*|  nofiles = 0|" "$STRFRY_CONF"
+sed -i "s|^  bind = .*|  bind = \"127.0.0.1:7777\"|" "$STRFRY_CONF"
 
-  # IP/port binding for the main relay
-  bind = "127.0.0.1:7777"
-
-  # Maximum file descriptors (0 = use system default)
-  nofiles = $NOFILES
-
-  # Information for the relay's NIP-11 document
-  info {
-    # Relay name
-    name = "Hasenpfeffr Relay"
-    
-    # Description shown in NIP-11
-    description = "Hasenpfeffr Nostr relay for NIP-85 Trusted Assertions"
-    
-    # Public contact
-    contact = "admin@${DOMAIN_NAME}"
-    
-    # Pubkey for the relay admin
-    pubkey = "${RELAY_PUBKEY}"
-    
-    # Supported NIPs
-    supported_nips = [1, 2, 4, 9, 11, 12, 15, 16, 20, 22, 28, 33, 40]
-    
-    # Software info
-    software = "https://github.com/hoytech/strfry"
-    version = "0.9.5"
-  }
-}
-EOF
+# Update relay info if pubkey is available
+if [ ! -z "$RELAY_PUBKEY" ]; then
+  sed -i "s|^    name = .*|    name = \"Hasenpfeffr Relay\"|" "$STRFRY_CONF"
+  sed -i "s|^    description = .*|    description = \"Hasenpfeffr Nostr relay for NIP-85 Trusted Assertions\"|" "$STRFRY_CONF"
+  sed -i "s|^    contact = .*|    contact = \"admin@${DOMAIN_NAME}\"|" "$STRFRY_CONF"
+  sed -i "s|^    pubkey = .*|    pubkey = \"${RELAY_PUBKEY}\"|" "$STRFRY_CONF"
+fi
 
 chown strfry:strfry "$STRFRY_CONF"
 
