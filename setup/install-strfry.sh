@@ -95,19 +95,87 @@ fi
 cp "$STRFRY_SRC_DIR/strfry.conf" "$STRFRY_CONF"
 
 # Modify the config file to set nofiles to 0 and update other necessary settings
-sed -i "s|^  db = .*|  db = \"$STRFRY_DATA_DIR\"|" "$STRFRY_CONF"
-sed -i "s|^  nofiles = .*|  nofiles = 0|" "$STRFRY_CONF"
-sed -i "s|^  bind = .*|  bind = \"127.0.0.1:7777\"|" "$STRFRY_CONF"
+sed -i "s|^db = .*|db = \"$STRFRY_DATA_DIR\"|" "$STRFRY_CONF"
+sed -i "s|^    nofiles = .*|    nofiles = 0|" "$STRFRY_CONF"
+sed -i "s|^    bind = .*|    bind = \"127.0.0.1:7777\"|" "$STRFRY_CONF"
 
 # Update relay info if pubkey is available
 if [ ! -z "$RELAY_PUBKEY" ]; then
-  sed -i "s|^    name = .*|    name = \"Hasenpfeffr Relay\"|" "$STRFRY_CONF"
-  sed -i "s|^    description = .*|    description = \"Hasenpfeffr Nostr relay for NIP-85 Trusted Assertions\"|" "$STRFRY_CONF"
-  sed -i "s|^    contact = .*|    contact = \"admin@${DOMAIN_NAME}\"|" "$STRFRY_CONF"
-  sed -i "s|^    pubkey = .*|    pubkey = \"${RELAY_PUBKEY}\"|" "$STRFRY_CONF"
+  sed -i "s|^        name = .*|        name = \"Hasenpfeffr Relay\"|" "$STRFRY_CONF"
+  sed -i "s|^        description = .*|        description = \"Hasenpfeffr Nostr relay for NIP-85 Trusted Assertions\"|" "$STRFRY_CONF"
+  sed -i "s|^        contact = .*|        contact = \"admin@${DOMAIN_NAME}\"|" "$STRFRY_CONF"
+  sed -i "s|^        pubkey = .*|        pubkey = \"${RELAY_PUBKEY}\"|" "$STRFRY_CONF"
 fi
 
 chown strfry:strfry "$STRFRY_CONF"
+
+# Verify the changes were made correctly
+echo "=== Verifying strfry configuration ==="
+echo "Checking db path:"
+grep "^db =" "$STRFRY_CONF"
+echo "Checking nofiles setting:"
+grep "^    nofiles =" "$STRFRY_CONF"
+echo "Checking bind setting:"
+grep "^    bind =" "$STRFRY_CONF"
+if [ ! -z "$RELAY_PUBKEY" ]; then
+  echo "Checking relay info:"
+  grep -A 4 "^    info {" "$STRFRY_CONF"
+fi
+
+# Fallback method: If the sed commands didn't work, use a more direct approach
+if ! grep -q "db = \"$STRFRY_DATA_DIR\"" "$STRFRY_CONF"; then
+  echo "Sed commands didn't work correctly. Using fallback method..."
+  
+  # Create a temporary file with our desired configuration
+  TMP_CONF=$(mktemp)
+  
+  # Replace the db path
+  awk -v path="$STRFRY_DATA_DIR" '{
+    if ($0 ~ /^db =/) {
+      print "db = \"" path "\""
+    } else if ($0 ~ /^    nofiles =/) {
+      print "    nofiles = 0"
+    } else if ($0 ~ /^    bind =/) {
+      print "    bind = \"127.0.0.1:7777\""
+    } else {
+      print $0
+    }
+  }' "$STRFRY_CONF" > "$TMP_CONF"
+  
+  # If we have a relay pubkey, also update the relay info
+  if [ ! -z "$RELAY_PUBKEY" ]; then
+    awk -v pubkey="$RELAY_PUBKEY" -v domain="$DOMAIN_NAME" '{
+      if ($0 ~ /^        name =/) {
+        print "        name = \"Hasenpfeffr Relay\""
+      } else if ($0 ~ /^        description =/) {
+        print "        description = \"Hasenpfeffr Nostr relay for NIP-85 Trusted Assertions\""
+      } else if ($0 ~ /^        pubkey =/) {
+        print "        pubkey = \"" pubkey "\""
+      } else if ($0 ~ /^        contact =/) {
+        print "        contact = \"admin@" domain "\""
+      } else {
+        print $0
+      }
+    }' "$TMP_CONF" > "${TMP_CONF}.new"
+    mv "${TMP_CONF}.new" "$TMP_CONF"
+  fi
+  
+  # Replace the original config with our modified version
+  mv "$TMP_CONF" "$STRFRY_CONF"
+  chown strfry:strfry "$STRFRY_CONF"
+  
+  echo "Fallback method completed. Verifying changes again:"
+  echo "Checking db path:"
+  grep "^db =" "$STRFRY_CONF"
+  echo "Checking nofiles setting:"
+  grep "^    nofiles =" "$STRFRY_CONF"
+  echo "Checking bind setting:"
+  grep "^    bind =" "$STRFRY_CONF"
+  if [ ! -z "$RELAY_PUBKEY" ]; then
+    echo "Checking relay info:"
+    grep -A 4 "^    info {" "$STRFRY_CONF"
+  fi
+fi
 
 # Step 6: Configure systemd service
 echo "=== Setting up systemd service ==="
