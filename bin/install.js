@@ -36,6 +36,7 @@ const configPaths = {
   neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
   neo4jIndicesScript: path.join(packageRoot, 'setup', 'neo4jCommandsAndIndices.sh'),
   strfryInstallScript: path.join(packageRoot, 'setup', 'install-strfry.sh'),
+  controlPanelInstallScript: path.join(packageRoot, 'setup', 'install-control-panel.sh'),
   createNostrIdentityScript: path.join(packageRoot, 'create_nostr_identity.sh'),
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
   systemdServiceDir: '/etc/systemd/system',
@@ -209,9 +210,8 @@ async function setupSystemdService() {
   
   if (!isRoot) {
     console.log('\x1b[33mCannot set up systemd service without root privileges.\x1b[0m');
-    console.log(`Please manually copy the service file: sudo cp ${configPaths.systemdServiceFile} ${configPaths.systemdServiceDir}/`);
-    console.log('Then run: sudo systemctl enable hasenpfeffr-control-panel.service');
-    console.log('And: sudo systemctl start hasenpfeffr-control-panel.service');
+    console.log(`Please manually run the control panel installation script:`);
+    console.log(`sudo bash ${configPaths.controlPanelInstallScript}`);
     
     // Wait for user acknowledgment
     await askQuestion('Press Enter to continue...');
@@ -219,15 +219,9 @@ async function setupSystemdService() {
   }
   
   try {
-    // Copy systemd service file
-    execSync(`cp ${configPaths.systemdServiceFile} ${configPaths.systemdServiceDir}/`);
-    
-    // Reload systemd daemon
-    execSync('systemctl daemon-reload');
-    
-    // Enable and start service
-    execSync('systemctl enable hasenpfeffr-control-panel.service');
-    execSync('systemctl start hasenpfeffr-control-panel.service');
+    // Run the control panel installation script
+    console.log('Running control panel installation script...');
+    execSync(`bash ${configPaths.controlPanelInstallScript}`, { stdio: 'inherit' });
     
     console.log('Systemd service set up successfully.');
   } catch (error) {
