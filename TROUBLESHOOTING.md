@@ -97,6 +97,10 @@ This guide addresses common issues that may arise during the installation and op
   ```bash
   sudo journalctl -u hasenpfeffr-control-panel
   ```
+- If the service is failing because it can't find the control panel script, you can reinstall it:
+  ```bash
+  sudo bash /usr/local/lib/node_modules/hasenpfeffr/setup/install-control-panel.sh
+  ```
 - If using Nginx, verify your configuration:
   ```bash
   sudo nginx -t
