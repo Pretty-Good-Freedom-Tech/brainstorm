@@ -175,3 +175,9 @@ GNU Affero General Public License v3.0
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Troubleshooting
+
+If you encounter issues during installation or operation, please refer to the [Troubleshooting Guide](TROUBLESHOOTING.md) for common problems and solutions.
+
+For issues not covered in the troubleshooting guide, please create a new issue on GitHub with detailed information about your problem.
