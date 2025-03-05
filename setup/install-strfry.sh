@@ -97,7 +97,6 @@ cp "$STRFRY_SRC_DIR/strfry.conf" "$STRFRY_CONF"
 # Modify the config file to set nofiles to 0 and update other necessary settings
 sed -i "s|^db = .*|db = \"$STRFRY_DATA_DIR\"|" "$STRFRY_CONF"
 sed -i "s|^    nofiles = .*|    nofiles = 0|" "$STRFRY_CONF"
-sed -i "s|^    bind = .*|    bind = \"127.0.0.1:7777\"|" "$STRFRY_CONF"
 
 # Update relay info if pubkey is available
 if [ ! -z "$RELAY_PUBKEY" ]; then
@@ -115,8 +114,6 @@ echo "Checking db path:"
 grep "^db =" "$STRFRY_CONF"
 echo "Checking nofiles setting:"
 grep "^    nofiles =" "$STRFRY_CONF"
-echo "Checking bind setting:"
-grep "^    bind =" "$STRFRY_CONF"
 if [ ! -z "$RELAY_PUBKEY" ]; then
   echo "Checking relay info:"
   grep -A 4 "^    info {" "$STRFRY_CONF"
@@ -135,8 +132,6 @@ if ! grep -q "db = \"$STRFRY_DATA_DIR\"" "$STRFRY_CONF"; then
       print "db = \"" path "\""
     } else if ($0 ~ /^    nofiles =/) {
       print "    nofiles = 0"
-    } else if ($0 ~ /^    bind =/) {
-      print "    bind = \"127.0.0.1:7777\""
     } else {
       print $0
     }
@@ -169,8 +164,6 @@ if ! grep -q "db = \"$STRFRY_DATA_DIR\"" "$STRFRY_CONF"; then
   grep "^db =" "$STRFRY_CONF"
   echo "Checking nofiles setting:"
   grep "^    nofiles =" "$STRFRY_CONF"
-  echo "Checking bind setting:"
-  grep "^    bind =" "$STRFRY_CONF"
   if [ ! -z "$RELAY_PUBKEY" ]; then
     echo "Checking relay info:"
     grep -A 4 "^    info {" "$STRFRY_CONF"
@@ -253,26 +246,19 @@ fi
 
 # Step 10: Set up SSL certificate
 echo "=== Setting up SSL certificate ==="
-# Use a non-interactive approach with environment variable
-export DEBIAN_FRONTEND=noninteractive
 
 # Default email for SSL certificate
 SSL_EMAIL="admin@${DOMAIN_NAME}"
 
-# Ask for SSL setup with a timeout to prevent hanging
-echo "Would you like to set up an SSL certificate now? (y/n)"
-read -t 30 -r setup_ssl || { echo "Timed out waiting for input. Defaulting to 'n'"; setup_ssl="n"; }
+# Directly ask for SSL setup without using read
+echo "Setting up SSL certificate for $DOMAIN_NAME with email $SSL_EMAIL"
+echo "This may take a few minutes..."
 
-if [ "$setup_ssl" = "y" ] || [ "$setup_ssl" = "Y" ]; then
-  echo "Setting up SSL certificate for $DOMAIN_NAME with email $SSL_EMAIL"
-  certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos --email "$SSL_EMAIL" || {
-    echo "SSL certificate setup failed. You can run this later with:"
-    echo "sudo certbot --nginx -d $DOMAIN_NAME"
-  }
-else
-  echo "Skipping SSL certificate setup. You can run this later with:"
+# Run certbot in non-interactive mode
+certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos --email "$SSL_EMAIL" || {
+  echo "SSL certificate setup failed. You can run this later with:"
   echo "sudo certbot --nginx -d $DOMAIN_NAME"
-fi
+}
 
 echo ""
 echo "=== Strfry Installation Complete ==="
