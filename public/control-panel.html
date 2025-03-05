@@ -265,7 +265,7 @@
                 }, 1000);
                 
                 // Make AJAX request to the server
-                fetch('/api/init-db', {
+                fetch('/control/api/init-db', {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -301,7 +301,7 @@
                 statusOutput.style.display = 'block';
                 statusOutput.textContent = 'Checking status...';
                 
-                fetch('/api/status')
+                fetch('/control/api/status')
                 .then(response => response.json())
                 .then(data => {
                     statusOutput.textContent = data.output;
@@ -329,7 +329,7 @@
                 statsStatus.textContent = 'Fetching event statistics...';
                 statsContainer.style.display = 'none';
                 
-                fetch('/api/strfry-stats')
+                fetch('/control/api/strfry-stats')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -374,7 +374,7 @@
                 neo4jStatus.textContent = 'Checking Neo4j status...';
                 neo4jContainer.style.display = 'none';
                 
-                fetch('/api/neo4j-status')
+                fetch('/control/api/neo4j-status')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -436,7 +436,7 @@
                 generateOutput.style.display = 'block';
                 generateOutput.textContent = 'Starting data generation...\n';
                 
-                fetch('/api/generate')
+                fetch('/control/api/generate')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -470,7 +470,7 @@
                 publishOutput.style.display = 'block';
                 publishOutput.textContent = 'Starting event publication...\n';
                 
-                fetch('/api/publish')
+                fetch('/control/api/publish')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
