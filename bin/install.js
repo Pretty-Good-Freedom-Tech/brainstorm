@@ -241,6 +241,21 @@ async function finalSetup() {
   console.log('\x1b[36m=== Final Setup ===\x1b[0m');
   
   console.log('Hasenpfeffr is now installed and configured.');
+  
+  // Neo4j password update instructions
+  console.log('\nNeo4j Configuration:');
+  console.log('1. Access the Neo4j Browser at http://your-server-ip:7474');
+  console.log('2. Log in with username "neo4j" and password "neo4j"');
+  console.log('3. You will be prompted to change the default password');
+  console.log('4. After changing the password, update it in your Hasenpfeffr configuration:');
+  console.log('   Edit /etc/hasenpfeffr.conf and update the NEO4J_PASSWORD value');
+  console.log('5. Run the following commands in the Neo4j Browser to set up constraints and indices:');
+  console.log('   CREATE CONSTRAINT IF NOT EXISTS FOR (u:NostrUser) REQUIRE u.pubkey IS UNIQUE;');
+  console.log('   CREATE CONSTRAINT IF NOT EXISTS FOR (e:NostrEvent) REQUIRE e.id IS UNIQUE;');
+  console.log('   CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.pubkey);');
+  console.log('   CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.kind);');
+  
+  // Nginx configuration instructions
   console.log('\nNginx Configuration:');
   console.log('If you installed Strfry, Nginx has been configured to serve both the Strfry relay');
   console.log('and the Hasenpfeffr control panel. The control panel is available at:');
@@ -255,6 +270,11 @@ async function finalSetup() {
   console.log('    proxy_http_version 1.1;');
   console.log('}');
   console.log('```');
+  
+  // SSL certificate instructions
+  console.log('\nSSL Certificate:');
+  console.log('If you skipped SSL certificate setup or it failed, you can set it up later with:');
+  console.log('sudo certbot --nginx -d your-domain.com');
   
   // Wait for user acknowledgment
   await askQuestion('Press Enter to continue...');

@@ -208,10 +208,22 @@ fi
 
 # Step 10: Set up SSL certificate
 echo "=== Setting up SSL certificate ==="
+# Use a non-interactive approach with environment variable
+export DEBIAN_FRONTEND=noninteractive
+
+# Default email for SSL certificate
+SSL_EMAIL="admin@${DOMAIN_NAME}"
+
+# Ask for SSL setup with a timeout to prevent hanging
 echo "Would you like to set up an SSL certificate now? (y/n)"
-read -r setup_ssl
+read -t 30 -r setup_ssl || { echo "Timed out waiting for input. Defaulting to 'n'"; setup_ssl="n"; }
+
 if [ "$setup_ssl" = "y" ] || [ "$setup_ssl" = "Y" ]; then
-  certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos --email "admin@${DOMAIN_NAME}"
+  echo "Setting up SSL certificate for $DOMAIN_NAME with email $SSL_EMAIL"
+  certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos --email "$SSL_EMAIL" || {
+    echo "SSL certificate setup failed. You can run this later with:"
+    echo "sudo certbot --nginx -d $DOMAIN_NAME"
+  }
 else
   echo "Skipping SSL certificate setup. You can run this later with:"
   echo "sudo certbot --nginx -d $DOMAIN_NAME"

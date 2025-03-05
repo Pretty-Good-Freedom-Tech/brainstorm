@@ -98,13 +98,34 @@ echo "=== Setting up Neo4j constraints and indices ==="
 # Wait for Neo4j to fully start
 sleep 10
 
-# Run Cypher commands to set up constraints and indices
-neo4j-admin dbms run --user=neo4j --password=neo4j --database=neo4j "
+# Create a Cypher file for constraints and indices
+CYPHER_FILE="/tmp/neo4j_constraints.cypher"
+cat > "$CYPHER_FILE" << EOF
 CREATE CONSTRAINT IF NOT EXISTS FOR (u:NostrUser) REQUIRE u.pubkey IS UNIQUE;
 CREATE CONSTRAINT IF NOT EXISTS FOR (e:NostrEvent) REQUIRE e.id IS UNIQUE;
 CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.pubkey);
 CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.kind);
-"
+EOF
+
+# Use cypher-shell to execute the commands
+echo "Running Neo4j constraints and indices setup..."
+if command -v cypher-shell &> /dev/null; then
+  # Try with default password first
+  if cypher-shell -u neo4j -p neo4j --file "$CYPHER_FILE" 2>/dev/null; then
+    echo "Neo4j constraints and indices set up successfully."
+  else
+    echo "Could not set up Neo4j constraints and indices with default password."
+    echo "You will need to run the following commands manually after setting up your password:"
+    cat "$CYPHER_FILE"
+  fi
+else
+  echo "cypher-shell not found. You will need to run the following commands manually:"
+  cat "$CYPHER_FILE"
+  echo "You can run these commands in the Neo4j Browser at http://your-server-ip:7474"
+fi
+
+# Clean up
+rm -f "$CYPHER_FILE"
 
 echo ""
 echo "=== Neo4j Installation Complete ==="
