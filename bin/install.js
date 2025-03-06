@@ -34,10 +34,10 @@ const configPaths = {
   hasenpfeffrConfDestination: '/etc/hasenpfeffr.conf',
   strfryRouterConfigDestination: `/etc/strfry-router.config`,
   setupDir: path.join(packageRoot, 'setup'),
+  strfryRouterConfigContent: path.join(packageRoot, 'setup', 'strfry-router.config'),
   neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
   neo4jIndicesScript: path.join(packageRoot, 'setup', 'neo4jCommandsAndIndices.sh'),
   strfryInstallScript: path.join(packageRoot, 'setup', 'install-strfry.sh'),
-  strfryRouterConfigContent: path.join(packageRoot, 'setup', 'strfry-router.config'),
   controlPanelInstallScript: path.join(packageRoot, 'setup', 'install-control-panel.sh'),
   createNostrIdentityScript: path.join(packageRoot, 'setup','create_nostr_identity.sh'),
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
@@ -92,7 +92,7 @@ async function createStrfryRouterConfigFile() {
 
   // Write strfry router configuration file
   if (isRoot) {
-    fs.writeFileSync(configPaths.strfryRouterConfigDestination, strfryRouterConfigContent);
+    fs.writeFileSync(configPaths.strfryRouterConfigDestination, configPaths.strfryRouterConfigContent);
     execSync(`chmod 600 ${configPaths.strfryRouterConfigDestination}`);
     console.log(`Configuration file created at ${configPaths.strfryRouterConfigDestination}`);
 
@@ -100,7 +100,7 @@ async function createStrfryRouterConfigFile() {
     console.log('\x1b[33mCannot create strfry router configuration file without root privileges.\x1b[0m');
     console.log('Please manually create the file with the following content:');
     console.log('---');
-    console.log(strfryRouterConfigContent);
+    console.log(configPaths.strfryRouterConfigContent);
     console.log('---');
     console.log(`Save it to: ${configPaths.strfryRouterConfigDestination}`);
     console.log('And set permissions: chmod 600 ' + configPaths.strfryRouterConfigDestination);
