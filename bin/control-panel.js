@@ -103,93 +103,52 @@ function handleStatus(req, res) {
 function handleStrfryStats(req, res) {
     console.log('Getting strfry event statistics...');
     
-    // Create an object to store all stats
-    const stats = {
-        total: 0,
-        kind3: 0,
-        kind1984: 0,
-        kind10000: 0,
-        error: null
-    };
-
-    // Full path to strfry executable and data directory
-    const strfryPath = '/usr/local/bin/strfry';
+    // Set the response header to ensure it's always JSON
+    res.setHeader('Content-Type', 'application/json');
     
-    // Get data directory from config if available, otherwise use default
-    const strfryDataDir = config.STRFRY_DATA_DIR || '/var/lib/strfry';
-    console.log(`Using strfry data directory: ${strfryDataDir}`);
-
-    // Function to execute strfry scan with kind filter
-    const getEventCount = (kindFilter, statKey) => {
-        return new Promise((resolve) => {
-            let jsonFilter;
-            if (!kindFilter) {
-                jsonFilter = '{}';
-            } else {
-                jsonFilter = `{ "kinds": [${kindFilter}]}`;
-            }
-            
-            // First try without sudo
-            const commandWithoutSudo = `${strfryPath} --db ${strfryDataDir} scan --count '${jsonFilter}'`;
-            console.log(`Executing command: ${commandWithoutSudo}`);
-            
-            exec(commandWithoutSudo, (error, stdout, stderr) => {
-                if (!error) {
-                    // Command succeeded without sudo
-                    console.log(`Command output: ${stdout}`);
-                    const match = stdout.match(/Found (\d+) events/);
-                    if (match && match[1]) {
-                        stats[statKey] = parseInt(match[1], 10);
-                    }
-                    resolve();
-                    return;
-                }
-                
-                // If the command failed without sudo, try with sudo
-                const commandWithSudo = `sudo -n ${strfryPath} --db ${strfryDataDir} scan --count '${jsonFilter}'`;
-                console.log(`Executing command with sudo: ${commandWithSudo}`);
-                
-                exec(commandWithSudo, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`Error executing strfry scan: ${stderr || error.message}`);
-                        stats.error = `Error executing strfry scan: ${stderr || error.message}`;
-                        resolve();
-                        return;
-                    }
-                    
-                    console.log(`Command output with sudo: ${stdout}`);
-                    // Parse the count from stdout (expected format: "Found X events")
-                    const match = stdout.match(/Found (\d+) events/);
-                    if (match && match[1]) {
-                        stats[statKey] = parseInt(match[1], 10);
-                    }
-                    resolve();
-                });
+    exec('hasenpfeffr-strfry-stats', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing strfry stats: ${stderr || error.message}`);
+            return res.json({
+                success: false,
+                stats: {
+                    total: 0,
+                    kind3: 0,
+                    kind1984: 0,
+                    kind10000: 0,
+                    error: `Error executing strfry stats: ${stderr || error.message}`
+                },
+                error: `Error executing strfry stats: ${stderr || error.message}`
             });
-        });
-    };
-
-    // Execute all commands in sequence
-    Promise.all([
-        getEventCount('', 'total'),
-        getEventCount('3', 'kind3'),
-        getEventCount('1984', 'kind1984'),
-        getEventCount('10000', 'kind10000')
-    ])
-    .then(() => {
-        console.log('Strfry stats:', stats);
-        res.json({
-            success: !stats.error,
-            stats: stats,
-            error: stats.error
-        });
-    })
-    .catch(err => {
-        console.error('Failed to get strfry stats:', err);
-        res.json({
-            success: false,
-            error: `Failed to get strfry stats: ${err.message}`
-        });
+        }
+        
+        try {
+            // Parse the JSON output from the script
+            const stats = JSON.parse(stdout);
+            console.log('Strfry stats:', stats);
+            
+            return res.json({
+                success: true,
+                stats: {
+                    ...stats,
+                    error: null
+                },
+                error: null
+            });
+        } catch (parseError) {
+            console.error('Error parsing strfry stats output:', parseError, 'Output was:', stdout);
+            return res.json({
+                success: false,
+                stats: {
+                    total: 0,
+                    kind3: 0,
+                    kind1984: 0,
+                    kind10000: 0,
+                    error: `Error parsing strfry stats output: ${parseError.message}`
+                },
+                error: `Error parsing strfry stats output: ${parseError.message}`
+            });
+        }
     });
 }
 
