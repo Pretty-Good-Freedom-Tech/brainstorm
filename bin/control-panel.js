@@ -112,6 +112,7 @@ function handleStrfryStats(req, res) {
             return res.json({
                 success: false,
                 stats: {
+                    foo: 'bar',
                     total: 0,
                     kind3: 0,
                     kind1984: 0,
@@ -171,6 +172,11 @@ function handleNeo4jStatus(req, res) {
     // Check if Neo4j service is running
     exec('systemctl is-active neo4j', (serviceError, serviceStdout) => {
         neo4jStatus.running = serviceStdout.trim() === 'active';
+        
+        return res.json({
+            success: true,
+            status: neo4jStatus
+        });
         
         // If not running, return early
         if (!neo4jStatus.running) {
