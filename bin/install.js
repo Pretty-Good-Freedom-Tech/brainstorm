@@ -93,7 +93,7 @@ async function createStrfryRouterConfigFile() {
   // Write strfry router configuration file
   if (isRoot) {
     fs.writeFileSync(configPaths.strfryRouterConfigDestination, configPaths.strfryRouterConfigContent);
-    execSync(`chmod 600 ${configPaths.strfryRouterConfigDestination}`);
+    execSync(`chmod 644 ${configPaths.strfryRouterConfigDestination}`);
     console.log(`Configuration file created at ${configPaths.strfryRouterConfigDestination}`);
 
   } else {
@@ -103,7 +103,7 @@ async function createStrfryRouterConfigFile() {
     console.log(configPaths.strfryRouterConfigContent);
     console.log('---');
     console.log(`Save it to: ${configPaths.strfryRouterConfigDestination}`);
-    console.log('And set permissions: chmod 600 ' + configPaths.strfryRouterConfigDestination);
+    console.log('And set permissions: chmod 644 ' + configPaths.strfryRouterConfigDestination);
   }
 }
 
@@ -144,7 +144,7 @@ export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
   // Write hasenpfeffr configuration file
   if (isRoot) {
     fs.writeFileSync(configPaths.hasenpfeffrConfDestination, hasenpfeffrConfigContent);
-    execSync(`chmod 600 ${configPaths.hasenpfeffrConfDestination}`);
+    execSync(`chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
     console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
     // Generate Nostr identity
@@ -164,7 +164,7 @@ export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
     console.log(configContent);
     console.log('---');
     console.log(`Save it to: ${configPaths.hasenpfeffrConfDestination}`);
-    console.log('And set permissions: chmod 600 ' + configPaths.hasenpfeffrConfDestination);
+    console.log('And set permissions: chmod 644 ' + configPaths.hasenpfeffrConfDestination);
     console.log('Then run: sudo ' + configPaths.createNostrIdentityScript);
     
     // Wait for user acknowledgment
