@@ -113,10 +113,7 @@ get_event_count() {
     fi
     
     # Try to run strfry scan with sudo
-    output=$(sudo strfry scan --count "$filter_json" 2>&1)
-    
-    # Extract the count from the output
-    count=$(echo "$output" | grep -o "Found [0-9]* events" | grep -o "[0-9]*")
+    count=$(sudo strfry scan --count "$filter_json")
     
     # If count is empty, set it to 0
     if [ -z "$count" ]; then
