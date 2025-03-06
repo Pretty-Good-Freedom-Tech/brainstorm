@@ -7,14 +7,16 @@
  * and API server for managing NIP-85 data generation and publication.
  */
 
-const path = require('path');
-const fs = require('fs');
 const express = require('express');
 const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 // Import configuration
+let config = {};
 try {
-  const config = require('./lib/config');
+  const { loadConfig } = require('../lib/config');
+  config = loadConfig();
 } catch (error) {
   console.warn('Could not load configuration:', error.message);
 }
