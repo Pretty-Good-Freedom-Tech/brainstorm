@@ -1,0 +1,13 @@
+[Unit]
+Description=Add to Nostr Queue Service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+EnvironmentFile=/etc/hasenpfeffr.conf
+ExecStart=/usr/bin/node /home/ubuntu/hasenpfeffr/pipeline/stream/addToQueue.mjs
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

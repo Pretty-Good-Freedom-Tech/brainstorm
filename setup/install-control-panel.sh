@@ -40,20 +40,8 @@ cat > "$CONTROL_PANEL_SCRIPT" << 'EOF'
 # Wrapper script for Hasenpfeffr Control Panel
 # This script finds and executes the control-panel.js script
 
-# Try to find the control-panel.js script in various locations
 # Note: The bin/control-panel.js is the primary script used in production
 SCRIPT_PATH="/usr/local/lib/node_modules/hasenpfeffr/bin/control-panel.js"
-
-#if [ -f "/usr/local/lib/node_modules/hasenpfeffr/bin/control-panel.js" ]; then
-#  SCRIPT_PATH="/usr/local/lib/node_modules/hasenpfeffr/bin/control-panel.js"
-#elif [ -f "/usr/lib/node_modules/hasenpfeffr/bin/control-panel.js" ]; then
-#  SCRIPT_PATH="/usr/lib/node_modules/hasenpfeffr/bin/control-panel.js"
-#elif [ -f "/opt/hasenpfeffr/bin/control-panel.js" ]; then
-#  SCRIPT_PATH="/opt/hasenpfeffr/bin/control-panel.js"
-#else
-#  echo "Error: Could not find bin/control-panel.js script"
-#  exit 1
-#fi
 
 # Execute the script with node
 exec node "$SCRIPT_PATH" "$@"

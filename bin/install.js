@@ -37,12 +37,24 @@ const configPaths = {
   strfryRouterConfigContent: path.join(packageRoot, 'setup', 'strfry-router.config'),
   neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
   neo4jIndicesScript: path.join(packageRoot, 'setup', 'neo4jCommandsAndIndices.sh'),
+
   strfryInstallScript: path.join(packageRoot, 'setup', 'install-strfry.sh'),
   controlPanelInstallScript: path.join(packageRoot, 'setup', 'install-control-panel.sh'),
   createNostrIdentityScript: path.join(packageRoot, 'setup','create_nostr_identity.sh'),
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
+
+  pipelineInstallScript: path.join(packageRoot, 'setup', 'install-pipeline.sh'),
   systemdServiceDir: '/etc/systemd/system',
-  systemdServiceFile: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service')
+
+  controlPanelServiceFileContent: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
+  strfryRouterServiceFileContent: path.join(packageRoot, 'systemd', 'strfry-router.service'),
+  addToQueueServiceFileContent: path.join(packageRoot, 'systemd', 'addToQueue.service'),
+  processQueueServiceFileContent: path.join(packageRoot, 'systemd', 'processQueue.service'),
+
+  controlPanelServiceFileDestination: path.join(systemdServiceDir, 'hasenpfeffr-control-panel.service'),
+  strfryRouterServiceFileDestination: path.join(systemdServiceDir, 'strfry-router.service'),
+  addToQueueServiceFileDestination: path.join(systemdServiceDir, 'addToQueue.service'),
+  processQueueServiceFileDestination: path.join(systemdServiceDir, 'processQueue.service')
 };
 
 // Main installation function
@@ -61,10 +73,16 @@ async function install() {
     // Step 3: Install Strfry Nostr relay
     await installStrfry();
     
-    // Step 4: Set up systemd service
-    await setupSystemdService();
+    // Step 4: Set up systemd services
+    await setupControlPanelService();
+    await setupStrfryRouterService();
+    await setupAddToQueueService();
+    await setupProcessQueueService();
+
+    // Step 5: Setup Strfry Neo4j Pipeline
+    await installPipeline();
     
-    // Step 5: Final setup and instructions
+    // Step 6: Final setup and instructions
     await finalSetup();
     
     console.log('\x1b[32m=== Installation Complete ===\x1b[0m');
@@ -209,6 +227,39 @@ async function installNeo4j() {
   }
 }
 
+async function installPipeline() {
+  console.log('\x1b[36m=== Installing Strfry to Neo4j Pipeline ===\x1b[0m');
+  
+  if (!isRoot) {
+    console.log('\x1b[33mCannot install pipeline without root privileges.\x1b[0m');
+    console.log(`Please manually run the installation script: sudo ${configPaths.pipelineInstallScript}`);
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+  
+  const installPipeline = await askQuestion('Would you like to install Strfry to neo4j Pipeline? (y/n): ');
+  if (installPipeline.toLowerCase() !== 'y') {
+    console.log('Skipping pipeline installation.');
+    return;
+  }
+  
+  try {
+    // Make script executable
+    execSync(`chmod +x ${configPaths.pipelineInstallScript}`);
+    
+    // Run pipeline installation script
+    console.log('Installing pipeline (this may take a few minutes)...');
+    execSync(`script -q -c "${configPaths.pipelineInstallScript}" /dev/null`, { stdio: 'inherit' });
+    
+    console.log('Pipeline installation completed successfully.');
+  } catch (error) {
+    console.error('\x1b[31mError installing pipeline:\x1b[0m', error.message);
+    throw new Error('Pipeline installation failed');
+  }
+}
+
 // Install Strfry Nostr relay
 async function installStrfry() {
   console.log('\x1b[36m=== Installing Strfry Nostr Relay ===\x1b[0m');
@@ -243,12 +294,92 @@ async function installStrfry() {
   }
 }
 
-// Set up systemd service
-async function setupSystemdService() {
-  console.log('\x1b[36m=== Setting Up Systemd Service ===\x1b[0m');
+// Set up systemd services
+async function setupStrfryRouterService() {
+  console.log('\x1b[36m=== Setting Up Strfry Router Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up strfry router systemd service without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if strfry router service file already exists
+  if (fs.existsSync(configPaths.strfryRouterServiceFileDestination)) {
+    console.log(`Strfry router service file ${configPaths.strfryRouterServiceFileDestination} already exists.`);
+    return;
+  }
+
+  // move strfry-router.service to proper folder
+  fs.writeFileSync(configPaths.strfryRouterServiceFileDestination, configPaths.strfryRouterServiceFileContent);
+  console.log(`Strfry router service file created at ${configPaths.strfryRouterServiceFileDestination}`);
+
+  // enable the service
+  execSync(`systemctl enable strfry-router.service`);
+
+  // starting the service will be performed at the control panel
+}
+
+async function setupAddToQueueService() {
+  console.log('\x1b[36m=== Setting Up AddToQueue Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up AddToQueue systemd service without root privileges.\x1b[0m');
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if addToQueue service file already exists
+  if (fs.existsSync(configPaths.addToQueueServiceFileDestination)) {
+    console.log(`addToQueue service file ${configPaths.addToQueueServiceFileDestination} already exists.`);
+    return;
+  }
+
+  // move addToQueue.service to proper folder
+  fs.writeFileSync(configPaths.addToQueueServiceFileDestination, configPaths.addToQueueServiceFileContent);
+  console.log(`addToQueue service file created at ${configPaths.addToQueueServiceFileDestination}`);
+
+  // enable the service
+  execSync(`systemctl enable addToQueue.service`);
+
+  // starting the service will be performed at the control panel
+}
+
+async function setupProcessQueueService() {
+  console.log('\x1b[36m=== Setting Up ProcessQueue Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up ProcessQueue systemd service without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if processQueue service file already exists
+  if (fs.existsSync(configPaths.processQueueServiceFileDestination)) {
+    console.log(`processQueue service file ${configPaths.processQueueServiceFileDestination} already exists.`);
+    return;
+  }
+
+  // move processQueue.service to proper folder
+  fs.writeFileSync(configPaths.processQueueServiceFileDestination, configPaths.processQueueServiceFileContent);
+  console.log(`processQueue service file created at ${configPaths.processQueueServiceFileDestination}`);
+
+  // enable the service
+  execSync(`systemctl enable processQueue.service`);
+
+  // starting the service will be performed at the control panel
+}
+
+async function setupControlPanelService() {
+  console.log('\x1b[36m=== Setting Up Control Panel Systemd Service ===\x1b[0m');
   
   if (!isRoot) {
-    console.log('\x1b[33mCannot set up systemd service without root privileges.\x1b[0m');
+    console.log('\x1b[33mCannot set up control panelsystemd service without root privileges.\x1b[0m');
     console.log(`Please manually run the control panel installation script:`);
     console.log(`sudo bash ${configPaths.controlPanelInstallScript}`);
     
