@@ -77,13 +77,69 @@ fi
 
 # Step 4: Install the negentropy-sync script
 echo "=== Installing negentropy-sync script ==="
-cp "$HASENPFEFFR_INSTALL_DIR/bin/negentropy-sync.sh" /usr/local/bin/hasenpfeffr-negentropy-sync
+cat > /usr/local/bin/hasenpfeffr-negentropy-sync << 'EOF'
+#!/bin/bash
+
+# Hasenpfeffr Negentropy Sync Script
+# This script uses strfry's negentropy implementation to sync FOLLOWS, MUTES and REPORTS data
+
+echo "Starting Negentropy sync with relay.hasenpfeffr.com..."
+
+# Run strfry sync with negentropy
+sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[3, 1984, 10000]}' --dir down
+
+echo "Negentropy sync completed!"
+EOF
 chmod +x /usr/local/bin/hasenpfeffr-negentropy-sync
 chown $HASENPFEFFR_USER:$HASENPFEFFR_GROUP /usr/local/bin/hasenpfeffr-negentropy-sync
 
 # Step 5: Install the strfry-stats script
 echo "=== Installing strfry-stats script ==="
-cp "$HASENPFEFFR_INSTALL_DIR/bin/strfry-stats.sh" /usr/local/bin/hasenpfeffr-strfry-stats
+cat > /usr/local/bin/hasenpfeffr-strfry-stats << 'EOF'
+#!/bin/bash
+
+# Hasenpfeffr Strfry Stats Script
+# This script retrieves event statistics from the strfry database
+
+# Function to get event count for a specific filter
+get_event_count() {
+    local filter="$1"
+    local filter_json
+    
+    if [ -z "$filter" ]; then
+        filter_json="{}"
+    else
+        filter_json="{ \"kinds\": [$filter]}"
+    fi
+    
+    # Try to run strfry scan with sudo
+    output=$(sudo strfry scan --count "$filter_json" 2>&1)
+    
+    # Extract the count from the output
+    count=$(echo "$output" | grep -o "Found [0-9]* events" | grep -o "[0-9]*")
+    
+    # If count is empty, set it to 0
+    if [ -z "$count" ]; then
+        count=0
+    fi
+    
+    echo "$count"
+}
+
+# Get total event count
+total=$(get_event_count "")
+kind3=$(get_event_count "3")
+kind1984=$(get_event_count "1984")
+kind10000=$(get_event_count "10000")
+
+# Output as JSON
+echo "{"
+echo "  \"total\": $total,"
+echo "  \"kind3\": $kind3,"
+echo "  \"kind1984\": $kind1984,"
+echo "  \"kind10000\": $kind10000"
+echo "}"
+EOF
 chmod +x /usr/local/bin/hasenpfeffr-strfry-stats
 chown $HASENPFEFFR_USER:$HASENPFEFFR_GROUP /usr/local/bin/hasenpfeffr-strfry-stats
 
