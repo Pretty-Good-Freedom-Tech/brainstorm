@@ -73,9 +73,9 @@ app.get('/control/api/strfry-stats', handleStrfryStats);
 app.get('/api/neo4j-status', handleNeo4jStatus);
 app.get('/control/api/neo4j-status', handleNeo4jStatus);
 
-// API endpoint to initialize database
-app.post('/api/init-db', handleInitDb);
-app.post('/control/api/init-db', handleInitDb);
+// API endpoint for Negentropy sync
+app.post('/api/negentropy-sync', handleNegentropySync);
+app.post('/control/api/negentropy-sync', handleNegentropySync);
 
 // API endpoint to generate NIP-85 data
 app.get('/api/generate', handleGenerate);
@@ -274,10 +274,10 @@ function handleNeo4jStatus(req, res) {
     });
 }
 
-function handleInitDb(req, res) {
-    console.log('Initializing database...');
+function handleNegentropySync(req, res) {
+    console.log('Syncing with Negentropy...');
     
-    exec('bash /usr/local/bin/hasenpfeffr-init-db.sh', (error, stdout, stderr) => {
+    exec('hasenpfeffr-negentropy-sync', (error, stdout, stderr) => {
         return res.json({
             success: !error,
             output: stdout || stderr

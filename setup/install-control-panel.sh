@@ -75,7 +75,13 @@ if [ ! -d "$HASENPFEFFR_INSTALL_DIR" ]; then
   chown -R $HASENPFEFFR_USER:$HASENPFEFFR_GROUP "$HASENPFEFFR_INSTALL_DIR"
 fi
 
-# Step 4: Copy and enable the systemd service
+# Step 4: Install the negentropy-sync script
+echo "=== Installing Negentropy sync script ==="
+cp "$HASENPFEFFR_INSTALL_DIR/bin/negentropy-sync.sh" /usr/local/bin/hasenpfeffr-negentropy-sync
+chmod +x /usr/local/bin/hasenpfeffr-negentropy-sync
+chown $HASENPFEFFR_USER:$HASENPFEFFR_GROUP /usr/local/bin/hasenpfeffr-negentropy-sync
+
+# Step 5: Copy and enable the systemd service
 echo "=== Setting up systemd service ==="
 if [ -f "$SOURCE_DIR/systemd/$SYSTEMD_SERVICE_FILE" ]; then
   cp "$SOURCE_DIR/systemd/$SYSTEMD_SERVICE_FILE" "$SYSTEMD_SERVICE_DIR/"
@@ -98,7 +104,7 @@ else
   echo "Check logs with: journalctl -u $SYSTEMD_SERVICE_FILE"
 fi
 
-# Step 5: Set up sudoers file for strfry commands
+# Step 6: Set up sudoers file for strfry commands
 echo "=== Setting up sudoers file for strfry commands ==="
 if [ -f "$SOURCE_DIR/setup/hasenpfeffr-sudoers" ]; then
   cp "$SOURCE_DIR/setup/hasenpfeffr-sudoers" /etc/sudoers.d/hasenpfeffr

@@ -127,16 +127,16 @@
         </div>
         
         <div class="section">
-            <h2>Database Management</h2>
+            <h2>Data Management</h2>
             <div class="card">
-                <h3>Initialize Database</h3>
-                <p>Populate the strfry database with events from relay.primal.net (kinds 3, 1984, 10000).</p>
-                <button id="initDbBtn" class="button">Initialize Database</button>
-                <div id="initDbStatus" class="status" style="display: none;"></div>
-                <div class="progress-container" style="display: none;" id="initDbProgress">
-                    <div class="progress-bar" id="initDbProgressBar"></div>
+                <h3>Strfry Negentropy Sync</h3>
+                <p>Use <a href="https://github.com/hoytech/negentropy" target="_blank">negentropy</a> to download FOLLOWS, MUTES and REPORTS data (kinds 3, 1984, 10000) from wss://relay.hasenpfeffr.com.</p>
+                <button id="negentropyBtn" class="button">Sync with Negentropy</button>
+                <div id="negentropyStatus" class="status" style="display: none;"></div>
+                <div class="progress-container" style="display: none;" id="negentropyProgress">
+                    <div class="progress-bar" id="negentropyProgressBar"></div>
                 </div>
-                <pre id="initDbOutput" style="display: none;"></pre>
+                <pre id="negentropyOutput" style="display: none;"></pre>
             </div>
         </div>
         
@@ -239,59 +239,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Database Button
-            const initDbBtn = document.getElementById('initDbBtn');
-            const initDbStatus = document.getElementById('initDbStatus');
-            const initDbOutput = document.getElementById('initDbOutput');
-            const initDbProgress = document.getElementById('initDbProgress');
-            const initDbProgressBar = document.getElementById('initDbProgressBar');
-            
-            initDbBtn.addEventListener('click', function() {
-                initDbBtn.disabled = true;
-                initDbStatus.style.display = 'block';
-                initDbStatus.className = 'status info';
-                initDbStatus.textContent = 'Initializing database... This may take a while.';
-                initDbOutput.style.display = 'block';
-                initDbOutput.textContent = 'Starting database initialization...\n';
-                initDbProgress.style.display = 'block';
-                
-                // Simulate progress updates (in a real implementation, this would be based on actual progress)
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 2;
-                    if (progress > 100) progress = 100;
-                    initDbProgressBar.style.width = progress + '%';
-                    if (progress === 100) clearInterval(progressInterval);
-                }, 1000);
-                
-                // Make AJAX request to the server
-                fetch('/control/api/init-db', {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    clearInterval(progressInterval);
-                    initDbProgressBar.style.width = '100%';
-                    
-                    if (data.success) {
-                        initDbStatus.className = 'status success';
-                        initDbStatus.textContent = 'Database initialized successfully!';
-                    } else {
-                        initDbStatus.className = 'status error';
-                        initDbStatus.textContent = 'Error initializing database: ' + data.error;
-                    }
-                    
-                    initDbOutput.textContent += data.output;
-                    initDbBtn.disabled = false;
-                })
-                .catch(error => {
-                    clearInterval(progressInterval);
-                    initDbStatus.className = 'status error';
-                    initDbStatus.textContent = 'Error initializing database: ' + error.message;
-                    initDbBtn.disabled = false;
-                });
-            });
-            
             // Check Status Button
             const checkStatusBtn = document.getElementById('checkStatusBtn');
             const statusOutput = document.getElementById('statusOutput');
@@ -488,6 +435,59 @@
                     publishStatus.className = 'status error';
                     publishStatus.textContent = 'Error publishing events: ' + error.message;
                     publishBtn.disabled = false;
+                });
+            });
+            
+            // Negentropy Sync Button
+            const negentropyBtn = document.getElementById('negentropyBtn');
+            const negentropyStatus = document.getElementById('negentropyStatus');
+            const negentropyOutput = document.getElementById('negentropyOutput');
+            const negentropyProgress = document.getElementById('negentropyProgress');
+            const negentropyProgressBar = document.getElementById('negentropyProgressBar');
+            
+            negentropyBtn.addEventListener('click', function() {
+                negentropyBtn.disabled = true;
+                negentropyStatus.style.display = 'block';
+                negentropyStatus.className = 'status info';
+                negentropyStatus.textContent = 'Syncing with Negentropy... This may take a while.';
+                negentropyOutput.style.display = 'block';
+                negentropyOutput.textContent = 'Starting Negentropy sync...\n';
+                negentropyProgress.style.display = 'block';
+                
+                // Simulate progress updates (in a real implementation, this would be based on actual progress)
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 2;
+                    if (progress > 100) progress = 100;
+                    negentropyProgressBar.style.width = progress + '%';
+                    if (progress === 100) clearInterval(progressInterval);
+                }, 1000);
+                
+                // Make AJAX request to the server
+                fetch('/control/api/negentropy-sync', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    clearInterval(progressInterval);
+                    negentropyProgressBar.style.width = '100%';
+                    
+                    if (data.success) {
+                        negentropyStatus.className = 'status success';
+                        negentropyStatus.textContent = 'Negentropy sync completed successfully!';
+                    } else {
+                        negentropyStatus.className = 'status error';
+                        negentropyStatus.textContent = 'Error syncing with Negentropy: ' + data.error;
+                    }
+                    
+                    negentropyOutput.textContent += data.output;
+                    negentropyBtn.disabled = false;
+                })
+                .catch(error => {
+                    clearInterval(progressInterval);
+                    negentropyStatus.className = 'status error';
+                    negentropyStatus.textContent = 'Error syncing with Negentropy: ' + error.message;
+                    negentropyBtn.disabled = false;
                 });
             });
         });
