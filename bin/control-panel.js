@@ -8,17 +8,48 @@
  */
 
 const express = require('express');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 // Import configuration
-let config = {};
+let config;
 try {
-  const { loadConfig } = require('../lib/config');
-  config = loadConfig();
+  const configModule = require('../lib/config');
+  config = configModule.getAll();
 } catch (error) {
   console.warn('Could not load configuration:', error.message);
+  config = {};
+}
+
+// Function to get configuration values directly from /etc/hasenpfeffr.conf
+function getConfigFromFile(varName, defaultValue = null) {
+  try {
+    const confFile = '/etc/hasenpfeffr.conf';
+    if (fs.existsSync(confFile)) {
+      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
+      return result || defaultValue;
+    }
+    return defaultValue;
+  } catch (error) {
+    console.error(`Error getting configuration value ${varName}:`, error.message);
+    return defaultValue;
+  }
+}
+
+// Function to get Neo4j connection details
+function getNeo4jConnection() {
+  // Try to get from config module first
+  if (config && config.neo4j) {
+    return config.neo4j;
+  }
+  
+  // Fall back to direct file access
+  return {
+    uri: getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687'),
+    user: getConfigFromFile('NEO4J_USER', 'neo4j'),
+    password: getConfigFromFile('NEO4J_PASSWORD')
+  };
 }
 
 // Create Express app
@@ -172,11 +203,6 @@ function handleNeo4jStatus(req, res) {
     exec('systemctl is-active neo4j', (serviceError, serviceStdout) => {
         neo4jStatus.running = serviceStdout.trim() === 'active';
         
-        return res.json({
-            success: true,
-            status: neo4jStatus
-        });
-
         // If not running, return early
         if (!neo4jStatus.running) {
             return res.json({
@@ -187,7 +213,17 @@ function handleNeo4jStatus(req, res) {
         
         // Helper function to execute Cypher queries
         const executeCypher = (query, handler) => {
-            const command = `cypher-shell -u neo4j -p neo4jneo4j "${query}"`;
+            // Get Neo4j credentials from the configuration system
+            const neo4jConnection = getNeo4jConnection();
+            const neo4jUser = neo4jConnection.user;
+            const neo4jPassword = neo4jConnection.password;
+            
+            if (!neo4jPassword) {
+                neo4jStatus.error = 'Neo4j password not configured. Please update /etc/hasenpfeffr.conf with NEO4J_PASSWORD.';
+                return handler('');
+            }
+            
+            const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
             exec(command, (error, stdout, stderr) => {
                 if (error) {
                     neo4jStatus.error = `Error executing Neo4j query: ${stderr || error.message}`;
@@ -312,3 +348,9 @@ function handlePublish(req, res) {
 app.listen(port, () => {
     console.log(`Hasenpfeffr Control Panel running on port ${port}`);
 });
+
+// Export utility functions for testing and reuse
+module.exports = {
+    getConfigFromFile,
+    getNeo4jConnection
+};

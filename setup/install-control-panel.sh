@@ -21,6 +21,7 @@ CONTROL_PANEL_SCRIPT="/usr/local/bin/hasenpfeffr-control-panel"
 HASENPFEFFR_INSTALL_DIR="/usr/local/lib/node_modules/hasenpfeffr"
 SYSTEMD_SERVICE_DIR="/etc/systemd/system"
 SYSTEMD_SERVICE_FILE="hasenpfeffr-control-panel.service"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Step 1: Create hasenpfeffr user and group if they don't exist
 echo "=== Creating hasenpfeffr user ==="
@@ -142,10 +143,31 @@ EOF
 chmod +x /usr/local/bin/hasenpfeffr-strfry-stats
 chown $HASENPFEFFR_USER:$HASENPFEFFR_GROUP /usr/local/bin/hasenpfeffr-strfry-stats
 
+# Install configuration file if it doesn't exist
+if [ ! -f /etc/hasenpfeffr.conf ]; then
+    echo "Installing configuration file..."
+    cp $SCRIPT_DIR/../config/hasenpfeffr.conf.template /etc/hasenpfeffr.conf
+    
+    # Set secure permissions
+    chown root:$HASENPFEFFR_GROUP /etc/hasenpfeffr.conf
+    chmod 640 /etc/hasenpfeffr.conf
+    
+    echo "Configuration file installed at /etc/hasenpfeffr.conf"
+    echo "Please update it with your specific settings using bin/update-config.sh"
+else
+    echo "Configuration file already exists at /etc/hasenpfeffr.conf"
+fi
+
+# Install configuration update script
+echo "Installing configuration update script..."
+cp $SCRIPT_DIR/../bin/update-config.sh /usr/local/bin/hasenpfeffr-update-config
+chmod +x /usr/local/bin/hasenpfeffr-update-config
+echo "Configuration update script installed at /usr/local/bin/hasenpfeffr-update-config"
+
 # Step 6: Copy and enable the systemd service
 echo "=== Setting up systemd service ==="
-if [ -f "$SOURCE_DIR/systemd/$SYSTEMD_SERVICE_FILE" ]; then
-  cp "$SOURCE_DIR/systemd/$SYSTEMD_SERVICE_FILE" "$SYSTEMD_SERVICE_DIR/"
+if [ -f "$SCRIPT_DIR/../systemd/$SYSTEMD_SERVICE_FILE" ]; then
+  cp "$SCRIPT_DIR/../systemd/$SYSTEMD_SERVICE_FILE" "$SYSTEMD_SERVICE_DIR/"
 else
   cp "$HASENPFEFFR_INSTALL_DIR/systemd/$SYSTEMD_SERVICE_FILE" "$SYSTEMD_SERVICE_DIR/"
 fi
@@ -167,12 +189,12 @@ fi
 
 # Step 7: Set up sudoers file for strfry commands
 echo "=== Setting up sudoers file for strfry commands ==="
-if [ -f "$SOURCE_DIR/setup/hasenpfeffr-sudoers" ]; then
-  cp "$SOURCE_DIR/setup/hasenpfeffr-sudoers" /etc/sudoers.d/hasenpfeffr
+if [ -f "$SCRIPT_DIR/../setup/hasenpfeffr-sudoers" ]; then
+  cp "$SCRIPT_DIR/../setup/hasenpfeffr-sudoers" /etc/sudoers.d/hasenpfeffr
   chmod 440 /etc/sudoers.d/hasenpfeffr
   echo "Sudoers file installed to allow strfry commands without password"
 else
-  echo "Warning: Sudoers file not found at $SOURCE_DIR/setup/hasenpfeffr-sudoers"
+  echo "Warning: Sudoers file not found at $SCRIPT_DIR/../setup/hasenpfeffr-sudoers"
   echo "You may need to manually configure sudo to allow the hasenpfeffr user to run strfry commands without a password"
 fi
 

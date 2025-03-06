@@ -1,0 +1,37 @@
+#!/bin/bash
+# Hasenpfeffr Configuration File
+# This file should be installed at /etc/hasenpfeffr.conf
+# with proper permissions: chmod 640 /etc/hasenpfeffr.conf
+# and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
+
+# ==========================================
+# SENSITIVE CONFIGURATION - KEEP SECURE
+# ==========================================
+
+# Relay configuration
+export HASENPFEFFR_RELAY_URL="wss://relay4.hasenpfeffr.com"
+export HASENPFEFFR_RELAY_PUBKEY="your-relay-pubkey"
+export HASENPFEFFR_RELAY_NSEC="your-relay-private-key"
+
+# Neo4j configuration
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="your_neo4j_password"
+
+# ==========================================
+# GENERAL CONFIGURATION
+# ==========================================
+
+# Performance tuning
+export HASENPFEFFR_BATCH_SIZE="100"
+export HASENPFEFFR_DELAY_BETWEEN_BATCHES="1000"
+export HASENPFEFFR_DELAY_BETWEEN_EVENTS="50"
+export HASENPFEFFR_MAX_RETRIES="3"
+export HASENPFEFFR_MAX_CONCURRENT_CONNECTIONS="5"
+
+# File paths
+export HASENPFEFFR_INPUT_FILE="/home/ubuntu/hasenpfeffr/algos/nip85.json"
+export HASENPFEFFR_KEYS_FILE="/home/ubuntu/hasenpfeffr/nostr/keys/hasenpfeffr_relay_keys"
+
+# Control panel configuration
+export CONTROL_PANEL_PORT="7778"

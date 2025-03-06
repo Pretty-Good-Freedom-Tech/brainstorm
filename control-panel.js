@@ -3,7 +3,7 @@
 /**
  * Hasenpfeffr Control Panel
  * 
- *  ARCHIVED: This file is being archived on March 5, 2025 as part of a codebase cleanup.
+ * ARCHIVED: This file is being archived on March 5, 2025 as part of a codebase cleanup.
  * The active version of this file is now maintained at bin/control-panel.js.
  * 
  * This script starts the Hasenpfeffr Control Panel web interface
@@ -16,7 +16,11 @@ const express = require('express');
 const { exec } = require('child_process');
 
 // Import configuration
-const config = require('./config');
+try {
+  const config = require('./archived/config');
+} catch (error) {
+  console.warn('Could not load configuration:', error.message);
+}
 
 // Create Express app
 const app = express();
@@ -28,7 +32,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve the control panel HTML file
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/control-panel.html'));
+    const htmlPath = path.join(__dirname, 'public/control-panel.html');
+    if (fs.existsSync(htmlPath)) {
+        res.sendFile(htmlPath);
+    } else {
+        res.status(404).send('Control panel HTML file not found');
+    }
 });
 
 // API endpoint to check system status

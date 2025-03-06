@@ -18,7 +18,7 @@ const { exec } = require('child_process');
 
 // Import configuration
 try {
-  const config = require('../lib/config.js');
+  const config = require('./config.js');
   console.log('Configuration loaded successfully');
 } catch (error) {
   console.warn('Could not load configuration:', error.message);
