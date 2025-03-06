@@ -27,18 +27,68 @@ const port = process.env.CONTROL_PANEL_PORT || 7778;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from the public directory
+// First try to find the public directory in the bin directory
+let publicPath = path.join(__dirname, 'public');
+if (!fs.existsSync(publicPath)) {
+    // If not found, try the parent directory (project root)
+    publicPath = path.join(__dirname, '../public');
+}
+app.use(express.static(publicPath));
+
 // Serve the control panel HTML file
 app.get('/', (req, res) => {
-    const htmlPath = path.join(__dirname, 'public/control-panel.html');
+    // First try to find the HTML file in the bin directory
+    let htmlPath = path.join(__dirname, 'public/control-panel.html');
+    
+    // If not found, try the parent directory (project root)
+    if (!fs.existsSync(htmlPath)) {
+        htmlPath = path.join(__dirname, '../public/control-panel.html');
+    }
+    
     if (fs.existsSync(htmlPath)) {
         res.sendFile(htmlPath);
     } else {
-        res.status(404).send('Control panel HTML file not found');
+        res.status(404).send('Control panel HTML file not found. Looked in: ' + 
+                            path.join(__dirname, 'public/control-panel.html') + ' and ' +
+                            path.join(__dirname, '../public/control-panel.html'));
     }
 });
 
+// Define API routes for both direct access and nginx proxy
+// Direct access: /api/...
+// Nginx proxy: /control/api/...
+
 // API endpoint to check system status
-app.get('/api/status', (req, res) => {
+app.get('/api/status', handleStatus);
+app.get('/control/api/status', handleStatus);
+
+// API endpoint to get strfry event statistics
+app.get('/api/strfry-stats', handleStrfryStats);
+app.get('/control/api/strfry-stats', handleStrfryStats);
+
+// API endpoint to get Neo4j status information
+app.get('/api/neo4j-status', handleNeo4jStatus);
+app.get('/control/api/neo4j-status', handleNeo4jStatus);
+
+// API endpoint to initialize database
+app.post('/api/init-db', handleInitDb);
+app.post('/control/api/init-db', handleInitDb);
+
+// API endpoint to generate NIP-85 data
+app.get('/api/generate', handleGenerate);
+app.get('/control/api/generate', handleGenerate);
+app.post('/api/generate', handleGenerate);
+app.post('/control/api/generate', handleGenerate);
+
+// API endpoint to publish NIP-85 events
+app.get('/api/publish', handlePublish);
+app.get('/control/api/publish', handlePublish);
+app.post('/api/publish', handlePublish);
+app.post('/control/api/publish', handlePublish);
+
+// Handler functions for API endpoints
+function handleStatus(req, res) {
     console.log('Checking status...');
     
     exec('systemctl status strfry', (error, stdout, stderr) => {
@@ -46,10 +96,9 @@ app.get('/api/status', (req, res) => {
             output: stdout || stderr
         });
     });
-});
+}
 
-// API endpoint to get strfry event statistics
-app.get('/api/strfry-stats', (req, res) => {
+function handleStrfryStats(req, res) {
     console.log('Getting strfry event statistics...');
     
     // Create an object to store all stats
@@ -126,10 +175,9 @@ app.get('/api/strfry-stats', (req, res) => {
             error: `Failed to get strfry stats: ${err.message}`
         });
     });
-});
+}
 
-// API endpoint to get Neo4j status information
-app.get('/api/neo4j-status', (req, res) => {
+function handleNeo4jStatus(req, res) {
     console.log('Getting Neo4j status information...');
     
     const neo4jStatus = {
@@ -222,10 +270,9 @@ app.get('/api/neo4j-status', (req, res) => {
             });
         });
     });
-});
+}
 
-// API endpoint to initialize database
-app.post('/api/init-db', (req, res) => {
+function handleInitDb(req, res) {
     console.log('Initializing database...');
     
     exec('bash /usr/local/bin/hasenpfeffr-init-db.sh', (error, stdout, stderr) => {
@@ -234,10 +281,9 @@ app.post('/api/init-db', (req, res) => {
             output: stdout || stderr
         });
     });
-});
+}
 
-// API endpoint to generate NIP-85 data
-app.post('/api/generate', (req, res) => {
+function handleGenerate(req, res) {
     console.log('Generating NIP-85 data...');
     
     exec('hasenpfeffr-generate', (error, stdout, stderr) => {
@@ -246,10 +292,9 @@ app.post('/api/generate', (req, res) => {
             output: stdout || stderr
         });
     });
-});
+}
 
-// API endpoint to publish NIP-85 events
-app.post('/api/publish', (req, res) => {
+function handlePublish(req, res) {
     console.log('Publishing NIP-85 events...');
     
     exec('hasenpfeffr-publish', (error, stdout, stderr) => {
@@ -258,7 +303,7 @@ app.post('/api/publish', (req, res) => {
             output: stdout || stderr
         });
     });
-});
+}
 
 // Start the server
 app.listen(port, () => {
