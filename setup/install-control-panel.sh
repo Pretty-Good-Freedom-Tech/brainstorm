@@ -98,6 +98,17 @@ else
   echo "Check logs with: journalctl -u $SYSTEMD_SERVICE_FILE"
 fi
 
+# Step 5: Set up sudoers file for strfry commands
+echo "=== Setting up sudoers file for strfry commands ==="
+if [ -f "$SOURCE_DIR/setup/hasenpfeffr-sudoers" ]; then
+  cp "$SOURCE_DIR/setup/hasenpfeffr-sudoers" /etc/sudoers.d/hasenpfeffr
+  chmod 440 /etc/sudoers.d/hasenpfeffr
+  echo "Sudoers file installed to allow strfry commands without password"
+else
+  echo "Warning: Sudoers file not found at $SOURCE_DIR/setup/hasenpfeffr-sudoers"
+  echo "You may need to manually configure sudo to allow the hasenpfeffr user to run strfry commands without a password"
+fi
+
 echo ""
 echo "=== Hasenpfeffr Control Panel Installation Complete ==="
 echo "You can access the control panel at: http://localhost:7778"

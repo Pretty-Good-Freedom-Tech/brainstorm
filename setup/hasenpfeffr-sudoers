@@ -1,0 +1,2 @@
+# Allow hasenpfeffr user to run strfry commands without a password
+hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/strfry

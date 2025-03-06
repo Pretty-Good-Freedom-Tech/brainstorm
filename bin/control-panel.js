@@ -13,7 +13,11 @@ const express = require('express');
 const { exec } = require('child_process');
 
 // Import configuration
-const config = require('../lib/config');
+try {
+  const config = require('./lib/config');
+} catch (error) {
+  console.warn('Could not load configuration:', error.message);
+}
 
 // Create Express app
 const app = express();
@@ -25,7 +29,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve the control panel HTML file
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/control-panel.html'));
+    const htmlPath = path.join(__dirname, 'public/control-panel.html');
+    if (fs.existsSync(htmlPath)) {
+        res.sendFile(htmlPath);
+    } else {
+        res.status(404).send('Control panel HTML file not found');
+    }
 });
 
 // API endpoint to check system status
@@ -55,26 +64,44 @@ app.get('/api/strfry-stats', (req, res) => {
     // Function to execute strfry scan with kind filter
     const getEventCount = (kindFilter, statKey) => {
         return new Promise((resolve) => {
-            let command;
+            let jsonFilter;
             if (!kindFilter) {
-                command = `sudo strfry scan --count '{}'`;
+                jsonFilter = '{}';
             } else {
-                command = `sudo strfry scan --count '{ "kinds": [${kindFilter}]}'`;
+                jsonFilter = `{ "kinds": [${kindFilter}]}`;
             }
             
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    stats.error = `Error executing strfry scan: ${stderr || error.message}`;
+            // First try without sudo
+            const commandWithoutSudo = `strfry scan --count '${jsonFilter}'`;
+            
+            exec(commandWithoutSudo, (error, stdout, stderr) => {
+                if (!error) {
+                    // Command succeeded without sudo
+                    const match = stdout.match(/Found (\d+) events/);
+                    if (match && match[1]) {
+                        stats[statKey] = parseInt(match[1], 10);
+                    }
                     resolve();
                     return;
                 }
                 
-                // Parse the count from stdout (expected format: "Found X events")
-                const match = stdout.match(/Found (\d+) events/);
-                if (match && match[1]) {
-                    stats[statKey] = parseInt(match[1], 10);
-                }
-                resolve();
+                // If the command failed without sudo, try with sudo
+                const commandWithSudo = `sudo -n strfry scan --count '${jsonFilter}'`;
+                
+                exec(commandWithSudo, (error, stdout, stderr) => {
+                    if (error) {
+                        stats.error = `Error executing strfry scan: ${stderr || error.message}`;
+                        resolve();
+                        return;
+                    }
+                    
+                    // Parse the count from stdout (expected format: "Found X events")
+                    const match = stdout.match(/Found (\d+) events/);
+                    if (match && match[1]) {
+                        stats[statKey] = parseInt(match[1], 10);
+                    }
+                    resolve();
+                });
             });
         });
     };
