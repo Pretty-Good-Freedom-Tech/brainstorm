@@ -31,13 +31,15 @@ const packageRoot = path.resolve(__dirname, '..');
 
 // Configuration paths
 const configPaths = {
-  hasenpfeffrConf: '/etc/hasenpfeffr.conf',
+  hasenpfeffrConfDestination: '/etc/hasenpfeffr.conf',
+  strfryRouterConfigDestination: `/etc/strfry-router.config`,
   setupDir: path.join(packageRoot, 'setup'),
   neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
   neo4jIndicesScript: path.join(packageRoot, 'setup', 'neo4jCommandsAndIndices.sh'),
   strfryInstallScript: path.join(packageRoot, 'setup', 'install-strfry.sh'),
+  strfryRouterConfigContent: path.join(packageRoot, 'setup', 'strfry-router.config'),
   controlPanelInstallScript: path.join(packageRoot, 'setup', 'install-control-panel.sh'),
-  createNostrIdentityScript: path.join(packageRoot, 'create_nostr_identity.sh'),
+  createNostrIdentityScript: path.join(packageRoot, 'setup','create_nostr_identity.sh'),
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
   systemdServiceDir: '/etc/systemd/system',
   systemdServiceFile: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service')
@@ -48,8 +50,10 @@ async function install() {
   console.log('\x1b[32m=== Hasenpfeffr Installation ===\x1b[0m');
   
   try {
-    // Step 1: Create configuration file
-    await createConfigFile();
+    // Step 1: Create hasenpfeffr and strfry-router configuration files
+    await createHasenpfeffrConfigFile();
+
+    await createStrfryRouterConfigFile();
     
     // Step 2: Install Neo4j and plugins
     await installNeo4j();
@@ -76,13 +80,40 @@ async function install() {
   }
 }
 
-// Create configuration file
-async function createConfigFile() {
-  console.log('\x1b[36m=== Creating Configuration File ===\x1b[0m');
+// Create strfry router config file
+async function createStrfryRouterConfigFile() {
+  console.log('\x1b[36m=== Creating Strfry Router Config File ===\x1b[0m');
+
+  // Check if strfry router config file already exists
+  if (fs.existsSync(configPaths.strfryRouterConfigDestination)) {
+    console.log(`Strfry router configuration file ${configPaths.strfryRouterConfigDestination} already exists.`);
+    return;
+  }
+
+  // Write strfry router configuration file
+  if (isRoot) {
+    fs.writeFileSync(configPaths.strfryRouterConfigDestination, strfryRouterConfigContent);
+    execSync(`chmod 600 ${configPaths.strfryRouterConfigDestination}`);
+    console.log(`Configuration file created at ${configPaths.strfryRouterConfigDestination}`);
+
+  } else {
+    console.log('\x1b[33mCannot create strfry router configuration file without root privileges.\x1b[0m');
+    console.log('Please manually create the file with the following content:');
+    console.log('---');
+    console.log(strfryRouterConfigContent);
+    console.log('---');
+    console.log(`Save it to: ${configPaths.strfryRouterConfigDestination}`);
+    console.log('And set permissions: chmod 600 ' + configPaths.strfryRouterConfigDestination);
+  }
+}
+
+// Create hasenpfeffr configuration file
+async function createHasenpfeffrConfigFile() {
+  console.log('\x1b[36m=== Creating Hasenpfeffr Configuration File ===\x1b[0m');
   
   // Check if config file already exists
-  if (fs.existsSync(configPaths.hasenpfeffrConf)) {
-    console.log(`Configuration file ${configPaths.hasenpfeffrConf} already exists.`);
+  if (fs.existsSync(configPaths.hasenpfeffrConfDestination)) {
+    console.log(`Hseenpfeffr configuration file ${configPaths.hasenpfeffrConfDestination} already exists.`);
     return;
   }
   
@@ -92,8 +123,8 @@ async function createConfigFile() {
   const neo4jPassword = await askQuestion('Enter a password for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
   const domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com): ');
   
-  // Create configuration content
-  const configContent = `# Hasenpfeffr Configuration
+  // Create hasenpfeffr configuration content
+  const hasenpfeffrConfigContent = `# Hasenpfeffr Configuration
 # Created during installation
 
 # Relay configuration
@@ -110,11 +141,11 @@ export STRFRY_DOMAIN="${domainName}"
 export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
 `;
   
-  // Write configuration file
+  // Write hasenpfeffr configuration file
   if (isRoot) {
-    fs.writeFileSync(configPaths.hasenpfeffrConf, configContent);
-    execSync(`chmod 600 ${configPaths.hasenpfeffrConf}`);
-    console.log(`Configuration file created at ${configPaths.hasenpfeffrConf}`);
+    fs.writeFileSync(configPaths.hasenpfeffrConfDestination, hasenpfeffrConfigContent);
+    execSync(`chmod 600 ${configPaths.hasenpfeffrConfDestination}`);
+    console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
     // Generate Nostr identity
     console.log('\x1b[36m=== Generating Nostr Identity for Relay ===\x1b[0m');
@@ -132,8 +163,8 @@ export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
     console.log('---');
     console.log(configContent);
     console.log('---');
-    console.log(`Save it to: ${configPaths.hasenpfeffrConf}`);
-    console.log('And set permissions: chmod 600 ' + configPaths.hasenpfeffrConf);
+    console.log(`Save it to: ${configPaths.hasenpfeffrConfDestination}`);
+    console.log('And set permissions: chmod 600 ' + configPaths.hasenpfeffrConfDestination);
     console.log('Then run: sudo ' + configPaths.createNostrIdentityScript);
     
     // Wait for user acknowledgment

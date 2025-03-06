@@ -3,6 +3,9 @@
 /**
  * Hasenpfeffr Control Panel
  * 
+ *  ARCHIVED: This file is being archived on March 5, 2025 as part of a codebase cleanup.
+ * The active version of this file is now maintained at bin/control-panel.js.
+ * 
  * This script starts the Hasenpfeffr Control Panel web interface
  * and API server for managing NIP-85 data generation and publication.
  */
