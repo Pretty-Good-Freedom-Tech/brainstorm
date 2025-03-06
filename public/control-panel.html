@@ -467,7 +467,18 @@
                 fetch('/control/api/negentropy-sync', {
                     method: 'POST'
                 })
-                .then(response => response.json())
+                .then(response => {
+                    // Check if the response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // Handle non-JSON response
+                        return response.text().then(text => {
+                            throw new Error('Received non-JSON response from server');
+                        });
+                    }
+                })
                 .then(data => {
                     clearInterval(progressInterval);
                     negentropyProgressBar.style.width = '100%';
@@ -487,6 +498,11 @@
                     clearInterval(progressInterval);
                     negentropyStatus.className = 'status error';
                     negentropyStatus.textContent = 'Error syncing with Negentropy: ' + error.message;
+                    
+                    // Continue showing progress even if there's an error
+                    negentropyProgressBar.style.width = '100%';
+                    negentropyOutput.textContent += '\nSync process continued in the background. Check server logs for details.';
+                    
                     negentropyBtn.disabled = false;
                 });
             });

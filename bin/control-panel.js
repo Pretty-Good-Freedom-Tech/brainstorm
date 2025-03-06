@@ -277,10 +277,33 @@ function handleNeo4jStatus(req, res) {
 function handleNegentropySync(req, res) {
     console.log('Syncing with Negentropy...');
     
+    // Set the response header to ensure it's always JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Set a timeout to ensure the response doesn't hang
+    const timeoutId = setTimeout(() => {
+        console.log('Negentropy sync is taking longer than expected, sending initial response...');
+        res.json({
+            success: true,
+            output: 'Negentropy sync started. This process will continue in the background.\n',
+            error: null
+        });
+    }, 30000); // 30 seconds timeout
+    
     exec('hasenpfeffr-negentropy-sync', (error, stdout, stderr) => {
+        // Clear the timeout if the command completes before the timeout
+        clearTimeout(timeoutId);
+        
+        // Check if the response has already been sent
+        if (res.headersSent) {
+            console.log('Response already sent, negentropy sync continuing in background');
+            return;
+        }
+        
         return res.json({
             success: !error,
-            output: stdout || stderr
+            output: stdout || stderr,
+            error: error ? error.message : null
         });
     });
 }
