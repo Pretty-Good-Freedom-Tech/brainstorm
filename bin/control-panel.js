@@ -112,7 +112,6 @@ function handleStrfryStats(req, res) {
             return res.json({
                 success: false,
                 stats: {
-                    foo: 'bar',
                     total: 0,
                     kind3: 0,
                     kind1984: 0,
@@ -177,7 +176,7 @@ function handleNeo4jStatus(req, res) {
             success: true,
             status: neo4jStatus
         });
-        
+
         // If not running, return early
         if (!neo4jStatus.running) {
             return res.json({
@@ -188,7 +187,7 @@ function handleNeo4jStatus(req, res) {
         
         // Helper function to execute Cypher queries
         const executeCypher = (query, handler) => {
-            const command = `cypher-shell -u neo4j -p ${process.env.NEO4J_PASSWORD || 'neo4j'} "${query}"`;
+            const command = `cypher-shell -u neo4j -p neo4jneo4j "${query}"`;
             exec(command, (error, stdout, stderr) => {
                 if (error) {
                     neo4jStatus.error = `Error executing Neo4j query: ${stderr || error.message}`;
