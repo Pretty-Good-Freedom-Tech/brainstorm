@@ -69,6 +69,19 @@ export GRAPEVINE_REFERENCE_PUBKEY="your-reference-pubkey"
 
 You can also manually create this file or use a `.env` file in your project directory with the same variables.
 
+## Project Structure
+
+The Hasenpfeffr project is organized as follows:
+
+- `bin/` - Contains executable scripts used in production
+  - `control-panel.js` - The main control panel script used in production
+- `public/` - Web interface files
+- `setup/` - Installation and setup scripts
+- `systemd/` - Systemd service files
+- `archived/` - Contains deprecated files that are no longer in active use but kept for reference
+
+Note: The `archived/` directory contains files that were previously used but have been replaced by newer versions. See the [archived/README.md](archived/README.md) for more details.
+
 ## Usage
 
 ### Control Panel
