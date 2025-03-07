@@ -13,18 +13,9 @@ fi
 
 echo "=== Hasenpfeffr ETL Pipeline Installation ==="
 
-# Configuration variables
-HASENPFEFFR_USER="hasenpfeffr"
-HASENPFEFFR_GROUP="hasenpfeffr"
-HASENPFEFFR_INSTALL_DIR="/usr/local/lib/node_modules/hasenpfeffr"
-SYSTEMD_SERVICE_DIR="/etc/systemd/system"
-
 # chmod +x all scripts
-cd ~/hasenpfeffr/src/pipeline
+cd /usr/local/lib/node_modules/hasenpfeffr/src/pipeline
 chmod +x */*.sh
 chmod +x */*.js
 chmod +x */*.mjs
 
-# move folder from src to HASENPFEFFR_INSTALL_DIR
-cd ~/hasenpfeffr/src
-mv -r pipeline $HASENPFEFFR_INSTALL_DIR
