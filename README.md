@@ -1,16 +1,26 @@
 # Hasenpfeffr
 
-Hasenpfeffr is a Nostr identity data publication system implementing the NIP-85 Trusted Assertions protocol. It allows you to generate and publish network metrics for Nostr users as kind 30382 events.
+Hasenpfeffr is a personalized Webs of Trust nostr relay that uses advanced centrality algorithms (personalized PageRank and personalized GrapeRank) to calculate your webs of trust, resulting in better personalized curation of your nostr content.
+
+WORK IN PROGRESS: currently refactoring [manual installation repo](https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr-manual-installation) to create a nodejs package structure.
 
 ## Features
 
-- Generate personalized PageRank scores for Nostr users
-- Calculate network hops (degrees of separation)
-- Publish trusted assertions as NIP-85 kind 30382 events
+- strfry and Neo4j integration
+- personalized PageRank
+- personalized hops (degrees of separation by follows)
+- Publish personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events)
 - Web-based control panel for easy management
 - Optimized for large-scale data processing (100,000+ events)
 - Performance monitoring and logging
-- Integrated Strfry Nostr relay (optional)
+
+## TODO
+
+- personalized GrapeRank
+- improve GUI
+- make scores accessible through API (WoT DVM)
+
+I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
 ## Installation
 

@@ -23,8 +23,8 @@ const unlink = promisify(fs.unlink);
 
 // Configuration
 const config = {
-  queueDir: '/home/ubuntu/hasenpfeffr/pipeline/reconcile/queue',
-  tempDir: '/home/ubuntu/hasenpfeffr/pipeline/reconcile/temp',
+  queueDir: '/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/queue',
+  tempDir: '/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/temp',
   batchSize: 10, // Number of pubkeys to process in a batch
   neo4jUri: process.env.NEO4J_URI || "bolt://localhost:7687",
   neo4jUser: process.env.NEO4J_USER || "neo4j",

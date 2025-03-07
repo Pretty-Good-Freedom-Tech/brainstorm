@@ -17,7 +17,7 @@ const { exec } = require('child_process');
 
 // Import configuration
 try {
-  const config = require('./archived/config');
+  const config = require('./config');
 } catch (error) {
   console.warn('Could not load configuration:', error.message);
 }

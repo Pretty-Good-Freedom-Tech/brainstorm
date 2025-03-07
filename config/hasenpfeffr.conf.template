@@ -30,8 +30,8 @@ export HASENPFEFFR_MAX_RETRIES="3"
 export HASENPFEFFR_MAX_CONCURRENT_CONNECTIONS="5"
 
 # File paths
-export HASENPFEFFR_INPUT_FILE="/home/ubuntu/hasenpfeffr/algos/nip85.json"
-export HASENPFEFFR_KEYS_FILE="/home/ubuntu/hasenpfeffr/nostr/keys/hasenpfeffr_relay_keys"
+export HASENPFEFFR_INPUT_FILE="/usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85.json"
+export HASENPFEFFR_KEYS_FILE="/usr/local/lib/node_modules/hasenpfeffr/src/nostr/keys/hasenpfeffr_relay_keys"
 
 # Control panel configuration
 export CONTROL_PANEL_PORT="7778"

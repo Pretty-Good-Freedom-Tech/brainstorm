@@ -4,7 +4,7 @@
 source /etc/hasenpfeffr.conf
 
 # Path to queue directory
-QUEUE_DIR="/home/ubuntu/hasenpfeffr/pipeline/stream/queue/"
+QUEUE_DIR="/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/queue/"
 LOCK_FILE="/var/lock/processQueue.lock"
 
 # Ensure only one instance runs at a time
@@ -23,7 +23,7 @@ while true; do
         echo "$(date): There are $NUM_PUBKEYS pubkeys in the queue waiting for their follows to be updated"
 
         # Process one pubkey
-        /home/ubuntu/hasenpfeffr/pipeline/stream/updateSingleNostrUser.sh
+        /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/updateSingleNostrUser.sh
 
         # Short pause between processing to avoid overloading the system
         # sleep 1

@@ -10,10 +10,10 @@ echo "Initiating full reconciliation of strfry and neo4j (currently kind 3 only)
 
 echo "Reconciliation: initiating creation og queue of pubkeys that require processing ..."
 
-sudo node /home/ubuntu/hasenpfeffr/pipeline/reconcile/createReconciliationQueue.js
+sudo node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/createReconciliationQueue.js
 
 echo "Reconciliation: initiating processing of queue ..."
 
-sudo node /home/ubuntu/hasenpfeffr/pipeline/reconcile/processReconciliationQueue.js
+sudo node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/processReconciliationQueue.js
 
 echo "Completed full reconciliation of strfry and neo4j."

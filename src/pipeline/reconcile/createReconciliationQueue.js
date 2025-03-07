@@ -17,9 +17,9 @@ const readline = require('readline');
 
 // Configuration
 const config = {
-  scriptDir: '/home/ubuntu/hasenpfeffr/pipeline/reconcile',
-  queueDir: '/home/ubuntu/hasenpfeffr/pipeline/reconcile/queue',
-  tempDir: '/home/ubuntu/hasenpfeffr/pipeline/reconcile/temp',
+  scriptDir: '/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile',
+  queueDir: '/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/queue',
+  tempDir: '/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/temp',
   neo4jUri: process.env.NEO4J_URI || "bolt://localhost:7687",
   neo4jUser: process.env.NEO4J_USER || "neo4j",
   neo4jPassword: process.env.NEO4J_PASSWORD || "neo4jneo4j"

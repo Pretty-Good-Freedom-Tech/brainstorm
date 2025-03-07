@@ -3,7 +3,7 @@
 source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 # Change to the directory containing the script
-cd /home/ubuntu/hasenpfeffr/pipeline/batch/
+cd /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/
 
 # Run the optimized Node.js script
 node kind3EventsToFollows.js
