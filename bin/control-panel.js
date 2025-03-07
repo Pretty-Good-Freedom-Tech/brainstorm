@@ -351,7 +351,7 @@ function handlePublish(req, res) {
 // Function to get systemd service status
 function getServiceStatus(serviceName) {
   try {
-    const result = execSync(`systemctl is-active ${serviceName}`).toString().trim();
+    const result = execSync(`sudo systemctl is-active ${serviceName}`).toString().trim();
     return result === 'active' ? 'active' : 'inactive';
   } catch (error) {
     return 'inactive';
@@ -361,7 +361,7 @@ function getServiceStatus(serviceName) {
 // Function to control systemd service
 function controlService(serviceName, action) {
   try {
-    execSync(`systemctl ${action} ${serviceName}`);
+    execSync(`sudo systemctl ${action} ${serviceName}`);
     return { success: true, message: `Service ${serviceName} ${action} successful` };
   } catch (error) {
     return { success: false, message: `Failed to ${action} ${serviceName}: ${error.message}` };
