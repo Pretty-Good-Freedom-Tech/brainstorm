@@ -29,8 +29,12 @@ if (!isRoot) {
 // Get package root directory
 const packageRoot = path.resolve(__dirname, '..');
 
+// Define system directories
+const systemdServiceDir = '/etc/systemd/system';
+
 // Configuration paths
 const configPaths = {
+  systemdServiceDir: systemdServiceDir,
   hasenpfeffrConfDestination: '/etc/hasenpfeffr.conf',
   strfryRouterConfigDestination: `/etc/strfry-router.config`,
   setupDir: path.join(packageRoot, 'setup'),
@@ -44,7 +48,6 @@ const configPaths = {
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
 
   pipelineInstallScript: path.join(packageRoot, 'setup', 'install-pipeline.sh'),
-  systemdServiceDir: '/etc/systemd/system',
 
   controlPanelServiceFileContent: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
   strfryRouterServiceFileContent: path.join(packageRoot, 'systemd', 'strfry-router.service'),
