@@ -7,7 +7,7 @@
 source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 path_to_queue="/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/queue/"
-tmp_dir="/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/tmp"
+tmp_dir="/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/queue_tmp"
 mkdir -p "$tmp_dir"
 
 # Get the next pubkey from the queue
