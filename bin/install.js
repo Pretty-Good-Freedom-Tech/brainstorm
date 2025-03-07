@@ -38,7 +38,7 @@ const configPaths = {
   hasenpfeffrConfDestination: '/etc/hasenpfeffr.conf',
   strfryRouterConfigDestination: `/etc/strfry-router.config`,
   setupDir: path.join(packageRoot, 'setup'),
-  strfryRouterConfigContent: path.join(packageRoot, 'setup', 'strfry-router.config'),
+  strfryRouterConfigSource: path.join(packageRoot, 'setup', 'strfry-router.config'),
   neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
   neo4jIndicesScript: path.join(packageRoot, 'setup', 'neo4jCommandsAndIndices.sh'),
 
@@ -49,10 +49,10 @@ const configPaths = {
 
   pipelineInstallScript: path.join(packageRoot, 'setup', 'install-pipeline.sh'),
 
-  controlPanelServiceFileContent: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
-  strfryRouterServiceFileContent: path.join(packageRoot, 'systemd', 'strfry-router.service'),
-  addToQueueServiceFileContent: path.join(packageRoot, 'systemd', 'addToQueue.service'),
-  processQueueServiceFileContent: path.join(packageRoot, 'systemd', 'processQueue.service'),
+  controlPanelServiceFileSource: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
+  strfryRouterServiceFileSource: path.join(packageRoot, 'systemd', 'strfry-router.service'),
+  addToQueueServiceFileSource: path.join(packageRoot, 'systemd', 'addToQueue.service'),
+  processQueueServiceFileSource: path.join(packageRoot, 'systemd', 'processQueue.service'),
 
   controlPanelServiceFileDestination: path.join(systemdServiceDir, 'hasenpfeffr-control-panel.service'),
   strfryRouterServiceFileDestination: path.join(systemdServiceDir, 'strfry-router.service'),
@@ -113,7 +113,12 @@ async function createStrfryRouterConfigFile() {
 
   // Write strfry router configuration file
   if (isRoot) {
-    fs.writeFileSync(configPaths.strfryRouterConfigDestination, configPaths.strfryRouterConfigContent);
+    // Read the content of the source file
+    const configFileContent = fs.readFileSync(configPaths.strfryRouterConfigSource, 'utf8');
+
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.strfryRouterConfigDestination, configFileContent);
+
     execSync(`chmod 644 ${configPaths.strfryRouterConfigDestination}`);
     console.log(`Configuration file created at ${configPaths.strfryRouterConfigDestination}`);
 
@@ -121,7 +126,7 @@ async function createStrfryRouterConfigFile() {
     console.log('\x1b[33mCannot create strfry router configuration file without root privileges.\x1b[0m');
     console.log('Please manually create the file with the following content:');
     console.log('---');
-    console.log(configPaths.strfryRouterConfigContent);
+    console.log(configPaths.strfryRouterConfigSource);
     console.log('---');
     console.log(`Save it to: ${configPaths.strfryRouterConfigDestination}`);
     console.log('And set permissions: chmod 644 ' + configPaths.strfryRouterConfigDestination);
@@ -317,7 +322,7 @@ async function setupStrfryRouterService() {
 
   try {
     // Read the content of the source file
-    const serviceFileContent = fs.readFileSync(configPaths.strfryRouterServiceFileContent, 'utf8');
+    const serviceFileContent = fs.readFileSync(configPaths.strfryRouterServiceFileSource, 'utf8');
     
     // Write the content to the destination file
     fs.writeFileSync(configPaths.strfryRouterServiceFileDestination, serviceFileContent);
@@ -330,7 +335,7 @@ async function setupStrfryRouterService() {
     // starting the service will be performed at the control panel
   } catch (error) {
     console.error(`Error setting up strfry router service: ${error.message}`);
-    console.log(`Source file: ${configPaths.strfryRouterServiceFileContent}`);
+    console.log(`Source file: ${configPaths.strfryRouterServiceFileSource}`);
     console.log(`Destination file: ${configPaths.strfryRouterServiceFileDestination}`);
   }
 }
@@ -353,7 +358,7 @@ async function setupAddToQueueService() {
 
   try {
     // Read the content of the source file
-    const serviceFileContent = fs.readFileSync(configPaths.addToQueueServiceFileContent, 'utf8');
+    const serviceFileContent = fs.readFileSync(configPaths.addToQueueServiceFileSource, 'utf8');
     
     // Write the content to the destination file
     fs.writeFileSync(configPaths.addToQueueServiceFileDestination, serviceFileContent);
@@ -366,7 +371,7 @@ async function setupAddToQueueService() {
     // starting the service will be performed at the control panel
   } catch (error) {
     console.error(`Error setting up addToQueue service: ${error.message}`);
-    console.log(`Source file: ${configPaths.addToQueueServiceFileContent}`);
+    console.log(`Source file: ${configPaths.addToQueueServiceFileSource}`);
     console.log(`Destination file: ${configPaths.addToQueueServiceFileDestination}`);
   }
 }
@@ -390,7 +395,7 @@ async function setupProcessQueueService() {
 
   try {
     // Read the content of the source file
-    const serviceFileContent = fs.readFileSync(configPaths.processQueueServiceFileContent, 'utf8');
+    const serviceFileContent = fs.readFileSync(configPaths.processQueueServiceFileSource, 'utf8');
     
     // Write the content to the destination file
     fs.writeFileSync(configPaths.processQueueServiceFileDestination, serviceFileContent);
@@ -403,7 +408,7 @@ async function setupProcessQueueService() {
     // starting the service will be performed at the control panel
   } catch (error) {
     console.error(`Error setting up processQueue service: ${error.message}`);
-    console.log(`Source file: ${configPaths.processQueueServiceFileContent}`);
+    console.log(`Source file: ${configPaths.processQueueServiceFileSource}`);
     console.log(`Destination file: ${configPaths.processQueueServiceFileDestination}`);
   }
 }
