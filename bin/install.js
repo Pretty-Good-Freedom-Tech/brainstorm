@@ -315,14 +315,24 @@ async function setupStrfryRouterService() {
     return;
   }
 
-  // move strfry-router.service to proper folder
-  fs.writeFileSync(configPaths.strfryRouterServiceFileDestination, configPaths.strfryRouterServiceFileContent);
-  console.log(`Strfry router service file created at ${configPaths.strfryRouterServiceFileDestination}`);
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.strfryRouterServiceFileContent, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.strfryRouterServiceFileDestination, serviceFileContent);
+    console.log(`Strfry router service file created at ${configPaths.strfryRouterServiceFileDestination}`);
 
-  // enable the service
-  execSync(`systemctl enable strfry-router.service`);
+    // enable the service
+    execSync(`systemctl enable strfry-router.service`);
+    console.log('Strfry router service enabled');
 
-  // starting the service will be performed at the control panel
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up strfry router service: ${error.message}`);
+    console.log(`Source file: ${configPaths.strfryRouterServiceFileContent}`);
+    console.log(`Destination file: ${configPaths.strfryRouterServiceFileDestination}`);
+  }
 }
 
 async function setupAddToQueueService() {
@@ -341,14 +351,24 @@ async function setupAddToQueueService() {
     return;
   }
 
-  // move addToQueue.service to proper folder
-  fs.writeFileSync(configPaths.addToQueueServiceFileDestination, configPaths.addToQueueServiceFileContent);
-  console.log(`addToQueue service file created at ${configPaths.addToQueueServiceFileDestination}`);
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.addToQueueServiceFileContent, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.addToQueueServiceFileDestination, serviceFileContent);
+    console.log(`addToQueue service file created at ${configPaths.addToQueueServiceFileDestination}`);
 
-  // enable the service
-  execSync(`systemctl enable addToQueue.service`);
+    // enable the service
+    execSync(`systemctl enable addToQueue.service`);
+    console.log('addToQueue service enabled');
 
-  // starting the service will be performed at the control panel
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up addToQueue service: ${error.message}`);
+    console.log(`Source file: ${configPaths.addToQueueServiceFileContent}`);
+    console.log(`Destination file: ${configPaths.addToQueueServiceFileDestination}`);
+  }
 }
 
 async function setupProcessQueueService() {
@@ -368,14 +388,24 @@ async function setupProcessQueueService() {
     return;
   }
 
-  // move processQueue.service to proper folder
-  fs.writeFileSync(configPaths.processQueueServiceFileDestination, configPaths.processQueueServiceFileContent);
-  console.log(`processQueue service file created at ${configPaths.processQueueServiceFileDestination}`);
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.processQueueServiceFileContent, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.processQueueServiceFileDestination, serviceFileContent);
+    console.log(`processQueue service file created at ${configPaths.processQueueServiceFileDestination}`);
 
-  // enable the service
-  execSync(`systemctl enable processQueue.service`);
+    // enable the service
+    execSync(`systemctl enable processQueue.service`);
+    console.log('processQueue service enabled');
 
-  // starting the service will be performed at the control panel
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up processQueue service: ${error.message}`);
+    console.log(`Source file: ${configPaths.processQueueServiceFileContent}`);
+    console.log(`Destination file: ${configPaths.processQueueServiceFileDestination}`);
+  }
 }
 
 async function setupControlPanelService() {
