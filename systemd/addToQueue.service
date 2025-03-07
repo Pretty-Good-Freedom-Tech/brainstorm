@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=ubuntu
+User=hasenpfeffr
 EnvironmentFile=/etc/hasenpfeffr.conf
-ExecStart=sudo /usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
+ExecStart=/usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
 Restart=on-failure
 
 [Install]
