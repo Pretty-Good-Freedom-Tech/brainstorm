@@ -218,6 +218,30 @@
         </div>
         
         <div class="section">
+            <h2>Hasenpfeffr Systemd Services</h2>
+            <div class="card">
+                <h3>Service Status and Control</h3>
+                <p>Manage and monitor Hasenpfeffr systemd services.</p>
+                <button id="refreshServicesBtn" class="button">Refresh Status</button>
+                <div id="servicesStatus" class="status" style="display: none;"></div>
+                <div id="servicesContainer" style="margin-top: 15px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; padding: 8px; border-bottom: 2px solid #3498db;">Service</th>
+                                <th style="text-align: center; padding: 8px; border-bottom: 2px solid #3498db;">Status</th>
+                                <th style="text-align: right; padding: 8px; border-bottom: 2px solid #3498db;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTableBody">
+                            <!-- Service rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
             <h2>NIP-85 Operations</h2>
             <div class="card">
                 <h3>Generate NIP-85 Data</h3>
@@ -239,6 +263,137 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Systemd Services Management
+            const refreshServicesBtn = document.getElementById('refreshServicesBtn');
+            const servicesStatus = document.getElementById('servicesStatus');
+            const servicesTableBody = document.getElementById('servicesTableBody');
+            
+            function loadServiceStatus() {
+                refreshServicesBtn.disabled = true;
+                servicesStatus.style.display = 'block';
+                servicesStatus.className = 'status info';
+                servicesStatus.textContent = 'Loading service statuses...';
+                
+                fetch('/control/api/systemd-services')
+                    .then(response => response.json())
+                    .then(data => {
+                        refreshServicesBtn.disabled = false;
+                        servicesStatus.style.display = 'none';
+                        
+                        // Clear the table
+                        servicesTableBody.innerHTML = '';
+                        
+                        // Add a row for each service
+                        Object.entries(data.services).forEach(([service, status]) => {
+                            const row = document.createElement('tr');
+                            
+                            // Service name cell
+                            const nameCell = document.createElement('td');
+                            nameCell.style.padding = '8px';
+                            nameCell.style.borderBottom = '1px solid #ddd';
+                            nameCell.textContent = service;
+                            row.appendChild(nameCell);
+                            
+                            // Status cell
+                            const statusCell = document.createElement('td');
+                            statusCell.style.padding = '8px';
+                            statusCell.style.borderBottom = '1px solid #ddd';
+                            statusCell.style.textAlign = 'center';
+                            
+                            const statusIndicator = document.createElement('span');
+                            statusIndicator.textContent = status;
+                            statusIndicator.style.padding = '4px 8px';
+                            statusIndicator.style.borderRadius = '4px';
+                            statusIndicator.style.fontWeight = 'bold';
+                            
+                            if (status === 'active') {
+                                statusIndicator.style.backgroundColor = '#2ecc71';
+                                statusIndicator.style.color = 'white';
+                            } else {
+                                statusIndicator.style.backgroundColor = '#e74c3c';
+                                statusIndicator.style.color = 'white';
+                            }
+                            
+                            statusCell.appendChild(statusIndicator);
+                            row.appendChild(statusCell);
+                            
+                            // Actions cell
+                            const actionsCell = document.createElement('td');
+                            actionsCell.style.padding = '8px';
+                            actionsCell.style.borderBottom = '1px solid #ddd';
+                            actionsCell.style.textAlign = 'right';
+                            
+                            // Start button
+                            const startBtn = document.createElement('button');
+                            startBtn.className = 'button';
+                            startBtn.style.backgroundColor = '#2ecc71';
+                            startBtn.style.marginRight = '5px';
+                            startBtn.style.padding = '5px 10px';
+                            startBtn.textContent = 'Start';
+                            startBtn.onclick = () => controlService(service, 'start');
+                            
+                            // Stop button
+                            const stopBtn = document.createElement('button');
+                            stopBtn.className = 'button';
+                            stopBtn.style.backgroundColor = '#e74c3c';
+                            stopBtn.style.marginRight = '5px';
+                            stopBtn.style.padding = '5px 10px';
+                            stopBtn.textContent = 'Stop';
+                            stopBtn.onclick = () => controlService(service, 'stop');
+                            
+                            // Restart button
+                            const restartBtn = document.createElement('button');
+                            restartBtn.className = 'button';
+                            restartBtn.style.backgroundColor = '#3498db';
+                            restartBtn.style.padding = '5px 10px';
+                            restartBtn.textContent = 'Restart';
+                            restartBtn.onclick = () => controlService(service, 'restart');
+                            
+                            actionsCell.appendChild(startBtn);
+                            actionsCell.appendChild(stopBtn);
+                            actionsCell.appendChild(restartBtn);
+                            row.appendChild(actionsCell);
+                            
+                            servicesTableBody.appendChild(row);
+                        });
+                    })
+                    .catch(error => {
+                        refreshServicesBtn.disabled = false;
+                        servicesStatus.className = 'status error';
+                        servicesStatus.textContent = 'Error loading services: ' + error.message;
+                    });
+            }
+            
+            function controlService(service, action) {
+                servicesStatus.style.display = 'block';
+                servicesStatus.className = 'status info';
+                servicesStatus.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)}ing ${service} service...`;
+                
+                fetch(`/control/api/systemd-services?service=${service}&action=${action}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            servicesStatus.className = 'status success';
+                            servicesStatus.textContent = data.message;
+                            // Reload service statuses after a short delay
+                            setTimeout(loadServiceStatus, 1000);
+                        } else {
+                            servicesStatus.className = 'status error';
+                            servicesStatus.textContent = data.message;
+                        }
+                    })
+                    .catch(error => {
+                        servicesStatus.className = 'status error';
+                        servicesStatus.textContent = 'Error controlling service: ' + error.message;
+                    });
+            }
+            
+            // Load service statuses on page load
+            loadServiceStatus();
+            
+            // Refresh button event listener
+            refreshServicesBtn.addEventListener('click', loadServiceStatus);
+            
             // Check Status Button
             const checkStatusBtn = document.getElementById('checkStatusBtn');
             const statusOutput = document.getElementById('statusOutput');

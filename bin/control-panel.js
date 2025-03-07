@@ -120,6 +120,10 @@ app.get('/control/api/publish', handlePublish);
 app.post('/api/publish', handlePublish);
 app.post('/control/api/publish', handlePublish);
 
+// API endpoint for systemd services management
+app.get('/api/systemd-services', handleSystemdServices);
+app.get('/control/api/systemd-services', handleSystemdServices);
+
 // Handler functions for API endpoints
 function handleStatus(req, res) {
     console.log('Checking status...');
@@ -342,6 +346,59 @@ function handlePublish(req, res) {
             output: stdout || stderr
         });
     });
+}
+
+// Function to get systemd service status
+function getServiceStatus(serviceName) {
+  try {
+    const result = execSync(`systemctl is-active ${serviceName}`).toString().trim();
+    return result === 'active' ? 'active' : 'inactive';
+  } catch (error) {
+    return 'inactive';
+  }
+}
+
+// Function to control systemd service
+function controlService(serviceName, action) {
+  try {
+    execSync(`systemctl ${action} ${serviceName}`);
+    return { success: true, message: `Service ${serviceName} ${action} successful` };
+  } catch (error) {
+    return { success: false, message: `Failed to ${action} ${serviceName}: ${error.message}` };
+  }
+}
+
+// Handler for systemd services
+function handleSystemdServices(req, res) {
+  const services = [
+    'neo4j',
+    'strfry',
+    'hasenpfeffr-control-panel',
+    'strfry-router',
+    'addToQueue',
+    'processQueue'
+  ];
+  
+  const action = req.query.action;
+  const service = req.query.service;
+  
+  // If action and service are provided, perform the requested action
+  if (action && service) {
+    if (['start', 'stop', 'restart'].includes(action)) {
+      const result = controlService(service, action);
+      return res.json(result);
+    } else {
+      return res.status(400).json({ error: 'Invalid action. Use start, stop, or restart.' });
+    }
+  }
+  
+  // Otherwise, return status of all services
+  const statuses = {};
+  for (const service of services) {
+    statuses[service] = getServiceStatus(service);
+  }
+  
+  res.json({ services: statuses });
 }
 
 // Start the server
