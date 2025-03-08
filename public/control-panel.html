@@ -588,45 +588,7 @@
                     });
             }
             
-            // Bulk Transfer Button Event Listener
-            bulkTransferBtn.addEventListener('click', function() {
-                bulkTransferBtn.disabled = true;
-                bulkTransferStatus.style.display = 'block';
-                bulkTransferStatus.className = 'status info';
-                bulkTransferStatus.textContent = 'Starting bulk transfer... This may take 10-15 minutes to complete.';
-                bulkTransferOutput.style.display = 'block';
-                bulkTransferOutput.textContent = 'Initiating bulk transfer of kind 3 data from strfry to Neo4j...\n';
-                
-                fetch('/api/bulk-transfer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        if (data.output) {
-                            bulkTransferOutput.textContent += data.output;
-                        }
-                        bulkTransferStatus.className = 'status success';
-                        bulkTransferStatus.textContent = data.message;
-                    } else {
-                        bulkTransferStatus.className = 'status error';
-                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + data.message;
-                        if (data.output) {
-                            bulkTransferOutput.textContent += data.output;
-                        }
-                    }
-                    bulkTransferBtn.disabled = false;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    bulkTransferStatus.className = 'status error';
-                    bulkTransferStatus.textContent = 'Error during bulk transfer: ' + error.message;
-                    bulkTransferBtn.disabled = false;
-                });
-            });
+
             
             // Load service statuses on page load
             loadServiceStatus();
@@ -844,6 +806,46 @@
             const bulkTransferBtn = document.getElementById('bulkTransferBtn');
             const bulkTransferStatus = document.getElementById('bulkTransferStatus');
             const bulkTransferOutput = document.getElementById('bulkTransferOutput');
+            
+            // Bulk Transfer Button Event Listener
+            bulkTransferBtn.addEventListener('click', function() {
+                bulkTransferBtn.disabled = true;
+                bulkTransferStatus.style.display = 'block';
+                bulkTransferStatus.className = 'status info';
+                bulkTransferStatus.textContent = 'Starting bulk transfer... This may take 10-15 minutes to complete.';
+                bulkTransferOutput.style.display = 'block';
+                bulkTransferOutput.textContent = 'Initiating bulk transfer of kind 3 data from strfry to Neo4j...\n';
+                
+                fetch('/api/bulk-transfer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.output) {
+                            bulkTransferOutput.textContent += data.output;
+                        }
+                        bulkTransferStatus.className = 'status success';
+                        bulkTransferStatus.textContent = data.message;
+                    } else {
+                        bulkTransferStatus.className = 'status error';
+                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + data.message;
+                        if (data.output) {
+                            bulkTransferOutput.textContent += data.output;
+                        }
+                    }
+                    bulkTransferBtn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    bulkTransferStatus.className = 'status error';
+                    bulkTransferStatus.textContent = 'Error during bulk transfer: ' + error.message;
+                    bulkTransferBtn.disabled = false;
+                });
+            });
             
             negentropyBtn.addEventListener('click', function() {
                 negentropyBtn.disabled = true;
