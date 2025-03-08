@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/bin/bash
 
 # This should be put on a timer and run periodically.
 # Hopefully, all kind 3 events will be processed by the streaming pipeline service, 

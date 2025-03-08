@@ -59,7 +59,22 @@ const configPaths = {
   controlPanelServiceFileDestination: path.join(systemdServiceDir, 'hasenpfeffr-control-panel.service'),
   strfryRouterServiceFileDestination: path.join(systemdServiceDir, 'strfry-router.service'),
   addToQueueServiceFileDestination: path.join(systemdServiceDir, 'addToQueue.service'),
-  processQueueServiceFileDestination: path.join(systemdServiceDir, 'processQueue.service')
+  processQueueServiceFileDestination: path.join(systemdServiceDir, 'processQueue.service'),
+
+  reconcileServiceFileSource: path.join(packageRoot, 'systemd', 'reconcile.service'),
+  reconcileTimerFileSource: path.join(packageRoot, 'systemd', 'reconcile.timer'),
+  reconcileServiceFileDestination: path.join(systemdServiceDir, 'reconcile.service'),
+  reconcileTimerFileDestination: path.join(systemdServiceDir, 'reconcile.timer'),
+
+  calculateHopsServiceFileSource: path.join(packageRoot, 'systemd', 'calculateHops.service'),
+  calculateHopsTimerFileSource: path.join(packageRoot, 'systemd', 'calculateHops.timer'),
+  calculateHopsServiceFileDestination: path.join(systemdServiceDir, 'calculateHops.service'),
+  calculateHopsTimerFileDestination: path.join(systemdServiceDir, 'calculateHops.timer'),
+
+  calculatePersonalizedPageRankServiceFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedPageRank.service'),
+  calculatePersonalizedPageRankTimerFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedPageRank.timer'),
+  calculatePersonalizedPageRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.service'),
+  calculatePersonalizedPageRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.timer')
 };
 
 // Configure sudo privileges for hasenpfeffr user and control panel
@@ -114,6 +129,9 @@ async function install() {
     await setupStrfryRouterService();
     await setupAddToQueueService();
     await setupProcessQueueService();
+    await setupReconcileService();
+    await setupCalculatePersonalizedPageRankService();
+    await setupCalculateHopsService();
 
     // Step 5: Setup Strfry Neo4j Pipeline
     await installPipeline();
@@ -381,6 +399,175 @@ async function setupStrfryRouterService() {
     console.error(`Error setting up strfry router service: ${error.message}`);
     console.log(`Source file: ${configPaths.strfryRouterServiceFileSource}`);
     console.log(`Destination file: ${configPaths.strfryRouterServiceFileDestination}`);
+  }
+}
+
+async function setupCalculatePersonalizedPageRankService() {
+  console.log('\x1b[36m=== Setting Up Calculate Personalized PageRank Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up calculate personalized PageRank systemd service without root privileges.\x1b[0m');
+
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if calculate personalized PageRank service file already exists
+  if (fs.existsSync(configPaths.calculatePersonalizedPageRankServiceFileDestination)) {
+    console.log(`calculate personalized PageRank service file ${configPaths.calculatePersonalizedPageRankServiceFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.calculatePersonalizedPageRankServiceFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.calculatePersonalizedPageRankServiceFileDestination, serviceFileContent);
+    console.log(`calculate personalized PageRank service file created at ${configPaths.calculatePersonalizedPageRankServiceFileDestination}`);
+
+    // enable the service
+    execSync(`systemctl enable calculate-personalized-page-rank.service`);
+    console.log('calculate personalized PageRank service enabled');
+
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up calculate personalized PageRank service: ${error.message}`);
+    console.log(`Source file: ${configPaths.calculatePersonalizedPageRankServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.calculatePersonalizedPageRankServiceFileDestination}`);
+  }
+
+  // check if calculatePersonalizedPageRank timer file already exists
+  if (fs.existsSync(configPaths.calculatePersonalizedPageRankTimerFileDestination)) {
+    console.log(`calculate personalized PageRank timer file ${configPaths.calculatePersonalizedPageRankTimerFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const timerFileContent = fs.readFileSync(configPaths.calculatePersonalizedPageRankTimerFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.calculatePersonalizedPageRankTimerFileDestination, timerFileContent);
+    console.log(`calculate personalized PageRank timer file created at ${configPaths.calculatePersonalizedPageRankTimerFileDestination}`);
+  } catch (error) {
+    console.error(`Error setting up calculate personalized PageRank timer: ${error.message}`);
+    console.log(`Source file: ${configPaths.calculatePersonalizedPageRankTimerFileSource}`);
+    console.log(`Destination file: ${configPaths.calculatePersonalizedPageRankTimerFileDestination}`);
+  }
+}
+
+async function setupCalculateHopsService() {
+  console.log('\x1b[36m=== Setting Up CalculateHop Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up calculate hop systemd service without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if calculate hop service file already exists
+  if (fs.existsSync(configPaths.calculateHopsServiceFileDestination)) {
+    console.log(`calculate hop service file ${configPaths.calculateHopsServiceFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.calculateHopsServiceFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.calculateHopsServiceFileDestination, serviceFileContent);
+    console.log(`calculate hop service file created at ${configPaths.calculateHopsServiceFileDestination}`);
+
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up calculate hop service: ${error.message}`);
+    console.log(`Source file: ${configPaths.calculateHopsServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.calculateHopsServiceFileDestination}`);
+  }
+
+  // check if calculateHops timer file already exists
+  if (fs.existsSync(configPaths.calculateHopTimerFileDestination)) {
+    console.log(`calculateHops timer file ${configPaths.calculateHopTimerFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const timerFileContent = fs.readFileSync(configPaths.calculateHopsTimerFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.calculateHopTimerFileDestination, timerFileContent);
+    console.log(`calculateHops timer file created at ${configPaths.calculateHopTimerFileDestination}`);
+
+    // enable the timer
+    execSync(`systemctl enable calculate-hops.timer`);
+    console.log('calculateHops timer enabled');
+  } catch (error) {
+    console.error(`Error setting up calculateHops timer file: ${error.message}`);
+    console.log(`Source file: ${configPaths.calculateHopsTimerFileSource}`);
+    console.log(`Destination file: ${configPaths.calculateHopTimerFileDestination}`);
+  }
+}
+
+async function setupReconcileService() {
+  console.log('\x1b[36m=== Setting Up Reconcile Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up reconcile systemd service without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if reconcile service file already exists
+  if (fs.existsSync(configPaths.reconcileServiceFileDestination)) {
+    console.log(`reconcile service file ${configPaths.reconcileServiceFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.reconcileServiceFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.reconcileServiceFileDestination, serviceFileContent);
+    console.log(`reconcile service file created at ${configPaths.reconcileServiceFileDestination}`);
+
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up reconcile service: ${error.message}`);
+    console.log(`Source file: ${configPaths.reconcileServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.reconcileServiceFileDestination}`);
+  }
+
+  // Check if reconcile timer file already exists
+  if (fs.existsSync(configPaths.reconcileTimerFileDestination)) {
+    console.log(`reconcile timer file ${configPaths.reconcileTimerFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const timerFileContent = fs.readFileSync(configPaths.reconcileTimerFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.reconcileTimerFileDestination, timerFileContent);
+    console.log(`reconcile timer file created at ${configPaths.reconcileTimerFileDestination}`);
+
+    // enable the timer
+    execSync(`systemctl enable reconcile.timer`);
+    console.log('reconcile timer enabled');
+  } catch (error) {
+    console.error(`Error setting up reconcile timer file: ${error.message}`);
+    console.log(`Source file: ${configPaths.reconcileTimerFileSource}`);
+    console.log(`Destination file: ${configPaths.reconcileTimerFileDestination}`);
+    return;
   }
 }
 

@@ -44,10 +44,22 @@ node ./optimized-processor.js "$TEMP_DIR/allKind3Events.json" "$TEMP_DIR"
 
 # Load data into Neo4j using optimized Cypher
 echo "Loading data into Neo4j..."
+
+# Format parameters correctly for cypher-shell
+NODES_PARAM="NODES_FILE => 'nodes.csv'"
+RELS_PARAM="RELS_FILE => 'relationships.csv'"
+EVENTS_PARAM="EVENTS_FILE => 'events.csv'"
+
+# Copy files to Neo4j import directory
+sudo cp "$TEMP_DIR/nodes.csv" /var/lib/neo4j/import/
+sudo cp "$TEMP_DIR/relationships.csv" /var/lib/neo4j/import/
+sudo cp "$TEMP_DIR/events.csv" /var/lib/neo4j/import/
+
+# Execute cypher-shell with correctly formatted parameters
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f ./optimized-cypher-load.cypher \
-  --param nodesFile="$TEMP_DIR/nodes.csv" \
-  --param relsFile="$TEMP_DIR/relationships.csv" \
-  --param eventsFile="$TEMP_DIR/events.csv"
+  --param "$NODES_PARAM" \
+  --param "$RELS_PARAM" \
+  --param "$EVENTS_PARAM"
 
 # Clean up
 echo "Cleaning up temporary files..."
