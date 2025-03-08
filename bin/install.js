@@ -459,10 +459,10 @@ async function setupCalculatePersonalizedPageRankService() {
 }
 
 async function setupCalculateHopsService() {
-  console.log('\x1b[36m=== Setting Up CalculateHop Systemd Service ===\x1b[0m');
+  console.log('\x1b[36m=== Setting Up CalculateHops Systemd Service ===\x1b[0m');
 
   if (!isRoot) {
-    console.log('\x1b[33mCannot set up calculate hop systemd service without root privileges.\x1b[0m');
+    console.log('\x1b[33mCannot set up calculate hops systemd service without root privileges.\x1b[0m');
     
     // Wait for user acknowledgment
     await askQuestion('Press Enter to continue...');

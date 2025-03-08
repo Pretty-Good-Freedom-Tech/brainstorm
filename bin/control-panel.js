@@ -124,6 +124,10 @@ app.post('/control/api/publish', handlePublish);
 app.get('/api/systemd-services', handleSystemdServices);
 app.get('/control/api/systemd-services', handleSystemdServices);
 
+// API endpoint for strfry plugin management
+app.get('/api/strfry-plugin', handleStrfryPlugin);
+app.get('/control/api/strfry-plugin', handleStrfryPlugin);
+
 // Handler functions for API endpoints
 function handleStatus(req, res) {
     console.log('Checking status...');
