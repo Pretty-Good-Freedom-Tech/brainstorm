@@ -404,6 +404,89 @@ function handleSystemdServices(req, res) {
   res.json({ services: statuses });
 }
 
+// Handler for strfry plugin toggle
+async function handleStrfryPlugin(req, res) {
+    const action = req.query.action;
+    
+    if (!action) {
+        return res.status(400).json({ error: 'Missing action parameter' });
+    }
+
+    try {
+        const strfryConfPath = '/etc/strfry.conf';
+        let pluginStatus = 'unknown';
+        
+        // Check if strfry.conf exists
+        if (!fs.existsSync(strfryConfPath)) {
+            return res.status(404).json({ error: 'strfry.conf not found' });
+        }
+        
+        // Read current config
+        let confContent = fs.readFileSync(strfryConfPath, 'utf8');
+        
+        // Check current plugin status
+        const pluginRegex = /relay\.writePolicy\.plugin\s*=\s*"([^"]*)"/;
+        const match = confContent.match(pluginRegex);
+        
+        if (match) {
+            pluginStatus = match[1] ? 'enabled' : 'disabled';
+        }
+        
+        if (action === 'status') {
+            return res.json({ status: pluginStatus });
+        }
+        
+        if (action === 'enable') {
+            // Set plugin path
+            const pluginPath = '/usr/local/lib/strfry/plugins/hasenpfeffr.js';
+            
+            // Ensure plugin directory exists
+            if (!fs.existsSync('/usr/local/lib/strfry/plugins')) {
+                execSync('sudo mkdir -p /usr/local/lib/strfry/plugins');
+            }
+            
+            // Copy plugin file if it doesn't exist at destination
+            if (!fs.existsSync(pluginPath)) {
+                execSync(`sudo cp /usr/local/lib/node_modules/hasenpfeffr/plugins/hasenpfeffr.js ${pluginPath}`);
+                execSync(`sudo chmod +x ${pluginPath}`);
+            }
+            
+            // Update strfry.conf
+            if (match) {
+                confContent = confContent.replace(pluginRegex, `relay.writePolicy.plugin = "${pluginPath}"`);
+            } else {
+                // If the setting doesn't exist, add it
+                confContent += `\nrelay.writePolicy.plugin = "${pluginPath}"\n`;
+            }
+            
+            // Write updated config
+            execSync(`sudo bash -c 'echo "${confContent.replace(/"/g, '\\"')}" > ${strfryConfPath}'`);
+            
+            return res.json({ status: 'enabled', message: 'Plugin enabled successfully' });
+        }
+        
+        if (action === 'disable') {
+            // Update strfry.conf
+            if (match) {
+                confContent = confContent.replace(pluginRegex, 'relay.writePolicy.plugin = ""');
+            } else {
+                // If the setting doesn't exist, add it disabled
+                confContent += '\nrelay.writePolicy.plugin = ""\n';
+            }
+            
+            // Write updated config
+            execSync(`sudo bash -c 'echo "${confContent.replace(/"/g, '\\"')}" > ${strfryConfPath}'`);
+            
+            return res.json({ status: 'disabled', message: 'Plugin disabled successfully' });
+        }
+        
+        return res.status(400).json({ error: 'Invalid action' });
+    } catch (error) {
+        console.error('Error handling strfry plugin:', error);
+        return res.status(500).json({ error: error.message });
+    }
+}
+
 // Start the server
 app.listen(port, () => {
     console.log(`Hasenpfeffr Control Panel running on port ${port}`);

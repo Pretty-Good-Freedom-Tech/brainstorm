@@ -242,6 +242,23 @@
         </div>
 
         <div class="section">
+            <h2>Strfry Plugin Management</h2>
+            <div class="card">
+                <h3>Hasenpfeffr Strfry Plugin</h3>
+                <p>Enable or disable the Hasenpfeffr plugin for strfry. This plugin controls which events are accepted by the relay based on configured rules.</p>
+                <div style="display: flex; align-items: center;">
+                    <div id="pluginStatusIndicator" style="width: 15px; height: 15px; border-radius: 50%; background-color: gray; margin-right: 10px;"></div>
+                    <span id="pluginStatusText">Checking status...</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button id="enablePluginBtn" class="button">Enable Plugin</button>
+                    <button id="disablePluginBtn" class="button button-secondary">Disable Plugin</button>
+                </div>
+                <div id="pluginStatus" class="status" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="section">
             <h2>NIP-85 Operations</h2>
             <div class="card">
                 <h3>Generate NIP-85 Data</h3>
@@ -263,6 +280,104 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Strfry Plugin Management
+            const pluginStatusIndicator = document.getElementById('pluginStatusIndicator');
+            const pluginStatusText = document.getElementById('pluginStatusText');
+            const enablePluginBtn = document.getElementById('enablePluginBtn');
+            const disablePluginBtn = document.getElementById('disablePluginBtn');
+            const pluginStatus = document.getElementById('pluginStatus');
+            
+            function checkPluginStatus() {
+                fetch('/api/strfry-plugin?action=status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'enabled') {
+                            pluginStatusIndicator.style.backgroundColor = '#2ecc71';
+                            pluginStatusText.textContent = 'Plugin is enabled';
+                            enablePluginBtn.disabled = true;
+                            disablePluginBtn.disabled = false;
+                        } else if (data.status === 'disabled') {
+                            pluginStatusIndicator.style.backgroundColor = '#e74c3c';
+                            pluginStatusText.textContent = 'Plugin is disabled';
+                            enablePluginBtn.disabled = false;
+                            disablePluginBtn.disabled = true;
+                        } else {
+                            pluginStatusIndicator.style.backgroundColor = 'gray';
+                            pluginStatusText.textContent = 'Plugin status unknown';
+                            enablePluginBtn.disabled = false;
+                            disablePluginBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking plugin status:', error);
+                        pluginStatusIndicator.style.backgroundColor = 'gray';
+                        pluginStatusText.textContent = 'Error checking plugin status';
+                    });
+            }
+            
+            enablePluginBtn.addEventListener('click', function() {
+                pluginStatus.style.display = 'block';
+                pluginStatus.className = 'status info';
+                pluginStatus.textContent = 'Enabling plugin...';
+                enablePluginBtn.disabled = true;
+                disablePluginBtn.disabled = true;
+                
+                fetch('/api/strfry-plugin?action=enable')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'enabled') {
+                            pluginStatus.className = 'status success';
+                            pluginStatus.textContent = 'Plugin enabled successfully!';
+                            checkPluginStatus();
+                        } else {
+                            pluginStatus.className = 'status error';
+                            pluginStatus.textContent = data.error || 'Failed to enable plugin';
+                            enablePluginBtn.disabled = false;
+                        }
+                        disablePluginBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error enabling plugin:', error);
+                        pluginStatus.className = 'status error';
+                        pluginStatus.textContent = 'Error enabling plugin: ' + error.message;
+                        enablePluginBtn.disabled = false;
+                        disablePluginBtn.disabled = false;
+                    });
+            });
+            
+            disablePluginBtn.addEventListener('click', function() {
+                pluginStatus.style.display = 'block';
+                pluginStatus.className = 'status info';
+                pluginStatus.textContent = 'Disabling plugin...';
+                enablePluginBtn.disabled = true;
+                disablePluginBtn.disabled = true;
+                
+                fetch('/api/strfry-plugin?action=disable')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'disabled') {
+                            pluginStatus.className = 'status success';
+                            pluginStatus.textContent = 'Plugin disabled successfully!';
+                            checkPluginStatus();
+                        } else {
+                            pluginStatus.className = 'status error';
+                            pluginStatus.textContent = data.error || 'Failed to disable plugin';
+                            disablePluginBtn.disabled = false;
+                        }
+                        enablePluginBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error disabling plugin:', error);
+                        pluginStatus.className = 'status error';
+                        pluginStatus.textContent = 'Error disabling plugin: ' + error.message;
+                        enablePluginBtn.disabled = false;
+                        disablePluginBtn.disabled = false;
+                    });
+            });
+            
+            // Check plugin status on page load
+            checkPluginStatus();
+            
             // Systemd Services Management
             const refreshServicesBtn = document.getElementById('refreshServicesBtn');
             const servicesStatus = document.getElementById('servicesStatus');

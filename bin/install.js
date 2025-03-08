@@ -491,8 +491,8 @@ async function setupCalculateHopsService() {
   }
 
   // check if calculateHops timer file already exists
-  if (fs.existsSync(configPaths.calculateHopTimerFileDestination)) {
-    console.log(`calculateHops timer file ${configPaths.calculateHopTimerFileDestination} already exists.`);
+  if (fs.existsSync(configPaths.calculateHopsTimerFileDestination)) {
+    console.log(`calculateHops timer file ${configPaths.calculateHopsTimerFileDestination} already exists.`);
     return;
   }
 
@@ -501,8 +501,8 @@ async function setupCalculateHopsService() {
     const timerFileContent = fs.readFileSync(configPaths.calculateHopsTimerFileSource, 'utf8');
     
     // Write the content to the destination file
-    fs.writeFileSync(configPaths.calculateHopTimerFileDestination, timerFileContent);
-    console.log(`calculateHops timer file created at ${configPaths.calculateHopTimerFileDestination}`);
+    fs.writeFileSync(configPaths.calculateHopsTimerFileDestination, timerFileContent);
+    console.log(`calculateHops timer file created at ${configPaths.calculateHopsTimerFileDestination}`);
 
     // enable the timer
     execSync(`systemctl enable calculate-hops.timer`);
@@ -510,7 +510,7 @@ async function setupCalculateHopsService() {
   } catch (error) {
     console.error(`Error setting up calculateHops timer file: ${error.message}`);
     console.log(`Source file: ${configPaths.calculateHopsTimerFileSource}`);
-    console.log(`Destination file: ${configPaths.calculateHopTimerFileDestination}`);
+    console.log(`Destination file: ${configPaths.calculateHopsTimerFileDestination}`);
   }
 }
 
