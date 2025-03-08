@@ -467,8 +467,11 @@ async function handleStrfryPlugin(req, res) {
                 confContent += `\nrelay.writePolicy.plugin = "${pluginPath}"\n`;
             }
             
-            // Write updated config
-            execSync(`sudo bash -c 'echo "${confContent.replace(/"/g, '\\"')}" > ${strfryConfPath}'`);
+            // Write config to a temporary file and then use sudo to move it
+            const tempConfigPath = '/tmp/strfry.conf.tmp';
+            fs.writeFileSync(tempConfigPath, confContent);
+            execSync(`sudo cp ${tempConfigPath} ${strfryConfPath}`);
+            fs.unlinkSync(tempConfigPath);
             
             return res.json({ status: 'enabled', message: 'Plugin enabled successfully' });
         }
@@ -482,8 +485,11 @@ async function handleStrfryPlugin(req, res) {
                 confContent += '\nrelay.writePolicy.plugin = ""\n';
             }
             
-            // Write updated config
-            execSync(`sudo bash -c 'echo "${confContent.replace(/"/g, '\\"')}" > ${strfryConfPath}'`);
+            // Write config to a temporary file and then use sudo to move it
+            const tempConfigPath = '/tmp/strfry.conf.tmp';
+            fs.writeFileSync(tempConfigPath, confContent);
+            execSync(`sudo cp ${tempConfigPath} ${strfryConfPath}`);
+            fs.unlinkSync(tempConfigPath);
             
             return res.json({ status: 'disabled', message: 'Plugin disabled successfully' });
         }

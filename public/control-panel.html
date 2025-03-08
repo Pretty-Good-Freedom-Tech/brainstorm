@@ -296,7 +296,7 @@
             const pluginStatus = document.getElementById('pluginStatus');
             
             function checkPluginStatus() {
-                fetch('/api/strfry-plugin?action=status')
+                fetch('/control/api/strfry-plugin?action=status')
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'enabled') {
