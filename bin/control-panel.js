@@ -433,11 +433,19 @@ async function handleStrfryPlugin(req, res) {
         let confContent = fs.readFileSync(strfryConfPath, 'utf8');
         
         // Check current plugin status
-        const pluginRegex = /relay\.writePolicy\.plugin\s*=\s*"([^"]*)"/;
-        const match = confContent.match(pluginRegex);
+        // Look for the plugin setting in the writePolicy section
+        const writePolicyPluginRegex = /writePolicy\s*{[^}]*plugin\s*=\s*"([^"]*)"/s;
+        const writePolicyMatch = confContent.match(writePolicyPluginRegex);
         
-        if (match) {
-            pluginStatus = match[1] ? 'enabled' : 'disabled';
+        // Also check for the relay.writePolicy.plugin line that might have been added incorrectly
+        const relayPluginRegex = /relay\.writePolicy\.plugin\s*=\s*"([^"]*)"/;
+        const relayMatch = confContent.match(relayPluginRegex);
+        
+        // Determine plugin status from either match
+        if (writePolicyMatch) {
+            pluginStatus = writePolicyMatch[1] ? 'enabled' : 'disabled';
+        } else if (relayMatch) {
+            pluginStatus = relayMatch[1] ? 'enabled' : 'disabled';
         }
         
         if (action === 'status') {
@@ -460,11 +468,27 @@ async function handleStrfryPlugin(req, res) {
             }
             
             // Update strfry.conf
-            if (match) {
-                confContent = confContent.replace(pluginRegex, `relay.writePolicy.plugin = "${pluginPath}"`);
+            if (writePolicyMatch) {
+                // Update the existing plugin setting in the writePolicy section
+                confContent = confContent.replace(writePolicyPluginRegex, (match) => {
+                    return match.replace(/plugin\s*=\s*"[^"]*"/, `plugin = "${pluginPath}"`);
+                });
             } else {
-                // If the setting doesn't exist, add it
-                confContent += `\nrelay.writePolicy.plugin = "${pluginPath}"\n`;
+                // If writePolicy section exists but without plugin setting, we need to add it
+                const writePolicySectionRegex = /(writePolicy\s*{[^}]*)(})/s;
+                const writePolicySectionMatch = confContent.match(writePolicySectionRegex);
+                
+                if (writePolicySectionMatch) {
+                    confContent = confContent.replace(writePolicySectionRegex, `$1        plugin = "${pluginPath}"\n    $2`);
+                } else {
+                    // If writePolicy section doesn't exist, this is unexpected but we'll add it
+                    confContent += `\n    writePolicy {\n        plugin = "${pluginPath}"\n    }\n`;
+                }
+            }
+            
+            // Remove any incorrect relay.writePolicy.plugin line if it exists
+            if (relayMatch) {
+                confContent = confContent.replace(/\nrelay\.writePolicy\.plugin\s*=\s*"[^"]*"\n?/, '\n');
             }
             
             // Write config to a temporary file and then use sudo to move it
@@ -478,11 +502,27 @@ async function handleStrfryPlugin(req, res) {
         
         if (action === 'disable') {
             // Update strfry.conf
-            if (match) {
-                confContent = confContent.replace(pluginRegex, 'relay.writePolicy.plugin = ""');
+            if (writePolicyMatch) {
+                // Update the existing plugin setting in the writePolicy section to empty string
+                confContent = confContent.replace(writePolicyPluginRegex, (match) => {
+                    return match.replace(/plugin\s*=\s*"[^"]*"/, 'plugin = ""');
+                });
             } else {
-                // If the setting doesn't exist, add it disabled
-                confContent += '\nrelay.writePolicy.plugin = ""\n';
+                // If writePolicy section exists but without plugin setting, we need to add it
+                const writePolicySectionRegex = /(writePolicy\s*{[^}]*)(})/s;
+                const writePolicySectionMatch = confContent.match(writePolicySectionRegex);
+                
+                if (writePolicySectionMatch) {
+                    confContent = confContent.replace(writePolicySectionRegex, `$1        plugin = ""\n    $2`);
+                } else {
+                    // If writePolicy section doesn't exist, this is unexpected but we'll add it
+                    confContent += `\n    writePolicy {\n        plugin = ""\n    }\n`;
+                }
+            }
+            
+            // Remove any incorrect relay.writePolicy.plugin line if it exists
+            if (relayMatch) {
+                confContent = confContent.replace(/\nrelay\.writePolicy\.plugin\s*=\s*"[^"]*"\n?/, '\n');
             }
             
             // Write config to a temporary file and then use sudo to move it
