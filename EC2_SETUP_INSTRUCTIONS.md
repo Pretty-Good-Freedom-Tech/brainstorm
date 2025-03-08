@@ -46,6 +46,9 @@ sudo apt install -y nodejs
 # Install Git
 sudo apt install -y git
 
+# Install pv
+sudo apt install pv
+
 # Clone the Hasenpfeffr repository
 git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
 cd hasenpfeffr

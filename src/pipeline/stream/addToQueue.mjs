@@ -64,7 +64,7 @@ console.log(`Using relay: ${myRelay}`);
 
 const explicitRelayUrls = [ myRelay ]
 
-const pathToQueue = '/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/queue/'
+const pathToQueue = '/var/lib/hasenpfeffr/pipeline/stream/queue/'
 
 const ndk = new NDK({explicitRelayUrls})
 

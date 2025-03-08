@@ -4,7 +4,7 @@
 source /etc/hasenpfeffr.conf
 
 # Path to queue directory
-QUEUE_DIR="/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/queue/"
+QUEUE_DIR="/var/lib/hasenpfeffr/pipeline/stream/queue/"
 LOCK_FILE="/var/lock/processQueue.lock"
 
 # Ensure only one instance runs at a time

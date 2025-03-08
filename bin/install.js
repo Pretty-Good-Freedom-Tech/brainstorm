@@ -127,7 +127,10 @@ async function install() {
     // Step 4: Set up Strfry plugins
     await setupStrfryPlugins();
     
-    // Step 5: Set up systemd services
+    // Step 5: Create pipeline directories
+    await setupPipelineDirectories();
+    
+    // Step 6: Set up systemd services
     await setupControlPanelService();
     await setupStrfryRouterService();
     await setupAddToQueueService();
@@ -783,6 +786,53 @@ async function setupControlPanelService() {
   } catch (error) {
     console.error('\x1b[31mError setting up systemd service:\x1b[0m', error.message);
     throw new Error('Systemd service setup failed');
+  }
+}
+
+// Setup Pipeline Directories
+async function setupPipelineDirectories() {
+  console.log('\x1b[36m=== Setting Up Pipeline Directories ===\x1b[0m');
+  
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up pipeline directories without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+  
+  try {
+    // Create the base directory structure
+    const baseDir = '/var/lib/hasenpfeffr';
+    if (!fs.existsSync(baseDir)) {
+      console.log(`Creating base directory at ${baseDir}...`);
+      execSync(`mkdir -p ${baseDir}`);
+    }
+    
+    // Create pipeline directories
+    const pipelineDirs = [
+      '/var/lib/hasenpfeffr/pipeline/stream/queue',
+      '/var/lib/hasenpfeffr/pipeline/stream/queue_tmp',
+      '/var/lib/hasenpfeffr/pipeline/reconcile/queue',
+      '/var/lib/hasenpfeffr/pipeline/reconcile/queue_tmp'
+    ];
+    
+    for (const dir of pipelineDirs) {
+      if (!fs.existsSync(dir)) {
+        console.log(`Creating directory: ${dir}`);
+        execSync(`mkdir -p ${dir}`);
+      }
+    }
+    
+    // Set appropriate permissions
+    console.log('Setting appropriate permissions...');
+    execSync(`chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
+    execSync(`chmod -R 755 ${baseDir}`);
+    
+    console.log('Pipeline directories setup completed successfully.');
+  } catch (error) {
+    console.error('\x1b[31mError setting up pipeline directories:\x1b[0m', error.message);
+    console.log('You can set up pipeline directories manually later.');
   }
 }
 
