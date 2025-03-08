@@ -26,7 +26,7 @@ function getEnvVar(varName) {
   }
 }
 
-const userPublicKey = getEnvVar('GRAPEVINE_REFERENCE_PUBKEY');
+const userPublicKey = getEnvVar('HASENPFEFFR_OWNER_PUBKEY');
 const hasenpfeffrRelayUrl = getEnvVar('HASENPFEFFR_RELAY_URL');
 // console.log(`userPublicKey: ${userPublicKey}`)
 // console.log(`hasenpfeffrRelayUrl: ${hasenpfeffrRelayUrl}`)

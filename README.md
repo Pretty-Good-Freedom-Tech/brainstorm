@@ -74,7 +74,7 @@ export NEO4J_PASSWORD="your-neo4j-password"
 export STRFRY_DOMAIN="your-relay-domain.com"
 
 # Reference pubkey for PageRank calculations
-export GRAPEVINE_REFERENCE_PUBKEY="your-reference-pubkey"
+export HASENPFEFFR_OWNER_PUBKEY="your-reference-pubkey"
 ```
 
 You can also manually create this file or use a `.env` file in your project directory with the same variables.
