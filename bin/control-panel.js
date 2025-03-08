@@ -128,6 +128,10 @@ app.get('/control/api/systemd-services', handleSystemdServices);
 app.get('/api/strfry-plugin', handleStrfryPlugin);
 app.get('/control/api/strfry-plugin', handleStrfryPlugin);
 
+// API endpoint for bulk transfer
+app.post('/api/bulk-transfer', handleBulkTransfer);
+app.post('/control/api/bulk-transfer', handleBulkTransfer);
+
 // Handler functions for API endpoints
 function handleStatus(req, res) {
     console.log('Checking status...');
@@ -489,6 +493,53 @@ async function handleStrfryPlugin(req, res) {
         console.error('Error handling strfry plugin:', error);
         return res.status(500).json({ error: error.message });
     }
+}
+
+// Handler for bulk transfer
+function handleBulkTransfer(req, res) {
+    console.log('Starting bulk transfer of kind 3 data from strfry to Neo4j...');
+    
+    // Create a child process to run the transfer script
+    const transferProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/transfer.sh');
+    
+    let output = '';
+    
+    transferProcess.stdout.on('data', (data) => {
+        console.log(`Bulk Transfer stdout: ${data}`);
+        output += data;
+    });
+    
+    transferProcess.stderr.on('data', (data) => {
+        console.error(`Bulk Transfer stderr: ${data}`);
+        output += data;
+    });
+    
+    transferProcess.on('close', (code) => {
+        console.log(`Bulk Transfer process exited with code ${code}`);
+        
+        if (code === 0) {
+            res.json({
+                success: true,
+                message: 'Bulk transfer completed successfully',
+                output: output
+            });
+        } else {
+            res.json({
+                success: false,
+                message: `Bulk transfer failed with exit code ${code}`,
+                output: output
+            });
+        }
+    });
+    
+    // Handle unexpected errors
+    transferProcess.on('error', (error) => {
+        console.error(`Bulk Transfer error: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: `Bulk transfer error: ${error.message}`
+        });
+    });
 }
 
 // Start the server
