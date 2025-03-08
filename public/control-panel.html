@@ -330,7 +330,7 @@
                 enablePluginBtn.disabled = true;
                 disablePluginBtn.disabled = true;
                 
-                fetch('/api/strfry-plugin?action=enable')
+                fetch('/control/api/strfry-plugin?action=enable')
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'enabled') {
@@ -360,7 +360,7 @@
                 enablePluginBtn.disabled = true;
                 disablePluginBtn.disabled = true;
                 
-                fetch('/api/strfry-plugin?action=disable')
+                fetch('/control/api/strfry-plugin?action=disable')
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'disabled') {
@@ -816,7 +816,7 @@
                 bulkTransferOutput.style.display = 'block';
                 bulkTransferOutput.textContent = 'Initiating bulk transfer of kind 3 data from strfry to Neo4j...\n';
                 
-                fetch('/api/bulk-transfer', {
+                fetch('/control/api/bulk-transfer', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
