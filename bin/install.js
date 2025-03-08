@@ -457,6 +457,7 @@ async function setupStrfryPlugins() {
         console.log('Updated plugin file with correct JSON paths');
       }
       
+      /*
       // Update strfry.conf to include the plugin (but don't enable it by default)
       const strfryConfPath = '/etc/strfry.conf';
       if (fs.existsSync(strfryConfPath)) {
@@ -473,6 +474,7 @@ async function setupStrfryPlugins() {
       } else {
         console.warn(`strfry.conf not found at ${strfryConfPath}`);
       }
+      */
     } else {
       console.warn(`Source plugin directory not found at ${sourcePluginDir}`);
     }

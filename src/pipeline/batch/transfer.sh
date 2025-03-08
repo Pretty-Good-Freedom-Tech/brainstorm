@@ -9,14 +9,18 @@
 
 source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
-sudo ./strfryToKind3Events.sh "$1" "$2"
-sudo ./kind3EventsToFollows.sh
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Execute the scripts with full paths
+sudo "$SCRIPT_DIR/strfryToKind3Events.sh" "$1" "$2"
+sudo "$SCRIPT_DIR/kind3EventsToFollows.sh"
 
 # add FOLLOWS relationships from followsToAddToNeo4j.json
-sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f apocCypherCommand1 > /dev/null
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand1" > /dev/null
 
 # update NostrUser kind3EventId and kind3CreatedAt properties by iterating through allKind3EventsStripped.json
-sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f apocCypherCommand2 > /dev/null
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand2" > /dev/null
 
 # clean up
 
