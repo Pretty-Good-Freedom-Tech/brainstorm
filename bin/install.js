@@ -124,7 +124,10 @@ async function install() {
     // Step 3: Install Strfry Nostr relay
     await installStrfry();
     
-    // Step 4: Set up systemd services
+    // Step 4: Set up Strfry plugins
+    await setupStrfryPlugins();
+    
+    // Step 5: Set up systemd services
     await setupControlPanelService();
     await setupStrfryRouterService();
     await setupAddToQueueService();
@@ -361,6 +364,120 @@ async function installStrfry() {
   } catch (error) {
     console.error('\x1b[31mError installing Strfry:\x1b[0m', error.message);
     throw new Error('Strfry installation failed');
+  }
+}
+
+// Setup Strfry Plugins
+async function setupStrfryPlugins() {
+  console.log('\x1b[36m=== Setting Up Strfry Plugins ===\x1b[0m');
+  
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up Strfry plugins without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+  
+  try {
+    // Create plugins directory
+    const pluginsDir = '/usr/local/lib/strfry/plugins';
+    if (!fs.existsSync(pluginsDir)) {
+      console.log(`Creating plugins directory at ${pluginsDir}...`);
+      execSync(`mkdir -p ${pluginsDir}`);
+    }
+    
+    // Copy plugin files
+    const sourcePluginDir = path.join(packageRoot, 'plugins');
+    if (fs.existsSync(sourcePluginDir)) {
+      console.log('Copying plugin files...');
+      
+      // Copy the main plugin file
+      const sourcePluginFile = path.join(sourcePluginDir, 'hasenpfeffr.js');
+      const destPluginFile = path.join(pluginsDir, 'hasenpfeffr.js');
+      
+      if (fs.existsSync(sourcePluginFile)) {
+        execSync(`cp ${sourcePluginFile} ${destPluginFile}`);
+        execSync(`chmod +x ${destPluginFile}`);
+        console.log(`Plugin file copied to ${destPluginFile}`);
+      } else {
+        console.warn(`Plugin file not found at ${sourcePluginFile}`);
+      }
+      
+      // Create plugin data directory for JSON files
+      const pluginDataDir = path.join(pluginsDir, 'data');
+      if (!fs.existsSync(pluginDataDir)) {
+        execSync(`mkdir -p ${pluginDataDir}`);
+      }
+      
+      // Copy JSON data files if they exist
+      const jsonFiles = ['whitelist_pubkeys.json', 'blacklist_pubkeys.json', 'whitelist_kinds.json'];
+      jsonFiles.forEach(jsonFile => {
+        const sourceJsonFile = path.join(sourcePluginDir, jsonFile);
+        const destJsonFile = path.join(pluginDataDir, jsonFile);
+        
+        if (fs.existsSync(sourceJsonFile)) {
+          execSync(`cp ${sourceJsonFile} ${destJsonFile}`);
+          console.log(`JSON file ${jsonFile} copied to ${destJsonFile}`);
+        } else {
+          // Create empty JSON files if they don't exist
+          if (jsonFile === 'whitelist_pubkeys.json' || jsonFile === 'blacklist_pubkeys.json') {
+            fs.writeFileSync(destJsonFile, '[]');
+          } else if (jsonFile === 'whitelist_kinds.json') {
+            fs.writeFileSync(destJsonFile, '[0,1,2,3,4,5,6,7,8,9,10,40,41,42,43,44,45,46,47,48,49,50]');
+          }
+          console.log(`Created empty JSON file ${destJsonFile}`);
+        }
+      });
+      
+      // Update the plugin file to point to the correct JSON file paths
+      if (fs.existsSync(destPluginFile)) {
+        let pluginContent = fs.readFileSync(destPluginFile, 'utf8');
+        
+        // Update paths in the plugin file
+        pluginContent = pluginContent.replace(
+          /const whitelist_pubkeys = JSON\.parse\(fs\.readFileSync\('.*?', 'utf8'\)\)/,
+          `const whitelist_pubkeys = JSON.parse(fs.readFileSync('${pluginDataDir}/whitelist_pubkeys.json', 'utf8'))`
+        );
+        
+        pluginContent = pluginContent.replace(
+          /const blacklist_pubkeys = JSON\.parse\(fs\.readFileSync\('.*?', 'utf8'\)\)/,
+          `const blacklist_pubkeys = JSON.parse(fs.readFileSync('${pluginDataDir}/blacklist_pubkeys.json', 'utf8'))`
+        );
+        
+        pluginContent = pluginContent.replace(
+          /const whitelist_kinds = JSON\.parse\(fs\.readFileSync\('.*?', 'utf8'\)\)/,
+          `const whitelist_kinds = JSON.parse(fs.readFileSync('${pluginDataDir}/whitelist_kinds.json', 'utf8'))`
+        );
+        
+        fs.writeFileSync(destPluginFile, pluginContent);
+        console.log('Updated plugin file with correct JSON paths');
+      }
+      
+      // Update strfry.conf to include the plugin (but don't enable it by default)
+      const strfryConfPath = '/etc/strfry.conf';
+      if (fs.existsSync(strfryConfPath)) {
+        let confContent = fs.readFileSync(strfryConfPath, 'utf8');
+        
+        // Check if plugin setting already exists
+        const pluginRegex = /relay\.writePolicy\.plugin\s*=\s*"([^"]*)"/;
+        if (!pluginRegex.test(confContent)) {
+          // Add the plugin setting but leave it disabled by default
+          confContent += '\n# Hasenpfeffr plugin (disabled by default, enable via control panel)\nrelay.writePolicy.plugin = ""\n';
+          fs.writeFileSync(strfryConfPath, confContent);
+          console.log('Updated strfry.conf with plugin configuration (disabled by default)');
+        }
+      } else {
+        console.warn(`strfry.conf not found at ${strfryConfPath}`);
+      }
+    } else {
+      console.warn(`Source plugin directory not found at ${sourcePluginDir}`);
+    }
+    
+    console.log('Strfry plugins setup completed successfully.');
+  } catch (error) {
+    console.error('\x1b[31mError setting up Strfry plugins:\x1b[0m', error.message);
+    console.log('You can set up Strfry plugins manually later.');
   }
 }
 
