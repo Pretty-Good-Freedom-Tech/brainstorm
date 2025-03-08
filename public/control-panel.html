@@ -123,8 +123,30 @@
     <div class="container">
         <div class="nav">
             <h1>Hasenpfeffr Control Panel</h1>
-            <a href="https://relay4.hasenpfeffr.com">Go to Relay</a>
+            <div class="nav-links">
+                <a href="https://relay4.hasenpfeffr.com">Go to Relay</a>
+                <button id="logoutBtn" class="button logout-btn">Logout</button>
+            </div>
         </div>
+        <style>
+            .nav {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .nav-links {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+            .logout-btn {
+                background-color: #e74c3c;
+            }
+            .logout-btn:hover {
+                background-color: #c0392b;
+            }
+        </style>
         
         <div class="section">
             <h2>Data Management</h2>
@@ -288,6 +310,26 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Logout functionality
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    fetch('/control/api/auth/logout')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '/sign-in.html';
+                            } else {
+                                console.error('Logout failed:', data.message);
+                                alert('Logout failed: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error during logout:', error);
+                            alert('Error during logout. Please try again.');
+                        });
+                });
+            }
             // Strfry Plugin Management
             const pluginStatusIndicator = document.getElementById('pluginStatusIndicator');
             const pluginStatusText = document.getElementById('pluginStatusText');

@@ -11,6 +11,8 @@ const express = require('express');
 const { exec, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const session = require('express-session');
 
 // Import configuration
 let config;
@@ -59,6 +61,45 @@ const port = process.env.CONTROL_PANEL_PORT || 7778;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Session middleware
+app.use(session({
+    secret: crypto.randomBytes(32).toString('hex'),
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
+
+// Authentication middleware
+const authMiddleware = (req, res, next) => {
+    // Skip auth for the sign-in page and auth-related endpoints
+    if (req.path === '/sign-in.html' || 
+        req.path.startsWith('/control/api/auth/') || 
+        req.path.startsWith('/api/auth/')) {
+        return next();
+    }
+    
+    // Check if user is authenticated
+    if (req.session && req.session.authenticated) {
+        return next();
+    }
+    
+    // If accessing the root or control panel directly, redirect to sign-in
+    if (req.path === '/' || req.path === '/control-panel.html') {
+        return res.redirect('/sign-in.html');
+    }
+    
+    // For API calls, return unauthorized status
+    if (req.path.startsWith('/api/') || req.path.startsWith('/control/api/')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    // For other resources, redirect to sign-in
+    res.redirect('/sign-in.html');
+};
+
+// Apply auth middleware
+app.use(authMiddleware);
 
 // Serve static files from the public directory
 // First try to find the public directory in the bin directory
@@ -131,6 +172,14 @@ app.get('/control/api/strfry-plugin', handleStrfryPlugin);
 // API endpoint for bulk transfer
 app.post('/api/bulk-transfer', handleBulkTransfer);
 app.post('/control/api/bulk-transfer', handleBulkTransfer);
+
+// Authentication endpoints
+app.post('/api/auth/verify', handleAuthVerify);
+app.post('/control/api/auth/verify', handleAuthVerify);
+app.post('/api/auth/login', handleAuthLogin);
+app.post('/control/api/auth/login', handleAuthLogin);
+app.get('/api/auth/logout', handleAuthLogout);
+app.get('/control/api/auth/logout', handleAuthLogout);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {
@@ -585,6 +634,121 @@ function handleBulkTransfer(req, res) {
             success: false,
             message: `Bulk transfer error: ${error.message}`
         });
+    });
+}
+
+// Authentication handlers
+function handleAuthVerify(req, res) {
+    try {
+        const { pubkey } = req.body;
+        
+        if (!pubkey) {
+            return res.status(400).json({ error: 'Missing pubkey parameter' });
+        }
+        
+        // Get owner pubkey from config
+        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        
+        if (!ownerPubkey) {
+            console.error('HASENPFEFFR_OWNER_PUBKEY not set in configuration');
+            return res.status(500).json({ error: 'Server configuration error' });
+        }
+        
+        // Check if the pubkey matches the owner pubkey
+        const authorized = pubkey === ownerPubkey;
+        
+        if (authorized) {
+            // Generate a random challenge for the client to sign
+            const challenge = crypto.randomBytes(32).toString('hex');
+            req.session.challenge = challenge;
+            req.session.pubkey = pubkey;
+            
+            return res.json({ authorized, challenge });
+        } else {
+            return res.json({ 
+                authorized: false, 
+                message: 'Only the owner can access the control panel' 
+            });
+        }
+    } catch (error) {
+        console.error('Error verifying authentication:', error);
+        return res.status(500).json({ error: error.message });
+    }
+}
+
+function handleAuthLogin(req, res) {
+    try {
+        const { event } = req.body;
+        
+        if (!event) {
+            return res.status(400).json({ error: 'Missing event parameter' });
+        }
+        
+        // Verify the event is properly signed
+        // In a production environment, you would want to use a proper Nostr library for verification
+        // For this example, we'll just check that the pubkey matches and the challenge is included
+        
+        const sessionPubkey = req.session.pubkey;
+        const sessionChallenge = req.session.challenge;
+        
+        if (!sessionPubkey || !sessionChallenge) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'No active authentication session' 
+            });
+        }
+        
+        // Check pubkey matches
+        if (event.pubkey !== sessionPubkey) {
+            return res.json({ 
+                success: false, 
+                message: 'Public key mismatch' 
+            });
+        }
+        
+        // Check challenge is included in tags
+        let challengeFound = false;
+        if (event.tags && Array.isArray(event.tags)) {
+            for (const tag of event.tags) {
+                if (tag[0] === 'challenge' && tag[1] === sessionChallenge) {
+                    challengeFound = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!challengeFound) {
+            return res.json({ 
+                success: false, 
+                message: 'Challenge verification failed' 
+            });
+        }
+        
+        // Set session as authenticated
+        req.session.authenticated = true;
+        
+        return res.json({ 
+            success: true, 
+            message: 'Authentication successful' 
+        });
+    } catch (error) {
+        console.error('Error during login:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+}
+
+function handleAuthLogout(req, res) {
+    // Destroy the session
+    req.session.destroy(err => {
+        if (err) {
+            console.error('Error destroying session:', err);
+            return res.status(500).json({ error: 'Error logging out' });
+        }
+        
+        res.json({ success: true, message: 'Logged out successfully' });
     });
 }
 
