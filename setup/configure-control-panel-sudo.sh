@@ -59,6 +59,21 @@ $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start processQueue
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop processQueue
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart processQueue
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active processQueue
+
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start reconcile.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop reconcile.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart reconcile.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active reconcile.timer
+
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start calculateHops.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop calculateHops.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart calculateHops.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active calculateHops.timer
+
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start calculatePersonalizedPageRank.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop calculatePersonalizedPageRank.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart calculatePersonalizedPageRank.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active calculatePersonalizedPageRank.timer
 EOF
 
 # Check syntax of the sudoers entry

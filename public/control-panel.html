@@ -197,15 +197,15 @@
                             <td id="userCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
                         </tr>
                         <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">FOLLOW Relationships</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">FOLLOWS Relationships</td>
                             <td id="followCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
                         </tr>
                         <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">MUTE Relationships</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">MUTES Relationships</td>
                             <td id="muteCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
                         </tr>
                         <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">REPORT Relationships</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">REPORTS Relationships</td>
                             <td id="reportCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
                         </tr>
                     </table>
@@ -283,15 +283,54 @@
                         // Clear the table
                         servicesTableBody.innerHTML = '';
                         
-                        // Add a row for each service
+                        // Service descriptions
+                        const serviceDescriptions = {
+                            'neo4j': 'Graph database for storing Nostr relationships',
+                            'strfry': 'Nostr relay for receiving and serving events',
+                            'hasenpfeffr-control-panel': 'Web interface for system management',
+                            'strfry-router': 'Routes events between relays',
+                            'addToQueue': 'Adds pubkeys to processing queue',
+                            'processQueue': 'Processes pubkeys from queue',
+                            'reconcile.timer': 'Scheduled task to reconcile graph data',
+                            'calculateHops.timer': 'Scheduled task to calculate network hops',
+                            'calculatePersonalizedPageRank.timer': 'Scheduled task to calculate PageRank scores'
+                        };
+                        
+                        // Separate regular services from timer services
+                        const regularServices = [];
+                        const timerServices = [];
+                        
                         Object.entries(data.services).forEach(([service, status]) => {
+                            if (service.endsWith('.timer')) {
+                                timerServices.push([service, status]);
+                            } else {
+                                regularServices.push([service, status]);
+                            }
+                        });
+                        
+                        // Function to create a service row
+                        function createServiceRow(service, status, isTimer = false) {
                             const row = document.createElement('tr');
                             
                             // Service name cell
                             const nameCell = document.createElement('td');
                             nameCell.style.padding = '8px';
                             nameCell.style.borderBottom = '1px solid #ddd';
-                            nameCell.textContent = service;
+                            
+                            const nameSpan = document.createElement('span');
+                            nameSpan.textContent = service;
+                            nameSpan.style.fontWeight = 'bold';
+                            nameCell.appendChild(nameSpan);
+                            
+                            // Add description if available
+                            if (serviceDescriptions[service]) {
+                                const descSpan = document.createElement('div');
+                                descSpan.textContent = serviceDescriptions[service];
+                                descSpan.style.fontSize = '0.8em';
+                                descSpan.style.color = '#666';
+                                nameCell.appendChild(descSpan);
+                            }
+                            
                             row.appendChild(nameCell);
                             
                             // Status cell
@@ -329,7 +368,7 @@
                             startBtn.style.backgroundColor = '#2ecc71';
                             startBtn.style.marginRight = '5px';
                             startBtn.style.padding = '5px 10px';
-                            startBtn.textContent = 'Start';
+                            startBtn.textContent = isTimer ? 'Enable' : 'Start';
                             startBtn.onclick = () => controlService(service, 'start');
                             
                             // Stop button
@@ -338,7 +377,7 @@
                             stopBtn.style.backgroundColor = '#e74c3c';
                             stopBtn.style.marginRight = '5px';
                             stopBtn.style.padding = '5px 10px';
-                            stopBtn.textContent = 'Stop';
+                            stopBtn.textContent = isTimer ? 'Disable' : 'Stop';
                             stopBtn.onclick = () => controlService(service, 'stop');
                             
                             // Restart button
@@ -354,8 +393,46 @@
                             actionsCell.appendChild(restartBtn);
                             row.appendChild(actionsCell);
                             
-                            servicesTableBody.appendChild(row);
-                        });
+                            return row;
+                        }
+                        
+                        // Add regular services
+                        if (regularServices.length > 0) {
+                            // Add header for regular services
+                            const headerRow = document.createElement('tr');
+                            const headerCell = document.createElement('td');
+                            headerCell.colSpan = 3;
+                            headerCell.style.backgroundColor = '#f2f2f2';
+                            headerCell.style.padding = '8px';
+                            headerCell.style.fontWeight = 'bold';
+                            headerCell.textContent = 'Core Services';
+                            headerRow.appendChild(headerCell);
+                            servicesTableBody.appendChild(headerRow);
+                            
+                            // Add each regular service
+                            regularServices.forEach(([service, status]) => {
+                                servicesTableBody.appendChild(createServiceRow(service, status));
+                            });
+                        }
+                        
+                        // Add timer services
+                        if (timerServices.length > 0) {
+                            // Add header for timer services
+                            const headerRow = document.createElement('tr');
+                            const headerCell = document.createElement('td');
+                            headerCell.colSpan = 3;
+                            headerCell.style.backgroundColor = '#f2f2f2';
+                            headerCell.style.padding = '8px';
+                            headerCell.style.fontWeight = 'bold';
+                            headerCell.textContent = 'Scheduled Tasks';
+                            headerRow.appendChild(headerCell);
+                            servicesTableBody.appendChild(headerRow);
+                            
+                            // Add each timer service
+                            timerServices.forEach(([service, status]) => {
+                                servicesTableBody.appendChild(createServiceRow(service, status, true));
+                            });
+                        }
                     })
                     .catch(error => {
                         refreshServicesBtn.disabled = false;

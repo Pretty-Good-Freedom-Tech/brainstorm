@@ -1,0 +1,18 @@
+[Unit]
+Description=Calculate Hops in Nostr Network
+After=network.target neo4j.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+EnvironmentFile=/etc/hasenpfeffr.conf
+ExecStart=/usr/local/lib/node_modules/hasenpfeffr/src/algos/calculateHops.sh
+# Set resource limits to prevent excessive resource usage
+CPUQuota=80%
+MemoryLimit=2G
+# Add additional security measures
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

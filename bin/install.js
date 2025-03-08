@@ -48,6 +48,8 @@ const configPaths = {
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
 
   pipelineInstallScript: path.join(packageRoot, 'setup', 'install-pipeline.sh'),
+  sudoPrivilegesScript: path.join(packageRoot, 'setup', 'configure-sudo-privileges.sh'),
+  controlPanelSudoScript: path.join(packageRoot, 'setup', 'configure-control-panel-sudo.sh'),
 
   controlPanelServiceFileSource: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
   strfryRouterServiceFileSource: path.join(packageRoot, 'systemd', 'strfry-router.service'),
@@ -59,6 +61,37 @@ const configPaths = {
   addToQueueServiceFileDestination: path.join(systemdServiceDir, 'addToQueue.service'),
   processQueueServiceFileDestination: path.join(systemdServiceDir, 'processQueue.service')
 };
+
+// Configure sudo privileges for hasenpfeffr user and control panel
+async function configureSudoPrivileges() {
+  console.log('\x1b[36m=== Configuring Sudo Privileges ===\x1b[0m');
+  
+  // Check if running as root
+  if (!isRoot) {
+    console.log('\x1b[33mWarning: Not running as root. Sudo privileges configuration will be skipped.\x1b[0m');
+    console.log('To configure sudo privileges later, run:');
+    console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
+    console.log(`sudo ${configPaths.controlPanelSudoScript}`);
+    return;
+  }
+  
+  try {
+    // Configure general sudo privileges for hasenpfeffr user
+    console.log('Configuring sudo privileges for hasenpfeffr user...');
+    execSync(`bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
+    
+    // Configure specific sudo privileges for control panel
+    console.log('Configuring sudo privileges for control panel...');
+    execSync(`bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
+    
+    console.log('\x1b[32mSudo privileges configured successfully.\x1b[0m');
+  } catch (error) {
+    console.error('\x1b[31mError configuring sudo privileges:\x1b[0m', error.message);
+    console.log('You can configure sudo privileges manually later by running:');
+    console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
+    console.log(`sudo ${configPaths.controlPanelSudoScript}`);
+  }
+}
 
 // Main installation function
 async function install() {
@@ -85,7 +118,10 @@ async function install() {
     // Step 5: Setup Strfry Neo4j Pipeline
     await installPipeline();
     
-    // Step 6: Final setup and instructions
+    // Step 6: Configure sudo privileges
+    await configureSudoPrivileges();
+    
+    // Step 7: Final setup and instructions
     await finalSetup();
     
     console.log('\x1b[32m=== Installation Complete ===\x1b[0m');
@@ -485,6 +521,13 @@ async function finalSetup() {
   console.log('\nSSL Certificate:');
   console.log('If you skipped SSL certificate setup or it failed, you can set it up later with:');
   console.log('sudo certbot --nginx -d your-domain.com');
+  
+  // Sudo privileges reminder
+  console.log('\nSudo Privileges:');
+  console.log('If sudo privileges configuration was skipped or failed, you can set it up later with:');
+  console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
+  console.log(`sudo ${configPaths.controlPanelSudoScript}`);
+  console.log('These scripts are required for the control panel to manage systemd services.');
   
   // Wait for user acknowledgment
   await askQuestion('Press Enter to continue...');

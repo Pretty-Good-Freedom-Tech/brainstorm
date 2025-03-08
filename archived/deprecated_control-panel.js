@@ -162,19 +162,19 @@ app.get('/api/neo4j-status', (req, res) => {
             }
             
             // Get relationship counts
-            executeCypher('MATCH ()-[r:FOLLOW]->() RETURN count(r) as count;', (output) => {
+            executeCypher('MATCH ()-[r:FOLLOWS]->() RETURN count(r) as count;', (output) => {
                 const match = output.match(/(\d+)/);
                 if (match && match[1]) {
                     neo4jStatus.relationships.follow = parseInt(match[1], 10);
                 }
                 
-                executeCypher('MATCH ()-[r:MUTE]->() RETURN count(r) as count;', (output) => {
+                executeCypher('MATCH ()-[r:MUTES]->() RETURN count(r) as count;', (output) => {
                     const match = output.match(/(\d+)/);
                     if (match && match[1]) {
                         neo4jStatus.relationships.mute = parseInt(match[1], 10);
                     }
                     
-                    executeCypher('MATCH ()-[r:REPORT]->() RETURN count(r) as count;', (output) => {
+                    executeCypher('MATCH ()-[r:REPORTS]->() RETURN count(r) as count;', (output) => {
                         const match = output.match(/(\d+)/);
                         if (match && match[1]) {
                             neo4jStatus.relationships.report = parseInt(match[1], 10);
