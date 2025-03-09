@@ -139,44 +139,59 @@ if (!fs.existsSync(publicPath)) {
 }
 app.use(express.static(publicPath));
 
-// Serve the control panel HTML files
+// Helper function to serve HTML files
+function serveHtmlFile(filename, res) {
+    // First try to find the HTML file in the bin directory
+    let htmlPath = path.join(__dirname, 'public/' + filename);
+    
+    // If not found, try the parent directory (project root)
+    if (!fs.existsSync(htmlPath)) {
+        htmlPath = path.join(__dirname, '../public/' + filename);
+    }
+    
+    if (fs.existsSync(htmlPath)) {
+        res.sendFile(htmlPath);
+    } else {
+        res.status(404).send(`HTML file ${filename} not found`);
+    }
+}
+
+// Serve the control panel HTML files - direct access
 app.get('/', (req, res) => {
     res.redirect('/control-panel.html');
 });
 
-app.get('/control-panel.html', (req, res) => {
-    // First try to find the HTML file in the bin directory
-    let htmlPath = path.join(__dirname, 'public/control-panel.html');
-    
-    // If not found, try the parent directory (project root)
-    if (!fs.existsSync(htmlPath)) {
-        htmlPath = path.join(__dirname, '../public/control-panel.html');
-    }
-    
-    if (fs.existsSync(htmlPath)) {
-        res.sendFile(htmlPath);
-    } else {
-        res.status(404).send('Control panel HTML file not found. Looked in: ' + 
-                            path.join(__dirname, 'public/control-panel.html') + ' and ' +
-                            path.join(__dirname, '../public/control-panel.html'));
-    }
+app.get('/control/api', (req, res) => {
+    res.redirect('/control-panel.html');
 });
 
-// Serve the sign-in page at the root level
+app.get('/control', (req, res) => {
+    res.redirect('/control-panel.html');
+});
+
+// Handle both direct and proxied access to HTML pages
+app.get('/control-panel.html', (req, res) => {
+    serveHtmlFile('control-panel.html', res);
+});
+
+app.get('/control/control-panel.html', (req, res) => {
+    serveHtmlFile('control-panel.html', res);
+});
+
 app.get('/sign-in.html', (req, res) => {
-    // First try to find the HTML file in the bin directory
-    let htmlPath = path.join(__dirname, 'public/sign-in.html');
-    
-    // If not found, try the parent directory (project root)
-    if (!fs.existsSync(htmlPath)) {
-        htmlPath = path.join(__dirname, '../public/sign-in.html');
-    }
-    
-    if (fs.existsSync(htmlPath)) {
-        res.sendFile(htmlPath);
-    } else {
-        res.status(404).send('Sign-in HTML file not found');
-    }
+    serveHtmlFile('sign-in.html', res);
+});
+
+app.get('/control/sign-in.html', (req, res) => {
+    serveHtmlFile('sign-in.html', res);
+});
+
+app.get('/nip85-control-panel.html', (req, res) => {
+    serveHtmlFile('nip85-control-panel.html', res);
+});
+
+app.get('/control/nip85-control-panel.html', (req, res) => {
+    serveHtmlFile('nip85-control-panel.html', res);
 });
 
 // Define API routes for both direct access and nginx proxy

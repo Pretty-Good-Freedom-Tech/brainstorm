@@ -86,7 +86,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Hasenpfeffr Control Panel</h1>
+        <h1>Sign In</h1>
     </div>
     <div class="container">
         <div class="sign-in-box">
@@ -99,7 +99,7 @@
             <div class="divider">OR</div>
             
             <p>You can access the control panel in read-only mode without signing in:</p>
-            <a href="/control-panel.html" class="btn secondary-btn">Access Control Panel (Read-Only)</a>
+            <a href="/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Access Control Panel (Read-Only)</a>
         </div>
         
         <style>
@@ -142,6 +142,16 @@
         document.addEventListener('DOMContentLoaded', function() {
             const signInBtn = document.getElementById('signInBtn');
             const signInStatus = document.getElementById('signInStatus');
+            const controlPanelLink = document.getElementById('controlPanelLink');
+            
+            // Determine if we're accessed via direct or proxied URL
+            const currentPath = window.location.pathname;
+            const isProxied = currentPath.startsWith('/control/');
+            
+            // Update control panel link based on current path
+            if (controlPanelLink) {
+                controlPanelLink.href = isProxied ? '/control/control-panel.html' : '/control-panel.html';
+            }
             
             // Check if NIP-07 extension is available
             if (typeof window.nostr === 'undefined') {
@@ -167,8 +177,14 @@
                     // Get public key from NIP-07 extension
                     const pubkey = await window.nostr.getPublicKey();
                     
+                    // Try to determine if we're accessed via direct or proxied URL
+                    const currentPath = window.location.pathname;
+                    const isProxied = currentPath.startsWith('/control/');
+                    const apiPrefix = isProxied ? '/control/api' : '/api';
+                    console.log('Using API prefix:', apiPrefix);
+                    
                     // Verify with server
-                    const response = await fetch('/control/api/auth/verify', {
+                    const response = await fetch(`${apiPrefix}/auth/verify`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -195,7 +211,7 @@
                         const signedEvent = await window.nostr.signEvent(event);
                         
                         // Send the signed event to the server
-                        const authResponse = await fetch('/control/api/auth/login', {
+                        const authResponse = await fetch(`${apiPrefix}/auth/login`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -211,7 +227,8 @@
                             
                             // Redirect to control panel
                             setTimeout(() => {
-                                window.location.href = '/control-panel.html';
+                                // Use the same path structure we're currently on
+                                window.location.href = isProxied ? '/control/control-panel.html' : '/control-panel.html';
                             }, 1500);
                         } else {
                             signInStatus.textContent = 'Authentication failed: ' + authData.message;

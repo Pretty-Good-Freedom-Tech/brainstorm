@@ -97,11 +97,19 @@
             // Set up the relay link with the correct domain from the server
             const relayLink = document.getElementById('relayLink');
             if (relayLink) {
+                // Try both direct and proxied API endpoints
                 fetch('/api/status')
                     .then(response => response.json())
+                    .catch(() => fetch('/control/api/status').then(response => response.json()))
                     .then(data => {
-                        if (data.strfryDomain) {
-                            relayLink.href = `https://${data.strfryDomain}`;
+                        if (data && data.strfryDomain) {
+                            // Check if the domain already has a protocol
+                            let domain = data.strfryDomain;
+                            if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
+                                domain = 'https://' + domain;
+                            }
+                            relayLink.href = domain;
+                            console.log('Set relay link to:', domain);
                         } else {
                             relayLink.href = '#';
                             console.error('STRFRY_DOMAIN not found in server response');
