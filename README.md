@@ -4,7 +4,7 @@ Hasenpfeffr is a personalized Webs of Trust nostr relay that uses advanced centr
 
 WORK IN PROGRESS: currently refactoring [manual installation repo](https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr-manual-installation) to create a nodejs package structure.
 
-## Features
+## Features (when ready)
 
 - strfry and Neo4j integration
 - personalized PageRank
@@ -14,10 +14,15 @@ WORK IN PROGRESS: currently refactoring [manual installation repo](https://githu
 - Optimized for large-scale data processing (100,000+ events)
 - Performance monitoring and logging
 
-## TODO
+## TODO (ASAP) (last updated 8 Mar 2025)
 
-- personalized GrapeRank
-- improve GUI
+- NIP-07 sign-in
+- export scores as 30382 notes (NIP-85) signed by relay nsec
+- sign 10040 note (NIP-85)
+- view / change relay nsec 
+- update plugin whitelist
+- add personalized GrapeRank
+- add verified followers score
 - make scores accessible through API (WoT DVM)
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
