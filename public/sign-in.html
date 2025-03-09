@@ -91,11 +91,51 @@
     <div class="container">
         <div class="sign-in-box">
             <h2>Sign In with Nostr</h2>
-            <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can access the control panel.</p>
+            <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can perform administrative actions.</p>
             
             <button id="signInBtn" class="btn">Sign In with Nostr</button>
             <div id="signInStatus" class="status"></div>
+            
+            <div class="divider">OR</div>
+            
+            <p>You can access the control panel in read-only mode without signing in:</p>
+            <a href="/control-panel.html" class="btn secondary-btn">Access Control Panel (Read-Only)</a>
         </div>
+        
+        <style>
+            .divider {
+                display: flex;
+                align-items: center;
+                text-align: center;
+                margin: 20px 0;
+                color: #777;
+            }
+            
+            .divider::before,
+            .divider::after {
+                content: '';
+                flex: 1;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .divider::before {
+                margin-right: 10px;
+            }
+            
+            .divider::after {
+                margin-left: 10px;
+            }
+            
+            .secondary-btn {
+                background-color: #95a5a6;
+                text-decoration: none;
+                text-align: center;
+            }
+            
+            .secondary-btn:hover {
+                background-color: #7f8c8d;
+            }
+        </style>
     </div>
 
     <script>
@@ -139,6 +179,8 @@
                     const data = await response.json();
                     
                     if (data.authorized) {
+                        signInStatus.textContent = `Authentication successful! Your public key (${pubkey.substring(0, 8)}...) matches the owner's key. Creating signed event...`;
+                        
                         // If authorized, create a signed event for authentication
                         const event = {
                             kind: 27235, // Custom kind for auth
@@ -180,6 +222,12 @@
                         signInStatus.textContent = 'Unauthorized: ' + data.message;
                         signInStatus.className = 'status error';
                         signInBtn.disabled = false;
+                        
+                        // Display the user's pubkey for debugging
+                        const pubkeyInfo = document.createElement('div');
+                        pubkeyInfo.className = 'pubkey-info';
+                        pubkeyInfo.innerHTML = `<strong>Your public key:</strong> <code>${pubkey}</code><br>This key does not match the authorized owner key in the server configuration.`;
+                        signInStatus.appendChild(pubkeyInfo);
                     }
                 } catch (error) {
                     console.error('Error during authentication:', error);

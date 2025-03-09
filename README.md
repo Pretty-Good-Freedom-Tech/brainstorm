@@ -24,6 +24,8 @@ WORK IN PROGRESS: currently refactoring [manual installation repo](https://githu
 - add personalized GrapeRank
 - add verified followers score
 - make scores accessible through API (WoT DVM)
+- neo4j update password
+- data navigation pages: table of all pubkeys, my followers, recommended follows, individual profile pages, etc
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 

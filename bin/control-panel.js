@@ -29,9 +29,27 @@ function getConfigFromFile(varName, defaultValue = null) {
   try {
     const confFile = '/etc/hasenpfeffr.conf';
     if (fs.existsSync(confFile)) {
+      // Read the file content directly
+      const fileContent = fs.readFileSync(confFile, 'utf8');
+      console.log(`Reading config for ${varName} from ${confFile}`);
+      
+      // Look for the variable in the file content
+      const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']
+`, 'gm');
+      const match = regex.exec(fileContent);
+      
+      if (match && match[1]) {
+        console.log(`Found ${varName}=${match[1]}`);
+        return match[1];
+      }
+      
+      // If not found with regex, try the source command as fallback
+      console.log(`Trying source command for ${varName}`);
       const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
+      console.log(`Source command result for ${varName}: '${result}'`);
       return result || defaultValue;
     }
+    console.log(`Config file ${confFile} not found`);
     return defaultValue;
   } catch (error) {
     console.error(`Error getting configuration value ${varName}:`, error.message);
@@ -72,30 +90,41 @@ app.use(session({
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
-    // Skip auth for the sign-in page and auth-related endpoints
+    // Skip auth for static resources, sign-in page and auth-related endpoints
     if (req.path === '/sign-in.html' || 
         req.path.startsWith('/control/api/auth/') || 
-        req.path.startsWith('/api/auth/')) {
+        req.path.startsWith('/api/auth/') ||
+        req.path === '/' || 
+        req.path === '/control-panel.html' ||
+        !req.path.startsWith('/api/') && !req.path.startsWith('/control/api/')) {
         return next();
     }
     
-    // Check if user is authenticated
+    // Check if user is authenticated for API calls
     if (req.session && req.session.authenticated) {
         return next();
+    } else {
+        // For API calls that modify data, return unauthorized status
+        const writeEndpoints = [
+            '/bulk-transfer',
+            '/generate',
+            '/publish',
+            '/negentropy-sync',
+            '/strfry-plugin'
+        ];
+        
+        // Check if the current path is a write endpoint
+        const isWriteEndpoint = writeEndpoints.some(endpoint => 
+            req.path.includes(endpoint) && (req.method === 'POST' || req.path.includes('?action=enable') || req.path.includes('?action=disable'))
+        );
+        
+        if (isWriteEndpoint) {
+            return res.status(401).json({ error: 'Authentication required for this action' });
+        }
+        
+        // Allow read-only API access
+        return next();
     }
-    
-    // If accessing the root or control panel directly, redirect to sign-in
-    if (req.path === '/' || req.path === '/control-panel.html') {
-        return res.redirect('/sign-in.html');
-    }
-    
-    // For API calls, return unauthorized status
-    if (req.path.startsWith('/api/') || req.path.startsWith('/control/api/')) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-    
-    // For other resources, redirect to sign-in
-    res.redirect('/sign-in.html');
 };
 
 // Apply auth middleware
@@ -646,8 +675,12 @@ function handleAuthVerify(req, res) {
             return res.status(400).json({ error: 'Missing pubkey parameter' });
         }
         
+        console.log(`Received authentication request from pubkey: ${pubkey}`);
+        
         // Get owner pubkey from config
         const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        
+        console.log(`Owner pubkey from config: '${ownerPubkey}'`);
         
         if (!ownerPubkey) {
             console.error('HASENPFEFFR_OWNER_PUBKEY not set in configuration');
@@ -656,6 +689,7 @@ function handleAuthVerify(req, res) {
         
         // Check if the pubkey matches the owner pubkey
         const authorized = pubkey === ownerPubkey;
+        console.log(`Authorization result: ${authorized} (${pubkey} === ${ownerPubkey})`);
         
         if (authorized) {
             // Generate a random challenge for the client to sign
@@ -667,7 +701,7 @@ function handleAuthVerify(req, res) {
         } else {
             return res.json({ 
                 authorized: false, 
-                message: 'Only the owner can access the control panel' 
+                message: `Only the owner (${ownerPubkey.substring(0, 8)}...) can access the control panel` 
             });
         }
     } catch (error) {
