@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIP-85 Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #3498db;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .primary-btn {
+            background-color: #3498db;
+        }
+        .primary-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <h1>NIP-85 Control Panel</h1>
+            <div class="nav-links">
+                <a href="/control-panel.html" class="button primary-btn">Main Control Panel</a>
+                <a href="#" id="relayLink">Go to Relay</a>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>NIP-85 Management</h2>
+            <div class="card">
+                <p>This panel will contain NIP-85 specific controls and functionality.</p>
+                <p>Coming soon...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up the relay link with the correct domain from the server
+            const relayLink = document.getElementById('relayLink');
+            if (relayLink) {
+                fetch('/api/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.strfryDomain) {
+                            relayLink.href = `https://${data.strfryDomain}`;
+                        } else {
+                            relayLink.href = '#';
+                            console.error('STRFRY_DOMAIN not found in server response');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching STRFRY_DOMAIN:', error);
+                        relayLink.href = '#';
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

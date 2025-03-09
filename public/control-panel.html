@@ -124,7 +124,8 @@
         <div class="nav">
             <h1>Hasenpfeffr Control Panel</h1>
             <div class="nav-links">
-                <a href="https://relay4.hasenpfeffr.com">Go to Relay</a>
+                <a href="#" id="relayLink">Go to Relay</a>
+                <a href="/nip85-control-panel.html" class="button secondary-btn">NIP-85 Control Panel</a>
                 <button id="logoutBtn" class="button logout-btn">Logout</button>
             </div>
         </div>
@@ -145,6 +146,12 @@
             }
             .logout-btn:hover {
                 background-color: #c0392b;
+            }
+            .secondary-btn {
+                background-color: #3498db;
+            }
+            .secondary-btn:hover {
+                background-color: #2980b9;
             }
         </style>
         
@@ -310,6 +317,24 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Set up the relay link with the correct domain from the server
+            const relayLink = document.getElementById('relayLink');
+            if (relayLink) {
+                fetch('/api/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.strfryDomain) {
+                            relayLink.href = `https://${data.strfryDomain}`;
+                        } else {
+                            relayLink.href = '#';
+                            console.error('STRFRY_DOMAIN not found in server response');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching STRFRY_DOMAIN:', error);
+                        relayLink.href = '#';
+                    });
+            }
             // Logout functionality
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {

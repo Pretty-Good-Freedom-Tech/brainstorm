@@ -139,8 +139,12 @@ if (!fs.existsSync(publicPath)) {
 }
 app.use(express.static(publicPath));
 
-// Serve the control panel HTML file
+// Serve the control panel HTML files
 app.get('/', (req, res) => {
+    res.redirect('/control-panel.html');
+});
+
+app.get('/control-panel.html', (req, res) => {
     // First try to find the HTML file in the bin directory
     let htmlPath = path.join(__dirname, 'public/control-panel.html');
     
@@ -155,6 +159,23 @@ app.get('/', (req, res) => {
         res.status(404).send('Control panel HTML file not found. Looked in: ' + 
                             path.join(__dirname, 'public/control-panel.html') + ' and ' +
                             path.join(__dirname, '../public/control-panel.html'));
+    }
+});
+
+// Serve the sign-in page at the root level
+app.get('/sign-in.html', (req, res) => {
+    // First try to find the HTML file in the bin directory
+    let htmlPath = path.join(__dirname, 'public/sign-in.html');
+    
+    // If not found, try the parent directory (project root)
+    if (!fs.existsSync(htmlPath)) {
+        htmlPath = path.join(__dirname, '../public/sign-in.html');
+    }
+    
+    if (fs.existsSync(htmlPath)) {
+        res.sendFile(htmlPath);
+    } else {
+        res.status(404).send('Sign-in HTML file not found');
     }
 });
 
@@ -214,9 +235,13 @@ app.get('/control/api/auth/logout', handleAuthLogout);
 function handleStatus(req, res) {
     console.log('Checking status...');
     
+    // Get the STRFRY_DOMAIN from config
+    const strfryDomain = getConfigFromFile('STRFRY_DOMAIN', 'localhost');
+    
     exec('systemctl status strfry', (error, stdout, stderr) => {
         return res.json({
-            output: stdout || stderr
+            output: stdout || stderr,
+            strfryDomain: strfryDomain
         });
     });
 }
