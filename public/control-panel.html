@@ -720,7 +720,7 @@
                 statusOutput.style.display = 'block';
                 statusOutput.textContent = 'Checking status...';
                 
-                fetch('/control/api/status')
+                fetch('/api/status')
                 .then(response => response.json())
                 .then(data => {
                     statusOutput.textContent = data.output;
@@ -748,7 +748,7 @@
                 statsStatus.textContent = 'Fetching event statistics...';
                 statsContainer.style.display = 'none';
                 
-                fetch('/control/api/strfry-stats')
+                fetch('/api/strfry-stats')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -793,7 +793,7 @@
                 neo4jStatus.textContent = 'Checking Neo4j status...';
                 neo4jContainer.style.display = 'none';
                 
-                fetch('/control/api/neo4j-status')
+                fetch('/api/neo4j-status')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -981,7 +981,7 @@
                 }, 1000);
                 
                 // Make AJAX request to the server
-                fetch('/control/api/negentropy-sync', {
+                fetch('/api/negentropy-sync', {
                     method: 'POST'
                 })
                 .then(response => {

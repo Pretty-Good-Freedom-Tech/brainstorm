@@ -13,5 +13,5 @@ filter="{ \"kinds\": [3], \"since\": $SINCE_TIMESTAMP }"
 command1="sudo strfry scan --count '$filter'"
 eval "$command1"
 
-command2="sudo strfry scan '$filter' | jq -cr 'del(.content)' > allKind3EventsStripped.json"
+command2="sudo strfry scan '$filter' | jq -cr 'del(.content)' > /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/allKind3EventsStripped.json"
 eval "$command2"
