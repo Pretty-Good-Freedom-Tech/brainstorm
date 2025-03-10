@@ -71,6 +71,32 @@
         .primary-btn:hover {
             background-color: #2980b9;
         }
+        .secondary-btn {
+            background-color: #95a5a6;
+        }
+        .secondary-btn:hover {
+            background-color: #7f8c8d;
+        }
+        .home-btn {
+            background-color: #2ecc71;
+        }
+        .home-btn:hover {
+            background-color: #27ae60;
+        }
+        .auth-status {
+            margin-left: 15px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .authenticated {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .read-only {
+            background-color: #f39c12;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -78,8 +104,10 @@
         <div class="nav">
             <h1>NIP-85 Control Panel</h1>
             <div class="nav-links">
+                <a href="/" class="button home-btn">Home</a>
                 <a href="/control-panel.html" class="button primary-btn">Main Control Panel</a>
-                <a href="#" id="relayLink">Go to Relay</a>
+                <a href="#" id="relayLink" class="button secondary-btn">Go to Relay</a>
+                <span id="authStatus" class="auth-status"></span>
             </div>
         </div>
         
@@ -97,10 +125,8 @@
             // Set up the relay link with the correct domain from the server
             const relayLink = document.getElementById('relayLink');
             if (relayLink) {
-                // Try both direct and proxied API endpoints
                 fetch('/api/status')
                     .then(response => response.json())
-                    .catch(() => fetch('/control/api/status').then(response => response.json()))
                     .then(data => {
                         if (data && data.strfryDomain) {
                             // Check if the domain already has a protocol
@@ -108,8 +134,8 @@
                             if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
                                 domain = 'https://' + domain;
                             }
-                            relayLink.href = domain;
-                            console.log('Set relay link to:', domain);
+                            relayLink.href = `${domain}/strfry/`;
+                            console.log('Set relay link to:', `${domain}/strfry/`);
                         } else {
                             relayLink.href = '#';
                             console.error('STRFRY_DOMAIN not found in server response');
@@ -118,6 +144,26 @@
                     .catch(error => {
                         console.error('Error fetching STRFRY_DOMAIN:', error);
                         relayLink.href = '#';
+                    });
+            }
+            
+            // Check authentication status and update UI
+            const authStatus = document.getElementById('authStatus');
+            if (authStatus) {
+                fetch('/api/auth/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.authenticated) {
+                            authStatus.textContent = `Authenticated as: ${data.pubkey.substring(0, 8)}...`;
+                            authStatus.classList.add('authenticated');
+                        } else {
+                            authStatus.textContent = 'Read-only mode';
+                            authStatus.classList.add('read-only');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking authentication status:', error);
+                        authStatus.textContent = 'Authentication status unknown';
                     });
             }
         });

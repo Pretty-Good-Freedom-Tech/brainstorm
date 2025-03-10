@@ -92,11 +92,12 @@ app.use(session({
 const authMiddleware = (req, res, next) => {
     // Skip auth for static resources, sign-in page and auth-related endpoints
     if (req.path === '/sign-in.html' || 
-        req.path.startsWith('/control/api/auth/') || 
+        req.path === '/index.html' ||
         req.path.startsWith('/api/auth/') ||
         req.path === '/' || 
         req.path === '/control-panel.html' ||
-        !req.path.startsWith('/api/') && !req.path.startsWith('/control/api/')) {
+        req.path === '/nip85-control-panel.html' ||
+        !req.path.startsWith('/api/')) {
         return next();
     }
     
@@ -156,25 +157,16 @@ function serveHtmlFile(filename, res) {
     }
 }
 
-// Serve the control panel HTML files - direct access
+// Serve the HTML files
 app.get('/', (req, res) => {
-    res.redirect('/control-panel.html');
+    serveHtmlFile('index.html', res);
 });
 
-app.get('/control/api', (req, res) => {
-    res.redirect('/control-panel.html');
+app.get('/index.html', (req, res) => {
+    serveHtmlFile('index.html', res);
 });
 
-app.get('/control', (req, res) => {
-    res.redirect('/control-panel.html');
-});
-
-// Handle both direct and proxied access to HTML pages
 app.get('/control-panel.html', (req, res) => {
-    serveHtmlFile('control-panel.html', res);
-});
-
-app.get('/control/control-panel.html', (req, res) => {
     serveHtmlFile('control-panel.html', res);
 });
 
@@ -182,49 +174,31 @@ app.get('/sign-in.html', (req, res) => {
     serveHtmlFile('sign-in.html', res);
 });
 
-app.get('/control/sign-in.html', (req, res) => {
-    serveHtmlFile('sign-in.html', res);
-});
-
 app.get('/nip85-control-panel.html', (req, res) => {
     serveHtmlFile('nip85-control-panel.html', res);
 });
 
-app.get('/control/nip85-control-panel.html', (req, res) => {
-    serveHtmlFile('nip85-control-panel.html', res);
-});
-
-// Define API routes for both direct access and nginx proxy
-// Direct access: /api/...
-// Nginx proxy: /control/api/...
+// Define API routes
 
 // API endpoint to check system status
 app.get('/api/status', handleStatus);
-app.get('/control/api/status', handleStatus);
 
 // API endpoint to get strfry event statistics
 app.get('/api/strfry-stats', handleStrfryStats);
-app.get('/control/api/strfry-stats', handleStrfryStats);
 
 // API endpoint to get Neo4j status information
 app.get('/api/neo4j-status', handleNeo4jStatus);
-app.get('/control/api/neo4j-status', handleNeo4jStatus);
 
 // API endpoint for Negentropy sync
 app.post('/api/negentropy-sync', handleNegentropySync);
-app.post('/control/api/negentropy-sync', handleNegentropySync);
 
 // API endpoint to generate NIP-85 data
 app.get('/api/generate', handleGenerate);
-app.get('/control/api/generate', handleGenerate);
 app.post('/api/generate', handleGenerate);
-app.post('/control/api/generate', handleGenerate);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
-app.get('/control/api/publish', handlePublish);
 app.post('/api/publish', handlePublish);
-app.post('/control/api/publish', handlePublish);
 
 // API endpoint for systemd services management
 app.get('/api/systemd-services', handleSystemdServices);
@@ -240,9 +214,21 @@ app.post('/control/api/bulk-transfer', handleBulkTransfer);
 
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
-app.post('/control/api/auth/verify', handleAuthVerify);
 app.post('/api/auth/login', handleAuthLogin);
-app.post('/control/api/auth/login', handleAuthLogin);
+
+// API endpoint for checking authentication status
+app.get('/api/auth/status', (req, res) => {
+    if (req.session && req.session.authenticated) {
+        res.json({
+            authenticated: true,
+            pubkey: req.session.pubkey
+        });
+    } else {
+        res.json({
+            authenticated: false
+        });
+    }
+});
 app.get('/api/auth/logout', handleAuthLogout);
 app.get('/control/api/auth/logout', handleAuthLogout);
 

@@ -140,11 +140,23 @@ location /control/ {
 }
 ```
 
-This configuration ensures that requests to `/control/` are properly routed to the control panel, and that API requests to `/control/api/` work correctly.
+### URL Structure
+
+Hasenpfeffr uses the following URL structure:
+
+- **Main Landing Page**: `https://your-domain/` - Provides links to all components and shows authentication status
+- **Control Panel**: `https://your-domain/control-panel.html` - Main control panel for managing Hasenpfeffr
+- **NIP-85 Control Panel**: `https://your-domain/nip85-control-panel.html` - Specialized control panel for NIP-85 settings
+- **Strfry Relay**: `https://your-domain/strfry/` - The Strfry Nostr relay endpoint
+- **Sign-in Page**: `https://your-domain/sign-in.html` - Authentication page for administrative actions
+
+### Authentication
+
+Hasenpfeffr's control panel is designed to be accessible in read-only mode without requiring sign-in. Only administrative actions require authentication with the owner's Nostr key. The authentication system uses the `HASENPFEFFR_OWNER_PUBKEY` from the server configuration file to verify the user's identity.
 
 ### Strfry Nostr Relay
 
-If you chose to install Strfry during the setup process, it will be configured as a systemd service and started automatically. The relay will be available at `https://your-domain/`.
+If you chose to install Strfry during the setup process, it will be configured as a systemd service and started automatically. The relay will be available at `https://your-domain/strfry/`.
 
 To check the status of the Strfry service:
 

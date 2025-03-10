@@ -99,7 +99,10 @@
             <div class="divider">OR</div>
             
             <p>You can access the control panel in read-only mode without signing in:</p>
-            <a href="/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Access Control Panel (Read-Only)</a>
+            <div class="button-group">
+                <a href="/" class="btn home-btn">Home</a>
+                <a href="/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
+            </div>
         </div>
         
         <style>
@@ -135,6 +138,22 @@
             .secondary-btn:hover {
                 background-color: #7f8c8d;
             }
+            
+            .home-btn {
+                background-color: #2ecc71;
+                text-decoration: none;
+                text-align: center;
+            }
+            
+            .home-btn:hover {
+                background-color: #27ae60;
+            }
+            
+            .button-group {
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            }
         </style>
     </div>
 
@@ -144,13 +163,9 @@
             const signInStatus = document.getElementById('signInStatus');
             const controlPanelLink = document.getElementById('controlPanelLink');
             
-            // Determine if we're accessed via direct or proxied URL
-            const currentPath = window.location.pathname;
-            const isProxied = currentPath.startsWith('/control/');
-            
-            // Update control panel link based on current path
+            // Update control panel link
             if (controlPanelLink) {
-                controlPanelLink.href = isProxied ? '/control/control-panel.html' : '/control-panel.html';
+                controlPanelLink.href = '/control-panel.html';
             }
             
             // Check if NIP-07 extension is available
@@ -177,14 +192,8 @@
                     // Get public key from NIP-07 extension
                     const pubkey = await window.nostr.getPublicKey();
                     
-                    // Try to determine if we're accessed via direct or proxied URL
-                    const currentPath = window.location.pathname;
-                    const isProxied = currentPath.startsWith('/control/');
-                    const apiPrefix = isProxied ? '/control/api' : '/api';
-                    console.log('Using API prefix:', apiPrefix);
-                    
                     // Verify with server
-                    const response = await fetch(`${apiPrefix}/auth/verify`, {
+                    const response = await fetch('/api/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -211,7 +220,7 @@
                         const signedEvent = await window.nostr.signEvent(event);
                         
                         // Send the signed event to the server
-                        const authResponse = await fetch(`${apiPrefix}/auth/login`, {
+                        const authResponse = await fetch('/api/auth/login', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -227,8 +236,7 @@
                             
                             // Redirect to control panel
                             setTimeout(() => {
-                                // Use the same path structure we're currently on
-                                window.location.href = isProxied ? '/control/control-panel.html' : '/control-panel.html';
+                                window.location.href = '/control-panel.html';
                             }, 1500);
                         } else {
                             signInStatus.textContent = 'Authentication failed: ' + authData.message;
