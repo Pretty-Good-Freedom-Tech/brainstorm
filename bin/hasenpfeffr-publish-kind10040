@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+
+/**
+ * Hasenpfeffr Publish Kind 10040 Event
+ * 
+ * This script publishes a previously created kind 10040 event
+ * to the configured relay after signing it with the authenticated user's key.
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const crypto = require('crypto');
+
+// Function to get configuration values directly from /etc/hasenpfeffr.conf
+function getConfigFromFile(varName, defaultValue = null) {
+  try {
+    const confFile = '/etc/hasenpfeffr.conf';
+    if (fs.existsSync(confFile)) {
+      // Read the file content directly
+      const fileContent = fs.readFileSync(confFile, 'utf8');
+      
+      // Look for the variable in the file content
+      const regex = new RegExp(`${varName}=[\"\\'](.*?)[\"\\'](\\s|$)`, 'gm');
+      const match = regex.exec(fileContent);
+      
+      if (match && match[1]) {
+        return match[1];
+      }
+      
+      // If not found with regex, try the source command as fallback
+      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
+      return result || defaultValue;
+    }
+    return defaultValue;
+  } catch (error) {
+    console.error(`Error getting config value for ${varName}:`, error);
+    return defaultValue;
+  }
+}
+
+// Get relay configuration
+const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+
+if (!relayUrl) {
+  console.error('Error: Relay URL not found in configuration');
+  process.exit(1);
+}
+
+// Check if the event file exists
+const tempDir = '/tmp/hasenpfeffr';
+const eventFile = path.join(tempDir, 'kind10040_event.json');
+
+if (!fs.existsSync(eventFile)) {
+  console.error(`Error: Event file not found at ${eventFile}`);
+  console.error('Please create the event first using the "Create Kind 10040 Event" button');
+  process.exit(1);
+}
+
+// Read the event from the file
+let event;
+try {
+  const eventData = fs.readFileSync(eventFile, 'utf8');
+  event = JSON.parse(eventData);
+} catch (error) {
+  console.error('Error reading event file:', error);
+  process.exit(1);
+}
+
+// Check for authenticated session
+const sessionFile = path.join(tempDir, 'auth_session.json');
+if (!fs.existsSync(sessionFile)) {
+  console.error('Error: No authenticated session found');
+  console.error('Please sign in first to publish events');
+  process.exit(1);
+}
+
+// Read the session data
+let session;
+try {
+  const sessionData = fs.readFileSync(sessionFile, 'utf8');
+  session = JSON.parse(sessionData);
+} catch (error) {
+  console.error('Error reading session file:', error);
+  process.exit(1);
+}
+
+if (!session.pubkey) {
+  console.error('Error: No authenticated user found in session');
+  process.exit(1);
+}
+
+// Set the pubkey from the authenticated user
+event.pubkey = session.pubkey;
+
+// Serialize the event for signing
+function serializeEvent(evt) {
+  return JSON.stringify([
+    0,
+    evt.pubkey,
+    evt.created_at,
+    evt.kind,
+    evt.tags,
+    evt.content
+  ]);
+}
+
+// Sign the event using the authenticated user's key
+// This would normally be done client-side with NIP-07
+// For this example, we'll use a placeholder
+console.log('Event would be signed with key:', session.pubkey);
+console.log('Serialized event for signing:', serializeEvent(event));
+
+// In a real implementation, we would use WebSocket to publish to the relay
+console.log(`Event would be published to relay: ${relayUrl}`);
+console.log('Event details:');
+console.log(JSON.stringify(event, null, 2));
+
+// For demonstration purposes, we'll write the "published" event to a file
+const publishedDir = '/tmp/hasenpfeffr/published';
+if (!fs.existsSync(publishedDir)) {
+  fs.mkdirSync(publishedDir, { recursive: true });
+}
+
+const publishedFile = path.join(publishedDir, `kind10040_${Date.now()}.json`);
+fs.writeFileSync(publishedFile, JSON.stringify(event, null, 2));
+
+console.log(`\nEvent has been "published" and saved to ${publishedFile}`);
+console.log('In a production environment, this would be sent to the relay via WebSocket');

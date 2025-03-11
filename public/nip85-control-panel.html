@@ -97,6 +97,49 @@
             background-color: #f39c12;
             color: white;
         }
+        .output-container {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .code-preview {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
     </style>
 </head>
 <body>
@@ -116,6 +159,26 @@
             <div class="card">
                 <p>This panel will contain NIP-85 specific controls and functionality.</p>
                 <p>Coming soon...</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Kind 10040 Event Management</h2>
+            <div class="card">
+                <h3>Kind 10040 Event Management</h3>
+                <p>Create and publish Kind 10040 events for NIP-85 trusted assertions.</p>
+                
+                <div class="button-group">
+                    <button id="createKind10040Btn" class="button primary-btn">Create Kind 10040 Event</button>
+                    <button id="publishKind10040Btn" class="button secondary-btn" disabled>Publish Kind 10040 Event</button>
+                </div>
+                
+                <div id="kind10040Output" class="output-container" style="display: none;">
+                    <h4>Event Preview:</h4>
+                    <pre id="kind10040EventPreview" class="code-preview"></pre>
+                </div>
+                
+                <div id="kind10040Status" class="status-message"></div>
             </div>
         </div>
     </div>
@@ -165,6 +228,126 @@
                         console.error('Error checking authentication status:', error);
                         authStatus.textContent = 'Authentication status unknown';
                     });
+            }
+            
+            // Kind 10040 Event Management
+            const createKind10040Btn = document.getElementById('createKind10040Btn');
+            const publishKind10040Btn = document.getElementById('publishKind10040Btn');
+            const kind10040Output = document.getElementById('kind10040Output');
+            const kind10040EventPreview = document.getElementById('kind10040EventPreview');
+            const kind10040Status = document.getElementById('kind10040Status');
+            
+            // Create Kind 10040 Event
+            if (createKind10040Btn) {
+                createKind10040Btn.addEventListener('click', function() {
+                    // Disable button during processing
+                    createKind10040Btn.disabled = true;
+                    publishKind10040Btn.disabled = true;
+                    
+                    // Update status
+                    kind10040Status.textContent = 'Creating Kind 10040 event...';
+                    kind10040Status.className = 'status-message status-info';
+                    
+                    // Make API request to create the event
+                    fetch('/api/create-kind10040', {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show the event preview
+                            kind10040Output.style.display = 'block';
+                            kind10040EventPreview.textContent = data.output;
+                            
+                            // Update status
+                            kind10040Status.textContent = 'Kind 10040 event created successfully. Review the event and click "Publish" to publish it.';
+                            kind10040Status.className = 'status-message status-success';
+                            
+                            // Enable publish button
+                            publishKind10040Btn.disabled = false;
+                        } else {
+                            // Show error
+                            kind10040Status.textContent = 'Error creating Kind 10040 event: ' + (data.error || 'Unknown error');
+                            kind10040Status.className = 'status-message status-error';
+                        }
+                        
+                        // Re-enable create button
+                        createKind10040Btn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error creating Kind 10040 event:', error);
+                        kind10040Status.textContent = 'Error creating Kind 10040 event: ' + error.message;
+                        kind10040Status.className = 'status-message status-error';
+                        createKind10040Btn.disabled = false;
+                    });
+                });
+            }
+            
+            // Publish Kind 10040 Event
+            if (publishKind10040Btn) {
+                publishKind10040Btn.addEventListener('click', function() {
+                    // Check authentication status first
+                    fetch('/api/auth/status')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.authenticated) {
+                                // User is authenticated, proceed with publishing
+                                publishEvent();
+                            } else {
+                                // User is not authenticated, show error
+                                kind10040Status.textContent = 'Authentication required: Please sign in to publish events';
+                                kind10040Status.className = 'status-message status-error';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking authentication status:', error);
+                            kind10040Status.textContent = 'Error checking authentication: ' + error.message;
+                            kind10040Status.className = 'status-message status-error';
+                        });
+                });
+            }
+            
+            function publishEvent() {
+                // Disable buttons during processing
+                createKind10040Btn.disabled = true;
+                publishKind10040Btn.disabled = true;
+                
+                // Update status
+                kind10040Status.textContent = 'Publishing Kind 10040 event...';
+                kind10040Status.className = 'status-message status-info';
+                
+                // Make API request to publish the event
+                fetch('/api/publish-kind10040', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update status
+                        kind10040Status.textContent = 'Kind 10040 event published successfully!';
+                        kind10040Status.className = 'status-message status-success';
+                        
+                        // Update event preview with the published event
+                        kind10040EventPreview.textContent = data.output;
+                    } else {
+                        // Show error
+                        kind10040Status.textContent = 'Error publishing Kind 10040 event: ' + (data.error || 'Unknown error');
+                        kind10040Status.className = 'status-message status-error';
+                        
+                        // Re-enable publish button
+                        publishKind10040Btn.disabled = false;
+                    }
+                    
+                    // Re-enable create button
+                    createKind10040Btn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error publishing Kind 10040 event:', error);
+                    kind10040Status.textContent = 'Error publishing Kind 10040 event: ' + error.message;
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                });
             }
         });
     </script>

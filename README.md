@@ -14,9 +14,8 @@ WORK IN PROGRESS: currently refactoring [manual installation repo](https://githu
 - Optimized for large-scale data processing (100,000+ events)
 - Performance monitoring and logging
 
-## TODO (ASAP) (last updated 8 Mar 2025)
+## TODO (ASAP) (last updated 11 Mar 2025)
 
-- NIP-07 sign-in
 - export scores as 30382 notes (NIP-85) signed by relay nsec
 - sign 10040 note (NIP-85)
 - view / change relay nsec 

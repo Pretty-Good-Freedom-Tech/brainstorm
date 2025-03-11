@@ -111,7 +111,9 @@ const authMiddleware = (req, res, next) => {
             '/generate',
             '/publish',
             '/negentropy-sync',
-            '/strfry-plugin'
+            '/strfry-plugin',
+            '/create-kind10040',
+            '/publish-kind10040'
         ];
         
         // Check if the current path is a write endpoint
@@ -211,6 +213,15 @@ app.get('/control/api/strfry-plugin', handleStrfryPlugin);
 // API endpoint for bulk transfer
 app.post('/api/bulk-transfer', handleBulkTransfer);
 app.post('/control/api/bulk-transfer', handleBulkTransfer);
+
+// API endpoint to create kind 10040 events
+app.post('/api/create-kind10040', handleCreateKind10040);
+
+// API endpoint to publish kind 10040 events
+app.post('/api/publish-kind10040', handlePublishKind10040);
+
+// API endpoint for getting relay configuration
+app.get('/api/relay-config', handleRelayConfig);
 
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
@@ -690,6 +701,100 @@ function handleBulkTransfer(req, res) {
             message: `Bulk transfer error: ${error.message}`
         });
     });
+}
+
+// Handler for creating kind 10040 events
+function handleCreateKind10040(req, res) {
+    console.log('Creating kind 10040 events...');
+    
+    // Set the response header to ensure it's always JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Set a timeout to ensure the response doesn't hang
+    const timeoutId = setTimeout(() => {
+        console.log('Kind 10040 creation is taking longer than expected, sending initial response...');
+        res.json({
+            success: true,
+            output: 'Kind 10040 creation started. This process will continue in the background.\n',
+            error: null
+        });
+    }, 30000); // 30 seconds timeout
+    
+    exec('hasenpfeffr-create-kind10040', (error, stdout, stderr) => {
+        // Clear the timeout if the command completes before the timeout
+        clearTimeout(timeoutId);
+        
+        // Check if the response has already been sent
+        if (res.headersSent) {
+            console.log('Response already sent, kind 10040 creation continuing in background');
+            return;
+        }
+        
+        return res.json({
+            success: !error,
+            output: stdout || stderr,
+            error: error ? error.message : null
+        });
+    });
+}
+
+// Handler for publishing kind 10040 events
+function handlePublishKind10040(req, res) {
+    console.log('Publishing kind 10040 events...');
+    
+    // Set the response header to ensure it's always JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Set a timeout to ensure the response doesn't hang
+    const timeoutId = setTimeout(() => {
+        console.log('Kind 10040 publishing is taking longer than expected, sending initial response...');
+        res.json({
+            success: true,
+            output: 'Kind 10040 publishing started. This process will continue in the background.\n',
+            error: null
+        });
+    }, 30000); // 30 seconds timeout
+    
+    exec('hasenpfeffr-publish-kind10040', (error, stdout, stderr) => {
+        // Clear the timeout if the command completes before the timeout
+        clearTimeout(timeoutId);
+        
+        // Check if the response has already been sent
+        if (res.headersSent) {
+            console.log('Response already sent, kind 10040 publishing continuing in background');
+            return;
+        }
+        
+        return res.json({
+            success: !error,
+            output: stdout || stderr,
+            error: error ? error.message : null
+        });
+    });
+}
+
+// Handler for getting relay configuration
+function handleRelayConfig(req, res) {
+    console.log('Getting relay configuration...');
+    
+    try {
+        // Get relay configuration from hasenpfeffr.conf
+        const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+        const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
+        
+        // Return the configuration
+        res.json({
+            success: true,
+            relayUrl: relayUrl,
+            relayPubkey: relayPubkey
+        });
+    } catch (error) {
+        console.error('Error getting relay configuration:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get relay configuration: ' + error.message
+        });
+    }
 }
 
 // Authentication handlers
