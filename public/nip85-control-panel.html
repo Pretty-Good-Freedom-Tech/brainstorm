@@ -140,6 +140,11 @@
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
+        .auth-link {
+            color: #2c3e50;
+            font-weight: bold;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -294,8 +299,8 @@
                                 // User is authenticated, proceed with publishing
                                 publishEvent();
                             } else {
-                                // User is not authenticated, show error
-                                kind10040Status.textContent = 'Authentication required: Please sign in to publish events';
+                                // User is not authenticated, show error with sign-in link
+                                kind10040Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
                                 kind10040Status.className = 'status-message status-error';
                             }
                         })

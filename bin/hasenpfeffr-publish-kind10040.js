@@ -48,8 +48,8 @@ if (!relayUrl) {
 }
 
 // Check if the event file exists
-const tempDir = '/tmp/hasenpfeffr';
-const eventFile = path.join(tempDir, 'kind10040_event.json');
+const dataDir = '/var/lib/hasenpfeffr/data';
+const eventFile = path.join(dataDir, 'kind10040_event.json');
 
 if (!fs.existsSync(eventFile)) {
   console.error(`Error: Event file not found at ${eventFile}`);
@@ -68,21 +68,62 @@ try {
 }
 
 // Check for authenticated session
-const sessionFile = path.join(tempDir, 'auth_session.json');
-if (!fs.existsSync(sessionFile)) {
-  console.error('Error: No authenticated session found');
-  console.error('Please sign in first to publish events');
-  process.exit(1);
+const sessionDir = '/var/lib/hasenpfeffr/sessions';
+const sessionFile = path.join(sessionDir, 'auth_session.json');
+
+// Create the session directory if it doesn't exist
+if (!fs.existsSync(sessionDir)) {
+  try {
+    fs.mkdirSync(sessionDir, { recursive: true });
+    console.log(`Created session directory at ${sessionDir}`);
+  } catch (error) {
+    console.error(`Error creating session directory: ${error.message}`);
+  }
 }
 
-// Read the session data
-let session;
-try {
-  const sessionData = fs.readFileSync(sessionFile, 'utf8');
-  session = JSON.parse(sessionData);
-} catch (error) {
-  console.error('Error reading session file:', error);
-  process.exit(1);
+if (!fs.existsSync(sessionFile)) {
+  // Try to get the session from Express session storage
+  const expressSessionDir = '/var/lib/hasenpfeffr/sessions';
+  let foundSession = false;
+  
+  if (fs.existsSync(expressSessionDir)) {
+    try {
+      const sessionFiles = fs.readdirSync(expressSessionDir);
+      for (const file of sessionFiles) {
+        if (file.startsWith('sess:')) {
+          const sessionData = fs.readFileSync(path.join(expressSessionDir, file), 'utf8');
+          const sessionJson = JSON.parse(sessionData);
+          
+          if (sessionJson.user && sessionJson.user.pubkey) {
+            // Found a valid session, use it
+            session = {
+              pubkey: sessionJson.user.pubkey
+            };
+            foundSession = true;
+            console.log(`Found session for user: ${session.pubkey}`);
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error reading Express sessions: ${error.message}`);
+    }
+  }
+  
+  if (!foundSession) {
+    console.error('Error: No authenticated session found');
+    console.error('Please sign in first to publish events');
+    process.exit(1);
+  }
+} else {
+  // Read the session data
+  try {
+    const sessionData = fs.readFileSync(sessionFile, 'utf8');
+    session = JSON.parse(sessionData);
+  } catch (error) {
+    console.error('Error reading session file:', error);
+    process.exit(1);
+  }
 }
 
 if (!session.pubkey) {
@@ -117,7 +158,7 @@ console.log('Event details:');
 console.log(JSON.stringify(event, null, 2));
 
 // For demonstration purposes, we'll write the "published" event to a file
-const publishedDir = '/tmp/hasenpfeffr/published';
+const publishedDir = path.join(dataDir, 'published');
 if (!fs.existsSync(publishedDir)) {
   fs.mkdirSync(publishedDir, { recursive: true });
 }

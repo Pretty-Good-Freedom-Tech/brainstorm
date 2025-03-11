@@ -78,12 +78,12 @@ const event = {
 };
 
 // Save the event to a temporary file
-const tempDir = '/tmp/hasenpfeffr';
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
+const dataDir = '/var/lib/hasenpfeffr/data';
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const eventFile = path.join(tempDir, 'kind10040_event.json');
+const eventFile = path.join(dataDir, 'kind10040_event.json');
 fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
 
 console.log(`Kind 10040 event created and saved to ${eventFile}`);

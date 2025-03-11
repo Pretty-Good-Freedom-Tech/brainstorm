@@ -710,6 +710,10 @@ function handleCreateKind10040(req, res) {
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
+    // Get the full path to the script
+    const scriptPath = path.join(__dirname, 'hasenpfeffr-create-kind10040.js');
+    console.log('Using script path:', scriptPath);
+    
     // Set a timeout to ensure the response doesn't hang
     const timeoutId = setTimeout(() => {
         console.log('Kind 10040 creation is taking longer than expected, sending initial response...');
@@ -720,7 +724,7 @@ function handleCreateKind10040(req, res) {
         });
     }, 30000); // 30 seconds timeout
     
-    exec('hasenpfeffr-create-kind10040', (error, stdout, stderr) => {
+    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
         // Clear the timeout if the command completes before the timeout
         clearTimeout(timeoutId);
         
@@ -745,6 +749,10 @@ function handlePublishKind10040(req, res) {
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
+    // Get the full path to the script
+    const scriptPath = path.join(__dirname, 'hasenpfeffr-publish-kind10040.js');
+    console.log('Using script path:', scriptPath);
+    
     // Set a timeout to ensure the response doesn't hang
     const timeoutId = setTimeout(() => {
         console.log('Kind 10040 publishing is taking longer than expected, sending initial response...');
@@ -755,7 +763,7 @@ function handlePublishKind10040(req, res) {
         });
     }, 30000); // 30 seconds timeout
     
-    exec('hasenpfeffr-publish-kind10040', (error, stdout, stderr) => {
+    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
         // Clear the timeout if the command completes before the timeout
         clearTimeout(timeoutId);
         
