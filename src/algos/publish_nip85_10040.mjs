@@ -20,6 +20,40 @@ import WebSocket from 'ws';
 // Use WebSocket implementation for Node.js
 useWebSocketImplementation(WebSocket);
 
+// Function to test direct WebSocket connection to a relay
+async function testRelayConnection(relayUrl) {
+  return new Promise((resolve) => {
+    console.log(`Testing direct WebSocket connection to ${relayUrl}...`);
+    
+    try {
+      const ws = new WebSocket(relayUrl);
+      
+      ws.on('open', () => {
+        console.log(`Direct WebSocket connection to ${relayUrl} successful!`);
+        ws.close();
+        resolve(true);
+      });
+      
+      ws.on('error', (error) => {
+        console.error(`Direct WebSocket connection to ${relayUrl} failed:`, error.message);
+        resolve(false);
+      });
+      
+      // Set a timeout for the connection attempt
+      setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN) {
+          console.error(`Direct WebSocket connection to ${relayUrl} timed out`);
+          ws.terminate();
+          resolve(false);
+        }
+      }, 5000);
+    } catch (error) {
+      console.error(`Error creating WebSocket for ${relayUrl}:`, error.message);
+      resolve(false);
+    }
+  });
+}
+
 // Function to get configuration values directly from /etc/hasenpfeffr.conf
 function getConfigFromFile(varName, defaultValue = null) {
   try {
@@ -53,62 +87,113 @@ function getConfigFromFile(varName, defaultValue = null) {
   }
 }
 
-// Get relay configuration
-// const myRelay = getConfigFromFile('HASENPFEFFR_RELAY_URL', 'wss://relay.hasenpfeffr.com');
-const userPublicKey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
-// const hasenpfeffrRelayUrl = myRelay;
-
 // Define relay URLs to publish to
 const explicitRelayUrls = ['wss://relay.hasenpfeffr.com','wss://relay.damus.io'];
 
 // Initialize NDK without a signer since we're using pre-signed events
 const ndk = new NDK({ 
   explicitRelayUrls,
-  enableOutboxModel: false  // Disable outbox model to ensure direct publishing
+  enableOutboxModel: false,  // Disable outbox model to ensure direct publishing
+  debug: true                // Enable debug mode
 });
 
 async function main() {
   try {
     console.log('Starting NIP-85 Kind 10040 event publishing...');
     
+    // Test direct WebSocket connections to relays first
+    console.log('Testing direct WebSocket connections to relays...');
+    const connectionResults = await Promise.all(
+      explicitRelayUrls.map(url => testRelayConnection(url))
+    );
+    
+    const connectedCount = connectionResults.filter(Boolean).length;
+    console.log(`Direct WebSocket connection test results: ${connectedCount}/${explicitRelayUrls.length} relays accessible`);
+    
+    if (connectedCount === 0) {
+      console.error('Error: Cannot connect to any relays directly. Please check network connectivity and relay URLs.');
+      process.exit(1);
+    }
+    
     // Connect to relays with explicit timeout and retry
-    console.log(`Attempting to connect to relays: ${explicitRelayUrls.join(', ')}`);
+    console.log(`Attempting to connect to relays via NDK: ${explicitRelayUrls.join(', ')}`);
     
     try {
+      // First attempt with shorter timeout
       await Promise.race([
         ndk.connect(),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000))
       ]);
-      console.log('Successfully connected to relays');
+      console.log('Successfully connected to relays via NDK');
     } catch (error) {
-      console.error('Error connecting to relays:', error);
+      console.error('Error connecting to relays via NDK (first attempt):', error.message);
+      
       // Try one more time with a longer timeout
-      console.log('Retrying connection with longer timeout...');
-      await Promise.race([
-        ndk.connect(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 20 seconds')), 20000))
-      ]);
+      console.log('Retrying NDK connection with longer timeout...');
+      try {
+        await Promise.race([
+          ndk.connect(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 30 seconds')), 30000))
+        ]);
+        console.log('Successfully connected to relays via NDK (second attempt)');
+      } catch (error) {
+        console.error('Error connecting to relays via NDK (second attempt):', error.message);
+        console.error('Will attempt to continue with any connected relays...');
+      }
     }
     
     // Verify that we have connected relays
-    const connectedRelays = Array.from(ndk.pool._relays.values())
+    const allRelays = Array.from(ndk.pool._relays.values());
+    console.log(`Total relays in pool: ${allRelays.length}`);
+    
+    allRelays.forEach(relay => {
+      console.log(`Relay ${relay.url} status: ${relay.status} (${getRelayStatusName(relay.status)})`);
+    });
+    
+    const connectedRelays = allRelays
       .filter(relay => relay.status === 3) // 3 = connected
       .map(relay => relay.url);
     
     if (connectedRelays.length === 0) {
-      console.error('Error: No relays connected. Cannot publish event.');
-      process.exit(1);
+      // Try to force connection to at least one relay
+      console.log('No relays connected. Attempting to force connection to at least one relay...');
+      
+      // Try to connect to each relay individually
+      for (const relayUrl of explicitRelayUrls) {
+        try {
+          console.log(`Attempting direct connection to ${relayUrl}...`);
+          const relay = ndk.pool.getRelay(relayUrl);
+          await relay.connect();
+          console.log(`Successfully connected to ${relayUrl}`);
+          break;
+        } catch (error) {
+          console.error(`Failed to connect to ${relayUrl}:`, error.message);
+        }
+      }
+      
+      // Check again for connected relays
+      const connectedRelaysAfterRetry = Array.from(ndk.pool._relays.values())
+        .filter(relay => relay.status === 3)
+        .map(relay => relay.url);
+      
+      if (connectedRelaysAfterRetry.length === 0) {
+        console.error('Error: No relays connected after retry. Cannot publish event.');
+        process.exit(1);
+      } else {
+        console.log(`Connected to relays after retry: ${connectedRelaysAfterRetry.join(', ')}`);
+        connectedRelays.push(...connectedRelaysAfterRetry);
+      }
+    } else {
+      console.log(`Connected to relays: ${connectedRelays.join(', ')}`);
     }
     
-    console.log(`Connected to relays: ${connectedRelays.join(', ')}`);
-    
     // Check for authenticated session
-    if (!userPublicKey) {
+    if (!getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY')) {
       console.error('Error: No owner public key found in configuration');
       process.exit(1);
     }
     
-    console.log(`Using owner public key: ${userPublicKey}`);
+    console.log(`Using owner public key: ${getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY')}`);
     
     // Define data directories
     const dataDir = '/var/lib/hasenpfeffr/data';
@@ -246,6 +331,19 @@ async function main() {
   } catch (error) {
     console.error('Unexpected error:', error);
     process.exit(1);
+  }
+}
+
+// Helper function to get relay status name
+function getRelayStatusName(status) {
+  switch (status) {
+    case 0: return 'DISCONNECTED';
+    case 1: return 'CONNECTING';
+    case 2: return 'AUTHENTICATING';
+    case 3: return 'CONNECTED';
+    case 4: return 'DISCONNECTING';
+    case 5: return 'RECONNECTING';
+    default: return 'UNKNOWN';
   }
 }
 
