@@ -753,8 +753,18 @@ function handlePublishKind10040(req, res) {
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
+    // Check if user is authenticated (for write operations)
+    if (!req.session.authenticated) {
+        console.log('Unauthorized attempt to publish kind 10040 event');
+        return res.status(401).json({
+            success: false,
+            output: null,
+            error: 'Authentication required to publish events. Please sign in first.'
+        });
+    }
+    
     // Get the full path to the script
-    const scriptPath = path.join(__dirname, 'hasenpfeffr-publish-kind10040.js');
+    const scriptPath = path.join(__dirname, '../src/algos/publish_nip85_10040.mjs');
     console.log('Using script path:', scriptPath);
     
     // Set a timeout to ensure the response doesn't hang
