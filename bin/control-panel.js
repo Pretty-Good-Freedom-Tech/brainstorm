@@ -13,6 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const session = require('express-session');
+const spawn = require('child_process').spawn;
 
 // Import configuration
 let config;
@@ -217,6 +218,9 @@ app.post('/control/api/bulk-transfer', handleBulkTransfer);
 
 // API endpoint to create kind 10040 events
 app.post('/api/create-kind10040', handleCreateKind10040);
+
+// API endpoint to get unsigned kind 10040 event
+app.get('/api/get-kind10040-event', handleGetKind10040Event);
 
 // API endpoint to publish kind 10040 events
 app.post('/api/publish-kind10040', handlePublishKind10040);
@@ -746,53 +750,143 @@ function handleCreateKind10040(req, res) {
     });
 }
 
-// Handler for publishing kind 10040 events
-function handlePublishKind10040(req, res) {
-    console.log('Publishing kind 10040 events...');
-    
-    // Set the response header to ensure it's always JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Check if user is authenticated (for write operations)
+// Handler for getting unsigned kind 10040 event
+function handleGetKind10040Event(req, res) {
+    // Check if user is authenticated
     if (!req.session.authenticated) {
-        console.log('Unauthorized attempt to publish kind 10040 event');
-        return res.status(401).json({
-            success: false,
-            output: null,
-            error: 'Authentication required to publish events. Please sign in first.'
-        });
+        return res.status(401).json({ error: 'Authentication required' });
     }
-    
-    // Get the full path to the script
-    const scriptPath = path.join(__dirname, '../src/algos/publish_nip85_10040.mjs');
-    console.log('Using script path:', scriptPath);
-    
-    // Set a timeout to ensure the response doesn't hang
-    const timeoutId = setTimeout(() => {
-        console.log('Kind 10040 publishing is taking longer than expected, sending initial response...');
-        res.json({
-            success: true,
-            output: 'Kind 10040 publishing started. This process will continue in the background.\n',
-            error: null
-        });
-    }, 30000); // 30 seconds timeout
-    
-    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
-        // Clear the timeout if the command completes before the timeout
-        clearTimeout(timeoutId);
+
+    try {
+        // Define data directories
+        const dataDir = '/var/lib/hasenpfeffr/data';
+        const eventFile = path.join(dataDir, 'kind10040_event.json');
         
-        // Check if the response has already been sent
-        if (res.headersSent) {
-            console.log('Response already sent, kind 10040 publishing continuing in background');
-            return;
+        // Check if the event file exists
+        if (!fs.existsSync(eventFile)) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'No kind 10040 event file found. Please create an event first.' 
+            });
         }
         
-        return res.json({
-            success: !error,
-            output: stdout || stderr,
-            error: error ? error.message : null
+        // Read the event file
+        const eventData = fs.readFileSync(eventFile, 'utf8');
+        const event = JSON.parse(eventData);
+        
+        // Get the owner's pubkey from config
+        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        
+        // Set pubkey to the owner's pubkey
+        event.pubkey = ownerPubkey;
+        
+        // Remove any existing signature if present
+        delete event.sig;
+        delete event.id;
+        
+        // Return the event data
+        return res.json({ 
+            success: true, 
+            event: event
         });
-    });
+    } catch (error) {
+        console.error('Error getting kind 10040 event:', error);
+        return res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+}
+
+// Handler for publishing kind 10040 events
+function handlePublishKind10040(req, res) {
+    // Check if user is authenticated
+    if (!req.session.authenticated) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    try {
+        // Get the signed event from the request
+        const { signedEvent } = req.body;
+        
+        if (!signedEvent) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'No signed event provided' 
+            });
+        }
+        
+        // Verify that the event has a signature
+        if (!signedEvent.sig) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Event is not signed' 
+            });
+        }
+        
+        // Define data directories
+        const dataDir = '/var/lib/hasenpfeffr/data';
+        const publishedDir = path.join(dataDir, 'published');
+        
+        // Create directories if they don't exist
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+        
+        if (!fs.existsSync(publishedDir)) {
+            fs.mkdirSync(publishedDir, { recursive: true });
+        }
+        
+        // Save the signed event to a file
+        const signedEventFile = path.join(publishedDir, `kind10040_${signedEvent.id.substring(0, 8)}_${Date.now()}.json`);
+        fs.writeFileSync(signedEventFile, JSON.stringify(signedEvent, null, 2));
+        
+        // Execute the publish script with the signed event file
+        const scriptPath = path.join(__dirname, '..', 'src', 'algos', 'publish_nip85_10040.mjs');
+        
+        // Run the script as a child process
+        const child = spawn('node', [scriptPath], {
+            env: {
+                ...process.env,
+                SIGNED_EVENT_FILE: signedEventFile
+            }
+        });
+        
+        let output = '';
+        let errorOutput = '';
+        
+        child.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+        
+        child.stderr.on('data', (data) => {
+            errorOutput += data.toString();
+        });
+        
+        child.on('close', (code) => {
+            if (code === 0) {
+                // Success
+                return res.json({ 
+                    success: true, 
+                    message: 'Kind 10040 event published successfully', 
+                    output: output 
+                });
+            } else {
+                // Error
+                return res.json({ 
+                    success: false, 
+                    error: 'Error publishing kind 10040 event', 
+                    output: errorOutput 
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Error publishing kind 10040 event:', error);
+        return res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
 }
 
 // Handler for getting relay configuration
@@ -904,7 +998,7 @@ function handleAuthVerify(req, res) {
 
 function handleAuthLogin(req, res) {
     try {
-        const { event } = req.body;
+        const { event, nsec } = req.body;
         
         if (!event) {
             return res.status(400).json({ error: 'Missing event parameter' });
@@ -952,6 +1046,12 @@ function handleAuthLogin(req, res) {
         
         // Set session as authenticated
         req.session.authenticated = true;
+        
+        // Store nsec in session if provided
+        if (nsec) {
+            req.session.nsec = nsec;
+            console.log('Private key stored in session for signing events');
+        }
         
         return res.json({ 
             success: true, 

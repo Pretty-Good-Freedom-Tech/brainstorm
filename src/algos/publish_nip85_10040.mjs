@@ -88,26 +88,46 @@ async function main() {
     const dataDir = '/var/lib/hasenpfeffr/data';
     const publishedDir = path.join(dataDir, 'published');
     
-    // Find the most recent kind 10040 event file
-    let eventFile = null;
-    let latestTime = 0;
+    // Create directories if they don't exist
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
     
-    if (fs.existsSync(publishedDir)) {
-      const files = fs.readdirSync(publishedDir);
-      for (const file of files) {
-        if (file.startsWith('kind10040_') && file.endsWith('.json')) {
-          const filePath = path.join(publishedDir, file);
-          const stats = fs.statSync(filePath);
-          if (stats.mtimeMs > latestTime) {
-            latestTime = stats.mtimeMs;
-            eventFile = filePath;
+    if (!fs.existsSync(publishedDir)) {
+      fs.mkdirSync(publishedDir, { recursive: true });
+    }
+    
+    // Check if a signed event file was provided via environment variable
+    let eventFile;
+    if (process.env.SIGNED_EVENT_FILE && fs.existsSync(process.env.SIGNED_EVENT_FILE)) {
+      eventFile = process.env.SIGNED_EVENT_FILE;
+      console.log(`Using signed event file from environment: ${eventFile}`);
+    } else {
+      // First check for the standard event file
+      eventFile = path.join(dataDir, 'kind10040_event.json');
+      
+      // If standard file doesn't exist, find the most recent kind 10040 event file
+      if (!fs.existsSync(eventFile)) {
+        let latestTime = 0;
+        
+        if (fs.existsSync(publishedDir)) {
+          const files = fs.readdirSync(publishedDir);
+          for (const file of files) {
+            if (file.startsWith('kind10040_') && file.endsWith('.json')) {
+              const filePath = path.join(publishedDir, file);
+              const stats = fs.statSync(filePath);
+              if (stats.mtimeMs > latestTime) {
+                latestTime = stats.mtimeMs;
+                eventFile = filePath;
+              }
+            }
           }
         }
       }
     }
     
-    if (!eventFile) {
-      console.error('Error: No kind 10040 event file found in the published directory');
+    if (!fs.existsSync(eventFile)) {
+      console.error('Error: No kind 10040 event file found');
       process.exit(1);
     }
     
@@ -115,14 +135,29 @@ async function main() {
     
     // Read the event file
     const eventData = fs.readFileSync(eventFile, 'utf8');
-    const event = JSON.parse(eventData);
+    let event = JSON.parse(eventData);
+    
+    // Set pubkey to the owner's pubkey if not already set
+    if (!event.pubkey) {
+      event.pubkey = userPublicKey;
+    }
     
     console.log('Event to publish:', event);
     
     // Check if the event is already signed
     if (!event.sig) {
-      console.error('Error: Event is not signed. Please sign the event first.');
-      process.exit(1);
+      console.error('Error: Event is not signed. The event must be signed in the browser using NIP-07.');
+      
+      // Save the unsigned event for the browser to sign
+      const unsignedEventFile = path.join(dataDir, 'kind10040_unsigned_event.json');
+      fs.writeFileSync(unsignedEventFile, JSON.stringify(event, null, 2));
+      console.log(`Unsigned event saved to: ${unsignedEventFile}`);
+      
+      return {
+        success: false,
+        message: 'Event is not signed. Please sign the event in the browser using NIP-07.',
+        unsignedEventFile
+      };
     }
     
     // Verify the event signature

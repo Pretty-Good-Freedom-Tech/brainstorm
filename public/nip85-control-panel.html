@@ -439,23 +439,69 @@
                 createKind10040Btn.disabled = true;
                 publishKind10040Btn.disabled = true;
                 
+                // Check if NIP-07 extension is available
+                if (typeof window.nostr === 'undefined') {
+                    kind10040Status.textContent = 'Error: No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.';
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                    return;
+                }
+                
                 // Update status
-                kind10040Status.textContent = 'Publishing Kind 10040 event...';
+                kind10040Status.textContent = 'Getting event data for signing...';
                 kind10040Status.className = 'status-message status-info';
                 
-                // Make API request to publish the event
-                fetch('/api/publish-kind10040', {
-                    method: 'POST'
+                // First, get the unsigned event
+                fetch('/api/get-kind10040-event', {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(async data => {
+                    if (data.success && data.event) {
+                        try {
+                            // Update status
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Get the event data
+                            const event = data.event;
+                            
+                            // Make sure the pubkey matches the user's pubkey
+                            const userPubkey = await window.nostr.getPublicKey();
+                            event.pubkey = userPubkey;
+                            
+                            // Sign the event using NIP-07
+                            const signedEvent = await window.nostr.signEvent(event);
+                            
+                            // Update status
+                            kind10040Status.textContent = 'Event signed successfully. Publishing...';
+                            
+                            // Now publish the signed event
+                            return fetch('/api/publish-kind10040', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ signedEvent })
+                            });
+                        } catch (error) {
+                            console.error('Error signing event:', error);
+                            throw new Error(`Error signing event: ${error.message}`);
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to get event data');
+                    }
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         // Update status
-                        kind10040Status.textContent = 'Kind 10040 event published successfully!';
+                        kind10040Status.textContent = 'Kind 10040 event signed and published successfully!';
                         kind10040Status.className = 'status-message status-success';
                         
                         // Update event preview with the published event
                         kind10040EventPreview.textContent = data.output;
+                        kind10040Output.style.display = 'block';
                     } else {
                         // Show error
                         kind10040Status.textContent = 'Error publishing Kind 10040 event: ' + (data.error || 'Unknown error');
@@ -469,8 +515,8 @@
                     createKind10040Btn.disabled = false;
                 })
                 .catch(error => {
-                    console.error('Error publishing Kind 10040 event:', error);
-                    kind10040Status.textContent = 'Error publishing Kind 10040 event: ' + error.message;
+                    console.error('Error in kind 10040 event process:', error);
+                    kind10040Status.textContent = 'Error: ' + error.message;
                     kind10040Status.className = 'status-message status-error';
                     createKind10040Btn.disabled = false;
                     publishKind10040Btn.disabled = false;

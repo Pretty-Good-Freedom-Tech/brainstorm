@@ -94,6 +94,16 @@
             <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can perform administrative actions.</p>
             
             <button id="signInBtn" class="btn">Sign In with Nostr</button>
+            
+            <div class="nsec-input-container" style="margin-top: 20px;">
+                <p><strong>Optional:</strong> Provide your nsec (private key) for signing events. This is required for publishing kind 10040 events.</p>
+                <p><small>Note: Your private key will only be stored in your browser session and used for signing events. It will not be stored on the server permanently.</small></p>
+                <input type="password" id="nsecInput" placeholder="nsec1..." style="width: 100%; padding: 10px; margin-bottom: 10px;" />
+                <label style="display: flex; align-items: center; margin-bottom: 20px;">
+                    <input type="checkbox" id="showNsec" style="margin-right: 5px;"> Show private key
+                </label>
+            </div>
+            
             <div id="signInStatus" class="status"></div>
             
             <div class="divider">OR</div>
@@ -162,6 +172,15 @@
             const signInBtn = document.getElementById('signInBtn');
             const signInStatus = document.getElementById('signInStatus');
             const controlPanelLink = document.getElementById('controlPanelLink');
+            const nsecInput = document.getElementById('nsecInput');
+            const showNsec = document.getElementById('showNsec');
+            
+            // Toggle nsec visibility
+            if (showNsec && nsecInput) {
+                showNsec.addEventListener('change', function() {
+                    nsecInput.type = this.checked ? 'text' : 'password';
+                });
+            }
             
             // Update control panel link
             if (controlPanelLink) {
@@ -192,6 +211,9 @@
                     // Get public key from NIP-07 extension
                     const pubkey = await window.nostr.getPublicKey();
                     
+                    // Get nsec from input field (optional)
+                    const nsec = nsecInput ? nsecInput.value.trim() : '';
+                    
                     // Verify with server
                     const response = await fetch('/api/auth/verify', {
                         method: 'POST',
@@ -219,13 +241,16 @@
                         // Sign the event
                         const signedEvent = await window.nostr.signEvent(event);
                         
-                        // Send the signed event to the server
+                        // Send the signed event and nsec to the server
                         const authResponse = await fetch('/api/auth/login', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ event: signedEvent })
+                            body: JSON.stringify({ 
+                                event: signedEvent,
+                                nsec: nsec // Include nsec if provided
+                            })
                         });
                         
                         const authData = await authResponse.json();
