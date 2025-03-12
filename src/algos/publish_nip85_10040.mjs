@@ -12,48 +12,39 @@ We will need a front end to do this, which is not yet set up.
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-// import NDK from '@nostr-dev-kit/ndk';
-import NDK, { NDKEvent, NDKNip07Signer } from "@nostr-dev-kit/ndk";
+import NDK, { NDKEvent } from "@nostr-dev-kit/ndk";
 import * as NostrTools from "nostr-tools";
 import { useWebSocketImplementation } from 'nostr-tools/pool';
 import WebSocket from 'ws';
-// global.WebSocket = WebSocket;
+
+// Use WebSocket implementation for Node.js
 useWebSocketImplementation(WebSocket);
 
 // Get environment variables from hasenpfeffr.conf using source command
-function getEnvVar(varName) {
+function getConfigFromFile(key, defaultValue = null) {
   try {
-    const value = execSync(`bash -c 'source /etc/hasenpfeffr.conf && echo $${varName}'`).toString().trim();
-    return value;
-  } catch (error) {
-    console.error(`Error getting environment variable ${varName}:`, error.message);
-    return null;
-  }
-}
-
-// Function to get configuration values directly from /etc/hasenpfeffr.conf
-function getConfigFromFile(varName, defaultValue = null) {
-  try {
-    const confFile = '/etc/hasenpfeffr.conf';
-    if (fs.existsSync(confFile)) {
-      // Read the file content directly
-      const fileContent = fs.readFileSync(confFile, 'utf8');
-      
-      // Look for the variable in the file content
-      const regex = new RegExp(`${varName}=[\"\\'](.*?)[\"\\'](\\s|$)`, 'gm');
-      const match = regex.exec(fileContent);
-      
-      if (match && match[1]) {
-        return match[1];
-      }
-      
-      // If not found with regex, try the source command as fallback
-      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
-      return result || defaultValue;
+    // Check if the configuration file exists
+    const configFilePath = '/etc/hasenpfeffr/config';
+    if (!fs.existsSync(configFilePath)) {
+      console.error(`Configuration file not found: ${configFilePath}`);
+      return defaultValue;
     }
+    
+    // Read the configuration file
+    const configData = fs.readFileSync(configFilePath, 'utf8');
+    const configLines = configData.split('\n');
+    
+    // Find the specified key in the configuration
+    for (const line of configLines) {
+      if (line.startsWith(`${key}=`)) {
+        return line.split('=')[1].trim();
+      }
+    }
+    
+    console.error(`Key not found in configuration: ${key}`);
     return defaultValue;
   } catch (error) {
-    console.error(`Error getting config value for ${varName}:`, error);
+    console.error(`Error reading configuration for ${key}:`, error);
     return defaultValue;
   }
 }
@@ -66,10 +57,8 @@ const hasenpfeffrRelayUrl = myRelay;
 // Define relay URLs to publish to
 const explicitRelayUrls = ['wss://relay.hasenpfeffr.com','wss://relay.damus.io'];
 
-// Initialize NDK
-// const ndk = new NDK({ explicitRelayUrls });
-const nip07signer = new NDKNip07Signer();
-const ndk = new NDK({ explicitRelayUrls, signer: nip07signer });
+// Initialize NDK without a signer since we're using pre-signed events
+const ndk = new NDK({ explicitRelayUrls });
 
 async function main() {
   try {
@@ -149,22 +138,9 @@ async function main() {
       process.exit(1);
     }
     
-    // Set pubkey to the owner's pubkey if not already set
-    if (!event.pubkey) {
-      event.pubkey = userPublicKey;
-    }
-    
-    console.log('Event to publish:', JSON.stringify(event, null, 2));
-    
     // Check if the event is already signed
     if (!event.sig) {
       console.error('Error: Event is not signed. The event must be signed in the browser using NIP-07.');
-      
-      // Save the unsigned event for the browser to sign
-      const unsignedEventFile = path.join(dataDir, 'kind10040_unsigned_event.json');
-      fs.writeFileSync(unsignedEventFile, JSON.stringify(event, null, 2));
-      console.log(`Unsigned event saved to: ${unsignedEventFile}`);
-      
       process.exit(1);
     }
     
@@ -189,7 +165,6 @@ async function main() {
     // Create NDK event from the Nostr event
     let ndkEvent;
     try {
-      // ndkEvent = new NDK.Event(ndk, event);
       ndkEvent = new NDKEvent(ndk, event);
       console.log('NDK event created successfully');
     } catch (error) {
@@ -201,23 +176,25 @@ async function main() {
     console.log(`Publishing event to relays: ${explicitRelayUrls.join(', ')}`);
     
     try {
-      // Publish the event with a timeout
-      const publishPromise = ndkEvent.publish();
-      
-      // Wait for the event to be published
-      await publishPromise;
-      
+      // Publish the event
+      await ndkEvent.publish();
       console.log('Event published successfully!');
       
       // Update the event file with publication timestamp
       event.published_at = Math.floor(Date.now() / 1000);
       fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
       
-      return {
-        success: true,
-        message: 'Event published successfully',
-        event: event
-      };
+      // Create a success marker file
+      const successFile = path.join(publishedDir, `kind10040_${event.id.substring(0, 8)}_published.json`);
+      fs.writeFileSync(successFile, JSON.stringify({
+        event_id: event.id,
+        published_at: event.published_at,
+        relays: explicitRelayUrls
+      }, null, 2));
+      
+      console.log(`Publication record saved to: ${successFile}`);
+      
+      process.exit(0);
     } catch (error) {
       console.error('Error publishing event:', error);
       process.exit(1);
