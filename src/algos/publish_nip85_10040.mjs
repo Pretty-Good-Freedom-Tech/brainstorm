@@ -16,75 +16,281 @@ import NDK, { NDKEvent } from "@nostr-dev-kit/ndk";
 import * as NostrTools from "nostr-tools";
 import { useWebSocketImplementation } from 'nostr-tools/pool';
 import WebSocket from 'ws';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import dns from 'dns';
+
+// Promisify exec for async/await usage
+const execAsync = promisify(exec);
 
 // Use WebSocket implementation for Node.js
 useWebSocketImplementation(WebSocket);
+
+// Function to run network diagnostics
+async function runNetworkDiagnostics(relayUrls) {
+  console.log('Running network diagnostics...');
+  
+  // Check DNS resolution
+  console.log('Checking DNS resolution...');
+  for (const relayUrl of relayUrls) {
+    try {
+      const url = new URL(relayUrl);
+      const hostname = url.hostname;
+      
+      console.log(`Resolving hostname: ${hostname}`);
+      const addresses = await new Promise((resolve, reject) => {
+        dns.resolve(hostname, (err, addresses) => {
+          if (err) reject(err);
+          else resolve(addresses);
+        });
+      });
+      
+      console.log(`DNS resolution for ${hostname}: ${addresses.join(', ')}`);
+    } catch (error) {
+      console.error(`DNS resolution failed for ${relayUrl}: ${error.message}`);
+    }
+  }
+  
+  // Check if curl can connect to the relays
+  console.log('Checking relay connectivity with curl...');
+  for (const relayUrl of relayUrls) {
+    try {
+      // Replace wss:// with https:// for curl
+      const httpUrl = relayUrl.replace('wss://', 'https://');
+      
+      console.log(`Testing connection to ${httpUrl} with curl...`);
+      const { stdout, stderr } = await execAsync(`curl -v --max-time 5 ${httpUrl}`);
+      
+      if (stderr) {
+        console.log(`Curl verbose output for ${httpUrl}:\n${stderr}`);
+      }
+      
+      console.log(`Curl was able to connect to ${httpUrl}`);
+    } catch (error) {
+      console.error(`Curl failed to connect to ${relayUrl}: ${error.message}`);
+    }
+  }
+  
+  // Check outbound connectivity
+  try {
+    console.log('Checking general outbound connectivity...');
+    const { stdout: netstatOutput } = await execAsync('netstat -an | grep ESTABLISHED | wc -l');
+    console.log(`Number of established connections: ${netstatOutput.trim()}`);
+    
+    // Check if we can reach a well-known site
+    const { stdout: curlGoogle } = await execAsync('curl -s -o /dev/null -w "%{http_code}" https://www.google.com');
+    console.log(`HTTP status code from Google: ${curlGoogle.trim()}`);
+  } catch (error) {
+    console.error(`Error checking outbound connectivity: ${error.message}`);
+  }
+  
+  // Check for firewall rules
+  try {
+    console.log('Checking for firewall rules...');
+    
+    // Check iptables if available
+    try {
+      const { stdout: iptablesOutput } = await execAsync('iptables -L -n');
+      console.log(`iptables rules:\n${iptablesOutput}`);
+    } catch (error) {
+      console.log('iptables not available or requires sudo');
+    }
+    
+    // Check AWS security groups if on EC2
+    try {
+      const { stdout: awsMetadata } = await execAsync('curl -s http://169.254.169.254/latest/meta-data/');
+      if (awsMetadata) {
+        console.log('Running on AWS EC2. Check security groups in AWS console.');
+      }
+    } catch (error) {
+      console.log('Not running on AWS EC2 or metadata service not available');
+    }
+  } catch (error) {
+    console.error(`Error checking firewall rules: ${error.message}`);
+  }
+  
+  console.log('Network diagnostics completed');
+}
 
 // Function to test direct WebSocket connection to a relay
 async function testRelayConnection(relayUrl) {
   return new Promise((resolve) => {
     console.log(`Testing direct WebSocket connection to ${relayUrl}...`);
     
-    try {
-      const ws = new WebSocket(relayUrl);
+    const ws = new WebSocket(relayUrl);
+    let resolved = false;
+    
+    // Add more verbose logging
+    ws.on('open', () => {
+      console.log(`Direct WebSocket connection to ${relayUrl} successful!`);
+      resolved = true;
       
-      ws.on('open', () => {
-        console.log(`Direct WebSocket connection to ${relayUrl} successful!`);
-        ws.close();
-        resolve(true);
-      });
+      // Send a simple message to keep the connection alive
+      try {
+        ws.send(JSON.stringify(["REQ", "test-connection", { limit: 1, kinds: [0] }]));
+        console.log(`Sent test message to ${relayUrl}`);
+      } catch (e) {
+        console.error(`Error sending test message to ${relayUrl}:`, e.message);
+      }
       
-      ws.on('error', (error) => {
-        console.error(`Direct WebSocket connection to ${relayUrl} failed:`, error.message);
-        resolve(false);
-      });
+      resolve(true);
       
-      // Set a timeout for the connection attempt
+      // Keep connection open a bit longer to ensure it's stable
       setTimeout(() => {
-        if (ws.readyState !== WebSocket.OPEN) {
-          console.error(`Direct WebSocket connection to ${relayUrl} timed out`);
-          ws.terminate();
-          resolve(false);
+        try {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.close();
+            console.log(`Closed test connection to ${relayUrl}`);
+          }
+        } catch (e) {
+          console.error(`Error closing connection to ${relayUrl}:`, e.message);
         }
-      }, 5000);
-    } catch (error) {
-      console.error(`Error creating WebSocket for ${relayUrl}:`, error.message);
-      resolve(false);
-    }
+      }, 1000);
+    });
+    
+    ws.on('error', (error) => {
+      console.error(`WebSocket error with ${relayUrl}:`, error.message);
+      if (!resolved) {
+        resolved = true;
+        resolve(false);
+      }
+    });
+    
+    ws.on('message', (data) => {
+      console.log(`Received message from ${relayUrl}:`, data.toString());
+    });
+    
+    ws.on('close', (code, reason) => {
+      console.log(`WebSocket connection to ${relayUrl} closed with code ${code}${reason ? ': ' + reason : ''}`);
+      if (!resolved) {
+        resolved = true;
+        resolve(false);
+      }
+    });
+    
+    // Set a timeout in case the connection hangs
+    setTimeout(() => {
+      if (!resolved) {
+        console.log(`Direct WebSocket connection to ${relayUrl} timed out`);
+        resolved = true;
+        resolve(false);
+        try {
+          ws.close();
+        } catch (e) {
+          // Ignore errors on close
+        }
+      }
+    }, 5000);
   });
 }
 
-// Function to get configuration values directly from /etc/hasenpfeffr.conf
-function getConfigFromFile(varName, defaultValue = null) {
-  try {
-    const confFile = '/etc/hasenpfeffr.conf';
-    if (fs.existsSync(confFile)) {
-      // Read the file content directly
-      const fileContent = fs.readFileSync(confFile, 'utf8');
-      console.log(`Reading config for ${varName} from ${confFile}`);
+// Function to create a direct relay connection pool
+async function createDirectRelayPool(relayUrls) {
+  console.log('Creating direct relay connection pool...');
+  
+  const relayPool = [];
+  
+  for (const relayUrl of relayUrls) {
+    try {
+      console.log(`Directly connecting to ${relayUrl}...`);
       
-      // Look for the variable in the file content
-      const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']
-`, 'gm');
-      const match = regex.exec(fileContent);
+      const ws = new WebSocket(relayUrl);
       
-      if (match && match[1]) {
-        console.log(`Found ${varName}=${match[1]}`);
-        return match[1];
-      }
+      // Create a promise that resolves when the connection is open
+      const connectionPromise = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error(`Connection timeout for ${relayUrl}`));
+        }, 10000);
+        
+        ws.on('open', () => {
+          clearTimeout(timeout);
+          console.log(`Direct connection to ${relayUrl} established`);
+          resolve();
+        });
+        
+        ws.on('error', (error) => {
+          clearTimeout(timeout);
+          reject(new Error(`Connection error for ${relayUrl}: ${error.message}`));
+        });
+      });
       
-      // If not found with regex, try the source command as fallback
-      console.log(`Trying source command for ${varName}`);
-      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
-      console.log(`Source command result for ${varName}: '${result}'`);
-      return result || defaultValue;
+      // Wait for the connection to open
+      await connectionPromise;
+      
+      // Add message handler
+      ws.on('message', (data) => {
+        console.log(`Message from ${relayUrl}:`, data.toString().substring(0, 100) + '...');
+      });
+      
+      // Add to pool
+      relayPool.push({
+        url: relayUrl,
+        ws,
+        publish: async (event) => {
+          return new Promise((resolve, reject) => {
+            const publishTimeout = setTimeout(() => {
+              reject(new Error(`Publish timeout for ${relayUrl}`));
+            }, 10000);
+            
+            const okListener = (data) => {
+              const msg = JSON.parse(data.toString());
+              if (msg[0] === 'OK' && msg[1] === event.id) {
+                clearTimeout(publishTimeout);
+                ws.removeListener('message', okListener);
+                resolve(true);
+              }
+            };
+            
+            ws.on('message', okListener);
+            
+            try {
+              ws.send(JSON.stringify(['EVENT', event]));
+              console.log(`Event sent to ${relayUrl}`);
+            } catch (error) {
+              clearTimeout(publishTimeout);
+              ws.removeListener('message', okListener);
+              reject(new Error(`Error sending event to ${relayUrl}: ${error.message}`));
+            }
+          });
+        },
+        close: () => {
+          try {
+            ws.close();
+            console.log(`Closed connection to ${relayUrl}`);
+          } catch (e) {
+            console.error(`Error closing connection to ${relayUrl}:`, e.message);
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.error(`Failed to connect to ${relayUrl}:`, error.message);
     }
-    console.log(`Config file ${confFile} not found`);
-    return defaultValue;
-  } catch (error) {
-    console.error(`Error getting configuration value ${varName}:`, error.message);
-    return defaultValue;
   }
+  
+  console.log(`Successfully created direct relay pool with ${relayPool.length} relays`);
+  return relayPool;
+}
+
+// Function to publish an event directly to relays
+async function publishDirectly(event, relayPool) {
+  console.log(`Publishing event directly to ${relayPool.length} relays...`);
+  
+  const results = await Promise.allSettled(
+    relayPool.map(relay => relay.publish(event))
+  );
+  
+  const successful = results.filter(r => r.status === 'fulfilled').length;
+  console.log(`Published to ${successful}/${relayPool.length} relays`);
+  
+  // Close all connections
+  relayPool.forEach(relay => relay.close());
+  
+  if (successful === 0) {
+    throw new Error('Failed to publish to any relay');
+  }
+  
+  return successful;
 }
 
 // Function to wait for relay connections
@@ -153,11 +359,21 @@ async function main() {
     console.log(`Direct WebSocket connection test results: ${connectedCount}/${explicitRelayUrls.length} relays accessible`);
     
     if (connectedCount === 0) {
-      console.error('Error: Cannot connect to any relays directly. Please check network connectivity and relay URLs.');
-      process.exit(1);
+      console.error('Error: Cannot connect to any relays directly. Running network diagnostics...');
+      await runNetworkDiagnostics(explicitRelayUrls);
+      
+      if (isProduction) {
+        process.exit(1);
+      } else {
+        console.warn('WARNING: Continuing despite connection failures (development mode)');
+      }
     }
     
-    // Connect to relays
+    // Try both connection methods
+    let useDirectConnections = false;
+    let directRelayPool = null;
+    
+    // Connect to relays via NDK
     console.log(`Attempting to connect to relays via NDK: ${explicitRelayUrls.join(', ')}`);
     
     try {
@@ -167,16 +383,37 @@ async function main() {
       // Wait for relay connections to establish
       const connectedRelays = await waitForRelayConnections(ndk, 15000);
       
-      if (connectedRelays.length === 0 && isProduction) {
-        console.error('Error: No relays connected after waiting. Cannot publish event.');
-        process.exit(1);
+      if (connectedRelays.length === 0) {
+        console.log('NDK failed to connect to any relays. Trying direct WebSocket connections...');
+        useDirectConnections = true;
+        
+        // Create direct relay connections
+        directRelayPool = await createDirectRelayPool(explicitRelayUrls);
+        
+        if (directRelayPool.length === 0) {
+          console.error('Error: No relays connected after trying both methods.');
+          if (isProduction) {
+            process.exit(1);
+          } else {
+            console.warn('WARNING: Continuing despite connection failures (development mode)');
+          }
+        }
       }
     } catch (error) {
       console.error('Error connecting to relays via NDK:', error.message);
-      if (isProduction) {
-        process.exit(1);
-      } else {
-        console.warn('WARNING: Continuing despite connection error (development mode)');
+      console.log('Trying direct WebSocket connections...');
+      useDirectConnections = true;
+      
+      // Create direct relay connections
+      directRelayPool = await createDirectRelayPool(explicitRelayUrls);
+      
+      if (directRelayPool.length === 0) {
+        console.error('Error: No relays connected after trying both methods.');
+        if (isProduction) {
+          process.exit(1);
+        } else {
+          console.warn('WARNING: Continuing despite connection failures (development mode)');
+        }
       }
     }
     
@@ -362,74 +599,97 @@ async function main() {
     console.log('Publishing event to relays...');
     
     try {
-      // Try to force connection to at least one relay if none are connected
-      const connectedRelays = Array.from(ndk.pool._relays.values())
-        .filter(relay => relay.status === 3) // 3 = connected
-        .map(relay => relay.url);
-      
-      if (connectedRelays.length === 0) {
-        console.log('No relays in CONNECTED state. Attempting to force connections...');
+      if (useDirectConnections && directRelayPool && directRelayPool.length > 0) {
+        // Use direct WebSocket connections
+        console.log('Using direct WebSocket connections for publishing...');
+        const publishedCount = await publishDirectly(event, directRelayPool);
+        console.log(`Event published successfully to ${publishedCount} relays!`);
         
-        // Try each relay individually
-        for (const relayUrl of explicitRelayUrls) {
-          try {
-            const relay = ndk.pool.getRelay(relayUrl);
-            console.log(`Forcing connection to ${relayUrl}...`);
-            await relay.connect();
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for connection
-            
-            if (relay.status === 3) {
-              console.log(`Successfully connected to ${relayUrl}`);
-              connectedRelays.push(relayUrl);
-              break;
-            } else {
-              console.log(`Failed to connect to ${relayUrl}, status: ${relay.status} (${getRelayStatusName(relay.status)})`);
+        // Update the event file with publication timestamp
+        event.published_at = Math.floor(Date.now() / 1000);
+        fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
+        
+        // Create a success marker file
+        const successFile = path.join(publishedDir, `kind10040_${event.id.substring(0, 8)}_published.json`);
+        fs.writeFileSync(successFile, JSON.stringify({
+          event_id: event.id,
+          published_at: event.published_at,
+          relays: directRelayPool.map(r => r.url)
+        }, null, 2));
+        
+        console.log(`Publication record saved to: ${successFile}`);
+        
+        process.exit(0);
+      } else {
+        // Try to force connection to at least one relay if none are connected
+        const connectedRelays = Array.from(ndk.pool._relays.values())
+          .filter(relay => relay.status === 3) // 3 = connected
+          .map(relay => relay.url);
+        
+        if (connectedRelays.length === 0) {
+          console.log('No relays in CONNECTED state. Attempting to force connections...');
+          
+          // Try each relay individually
+          for (const relayUrl of explicitRelayUrls) {
+            try {
+              const relay = ndk.pool.getRelay(relayUrl);
+              console.log(`Forcing connection to ${relayUrl}...`);
+              await relay.connect();
+              await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for connection
+              
+              if (relay.status === 3) {
+                console.log(`Successfully connected to ${relayUrl}`);
+                connectedRelays.push(relayUrl);
+                break;
+              } else {
+                console.log(`Failed to connect to ${relayUrl}, status: ${relay.status} (${getRelayStatusName(relay.status)})`);
+              }
+            } catch (error) {
+              console.error(`Error connecting to ${relayUrl}:`, error.message);
             }
-          } catch (error) {
-            console.error(`Error connecting to ${relayUrl}:`, error.message);
           }
         }
+        
+        console.log(`Connected relays for publishing: ${connectedRelays.length > 0 ? connectedRelays.join(', ') : 'None'}`);
+        
+        // Publish with timeout
+        console.log('Attempting to publish event...');
+        
+        // Create a custom relay set if we have connected relays
+        let publishTarget;
+        if (connectedRelays.length > 0) {
+          publishTarget = ndk.pool.getRelaySet(connectedRelays);
+          console.log(`Using custom relay set with ${publishTarget.relays.size} relays`);
+        } else {
+          publishTarget = undefined; // Use default
+          console.log('Using default relay set');
+        }
+        
+        const publishPromise = ndkEvent.publish(publishTarget);
+        const result = await Promise.race([
+          publishPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Publish timeout after 20 seconds')), 20000))
+        ]);
+        
+        console.log('Event published successfully!');
+        console.log('Publish result:', result);
+        
+        // Update the event file with publication timestamp
+        event.published_at = Math.floor(Date.now() / 1000);
+        fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
+        
+        // Create a success marker file
+        const successFile = path.join(publishedDir, `kind10040_${event.id.substring(0, 8)}_published.json`);
+        fs.writeFileSync(successFile, JSON.stringify({
+          event_id: event.id,
+          published_at: event.published_at,
+          relays: connectedRelays.length > 0 ? connectedRelays : explicitRelayUrls
+        }, null, 2));
+        
+        console.log(`Publication record saved to: ${successFile}`);
+        
+        process.exit(0);
       }
-      
-      console.log(`Connected relays for publishing: ${connectedRelays.length > 0 ? connectedRelays.join(', ') : 'None'}`);
-      
-      // Publish with timeout
-      console.log('Attempting to publish event...');
-      
-      // Create a custom relay set if we have connected relays
-      let publishTarget;
-      if (connectedRelays.length > 0) {
-        publishTarget = ndk.pool.getRelaySet(connectedRelays);
-        console.log(`Using custom relay set with ${publishTarget.relays.size} relays`);
-      } else {
-        publishTarget = undefined; // Use default
-        console.log('Using default relay set');
-      }
-      
-      const publishPromise = ndkEvent.publish(publishTarget);
-      const result = await Promise.race([
-        publishPromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Publish timeout after 20 seconds')), 20000))
-      ]);
-      
-      console.log('Event published successfully!');
-      console.log('Publish result:', result);
-      
-      // Update the event file with publication timestamp
-      event.published_at = Math.floor(Date.now() / 1000);
-      fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
-      
-      // Create a success marker file
-      const successFile = path.join(publishedDir, `kind10040_${event.id.substring(0, 8)}_published.json`);
-      fs.writeFileSync(successFile, JSON.stringify({
-        event_id: event.id,
-        published_at: event.published_at,
-        relays: connectedRelays.length > 0 ? connectedRelays : explicitRelayUrls
-      }, null, 2));
-      
-      console.log(`Publication record saved to: ${successFile}`);
-      
-      process.exit(0);
     } catch (error) {
       console.error('Error publishing event:', error);
       process.exit(1);
@@ -450,6 +710,39 @@ function getRelayStatusName(status) {
     case 4: return 'DISCONNECTING';
     case 5: return 'RECONNECTING';
     default: return 'UNKNOWN';
+  }
+}
+
+// Function to get configuration values directly from /etc/hasenpfeffr.conf
+function getConfigFromFile(varName, defaultValue = null) {
+  try {
+    const confFile = '/etc/hasenpfeffr.conf';
+    if (fs.existsSync(confFile)) {
+      // Read the file content directly
+      const fileContent = fs.readFileSync(confFile, 'utf8');
+      console.log(`Reading config for ${varName} from ${confFile}`);
+      
+      // Look for the variable in the file content
+      const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']
+`, 'gm');
+      const match = regex.exec(fileContent);
+      
+      if (match && match[1]) {
+        console.log(`Found ${varName}=${match[1]}`);
+        return match[1];
+      }
+      
+      // If not found with regex, try the source command as fallback
+      console.log(`Trying source command for ${varName}`);
+      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
+      console.log(`Source command result for ${varName}: '${result}'`);
+      return result || defaultValue;
+    }
+    console.log(`Config file ${confFile} not found`);
+    return defaultValue;
+  } catch (error) {
+    console.error(`Error getting configuration value ${varName}:`, error.message);
+    return defaultValue;
   }
 }
 
