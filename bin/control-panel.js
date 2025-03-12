@@ -113,7 +113,8 @@ const authMiddleware = (req, res, next) => {
             '/negentropy-sync',
             '/strfry-plugin',
             '/create-kind10040',
-            '/publish-kind10040'
+            '/publish-kind10040',
+            '/publish-kind30382'
         ];
         
         // Check if the current path is a write endpoint
@@ -219,6 +220,9 @@ app.post('/api/create-kind10040', handleCreateKind10040);
 
 // API endpoint to publish kind 10040 events
 app.post('/api/publish-kind10040', handlePublishKind10040);
+
+// API endpoint to publish kind 30382 events
+app.post('/api/publish-kind30382', handlePublishKind30382);
 
 // API endpoint for getting relay configuration
 app.get('/api/relay-config', handleRelayConfig);
@@ -803,6 +807,45 @@ function handleRelayConfig(req, res) {
             error: 'Failed to get relay configuration: ' + error.message
         });
     }
+}
+
+// Handler for publishing kind 30382 events
+function handlePublishKind30382(req, res) {
+    console.log('Publishing kind 30382 events...');
+    
+    // Set the response header to ensure it's always JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Get the full path to the script
+    const scriptPath = path.join(__dirname, 'hasenpfeffr-publish-kind30382.js');
+    console.log('Using script path:', scriptPath);
+    
+    // Set a timeout to ensure the response doesn't hang
+    const timeoutId = setTimeout(() => {
+        console.log('Kind 30382 publishing is taking longer than expected, sending initial response...');
+        res.json({
+            success: true,
+            output: 'Kind 30382 publishing started. This process will continue in the background.\n',
+            error: null
+        });
+    }, 30000); // 30 seconds timeout
+    
+    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
+        // Clear the timeout if the command completes before the timeout
+        clearTimeout(timeoutId);
+        
+        // Check if the response has already been sent
+        if (res.headersSent) {
+            console.log('Response already sent, kind 30382 publishing continuing in background');
+            return;
+        }
+        
+        return res.json({
+            success: !error,
+            output: stdout || stderr,
+            error: error ? error.message : null
+        });
+    });
 }
 
 // Authentication handlers

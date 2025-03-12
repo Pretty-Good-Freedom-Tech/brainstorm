@@ -186,10 +186,34 @@
                 <div id="kind10040Status" class="status-message"></div>
             </div>
         </div>
+
+        <div class="section">
+            <h2>Kind 30382 Event Management</h2>
+            <div class="card">
+                <h3>Kind 30382 Event Management</h3>
+                <p>Publish Kind 30382 events for the top 5 users by personalizedPageRank.</p>
+                
+                <div class="button-group">
+                    <button id="publishKind30382Btn" class="button primary-btn">Publish Kind 30382 Events</button>
+                </div>
+                
+                <div id="kind30382Output" class="output-container" style="display: none;">
+                    <h4>Events Preview:</h4>
+                    <pre id="kind30382EventPreview" class="code-preview"></pre>
+                </div>
+                
+                <div id="kind30382Status" class="status-message"></div>
+            </div>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Kind 30382 Event Management
+            const publishKind30382Btn = document.getElementById('publishKind30382Btn');
+            const kind30382Output = document.getElementById('kind30382Output');
+            const kind30382EventPreview = document.getElementById('kind30382EventPreview');
+            const kind30382Status = document.getElementById('kind30382Status');
             // Set up the relay link with the correct domain from the server
             const relayLink = document.getElementById('relayLink');
             if (relayLink) {
@@ -288,6 +312,30 @@
                 });
             }
             
+            // Publish Kind 30382 Events
+            if (publishKind30382Btn) {
+                publishKind30382Btn.addEventListener('click', function() {
+                    // Check authentication status first
+                    fetch('/api/auth/status')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.authenticated) {
+                                // User is authenticated, proceed with publishing
+                                publishKind30382Events();
+                            } else {
+                                // User is not authenticated, show error with sign-in link
+                                kind30382Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
+                                kind30382Status.className = 'status-message status-error';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking authentication status:', error);
+                            kind30382Status.textContent = 'Error checking authentication: ' + error.message;
+                            kind30382Status.className = 'status-message status-error';
+                        });
+                });
+            }
+            
             // Publish Kind 10040 Event
             if (publishKind10040Btn) {
                 publishKind10040Btn.addEventListener('click', function() {
@@ -309,6 +357,80 @@
                             kind10040Status.textContent = 'Error checking authentication: ' + error.message;
                             kind10040Status.className = 'status-message status-error';
                         });
+                });
+            }
+            
+            // Publish Kind 30382 Events
+            if (publishKind30382Btn) {
+                publishKind30382Btn.addEventListener('click', function() {
+                    // Check authentication status first
+                    fetch('/api/auth/status')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.authenticated) {
+                                // User is authenticated, proceed with publishing
+                                publishKind30382Events();
+                            } else {
+                                // User is not authenticated, show error with sign-in link
+                                kind30382Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
+                                kind30382Status.className = 'status-message status-error';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking authentication status:', error);
+                            kind30382Status.textContent = 'Error checking authentication: ' + error.message;
+                            kind30382Status.className = 'status-message status-error';
+                        });
+                });
+            }
+            
+            // Function to publish kind 30382 events
+            function publishKind30382Events() {
+                // Disable button during processing
+                publishKind30382Btn.disabled = true;
+                
+                // Update status
+                kind30382Status.textContent = 'Publishing Kind 30382 events for top 5 users...';
+                kind30382Status.className = 'status-message status-info';
+                
+                // Make API request to publish the events
+                fetch('/api/publish-kind30382', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Re-enable button
+                    publishKind30382Btn.disabled = false;
+                    
+                    if (data.success) {
+                        // Update status
+                        kind30382Status.textContent = 'Kind 30382 events published successfully!';
+                        kind30382Status.className = 'status-message status-success';
+                        
+                        // Show the output container
+                        kind30382Output.style.display = 'block';
+                        
+                        // Update event preview with the published events
+                        kind30382EventPreview.textContent = data.output;
+                    } else {
+                        // Show error
+                        kind30382Status.textContent = 'Error publishing Kind 30382 events: ' + (data.error || 'Unknown error');
+                        kind30382Status.className = 'status-message status-error';
+                        
+                        // Hide the output container if there was an error
+                        kind30382Output.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    // Re-enable button
+                    publishKind30382Btn.disabled = false;
+                    
+                    console.error('Error:', error);
+                    kind30382Status.textContent = 'Error publishing Kind 30382 events: ' + error.message;
+                    kind30382Status.className = 'status-message status-error';
+                    
+                    // Hide the output container if there was an error
+                    kind30382Output.style.display = 'none';
                 });
             }
             
