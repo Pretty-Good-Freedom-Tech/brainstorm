@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
 /*
+12 March 2025:
+If the standard approach (NDK) fails, this script falls back to direct WebSocket connections.
+I suspect NDK is failing.
+*/
+
+/*
 This script creates a kind 10040 event according to NIP-85: Trusted Assertions. It must be signed by the owner of the relay. 
 Effectively, it gives the hasenpfeffr relay permission to create and sign kind 30382 events using hasenpfeffr_relay_keys, 
 which it will do in the background on a regular basis. Clients (Amethyst, etc) fetch a user's kind 10040 note which will 
