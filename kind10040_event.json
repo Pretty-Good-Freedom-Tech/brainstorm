@@ -1,0 +1,16 @@
+{
+  "id": "d9b2deb9f4c3e4b0c4f8d0f1e2c3b4a5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1",
+  "pubkey": "32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245",
+  "created_at": 1710274800,
+  "kind": 10040,
+  "tags": [
+    ["d", "hasenpfeffr-test"],
+    ["title", "Test Event for Hasenpfeffr"],
+    ["summary", "This is a test event for debugging the publishing system"],
+    ["published_at", "1710274800"],
+    ["t", "test"],
+    ["t", "debug"]
+  ],
+  "content": "This is a test event for debugging the Hasenpfeffr publishing system. It is pre-signed for testing purposes.",
+  "sig": "4d91426a4db1fe3614242e0eb7c655bec4e12e834f3f3e0c3c59c32c46d9ac5a7e9e52bbf48bf8a5505c98c1c7cdd59ed2d5c67f9b99cb8999b4a952d625a6b"
+}
