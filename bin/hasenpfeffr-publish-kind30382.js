@@ -5,6 +5,7 @@
  * 
  * This script publishes kind 30382 events for the top 5 users by personalizedPageRank
  * Each event is signed with the relay's private key (HASENPFEFFR_RELAY_NSEC)
+ * and published to the relay via WebSocket
  */
 
 const fs = require('fs');
@@ -13,6 +14,7 @@ const { execSync } = require('child_process');
 const crypto = require('crypto');
 const neo4j = require('neo4j-driver');
 const nostrTools = require('nostr-tools');
+const WebSocket = require('ws');
 
 // Function to get configuration values directly from /etc/hasenpfeffr.conf
 function getConfigFromFile(varName, defaultValue = null) {
@@ -119,7 +121,87 @@ function createEvent(userPubkey, personalizedPageRank, hops) {
   };
   
   // Sign the event with the relay's private key
-  return nostrTools.finishEvent(event, relayPrivateKey);
+  return nostrTools.finalizeEvent(event, relayPrivateKey);
+}
+
+// Function to publish an event to the relay via WebSocket
+function publishEventToRelay(event) {
+  return new Promise((resolve, reject) => {
+    // Create WebSocket connection
+    const ws = new WebSocket(relayUrl);
+    
+    // Set a timeout for the connection
+    const connectionTimeout = setTimeout(() => {
+      ws.close();
+      reject(new Error(`Connection timeout to relay: ${relayUrl}`));
+    }, 10000); // 10 seconds timeout
+    
+    // Handle WebSocket events
+    ws.on('open', () => {
+      console.log(`Connected to relay: ${relayUrl}`);
+      clearTimeout(connectionTimeout);
+      
+      // Send the EVENT message to the relay
+      const message = JSON.stringify(["EVENT", event]);
+      ws.send(message);
+      
+      console.log(`Event sent to relay: ${event.id}`);
+      
+      // Set a timeout for the response
+      const responseTimeout = setTimeout(() => {
+        ws.close();
+        resolve({
+          success: true,
+          message: `Event ${event.id} sent, but no confirmation received within timeout`
+        });
+      }, 5000); // 5 seconds timeout for response
+      
+      // Handle relay response
+      ws.on('message', (data) => {
+        clearTimeout(responseTimeout);
+        
+        try {
+          const response = JSON.parse(data.toString());
+          
+          if (response[0] === 'OK' && response[1] === event.id) {
+            if (response[2] === true || response[2] === 'true') {
+              console.log(`Event ${event.id} accepted by relay`);
+              ws.close();
+              resolve({
+                success: true,
+                message: `Event ${event.id} accepted by relay`
+              });
+            } else {
+              console.error(`Event ${event.id} rejected by relay: ${response[3] || 'No reason provided'}`);
+              ws.close();
+              resolve({
+                success: false,
+                message: `Event ${event.id} rejected by relay: ${response[3] || 'No reason provided'}`
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing relay response:', error);
+          // Continue waiting for a valid response
+        }
+      });
+      
+      // Handle WebSocket errors
+      ws.on('error', (error) => {
+        clearTimeout(responseTimeout);
+        console.error('WebSocket error:', error);
+        ws.close();
+        reject(error);
+      });
+    });
+    
+    // Handle connection errors
+    ws.on('error', (error) => {
+      clearTimeout(connectionTimeout);
+      console.error('WebSocket connection error:', error);
+      reject(error);
+    });
+  });
 }
 
 // Main function
@@ -130,7 +212,11 @@ async function main() {
     
     if (topUsers.length === 0) {
       console.log('No users found with personalizedPageRank property');
-      return;
+      return {
+        success: false,
+        message: 'No users found with personalizedPageRank property',
+        events: []
+      };
     }
     
     console.log(`Found ${topUsers.length} users`);
@@ -147,13 +233,16 @@ async function main() {
       fs.mkdirSync(publishedDir, { recursive: true });
     }
     
-    // Create and sign events for each user
+    // Create, sign, and publish events for each user
     const events = [];
+    const publishResults = [];
+    
     for (const user of topUsers) {
       console.log(`Creating event for user: ${user.pubkey}`);
       console.log(`  personalizedPageRank: ${user.personalizedPageRank}`);
       console.log(`  hops: ${user.hops}`);
       
+      // Create and sign the event
       const event = createEvent(user.pubkey, user.personalizedPageRank, user.hops);
       events.push(event);
       
@@ -161,18 +250,40 @@ async function main() {
       const eventFile = path.join(publishedDir, `kind30382_${user.pubkey.substring(0, 8)}_${Date.now()}.json`);
       fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
       console.log(`Event saved to ${eventFile}`);
+      
+      // Publish the event to the relay
+      try {
+        console.log(`Publishing event ${event.id} to relay: ${relayUrl}`);
+        const publishResult = await publishEventToRelay(event);
+        publishResults.push({
+          eventId: event.id,
+          userPubkey: user.pubkey,
+          ...publishResult
+        });
+      } catch (error) {
+        console.error(`Error publishing event for user ${user.pubkey}:`, error.message);
+        publishResults.push({
+          eventId: event.id,
+          userPubkey: user.pubkey,
+          success: false,
+          message: error.message
+        });
+      }
     }
     
-    console.log('\nEvents created and signed successfully');
-    console.log(`Events would be published to relay: ${relayUrl}`);
+    // Summarize results
+    const successCount = publishResults.filter(r => r.success).length;
     
-    // In a real implementation, we would use WebSocket to publish to the relay
-    // For now, we'll just save the events to files
+    console.log('\nPublishing summary:');
+    console.log(`- Total events: ${events.length}`);
+    console.log(`- Successfully published: ${successCount}`);
+    console.log(`- Failed: ${events.length - successCount}`);
     
     return {
       success: true,
-      message: `Created and signed ${events.length} kind 30382 events for the top users`,
-      events: events
+      message: `Created and published ${successCount} of ${events.length} kind 30382 events for the top users`,
+      events: events,
+      publishResults: publishResults
     };
   } catch (error) {
     console.error('Error:', error);
