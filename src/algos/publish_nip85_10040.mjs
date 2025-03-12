@@ -12,7 +12,8 @@ We will need a front end to do this, which is not yet set up.
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import NDK from '@nostr-dev-kit/ndk';
+// import NDK from '@nostr-dev-kit/ndk';
+import NDK, { NDKEvent, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import * as NostrTools from "nostr-tools";
 import { useWebSocketImplementation } from 'nostr-tools/pool';
 import WebSocket from 'ws';
@@ -66,7 +67,9 @@ const hasenpfeffrRelayUrl = myRelay;
 const explicitRelayUrls = ['wss://relay.hasenpfeffr.com','wss://relay.damus.io'];
 
 // Initialize NDK
-const ndk = new NDK({ explicitRelayUrls });
+// const ndk = new NDK({ explicitRelayUrls });
+const nip07signer = new NDKNip07Signer();
+const ndk = new NDK({ explicitRelayUrls, signer: nip07signer });
 
 async function main() {
   try {
@@ -169,7 +172,7 @@ async function main() {
     let verified;
     try {
       console.log('Verifying event signature...');
-      verified = NostrTools.verifySignature(event);
+      verified = NostrTools.verifyEvent(event);
       console.log('Signature verification result:', verified);
     } catch (error) {
       console.error('Error during signature verification:', error);
@@ -186,7 +189,8 @@ async function main() {
     // Create NDK event from the Nostr event
     let ndkEvent;
     try {
-      ndkEvent = new NDK.NDKEvent(ndk, event);
+      // ndkEvent = new NDK.Event(ndk, event);
+      ndkEvent = new NDKEvent(ndk, event);
       console.log('NDK event created successfully');
     } catch (error) {
       console.error('Error creating NDK event:', error);
