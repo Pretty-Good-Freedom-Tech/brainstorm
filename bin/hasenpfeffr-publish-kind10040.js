@@ -70,6 +70,7 @@ try {
 // Check for authenticated session
 const sessionDir = '/var/lib/hasenpfeffr/sessions';
 const sessionFile = path.join(sessionDir, 'auth_session.json');
+let session;
 
 // Create the session directory if it doesn't exist
 if (!fs.existsSync(sessionDir)) {
@@ -81,49 +82,90 @@ if (!fs.existsSync(sessionDir)) {
   }
 }
 
-if (!fs.existsSync(sessionFile)) {
-  // Try to get the session from Express session storage
-  const expressSessionDir = '/var/lib/hasenpfeffr/sessions';
-  let foundSession = false;
-  
-  if (fs.existsSync(expressSessionDir)) {
+// First, try to find Express session files
+let foundSession = false;
+
+// Look in multiple possible session directories
+const possibleSessionDirs = [
+  '/var/lib/hasenpfeffr/sessions',
+  '/tmp/hasenpfeffr-sessions',
+  path.join(process.env.HOME || '/root', '.hasenpfeffr/sessions'),
+  '/var/lib/sessions',
+  '/tmp/sessions'
+];
+
+for (const dir of possibleSessionDirs) {
+  if (fs.existsSync(dir)) {
     try {
-      const sessionFiles = fs.readdirSync(expressSessionDir);
+      console.log(`Checking for session files in ${dir}`);
+      const sessionFiles = fs.readdirSync(dir);
+      
       for (const file of sessionFiles) {
+        // Express session files typically start with "sess:"
         if (file.startsWith('sess:')) {
-          const sessionData = fs.readFileSync(path.join(expressSessionDir, file), 'utf8');
-          const sessionJson = JSON.parse(sessionData);
-          
-          if (sessionJson.user && sessionJson.user.pubkey) {
-            // Found a valid session, use it
-            session = {
-              pubkey: sessionJson.user.pubkey
-            };
-            foundSession = true;
-            console.log(`Found session for user: ${session.pubkey}`);
-            break;
+          try {
+            const sessionData = fs.readFileSync(path.join(dir, file), 'utf8');
+            const sessionJson = JSON.parse(sessionData);
+            
+            console.log(`Found session file: ${file}`);
+            
+            // Check if this session is authenticated
+            if (sessionJson.authenticated === true && sessionJson.pubkey) {
+              console.log(`Found authenticated session for pubkey: ${sessionJson.pubkey}`);
+              session = {
+                pubkey: sessionJson.pubkey
+              };
+              foundSession = true;
+              break;
+            }
+          } catch (err) {
+            console.error(`Error reading session file ${file}:`, err.message);
+            // Continue to next file
           }
         }
       }
-    } catch (error) {
-      console.error(`Error reading Express sessions: ${error.message}`);
+      
+      if (foundSession) break;
+    } catch (err) {
+      console.error(`Error reading session directory ${dir}:`, err.message);
+      // Continue to next directory
     }
   }
-  
-  if (!foundSession) {
-    console.error('Error: No authenticated session found');
-    console.error('Please sign in first to publish events');
-    process.exit(1);
-  }
-} else {
-  // Read the session data
+}
+
+// If no session found in Express files, try the direct session file
+if (!foundSession && fs.existsSync(sessionFile)) {
   try {
     const sessionData = fs.readFileSync(sessionFile, 'utf8');
     session = JSON.parse(sessionData);
+    foundSession = true;
+    console.log(`Found session in direct file: ${sessionFile}`);
   } catch (error) {
     console.error('Error reading session file:', error);
-    process.exit(1);
   }
+}
+
+// If still no session, check if we can get the owner pubkey from config
+if (!foundSession) {
+  try {
+    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+    if (ownerPubkey) {
+      console.log(`Using owner pubkey from config: ${ownerPubkey}`);
+      session = {
+        pubkey: ownerPubkey
+      };
+      foundSession = true;
+    }
+  } catch (error) {
+    console.error('Error getting owner pubkey from config:', error);
+  }
+}
+
+// If still no session found, exit with error
+if (!foundSession) {
+  console.error('Error: No authenticated session found');
+  console.error('Please sign in first to publish events');
+  process.exit(1);
 }
 
 if (!session.pubkey) {

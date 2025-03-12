@@ -207,6 +207,19 @@ function publishEventToRelay(event) {
 // Main function
 async function main() {
   try {
+    // Check for authenticated session or relay private key
+    // For kind 30382 events, we can use the relay's private key directly
+    // No need for user authentication since these are relay-signed events
+    
+    if (!relayPrivateKey || !relayPublicKey) {
+      console.error('Error: Relay private key not available');
+      return {
+        success: false,
+        message: 'Relay private key not available',
+        events: []
+      };
+    }
+    
     console.log('Fetching top 5 users by personalizedPageRank...');
     const topUsers = await getTopUsers();
     
