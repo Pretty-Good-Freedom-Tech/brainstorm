@@ -856,14 +856,19 @@ function handlePublishKind10040(req, res) {
         let errorOutput = '';
         
         child.stdout.on('data', (data) => {
-            output += data.toString();
+            const dataStr = data.toString();
+            console.log('publish_nip85_10040.mjs stdout:', dataStr);
+            output += dataStr;
         });
         
         child.stderr.on('data', (data) => {
-            errorOutput += data.toString();
+            const dataStr = data.toString();
+            console.error('publish_nip85_10040.mjs stderr:', dataStr);
+            errorOutput += dataStr;
         });
         
         child.on('close', (code) => {
+            console.log(`publish_nip85_10040.mjs exited with code ${code}`);
             if (code === 0) {
                 // Success
                 return res.json({ 
@@ -876,7 +881,8 @@ function handlePublishKind10040(req, res) {
                 return res.json({ 
                     success: false, 
                     error: 'Error publishing kind 10040 event', 
-                    output: errorOutput 
+                    details: errorOutput || 'No error details available',
+                    output: output
                 });
             }
         });

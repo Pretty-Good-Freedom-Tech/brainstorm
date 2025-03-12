@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIP-85 Control Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/nostr-tools/lib/nostr.bundle.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -470,8 +471,22 @@
                             const userPubkey = await window.nostr.getPublicKey();
                             event.pubkey = userPubkey;
                             
+                            // Make sure created_at is set
+                            if (!event.created_at) {
+                                event.created_at = Math.floor(Date.now() / 1000);
+                            }
+                            
+                            // Calculate the event ID before signing
+                            // This is important because the ID is a hash of the event data
+                            const eventId = NostrTools.getEventHash(event);
+                            event.id = eventId;
+                            
+                            console.log('Event to be signed:', event);
+                            
                             // Sign the event using NIP-07
                             const signedEvent = await window.nostr.signEvent(event);
+                            
+                            console.log('Signed event:', signedEvent);
                             
                             // Update status
                             kind10040Status.textContent = 'Event signed successfully. Publishing...';
@@ -504,7 +519,15 @@
                         kind10040Output.style.display = 'block';
                     } else {
                         // Show error
-                        kind10040Status.textContent = 'Error publishing Kind 10040 event: ' + (data.error || 'Unknown error');
+                        let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || 'Unknown error');
+                        
+                        // Add details if available
+                        if (data.details) {
+                            console.error('Error details:', data.details);
+                            errorMessage += '\n\nDetails: ' + data.details;
+                        }
+                        
+                        kind10040Status.textContent = errorMessage;
                         kind10040Status.className = 'status-message status-error';
                         
                         // Re-enable publish button

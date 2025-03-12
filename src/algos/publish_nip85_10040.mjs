@@ -63,7 +63,7 @@ const userPublicKey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
 const hasenpfeffrRelayUrl = myRelay;
 
 // Define relay URLs to publish to
-const explicitRelayUrls = [myRelay];
+const explicitRelayUrls = ['wss://relay.hasenpfeffr.com','wss://relay.damus.io'];
 
 // Initialize NDK
 const ndk = new NDK({ explicitRelayUrls });
@@ -135,14 +135,23 @@ async function main() {
     
     // Read the event file
     const eventData = fs.readFileSync(eventFile, 'utf8');
-    let event = JSON.parse(eventData);
+    let event;
+    
+    try {
+      event = JSON.parse(eventData);
+      console.log('Parsed event data:', JSON.stringify(event, null, 2));
+    } catch (error) {
+      console.error('Error parsing event data:', error);
+      console.error('Event data:', eventData);
+      process.exit(1);
+    }
     
     // Set pubkey to the owner's pubkey if not already set
     if (!event.pubkey) {
       event.pubkey = userPublicKey;
     }
     
-    console.log('Event to publish:', event);
+    console.log('Event to publish:', JSON.stringify(event, null, 2));
     
     // Check if the event is already signed
     if (!event.sig) {
@@ -153,15 +162,20 @@ async function main() {
       fs.writeFileSync(unsignedEventFile, JSON.stringify(event, null, 2));
       console.log(`Unsigned event saved to: ${unsignedEventFile}`);
       
-      return {
-        success: false,
-        message: 'Event is not signed. Please sign the event in the browser using NIP-07.',
-        unsignedEventFile
-      };
+      process.exit(1);
     }
     
     // Verify the event signature
-    const verified = NostrTools.verifySignature(event);
+    let verified;
+    try {
+      console.log('Verifying event signature...');
+      verified = NostrTools.verifySignature(event);
+      console.log('Signature verification result:', verified);
+    } catch (error) {
+      console.error('Error during signature verification:', error);
+      process.exit(1);
+    }
+    
     if (!verified) {
       console.error('Error: Event signature verification failed');
       process.exit(1);
@@ -170,65 +184,48 @@ async function main() {
     console.log('Event signature verified successfully');
     
     // Create NDK event from the Nostr event
-    const ndkEvent = new NDK.NDKEvent(ndk, event);
+    let ndkEvent;
+    try {
+      ndkEvent = new NDK.NDKEvent(ndk, event);
+      console.log('NDK event created successfully');
+    } catch (error) {
+      console.error('Error creating NDK event:', error);
+      process.exit(1);
+    }
     
     // Publish the event to relays
     console.log(`Publishing event to relays: ${explicitRelayUrls.join(', ')}`);
-    const publishPromise = ndkEvent.publish();
     
-    // Wait for the event to be published with a timeout
-    const timeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Publish timeout after 10 seconds')), 10000)
-    );
-    
-    const result = await Promise.race([publishPromise, timeout]);
-    
-    console.log('Event published successfully!');
-    console.log('Publish result:', result);
-    
-    // Update the event file with publication timestamp
-    event.published_at = Math.floor(Date.now() / 1000);
-    fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
-    
-    // Create a success marker file
-    const successFile = path.join(publishedDir, `kind10040_${event.id.substring(0, 8)}_published.json`);
-    fs.writeFileSync(successFile, JSON.stringify({
-      event_id: event.id,
-      published_at: event.published_at,
-      relays: explicitRelayUrls
-    }, null, 2));
-    
-    console.log(`Publication record saved to: ${successFile}`);
-    
-    return {
-      success: true,
-      message: `Kind 10040 event published successfully to ${explicitRelayUrls.length} relays`,
-      event_id: event.id
-    };
-  } catch (error) {
-    console.error('Error publishing event:', error);
-    return {
-      success: false,
-      message: `Error publishing event: ${error.message}`
-    };
-  } finally {
-    // Close NDK connection
     try {
-      await ndk.pool.close();
-      console.log('NDK connection closed');
+      // Publish the event with a timeout
+      const publishPromise = ndkEvent.publish();
+      
+      // Wait for the event to be published
+      await publishPromise;
+      
+      console.log('Event published successfully!');
+      
+      // Update the event file with publication timestamp
+      event.published_at = Math.floor(Date.now() / 1000);
+      fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
+      
+      return {
+        success: true,
+        message: 'Event published successfully',
+        event: event
+      };
     } catch (error) {
-      console.error('Error closing NDK connection:', error);
+      console.error('Error publishing event:', error);
+      process.exit(1);
     }
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    process.exit(1);
   }
 }
 
 // Run the main function
-main()
-  .then(result => {
-    console.log(JSON.stringify(result, null, 2));
-    process.exit(result.success ? 0 : 1);
-  })
-  .catch(error => {
-    console.error('Unhandled error:', error);
-    process.exit(1);
-  });
+main().catch(error => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
