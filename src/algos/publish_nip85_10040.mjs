@@ -20,53 +20,87 @@ import WebSocket from 'ws';
 // Use WebSocket implementation for Node.js
 useWebSocketImplementation(WebSocket);
 
-// Get environment variables from hasenpfeffr.conf using source command
-function getConfigFromFile(key, defaultValue = null) {
+// Function to get configuration values directly from /etc/hasenpfeffr.conf
+function getConfigFromFile(varName, defaultValue = null) {
   try {
-    // Check if the configuration file exists
-    const configFilePath = '/etc/hasenpfeffr/config';
-    if (!fs.existsSync(configFilePath)) {
-      console.error(`Configuration file not found: ${configFilePath}`);
-      return defaultValue;
-    }
-    
-    // Read the configuration file
-    const configData = fs.readFileSync(configFilePath, 'utf8');
-    const configLines = configData.split('\n');
-    
-    // Find the specified key in the configuration
-    for (const line of configLines) {
-      if (line.startsWith(`${key}=`)) {
-        return line.split('=')[1].trim();
+    const confFile = '/etc/hasenpfeffr.conf';
+    if (fs.existsSync(confFile)) {
+      // Read the file content directly
+      const fileContent = fs.readFileSync(confFile, 'utf8');
+      console.log(`Reading config for ${varName} from ${confFile}`);
+      
+      // Look for the variable in the file content
+      const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']
+`, 'gm');
+      const match = regex.exec(fileContent);
+      
+      if (match && match[1]) {
+        console.log(`Found ${varName}=${match[1]}`);
+        return match[1];
       }
+      
+      // If not found with regex, try the source command as fallback
+      console.log(`Trying source command for ${varName}`);
+      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
+      console.log(`Source command result for ${varName}: '${result}'`);
+      return result || defaultValue;
     }
-    
-    console.error(`Key not found in configuration: ${key}`);
+    console.log(`Config file ${confFile} not found`);
     return defaultValue;
   } catch (error) {
-    console.error(`Error reading configuration for ${key}:`, error);
+    console.error(`Error getting configuration value ${varName}:`, error.message);
     return defaultValue;
   }
 }
 
 // Get relay configuration
-const myRelay = getConfigFromFile('HASENPFEFFR_RELAY_URL', 'wss://relay.hasenpfeffr.com');
+// const myRelay = getConfigFromFile('HASENPFEFFR_RELAY_URL', 'wss://relay.hasenpfeffr.com');
 const userPublicKey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
-const hasenpfeffrRelayUrl = myRelay;
+// const hasenpfeffrRelayUrl = myRelay;
 
 // Define relay URLs to publish to
 const explicitRelayUrls = ['wss://relay.hasenpfeffr.com','wss://relay.damus.io'];
 
 // Initialize NDK without a signer since we're using pre-signed events
-const ndk = new NDK({ explicitRelayUrls });
+const ndk = new NDK({ 
+  explicitRelayUrls,
+  enableOutboxModel: false  // Disable outbox model to ensure direct publishing
+});
 
 async function main() {
   try {
     console.log('Starting NIP-85 Kind 10040 event publishing...');
     
-    // Connect to relays
-    await ndk.connect();
-    console.log(`Connected to relays: ${explicitRelayUrls.join(', ')}`);
+    // Connect to relays with explicit timeout and retry
+    console.log(`Attempting to connect to relays: ${explicitRelayUrls.join(', ')}`);
+    
+    try {
+      await Promise.race([
+        ndk.connect(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000))
+      ]);
+      console.log('Successfully connected to relays');
+    } catch (error) {
+      console.error('Error connecting to relays:', error);
+      // Try one more time with a longer timeout
+      console.log('Retrying connection with longer timeout...');
+      await Promise.race([
+        ndk.connect(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 20 seconds')), 20000))
+      ]);
+    }
+    
+    // Verify that we have connected relays
+    const connectedRelays = Array.from(ndk.pool._relays.values())
+      .filter(relay => relay.status === 3) // 3 = connected
+      .map(relay => relay.url);
+    
+    if (connectedRelays.length === 0) {
+      console.error('Error: No relays connected. Cannot publish event.');
+      process.exit(1);
+    }
+    
+    console.log(`Connected to relays: ${connectedRelays.join(', ')}`);
     
     // Check for authenticated session
     if (!userPublicKey) {
@@ -173,12 +207,22 @@ async function main() {
     }
     
     // Publish the event to relays
-    console.log(`Publishing event to relays: ${explicitRelayUrls.join(', ')}`);
+    console.log(`Publishing event to relays: ${connectedRelays.join(', ')}`);
     
     try {
-      // Publish the event
-      await ndkEvent.publish();
+      // Publish the event with explicit relay set
+      const relaySet = ndk.pool.getRelaySet(connectedRelays);
+      console.log(`Using relay set with ${relaySet.relays.size} relays`);
+      
+      // Publish with timeout
+      const publishPromise = ndkEvent.publish(relaySet);
+      const result = await Promise.race([
+        publishPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Publish timeout after 15 seconds')), 15000))
+      ]);
+      
       console.log('Event published successfully!');
+      console.log('Publish result:', result);
       
       // Update the event file with publication timestamp
       event.published_at = Math.floor(Date.now() / 1000);
@@ -189,7 +233,7 @@ async function main() {
       fs.writeFileSync(successFile, JSON.stringify({
         event_id: event.id,
         published_at: event.published_at,
-        relays: explicitRelayUrls
+        relays: connectedRelays
       }, null, 2));
       
       console.log(`Publication record saved to: ${successFile}`);
