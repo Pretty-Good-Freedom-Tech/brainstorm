@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasenpfeffr Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #3498db;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #3498db;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <h1>Hasenpfeffr Control Panel</h1>
+            <div class="nav-links">
+                <a href="/control/control-panel.html" class="button home-btn">Home</a>
+                <a href="/control/control-panel.html" class="button active">Control Panel</a>
+                <a href="/control/nip85-control-panel.html" class="button">NIP-85 Panel</a>
+                <a href="/strfry/" class="button relay-btn" target="_blank">Relay</a>
+                <div id="authStatus" class="auth-status">
+                    <span id="authStatusText">Not signed in</span>
+                    <button id="signInBtn" class="button sign-in-btn">Sign In</button>
+                    <button id="signOutBtn" class="button sign-out-btn" style="display: none;">Sign Out</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Data Management</h2>
+            <div class="card">
+                <h3>Strfry Negentropy Sync</h3>
+                <p>Use <a href="https://github.com/hoytech/negentropy" target="_blank">negentropy</a> to download FOLLOWS, MUTES and REPORTS data (kinds 3, 1984, 10000) from wss://relay.hasenpfeffr.com.</p>
+                <button id="negentropyBtn" class="button">Sync with Negentropy</button>
+                <div id="negentropyStatus" class="status" style="display: none;"></div>
+                <div class="progress-container" style="display: none;" id="negentropyProgress">
+                    <div class="progress-bar" id="negentropyProgressBar"></div>
+                </div>
+                <pre id="negentropyOutput" style="display: none;"></pre>
+            </div>
+            
+            <div class="card">
+                <h3>Bulk Transfer</h3>
+                <p>Transfer all available kind 3 data from strfry into Neo4j. This operation may take 10-15 minutes to complete.</p>
+                <button id="bulkTransferBtn" class="button">Start Bulk Transfer</button>
+                <div id="bulkTransferStatus" class="status" style="display: none;"></div>
+                <pre id="bulkTransferOutput" style="display: none;"></pre>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>System Status</h2>
+            <div class="card">
+                <h3>Strfry Relay Status</h3>
+                <button id="checkStatusBtn" class="button">Check Status</button>
+                <pre id="statusOutput" style="display: none;"></pre>
+            </div>
+            
+            <div class="card">
+                <h3>Strfry Event Statistics</h3>
+                <p>View counts of different event types in the relay.</p>
+                <button id="checkStatsBtn" class="button">View Event Statistics</button>
+                <div id="statsStatus" class="status" style="display: none;"></div>
+                <div id="statsContainer" style="display: none; margin-top: 15px;">
+                    <table class="stats-table" style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Event Type</th>
+                            <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Count</th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Total Events</td>
+                            <td id="totalEvents" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Kind 3 (Follows)</td>
+                            <td id="kind3Events" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Kind 1984 (Reporting)</td>
+                            <td id="kind1984Events" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Kind 10000 (Muting)</td>
+                            <td id="kind10000Events" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Neo4j Database Status</h3>
+                <p>View Neo4j database statistics and status.</p>
+                <button id="checkNeo4jBtn" class="button">Check Neo4j Status</button>
+                <div id="neo4jStatus" class="status" style="display: none;"></div>
+                <div id="neo4jContainer" style="display: none; margin-top: 15px;">
+                    <div id="neo4jServiceStatus" style="margin-bottom: 10px; padding: 8px; border-radius: 4px;"></div>
+                    <h4>Database Statistics</h4>
+                    <table class="stats-table" style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Metric</th>
+                            <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Count</th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">NostrUser Nodes</td>
+                            <td id="userCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">FOLLOWS Relationships</td>
+                            <td id="followCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">MUTES Relationships</td>
+                            <td id="muteCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">REPORTS Relationships</td>
+                            <td id="reportCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                    </table>
+                    <h4>Constraints</h4>
+                    <pre id="constraintsOutput" style="max-height: 150px; overflow-y: auto;"></pre>
+                    <h4>Indexes</h4>
+                    <pre id="indexesOutput" style="max-height: 150px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Hasenpfeffr Systemd Services</h2>
+            <div class="card">
+                <h3>Service Status and Control</h3>
+                <p>Manage and monitor Hasenpfeffr systemd services.</p>
+                <button id="refreshServicesBtn" class="button">Refresh Status</button>
+                <div id="servicesStatus" class="status" style="display: none;"></div>
+                <div id="servicesContainer" style="margin-top: 15px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; padding: 8px; border-bottom: 2px solid #3498db;">Service</th>
+                                <th style="text-align: center; padding: 8px; border-bottom: 2px solid #3498db;">Status</th>
+                                <th style="text-align: right; padding: 8px; border-bottom: 2px solid #3498db;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTableBody">
+                            <!-- Service rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Strfry Plugin Management</h2>
+            <div class="card">
+                <h3>Hasenpfeffr Strfry Plugin</h3>
+                <p>Enable or disable the Hasenpfeffr plugin for strfry. This plugin controls which events are accepted by the relay based on configured rules.</p>
+                <div style="display: flex; align-items: center;">
+                    <div id="pluginStatusIndicator" style="width: 15px; height: 15px; border-radius: 50%; background-color: gray; margin-right: 10px;"></div>
+                    <span id="pluginStatusText">Checking status...</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button id="enablePluginBtn" class="button">Enable Plugin</button>
+                    <button id="disablePluginBtn" class="button button-secondary">Disable Plugin</button>
+                </div>
+                <div id="pluginStatus" class="status" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>NIP-85 Operations</h2>
+            <div class="card">
+                <h3>Generate NIP-85 Data</h3>
+                <p>Generate personalized PageRank scores for Nostr users.</p>
+                <button id="generateBtn" class="button">Generate Data</button>
+                <div id="generateStatus" class="status" style="display: none;"></div>
+                <pre id="generateOutput" style="display: none;"></pre>
+            </div>
+            
+            <div class="card">
+                <h3>Publish NIP-85 Events</h3>
+                <p>Publish NIP-85 data as kind 30382 events to Nostr relays.</p>
+                <button id="publishBtn" class="button">Publish Events</button>
+                <div id="publishStatus" class="status" style="display: none;"></div>
+                <pre id="publishOutput" style="display: none;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up the relay link with the correct domain from the server
+            fetch('/api/relay/config')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.domain) {
+                        const relayBtn = document.querySelector('.relay-btn');
+                        if (relayBtn) {
+                            relayBtn.href = `/strfry/`;
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching relay config:', error));
+            
+            // Auth status check
+            const authStatusText = document.getElementById('authStatusText');
+            const signInBtn = document.getElementById('signInBtn');
+            const signOutBtn = document.getElementById('signOutBtn');
+            
+            function checkAuthStatus() {
+                fetch('/api/auth/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.authenticated) {
+                            authStatusText.textContent = `Signed in as ${data.pubkey.substring(0, 8)}...`;
+                            signInBtn.style.display = 'none';
+                            signOutBtn.style.display = 'inline-block';
+                        } else {
+                            authStatusText.textContent = 'Not signed in';
+                            signInBtn.style.display = 'inline-block';
+                            signOutBtn.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking auth status:', error);
+                        authStatusText.textContent = 'Auth error';
+                    });
+            }
+            
+            // Check auth status on page load
+            checkAuthStatus();
+            
+            // Handle sign in button
+            signInBtn.addEventListener('click', function() {
+                window.location.href = '/control/sign-in.html';
+            });
+            
+            // Handle sign out button
+            signOutBtn.addEventListener('click', function() {
+                fetch('/api/auth/logout', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            checkAuthStatus();
+                        }
+                    })
+                    .catch(error => console.error('Error signing out:', error));
+            });
+            
+            // Strfry Plugin Management
+            const pluginStatusIndicator = document.getElementById('pluginStatusIndicator');
+            const pluginStatusText = document.getElementById('pluginStatusText');
+            const enablePluginBtn = document.getElementById('enablePluginBtn');
+            const disablePluginBtn = document.getElementById('disablePluginBtn');
+            const pluginStatus = document.getElementById('pluginStatus');
+            
+            function checkPluginStatus() {
+                fetch('/control/api/strfry-plugin?action=status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'enabled') {
+                            pluginStatusIndicator.style.backgroundColor = '#2ecc71';
+                            pluginStatusText.textContent = 'Plugin is enabled';
+                            enablePluginBtn.disabled = true;
+                            disablePluginBtn.disabled = false;
+                        } else if (data.status === 'disabled') {
+                            pluginStatusIndicator.style.backgroundColor = '#e74c3c';
+                            pluginStatusText.textContent = 'Plugin is disabled';
+                            enablePluginBtn.disabled = false;
+                            disablePluginBtn.disabled = true;
+                        } else {
+                            pluginStatusIndicator.style.backgroundColor = 'gray';
+                            pluginStatusText.textContent = 'Plugin status unknown';
+                            enablePluginBtn.disabled = false;
+                            disablePluginBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking plugin status:', error);
+                        pluginStatusIndicator.style.backgroundColor = 'gray';
+                        pluginStatusText.textContent = 'Error checking plugin status';
+                    });
+            }
+            
+            enablePluginBtn.addEventListener('click', function() {
+                pluginStatus.style.display = 'block';
+                pluginStatus.className = 'status info';
+                pluginStatus.textContent = 'Enabling plugin...';
+                enablePluginBtn.disabled = true;
+                disablePluginBtn.disabled = true;
+                
+                fetch('/control/api/strfry-plugin?action=enable')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'enabled') {
+                            pluginStatus.className = 'status success';
+                            pluginStatus.textContent = 'Plugin enabled successfully!';
+                            checkPluginStatus();
+                        } else {
+                            pluginStatus.className = 'status error';
+                            pluginStatus.textContent = data.error || 'Failed to enable plugin';
+                            enablePluginBtn.disabled = false;
+                        }
+                        disablePluginBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error enabling plugin:', error);
+                        pluginStatus.className = 'status error';
+                        pluginStatus.textContent = 'Error enabling plugin: ' + error.message;
+                        enablePluginBtn.disabled = false;
+                        disablePluginBtn.disabled = false;
+                    });
+            });
+            
+            disablePluginBtn.addEventListener('click', function() {
+                pluginStatus.style.display = 'block';
+                pluginStatus.className = 'status info';
+                pluginStatus.textContent = 'Disabling plugin...';
+                enablePluginBtn.disabled = true;
+                disablePluginBtn.disabled = true;
+                
+                fetch('/control/api/strfry-plugin?action=disable')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'disabled') {
+                            pluginStatus.className = 'status success';
+                            pluginStatus.textContent = 'Plugin disabled successfully!';
+                            checkPluginStatus();
+                        } else {
+                            pluginStatus.className = 'status error';
+                            pluginStatus.textContent = data.error || 'Failed to disable plugin';
+                            disablePluginBtn.disabled = false;
+                        }
+                        enablePluginBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error disabling plugin:', error);
+                        pluginStatus.className = 'status error';
+                        pluginStatus.textContent = 'Error disabling plugin: ' + error.message;
+                        enablePluginBtn.disabled = false;
+                        disablePluginBtn.disabled = false;
+                    });
+            });
+            
+            // Check plugin status on page load
+            checkPluginStatus();
+            
+            // Systemd Services Management
+            const refreshServicesBtn = document.getElementById('refreshServicesBtn');
+            const servicesStatus = document.getElementById('servicesStatus');
+            const servicesTableBody = document.getElementById('servicesTableBody');
+            
+            function loadServiceStatus() {
+                refreshServicesBtn.disabled = true;
+                servicesStatus.style.display = 'block';
+                servicesStatus.className = 'status info';
+                servicesStatus.textContent = 'Loading service statuses...';
+                
+                fetch('/control/api/systemd-services')
+                    .then(response => response.json())
+                    .then(data => {
+                        refreshServicesBtn.disabled = false;
+                        servicesStatus.style.display = 'none';
+                        
+                        // Clear the table
+                        servicesTableBody.innerHTML = '';
+                        
+                        // Service descriptions
+                        const serviceDescriptions = {
+                            'neo4j': 'Graph database for storing Nostr relationships',
+                            'strfry': 'Nostr relay for receiving and serving events',
+                            'hasenpfeffr-control-panel': 'Web interface for system management',
+                            'strfry-router': 'Routes events between relays',
+                            'addToQueue': 'Adds pubkeys to processing queue',
+                            'processQueue': 'Processes pubkeys from queue',
+                            'reconcile.timer': 'Scheduled task to reconcile graph data',
+                            'calculateHops.timer': 'Scheduled task to calculate network hops',
+                            'calculatePersonalizedPageRank.timer': 'Scheduled task to calculate PageRank scores'
+                        };
+                        
+                        // Separate regular services from timer services
+                        const regularServices = [];
+                        const timerServices = [];
+                        
+                        Object.entries(data.services).forEach(([service, status]) => {
+                            if (service.endsWith('.timer')) {
+                                timerServices.push([service, status]);
+                            } else {
+                                regularServices.push([service, status]);
+                            }
+                        });
+                        
+                        // Function to create a service row
+                        function createServiceRow(service, status, isTimer = false) {
+                            const row = document.createElement('tr');
+                            
+                            // Service name cell
+                            const nameCell = document.createElement('td');
+                            nameCell.style.padding = '8px';
+                            nameCell.style.borderBottom = '1px solid #ddd';
+                            
+                            const nameSpan = document.createElement('span');
+                            nameSpan.textContent = service;
+                            nameSpan.style.fontWeight = 'bold';
+                            nameCell.appendChild(nameSpan);
+                            
+                            // Add description if available
+                            if (serviceDescriptions[service]) {
+                                const descSpan = document.createElement('div');
+                                descSpan.textContent = serviceDescriptions[service];
+                                descSpan.style.fontSize = '0.8em';
+                                descSpan.style.color = '#666';
+                                nameCell.appendChild(descSpan);
+                            }
+                            
+                            row.appendChild(nameCell);
+                            
+                            // Status cell
+                            const statusCell = document.createElement('td');
+                            statusCell.style.padding = '8px';
+                            statusCell.style.borderBottom = '1px solid #ddd';
+                            statusCell.style.textAlign = 'center';
+                            
+                            const statusIndicator = document.createElement('span');
+                            statusIndicator.textContent = status;
+                            statusIndicator.style.padding = '4px 8px';
+                            statusIndicator.style.borderRadius = '4px';
+                            statusIndicator.style.fontWeight = 'bold';
+                            
+                            if (status === 'active') {
+                                statusIndicator.style.backgroundColor = '#2ecc71';
+                                statusIndicator.style.color = 'white';
+                            } else {
+                                statusIndicator.style.backgroundColor = '#e74c3c';
+                                statusIndicator.style.color = 'white';
+                            }
+                            
+                            statusCell.appendChild(statusIndicator);
+                            row.appendChild(statusCell);
+                            
+                            // Actions cell
+                            const actionsCell = document.createElement('td');
+                            actionsCell.style.padding = '8px';
+                            actionsCell.style.borderBottom = '1px solid #ddd';
+                            actionsCell.style.textAlign = 'right';
+                            
+                            // Start button
+                            const startBtn = document.createElement('button');
+                            startBtn.className = 'button';
+                            startBtn.style.backgroundColor = '#2ecc71';
+                            startBtn.style.marginRight = '5px';
+                            startBtn.style.padding = '5px 10px';
+                            startBtn.textContent = isTimer ? 'Enable' : 'Start';
+                            startBtn.onclick = () => controlService(service, 'start');
+                            
+                            // Stop button
+                            const stopBtn = document.createElement('button');
+                            stopBtn.className = 'button';
+                            stopBtn.style.backgroundColor = '#e74c3c';
+                            stopBtn.style.marginRight = '5px';
+                            stopBtn.style.padding = '5px 10px';
+                            stopBtn.textContent = isTimer ? 'Disable' : 'Stop';
+                            stopBtn.onclick = () => controlService(service, 'stop');
+                            
+                            // Restart button
+                            const restartBtn = document.createElement('button');
+                            restartBtn.className = 'button';
+                            restartBtn.style.backgroundColor = '#3498db';
+                            restartBtn.style.padding = '5px 10px';
+                            restartBtn.textContent = 'Restart';
+                            restartBtn.onclick = () => controlService(service, 'restart');
+                            
+                            actionsCell.appendChild(startBtn);
+                            actionsCell.appendChild(stopBtn);
+                            actionsCell.appendChild(restartBtn);
+                            row.appendChild(actionsCell);
+                            
+                            return row;
+                        }
+                        
+                        // Add regular services
+                        if (regularServices.length > 0) {
+                            // Add header for regular services
+                            const headerRow = document.createElement('tr');
+                            const headerCell = document.createElement('td');
+                            headerCell.colSpan = 3;
+                            headerCell.style.backgroundColor = '#f2f2f2';
+                            headerCell.style.padding = '8px';
+                            headerCell.style.fontWeight = 'bold';
+                            headerCell.textContent = 'Core Services';
+                            headerRow.appendChild(headerCell);
+                            servicesTableBody.appendChild(headerRow);
+                            
+                            // Add each regular service
+                            regularServices.forEach(([service, status]) => {
+                                servicesTableBody.appendChild(createServiceRow(service, status));
+                            });
+                        }
+                        
+                        // Add timer services
+                        if (timerServices.length > 0) {
+                            // Add header for timer services
+                            const headerRow = document.createElement('tr');
+                            const headerCell = document.createElement('td');
+                            headerCell.colSpan = 3;
+                            headerCell.style.backgroundColor = '#f2f2f2';
+                            headerCell.style.padding = '8px';
+                            headerCell.style.fontWeight = 'bold';
+                            headerCell.textContent = 'Scheduled Tasks';
+                            headerRow.appendChild(headerCell);
+                            servicesTableBody.appendChild(headerRow);
+                            
+                            // Add each timer service
+                            timerServices.forEach(([service, status]) => {
+                                servicesTableBody.appendChild(createServiceRow(service, status, true));
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        refreshServicesBtn.disabled = false;
+                        servicesStatus.className = 'status error';
+                        servicesStatus.textContent = 'Error loading services: ' + error.message;
+                    });
+            }
+            
+            function controlService(service, action) {
+                servicesStatus.style.display = 'block';
+                servicesStatus.className = 'status info';
+                servicesStatus.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)}ing ${service} service...`;
+                
+                fetch(`/control/api/systemd-services?service=${service}&action=${action}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            servicesStatus.className = 'status success';
+                            servicesStatus.textContent = data.message;
+                            // Reload service statuses after a short delay
+                            setTimeout(loadServiceStatus, 1000);
+                        } else {
+                            servicesStatus.className = 'status error';
+                            servicesStatus.textContent = data.message;
+                        }
+                    })
+                    .catch(error => {
+                        servicesStatus.className = 'status error';
+                        servicesStatus.textContent = 'Error controlling service: ' + error.message;
+                    });
+            }
+            
+
+            
+            // Load service statuses on page load
+            loadServiceStatus();
+            
+            // Refresh button event listener
+            refreshServicesBtn.addEventListener('click', loadServiceStatus);
+            
+            // Check Status Button
+            const checkStatusBtn = document.getElementById('checkStatusBtn');
+            const statusOutput = document.getElementById('statusOutput');
+            
+            checkStatusBtn.addEventListener('click', function() {
+                checkStatusBtn.disabled = true;
+                statusOutput.style.display = 'block';
+                statusOutput.textContent = 'Checking status...';
+                
+                fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    statusOutput.textContent = data.output;
+                    checkStatusBtn.disabled = false;
+                })
+                .catch(error => {
+                    statusOutput.textContent = 'Error checking status: ' + error.message;
+                    checkStatusBtn.disabled = false;
+                });
+            });
+            
+            // Strfry Event Statistics Button
+            const checkStatsBtn = document.getElementById('checkStatsBtn');
+            const statsStatus = document.getElementById('statsStatus');
+            const statsContainer = document.getElementById('statsContainer');
+            const totalEvents = document.getElementById('totalEvents');
+            const kind3Events = document.getElementById('kind3Events');
+            const kind1984Events = document.getElementById('kind1984Events');
+            const kind10000Events = document.getElementById('kind10000Events');
+            
+            checkStatsBtn.addEventListener('click', function() {
+                checkStatsBtn.disabled = true;
+                statsStatus.style.display = 'block';
+                statsStatus.className = 'status info';
+                statsStatus.textContent = 'Fetching event statistics...';
+                statsContainer.style.display = 'none';
+                
+                fetch('/api/strfry-stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        statsStatus.className = 'status success';
+                        statsStatus.textContent = 'Event statistics retrieved successfully!';
+                        statsContainer.style.display = 'block';
+                        
+                        // Update the statistics in the table
+                        totalEvents.textContent = data.stats.total.toLocaleString();
+                        kind3Events.textContent = data.stats.kind3.toLocaleString();
+                        kind1984Events.textContent = data.stats.kind1984.toLocaleString();
+                        kind10000Events.textContent = data.stats.kind10000.toLocaleString();
+                    } else {
+                        statsStatus.className = 'status error';
+                        statsStatus.textContent = 'Error retrieving event statistics: ' + data.error;
+                    }
+                    checkStatsBtn.disabled = false;
+                })
+                .catch(error => {
+                    statsStatus.className = 'status error';
+                    statsStatus.textContent = 'Error retrieving event statistics: ' + error.message;
+                    checkStatsBtn.disabled = false;
+                });
+            });
+            
+            // Neo4j Status Button
+            const checkNeo4jBtn = document.getElementById('checkNeo4jBtn');
+            const neo4jStatus = document.getElementById('neo4jStatus');
+            const neo4jContainer = document.getElementById('neo4jContainer');
+            const neo4jServiceStatus = document.getElementById('neo4jServiceStatus');
+            const userCount = document.getElementById('userCount');
+            const followCount = document.getElementById('followCount');
+            const muteCount = document.getElementById('muteCount');
+            const reportCount = document.getElementById('reportCount');
+            const constraintsOutput = document.getElementById('constraintsOutput');
+            const indexesOutput = document.getElementById('indexesOutput');
+            
+            checkNeo4jBtn.addEventListener('click', function() {
+                checkNeo4jBtn.disabled = true;
+                neo4jStatus.style.display = 'block';
+                neo4jStatus.className = 'status info';
+                neo4jStatus.textContent = 'Checking Neo4j status...';
+                neo4jContainer.style.display = 'none';
+                
+                fetch('/api/neo4j-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        neo4jStatus.className = 'status success';
+                        neo4jStatus.textContent = 'Neo4j status retrieved successfully!';
+                        neo4jContainer.style.display = 'block';
+                        
+                        // Update service status
+                        if (data.status.running) {
+                            neo4jServiceStatus.textContent = 'Neo4j Service: Running';
+                            neo4jServiceStatus.style.backgroundColor = '#dff0d8';
+                            neo4jServiceStatus.style.color = '#3c763d';
+                            
+                            // Update statistics
+                            userCount.textContent = data.status.userCount.toLocaleString();
+                            followCount.textContent = data.status.relationships.follow.toLocaleString();
+                            muteCount.textContent = data.status.relationships.mute.toLocaleString();
+                            reportCount.textContent = data.status.relationships.report.toLocaleString();
+                            
+                            // Update constraints and indexes
+                            constraintsOutput.textContent = data.status.constraints.join('\n') || 'No constraints found';
+                            indexesOutput.textContent = data.status.indexes.join('\n') || 'No indexes found';
+                        } else {
+                            neo4jServiceStatus.textContent = 'Neo4j Service: Not Running';
+                            neo4jServiceStatus.style.backgroundColor = '#f2dede';
+                            neo4jServiceStatus.style.color = '#a94442';
+                            
+                            // Reset statistics
+                            userCount.textContent = '-';
+                            followCount.textContent = '-';
+                            muteCount.textContent = '-';
+                            reportCount.textContent = '-';
+                            constraintsOutput.textContent = 'Neo4j service is not running';
+                            indexesOutput.textContent = 'Neo4j service is not running';
+                        }
+                    } else {
+                        neo4jStatus.className = 'status error';
+                        neo4jStatus.textContent = 'Error retrieving Neo4j status: ' + data.error;
+                    }
+                    checkNeo4jBtn.disabled = false;
+                })
+                .catch(error => {
+                    neo4jStatus.className = 'status error';
+                    neo4jStatus.textContent = 'Error retrieving Neo4j status: ' + error.message;
+                    checkNeo4jBtn.disabled = false;
+                });
+            });
+            
+            // Generate Data Button
+            const generateBtn = document.getElementById('generateBtn');
+            const generateStatus = document.getElementById('generateStatus');
+            const generateOutput = document.getElementById('generateOutput');
+            
+            generateBtn.addEventListener('click', function() {
+                generateBtn.disabled = true;
+                generateStatus.style.display = 'block';
+                generateStatus.className = 'status info';
+                generateStatus.textContent = 'Generating NIP-85 data...';
+                generateOutput.style.display = 'block';
+                generateOutput.textContent = 'Starting data generation...\n';
+                
+                fetch('/control/api/generate')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        generateStatus.className = 'status success';
+                        generateStatus.textContent = 'NIP-85 data generated successfully!';
+                    } else {
+                        generateStatus.className = 'status error';
+                        generateStatus.textContent = 'Error generating data: ' + data.error;
+                    }
+                    
+                    generateOutput.textContent += data.output;
+                    generateBtn.disabled = false;
+                })
+                .catch(error => {
+                    generateStatus.className = 'status error';
+                    generateStatus.textContent = 'Error generating data: ' + error.message;
+                    generateBtn.disabled = false;
+                });
+            });
+            
+            // Publish Events Button
+            const publishBtn = document.getElementById('publishBtn');
+            const publishStatus = document.getElementById('publishStatus');
+            const publishOutput = document.getElementById('publishOutput');
+            
+            publishBtn.addEventListener('click', function() {
+                publishBtn.disabled = true;
+                publishStatus.style.display = 'block';
+                publishStatus.className = 'status info';
+                publishStatus.textContent = 'Publishing NIP-85 events...';
+                publishOutput.style.display = 'block';
+                publishOutput.textContent = 'Starting event publication...\n';
+                
+                fetch('/control/api/publish')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        publishStatus.className = 'status success';
+                        publishStatus.textContent = 'NIP-85 events published successfully!';
+                    } else {
+                        publishStatus.className = 'status error';
+                        publishStatus.textContent = 'Error publishing events: ' + data.error;
+                    }
+                    
+                    publishOutput.textContent += data.output;
+                    publishBtn.disabled = false;
+                })
+                .catch(error => {
+                    publishStatus.className = 'status error';
+                    publishStatus.textContent = 'Error publishing events: ' + error.message;
+                    publishBtn.disabled = false;
+                });
+            });
+            
+            // Negentropy Sync Button
+            const negentropyBtn = document.getElementById('negentropyBtn');
+            const negentropyStatus = document.getElementById('negentropyStatus');
+            const negentropyOutput = document.getElementById('negentropyOutput');
+            const negentropyProgress = document.getElementById('negentropyProgress');
+            const negentropyProgressBar = document.getElementById('negentropyProgressBar');
+            
+            // Bulk Transfer Button
+            const bulkTransferBtn = document.getElementById('bulkTransferBtn');
+            const bulkTransferStatus = document.getElementById('bulkTransferStatus');
+            const bulkTransferOutput = document.getElementById('bulkTransferOutput');
+            
+            // Bulk Transfer Button Event Listener
+            bulkTransferBtn.addEventListener('click', function() {
+                bulkTransferBtn.disabled = true;
+                bulkTransferStatus.style.display = 'block';
+                bulkTransferStatus.className = 'status info';
+                bulkTransferStatus.textContent = 'Starting bulk transfer... This may take 10-15 minutes to complete.';
+                bulkTransferOutput.style.display = 'block';
+                bulkTransferOutput.textContent = 'Initiating bulk transfer of kind 3 data from strfry to Neo4j...\n';
+                
+                fetch('/control/api/bulk-transfer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.output) {
+                            bulkTransferOutput.textContent += data.output;
+                        }
+                        bulkTransferStatus.className = 'status success';
+                        bulkTransferStatus.textContent = data.message;
+                    } else {
+                        bulkTransferStatus.className = 'status error';
+                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + data.message;
+                        if (data.output) {
+                            bulkTransferOutput.textContent += data.output;
+                        }
+                    }
+                    bulkTransferBtn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    bulkTransferStatus.className = 'status error';
+                    bulkTransferStatus.textContent = 'Error during bulk transfer: ' + error.message;
+                    bulkTransferBtn.disabled = false;
+                });
+            });
+            
+            negentropyBtn.addEventListener('click', function() {
+                negentropyBtn.disabled = true;
+                negentropyStatus.style.display = 'block';
+                negentropyStatus.className = 'status info';
+                negentropyStatus.textContent = 'Syncing with Negentropy... This may take a while.';
+                negentropyOutput.style.display = 'block';
+                negentropyOutput.textContent = 'Starting Negentropy sync...\n';
+                negentropyProgress.style.display = 'block';
+                
+                // Simulate progress updates (in a real implementation, this would be based on actual progress)
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 2;
+                    if (progress > 100) progress = 100;
+                    negentropyProgressBar.style.width = progress + '%';
+                    if (progress === 100) clearInterval(progressInterval);
+                }, 1000);
+                
+                // Make AJAX request to the server
+                fetch('/api/negentropy-sync', {
+                    method: 'POST'
+                })
+                .then(response => {
+                    // Check if the response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // Handle non-JSON response
+                        return response.text().then(text => {
+                            throw new Error('Received non-JSON response from server');
+                        });
+                    }
+                })
+                .then(data => {
+                    clearInterval(progressInterval);
+                    negentropyProgressBar.style.width = '100%';
+                    
+                    if (data.success) {
+                        negentropyStatus.className = 'status success';
+                        negentropyStatus.textContent = 'Negentropy sync completed successfully!';
+                    } else {
+                        negentropyStatus.className = 'status error';
+                        negentropyStatus.textContent = 'Error syncing with Negentropy: ' + data.error;
+                    }
+                    
+                    negentropyOutput.textContent += data.output;
+                    negentropyBtn.disabled = false;
+                })
+                .catch(error => {
+                    clearInterval(progressInterval);
+                    negentropyStatus.className = 'status error';
+                    negentropyStatus.textContent = 'Error syncing with Negentropy: ' + error.message;
+                    
+                    // Continue showing progress even if there's an error
+                    negentropyProgressBar.style.width = '100%';
+                    negentropyOutput.textContent += '\nSync process continued in the background. Check server logs for details.';
+                    
+                    negentropyBtn.disabled = false;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

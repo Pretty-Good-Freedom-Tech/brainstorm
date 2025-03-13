@@ -16,11 +16,12 @@ WORK IN PROGRESS: currently refactoring [manual installation repo](https://githu
 
 ## TODO (ASAP) (last updated 11 Mar 2025)
 
-- export scores as 30382 notes (NIP-85) signed by relay nsec
-- sign 10040 note (NIP-85)
+- fix relay endpoint
+- make sure 30382 is published to local relay
+- make sure 10040 is published to multiple relays
+- add personalized GrapeRank
 - view / change relay nsec 
 - update plugin whitelist
-- add personalized GrapeRank
 - add verified followers score
 - make scores accessible through API (WoT DVM)
 - neo4j update password

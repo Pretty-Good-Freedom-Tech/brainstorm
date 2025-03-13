@@ -44,7 +44,8 @@ function getConfigFromFile(varName, defaultValue = null) {
 }
 
 // Get relay configuration
-const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+// const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+const relayUrl = 'wss://relay.hasenpfeffr.com';
 const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');

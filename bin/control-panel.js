@@ -81,6 +81,9 @@ const port = process.env.CONTROL_PANEL_PORT || 7778;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Session middleware
 app.use(session({
     secret: crypto.randomBytes(32).toString('hex'),
@@ -88,6 +91,55 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
 }));
+
+// Helper function to serve HTML files
+function serveHtmlFile(filename, res) {
+    try {
+        const filePath = path.join(__dirname, '../public', filename);
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.status(404).send('File not found');
+        }
+    } catch (error) {
+        console.error('Error serving HTML file:', error);
+        res.status(500).send('Internal server error');
+    }
+}
+
+// Serve the HTML files
+app.get('/', (req, res) => {
+    serveHtmlFile('index.html', res);
+});
+
+app.get('/control', (req, res) => {
+    res.redirect('/control/control-panel.html');
+});
+
+app.get('/control/control-panel.html', (req, res) => {
+    serveHtmlFile('control/control-panel.html', res);
+});
+
+app.get('/control/nip85-control-panel.html', (req, res) => {
+    serveHtmlFile('control/nip85-control-panel.html', res);
+});
+
+app.get('/control/sign-in.html', (req, res) => {
+    serveHtmlFile('control/sign-in.html', res);
+});
+
+// For backward compatibility, redirect old URLs to new ones
+app.get('/control-panel.html', (req, res) => {
+    res.redirect('/control/control-panel.html');
+});
+
+app.get('/nip85-control-panel.html', (req, res) => {
+    res.redirect('/control/nip85-control-panel.html');
+});
+
+app.get('/sign-in.html', (req, res) => {
+    res.redirect('/control/sign-in.html');
+});
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
@@ -134,53 +186,6 @@ const authMiddleware = (req, res, next) => {
 
 // Apply auth middleware
 app.use(authMiddleware);
-
-// Serve static files from the public directory
-// First try to find the public directory in the bin directory
-let publicPath = path.join(__dirname, 'public');
-if (!fs.existsSync(publicPath)) {
-    // If not found, try the parent directory (project root)
-    publicPath = path.join(__dirname, '../public');
-}
-app.use(express.static(publicPath));
-
-// Helper function to serve HTML files
-function serveHtmlFile(filename, res) {
-    // First try to find the HTML file in the bin directory
-    let htmlPath = path.join(__dirname, 'public/' + filename);
-    
-    // If not found, try the parent directory (project root)
-    if (!fs.existsSync(htmlPath)) {
-        htmlPath = path.join(__dirname, '../public/' + filename);
-    }
-    
-    if (fs.existsSync(htmlPath)) {
-        res.sendFile(htmlPath);
-    } else {
-        res.status(404).send(`HTML file ${filename} not found`);
-    }
-}
-
-// Serve the HTML files
-app.get('/', (req, res) => {
-    serveHtmlFile('index.html', res);
-});
-
-app.get('/index.html', (req, res) => {
-    serveHtmlFile('index.html', res);
-});
-
-app.get('/control-panel.html', (req, res) => {
-    serveHtmlFile('control-panel.html', res);
-});
-
-app.get('/sign-in.html', (req, res) => {
-    serveHtmlFile('sign-in.html', res);
-});
-
-app.get('/nip85-control-panel.html', (req, res) => {
-    serveHtmlFile('nip85-control-panel.html', res);
-});
 
 // Define API routes
 
