@@ -859,13 +859,13 @@ async function finalSetup() {
   
   // Nginx configuration instructions
   console.log('\nNginx Configuration:');
-  console.log('If you installed Strfry, Nginx has been configured to serve both the Strfry relay');
-  console.log('and the Hasenpfeffr control panel. The control panel is available at:');
-  console.log('https://your-domain/control/');
+  console.log('If you installed Strfry, Nginx has been configured to serve:');
+  console.log('- The Hasenpfeffr control panel as the main application at https://your-domain/');
+  console.log('- The Strfry relay at https://your-domain/');
   console.log('\nIf you did not install Strfry and want to access the control panel through Nginx,');
   console.log('add the following to your server block:');
   console.log('```');
-  console.log('location /control/ {');
+  console.log('location / {');
   console.log('    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;');
   console.log('    proxy_set_header Host $host;');
   console.log('    proxy_pass http://127.0.0.1:7778/;');

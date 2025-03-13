@@ -6,7 +6,7 @@ After=network.target neo4j.service
 Type=simple
 User=hasenpfeffr
 EnvironmentFile=/etc/hasenpfeffr.conf
-ExecStart=/usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/runFullReconciliation.js
+ExecStart=/usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/runFullReconciliation.sh
 Restart=on-failure
 RestartSec=30
 # Set resource limits to prevent excessive resource usage

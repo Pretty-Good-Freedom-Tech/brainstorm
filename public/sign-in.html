@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasenpfeffr - Sign In</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .sign-in-box {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #555;
+        }
+        .btn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .info {
+            background-color: #d9edf7;
+            color: #31708f;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #333;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Sign In</h1>
+    </div>
+    <div class="container">
+        <div class="sign-in-box">
+            <h2>Sign In with Nostr</h2>
+            <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can perform administrative actions.</p>
+            
+            <button id="signInBtn" class="btn">Sign In with Nostr</button>
+            
+            <div class="nsec-input-container" style="margin-top: 20px;">
+                <p><strong>Optional:</strong> Provide your nsec (private key) for signing events. This is required for publishing kind 10040 events.</p>
+                <p><small>Note: Your private key will only be stored in your browser session and used for signing events. It will not be stored on the server permanently.</small></p>
+                <input type="password" id="nsecInput" placeholder="nsec1..." style="width: 100%; padding: 10px; margin-bottom: 10px;" />
+                <label style="display: flex; align-items: center; margin-bottom: 20px;">
+                    <input type="checkbox" id="showNsec" style="margin-right: 5px;"> Show private key
+                </label>
+            </div>
+            
+            <div id="signInStatus" class="status"></div>
+            
+            <div class="divider">OR</div>
+            
+            <p>You can access the control panel in read-only mode without signing in:</p>
+            <div class="button-group">
+                <a href="/control/index.html" class="btn home-btn">Home</a>
+                <a href="/control/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
+            </div>
+        </div>
+        
+        <style>
+            .divider {
+                display: flex;
+                align-items: center;
+                text-align: center;
+                margin: 20px 0;
+                color: #777;
+            }
+            
+            .divider::before,
+            .divider::after {
+                content: '';
+                flex: 1;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .divider::before {
+                margin-right: 10px;
+            }
+            
+            .divider::after {
+                margin-left: 10px;
+            }
+            
+            .secondary-btn {
+                background-color: #95a5a6;
+                text-decoration: none;
+                text-align: center;
+            }
+            
+            .secondary-btn:hover {
+                background-color: #7f8c8d;
+            }
+            
+            .home-btn {
+                background-color: #2ecc71;
+                text-decoration: none;
+                text-align: center;
+            }
+            
+            .home-btn:hover {
+                background-color: #27ae60;
+            }
+            
+            .button-group {
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            }
+        </style>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const signInBtn = document.getElementById('signInBtn');
+            const signInStatus = document.getElementById('signInStatus');
+            const controlPanelLink = document.getElementById('controlPanelLink');
+            const nsecInput = document.getElementById('nsecInput');
+            const showNsec = document.getElementById('showNsec');
+            
+            // Toggle nsec visibility
+            if (showNsec && nsecInput) {
+                showNsec.addEventListener('change', function() {
+                    nsecInput.type = this.checked ? 'text' : 'password';
+                });
+            }
+            
+            // Update control panel link
+            if (controlPanelLink) {
+                controlPanelLink.href = '/control/control-panel.html';
+            }
+            
+            // Check if NIP-07 extension is available
+            if (typeof window.nostr === 'undefined') {
+                signInStatus.textContent = 'No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.';
+                signInStatus.className = 'status error';
+                signInStatus.style.display = 'block';
+                signInBtn.disabled = true;
+                return;
+            }
+            
+            signInBtn.addEventListener('click', async function() {
+                signInBtn.disabled = true;
+                signInStatus.textContent = 'Authenticating... ';
+                signInStatus.className = 'status info';
+                signInStatus.style.display = 'block';
+                
+                // Add loader
+                const loader = document.createElement('div');
+                loader.className = 'loader';
+                signInStatus.appendChild(loader);
+                
+                try {
+                    // Get public key from NIP-07 extension
+                    const pubkey = await window.nostr.getPublicKey();
+                    
+                    // Get nsec from input field (optional)
+                    const nsec = nsecInput ? nsecInput.value.trim() : '';
+                    
+                    // Verify with server
+                    const response = await fetch('/control/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ pubkey })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.authorized) {
+                        signInStatus.textContent = `Authentication successful! Your public key (${pubkey.substring(0, 8)}...) matches the owner's key. Creating signed event...`;
+                        
+                        // If authorized, create a signed event for authentication
+                        const event = {
+                            kind: 27235, // Custom kind for auth
+                            created_at: Math.floor(Date.now() / 1000),
+                            tags: [
+                                ['challenge', data.challenge]
+                            ],
+                            content: 'Hasenpfeffr Control Panel Authentication'
+                        };
+                        
+                        // Sign the event
+                        const signedEvent = await window.nostr.signEvent(event);
+                        
+                        // Send the signed event and nsec to the server
+                        const authResponse = await fetch('/control/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ 
+                                event: signedEvent,
+                                nsec: nsec // Include nsec if provided
+                            })
+                        });
+                        
+                        const authData = await authResponse.json();
+                        
+                        if (authData.success) {
+                            signInStatus.textContent = 'Authentication successful! Redirecting to control panel...';
+                            signInStatus.className = 'status success';
+                            
+                            // Redirect to control panel
+                            setTimeout(() => {
+                                window.location.href = '/control/control-panel.html';
+                            }, 1500);
+                        } else {
+                            signInStatus.textContent = 'Authentication failed: ' + authData.message;
+                            signInStatus.className = 'status error';
+                            signInBtn.disabled = false;
+                        }
+                    } else {
+                        signInStatus.textContent = 'Unauthorized: ' + data.message;
+                        signInStatus.className = 'status error';
+                        signInBtn.disabled = false;
+                        
+                        // Display the user's pubkey for debugging
+                        const pubkeyInfo = document.createElement('div');
+                        pubkeyInfo.className = 'pubkey-info';
+                        pubkeyInfo.innerHTML = `<strong>Your public key:</strong> <code>${pubkey}</code><br>This key does not match the authorized owner key in the server configuration.`;
+                        signInStatus.appendChild(pubkeyInfo);
+                    }
+                } catch (error) {
+                    console.error('Error during authentication:', error);
+                    signInStatus.textContent = 'Error during authentication: ' + error.message;
+                    signInStatus.className = 'status error';
+                    signInBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ Hasenpfeffr is a personalized Webs of Trust nostr relay that uses advanced centr
 
 WORK IN PROGRESS: currently refactoring [manual installation repo](https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr-manual-installation) to create a nodejs package structure.
 
-## Features
+## Features (when ready)
 
 - strfry and Neo4j integration
 - personalized PageRank
@@ -14,11 +14,19 @@ WORK IN PROGRESS: currently refactoring [manual installation repo](https://githu
 - Optimized for large-scale data processing (100,000+ events)
 - Performance monitoring and logging
 
-## TODO
+## TODO (ASAP) (last updated 11 Mar 2025)
 
-- personalized GrapeRank
-- improve GUI
+- add mutes and reports; add timestamp to edges
+- fix relay endpoint
+- make sure 30382 is published to local relay
+- make sure 10040 is published to multiple relays
+- add personalized GrapeRank
+- update plugin whitelist
+- add verified followers score
 - make scores accessible through API (WoT DVM)
+- neo4j update password
+- view / change relay nsec 
+- data navigation pages: table of all pubkeys, my followers, recommended follows, individual profile pages, etc
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
@@ -133,7 +141,19 @@ location /control/ {
 }
 ```
 
-This configuration ensures that requests to `/control/` are properly routed to the control panel, and that API requests to `/control/api/` work correctly.
+### URL Structure
+
+Hasenpfeffr uses the following URL structure:
+
+- **Main Landing Page**: `https://your-domain/control/index.html` - Provides links to all components and shows authentication status
+- **Control Panel**: `https://your-domain/control/control-panel.html` - Main control panel for managing Hasenpfeffr
+- **NIP-85 Control Panel**: `https://your-domain/control/nip85-control-panel.html` - Specialized control panel for NIP-85 settings
+- **Strfry Relay**: `https://your-domain` - The Strfry Nostr relay endpoint
+- **Sign-in Page**: `https://your-domain/control/sign-in.html` - Authentication page for administrative actions
+
+### Authentication
+
+Hasenpfeffr's control panel is designed to be accessible in read-only mode without requiring sign-in. Only administrative actions require authentication with the owner's Nostr key. The authentication system uses the `HASENPFEFFR_OWNER_PUBKEY` from the server configuration file to verify the user's identity.
 
 ### Strfry Nostr Relay
 

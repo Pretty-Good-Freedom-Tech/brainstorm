@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasenpfeffr</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info {
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .card h2 {
+            color: #3498db;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .link-card {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        .link-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .link-card h3 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .link-card p {
+            color: #666;
+        }
+        .link-card a {
+            display: inline-block;
+            margin-top: 10px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .link-card a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>Hasenpfeffr</h1>
+            <div class="auth-status">
+                <div id="userInfo" class="user-info">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <span id="userName">Authenticated</span>
+                    <a href="/control/sign-in.html?logout=true" class="btn">Logout</a>
+                </div>
+                <a href="/control/sign-in.html" id="signInLink" class="btn">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Welcome to Hasenpfeffr</h2>
+            <p>Hasenpfeffr is a powerful Nostr relay management system that provides advanced control and monitoring capabilities for your Nostr infrastructure.</p>
+        </div>
+
+        <div class="links-grid">
+            <div class="link-card">
+                <h3>Control Panel</h3>
+                <p>Access the main control panel to manage your Hasenpfeffr installation, monitor relay status, and configure settings.</p>
+                <a href="/control/control-panel.html" class="btn">Go to Control Panel</a>
+            </div>
+
+            <div class="link-card">
+                <h3>NIP-85 Control Panel</h3>
+                <p>Manage NIP-85 specific functionality and settings for your relay.</p>
+                <a href="/control/nip85-control-panel.html" class="btn">Go to NIP-85 Panel</a>
+            </div>
+
+            <div class="link-card">
+                <h3>Strfry Relay</h3>
+                <p>Access your Nostr relay directly to interact with the Nostr network.</p>
+                <a href="/" id="relayLink" class="btn">Go to Relay</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userInfo = document.getElementById('userInfo');
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const signInLink = document.getElementById('signInLink');
+            const relayLink = document.getElementById('relayLink');
+
+            // Check authentication status
+            fetch('/control/api/auth/status')
+                .then(response => response.json())
+                .catch(() => fetch('/control/api/auth/status').then(response => response.json()))
+                .then(data => {
+                    if (data && data.authenticated) {
+                        // User is authenticated
+                        userInfo.style.display = 'flex';
+                        signInLink.style.display = 'none';
+                        
+                        // Set user avatar with first letter of pubkey
+                        if (data.pubkey) {
+                            userAvatar.textContent = data.pubkey.substring(0, 1).toUpperCase();
+                            userName.textContent = `${data.pubkey.substring(0, 8)}...`;
+                        }
+                    } else {
+                        // User is not authenticated
+                        userInfo.style.display = 'none';
+                        signInLink.style.display = 'inline-block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking authentication status:', error);
+                });
+
+            // Set up the relay link with the correct domain
+            if (relayLink) {
+                fetch('/control/api/status')
+                    .then(response => response.json())
+                    .catch(() => fetch('/control/api/status').then(response => response.json()))
+                    .then(data => {
+                        if (data && data.strfryDomain) {
+                            // Set the relay link to the /strfry/ path
+                            let domain = data.strfryDomain;
+                            if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
+                                domain = 'https://' + domain;
+                            }
+                            relayLink.href = `${domain}/strfry/`;
+                            console.log('Set relay link to:', `${domain}/strfry/`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching STRFRY_DOMAIN:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

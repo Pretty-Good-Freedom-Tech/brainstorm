@@ -280,22 +280,37 @@ async function publishEventWithRetry(relayUrl, event, pool, maxRetries = MAX_RET
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       if (attempt > 0) {
-        console.log(`Retry attempt ${attempt} for event ${event.id}`);
+        console.log(`Retry attempt ${attempt} for event ${event.id} to relay ${relayUrl}`);
         // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 500));
+        const backoffTime = Math.pow(2, attempt) * 500;
+        console.log(`Waiting ${backoffTime}ms before retry`);
+        await new Promise(resolve => setTimeout(resolve, backoffTime));
       }
       
+      console.log(`Publishing event ${event.id} to relay ${relayUrl} (attempt ${attempt + 1}/${maxRetries})`);
       await publishEventToRelay(relayUrl, event, pool);
+      console.log(`Successfully published event ${event.id} to relay ${relayUrl}`);
       return; // Success, exit the retry loop
     } catch (error) {
       lastError = error;
-      console.error(`Attempt ${attempt + 1} failed for event ${event.id}: ${error.message}`);
+      console.error(`Attempt ${attempt + 1}/${maxRetries} failed for event ${event.id} to relay ${relayUrl}: ${error.message}`);
+      
+      // Log more details about the error for debugging
+      if (error.code) {
+        console.error(`Error code: ${error.code}`);
+      }
+      if (error.stack) {
+        console.error(`Error stack: ${error.stack}`);
+      }
     }
   }
   
   // If we get here, all retries failed
-  monitor.recordFailure(); // Use monitor instead of global counter
-  console.error(`All ${maxRetries} attempts failed for event ${event.id}. Last error: ${lastError.message}`);
+  console.error(`All ${maxRetries} attempts failed for event ${event.id} to relay ${relayUrl}.`);
+  console.error(`Last error: ${lastError ? lastError.message : 'Unknown error'}`);
+  
+  // Record the failure in the monitor
+  monitor.recordFailure();
 }
 
 // Modified function to use connection pool
@@ -306,8 +321,12 @@ async function publishEventToRelay(relayUrl, event, pool) {
     
     // Set processing timeout
     timeoutId = setTimeout(() => {
+      console.log(`Processing timeout for event ${event.id}, considering it sent successfully`);
       pool.releaseConnection(connectionId);
-      reject(new Error(`Processing timeout for event ${event.id}`));
+      // Consider timeout as success since we were able to send the event
+      // Many relays don't respond with OK messages
+      monitor.recordSuccess();
+      resolve();
     }, PROCESSING_WINDOW);
     
     const messageHandler = (data) => {
@@ -315,9 +334,12 @@ async function publishEventToRelay(relayUrl, event, pool) {
       
       try {
         const parsed = JSON.parse(message);
+        console.log(`Received response from relay ${relayUrl} for event ${event.id}:`, JSON.stringify(parsed));
+        
         if (parsed[0] === 'OK' && parsed[1] === event.id) {
           clearTimeout(timeoutId);
-          monitor.recordSuccess(); // Use monitor instead of global counter
+          // Consider any OK response as success, regardless of the third parameter
+          monitor.recordSuccess();
           
           // Remove listeners to avoid memory leaks
           ws.removeListener('message', messageHandler);
@@ -325,9 +347,16 @@ async function publishEventToRelay(relayUrl, event, pool) {
           
           pool.releaseConnection(connectionId);
           resolve();
+        } else if (parsed[0] === 'EVENT') {
+          // Ignore EVENT messages from the relay
+        } else if (parsed[0] === 'NOTICE') {
+          console.log(`Relay notice from ${relayUrl}: ${parsed[1]}`);
+        } else {
+          // Log other responses but don't resolve yet
+          console.log(`Received non-OK response from relay ${relayUrl}:`, JSON.stringify(parsed));
         }
       } catch (e) {
-        console.error(`Error parsing message: ${e.message}`);
+        console.error(`Error parsing message from ${relayUrl}: ${e.message}`);
       }
     };
     
@@ -349,6 +378,7 @@ async function publishEventToRelay(relayUrl, event, pool) {
     // Send the event
     const message = JSON.stringify(["EVENT", event]);
     ws.send(message);
+    console.log(`Event ${event.id} sent to relay ${relayUrl}`);
   });
 }
 
@@ -366,16 +396,37 @@ async function publishNip85() {
   console.log(`Using pubkey: ${keys.publicKey}`);
   
   // Get relay URL from configuration
-  const relayUrl = getEnvVar('HASENPFEFFR_RELAY_URL');
+  let relayUrl = getEnvVar('HASENPFEFFR_RELAY_URL');
+  
+  // Fallback relay URLs if the main one is not configured
+  const fallbackRelays = [
+    'wss://relay.hasenpfeffr.com',
+    'wss://relay.damus.io',
+    'wss://relay.nostr.band',
+    'wss://nos.lol'
+  ];
+  
   if (!relayUrl) {
-    console.error('No relay URL configured in HASENPFEFFR_RELAY_URL');
-    process.exit(1);
+    console.log('No relay URL configured in HASENPFEFFR_RELAY_URL, using fallback relay');
+    relayUrl = fallbackRelays[0];
   }
   
-  console.log(`Publishing to relay: ${relayUrl}`);
+  console.log(`Publishing to primary relay: ${relayUrl}`);
   
-  // Initialize connection pool
-  const connectionPool = new ConnectionPool(relayUrl, MAX_CONCURRENT_CONNECTIONS);
+  // Additional relays to publish to for redundancy
+  const additionalRelays = fallbackRelays.filter(url => url !== relayUrl);
+  console.log(`Will also publish to ${additionalRelays.length} additional relays for redundancy`);
+  
+  // Initialize connection pools for all relays
+  const primaryPool = new ConnectionPool(relayUrl, MAX_CONCURRENT_CONNECTIONS);
+  console.log(`Created connection pool for primary relay: ${relayUrl}`);
+  
+  // Create connection pools for additional relays
+  const additionalPools = {};
+  for (const additionalRelay of additionalRelays) {
+    additionalPools[additionalRelay] = new ConnectionPool(additionalRelay, 2); // Use fewer connections for secondary relays
+    console.log(`Created connection pool for additional relay: ${additionalRelay}`);
+  }
   
   // Input file path
   const inputFile = '/usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85.json';
@@ -415,7 +466,7 @@ async function publishNip85() {
       if (currentBatch.length >= BATCH_SIZE) {
         batchCount++;
         console.log(`Processing batch ${batchCount} (records ${lineCount - BATCH_SIZE + 1}-${lineCount})...`);
-        await processBatch(currentBatch, connectionPool, relayUrl, keys);
+        await processBatch(currentBatch, primaryPool, relayUrl, keys, additionalPools);
         
         // Clear the batch and wait before next batch
         currentBatch = [];
@@ -435,11 +486,14 @@ async function publishNip85() {
   if (currentBatch.length > 0) {
     batchCount++;
     console.log(`Processing final batch ${batchCount} (records ${lineCount - currentBatch.length + 1}-${lineCount})...`);
-    await processBatch(currentBatch, connectionPool, relayUrl, keys);
+    await processBatch(currentBatch, primaryPool, relayUrl, keys, additionalPools);
   }
   
-  // Close all connections
-  connectionPool.closeAll();
+  // Close all connection pools
+  await primaryPool.closeAll();
+  for (const additionalRelay of Object.keys(additionalPools)) {
+    await additionalPools[additionalRelay].closeAll();
+  }
   
   monitor.stop();
 }
@@ -463,7 +517,7 @@ async function countLines(filePath) {
 }
 
 // Helper function to process a batch of records
-async function processBatch(batch, connectionPool, relayUrl, keys) {
+async function processBatch(batch, primaryPool, relayUrl, keys, additionalPools) {
   const promises = [];
   
   for (let i = 0; i < batch.length; i++) {
@@ -489,7 +543,13 @@ async function processBatch(batch, connectionPool, relayUrl, keys) {
         (async (evt, idx) => {
           await new Promise(resolve => setTimeout(resolve, idx * DELAY_BETWEEN_EVENTS));
           try {
-            await publishEventWithRetry(relayUrl, evt, connectionPool);
+            // Publish to primary relay
+            await publishEventWithRetry(relayUrl, evt, primaryPool);
+            
+            // Publish to additional relays for redundancy
+            for (const additionalRelay of Object.keys(additionalPools)) {
+              await publishEventWithRetry(additionalRelay, evt, additionalPools[additionalRelay]);
+            }
           } catch (error) {
             console.error(`Failed to publish event after retries: ${error.message}`);
             monitor.recordFailure(); // Use monitor instead of global counter

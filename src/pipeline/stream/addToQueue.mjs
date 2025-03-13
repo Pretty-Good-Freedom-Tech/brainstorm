@@ -54,15 +54,17 @@ function getConfigValue(varName, defaultValue = null) {
 // Get relay URL from config with development fallback
 const myRelay = getConfigValue('HASENPFEFFR_RELAY_URL', 'wss://relay.damus.io');
 
+const myRelay_slashStrfry = myRelay + '/strfry'
+
 // Log warning if using default relay
 if (myRelay === 'wss://relay.damus.io') {
   console.warn('WARNING: Using default relay (wss://relay.damus.io) because HASENPFEFFR_RELAY_URL is not set');
   console.warn('This is fine for development but should be configured in production');
 }
 
-console.log(`Using relay: ${myRelay}`);
+console.log(`Using relay: ${myRelay_slashStrfry}`);
 
-const explicitRelayUrls = [ myRelay ]
+const explicitRelayUrls = [ myRelay_slashStrfry ]
 
 const pathToQueue = '/var/lib/hasenpfeffr/pipeline/stream/queue/'
 

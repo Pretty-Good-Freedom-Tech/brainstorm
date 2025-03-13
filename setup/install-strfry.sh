@@ -196,21 +196,22 @@ cat > "$NGINX_CONF" << EOF
 server {
     server_name $DOMAIN_NAME;
     
-    location / {
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header Host \$host;
-        proxy_pass http://127.0.0.1:7777;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-    
-    # Hasenpfeffr Control Panel
+    # Hasenpfeffr Control Panel as main application
     location /control/ {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$host;
         proxy_pass http://127.0.0.1:7778/;
         proxy_http_version 1.1;
+    }
+    
+    # Strfry relay at /strfry path
+    location / {
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header Host \$host;
+        proxy_pass http://127.0.0.1:7777/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 EOF
@@ -263,8 +264,8 @@ certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos --email "$SSL_EM
 echo ""
 echo "=== Strfry Installation Complete ==="
 echo "Strfry is now installed and configured for Hasenpfeffr"
-echo "You can access your relay at: https://$DOMAIN_NAME"
-echo "You can access the control panel at: https://$DOMAIN_NAME/control/"
+echo "You can access your relay at: https://$DOMAIN_NAME/strfry"
+echo "You can access hasenpfeffr at: https://$DOMAIN_NAME/index.html"
 echo ""
 echo "To check the status of the strfry service, run:"
 echo "sudo systemctl is-active strfry"
