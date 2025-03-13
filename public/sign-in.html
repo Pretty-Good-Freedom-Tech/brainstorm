@@ -215,7 +215,7 @@
                     const nsec = nsecInput ? nsecInput.value.trim() : '';
                     
                     // Verify with server
-                    const response = await fetch('/api/auth/verify', {
+                    const response = await fetch('/control/api/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -242,7 +242,7 @@
                         const signedEvent = await window.nostr.signEvent(event);
                         
                         // Send the signed event and nsec to the server
-                        const authResponse = await fetch('/api/auth/login', {
+                        const authResponse = await fetch('/control/api/auth/login', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
