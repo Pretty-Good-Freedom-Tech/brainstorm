@@ -342,7 +342,7 @@
             // Set up the relay link with the correct domain from the server
             const relayLink = document.getElementById('relayLink');
             if (relayLink) {
-                fetch('/api/status')
+                fetch('/control/api/status')
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.strfryDomain) {
@@ -367,7 +367,7 @@
             // Check authentication status and update UI
             const authStatus = document.getElementById('authStatus');
             if (authStatus) {
-                fetch('/api/auth/status')
+                fetch('/control/api/auth/status')
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.authenticated) {
@@ -391,7 +391,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                window.location.href = '/sign-in.html';
+                                window.location.href = '/control/sign-in.html';
                             } else {
                                 console.error('Logout failed:', data.message);
                                 alert('Logout failed: ' + data.message);
@@ -720,7 +720,7 @@
                 statusOutput.style.display = 'block';
                 statusOutput.textContent = 'Checking status...';
                 
-                fetch('/api/status')
+                fetch('/control/api/status')
                 .then(response => response.json())
                 .then(data => {
                     statusOutput.textContent = data.output;
@@ -748,7 +748,7 @@
                 statsStatus.textContent = 'Fetching event statistics...';
                 statsContainer.style.display = 'none';
                 
-                fetch('/api/strfry-stats')
+                fetch('/control/api/strfry-stats')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -793,7 +793,7 @@
                 neo4jStatus.textContent = 'Checking Neo4j status...';
                 neo4jContainer.style.display = 'none';
                 
-                fetch('/api/neo4j-status')
+                fetch('/control/api/neo4j-status')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -981,7 +981,7 @@
                 }, 1000);
                 
                 // Make AJAX request to the server
-                fetch('/api/negentropy-sync', {
+                fetch('/control/api/negentropy-sync', {
                     method: 'POST'
                 })
                 .then(response => {
