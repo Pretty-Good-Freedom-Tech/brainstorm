@@ -16,15 +16,16 @@ WORK IN PROGRESS: currently refactoring [manual installation repo](https://githu
 
 ## TODO (ASAP) (last updated 11 Mar 2025)
 
+- add mutes and reports; add timestamp to edges
 - fix relay endpoint
 - make sure 30382 is published to local relay
 - make sure 10040 is published to multiple relays
 - add personalized GrapeRank
-- view / change relay nsec 
 - update plugin whitelist
 - add verified followers score
 - make scores accessible through API (WoT DVM)
 - neo4j update password
+- view / change relay nsec 
 - data navigation pages: table of all pubkeys, my followers, recommended follows, individual profile pages, etc
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).

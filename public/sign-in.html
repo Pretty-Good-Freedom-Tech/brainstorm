@@ -184,7 +184,7 @@
             
             // Update control panel link
             if (controlPanelLink) {
-                controlPanelLink.href = '/control-panel.html';
+                controlPanelLink.href = '/control/control-panel.html';
             }
             
             // Check if NIP-07 extension is available
@@ -261,7 +261,7 @@
                             
                             // Redirect to control panel
                             setTimeout(() => {
-                                window.location.href = '/control-panel.html';
+                                window.location.href = '/control/control-panel.html';
                             }, 1500);
                         } else {
                             signInStatus.textContent = 'Authentication failed: ' + authData.message;
