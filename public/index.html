@@ -165,7 +165,7 @@
             const relayLink = document.getElementById('relayLink');
 
             // Check authentication status
-            fetch('/api/auth/status')
+            fetch('/control/api/auth/status')
                 .then(response => response.json())
                 .catch(() => fetch('/control/api/auth/status').then(response => response.json()))
                 .then(data => {
@@ -191,7 +191,7 @@
 
             // Set up the relay link with the correct domain
             if (relayLink) {
-                fetch('/api/status')
+                fetch('/control/api/status')
                     .then(response => response.json())
                     .catch(() => fetch('/control/api/status').then(response => response.json()))
                     .then(data => {

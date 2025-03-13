@@ -218,7 +218,7 @@
             // Set up the relay link with the correct domain from the server
             const relayLink = document.getElementById('relayLink');
             if (relayLink) {
-                fetch('/api/status')
+                fetch('/control/api/status')
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.strfryDomain) {
@@ -243,7 +243,7 @@
             // Check authentication status and update UI
             const authStatus = document.getElementById('authStatus');
             if (authStatus) {
-                fetch('/api/auth/status')
+                fetch('/control/api/auth/status')
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.authenticated) {
@@ -279,7 +279,7 @@
                     kind10040Status.className = 'status-message status-info';
                     
                     // Make API request to create the event
-                    fetch('/api/create-kind10040', {
+                    fetch('/control/api/create-kind10040', {
                         method: 'POST'
                     })
                     .then(response => response.json())
@@ -317,7 +317,7 @@
             if (publishKind30382Btn) {
                 publishKind30382Btn.addEventListener('click', function() {
                     // Check authentication status first
-                    fetch('/api/auth/status')
+                    fetch('/control/api/auth/status')
                         .then(response => response.json())
                         .then(data => {
                             if (data && data.authenticated) {
@@ -341,7 +341,7 @@
             if (publishKind10040Btn) {
                 publishKind10040Btn.addEventListener('click', function() {
                     // Check authentication status first
-                    fetch('/api/auth/status')
+                    fetch('/control/api/auth/status')
                         .then(response => response.json())
                         .then(data => {
                             if (data && data.authenticated) {
@@ -365,7 +365,7 @@
             if (publishKind30382Btn) {
                 publishKind30382Btn.addEventListener('click', function() {
                     // Check authentication status first
-                    fetch('/api/auth/status')
+                    fetch('/control/api/auth/status')
                         .then(response => response.json())
                         .then(data => {
                             if (data && data.authenticated) {
@@ -395,7 +395,7 @@
                 kind30382Status.className = 'status-message status-info';
                 
                 // Make API request to publish the events
-                fetch('/api/publish-kind30382', {
+                fetch('/control/api/publish-kind30382', {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -454,7 +454,7 @@
                 kind10040Status.className = 'status-message status-info';
                 
                 // First, get the unsigned event
-                fetch('/api/get-kind10040-event', {
+                fetch('/control/api/get-kind10040-event', {
                     method: 'GET'
                 })
                 .then(response => response.json())
@@ -492,7 +492,7 @@
                             kind10040Status.textContent = 'Event signed successfully. Publishing...';
                             
                             // Now publish the signed event
-                            return fetch('/api/publish-kind10040', {
+                            return fetch('/control/api/publish-kind10040', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
