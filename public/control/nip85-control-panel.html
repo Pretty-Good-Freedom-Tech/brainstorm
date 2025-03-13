@@ -156,7 +156,7 @@
                 <a href="/" class="button home-btn">Home</a>
                 <a href="/control/control-panel.html" class="button">Control Panel</a>
                 <a href="/control/nip85-control-panel.html" class="button active">NIP-85 Panel</a>
-                <a href="/strfry/" class="button relay-btn" target="_blank">Relay</a>
+                <a href="/" class="button relay-btn" target="_blank">Relay</a>
                 <div id="authStatus" class="auth-status">
                     <span id="authStatusText">Not signed in</span>
                     <button id="signInBtn" class="button sign-in-btn">Sign In</button>
@@ -232,8 +232,8 @@
                             if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
                                 domain = 'https://' + domain;
                             }
-                            relayLink.href = `${domain}/strfry/`;
-                            console.log('Set relay link to:', `${domain}/strfry/`);
+                            relayLink.href = `${domain}`;
+                            console.log('Set relay link to:', `${domain}`);
                         } else {
                             relayLink.href = '#';
                             console.error('STRFRY_DOMAIN not found in server response');

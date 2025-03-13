@@ -197,7 +197,7 @@ server {
     server_name $DOMAIN_NAME;
     
     # Hasenpfeffr Control Panel as main application
-    location / {
+    location /control/ {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$host;
         proxy_pass http://127.0.0.1:7778/;
@@ -205,7 +205,7 @@ server {
     }
     
     # Strfry relay at /strfry path
-    location /strfry/ {
+    location / {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$host;
         proxy_pass http://127.0.0.1:7777/;

@@ -227,8 +227,8 @@
                             if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
                                 domain = 'https://' + domain;
                             }
-                            relayLink.href = `${domain}/strfry/`;
-                            console.log('Set relay link to:', `${domain}/strfry/`);
+                            relayLink.href = `${domain}`;
+                            console.log('Set relay link to:', `${domain}`);
                         } else {
                             relayLink.href = '#';
                             console.error('STRFRY_DOMAIN not found in server response');

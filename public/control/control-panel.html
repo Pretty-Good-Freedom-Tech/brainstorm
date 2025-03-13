@@ -127,7 +127,7 @@
                 <a href="/control/control-panel.html" class="button home-btn">Home</a>
                 <a href="/control/control-panel.html" class="button active">Control Panel</a>
                 <a href="/control/nip85-control-panel.html" class="button">NIP-85 Panel</a>
-                <a href="/strfry/" class="button relay-btn" target="_blank">Relay</a>
+                <a href="/" class="button relay-btn" target="_blank">Relay</a>
                 <div id="authStatus" class="auth-status">
                     <span id="authStatusText">Not signed in</span>
                     <button id="signInBtn" class="button sign-in-btn">Sign In</button>
@@ -305,7 +305,7 @@
                     if (data.success && data.domain) {
                         const relayBtn = document.querySelector('.relay-btn');
                         if (relayBtn) {
-                            relayBtn.href = `/strfry/`;
+                            relayBtn.href = `/`;
                         }
                     }
                 })
