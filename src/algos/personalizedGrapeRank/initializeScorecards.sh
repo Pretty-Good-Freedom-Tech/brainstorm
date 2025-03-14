@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # initializeScorecards.sh
-# This script creates a scorecards.json file in the temporary directory
+# This script creates a scorecards_init.json file in the temporary directory
 
 # Source configuration
 source /etc/hasenpfeffr.conf # HASENPFEFFR_OWNER_PUBKEY

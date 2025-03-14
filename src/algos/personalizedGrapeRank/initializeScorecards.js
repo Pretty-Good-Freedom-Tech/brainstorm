@@ -3,7 +3,7 @@
 /**
  * initializeScorecards.js
  * 
- * This script creates a scorecards.json file in the temporary directory by:
+ * This script creates a scorecards_init.json file in the temporary directory by:
  * 1. Reading ratees.csv from the temporary directory
  * 2. For each ratee_pubkey, adding a property with key equal to the ratee_pubkey and value [0,0,0,0]
  * 3. Setting the value for HASENPFEFFR_OWNER_PUBKEY to [1,1,1,9999]
@@ -48,7 +48,7 @@ async function main() {
     // Define paths
     const tempDir = '/var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp';
     const rateesFile = path.join(tempDir, 'ratees.csv');
-    const scorecardsFile = path.join(tempDir, 'scorecards.json');
+    const scorecardsFile = path.join(tempDir, 'scorecards_init.json');
     
     // Get owner pubkey
     const ownerPubkey = getOwnerPubkey();
@@ -100,7 +100,7 @@ async function main() {
     // Write scorecards to file
     fs.writeFileSync(scorecardsFile, JSON.stringify(scorecards, null, 2));
     
-    console.log(`Successfully created scorecards.json with ${Object.keys(scorecards).length} entries`);
+    console.log(`Successfully created scorecards_init.json with ${Object.keys(scorecards).length} entries`);
   } catch (error) {
     console.error(`Error initializing scorecards: ${error.message}`);
     process.exit(1);
