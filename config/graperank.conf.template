@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# GrapeRank Configuration File
+# This file should be installed at /etc/graperank.conf
+# with proper permissions: chmod 640 /etc/graperank.conf
+# and ownership: chown root:hasenpfeffr /etc/graperank.conf
+
+# ==========================================
+# DEFAULT VALUES:
+# const attenuationFactor_default = 0.85
+# const rigor_default = 0.5
+# const followRating_default = 1
+# const followConfidence_default = 0.03
+# const muteRating_default = -0.1
+# const muteConfidence_default = 0.5
+# const reportRating_default = -0.1
+# const reportConfidence_default = 0.5
+# const followConfidenceOfObserver_default = 0.5
+# ==========================================
+
+export ATTENUATION_FACTOR="0.85"
+export RIGOR="0.5"
+export FOLLOW_RATING="1"
+export FOLLOW_CONFIDENCE="0.03"
+export MUTE_RATING="-0.1"
+export MUTE_CONFIDENCE="0.5"
+export REPORT_RATING="-0.1"
+export REPORT_CONFIDENCE="0.5"
+export FOLLOW_CONFIDENCE_OF_OBSERVER="0.5"

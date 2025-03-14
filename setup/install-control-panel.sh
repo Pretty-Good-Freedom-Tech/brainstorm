@@ -146,6 +146,20 @@ else
     echo "Configuration file already exists at /etc/hasenpfeffr.conf"
 fi
 
+# Install graperank configuration file if it doesn't exist
+if [ ! -f /etc/graperank.conf ]; then
+    echo "Installing graperank configuration file..."
+    cp $SCRIPT_DIR/../config/graperank.conf.template /etc/graperank.conf
+    
+    # Set secure permissions
+    chown root:$HASENPFEFFR_GROUP /etc/graperank.conf
+    chmod 640 /etc/graperank.conf
+    
+    echo "GrapeRank configuration file installed at /etc/graperank.conf"
+else
+    echo "GrapeRank configuration file already exists at /etc/graperank.conf"
+fi
+
 # Install configuration update script
 echo "Installing configuration update script..."
 cp $SCRIPT_DIR/../bin/update-config.sh /usr/local/bin/hasenpfeffr-update-config
