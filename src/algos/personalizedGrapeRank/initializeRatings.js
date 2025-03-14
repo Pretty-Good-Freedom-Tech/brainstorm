@@ -143,6 +143,98 @@ async function processCSVFile(filePath, ratings, config, ratingType) {
   });
 }
 
+// Write ratings to file using a streaming approach
+async function writeRatingsToFile(ratingsFile, ratings) {
+  return new Promise((resolve, reject) => {
+    try {
+      // Create a writable stream
+      const stream = fs.createWriteStream(ratingsFile);
+      
+      // Write the opening brace
+      stream.write('{\n');
+      
+      // Get all contexts (should only be 'verifiedUsers' in this case)
+      const contexts = Object.keys(ratings);
+      
+      // Process each context
+      contexts.forEach((context, contextIndex) => {
+        // Write context key
+        stream.write(`  "${context}": {\n`);
+        
+        // Get all ratees for this context
+        const ratees = Object.keys(ratings[context]);
+        
+        // Process each ratee
+        ratees.forEach((ratee, rateeIndex) => {
+          // Write ratee key
+          stream.write(`    "${ratee}": {\n`);
+          
+          // Get all raters for this ratee
+          const raters = Object.keys(ratings[context][ratee]);
+          
+          // Process each rater
+          raters.forEach((rater, raterIndex) => {
+            // Get rating and confidence
+            const [rating, confidence] = ratings[context][ratee][rater];
+            
+            // Write rater key and value
+            stream.write(`      "${rater}": [${rating}, ${confidence}]`);
+            
+            // Add comma if not the last rater
+            if (raterIndex < raters.length - 1) {
+              stream.write(',\n');
+            } else {
+              stream.write('\n');
+            }
+          });
+          
+          // Close ratee object
+          if (rateeIndex < ratees.length - 1) {
+            stream.write('    },\n');
+          } else {
+            stream.write('    }\n');
+          }
+        });
+        
+        // Close context object
+        if (contextIndex < contexts.length - 1) {
+          stream.write('  },\n');
+        } else {
+          stream.write('  }\n');
+        }
+      });
+      
+      // Write the closing brace
+      stream.write('}\n');
+      
+      // End the stream
+      stream.end();
+      
+      // Handle stream events
+      stream.on('finish', () => {
+        resolve();
+      });
+      
+      stream.on('error', (err) => {
+        reject(err);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// Count entries in the ratings object
+function countEntries(ratings) {
+  let entryCount = 0;
+  for (const context in ratings) {
+    for (const ratee in ratings[context]) {
+      entryCount += Object.keys(ratings[context][ratee]).length;
+    }
+  }
+  return entryCount;
+}
+
 // Main function
 async function main() {
   try {
@@ -171,16 +263,12 @@ async function main() {
     console.log('Processing reports.csv...');
     ratings = await processCSVFile(reportsFile, ratings, config, 'report');
     
-    // Write ratings to file
-    fs.writeFileSync(ratingsFile, JSON.stringify(ratings, null, 2));
+    // Count entries before writing
+    const entryCount = countEntries(ratings);
+    console.log(`Writing ratings.json with ${entryCount} ratings...`);
     
-    // Count entries
-    let entryCount = 0;
-    for (const context in ratings) {
-      for (const ratee in ratings[context]) {
-        entryCount += Object.keys(ratings[context][ratee]).length;
-      }
-    }
+    // Write ratings to file using streaming approach
+    await writeRatingsToFile(ratingsFile, ratings);
     
     console.log(`Successfully created ratings.json with ${entryCount} ratings`);
   } catch (error) {
