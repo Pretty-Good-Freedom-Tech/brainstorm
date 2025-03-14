@@ -60,17 +60,17 @@ const event = {
       relayUrl
     ],
     [
-      "30382:personalized_grapeRank",
+      "30382:personalizedGrapeRank",
       relayPubkey,
       relayUrl
     ],
     [
-      "30382:personalized_pageRank",
+      "30382:personalizedPageRank",
       relayPubkey,
       relayUrl
     ],
     [
-      "30382:dos",
+      "30382:hops",
       relayPubkey,
       relayUrl
     ]

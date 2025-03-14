@@ -16,7 +16,6 @@ WORK IN PROGRESS: currently refactoring [manual installation repo](https://githu
 
 ## TODO (ASAP) (last updated 11 Mar 2025)
 
-- add mutes and reports; add timestamp to edges
 - fix relay endpoint
 - make sure 30382 is published to local relay
 - make sure 10040 is published to multiple relays
