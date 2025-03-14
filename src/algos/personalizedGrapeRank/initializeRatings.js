@@ -9,6 +9,7 @@
  * 3. Using constants from /etc/graperank.conf for ratings and confidence values
  * 4. Handling precedence: reports > mutes > follows
  * 5. Special handling for HASENPFEFFR_OWNER_PUBKEY ratings
+ * 6. Excluding self-ratings (where pk_ratee equals pk_rater)
  */
 
 const fs = require('fs');
@@ -93,6 +94,11 @@ async function processCSVFile(filePath, ratings, config, ratingType) {
         
         // Skip if either pubkey is empty
         if (!pk_rater || !pk_ratee) return;
+        
+        // Skip self-ratings (where pk_ratee equals pk_rater)
+        if (pk_ratee === pk_rater) {
+          return;
+        }
         
         // Initialize nested objects if they don't exist
         if (!ratings[CONTEXT]) {
