@@ -159,14 +159,14 @@ if [ "$add_count" -gt 0 ]; then
     "
     sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_CREATE_NODES"
     
-    # Create new follows
+    # Create new follows with timestamp property
     CYPHER_ADD="
     CALL apoc.periodic.iterate(
         \"CALL apoc.load.json('file:///follows_to_add.json') YIELD value AS line\",
         \"
         MATCH (u1:NostrUser {pubkey:line.pk_follower})
         MATCH (u2:NostrUser {pubkey:line.pk_followee})
-        MERGE (u1)-[:FOLLOWS]->(u2)
+        MERGE (u1)-[r:FOLLOWS {timestamp: $CREATED_AT}]->(u2)
         \",
         {batchSize:100, parallel:false, retries:2}
     )

@@ -16,19 +16,19 @@ fi
 
 # Main processing loop
 while true; do
-    # Count pubkeys in queue
-    NUM_PUBKEYS=$(ls -1 ${QUEUE_DIR} 2>/dev/null | wc -l)
+    # Count files in queue
+    NUM_FILES=$(ls -1 ${QUEUE_DIR} 2>/dev/null | wc -l)
 
-    if [[ "$NUM_PUBKEYS" -gt 0 ]]; then
-        echo "$(date): There are $NUM_PUBKEYS pubkeys in the queue waiting for their follows to be updated"
+    if [[ "$NUM_FILES" -gt 0 ]]; then
+        echo "$(date): There are $NUM_FILES events in the queue waiting to be processed"
 
-        # Process one pubkey
-        /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/updateSingleNostrUser.sh
+        # Process one event
+        /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/updateNostrRelationships.sh
 
         # Short pause between processing to avoid overloading the system
         # sleep 1
     else
-        echo "$(date): No pubkeys in queue; sleeping 60 seconds and checking again"
+        echo "$(date): No events in queue; sleeping 60 seconds and checking again"
         sleep 60
     fi
 done

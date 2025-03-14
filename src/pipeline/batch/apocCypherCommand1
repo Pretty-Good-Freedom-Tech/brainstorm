@@ -18,7 +18,7 @@ CALL apoc.periodic.iterate(
     "
     MATCH (u1:NostrUser {pubkey:line.pk_follower})
     MATCH (u2:NostrUser {pubkey:line.pk_followee})
-    MERGE (u1)-[:FOLLOWS]->(u2)
+    MERGE (u1)-[r:FOLLOWS {timestamp: line.timestamp}]->(u2)
     ",
     {batchSize:250, parallel:false, retries:5}
 );

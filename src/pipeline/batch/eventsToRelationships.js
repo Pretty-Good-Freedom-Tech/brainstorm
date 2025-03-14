@@ -1,12 +1,54 @@
 #!/usr/bin/env node
 
+/**
+ * eventsToRelationships.js
+ * 
+ * This script processes Nostr events and extracts relationships to be added to Neo4j.
+ * It handles multiple event kinds:
+ * - Kind 3: FOLLOWS relationships
+ * - Kind 10000: MUTES relationships
+ * - Kind 1984: REPORTS relationships
+ * 
+ * All relationships include a timestamp property equal to the created_at value from the event.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-// Path configuration
-const inputPath = path.join(__dirname, 'allKind3EventsStripped.json');
-const outputPath = path.join(__dirname, 'followsToAddToNeo4j.json');
+// Command line arguments
+const args = process.argv.slice(2);
+if (args.length < 3) {
+  console.error('Usage: node eventsToRelationships.js <eventKind> <inputFile> <outputFile>');
+  console.error('  eventKind: 3 (follows), 10000 (mutes), or 1984 (reports)');
+  console.error('  inputFile: Path to the input JSON file containing events');
+  console.error('  outputFile: Path to the output JSON file for relationships');
+  process.exit(1);
+}
+
+const eventKind = parseInt(args[0], 10);
+const inputPath = args[1];
+const outputPath = args[2];
+
+// Validate event kind
+if (![3, 10000, 1984].includes(eventKind)) {
+  console.error('Error: eventKind must be 3, 10000, or 1984');
+  process.exit(1);
+}
+
+// Determine relationship type based on event kind
+let relationshipType;
+switch (eventKind) {
+  case 3:
+    relationshipType = 'FOLLOWS';
+    break;
+  case 10000:
+    relationshipType = 'MUTES';
+    break;
+  case 1984:
+    relationshipType = 'REPORTS';
+    break;
+}
 
 // Clear the output file first
 fs.writeFileSync(outputPath, '');
@@ -54,18 +96,19 @@ async function processFile() {
     
     try {
       const oEvent = JSON.parse(line);
-      const pk_follower = oEvent.pubkey;
+      const pk_author = oEvent.pubkey;
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
       
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
         if (tag[0] === 'p') {
-          const pk_followee = tag[1];
+          const pk_target = tag[1];
           const nextLine = {
-            pk_follower,
-            pk_followee,
-            timestamp: created_at
+            pk_author,
+            pk_target,
+            timestamp: created_at,
+            relationship_type: relationshipType
           };
           // Append to the file synchronously to ensure it's written
           fs.appendFileSync(outputPath, JSON.stringify(nextLine) + '\n');
@@ -88,7 +131,7 @@ async function processFile() {
 // Run the process and handle any errors
 processFile()
   .then(() => {
-    console.log('Processing completed successfully');
+    console.log(`Processing completed successfully for ${relationshipType} relationships`);
   })
   .catch((error) => {
     console.error(`Error: ${error.message}`);
