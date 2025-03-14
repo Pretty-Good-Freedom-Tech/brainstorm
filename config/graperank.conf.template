@@ -18,12 +18,12 @@
 # const followConfidenceOfObserver_default = 0.5
 # ==========================================
 
-export ATTENUATION_FACTOR="0.85"
-export RIGOR="0.5"
-export FOLLOW_RATING="1"
-export FOLLOW_CONFIDENCE="0.03"
-export MUTE_RATING="-0.1"
-export MUTE_CONFIDENCE="0.5"
-export REPORT_RATING="-0.1"
-export REPORT_CONFIDENCE="0.5"
-export FOLLOW_CONFIDENCE_OF_OBSERVER="0.5"
+export ATTENUATION_FACTOR=0.85
+export RIGOR=0.5
+export FOLLOW_RATING=1
+export FOLLOW_CONFIDENCE=0.03
+export MUTE_RATING=-0.1
+export MUTE_CONFIDENCE=0.5
+export REPORT_RATING=-0.1
+export REPORT_CONFIDENCE=0.5
+export FOLLOW_CONFIDENCE_OF_OBSERVER=0.5
