@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, HASENPFEFFR_OWNER_PUBKEY
+source /etc/graperank.conf # GrapeRank configuration values
 
 echo "$(date): Starting calculatePersonalizedGrapeRank" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log
 
@@ -46,6 +47,7 @@ cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2" > 
 cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3" > $TEMP_DIR/reports.csv
 
 # create one large raw data object oRatingsReverse.json of format: [context][ratee][rater] = [score, confidence]
+sudo bash $THIS_DIR/initializeRatings.sh
 
 # intialize oScorecards: iterate through ratees.csv and create empty objects for each ratee
 sudo bash $THIS_DIR/initializeScorecards.sh
