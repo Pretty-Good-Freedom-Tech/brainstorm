@@ -21,6 +21,9 @@
  *    c. Calculate confidence from input using rigor (GRAPERANK_CONFIDENCE)
  *    d. Calculate influence as average * confidence (GRAPERANK_INFLUENCE)
  * 2. Iterate until convergence or max iterations
+ * 
+ * Special cases:
+ * - HASENPFEFFR_OWNER_PUBKEY scorecard is fixed at [1,1,1,9999] and never recalculated
  */
 
 const fs = require('fs');
@@ -260,6 +263,11 @@ async function writeScorecards(scorecardsFile, scorecards) {
 
 // Calculate GrapeRank parameters for a single ratee
 function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
+  // Special case: HASENPFEFFR_OWNER_PUBKEY always has fixed values
+  if (pk_ratee === config.HASENPFEFFR_OWNER_PUBKEY) {
+    return [1, 1, 1, 9999];
+  }
+  
   // Default values if no ratings exist
   let graperank_average = 0;
   let graperank_input = 0;
@@ -400,6 +408,10 @@ async function main() {
       process.exit(1);
     }
     
+    // Ensure HASENPFEFFR_OWNER_PUBKEY has fixed scorecard values
+    scorecards[config.HASENPFEFFR_OWNER_PUBKEY] = [1, 1, 1, 9999];
+    console.log(`Set fixed scorecard for HASENPFEFFR_OWNER_PUBKEY: [1, 1, 1, 9999]`);
+    
     // Iterate until convergence or max iterations
     let iterations = 0;
     let converged = false;
@@ -433,10 +445,18 @@ async function main() {
         console.log(`Processing chunk ${Math.floor(i/CHUNK_SIZE) + 1}/${Math.ceil(rateeArray.length/CHUNK_SIZE)} (${chunk.length} ratees)...`);
         
         for (const pk_ratee of chunk) {
+          // Skip recalculation for HASENPFEFFR_OWNER_PUBKEY as it has fixed values
+          if (pk_ratee === config.HASENPFEFFR_OWNER_PUBKEY) {
+            continue;
+          }
+          
           const graperank_params = calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config);
           scorecards[pk_ratee] = graperank_params;
         }
       }
+      
+      // Ensure HASENPFEFFR_OWNER_PUBKEY still has fixed scorecard values
+      scorecards[config.HASENPFEFFR_OWNER_PUBKEY] = [1, 1, 1, 9999];
       
       // Check for convergence
       max_diff = calculateMaxDifference(scorecards, previous_scorecards);
