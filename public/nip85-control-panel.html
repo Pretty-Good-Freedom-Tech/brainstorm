@@ -489,7 +489,53 @@
                             
                             // Display the events preview
                             kind30382Output.style.display = 'block';
-                            kind30382EventPreview.textContent = data.output || 'Events published successfully';
+                            
+                            // Create a more concise summary from the response data
+                            let summary = '';
+                            
+                            try {
+                                // Try to parse the output if it's JSON
+                                let parsedData = data;
+                                if (typeof data.output === 'string' && data.output.trim().startsWith('{')) {
+                                    parsedData = JSON.parse(data.output);
+                                }
+                                
+                                // Extract the summary information
+                                if (parsedData.publishResults && Array.isArray(parsedData.publishResults)) {
+                                    // Group results by relay and success status
+                                    const relayStats = {};
+                                    
+                                    parsedData.publishResults.forEach(result => {
+                                        const relayUrl = result.relayUrl || 'unknown';
+                                        if (!relayStats[relayUrl]) {
+                                            relayStats[relayUrl] = { success: 0, failed: 0 };
+                                        }
+                                        
+                                        if (result.success) {
+                                            relayStats[relayUrl].success++;
+                                        } else {
+                                            relayStats[relayUrl].failed++;
+                                        }
+                                    });
+                                    
+                                    // Create summary text
+                                    summary = `Publishing Summary:\n`;
+                                    summary += `Total Events: ${parsedData.publishResults.length}\n\n`;
+                                    summary += `Results by Relay:\n`;
+                                    
+                                    Object.keys(relayStats).forEach(relay => {
+                                        const stats = relayStats[relay];
+                                        summary += `- ${relay}: ${stats.success} successful, ${stats.failed} failed\n`;
+                                    });
+                                } else {
+                                    summary = data.output || 'Events published successfully. No detailed results available.';
+                                }
+                            } catch (e) {
+                                console.error('Error parsing publishing results:', e);
+                                summary = data.output || 'Events published successfully. No detailed results available.';
+                            }
+                            
+                            kind30382EventPreview.textContent = summary;
                             
                             // Refresh the event info after publishing
                             fetchKind30382Info();

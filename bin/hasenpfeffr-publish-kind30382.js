@@ -112,7 +112,6 @@ async function getTopUsers() {
              u.confidence AS confidence,
              u.input AS input
       ORDER BY u.personalizedPageRank DESC
-      LIMIT 5
     `);
     
     return result.records.map(record => ({
