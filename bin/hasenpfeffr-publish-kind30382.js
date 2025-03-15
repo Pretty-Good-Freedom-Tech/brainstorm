@@ -101,11 +101,17 @@ const driver = neo4j.driver(
 async function getTopUsers() {
   const session = driver.session();
   try {
-    // Query to get top 5 users by personalizedPageRank
+    // Query to get top 5 users by personalizedPageRank, including GrapeRank data
     const result = await session.run(`
       MATCH (u:NostrUser)
       WHERE u.personalizedPageRank IS NOT NULL
-      RETURN u.pubkey AS pubkey, u.personalizedPageRank AS personalizedPageRank, u.hops AS hops
+      RETURN u.pubkey AS pubkey, 
+             u.personalizedPageRank AS personalizedPageRank, 
+             u.hops AS hops,
+             u.influence AS influence,
+             u.average AS average,
+             u.confidence AS confidence,
+             u.input AS input
       ORDER BY u.personalizedPageRank DESC
       LIMIT 5
     `);
@@ -113,7 +119,11 @@ async function getTopUsers() {
     return result.records.map(record => ({
       pubkey: record.get('pubkey'),
       personalizedPageRank: record.get('personalizedPageRank').toString(),
-      hops: record.get('hops') ? record.get('hops').toString() : "1"
+      hops: record.get('hops') ? record.get('hops').toString() : "1",
+      influence: record.get('influence') ? record.get('influence').toString() : "0",
+      average: record.get('average') ? record.get('average').toString() : "0",
+      confidence: record.get('confidence') ? record.get('confidence').toString() : "0",
+      input: record.get('input') ? record.get('input').toString() : "0"
     }));
   } finally {
     await session.close();
@@ -121,7 +131,25 @@ async function getTopUsers() {
 }
 
 // Create and sign a kind 30382 event
-function createEvent(userPubkey, personalizedPageRank, hops) {
+function createEvent(userPubkey, personalizedPageRank, hops, influence, average, confidence, input) {
+  // Calculate the rank value (influence * 100, rounded to integer)
+  const rankValue = Math.round(parseFloat(influence) * 100).toString();
+  
+  // Round GrapeRank values to 4 significant digits
+  const roundToSigFigs = (num, sigFigs) => {
+    if (num === 0) return 0;
+    const parsedNum = parseFloat(num);
+    if (isNaN(parsedNum)) return "0";
+    const magnitude = Math.floor(Math.log10(Math.abs(parsedNum))) + 1;
+    const factor = Math.pow(10, sigFigs - magnitude);
+    return (Math.round(parsedNum * factor) / factor).toString();
+  };
+  
+  const influenceRounded = roundToSigFigs(influence, 4);
+  const averageRounded = roundToSigFigs(average, 4);
+  const confidenceRounded = roundToSigFigs(confidence, 4);
+  const inputRounded = roundToSigFigs(input, 4);
+  
   const event = {
     kind: 30382,
     created_at: Math.floor(Date.now() / 1000),
@@ -130,7 +158,12 @@ function createEvent(userPubkey, personalizedPageRank, hops) {
     tags: [
       ["d", userPubkey],
       ["personalizedPageRank", personalizedPageRank],
-      ["hops", hops]
+      ["hops", hops],
+      ["rank", rankValue],
+      ["personalizedGrapeRank_influence", influenceRounded],
+      ["personalizedGrapeRank_average", averageRounded],
+      ["personalizedGrapeRank_confidence", confidenceRounded],
+      ["personalizedGrapeRank_input", inputRounded]
     ]
   };
   
@@ -276,9 +309,13 @@ async function main() {
       console.log(`Creating event for user: ${user.pubkey}`);
       console.log(`  personalizedPageRank: ${user.personalizedPageRank}`);
       console.log(`  hops: ${user.hops}`);
+      console.log(`  influence: ${user.influence}`);
+      console.log(`  average: ${user.average}`);
+      console.log(`  confidence: ${user.confidence}`);
+      console.log(`  input: ${user.input}`);
       
       // Create and sign the event
-      const event = createEvent(user.pubkey, user.personalizedPageRank, user.hops);
+      const event = createEvent(user.pubkey, user.personalizedPageRank, user.hops, user.influence, user.average, user.confidence, user.input);
       events.push(event);
       
       // Save the event to a file
