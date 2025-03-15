@@ -534,7 +534,8 @@ function handleSystemdServices(req, res) {
     'processQueue',
     'reconcile.timer',
     'calculateHops.timer',
-    'calculatePersonalizedPageRank.timer'
+    'calculatePersonalizedPageRank.timer',
+    'calculatePersonalizedGrapeRank.timer'
   ];
   
   const action = req.query.action;
