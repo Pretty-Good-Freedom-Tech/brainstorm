@@ -244,6 +244,9 @@ app.post('/api/publish-kind30382', handlePublishKind30382);
 // API endpoint for getting relay configuration
 app.get('/api/relay-config', handleRelayConfig);
 
+// API endpoint for getting kind 30382 event information
+app.get('/api/kind30382-info', handleKind30382Info);
+
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
 app.post('/api/auth/login', handleAuthLogin);
@@ -1013,6 +1016,59 @@ function handlePublishKind30382(req, res) {
             error: error ? error.message : null
         });
     });
+}
+
+// Handler for getting kind 30382 event information
+function handleKind30382Info(req, res) {
+  try {
+    // Get relay pubkey from config
+    const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
+    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+    
+    if (!relayPubkey) {
+      return res.json({
+        success: false,
+        message: 'Relay pubkey not found in configuration'
+      });
+    }
+    
+    // Get count of kind 30382 events
+    const countCmd = `sudo strfry scan --count '{"kinds":[30382], "authors":["${relayPubkey}"]}'`;
+    let count = 0;
+    try {
+      count = parseInt(execSync(countCmd).toString().trim(), 10);
+    } catch (error) {
+      console.error('Error getting event count:', error);
+    }
+    
+    // Get most recent kind 30382 event
+    const latestCmd = `sudo strfry scan '{"kinds":[30382], "authors":["${relayPubkey}"], "limit": 1}'`;
+    let latestEvent = null;
+    let timestamp = null;
+    
+    try {
+      const output = execSync(latestCmd).toString().trim();
+      if (output) {
+        latestEvent = JSON.parse(output);
+        timestamp = latestEvent.created_at;
+      }
+    } catch (error) {
+      console.error('Error getting latest event:', error);
+    }
+    
+    return res.json({
+      success: true,
+      count: count,
+      timestamp: timestamp,
+      latestEvent: latestEvent,
+      relayUrl: relayUrl
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: `Error getting kind 30382 info: ${error.message}`
+    });
+  }
 }
 
 // Authentication handlers

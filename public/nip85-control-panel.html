@@ -146,6 +146,17 @@
             font-weight: bold;
             text-decoration: underline;
         }
+        .info-container {
+            margin-top: 15px;
+        }
+        .info-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -205,6 +216,33 @@
                 
                 <div id="kind30382Status" class="status-message"></div>
             </div>
+            
+            <div class="card">
+                <h3>Kind 30382 Event Status</h3>
+                <p>View information about existing Kind 30382 events in the local strfry relay.</p>
+                
+                <div class="button-group">
+                    <button id="refreshKind30382InfoBtn" class="button">Refresh Event Info</button>
+                </div>
+                
+                <div id="kind30382InfoContainer" class="info-container">
+                    <div class="info-row">
+                        <span class="info-label">Total Events:</span>
+                        <span id="kind30382Count" class="info-value">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Published:</span>
+                        <span id="kind30382Timestamp" class="info-value">Loading...</span>
+                    </div>
+                </div>
+                
+                <div id="kind30382EventContainer" style="display: none;">
+                    <h4>Latest Event:</h4>
+                    <pre id="kind30382LatestEvent" class="code-preview"></pre>
+                </div>
+                
+                <div id="kind30382InfoStatus" class="status-message"></div>
+            </div>
         </div>
     </div>
 
@@ -215,6 +253,15 @@
             const kind30382Output = document.getElementById('kind30382Output');
             const kind30382EventPreview = document.getElementById('kind30382EventPreview');
             const kind30382Status = document.getElementById('kind30382Status');
+            
+            // Kind 30382 Event Status
+            const refreshKind30382InfoBtn = document.getElementById('refreshKind30382InfoBtn');
+            const kind30382Count = document.getElementById('kind30382Count');
+            const kind30382Timestamp = document.getElementById('kind30382Timestamp');
+            const kind30382EventContainer = document.getElementById('kind30382EventContainer');
+            const kind30382LatestEvent = document.getElementById('kind30382LatestEvent');
+            const kind30382InfoStatus = document.getElementById('kind30382InfoStatus');
+            
             // Set up the relay link with the correct domain from the server
             const relayLink = document.getElementById('relayLink');
             if (relayLink) {
@@ -389,52 +436,92 @@
             function publishKind30382Events() {
                 // Disable button during processing
                 publishKind30382Btn.disabled = true;
+                kind30382Status.className = 'status-message info';
+                kind30382Status.textContent = 'Publishing Kind 30382 events...';
                 
-                // Update status
-                kind30382Status.textContent = 'Publishing Kind 30382 events for top 5 users...';
-                kind30382Status.className = 'status-message status-info';
-                
-                // Make API request to publish the events
-                fetch('/control/api/publish-kind30382', {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Re-enable button
-                    publishKind30382Btn.disabled = false;
-                    
-                    if (data.success) {
-                        // Update status
-                        kind30382Status.textContent = 'Kind 30382 events published successfully!';
-                        kind30382Status.className = 'status-message status-success';
-                        
-                        // Show the output container
-                        kind30382Output.style.display = 'block';
-                        
-                        // Update event preview with the published events
-                        kind30382EventPreview.textContent = data.output;
-                    } else {
-                        // Show error
-                        kind30382Status.textContent = 'Error publishing Kind 30382 events: ' + (data.error || 'Unknown error');
-                        kind30382Status.className = 'status-message status-error';
-                        
-                        // Hide the output container if there was an error
-                        kind30382Output.style.display = 'none';
-                    }
-                })
-                .catch(error => {
-                    // Re-enable button
-                    publishKind30382Btn.disabled = false;
-                    
-                    console.error('Error:', error);
-                    kind30382Status.textContent = 'Error publishing Kind 30382 events: ' + error.message;
-                    kind30382Status.className = 'status-message status-error';
-                    
-                    // Hide the output container if there was an error
-                    kind30382Output.style.display = 'none';
-                });
+                fetch('/control/api/publish-kind30382')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            kind30382Status.className = 'status-message success';
+                            kind30382Status.textContent = 'Kind 30382 events published successfully!';
+                            
+                            // Display the events preview
+                            kind30382Output.style.display = 'block';
+                            kind30382EventPreview.textContent = JSON.stringify(data.events, null, 2);
+                            
+                            // Refresh the event info after publishing
+                            fetchKind30382Info();
+                        } else {
+                            kind30382Status.className = 'status-message error';
+                            kind30382Status.textContent = `Error: ${data.message}`;
+                        }
+                    })
+                    .catch(error => {
+                        kind30382Status.className = 'status-message error';
+                        kind30382Status.textContent = `Error: ${error.message}`;
+                    })
+                    .finally(() => {
+                        publishKind30382Btn.disabled = false;
+                    });
             }
             
+            // Function to fetch kind 30382 event information
+            function fetchKind30382Info() {
+                kind30382Count.textContent = 'Loading...';
+                kind30382Timestamp.textContent = 'Loading...';
+                kind30382InfoStatus.className = 'status-message info';
+                kind30382InfoStatus.textContent = 'Fetching event information...';
+                
+                fetch('/control/api/kind30382-info')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update count
+                            kind30382Count.textContent = data.count || '0';
+                            
+                            // Update timestamp
+                            if (data.timestamp) {
+                                const date = new Date(data.timestamp * 1000);
+                                kind30382Timestamp.textContent = date.toLocaleString();
+                            } else {
+                                kind30382Timestamp.textContent = 'No events found';
+                            }
+                            
+                            // Update latest event
+                            if (data.latestEvent) {
+                                kind30382EventContainer.style.display = 'block';
+                                kind30382LatestEvent.textContent = JSON.stringify(data.latestEvent, null, 2);
+                            } else {
+                                kind30382EventContainer.style.display = 'none';
+                            }
+                            
+                            kind30382InfoStatus.className = 'status-message success';
+                            kind30382InfoStatus.textContent = 'Event information updated successfully!';
+                            
+                            // Clear status message after a delay
+                            setTimeout(() => {
+                                kind30382InfoStatus.textContent = '';
+                            }, 3000);
+                        } else {
+                            kind30382InfoStatus.className = 'status-message error';
+                            kind30382InfoStatus.textContent = `Error: ${data.message}`;
+                        }
+                    })
+                    .catch(error => {
+                        kind30382InfoStatus.className = 'status-message error';
+                        kind30382InfoStatus.textContent = `Error: ${error.message}`;
+                    });
+            }
+            
+            // Event listeners
+            refreshKind30382InfoBtn.addEventListener('click', fetchKind30382Info);
+            publishKind30382Btn.addEventListener('click', publishKind30382Events);
+            
+            // Fetch kind 30382 event information on page load
+            fetchKind30382Info();
+            
+            // Publish Event
             function publishEvent() {
                 // Disable buttons during processing
                 createKind10040Btn.disabled = true;
