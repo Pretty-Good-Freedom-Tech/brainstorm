@@ -815,10 +815,11 @@ function handleGetKind10040Event(req, res) {
         delete event.sig;
         delete event.id;
         
-        // Return the event data
+        // Return the event data along with the session challenge
         return res.json({ 
             success: true, 
-            event: event
+            event: event,
+            challenge: req.session.challenge
         });
     } catch (error) {
         console.error('Error getting kind 10040 event:', error);

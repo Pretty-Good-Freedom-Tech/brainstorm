@@ -599,6 +599,34 @@
                             const userPubkey = await window.nostr.getPublicKey();
                             event.pubkey = userPubkey;
                             
+                            // Add challenge tag if not already present
+                            // Get the challenge from the server response
+                            const challenge = data.challenge;
+                            
+                            // If we have a challenge, add it to the tags
+                            if (challenge) {
+                                if (!event.tags) {
+                                    event.tags = [];
+                                }
+                                
+                                // Check if challenge tag already exists
+                                let challengeTagExists = false;
+                                for (const tag of event.tags) {
+                                    if (tag[0] === 'challenge') {
+                                        tag[1] = challenge; // Update existing tag
+                                        challengeTagExists = true;
+                                        break;
+                                    }
+                                }
+                                
+                                // Add challenge tag if it doesn't exist
+                                if (!challengeTagExists) {
+                                    event.tags.push(['challenge', challenge]);
+                                }
+                            } else {
+                                console.warn('No challenge provided by the server. Authentication may fail.');
+                            }
+                            
                             // Make sure created_at is set
                             if (!event.created_at) {
                                 event.created_at = Math.floor(Date.now() / 1000);
