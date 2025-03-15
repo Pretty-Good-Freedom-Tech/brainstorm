@@ -113,11 +113,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/control', (req, res) => {
-    res.redirect('/control/control-panel.html');
+    res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
 });
 
-app.get('/control/control-panel.html', (req, res) => {
-    serveHtmlFile('control/control-panel.html', res);
+app.get('/control/profiles', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/profiles-control-panel.html'));
 });
 
 app.get('/control/nip85-control-panel.html', (req, res) => {
@@ -130,7 +130,7 @@ app.get('/control/sign-in.html', (req, res) => {
 
 // For backward compatibility, redirect old URLs to new ones
 app.get('/control-panel.html', (req, res) => {
-    res.redirect('/control/control-panel.html');
+    res.redirect('/control/nip85-control-panel.html');
 });
 
 app.get('/nip85-control-panel.html', (req, res) => {
@@ -249,6 +249,9 @@ app.get('/api/kind30382-info', handleKind30382Info);
 
 // API endpoint for getting kind 10040 event information
 app.get('/api/kind10040-info', handleKind10040Info);
+
+// API endpoint for getting NostrUser profiles data from Neo4j
+app.get('/api/get-profiles', handleGetProfiles);
 
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
@@ -930,13 +933,13 @@ function handlePublishKind10040(req, res) {
         
         child.stdout.on('data', (data) => {
             const dataStr = data.toString();
-            console.log('publish_nip85_10040.mjs stdout:', dataStr);
+            console.log(`publish_nip85_10040.mjs stdout: ${dataStr}`);
             output += dataStr;
         });
         
         child.stderr.on('data', (data) => {
             const dataStr = data.toString();
-            console.error('publish_nip85_10040.mjs stderr:', dataStr);
+            console.error(`publish_nip85_10040.mjs stderr: ${dataStr}`);
             errorOutput += dataStr;
         });
         
@@ -1173,6 +1176,120 @@ function handleKind10040Info(req, res) {
     return res.json({
       success: false,
       message: `Error getting kind 10040 info: ${error.message}`
+    });
+  }
+}
+
+// Handler for getting NostrUser profiles data from Neo4j
+function handleGetProfiles(req, res) {
+  try {
+    // Get query parameters for filtering and pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const sortBy = req.query.sortBy || 'personalizedPageRank';
+    const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
+    const filterHops = req.query.filterHops || '';
+    const filterRank = req.query.filterRank || '';
+    const filterPubkey = req.query.filterPubkey || '';
+    
+    // Create Neo4j driver
+    const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
+    const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
+    const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+    
+    const driver = neo4j.driver(
+      neo4jUri,
+      neo4j.auth.basic(neo4jUser, neo4jPassword)
+    );
+    
+    const session = driver.session();
+    
+    // Build the Cypher query with filters
+    let query = `
+      MATCH (u:NostrUser)
+      WHERE u.pubkey IS NOT NULL
+    `;
+    
+    // Add filters if provided
+    if (filterHops) {
+      query += ` AND u.hops <= ${parseInt(filterHops)}`;
+    }
+    
+    if (filterRank) {
+      query += ` AND u.personalizedPageRank >= ${parseFloat(filterRank)}`;
+    }
+    
+    if (filterPubkey) {
+      query += ` AND u.pubkey CONTAINS '${filterPubkey}'`;
+    }
+    
+    // Add count query for pagination
+    const countQuery = query + ` RETURN count(u) as total`;
+    
+    // Add sorting and pagination to the main query
+    query += `
+      RETURN u.pubkey as pubkey,
+             u.personalizedPageRank as personalizedPageRank,
+             u.hops as hops,
+             u.influence as influence,
+             u.average as average,
+             u.confidence as confidence,
+             u.input as input
+      ORDER BY u.${sortBy} ${sortOrder}
+      SKIP ${(page - 1) * limit}
+      LIMIT ${limit}
+    `;
+    
+    // Execute count query first
+    session.run(countQuery)
+      .then(countResult => {
+        const total = parseInt(countResult.records[0].get('total').toString());
+        
+        // Then execute the main query
+        return session.run(query)
+          .then(result => {
+            const users = result.records.map(record => {
+              return {
+                pubkey: record.get('pubkey'),
+                personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
+                hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
+                influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
+                average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
+                confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
+                input: record.get('input') ? parseFloat(record.get('input').toString()) : null
+              };
+            });
+            
+            res.json({
+              success: true,
+              data: {
+                users,
+                pagination: {
+                  total,
+                  page,
+                  limit,
+                  pages: Math.ceil(total / limit)
+                }
+              }
+            });
+          });
+      })
+      .catch(error => {
+        console.error('Error fetching profiles:', error);
+        res.status(500).json({
+          success: false,
+          message: `Error fetching profiles: ${error.message}`
+        });
+      })
+      .finally(() => {
+        session.close();
+        driver.close();
+      });
+  } catch (error) {
+    console.error('Error in handleGetProfiles:', error);
+    res.status(500).json({
+      success: false,
+      message: `Server error: ${error.message}`
     });
   }
 }
