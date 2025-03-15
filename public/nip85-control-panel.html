@@ -646,13 +646,13 @@
                         kind10040Output.style.display = 'block';
                         
                         // Update event preview with the published event
-                        kind10040EventPreview.textContent = JSON.stringify(data.event, null, 2);
+                        kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
                         
                         // Refresh the event info after publishing
                         fetchKind10040Info();
                     } else {
                         // Show error
-                        let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || 'Unknown error');
+                        let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
                         
                         // Add details if available
                         if (data.details) {
