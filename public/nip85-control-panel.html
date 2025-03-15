@@ -439,7 +439,9 @@
                 kind30382Status.className = 'status-message info';
                 kind30382Status.textContent = 'Publishing Kind 30382 events...';
                 
-                fetch('/control/api/publish-kind30382')
+                fetch('/control/api/publish-kind30382', {
+                    method: 'POST'
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
