@@ -1003,64 +1003,40 @@ function handlePublishKind30382(req, res) {
     const scriptPath = path.join(__dirname, 'hasenpfeffr-publish-kind30382.js');
     console.log('Using script path:', scriptPath);
     
-    // Set a timeout to ensure the response doesn't hang
-    const timeoutId = setTimeout(() => {
-        console.log('Kind 30382 publishing is taking longer than expected, sending initial response...');
-        res.json({
-            success: true,
-            output: 'Kind 30382 publishing started. This process will continue in the background.\n',
-            error: null
-        });
-    }, 30000); // 30 seconds timeout
-    
-    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
-        // Clear the timeout if the command completes before the timeout
-        clearTimeout(timeoutId);
-        
-        // Check if the response has already been sent
-        if (res.headersSent) {
-            console.log('Response already sent, kind 30382 publishing continuing in background');
-            return;
-        }
-        
-        // Parse the script output to determine success
-        let scriptResult = { success: false };
-        try {
-            // Try to parse the JSON output from the script
-            if (stdout) {
-                const parsedOutput = JSON.parse(stdout);
-                scriptResult = parsedOutput;
-            }
-        } catch (parseError) {
-            console.error('Error parsing script output:', parseError);
-            // If we can't parse the output, use the original error/stdout/stderr
-        }
-        
-        // Determine success based on the parsed result or fallback to error check
-        const isSuccess = scriptResult.success !== undefined 
-            ? scriptResult.success 
-            : !error;
-        
-        // Format the output message
-        let outputMessage = stdout || stderr || 'No output from script';
-        
-        // Check for the specific "Unexpected server response: 200" error and handle it
-        if (outputMessage.includes('Unexpected server response: 200')) {
-            console.log('Detected "Unexpected server response: 200" which is actually a success');
-            // This is actually a success case
-            return res.json({
-                success: true,
-                output: 'Kind 30382 events published successfully. The "Unexpected server response: 200" message indicates a successful HTTP response.',
-                error: null
-            });
-        }
-        
-        return res.json({
-            success: isSuccess,
-            output: outputMessage,
-            error: error ? error.message : null
-        });
+    // Send an initial response that the process has started
+    res.json({
+        success: true,
+        output: 'Kind 30382 publishing started. This process will continue in the background.\n',
+        error: null
     });
+    
+    // Execute the command with a much larger buffer size and in the background
+    // after the response has been sent
+    const childProcess = spawn('node', [scriptPath], {
+        maxBuffer: 1024 * 1024 * 100, // 100MB buffer
+        detached: true,
+        stdio: ['ignore', 'pipe', 'pipe']
+    });
+    
+    // Log start of background process
+    console.log(`Started background process for publishing kind 30382 events (PID: ${childProcess.pid})`);
+    
+    // Optional: Log output for debugging
+    childProcess.stdout.on('data', (data) => {
+        console.log(`Kind 30382 background process output: ${data}`);
+    });
+    
+    childProcess.stderr.on('data', (data) => {
+        console.error(`Kind 30382 background process error: ${data}`);
+    });
+    
+    // Handle process completion
+    childProcess.on('close', (code) => {
+        console.log(`Kind 30382 background process exited with code ${code}`);
+    });
+    
+    // Unref the child to allow the parent process to exit independently
+    childProcess.unref();
 }
 
 // Handler for getting kind 30382 event information

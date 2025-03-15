@@ -67,7 +67,7 @@ if (!primaryRelayUrl) {
 
 // Convert keys to the format needed by nostr-tools
 let relayPrivateKey = relayNsec;
-let relayPublicKey = '';
+let relayPubkey = '';
 
 try {
   if (relayPrivateKey) {
@@ -77,8 +77,8 @@ try {
     }
     
     // Derive the public key from the private key
-    relayPublicKey = nostrTools.getPublicKey(relayPrivateKey);
-    console.log(`Using relay pubkey: ${relayPublicKey.substring(0, 8)}...`);
+    relayPubkey = nostrTools.getPublicKey(relayPrivateKey);
+    console.log(`Using relay pubkey: ${relayPubkey.substring(0, 8)}...`);
   } else {
     console.warn('No relay private key found in configuration. Will attempt to continue but may fail.');
   }
@@ -86,7 +86,7 @@ try {
   console.error('Error processing relay keys:', error);
 }
 
-if (!relayPrivateKey || !relayPublicKey) {
+if (!relayPrivateKey || !relayPubkey) {
   console.error('Error: Relay private key not available');
   process.exit(1);
 }
@@ -103,7 +103,7 @@ async function getTopUsers() {
     // Query to get top 5 users by personalizedPageRank, including GrapeRank data
     const result = await session.run(`
       MATCH (u:NostrUser)
-      WHERE u.personalizedPageRank IS NOT NULL
+      WHERE u.hops IS NOT NULL AND u.hops < 20
       RETURN u.pubkey AS pubkey, 
              u.personalizedPageRank AS personalizedPageRank, 
              u.hops AS hops,
@@ -152,7 +152,7 @@ function createEvent(userPubkey, personalizedPageRank, hops, influence, average,
     kind: 30382,
     created_at: Math.floor(Date.now() / 1000),
     content: "",
-    pubkey: relayPublicKey,
+    pubkey: relayPubkey,
     tags: [
       ["d", userPubkey],
       ["personalizedPageRank", personalizedPageRank],
@@ -273,7 +273,8 @@ async function main() {
     // For kind 30382 events, we can use the relay's private key directly
     // No need for user authentication since these are relay-signed events
     
-    console.log('Fetching top 5 users by personalizedPageRank...');
+    console.log(`Using relay pubkey: ${relayPubkey.substring(0, 8)}...`);
+    console.log('Fetching users with personalizedPageRank...');
     const topUsers = await getTopUsers();
     
     if (topUsers.length === 0) {
@@ -299,180 +300,167 @@ async function main() {
       fs.mkdirSync(publishedDir, { recursive: true });
     }
     
-    // Create, sign, and publish events for each user
-    const events = [];
-    const publishResults = [];
+    // Process users in batches
+    const BATCH_SIZE = 100; // Process 100 users at a time
+    const totalUsers = topUsers.length;
+    const batches = Math.ceil(totalUsers / BATCH_SIZE);
     
-    for (const user of topUsers) {
-      console.log(`Creating event for user: ${user.pubkey}`);
-      console.log(`  personalizedPageRank: ${user.personalizedPageRank}`);
-      console.log(`  hops: ${user.hops}`);
-      console.log(`  influence: ${user.influence}`);
-      console.log(`  average: ${user.average}`);
-      console.log(`  confidence: ${user.confidence}`);
-      console.log(`  input: ${user.input}`);
+    console.log(`Processing ${totalUsers} users in ${batches} batches of ${BATCH_SIZE}`);
+    
+    // Initialize counters
+    let successCount = 0;
+    let failureCount = 0;
+    let publishResults = [];
+    
+    // Process each batch
+    for (let batchIndex = 0; batchIndex < batches; batchIndex++) {
+      const start = batchIndex * BATCH_SIZE;
+      const end = Math.min(start + BATCH_SIZE, totalUsers);
+      const batchUsers = topUsers.slice(start, end);
       
-      // Create and sign the event
-      const event = createEvent(user.pubkey, user.personalizedPageRank, user.hops, user.influence, user.average, user.confidence, user.input);
-      events.push(event);
+      console.log(`Processing batch ${batchIndex + 1}/${batches} (users ${start + 1}-${end} of ${totalUsers})`);
       
-      // Save the event to a file
-      const eventFile = path.join(publishedDir, `kind30382_${user.pubkey.substring(0, 8)}_${Date.now()}.json`);
-      fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
-      console.log(`Event saved to ${eventFile}`);
+      // Create and publish events for this batch
+      const batchEvents = [];
+      const batchPublishResults = [];
       
-      // Publish the event to the primary relay
-      let primarySuccess = false;
-      try {
-        console.log(`Publishing event ${event.id} to primary relay: ${primaryRelayUrl}`);
-        const publishResult = await publishEventToRelay(event);
-        primarySuccess = publishResult.success;
-        publishResults.push({
-          eventId: event.id,
-          userPubkey: user.pubkey,
-          relayUrl: primaryRelayUrl,
-          ...publishResult
-        });
-      } catch (error) {
-        console.error(`Error publishing event for user ${user.pubkey} to primary relay:`, error.message);
-        publishResults.push({
-          eventId: event.id,
-          userPubkey: user.pubkey,
-          relayUrl: primaryRelayUrl,
-          success: false,
-          message: error.message
-        });
-      }
-      
-      // If primary relay failed, try fallback relays
-      if (!primarySuccess && fallbackRelays.length > 0) {
-        for (const fallbackRelay of fallbackRelays) {
-          if (fallbackRelay !== primaryRelayUrl) {
-            try {
-              console.log(`Trying fallback relay ${fallbackRelay} for event ${event.id}`);
-              
-              // Create a new WebSocket connection to the fallback relay
-              const fallbackResult = await new Promise((resolve, reject) => {
-                const ws = new WebSocket(fallbackRelay);
-                
-                // Set a timeout for the connection
-                const connectionTimeout = setTimeout(() => {
-                  ws.close();
-                  reject(new Error(`Connection timeout to fallback relay: ${fallbackRelay}`));
-                }, 10000); // 10 seconds timeout
-                
-                ws.on('open', () => {
-                  console.log(`Connected to fallback relay: ${fallbackRelay}`);
-                  clearTimeout(connectionTimeout);
-                  
-                  // Send the EVENT message to the relay
-                  const message = JSON.stringify(["EVENT", event]);
-                  ws.send(message);
-                  
-                  console.log(`Event sent to fallback relay: ${event.id}`);
-                  
-                  // Set a timeout for the response
-                  const responseTimeout = setTimeout(() => {
-                    ws.close();
-                    // Consider a timeout as a success if we were able to send the event
-                    console.log(`No explicit confirmation received for event ${event.id} from fallback relay, but it was sent successfully`);
-                    resolve({
-                      success: true,
-                      message: `Event ${event.id} sent successfully to fallback relay (no explicit confirmation received)`
-                    });
-                  }, 5000); // 5 seconds timeout for response
-                  
-                  // Handle relay response
-                  ws.on('message', (data) => {
-                    clearTimeout(responseTimeout);
-                    
-                    try {
-                      const response = JSON.parse(data.toString());
-                      console.log(`Received response from fallback relay for event ${event.id}:`, JSON.stringify(response));
-                      
-                      if (response[0] === 'OK' && response[1] === event.id) {
-                        console.log(`Event ${event.id} accepted by fallback relay`);
-                        ws.close();
-                        resolve({
-                          success: true,
-                          message: `Event ${event.id} accepted by fallback relay`
-                        });
-                      } else if (response[0] === 'EVENT' || response[0] === 'NOTICE') {
-                        // Ignore these messages, wait for OK or timeout
-                      } else {
-                        // Any other response means the relay received our message
-                        console.log(`Received non-OK response from fallback relay:`, JSON.stringify(response));
-                      }
-                    } catch (error) {
-                      console.error('Error parsing fallback relay response:', error);
-                      // Continue waiting for a valid response
-                    }
-                  });
-                  
-                  // Handle WebSocket errors
-                  ws.on('error', (error) => {
-                    clearTimeout(responseTimeout);
-                    console.error('WebSocket error with fallback relay:', error);
-                    ws.close();
-                    reject(error);
-                  });
-                });
-                
-                // Handle connection errors
-                ws.on('error', (error) => {
-                  clearTimeout(connectionTimeout);
-                  console.error('WebSocket connection error with fallback relay:', error);
-                  reject(error);
-                });
-              });
-              
-              // If successful, add to results and break the loop
-              if (fallbackResult.success) {
-                publishResults.push({
-                  eventId: event.id,
-                  userPubkey: user.pubkey,
-                  relayUrl: fallbackRelay,
-                  ...fallbackResult
-                });
-                
-                // We got a successful publish, no need to try more fallbacks
-                break;
-              }
-            } catch (error) {
-              console.error(`Error publishing to fallback relay ${fallbackRelay}:`, error.message);
-              // Continue to the next fallback relay
-            }
-          }
+      for (const user of batchUsers) {
+        try {
+          console.log(`Creating event for user: ${user.pubkey} personalizedPageRank: ${user.personalizedPageRank} hops: ${user.hops} influence: ${user.influence} average: ${user.average} confidence: ${user.confidence} input: ${user.input}`);
+          
+          // Create the event
+          const event = createEvent(
+            user.pubkey, 
+            user.personalizedPageRank, 
+            user.hops,
+            user.influence,
+            user.average,
+            user.confidence,
+            user.input
+          );
+          
+          // Save the event to a file
+          const timestamp = Date.now();
+          const filename = `kind30382_${user.pubkey.substring(0, 8)}_${timestamp}.json`;
+          const filePath = path.join(publishedDir, filename);
+          
+          fs.writeFileSync(filePath, JSON.stringify(event, null, 2));
+          console.log(`Event saved to ${filePath}`);
+          
+          batchEvents.push(event);
+        } catch (error) {
+          console.error(`Error creating event for user ${user.pubkey}:`, error);
+          failureCount++;
         }
       }
+      
+      // Publish events in this batch to the relay
+      for (const event of batchEvents) {
+        try {
+          console.log(`Publishing event ${event.id} to primary relay: ${relayUrl}`);
+          const result = await publishEventToRelay(event);
+          
+          batchPublishResults.push({
+            eventId: event.id,
+            userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
+            relayUrl: relayUrl,
+            success: result.success,
+            message: result.message
+          });
+          
+          if (result.success) {
+            successCount++;
+          } else {
+            failureCount++;
+          }
+        } catch (error) {
+          console.error(`Error publishing event ${event.id}:`, error);
+          
+          batchPublishResults.push({
+            eventId: event.id,
+            userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
+            relayUrl: relayUrl,
+            success: false,
+            message: error.message
+          });
+          
+          failureCount++;
+        }
+      }
+      
+      // Add batch results to overall results
+      publishResults = publishResults.concat(batchPublishResults);
+      
+      // Log progress after each batch
+      console.log(`Batch ${batchIndex + 1}/${batches} complete. Progress: ${successCount + failureCount}/${totalUsers} (${successCount} successful, ${failureCount} failed)`);
+      
+      // Output a summary after each batch to provide progress updates
+      const batchSummary = {
+        batchNumber: batchIndex + 1,
+        totalBatches: batches,
+        batchSize: batchUsers.length,
+        batchSuccessCount: batchPublishResults.filter(r => r.success).length,
+        batchFailureCount: batchPublishResults.filter(r => !r.success).length,
+        overallProgress: {
+          processed: successCount + failureCount,
+          total: totalUsers,
+          successCount,
+          failureCount
+        }
+      };
+      
+      console.log('Batch summary:', JSON.stringify(batchSummary));
+      
+      // Optional: Add a small delay between batches to avoid overwhelming the relay
+      if (batchIndex < batches - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
     
-    // Summarize results
-    const successCount = publishResults.filter(r => r.success).length;
-    
-    console.log('\nPublishing summary:');
-    console.log(`- Total events: ${events.length}`);
+    console.log('Publishing summary:');
+    console.log(`- Total events: ${successCount + failureCount}`);
     console.log(`- Successfully published: ${successCount}`);
-    console.log(`- Failed: ${events.length - successCount}`);
+    console.log(`- Failed: ${failureCount}`);
+    
+    // Return a summary of the results
+    // Only include the first 10 and last 10 publish results to keep the output manageable
+    let trimmedResults = publishResults;
+    if (publishResults.length > 20) {
+      const first10 = publishResults.slice(0, 10);
+      const last10 = publishResults.slice(-10);
+      trimmedResults = [
+        ...first10,
+        { note: `... ${publishResults.length - 20} more results omitted ...` },
+        ...last10
+      ];
+    }
     
     return {
-      success: successCount > 0, // Consider success if at least one event was published
-      message: `Created and published ${successCount} of ${events.length} kind 30382 events for the top users`,
-      events: events,
-      publishResults: publishResults
+      success: true,
+      message: `Created and published ${successCount} of ${topUsers.length} kind 30382 events for the top users`,
+      publishSummary: {
+        total: topUsers.length,
+        successful: successCount,
+        failed: failureCount,
+        byRelay: {
+          [relayUrl]: {
+            successful: successCount,
+            failed: failureCount
+          }
+        }
+      },
+      publishResults: trimmedResults
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in main function:', error);
     return {
       success: false,
-      message: `Error: ${error.message}`,
-      events: []
+      message: `Error publishing kind 30382 events: ${error.message}`,
+      error: error.stack
     };
   } finally {
-    // Close Neo4j driver if it was initialized
-    if (driver) {
-      await driver.close();
-    }
+    // Close the Neo4j driver
+    await driver.close();
   }
 }
 
