@@ -104,10 +104,14 @@ const driver = neo4j.driver(
 async function getTopUsers() {
   const session = driver.session();
   try {
-    // Query to get top 5 users by personalizedPageRank, including GrapeRank data
+    // Query to get users with personalizedPageRank, including GrapeRank data
+    // Make sure we're only getting users that have been processed by the GrapeRank algorithm
     const result = await session.run(`
       MATCH (u:NostrUser)
-      WHERE u.hops IS NOT NULL AND u.hops < 20
+      WHERE u.personalizedPageRank IS NOT NULL 
+        AND u.hops IS NOT NULL 
+        AND u.hops < 20
+        AND u.pubkey IS NOT NULL
       RETURN u.pubkey AS pubkey, 
              u.personalizedPageRank AS personalizedPageRank, 
              u.hops AS hops,
@@ -118,18 +122,73 @@ async function getTopUsers() {
       ORDER BY u.personalizedPageRank DESC
     `);
     
-    return result.records.map(record => ({
-      pubkey: record.get('pubkey'),
-      personalizedPageRank: record.get('personalizedPageRank').toString(),
-      hops: record.get('hops') ? record.get('hops').toString() : "1",
-      influence: record.get('influence') ? record.get('influence').toString() : "0",
-      average: record.get('average') ? record.get('average').toString() : "0",
-      confidence: record.get('confidence') ? record.get('confidence').toString() : "0",
-      input: record.get('input') ? record.get('input').toString() : "0"
-    }));
+    console.log(`Found ${result.records.length} users with personalizedPageRank`);
+    
+    // If no users found, try a more lenient query
+    if (result.records.length === 0) {
+      console.log("No users found with complete GrapeRank data. Trying more lenient query...");
+      
+      const fallbackResult = await session.run(`
+        MATCH (u:NostrUser)
+        WHERE u.pubkey IS NOT NULL
+        OPTIONAL MATCH (u)-[:FOLLOWS]->(followed)
+        WITH u, count(followed) as followCount
+        WHERE followCount > 0
+        RETURN u.pubkey AS pubkey, 
+               u.personalizedPageRank AS personalizedPageRank, 
+               u.hops AS hops,
+               u.influence AS influence,
+               u.average AS average,
+               u.confidence AS confidence,
+               u.input AS input
+        LIMIT 100
+      `);
+      
+      console.log(`Fallback query found ${fallbackResult.records.length} users`);
+      
+      if (fallbackResult.records.length > 0) {
+        return fallbackResult.records.map(processUserRecord);
+      }
+      
+      return [];
+    }
+    
+    return result.records.map(processUserRecord);
   } finally {
     await session.close();
   }
+}
+
+// Helper function to process a Neo4j record into a user object
+function processUserRecord(record) {
+  // Safely get values with null checks
+  const pubkey = record.get('pubkey');
+  const personalizedPageRank = record.get('personalizedPageRank');
+  const hops = record.get('hops');
+  const influence = record.get('influence');
+  const average = record.get('average');
+  const confidence = record.get('confidence');
+  const input = record.get('input');
+  
+  // For debugging
+  console.log(`Processing user ${pubkey} with data:`, {
+    personalizedPageRank: personalizedPageRank || 'null',
+    hops: hops || 'null',
+    influence: influence || 'null',
+    average: average || 'null',
+    confidence: confidence || 'null',
+    input: input || 'null'
+  });
+  
+  return {
+    pubkey: pubkey,
+    personalizedPageRank: personalizedPageRank ? personalizedPageRank.toString() : "0.01",
+    hops: hops ? hops.toString() : "1",
+    influence: influence ? influence.toString() : "0",
+    average: average ? average.toString() : "0",
+    confidence: confidence ? confidence.toString() : "0.5",
+    input: input ? input.toString() : "0"
+  };
 }
 
 // Create and sign a kind 30382 event
@@ -185,6 +244,13 @@ function publishEventToRelay(event, targetRelayUrl = relayUrl) {
       reject(new Error(`Connection timeout to relay: ${targetRelayUrl}`));
     }, 10000); // 10 seconds timeout
     
+    // Handle WebSocket errors
+    ws.on('error', (error) => {
+      clearTimeout(connectionTimeout);
+      console.error(`WebSocket error: ${error.message}`);
+      reject(error);
+    });
+    
     // Handle WebSocket events
     ws.on('open', () => {
       console.log(`Connected to relay: ${targetRelayUrl}`);
@@ -228,44 +294,28 @@ function publishEventToRelay(event, targetRelayUrl = relayUrl) {
                 message: `Event ${event.id} accepted by relay`
               });
             } else {
-              // Even if the third parameter is not true, the event was still received
-              // The relay might have its own reasons for not storing it
-              console.log(`Event ${event.id} received by relay with response: ${response[2] || 'No reason provided'}`);
+              console.log(`Event ${event.id} received by relay but not accepted: ${response[2]}`);
               ws.close();
               resolve({
-                success: true,
-                message: `Event ${event.id} received by relay with response: ${response[2] || 'No reason provided'}`
+                success: false,
+                message: `Event ${event.id} received but not accepted: ${response[2]}`
               });
             }
-          } else if (response[0] === 'EVENT') {
-            // Ignore EVENT messages from the relay
           } else if (response[0] === 'NOTICE') {
-            console.log(`Relay notice: ${response[1]}`);
+            console.log(`Received NOTICE from relay: ${response[1]}`);
+            // Don't close the connection yet, wait for OK or timeout
+          } else if (response[0] === 'EVENT') {
+            console.log(`Received EVENT from relay`);
+            // Don't close the connection yet, wait for OK or timeout
           } else {
-            // Any response means the relay received our message
-            console.log(`Received non-OK response from relay:`, JSON.stringify(response));
-            // Don't resolve yet, wait for an OK or timeout
+            console.log(`Received unknown response from relay: ${JSON.stringify(response)}`);
+            // Don't close the connection yet, wait for OK or timeout
           }
         } catch (error) {
-          console.error('Error parsing relay response:', error);
-          // Continue waiting for a valid response
+          console.error(`Error parsing relay response: ${error.message}`);
+          // Don't close the connection yet, wait for OK or timeout
         }
       });
-      
-      // Handle WebSocket errors
-      ws.on('error', (error) => {
-        clearTimeout(responseTimeout);
-        console.error('WebSocket error:', error);
-        ws.close();
-        reject(error);
-      });
-    });
-    
-    // Handle connection errors
-    ws.on('error', (error) => {
-      clearTimeout(connectionTimeout);
-      console.error('WebSocket connection error:', error);
-      reject(error);
     });
   });
 }
