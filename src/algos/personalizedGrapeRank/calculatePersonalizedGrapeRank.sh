@@ -55,7 +55,8 @@ sudo bash $THIS_DIR/initializeScorecards.sh
 # iterate through GrapeRank until max iterations or until convergence
 sudo bash $THIS_DIR/calculateGrapeRank.sh
 
-# update Neo4j with data from oScorecards
+# update Neo4j with data from scorecards.json
+sudo bash $THIS_DIR/updateNeo4j.sh
 
 # clean up tmp files
 

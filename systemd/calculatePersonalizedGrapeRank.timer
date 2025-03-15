@@ -1,0 +1,12 @@
+[Unit]
+Description=Run calculatePersonalizedGrapeRank periodically
+After=network.target neo4j.service
+
+[Timer]
+# Run every 24 hours
+OnBootSec=15min
+OnUnitActiveSec=24h
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target
