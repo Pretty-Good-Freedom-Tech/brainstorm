@@ -403,6 +403,7 @@ async function publishNip85() {
     'wss://relay.hasenpfeffr.com',
     'wss://relay.damus.io',
     'wss://relay.nostr.band',
+    'wss://relay.primal.net',
     'wss://nos.lol'
   ];
   

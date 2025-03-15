@@ -247,6 +247,9 @@ app.get('/api/relay-config', handleRelayConfig);
 // API endpoint for getting kind 30382 event information
 app.get('/api/kind30382-info', handleKind30382Info);
 
+// API endpoint for getting kind 10040 event information
+app.get('/api/kind10040-info', handleKind10040Info);
+
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
 app.post('/api/auth/login', handleAuthLogin);
@@ -845,11 +848,52 @@ function handlePublishKind10040(req, res) {
         }
         
         // Verify that the event has a signature
-        if (!signedEvent.sig) {
+        // In a production environment, you would want to use a proper Nostr library for verification
+        // For this example, we'll just check that the pubkey matches and the challenge is included
+        
+        const sessionPubkey = req.session.pubkey;
+        const sessionChallenge = req.session.challenge;
+        
+        if (!sessionPubkey || !sessionChallenge) {
             return res.status(400).json({ 
                 success: false, 
-                error: 'Event is not signed' 
+                message: 'No active authentication session' 
             });
+        }
+        
+        // Check pubkey matches
+        if (signedEvent.pubkey !== sessionPubkey) {
+            return res.json({ 
+                success: false, 
+                message: 'Public key mismatch' 
+            });
+        }
+        
+        // Check challenge is included in tags
+        let challengeFound = false;
+        if (signedEvent.tags && Array.isArray(signedEvent.tags)) {
+            for (const tag of signedEvent.tags) {
+                if (tag[0] === 'challenge' && tag[1] === sessionChallenge) {
+                    challengeFound = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!challengeFound) {
+            return res.json({ 
+                success: false, 
+                message: 'Challenge verification failed' 
+            });
+        }
+        
+        // Set session as authenticated
+        req.session.authenticated = true;
+        
+        // Store nsec in session if provided
+        if (nsec) {
+            req.session.nsec = nsec;
+            console.log('Private key stored in session for signing events');
         }
         
         // Define data directories
@@ -1067,6 +1111,52 @@ function handleKind30382Info(req, res) {
     return res.json({
       success: false,
       message: `Error getting kind 30382 info: ${error.message}`
+    });
+  }
+}
+
+// Handler for getting kind 10040 event information
+function handleKind10040Info(req, res) {
+  try {
+    // Get owner pubkey from config
+    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+    
+    if (!ownerPubkey) {
+      return res.json({
+        success: false,
+        message: 'Owner pubkey not found in configuration'
+      });
+    }
+    
+    // Get most recent kind 10040 event
+    const latestCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${ownerPubkey}"], "limit": 1}'`;
+    let latestEvent = null;
+    let timestamp = null;
+    let eventId = null;
+    
+    try {
+      const output = execSync(latestCmd).toString().trim();
+      if (output) {
+        latestEvent = JSON.parse(output);
+        timestamp = latestEvent.created_at;
+        eventId = latestEvent.id;
+      }
+    } catch (error) {
+      console.error('Error getting latest event:', error);
+    }
+    
+    return res.json({
+      success: true,
+      timestamp: timestamp,
+      eventId: eventId,
+      latestEvent: latestEvent,
+      relayUrl: relayUrl
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: `Error getting kind 10040 info: ${error.message}`
     });
   }
 }

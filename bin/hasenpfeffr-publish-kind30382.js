@@ -54,9 +54,8 @@ const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
 // Fallback relay URLs if the main one is not configured
 const fallbackRelays = [
   'wss://relay.hasenpfeffr.com',
-  'wss://relay.damus.io',
-  'wss://relay.nostr.band',
-  'wss://nos.lol'
+  'wss://profiles.nostr1.com',
+  'wss://relay.nostr.band'
 ];
 
 // Use fallback relay if the main one is not configured
