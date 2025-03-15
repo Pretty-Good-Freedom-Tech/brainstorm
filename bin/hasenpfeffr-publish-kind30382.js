@@ -45,11 +45,15 @@ function getConfigFromFile(varName, defaultValue = null) {
 
 // Get relay configuration
 const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-// const relayUrl = 'wss://relay.hasenpfeffr.com';
 const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+
+// Log relay configuration for debugging
+console.log(`Using relay URL: ${relayUrl}`);
+console.log(`Relay private key available: ${relayNsec ? 'Yes' : 'No'}`);
+console.log(`Neo4j URI: ${neo4jUri}`);
 
 // Fallback relay URLs if the main one is not configured
 const fallbackRelays = [
@@ -170,20 +174,20 @@ function createEvent(userPubkey, personalizedPageRank, hops, influence, average,
 }
 
 // Function to publish an event to the relay via WebSocket
-function publishEventToRelay(event) {
+function publishEventToRelay(event, targetRelayUrl = relayUrl) {
   return new Promise((resolve, reject) => {
     // Create WebSocket connection
-    const ws = new WebSocket(primaryRelayUrl);
+    const ws = new WebSocket(targetRelayUrl);
     
     // Set a timeout for the connection
     const connectionTimeout = setTimeout(() => {
       ws.close();
-      reject(new Error(`Connection timeout to relay: ${primaryRelayUrl}`));
+      reject(new Error(`Connection timeout to relay: ${targetRelayUrl}`));
     }, 10000); // 10 seconds timeout
     
     // Handle WebSocket events
     ws.on('open', () => {
-      console.log(`Connected to relay: ${primaryRelayUrl}`);
+      console.log(`Connected to relay: ${targetRelayUrl}`);
       clearTimeout(connectionTimeout);
       
       // Send the EVENT message to the relay
@@ -358,7 +362,7 @@ async function main() {
       for (const event of batchEvents) {
         try {
           console.log(`Publishing event ${event.id} to primary relay: ${relayUrl}`);
-          const result = await publishEventToRelay(event);
+          const result = await publishEventToRelay(event, relayUrl);
           
           batchPublishResults.push({
             eventId: event.id,

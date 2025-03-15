@@ -485,72 +485,268 @@
                     .then(data => {
                         if (data.success) {
                             kind30382Status.className = 'status-message success';
-                            kind30382Status.textContent = 'Kind 30382 events published successfully!';
+                            kind30382Status.textContent = data.message || 'Kind 30382 events published successfully!';
                             
                             // Display the events preview
                             kind30382Output.style.display = 'block';
                             
-                            // Create a more concise summary from the response data
-                            let summary = '';
-                            
-                            try {
-                                // Try to parse the output if it's JSON
-                                let parsedData = data;
-                                if (typeof data.output === 'string' && data.output.trim().startsWith('{')) {
-                                    parsedData = JSON.parse(data.output);
-                                }
+                            // For background processes, show that it's running
+                            if (data.message && data.message.includes('background')) {
+                                kind30382Output.innerHTML = `
+                                    <div class="alert alert-info">
+                                        <p><strong>Publishing in progress:</strong> The events are being published in the background.</p>
+                                        <p>This may take several minutes for large batches. You can check the status by refreshing the page later.</p>
+                                        <p>Check the server logs for detailed progress information.</p>
+                                    </div>
+                                `;
                                 
-                                // Extract the summary information
-                                if (parsedData.publishResults && Array.isArray(parsedData.publishResults)) {
-                                    // Group results by relay and success status
-                                    const relayStats = {};
+                                // Start polling for updates
+                                setTimeout(checkKind30382Status, 10000); // Check after 10 seconds
+                            } else {
+                                // Create a more concise summary from the response data
+                                let summary = '';
+                                
+                                try {
+                                    // Try to parse the output if it's JSON
+                                    let parsedData = data;
+                                    if (typeof data.output === 'string' && data.output.trim().startsWith('{')) {
+                                        parsedData = JSON.parse(data.output);
+                                    }
                                     
-                                    parsedData.publishResults.forEach(result => {
-                                        const relayUrl = result.relayUrl || 'unknown';
-                                        if (!relayStats[relayUrl]) {
-                                            relayStats[relayUrl] = { success: 0, failed: 0 };
-                                        }
+                                    // Extract the summary information
+                                    if (parsedData.publishSummary) {
+                                        const summary = parsedData.publishSummary;
+                                        kind30382Output.innerHTML = `
+                                            <div class="alert alert-success">
+                                                <h4>Publishing Summary:</h4>
+                                                <p>Total events: ${summary.total}</p>
+                                                <p>Successfully published: ${summary.successful}</p>
+                                                <p>Failed: ${summary.failed}</p>
+                                            </div>
+                                        `;
                                         
-                                        if (result.success) {
-                                            relayStats[relayUrl].success++;
-                                        } else {
-                                            relayStats[relayUrl].failed++;
+                                        // If we have relay-specific stats, show them
+                                        if (summary.byRelay) {
+                                            let relayHtml = '<h4>Results by Relay:</h4><ul>';
+                                            for (const [relayUrl, stats] of Object.entries(summary.byRelay)) {
+                                                relayHtml += `<li>${relayUrl}: ${stats.successful} successful, ${stats.failed} failed</li>`;
+                                            }
+                                            relayHtml += '</ul>';
+                                            
+                                            kind30382Output.innerHTML += relayHtml;
                                         }
-                                    });
-                                    
-                                    // Create summary text
-                                    summary = `Publishing Summary:\n`;
-                                    summary += `Total Events: ${parsedData.publishResults.length}\n\n`;
-                                    summary += `Results by Relay:\n`;
-                                    
-                                    Object.keys(relayStats).forEach(relay => {
-                                        const stats = relayStats[relay];
-                                        summary += `- ${relay}: ${stats.success} successful, ${stats.failed} failed\n`;
-                                    });
-                                } else {
-                                    summary = data.output || 'Events published successfully. No detailed results available.';
+                                    } else if (parsedData.publishResults && Array.isArray(parsedData.publishResults)) {
+                                        // Group results by relay and success status
+                                        const relayStats = {};
+                                        
+                                        parsedData.publishResults.forEach(result => {
+                                            const relayUrl = result.relayUrl || 'unknown';
+                                            if (!relayStats[relayUrl]) {
+                                                relayStats[relayUrl] = { success: 0, failed: 0 };
+                                            }
+                                            
+                                            if (result.success) {
+                                                relayStats[relayUrl].success++;
+                                            } else {
+                                                relayStats[relayUrl].failed++;
+                                            }
+                                        });
+                                        
+                                        // Create summary text
+                                        let summaryHtml = '<h4>Publishing Results:</h4><ul>';
+                                        for (const [relayUrl, stats] of Object.entries(relayStats)) {
+                                            summaryHtml += `<li>${relayUrl}: ${stats.success} successful, ${stats.failed} failed</li>`;
+                                        }
+                                        summaryHtml += '</ul>';
+                                        
+                                        kind30382Output.innerHTML = summaryHtml;
+                                    } else {
+                                        // Fallback to raw output if no structured data
+                                        kind30382Output.innerHTML = `<pre>${data.output || JSON.stringify(data, null, 2)}</pre>`;
+                                    }
+                                } catch (error) {
+                                    console.error('Error parsing output:', error);
+                                    kind30382Output.innerHTML = `<pre>${data.output || JSON.stringify(data, null, 2)}</pre>`;
                                 }
-                            } catch (e) {
-                                console.error('Error parsing publishing results:', e);
-                                summary = data.output || 'Events published successfully. No detailed results available.';
                             }
-                            
-                            kind30382EventPreview.textContent = summary;
-                            
-                            // Refresh the event info after publishing
-                            fetchKind30382Info();
                         } else {
                             kind30382Status.className = 'status-message error';
-                            kind30382Status.textContent = `Error: ${data.error || data.output || 'Unknown error'}`;
+                            kind30382Status.textContent = data.message || 'Error publishing Kind 30382 events';
+                            kind30382Output.style.display = 'block';
+                            kind30382Output.innerHTML = `<pre class="error">${data.error || data.output || 'Unknown error'}</pre>`;
                         }
                     })
                     .catch(error => {
+                        console.error('Error:', error);
                         kind30382Status.className = 'status-message error';
-                        kind30382Status.textContent = `Error: ${error.message}`;
+                        kind30382Status.textContent = 'Error publishing Kind 30382 events';
+                        kind30382Output.style.display = 'block';
+                        kind30382Output.innerHTML = `<pre class="error">${error.message}</pre>`;
                     })
                     .finally(() => {
+                        // Re-enable button
                         publishKind30382Btn.disabled = false;
                     });
+            }
+            
+            // Function to check the status of Kind 30382 publishing
+            function checkKind30382Status() {
+                fetch('/control/api/kind30382-info')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the status display with the latest info
+                            getKind30382Info();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking Kind 30382 status:', error);
+                    });
+            }
+            
+            // Publish Event
+            function publishEvent() {
+                // Disable buttons during processing
+                createKind10040Btn.disabled = true;
+                publishKind10040Btn.disabled = true;
+                
+                // Check if NIP-07 extension is available
+                if (typeof window.nostr === 'undefined') {
+                    kind10040Status.textContent = 'Error: No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.';
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                    return;
+                }
+                
+                // Update status
+                kind10040Status.textContent = 'Getting event data for signing...';
+                kind10040Status.className = 'status-message status-info';
+                
+                // First, get the unsigned event
+                fetch('/control/api/get-kind10040-event', {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(async data => {
+                    if (data.success && data.event) {
+                        try {
+                            // Update status
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Get the event data
+                            const event = data.event;
+                            
+                            // Make sure the pubkey matches the user's pubkey
+                            const userPubkey = await window.nostr.getPublicKey();
+                            event.pubkey = userPubkey;
+                            
+                            // Add challenge tag if not already present
+                            // Get the challenge from the server response
+                            const challenge = data.challenge;
+                            
+                            // If we have a challenge, add it to the tags
+                            if (challenge) {
+                                if (!event.tags) {
+                                    event.tags = [];
+                                }
+                                
+                                // Check if challenge tag already exists
+                                let challengeTagExists = false;
+                                for (const tag of event.tags) {
+                                    if (tag[0] === 'challenge') {
+                                        tag[1] = challenge; // Update existing tag
+                                        challengeTagExists = true;
+                                        break;
+                                    }
+                                }
+                                
+                                // Add challenge tag if it doesn't exist
+                                if (!challengeTagExists) {
+                                    event.tags.push(['challenge', challenge]);
+                                }
+                            } else {
+                                console.warn('No challenge provided by the server. Authentication may fail.');
+                            }
+                            
+                            // Make sure created_at is set
+                            if (!event.created_at) {
+                                event.created_at = Math.floor(Date.now() / 1000);
+                            }
+                            
+                            // Calculate the event ID before signing
+                            // This is important because the ID is a hash of the event data
+                            const eventId = NostrTools.getEventHash(event);
+                            event.id = eventId;
+                            
+                            console.log('Event to be signed:', event);
+                            
+                            // Sign the event using NIP-07
+                            const signedEvent = await window.nostr.signEvent(event);
+                            
+                            console.log('Signed event:', signedEvent);
+                            
+                            // Update status
+                            kind10040Status.textContent = 'Event signed successfully. Publishing...';
+                            
+                            // Now publish the signed event
+                            return fetch('/control/api/publish-kind10040', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ signedEvent })
+                            });
+                        } catch (error) {
+                            console.error('Error signing event:', error);
+                            throw new Error(`Error signing event: ${error.message}`);
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to get event data');
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update status
+                        kind10040Status.textContent = 'Kind 10040 event published successfully!';
+                        kind10040Status.className = 'status-message status-success';
+                        
+                        // Show the output container
+                        kind10040Output.style.display = 'block';
+                        
+                        // Update event preview with the published event
+                        kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
+                        
+                        // Refresh the event info after publishing
+                        fetchKind10040Info();
+                    } else {
+                        // Show error
+                        let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
+                        
+                        // Add details if available
+                        if (data.details) {
+                            console.error('Error details:', data.details);
+                            errorMessage += '\n\nDetails: ' + data.details;
+                        }
+                        
+                        kind10040Status.textContent = errorMessage;
+                        kind10040Status.className = 'status-message status-error';
+                        
+                        // Re-enable publish button
+                        publishKind10040Btn.disabled = false;
+                    }
+                    
+                    // Re-enable create button
+                    createKind10040Btn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error in kind 10040 event process:', error);
+                    kind10040Status.textContent = 'Error: ' + error.message;
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                });
             }
             
             // Function to fetch kind 30382 event information

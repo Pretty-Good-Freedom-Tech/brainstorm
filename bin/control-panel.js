@@ -1006,6 +1006,7 @@ function handlePublishKind30382(req, res) {
     // Send an initial response that the process has started
     res.json({
         success: true,
+        message: 'Kind 30382 publishing started. This process will continue in the background.',
         output: 'Kind 30382 publishing started. This process will continue in the background.\n',
         error: null
     });
@@ -1021,18 +1022,56 @@ function handlePublishKind30382(req, res) {
     // Log start of background process
     console.log(`Started background process for publishing kind 30382 events (PID: ${childProcess.pid})`);
     
+    // Collect output for logging
+    let stdoutData = '';
+    let stderrData = '';
+    
     // Optional: Log output for debugging
     childProcess.stdout.on('data', (data) => {
-        console.log(`Kind 30382 background process output: ${data}`);
+        const dataStr = data.toString();
+        stdoutData += dataStr;
+        console.log(`Kind 30382 background process output: ${dataStr}`);
     });
     
     childProcess.stderr.on('data', (data) => {
-        console.error(`Kind 30382 background process error: ${data}`);
+        const dataStr = data.toString();
+        stderrData += dataStr;
+        console.error(`Kind 30382 background process error: ${dataStr}`);
     });
     
     // Handle process completion
     childProcess.on('close', (code) => {
         console.log(`Kind 30382 background process exited with code ${code}`);
+        
+        // Save the output to a log file for debugging
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        const logDir = path.join(__dirname, '../logs');
+        
+        // Create logs directory if it doesn't exist
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir, { recursive: true });
+        }
+        
+        const logFile = path.join(logDir, `kind30382_${timestamp}.log`);
+        fs.writeFileSync(logFile, `STDOUT:\n${stdoutData}\n\nSTDERR:\n${stderrData}\n\nExit code: ${code}`);
+        console.log(`Kind 30382 process log saved to ${logFile}`);
+        
+        // Try to parse the last JSON output if available
+        try {
+            // Look for the last JSON object in the output
+            const jsonMatch = stdoutData.match(/\{[\s\S]*\}/g);
+            if (jsonMatch) {
+                const lastJson = jsonMatch[jsonMatch.length - 1];
+                const result = JSON.parse(lastJson);
+                
+                // Store the result in a file that can be retrieved later
+                const resultFile = path.join(logDir, `kind30382_result_${timestamp}.json`);
+                fs.writeFileSync(resultFile, JSON.stringify(result, null, 2));
+                console.log(`Kind 30382 result saved to ${resultFile}`);
+            }
+        } catch (error) {
+            console.error('Error parsing JSON output:', error);
+        }
     });
     
     // Unref the child to allow the parent process to exit independently
