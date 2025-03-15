@@ -26,6 +26,10 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const readline = require('readline');
+const { createReadStream, createWriteStream } = require('fs');
+const { Transform } = require('stream');
+const { pipeline } = require('stream/promises');
 
 // Configuration
 const TEMP_DIR = '/var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp';
@@ -70,6 +74,188 @@ function convertInputToConfidence(input, rigor) {
   const fooA = Math.exp(fooB);
   const certainty = 1 - fooA;
   return certainty;
+}
+
+// Load ratings using a streaming approach
+async function loadRatings(ratingsFile) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!fs.existsSync(ratingsFile)) {
+        reject(new Error(`Ratings file not found: ${ratingsFile}`));
+        return;
+      }
+
+      const ratings = { [CONTEXT]: {} };
+      let currentContext = null;
+      let currentRatee = null;
+      let isInContext = false;
+      let isInRatee = false;
+      let isInRater = false;
+      let currentRater = null;
+      let currentRating = null;
+      
+      const rl = readline.createInterface({
+        input: createReadStream(ratingsFile),
+        crlfDelay: Infinity
+      });
+      
+      rl.on('line', (line) => {
+        const trimmedLine = line.trim();
+        
+        // Context start
+        if (trimmedLine.match(/^\s*"verifiedUsers"\s*:\s*{$/)) {
+          currentContext = CONTEXT;
+          isInContext = true;
+          return;
+        }
+        
+        // Context end
+        if (isInContext && trimmedLine === '}') {
+          if (isInRatee) {
+            isInRatee = false;
+          } else {
+            isInContext = false;
+            currentContext = null;
+          }
+          return;
+        }
+        
+        // Ratee start
+        if (isInContext && !isInRatee && trimmedLine.match(/^\s*"([^"]+)"\s*:\s*{$/)) {
+          const match = trimmedLine.match(/^\s*"([^"]+)"\s*:\s*{$/);
+          currentRatee = match[1];
+          isInRatee = true;
+          ratings[CONTEXT][currentRatee] = {};
+          return;
+        }
+        
+        // Ratee end
+        if (isInRatee && trimmedLine.match(/^\s*}\s*,?$/)) {
+          isInRatee = false;
+          currentRatee = null;
+          return;
+        }
+        
+        // Rater line
+        if (isInRatee && trimmedLine.match(/^\s*"([^"]+)"\s*:\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*,?$/)) {
+          const match = trimmedLine.match(/^\s*"([^"]+)"\s*:\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*,?$/);
+          currentRater = match[1];
+          const rating = parseFloat(match[2]);
+          const confidence = parseFloat(match[3]);
+          
+          ratings[CONTEXT][currentRatee][currentRater] = [rating, confidence];
+          return;
+        }
+      });
+      
+      rl.on('close', () => {
+        resolve(ratings);
+      });
+      
+      rl.on('error', (err) => {
+        reject(err);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// Load scorecards using a streaming approach
+async function loadScorecards(scorecardsFile) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!fs.existsSync(scorecardsFile)) {
+        reject(new Error(`Scorecards file not found: ${scorecardsFile}`));
+        return;
+      }
+
+      const scorecards = {};
+      
+      const rl = readline.createInterface({
+        input: createReadStream(scorecardsFile),
+        crlfDelay: Infinity
+      });
+      
+      rl.on('line', (line) => {
+        const trimmedLine = line.trim();
+        
+        // Skip opening and closing braces
+        if (trimmedLine === '{' || trimmedLine === '}') {
+          return;
+        }
+        
+        // Parse scorecard line
+        const match = trimmedLine.match(/^\s*"([^"]+)"\s*:\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*,?$/);
+        if (match) {
+          const pubkey = match[1];
+          const influence = parseFloat(match[2]);
+          const average = parseFloat(match[3]);
+          const confidence = parseFloat(match[4]);
+          const input = parseFloat(match[5]);
+          
+          scorecards[pubkey] = [influence, average, confidence, input];
+        }
+      });
+      
+      rl.on('close', () => {
+        resolve(scorecards);
+      });
+      
+      rl.on('error', (err) => {
+        reject(err);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// Write scorecards to file using a streaming approach
+async function writeScorecards(scorecardsFile, scorecards) {
+  return new Promise((resolve, reject) => {
+    try {
+      const stream = createWriteStream(scorecardsFile);
+      
+      // Write opening brace
+      stream.write('{\n');
+      
+      // Get all pubkeys
+      const pubkeys = Object.keys(scorecards);
+      
+      // Write each scorecard
+      pubkeys.forEach((pubkey, index) => {
+        const [influence, average, confidence, input] = scorecards[pubkey];
+        
+        // Write scorecard line
+        stream.write(`  "${pubkey}": [${influence}, ${average}, ${confidence}, ${input}]`);
+        
+        // Add comma if not the last pubkey
+        if (index < pubkeys.length - 1) {
+          stream.write(',\n');
+        } else {
+          stream.write('\n');
+        }
+      });
+      
+      // Write closing brace
+      stream.write('}\n');
+      
+      // End the stream
+      stream.end();
+      
+      // Handle stream events
+      stream.on('finish', () => {
+        resolve();
+      });
+      
+      stream.on('error', (err) => {
+        reject(err);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 // Calculate GrapeRank parameters for a single ratee
@@ -184,23 +370,33 @@ async function main() {
     const scorecardsFile = path.join(TEMP_DIR, 'scorecards.json');
     const metadataFile = path.join(TEMP_DIR, 'scorecards_metadata.json');
     
-    // Load ratings
-    if (!fs.existsSync(ratingsFile)) {
-      console.error(`Ratings file not found: ${ratingsFile}`);
+    // Load ratings using streaming approach
+    console.log(`Loading ratings from ${ratingsFile}...`);
+    let ratings;
+    try {
+      ratings = await loadRatings(ratingsFile);
+      console.log(`Loaded ratings for ${Object.keys(ratings[CONTEXT] || {}).length} ratees`);
+    } catch (error) {
+      console.error(`Error loading ratings: ${error.message}`);
       process.exit(1);
     }
-    const ratings = JSON.parse(fs.readFileSync(ratingsFile, 'utf8'));
     
     // Load initial scorecards (use scorecards.json if available, otherwise scorecards_init.json)
     let scorecards;
-    if (fs.existsSync(scorecardsFile)) {
-      console.log(`Loading existing scorecards from ${scorecardsFile}`);
-      scorecards = JSON.parse(fs.readFileSync(scorecardsFile, 'utf8'));
-    } else if (fs.existsSync(scorecardsInitFile)) {
-      console.log(`Loading initial scorecards from ${scorecardsInitFile}`);
-      scorecards = JSON.parse(fs.readFileSync(scorecardsInitFile, 'utf8'));
-    } else {
-      console.error(`Neither ${scorecardsFile} nor ${scorecardsInitFile} found`);
+    try {
+      if (fs.existsSync(scorecardsFile)) {
+        console.log(`Loading existing scorecards from ${scorecardsFile}...`);
+        scorecards = await loadScorecards(scorecardsFile);
+      } else if (fs.existsSync(scorecardsInitFile)) {
+        console.log(`Loading initial scorecards from ${scorecardsInitFile}...`);
+        scorecards = await loadScorecards(scorecardsInitFile);
+      } else {
+        console.error(`Neither ${scorecardsFile} nor ${scorecardsInitFile} found`);
+        process.exit(1);
+      }
+      console.log(`Loaded scorecards for ${Object.keys(scorecards).length} pubkeys`);
+    } catch (error) {
+      console.error(`Error loading scorecards: ${error.message}`);
       process.exit(1);
     }
     
@@ -215,7 +411,7 @@ async function main() {
       // Create a copy of current scorecards for comparison
       const previous_scorecards = JSON.parse(JSON.stringify(scorecards));
       
-      // Get all ratees from ratings
+      // Get all ratees from ratings and scorecards
       const ratees = new Set();
       
       // Add ratees from ratings
@@ -227,9 +423,19 @@ async function main() {
       Object.keys(scorecards).forEach(pk_ratee => ratees.add(pk_ratee));
       
       // Calculate GrapeRank for each ratee
-      for (const pk_ratee of ratees) {
-        const graperank_params = calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config);
-        scorecards[pk_ratee] = graperank_params;
+      const rateeArray = Array.from(ratees);
+      console.log(`Calculating GrapeRank for ${rateeArray.length} ratees...`);
+      
+      // Process ratees in chunks to avoid memory issues
+      const CHUNK_SIZE = 1000;
+      for (let i = 0; i < rateeArray.length; i += CHUNK_SIZE) {
+        const chunk = rateeArray.slice(i, i + CHUNK_SIZE);
+        console.log(`Processing chunk ${Math.floor(i/CHUNK_SIZE) + 1}/${Math.ceil(rateeArray.length/CHUNK_SIZE)} (${chunk.length} ratees)...`);
+        
+        for (const pk_ratee of chunk) {
+          const graperank_params = calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config);
+          scorecards[pk_ratee] = graperank_params;
+        }
       }
       
       // Check for convergence
@@ -247,9 +453,9 @@ async function main() {
     // Generate metadata
     const metadata = generateMetadata(config, iterations, converged, max_diff, start_time, scorecards);
     
-    // Write scorecards to file
-    fs.writeFileSync(scorecardsFile, JSON.stringify(scorecards, null, 2));
-    console.log(`Wrote scorecards to ${scorecardsFile}`);
+    // Write scorecards to file using streaming approach
+    console.log(`Writing scorecards to ${scorecardsFile}...`);
+    await writeScorecards(scorecardsFile, scorecards);
     
     // Write metadata to file
     fs.writeFileSync(metadataFile, JSON.stringify(metadata, null, 2));
@@ -258,6 +464,7 @@ async function main() {
     console.log(`GrapeRank calculation completed in ${metadata.calculation_time_ms}ms`);
   } catch (error) {
     console.error(`Error calculating GrapeRank: ${error.message}`);
+    console.error(error.stack);
     process.exit(1);
   }
 }
