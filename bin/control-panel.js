@@ -8,12 +8,13 @@
  */
 
 const express = require('express');
-const { exec, execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+const neo4j = require('neo4j-driver');
 const session = require('express-session');
-const spawn = require('child_process').spawn;
+const path = require('path');
+const fs = require('fs');
+const { spawn } = require('child_process');
+const crypto = require('crypto');
+const { exec, execSync } = require('child_process');
 
 // Import configuration
 let config;
