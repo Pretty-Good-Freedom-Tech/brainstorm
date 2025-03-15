@@ -1,0 +1,18 @@
+#!/bin/bash
+# GrapeRank Configuration
+# This file contains configuration values for the GrapeRank algorithm
+
+# Algorithm parameters
+ATTENUATION_FACTOR="0.85"
+RIGOR="0.5"
+
+# Relationship ratings and confidence levels
+FOLLOW_RATING="1"
+FOLLOW_CONFIDENCE="0.03"
+MUTE_RATING="-0.1"
+MUTE_CONFIDENCE="0.5"
+REPORT_RATING="-0.1"
+REPORT_CONFIDENCE="0.5"
+
+# Special handling for owner follows
+FOLLOW_CONFIDENCE_OF_OBSERVER="0.5"

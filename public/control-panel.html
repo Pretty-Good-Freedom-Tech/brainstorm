@@ -908,14 +908,14 @@
                         generateGrapeRankBtn.disabled = false;
                         if (data.success) {
                             generateGrapeRankStatus.className = 'status success';
-                            generateGrapeRankStatus.textContent = data.message;
+                            generateGrapeRankStatus.textContent = 'GrapeRank data generated successfully!';
                             if (data.output) {
                                 generateGrapeRankOutput.style.display = 'block';
                                 generateGrapeRankOutput.textContent = data.output;
                             }
                         } else {
                             generateGrapeRankStatus.className = 'status error';
-                            generateGrapeRankStatus.textContent = data.message;
+                            generateGrapeRankStatus.textContent = 'Error generating GrapeRank data';
                             if (data.output) {
                                 generateGrapeRankOutput.style.display = 'block';
                                 generateGrapeRankOutput.textContent = data.output;
@@ -925,7 +925,7 @@
                     .catch(error => {
                         generateGrapeRankBtn.disabled = false;
                         generateGrapeRankStatus.className = 'status error';
-                        generateGrapeRankStatus.textContent = 'Error generating data: ' + error.message;
+                        generateGrapeRankStatus.textContent = 'Error generating GrapeRank data: ' + error.message;
                     });
             });
             

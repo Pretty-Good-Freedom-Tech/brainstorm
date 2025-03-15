@@ -204,6 +204,14 @@ app.post('/api/negentropy-sync', handleNegentropySync);
 // API endpoint to generate NIP-85 data
 app.get('/api/generate', handleGenerate);
 app.post('/api/generate', handleGenerate);
+app.get('/control/api/generate-pagerank', handleGenerate);
+app.post('/control/api/generate-pagerank', handleGenerate);
+
+// API endpoint to generate GrapeRank data
+app.get('/api/generate-graperank', handleGenerateGrapeRank);
+app.post('/api/generate-graperank', handleGenerateGrapeRank);
+app.get('/control/api/generate-graperank', handleGenerateGrapeRank);
+app.post('/control/api/generate-graperank', handleGenerateGrapeRank);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
@@ -466,6 +474,17 @@ function handleGenerate(req, res) {
     console.log('Generating NIP-85 data...');
     
     exec('hasenpfeffr-generate', (error, stdout, stderr) => {
+        return res.json({
+            success: !error,
+            output: stdout || stderr
+        });
+    });
+}
+
+function handleGenerateGrapeRank(req, res) {
+    console.log('Generating GrapeRank data...');
+    
+    exec('/usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', (error, stdout, stderr) => {
         return res.json({
             success: !error,
             output: stdout || stderr
