@@ -74,6 +74,11 @@ $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start calculatePersonaliz
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop calculatePersonalizedPageRank.timer
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart calculatePersonalizedPageRank.timer
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active calculatePersonalizedPageRank.timer
+
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start calculatePersonalizedGrapeRank.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop calculatePersonalizedGrapeRank.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart calculatePersonalizedGrapeRank.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active calculatePersonalizedGrapeRank.timer
 EOF
 
 # Check syntax of the sudoers entry

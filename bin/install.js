@@ -74,7 +74,15 @@ const configPaths = {
   calculatePersonalizedPageRankServiceFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedPageRank.service'),
   calculatePersonalizedPageRankTimerFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedPageRank.timer'),
   calculatePersonalizedPageRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.service'),
-  calculatePersonalizedPageRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.timer')
+  calculatePersonalizedPageRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.timer'),
+  calculatePersonalizedGrapeRankServiceFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.service'),
+  calculatePersonalizedGrapeRankTimerFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.timer'),
+  calculatePersonalizedGrapeRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.service'),
+  calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer'),
+  hasenpfeffrConfFileSource: path.join(packageRoot, 'setup', 'hasenpfeffr.conf.template'),
+  hasenpfeffrConfFileDestination: '/etc/hasenpfeffr.conf',
+  grapeRankConfFileSource: path.join(packageRoot, 'setup', 'graperank.conf.template'),
+  grapeRankConfFileDestination: '/etc/graperank.conf'
 };
 
 // Configure sudo privileges for hasenpfeffr user and control panel
@@ -138,6 +146,7 @@ async function install() {
     await setupReconcileService();
     await setupCalculatePersonalizedPageRankService();
     await setupCalculateHopsService();
+    await setupCalculatePersonalizedGrapeRankService();
 
     // Step 5: Setup Strfry Neo4j Pipeline
     await installPipeline();
@@ -835,6 +844,64 @@ async function setupPipelineDirectories() {
   } catch (error) {
     console.error('\x1b[31mError setting up pipeline directories:\x1b[0m', error.message);
     console.log('You can set up pipeline directories manually later.');
+  }
+}
+
+async function setupCalculatePersonalizedGrapeRankService() {
+  console.log('\x1b[36m=== Setting Up Calculate Personalized GrapeRank Systemd Service ===\x1b[0m');
+  
+  // Check if we have root privileges
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up calculate personalized GrapeRank systemd service without root privileges.\x1b[0m');
+    return;
+  }
+  
+  try {
+    // Check if calculate personalized GrapeRank service file already exists
+    if (fs.existsSync(configPaths.calculatePersonalizedGrapeRankServiceFileDestination)) {
+      console.log(`calculate personalized GrapeRank service file ${configPaths.calculatePersonalizedGrapeRankServiceFileDestination} already exists.`);
+    } else {
+      console.log(`Creating calculate personalized GrapeRank service file...`);
+      
+      // Read the service file template
+      const serviceFileContent = fs.readFileSync(configPaths.calculatePersonalizedGrapeRankServiceFileSource, 'utf8');
+      
+      // Write the service file
+      fs.writeFileSync(configPaths.calculatePersonalizedGrapeRankServiceFileDestination, serviceFileContent);
+      console.log(`calculate personalized GrapeRank service file created at ${configPaths.calculatePersonalizedGrapeRankServiceFileDestination}`);
+      
+      // Enable the service
+      execSync(`systemctl enable calculatePersonalizedGrapeRank.service`);
+      console.log('calculate personalized GrapeRank service enabled');
+    }
+  } catch (error) {
+    console.error(`Error setting up calculate personalized GrapeRank service: ${error.message}`);
+    console.log(`Source file: ${configPaths.calculatePersonalizedGrapeRankServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.calculatePersonalizedGrapeRankServiceFileDestination}`);
+  }
+  
+  try {
+    // check if calculatePersonalizedGrapeRank timer file already exists
+    if (fs.existsSync(configPaths.calculatePersonalizedGrapeRankTimerFileDestination)) {
+      console.log(`calculate personalized GrapeRank timer file ${configPaths.calculatePersonalizedGrapeRankTimerFileDestination} already exists.`);
+    } else {
+      console.log(`Creating calculate personalized GrapeRank timer file...`);
+      
+      // Read the timer file template
+      const timerFileContent = fs.readFileSync(configPaths.calculatePersonalizedGrapeRankTimerFileSource, 'utf8');
+      
+      // Write the timer file
+      fs.writeFileSync(configPaths.calculatePersonalizedGrapeRankTimerFileDestination, timerFileContent);
+      console.log(`calculate personalized GrapeRank timer file created at ${configPaths.calculatePersonalizedGrapeRankTimerFileDestination}`);
+      
+      // Enable the timer
+      execSync(`systemctl enable calculatePersonalizedGrapeRank.timer`);
+      console.log('calculate personalized GrapeRank timer enabled');
+    }
+  } catch (error) {
+    console.error(`Error setting up calculate personalized GrapeRank timer: ${error.message}`);
+    console.log(`Source file: ${configPaths.calculatePersonalizedGrapeRankTimerFileSource}`);
+    console.log(`Destination file: ${configPaths.calculatePersonalizedGrapeRankTimerFileDestination}`);
   }
 }
 

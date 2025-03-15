@@ -31,3 +31,8 @@ chmod +x *.mjs
 echo "=== Plugins Installation ==="
 cd /usr/local/lib/node_modules/hasenpfeffr/src/plugins
 chmod +x *.js
+
+cd /var/lib
+sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
+cd /var/log
+sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr

@@ -12,8 +12,7 @@ sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculateHops.sh
 
 sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculatePersonalizedPageRank.sh
 
-# forthcoming:
-# sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculatePersonalizedGrapeRank.sh
+sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
 
 sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/exportWhitelist.sh
 

@@ -60,17 +60,32 @@ const event = {
       relayUrl
     ],
     [
-      "30382:personalized_grapeRank",
+      "30382:personalizedGrapeRank_influence",
       relayPubkey,
       relayUrl
     ],
     [
-      "30382:personalized_pageRank",
+      "30382:personalizedGrapeRank_average",
       relayPubkey,
       relayUrl
     ],
     [
-      "30382:dos",
+      "30382:personalizedGrapeRank_confidence",
+      relayPubkey,
+      relayUrl
+    ],
+    [
+      "30382:personalizedGrapeRank_input",
+      relayPubkey,
+      relayUrl
+    ],
+    [
+      "30382:personalizedPageRank",
+      relayPubkey,
+      relayUrl
+    ],
+    [
+      "30382:hops",
       relayPubkey,
       relayUrl
     ]

@@ -320,11 +320,19 @@
         <div class="section">
             <h2>NIP-85 Operations</h2>
             <div class="card">
-                <h3>Generate NIP-85 Data</h3>
+                <h3>Generate PageRank Data</h3>
                 <p>Generate personalized PageRank scores for Nostr users.</p>
-                <button id="generateBtn" class="button">Generate Data</button>
+                <button id="generateBtn" class="button">Generate PageRank Data</button>
                 <div id="generateStatus" class="status" style="display: none;"></div>
                 <pre id="generateOutput" style="display: none;"></pre>
+            </div>
+            
+            <div class="card">
+                <h3>Generate GrapeRank Data</h3>
+                <p>Generate personalized GrapeRank scores for Nostr users based on FOLLOWS, MUTES, and REPORTS relationships.</p>
+                <button id="generateGrapeRankBtn" class="button">Generate GrapeRank Data</button>
+                <div id="generateGrapeRankStatus" class="status" style="display: none;"></div>
+                <pre id="generateGrapeRankOutput" style="display: none;"></pre>
             </div>
             
             <div class="card">
@@ -531,7 +539,8 @@
                             'processQueue': 'Processes pubkeys from queue',
                             'reconcile.timer': 'Scheduled task to reconcile graph data',
                             'calculateHops.timer': 'Scheduled task to calculate network hops',
-                            'calculatePersonalizedPageRank.timer': 'Scheduled task to calculate PageRank scores'
+                            'calculatePersonalizedPageRank.timer': 'Scheduled task to calculate PageRank scores',
+                            'calculatePersonalizedGrapeRank.timer': 'Scheduled task to calculate GrapeRank scores'
                         };
                         
                         // Separate regular services from timer services
@@ -851,29 +860,73 @@
                 generateBtn.disabled = true;
                 generateStatus.style.display = 'block';
                 generateStatus.className = 'status info';
-                generateStatus.textContent = 'Generating NIP-85 data...';
-                generateOutput.style.display = 'block';
-                generateOutput.textContent = 'Starting data generation...\n';
+                generateStatus.textContent = 'Generating PageRank data...';
+                generateOutput.style.display = 'none';
                 
-                fetch('/control/api/generate')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        generateStatus.className = 'status success';
-                        generateStatus.textContent = 'NIP-85 data generated successfully!';
-                    } else {
+                fetch('/control/api/generate-pagerank')
+                    .then(response => response.json())
+                    .then(data => {
+                        generateBtn.disabled = false;
+                        if (data.success) {
+                            generateStatus.className = 'status success';
+                            generateStatus.textContent = data.message;
+                            if (data.output) {
+                                generateOutput.style.display = 'block';
+                                generateOutput.textContent = data.output;
+                            }
+                        } else {
+                            generateStatus.className = 'status error';
+                            generateStatus.textContent = data.message;
+                            if (data.output) {
+                                generateOutput.style.display = 'block';
+                                generateOutput.textContent = data.output;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        generateBtn.disabled = false;
                         generateStatus.className = 'status error';
-                        generateStatus.textContent = 'Error generating data: ' + data.error;
-                    }
-                    
-                    generateOutput.textContent += data.output;
-                    generateBtn.disabled = false;
-                })
-                .catch(error => {
-                    generateStatus.className = 'status error';
-                    generateStatus.textContent = 'Error generating data: ' + error.message;
-                    generateBtn.disabled = false;
-                });
+                        generateStatus.textContent = 'Error generating data: ' + error.message;
+                    });
+            });
+            
+            // GrapeRank Data Generation
+            const generateGrapeRankBtn = document.getElementById('generateGrapeRankBtn');
+            const generateGrapeRankStatus = document.getElementById('generateGrapeRankStatus');
+            const generateGrapeRankOutput = document.getElementById('generateGrapeRankOutput');
+            
+            generateGrapeRankBtn.addEventListener('click', function() {
+                generateGrapeRankBtn.disabled = true;
+                generateGrapeRankStatus.style.display = 'block';
+                generateGrapeRankStatus.className = 'status info';
+                generateGrapeRankStatus.textContent = 'Generating GrapeRank data...';
+                generateGrapeRankOutput.style.display = 'none';
+                
+                fetch('/control/api/generate-graperank')
+                    .then(response => response.json())
+                    .then(data => {
+                        generateGrapeRankBtn.disabled = false;
+                        if (data.success) {
+                            generateGrapeRankStatus.className = 'status success';
+                            generateGrapeRankStatus.textContent = 'GrapeRank data generated successfully!';
+                            if (data.output) {
+                                generateGrapeRankOutput.style.display = 'block';
+                                generateGrapeRankOutput.textContent = data.output;
+                            }
+                        } else {
+                            generateGrapeRankStatus.className = 'status error';
+                            generateGrapeRankStatus.textContent = 'Error generating GrapeRank data';
+                            if (data.output) {
+                                generateGrapeRankOutput.style.display = 'block';
+                                generateGrapeRankOutput.textContent = data.output;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        generateGrapeRankBtn.disabled = false;
+                        generateGrapeRankStatus.className = 'status error';
+                        generateGrapeRankStatus.textContent = 'Error generating GrapeRank data: ' + error.message;
+                    });
             });
             
             // Publish Events Button

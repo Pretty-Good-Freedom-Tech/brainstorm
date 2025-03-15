@@ -1,0 +1,8 @@
+[Unit]
+Description=calculate personalizedGrapeRank and store scores in Neo4j
+
+[Service]
+ExecStart=sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
+
+[Install]
+WantedBy=multi-user.target

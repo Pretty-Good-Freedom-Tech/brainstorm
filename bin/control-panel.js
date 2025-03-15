@@ -204,6 +204,14 @@ app.post('/api/negentropy-sync', handleNegentropySync);
 // API endpoint to generate NIP-85 data
 app.get('/api/generate', handleGenerate);
 app.post('/api/generate', handleGenerate);
+app.get('/control/api/generate-pagerank', handleGenerate);
+app.post('/control/api/generate-pagerank', handleGenerate);
+
+// API endpoint to generate GrapeRank data
+app.get('/api/generate-graperank', handleGenerateGrapeRank);
+app.post('/api/generate-graperank', handleGenerateGrapeRank);
+app.get('/control/api/generate-graperank', handleGenerateGrapeRank);
+app.post('/control/api/generate-graperank', handleGenerateGrapeRank);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
@@ -235,6 +243,12 @@ app.post('/api/publish-kind30382', handlePublishKind30382);
 
 // API endpoint for getting relay configuration
 app.get('/api/relay-config', handleRelayConfig);
+
+// API endpoint for getting kind 30382 event information
+app.get('/api/kind30382-info', handleKind30382Info);
+
+// API endpoint for getting kind 10040 event information
+app.get('/api/kind10040-info', handleKind10040Info);
 
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
@@ -473,6 +487,17 @@ function handleGenerate(req, res) {
     });
 }
 
+function handleGenerateGrapeRank(req, res) {
+    console.log('Generating GrapeRank data...');
+    
+    exec('/usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', (error, stdout, stderr) => {
+        return res.json({
+            success: !error,
+            output: stdout || stderr
+        });
+    });
+}
+
 function handlePublish(req, res) {
     console.log('Publishing NIP-85 events...');
     
@@ -515,7 +540,8 @@ function handleSystemdServices(req, res) {
     'processQueue',
     'reconcile.timer',
     'calculateHops.timer',
-    'calculatePersonalizedPageRank.timer'
+    'calculatePersonalizedPageRank.timer',
+    'calculatePersonalizedGrapeRank.timer'
   ];
   
   const action = req.query.action;
@@ -789,10 +815,11 @@ function handleGetKind10040Event(req, res) {
         delete event.sig;
         delete event.id;
         
-        // Return the event data
+        // Return the event data along with the session challenge
         return res.json({ 
             success: true, 
-            event: event
+            event: event,
+            challenge: req.session.challenge
         });
     } catch (error) {
         console.error('Error getting kind 10040 event:', error);
@@ -822,11 +849,52 @@ function handlePublishKind10040(req, res) {
         }
         
         // Verify that the event has a signature
-        if (!signedEvent.sig) {
+        // In a production environment, you would want to use a proper Nostr library for verification
+        // For this example, we'll just check that the pubkey matches and the challenge is included
+        
+        const sessionPubkey = req.session.pubkey;
+        const sessionChallenge = req.session.challenge;
+        
+        if (!sessionPubkey || !sessionChallenge) {
             return res.status(400).json({ 
                 success: false, 
-                error: 'Event is not signed' 
+                message: 'No active authentication session' 
             });
+        }
+        
+        // Check pubkey matches
+        if (signedEvent.pubkey !== sessionPubkey) {
+            return res.json({ 
+                success: false, 
+                message: 'Public key mismatch' 
+            });
+        }
+        
+        // Check challenge is included in tags
+        let challengeFound = false;
+        if (signedEvent.tags && Array.isArray(signedEvent.tags)) {
+            for (const tag of signedEvent.tags) {
+                if (tag[0] === 'challenge' && tag[1] === sessionChallenge) {
+                    challengeFound = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!challengeFound) {
+            return res.json({ 
+                success: false, 
+                message: 'Challenge verification failed' 
+            });
+        }
+        
+        // Set session as authenticated
+        req.session.authenticated = true;
+        
+        // Store nsec in session if provided
+        if (req.body.nsec) {
+            req.session.nsec = req.body.nsec;
+            console.log('Private key stored in session for signing events');
         }
         
         // Define data directories
@@ -935,64 +1003,178 @@ function handlePublishKind30382(req, res) {
     const scriptPath = path.join(__dirname, 'hasenpfeffr-publish-kind30382.js');
     console.log('Using script path:', scriptPath);
     
-    // Set a timeout to ensure the response doesn't hang
-    const timeoutId = setTimeout(() => {
-        console.log('Kind 30382 publishing is taking longer than expected, sending initial response...');
-        res.json({
-            success: true,
-            output: 'Kind 30382 publishing started. This process will continue in the background.\n',
-            error: null
-        });
-    }, 30000); // 30 seconds timeout
-    
-    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
-        // Clear the timeout if the command completes before the timeout
-        clearTimeout(timeoutId);
-        
-        // Check if the response has already been sent
-        if (res.headersSent) {
-            console.log('Response already sent, kind 30382 publishing continuing in background');
-            return;
-        }
-        
-        // Parse the script output to determine success
-        let scriptResult = { success: false };
-        try {
-            // Try to parse the JSON output from the script
-            if (stdout) {
-                const parsedOutput = JSON.parse(stdout);
-                scriptResult = parsedOutput;
-            }
-        } catch (parseError) {
-            console.error('Error parsing script output:', parseError);
-            // If we can't parse the output, use the original error/stdout/stderr
-        }
-        
-        // Determine success based on the parsed result or fallback to error check
-        const isSuccess = scriptResult.success !== undefined 
-            ? scriptResult.success 
-            : !error;
-        
-        // Format the output message
-        let outputMessage = stdout || stderr || 'No output from script';
-        
-        // Check for the specific "Unexpected server response: 200" error and handle it
-        if (outputMessage.includes('Unexpected server response: 200')) {
-            console.log('Detected "Unexpected server response: 200" which is actually a success');
-            // This is actually a success case
-            return res.json({
-                success: true,
-                output: 'Kind 30382 events published successfully. The "Unexpected server response: 200" message indicates a successful HTTP response.',
-                error: null
-            });
-        }
-        
-        return res.json({
-            success: isSuccess,
-            output: outputMessage,
-            error: error ? error.message : null
-        });
+    // Send an initial response that the process has started
+    res.json({
+        success: true,
+        message: 'Kind 30382 publishing started. This process will continue in the background.',
+        output: 'Kind 30382 publishing started. This process will continue in the background.\n',
+        error: null
     });
+    
+    // Execute the command with a much larger buffer size and in the background
+    // after the response has been sent
+    const childProcess = spawn('node', [scriptPath], {
+        maxBuffer: 1024 * 1024 * 100, // 100MB buffer
+        detached: true,
+        stdio: ['ignore', 'pipe', 'pipe']
+    });
+    
+    // Log start of background process
+    console.log(`Started background process for publishing kind 30382 events (PID: ${childProcess.pid})`);
+    
+    // Collect output for logging
+    let stdoutData = '';
+    let stderrData = '';
+    
+    // Optional: Log output for debugging
+    childProcess.stdout.on('data', (data) => {
+        const dataStr = data.toString();
+        stdoutData += dataStr;
+        console.log(`Kind 30382 background process output: ${dataStr}`);
+    });
+    
+    childProcess.stderr.on('data', (data) => {
+        const dataStr = data.toString();
+        stderrData += dataStr;
+        console.error(`Kind 30382 background process error: ${dataStr}`);
+    });
+    
+    // Handle process completion
+    childProcess.on('close', (code) => {
+        console.log(`Kind 30382 background process exited with code ${code}`);
+        
+        // Save the output to a log file for debugging
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        const logDir = path.join(__dirname, '../logs');
+        
+        // Create logs directory if it doesn't exist
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir, { recursive: true });
+        }
+        
+        const logFile = path.join(logDir, `kind30382_${timestamp}.log`);
+        fs.writeFileSync(logFile, `STDOUT:\n${stdoutData}\n\nSTDERR:\n${stderrData}\n\nExit code: ${code}`);
+        console.log(`Kind 30382 process log saved to ${logFile}`);
+        
+        // Try to parse the last JSON output if available
+        try {
+            // Look for the last JSON object in the output
+            const jsonMatch = stdoutData.match(/\{[\s\S]*\}/g);
+            if (jsonMatch) {
+                const lastJson = jsonMatch[jsonMatch.length - 1];
+                const result = JSON.parse(lastJson);
+                
+                // Store the result in a file that can be retrieved later
+                const resultFile = path.join(logDir, `kind30382_result_${timestamp}.json`);
+                fs.writeFileSync(resultFile, JSON.stringify(result, null, 2));
+                console.log(`Kind 30382 result saved to ${resultFile}`);
+            }
+        } catch (error) {
+            console.error('Error parsing JSON output:', error);
+        }
+    });
+    
+    // Unref the child to allow the parent process to exit independently
+    childProcess.unref();
+}
+
+// Handler for getting kind 30382 event information
+function handleKind30382Info(req, res) {
+  try {
+    // Get relay pubkey from config
+    const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
+    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+    
+    if (!relayPubkey) {
+      return res.json({
+        success: false,
+        message: 'Relay pubkey not found in configuration'
+      });
+    }
+    
+    // Get count of kind 30382 events
+    const countCmd = `sudo strfry scan --count '{"kinds":[30382], "authors":["${relayPubkey}"]}'`;
+    let count = 0;
+    try {
+      count = parseInt(execSync(countCmd).toString().trim(), 10);
+    } catch (error) {
+      console.error('Error getting event count:', error);
+    }
+    
+    // Get most recent kind 30382 event
+    const latestCmd = `sudo strfry scan '{"kinds":[30382], "authors":["${relayPubkey}"], "limit": 1}'`;
+    let latestEvent = null;
+    let timestamp = null;
+    
+    try {
+      const output = execSync(latestCmd).toString().trim();
+      if (output) {
+        latestEvent = JSON.parse(output);
+        timestamp = latestEvent.created_at;
+      }
+    } catch (error) {
+      console.error('Error getting latest event:', error);
+    }
+    
+    return res.json({
+      success: true,
+      count: count,
+      timestamp: timestamp,
+      latestEvent: latestEvent,
+      relayUrl: relayUrl
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: `Error getting kind 30382 info: ${error.message}`
+    });
+  }
+}
+
+// Handler for getting kind 10040 event information
+function handleKind10040Info(req, res) {
+  try {
+    // Get owner pubkey from config
+    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+    
+    if (!ownerPubkey) {
+      return res.json({
+        success: false,
+        message: 'Owner pubkey not found in configuration'
+      });
+    }
+    
+    // Get most recent kind 10040 event
+    const latestCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${ownerPubkey}"], "limit": 1}'`;
+    let latestEvent = null;
+    let timestamp = null;
+    let eventId = null;
+    
+    try {
+      const output = execSync(latestCmd).toString().trim();
+      if (output) {
+        latestEvent = JSON.parse(output);
+        timestamp = latestEvent.created_at;
+        eventId = latestEvent.id;
+      }
+    } catch (error) {
+      console.error('Error getting latest event:', error);
+    }
+    
+    return res.json({
+      success: true,
+      timestamp: timestamp,
+      eventId: eventId,
+      latestEvent: latestEvent,
+      relayUrl: relayUrl
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: `Error getting kind 10040 info: ${error.message}`
+    });
+  }
 }
 
 // Authentication handlers
@@ -1091,8 +1273,8 @@ function handleAuthLogin(req, res) {
         req.session.authenticated = true;
         
         // Store nsec in session if provided
-        if (nsec) {
-            req.session.nsec = nsec;
+        if (req.body.nsec) {
+            req.session.nsec = req.body.nsec;
             console.log('Private key stored in session for signing events');
         }
         

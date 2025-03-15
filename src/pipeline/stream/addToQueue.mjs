@@ -70,18 +70,19 @@ const pathToQueue = '/var/lib/hasenpfeffr/pipeline/stream/queue/'
 
 const ndk = new NDK({explicitRelayUrls})
 
-const filter = { kinds: [3], limit: 0 }
+// Subscribe to kind 3 (follows), kind 10000 (mutes), and kind 1984 (reports) events
+const filter = { kinds: [3, 10000, 1984], limit: 0 }
 
-// create file with pubkey as the name; this way, if multiple follows happen in rapid fire succession,
-// we only process that pubkey one time
+// Create file with pubkey_kind as the name; this way, if multiple events of the same kind happen in rapid succession,
+// we only process that pubkey+kind combination one time
 const addEventToQueue = (event) => {
     const dataToWrite = JSON.stringify(event) + '\n'
-    const thisFilePath = pathToQueue + event.pubkey
+    const thisFilePath = `${pathToQueue}${event.pubkey}_${event.kind}`
     fs.writeFile(thisFilePath, dataToWrite, (err) => {
       if (err) {
         console.error('Error writing to file:', err);
       } else {
-        console.log('File written successfully.');
+        console.log(`File written successfully: ${thisFilePath}`);
       }
     });
 }
@@ -91,9 +92,9 @@ const runListener = async () => {
     await ndk.connect()
     const sub1 = ndk.subscribe(filter)
     sub1.on('event', async (event) => {
-      console.log(`event received; id: ${event.id}; pubkey: ${event.pubkey}`)
+      console.log(`event received; id: ${event.id}; pubkey: ${event.pubkey}; kind: ${event.kind}`)
       // remove content field to decrease bloat and processing errors
-      const event_stripped = {id: event.id, pubkey: event.pubkey, created_at: event.created_at, kind: event.kind}
+      const event_stripped = {id: event.id, pubkey: event.pubkey, created_at: event.created_at, kind: event.kind, tags: event.tags}
       console.log(JSON.stringify(event_stripped,null,4))
       addEventToQueue(event_stripped)
     })

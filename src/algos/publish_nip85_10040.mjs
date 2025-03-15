@@ -337,7 +337,14 @@ async function waitForRelayConnections(ndk, timeout = 10000) {
 }
 
 // Define relay URLs to publish to
-const explicitRelayUrls = ['wss://relay.primal.net', 'wss://relay.hasenpfeffr.com','wss://relay.damus.io'];
+const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL') || process.env.HASENPFEFFR_RELAY_URL;
+const explicitRelayUrls = ['wss://relay.primal.net', 'wss://relay.hasenpfeffr.com', 'wss://relay.damus.io'];
+
+// Add the local relay URL if it exists and isn't already in the list
+if (relayUrl && !explicitRelayUrls.includes(relayUrl)) {
+  console.log(`Adding local relay URL from configuration: ${relayUrl}`);
+  explicitRelayUrls.push(relayUrl);
+}
 
 // Get the owner public key from configuration or environment
 const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY') || process.env.HASENPFEFFR_OWNER_PUBKEY;

@@ -43,3 +43,9 @@ chmod 440 "$SUDOERS_FILE"
 
 echo "Successfully configured sudo privileges for $USERNAME without password"
 echo "The user can now run sudo commands without being prompted for a password"
+
+# Set permissions for Hasenpfeffr scripts
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.sh
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.js
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.mjs
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.py
