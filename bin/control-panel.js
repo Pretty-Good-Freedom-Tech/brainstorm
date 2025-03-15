@@ -892,8 +892,8 @@ function handlePublishKind10040(req, res) {
         req.session.authenticated = true;
         
         // Store nsec in session if provided
-        if (nsec) {
-            req.session.nsec = nsec;
+        if (req.body.nsec) {
+            req.session.nsec = req.body.nsec;
             console.log('Private key stored in session for signing events');
         }
         
@@ -1258,8 +1258,8 @@ function handleAuthLogin(req, res) {
         req.session.authenticated = true;
         
         // Store nsec in session if provided
-        if (nsec) {
-            req.session.nsec = nsec;
+        if (req.body.nsec) {
+            req.session.nsec = req.body.nsec;
             console.log('Private key stored in session for signing events');
         }
         
