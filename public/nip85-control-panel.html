@@ -450,13 +450,13 @@
                             
                             // Display the events preview
                             kind30382Output.style.display = 'block';
-                            kind30382EventPreview.textContent = JSON.stringify(data.events, null, 2);
+                            kind30382EventPreview.textContent = data.output || 'Events published successfully';
                             
                             // Refresh the event info after publishing
                             fetchKind30382Info();
                         } else {
                             kind30382Status.className = 'status-message error';
-                            kind30382Status.textContent = `Error: ${data.message}`;
+                            kind30382Status.textContent = `Error: ${data.error || data.output || 'Unknown error'}`;
                         }
                     })
                     .catch(error => {
