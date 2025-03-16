@@ -445,36 +445,16 @@
         const urlParams = new URLSearchParams(window.location.search);
         const pubkey = urlParams.get('pubkey');
         
-        // DOM Elements
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const errorMessage = document.getElementById('errorMessage');
+        // Get DOM elements
         const profileContainer = document.getElementById('profileContainer');
-        const profilePicture = document.getElementById('profilePicture');
-        const displayName = document.getElementById('displayName');
-        const username = document.getElementById('username');
-        const nip05 = document.getElementById('nip05');
-        const pubkeyDisplay = document.getElementById('pubkeyDisplay');
-        const profileLinks = document.getElementById('profileLinks');
-        const pageRankValue = document.getElementById('pageRankValue');
-        const hopsValue = document.getElementById('hopsValue');
-        const influenceValue = document.getElementById('influenceValue');
-        const confidenceValue = document.getElementById('confidenceValue');
-        const aboutText = document.getElementById('aboutText');
-        const metadataTable = document.getElementById('metadataTable');
-        const followingCountValue = document.getElementById('followingCountValue');
-        const followerCountValue = document.getElementById('followerCountValue');
-        const mutingCountValue = document.getElementById('mutingCountValue');
-        const muterCountValue = document.getElementById('muterCountValue');
-        const reportingCountValue = document.getElementById('reportingCountValue');
-        const reporterCountValue = document.getElementById('reporterCountValue');
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
         
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!pubkey) {
-                showError('No pubkey provided');
-                return;
-            }
-            
+        // Determine the base URL for API calls
+        const baseUrl = window.location.pathname.includes('/control/') ? '/control' : '';
+        
+        // Load profile data if pubkey is provided
+        if (pubkey) {
             // Hide error message
             errorMessage.style.display = 'none';
             
@@ -485,18 +465,24 @@
             // Set the pubkey in the display
             pubkeyDisplay.textContent = pubkey;
             
-            // Determine the base URL for API calls
-            const baseUrl = window.location.pathname.includes('/control/') ? '/control' : '';
-            
-            // Fetch profile data
+            // Sequential API calls to prevent concurrent request issues
+            loadProfileDataSequentially(pubkey, baseUrl);
+        } else {
+            // Show error message if no pubkey is provided
+            showError('No pubkey provided');
+        }
+        
+        // Function to load profile data sequentially
+        function loadProfileDataSequentially(pubkey, baseUrl) {
+            // Step 1: Load Neo4j data
             fetch(`${baseUrl}/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update the profile stats
+                        displayNeo4jData(data.data);
                         updateProfileStats(data.data);
                         
-                        // Now fetch the kind 0 event
+                        // Step 2: Only after Neo4j data is loaded, fetch kind 0 data
                         return fetch(`${baseUrl}/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`);
                     } else {
                         throw new Error(data.message || 'Failed to fetch Neo4j data');
@@ -505,79 +491,90 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update the profile with kind 0 data
-                        updateProfileFromKind0(data.data);
+                        displayKind0Data(data.data);
                         
-                        // Show the profile container
+                        // Show profile container
                         loadingIndicator.style.display = 'none';
                         profileContainer.style.display = 'flex';
                         
-                        // Fetch and display network data
-                        fetchAndDisplayNetworkData(pubkey, baseUrl);
+                        // Step 3: Only after kind 0 data is loaded, fetch network data
+                        // Wait a short delay to ensure the previous request is fully complete
+                        setTimeout(() => {
+                            fetchAndDisplayNetworkData(pubkey, baseUrl);
+                        }, 500);
                     } else {
                         // If we can't get kind 0 data, still show what we have
                         console.warn('Could not fetch kind 0 data:', data.message);
+                        
+                        // Show profile container
                         loadingIndicator.style.display = 'none';
                         profileContainer.style.display = 'flex';
+                        
+                        // Step 3: Fetch network data with a delay
+                        setTimeout(() => {
+                            fetchAndDisplayNetworkData(pubkey, baseUrl);
+                        }, 500);
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching profile data:', error);
                     showError(`Error fetching profile data: ${error.message}`);
                 });
-        });
+        }
         
-        function updateProfileStats(userData) {
+        // Function to display Neo4j data
+        function displayNeo4jData(data) {
             // Update the profile stats with Neo4j data
-            if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
-                pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
+            if (data.personalizedPageRank !== null && data.personalizedPageRank !== undefined) {
+                pageRankValue.textContent = parseFloat(data.personalizedPageRank).toFixed(4);
             }
             
-            if (userData.hops !== null && userData.hops !== undefined) {
-                hopsValue.textContent = userData.hops;
+            if (data.hops !== null && data.hops !== undefined) {
+                hopsValue.textContent = data.hops;
             }
             
-            if (userData.influence !== null && userData.influence !== undefined) {
-                influenceValue.textContent = parseFloat(userData.influence).toFixed(4);
+            if (data.influence !== null && data.influence !== undefined) {
+                influenceValue.textContent = parseFloat(data.influence).toFixed(4);
             }
             
-            if (userData.confidence !== null && userData.confidence !== undefined) {
-                confidenceValue.textContent = parseFloat(userData.confidence).toFixed(4);
+            if (data.confidence !== null && data.confidence !== undefined) {
+                confidenceValue.textContent = parseFloat(data.confidence).toFixed(4);
             }
             
-            if (userData.followingCount !== null && userData.followingCount !== undefined) {
-                followingCountValue.textContent = userData.followingCount;
+            if (data.followingCount !== null && data.followingCount !== undefined) {
+                followingCountValue.textContent = data.followingCount;
             }
             
-            if (userData.followerCount !== null && userData.followerCount !== undefined) {
-                followerCountValue.textContent = userData.followerCount;
+            if (data.followerCount !== null && data.followerCount !== undefined) {
+                followerCountValue.textContent = data.followerCount;
             }
             
-            if (userData.mutingCount !== null && userData.mutingCount !== undefined) {
-                mutingCountValue.textContent = userData.mutingCount;
+            if (data.mutingCount !== null && data.mutingCount !== undefined) {
+                mutingCountValue.textContent = data.mutingCount;
             }
             
-            if (userData.muterCount !== null && userData.muterCount !== undefined) {
-                muterCountValue.textContent = userData.muterCount;
+            if (data.muterCount !== null && data.muterCount !== undefined) {
+                muterCountValue.textContent = data.muterCount;
             }
             
-            if (userData.reportingCount !== null && userData.reportingCount !== undefined) {
-                reportingCountValue.textContent = userData.reportingCount;
+            if (data.reportingCount !== null && data.reportingCount !== undefined) {
+                reportingCountValue.textContent = data.reportingCount;
             }
             
-            if (userData.reporterCount !== null && userData.reporterCount !== undefined) {
-                reporterCountValue.textContent = userData.reporterCount;
+            if (data.reporterCount !== null && data.reporterCount !== undefined) {
+                reporterCountValue.textContent = data.reporterCount;
             }
         }
         
-        function updateProfileFromKind0(kind0Data) {
-            if (!kind0Data || !kind0Data.content) {
+        // Function to display kind 0 data
+        function displayKind0Data(data) {
+            if (!data || !data.content) {
                 return;
             }
             
             try {
                 // Parse the content as JSON
-                const profileContent = JSON.parse(kind0Data.content);
+                const profileContent = JSON.parse(data.content);
                 
                 // Update display name
                 if (profileContent.name) {
@@ -647,19 +644,64 @@
                 }
                 
                 // Add event metadata
-                if (kind0Data.created_at) {
-                    const date = new Date(kind0Data.created_at * 1000);
+                if (data.created_at) {
+                    const date = new Date(data.created_at * 1000);
                     addMetadataRow('Profile Updated', date.toLocaleString());
                 }
                 
-                if (kind0Data.id) {
-                    addMetadataRow('Event ID', kind0Data.id);
+                if (data.id) {
+                    addMetadataRow('Event ID', data.id);
                 }
             } catch (error) {
                 console.error('Error parsing profile content:', error);
             }
         }
         
+        // Function to update profile stats
+        function updateProfileStats(userData) {
+            // Update the profile stats with Neo4j data
+            if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
+                pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
+            }
+            
+            if (userData.hops !== null && userData.hops !== undefined) {
+                hopsValue.textContent = userData.hops;
+            }
+            
+            if (userData.influence !== null && userData.influence !== undefined) {
+                influenceValue.textContent = parseFloat(userData.influence).toFixed(4);
+            }
+            
+            if (userData.confidence !== null && userData.confidence !== undefined) {
+                confidenceValue.textContent = parseFloat(userData.confidence).toFixed(4);
+            }
+            
+            if (userData.followingCount !== null && userData.followingCount !== undefined) {
+                followingCountValue.textContent = userData.followingCount;
+            }
+            
+            if (userData.followerCount !== null && userData.followerCount !== undefined) {
+                followerCountValue.textContent = userData.followerCount;
+            }
+            
+            if (userData.mutingCount !== null && userData.mutingCount !== undefined) {
+                mutingCountValue.textContent = userData.mutingCount;
+            }
+            
+            if (userData.muterCount !== null && userData.muterCount !== undefined) {
+                muterCountValue.textContent = userData.muterCount;
+            }
+            
+            if (userData.reportingCount !== null && userData.reportingCount !== undefined) {
+                reportingCountValue.textContent = userData.reportingCount;
+            }
+            
+            if (userData.reporterCount !== null && userData.reporterCount !== undefined) {
+                reporterCountValue.textContent = userData.reporterCount;
+            }
+        }
+        
+        // Function to add profile link
         function addProfileLink(label, url) {
             const link = document.createElement('a');
             link.href = url;
@@ -669,6 +711,7 @@
             profileLinks.appendChild(link);
         }
         
+        // Function to add metadata row
         function addMetadataRow(key, value) {
             const row = document.createElement('tr');
             
@@ -696,6 +739,7 @@
             metadataTable.appendChild(row);
         }
         
+        // Function to show error message
         function showError(message) {
             loadingIndicator.style.display = 'none';
             profileContainer.style.display = 'none';
@@ -703,6 +747,7 @@
             errorMessage.textContent = message;
         }
         
+        // Function to fetch and display network data
         function fetchAndDisplayNetworkData(pubkey, baseUrl) {
             // Show network loading state
             const networkLoading = document.getElementById('networkLoading');
@@ -777,6 +822,7 @@
             xhr.send();
         }
         
+        // Function to render network visualization
         function renderNetworkVisualization(data) {
             try {
                 // Check if we have valid data

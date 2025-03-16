@@ -93,26 +93,26 @@ async function configureSudoPrivileges() {
   if (!isRoot) {
     console.log('\x1b[33mWarning: Not running as root. Sudo privileges configuration will be skipped.\x1b[0m');
     console.log('To configure sudo privileges later, run:');
-    console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
-    console.log(`sudo ${configPaths.controlPanelSudoScript}`);
+    console.log(`sudo bash ${configPaths.sudoPrivilegesScript}`);
+    console.log(`sudo bash ${configPaths.controlPanelSudoScript}`);
     return;
   }
   
   try {
     // Configure general sudo privileges for hasenpfeffr user
     console.log('Configuring sudo privileges for hasenpfeffr user...');
-    execSync(`bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
+    execSync(`sudo bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
     
     // Configure specific sudo privileges for control panel
     console.log('Configuring sudo privileges for control panel...');
-    execSync(`bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
+    execSync(`sudo bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
     
     console.log('\x1b[32mSudo privileges configured successfully.\x1b[0m');
   } catch (error) {
     console.error('\x1b[31mError configuring sudo privileges:\x1b[0m', error.message);
     console.log('You can configure sudo privileges manually later by running:');
-    console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
-    console.log(`sudo ${configPaths.controlPanelSudoScript}`);
+    console.log(`sudo bash ${configPaths.sudoPrivilegesScript}`);
+    console.log(`sudo bash ${configPaths.controlPanelSudoScript}`);
   }
 }
 
