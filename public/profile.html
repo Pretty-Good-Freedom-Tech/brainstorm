@@ -399,6 +399,7 @@
                 
                 <div class="network-visualization">
                     <h3>Network Proximity Visualization</h3>
+                    <p><a href="network-visualization-lite.html?pubkey={{pubkey}}" id="networkLink" target="_blank">Open Network Visualization in New Tab</a> (Lite version to prevent server overload)</p>
                     <div id="networkContainer" class="network-container">
                         <div id="networkLoading" class="network-loading"></div>
                         <div id="networkLegend" class="network-legend">
@@ -452,6 +453,12 @@
         
         // Determine the base URL for API calls
         const baseUrl = window.location.pathname.includes('/control/') ? '/control' : '';
+        
+        // Update network visualization link with the pubkey
+        const networkLink = document.getElementById('networkLink');
+        if (networkLink && pubkey) {
+            networkLink.href = `network-visualization-lite.html?pubkey=${encodeURIComponent(pubkey)}`;
+        }
         
         // Load profile data if pubkey is provided
         if (pubkey) {
@@ -861,542 +868,369 @@
                     'reporters': '#c0392b'
                 };
                 
-                // Fix data format issues - ensure nodes have unique IDs and links reference them correctly
-                const nodesById = {};
+                // Create SVG container
+                const svg = d3.select('#networkContainer')
+                    .append('svg')
+                    .attr('width', 600)
+                    .attr('height', 400);
                 
-                // Create a map of nodes by ID for quick lookup
+                // Add arrow markers for directional links
+                svg.append("defs").selectAll("marker")
+                    .data(["following", "followers", "muting", "muters", "reporting", "reporters"])
+                    .enter().append("marker")
+                    .attr("id", d => `arrow-${d}`)
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 25)  // Position the arrow away from the node
+                    .attr("refY", 0)
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .attr("orient", "auto")
+                    .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")
+                    .attr("fill", d => linkColors[d] || "#999");
+                
+                // Add defs for profile picture patterns
+                const defs = svg.append("defs");
+                
+                // Create patterns for each node with a profile picture
                 data.nodes.forEach(node => {
-                    nodesById[node.id] = node;
-                });
-                
-                // Filter out any links that reference non-existent nodes
-                const validLinks = data.links.filter(link => {
-                    // Check if source exists
-                    let sourceExists = false;
-                    if (typeof link.source === 'string') {
-                        sourceExists = nodesById[link.source] !== undefined;
-                    } else if (link.source && link.source.id) {
-                        sourceExists = nodesById[link.source.id] !== undefined;
-                    }
-                    
-                    // Check if target exists
-                    let targetExists = false;
-                    if (typeof link.target === 'string') {
-                        targetExists = nodesById[link.target] !== undefined;
-                    } else if (link.target && link.target.id) {
-                        targetExists = nodesById[link.target.id] !== undefined;
-                    }
-                    
-                    return sourceExists && targetExists;
-                });
-                
-                // Convert any object references to string IDs for consistency
-                validLinks.forEach(link => {
-                    if (typeof link.source !== 'string' && link.source && link.source.id) {
-                        link.source = link.source.id;
-                    }
-                    if (typeof link.target !== 'string' && link.target && link.target.id) {
-                        link.target = link.target.id;
-                    }
-                });
-                
-                // Clear any existing visualization
-                d3.select('#networkContainer svg').remove();
-                d3.select('#networkContainer .tooltip').remove();
-                
-                // Show loading indicator while fetching profile pictures
-                document.getElementById('networkContainer').innerHTML = 
-                    '<div class="loading-indicator">Loading profile pictures...</div>';
-                
-                // Fetch profile pictures for all nodes
-                const fetchProfilePictures = async () => {
-                    // Create a queue system to limit concurrent requests
-                    const concurrencyLimit = 3; // Only process 3 requests at a time
-                    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-                    
-                    // Create batches of nodes to process
-                    const nodeBatches = [];
-                    for (let i = 0; i < data.nodes.length; i += concurrencyLimit) {
-                        nodeBatches.push(data.nodes.slice(i, i + concurrencyLimit));
-                    }
-                    
-                    // Process each batch sequentially
-                    for (const batch of nodeBatches) {
-                        const batchPromises = batch.map(async (node) => {
-                            try {
-                                // Skip if this is not a valid pubkey
-                                if (!node.id || node.id.length < 32) return;
-                                
-                                const apiUrl = `${window.location.origin}/control/api/get-kind0?pubkey=${encodeURIComponent(node.id)}`;
-                                console.log(`Fetching profile for ${node.id} from ${apiUrl}`);
-                                
-                                // Add retry logic
-                                let retries = 2;
-                                let success = false;
-                                let kind0Data = null;
-                                
-                                while (retries >= 0 && !success) {
-                                    try {
-                                        const response = await fetch(apiUrl);
-                                        
-                                        // Check if response is OK and has the correct content type
-                                        if (!response.ok) {
-                                            console.warn(`Error fetching profile for ${node.id}: HTTP ${response.status}`);
-                                            retries--;
-                                            if (retries >= 0) {
-                                                console.log(`Retrying (${retries} attempts left)...`);
-                                                await delay(1000); // Wait 1 second before retrying
-                                                continue;
-                                            }
-                                            return;
-                                        }
-                                        
-                                        const contentType = response.headers.get('content-type');
-                                        if (!contentType || !contentType.includes('application/json')) {
-                                            console.warn(`Invalid content type for ${node.id}: ${contentType}`);
-                                            retries--;
-                                            if (retries >= 0) {
-                                                console.log(`Retrying (${retries} attempts left)...`);
-                                                await delay(1000); // Wait 1 second before retrying
-                                                continue;
-                                            }
-                                            return;
-                                        }
-                                        
-                                        kind0Data = await response.json();
-                                        success = true;
-                                    } catch (fetchError) {
-                                        console.warn(`Fetch error for ${node.id}:`, fetchError);
-                                        retries--;
-                                        if (retries >= 0) {
-                                            console.log(`Retrying (${retries} attempts left)...`);
-                                            await delay(1000); // Wait 1 second before retrying
-                                        }
-                                    }
-                                }
-                                
-                                if (success && kind0Data.success && kind0Data.data && kind0Data.data.content) {
-                                    try {
-                                        const content = JSON.parse(kind0Data.data.content);
-                                        if (content.picture) {
-                                            node.profilePicture = content.picture;
-                                            node.name = content.name || content.display_name || node.id.substring(0, 8);
-                                            console.log(`Found profile picture for ${node.id}: ${node.profilePicture}`);
-                                        }
-                                    } catch (e) {
-                                        console.warn('Error parsing kind0 content for', node.id, e);
-                                    }
-                                }
-                            } catch (error) {
-                                console.warn('Error fetching profile for', node.id, error);
-                            }
-                        });
+                    if (node.profilePicture) {
+                        console.log(`Creating pattern for ${node.id} with image ${node.profilePicture}`);
                         
-                        // Wait for the current batch to complete before moving to the next
-                        await Promise.allSettled(batchPromises);
+                        // Create a pattern with a unique ID
+                        const patternId = `profile-pic-${node.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
                         
-                        // Add a small delay between batches to prevent overwhelming the server
-                        await delay(500);
+                        // Create a pattern for the profile picture
+                        const pattern = defs.append("pattern")
+                            .attr("id", patternId)
+                            .attr("patternUnits", "objectBoundingBox")
+                            .attr("width", 1)
+                            .attr("height", 1);
+                        
+                        // Add a white background circle to ensure the image is visible
+                        pattern.append("circle")
+                            .attr("cx", 0.5)
+                            .attr("cy", 0.5)
+                            .attr("r", 0.5)
+                            .attr("fill", "white");
+                        
+                        // Add the image to the pattern
+                        pattern.append("image")
+                            .attr("xlink:href", node.profilePicture)
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .attr("width", 1)
+                            .attr("height", 1)
+                            .attr("preserveAspectRatio", "xMidYMid slice");
+                        
+                        // Store the pattern ID in the node for reference
+                        node.patternId = patternId;
                     }
-                    
-                    console.log('All profile pictures fetched, nodes with pictures:', 
-                        data.nodes.filter(n => n.profilePicture).length);
-                    
-                    // Now render the visualization with profile pictures
-                    renderVisualization();
-                };
+                });
                 
-                // Start fetching profile pictures
-                fetchProfilePictures();
+                // Create tooltip
+                const tooltip = d3.select('#networkContainer')
+                    .append('div')
+                    .attr('class', 'tooltip')
+                    .style('opacity', 0)
+                    .style('position', 'absolute')
+                    .style('background-color', 'white')
+                    .style('border', '1px solid #ddd')
+                    .style('border-radius', '4px')
+                    .style('padding', '8px')
+                    .style('pointer-events', 'none')
+                    .style('font-size', '12px')
+                    .style('z-index', '10')
+                    .style('max-width', '300px');
                 
-                // Declare simulation at a higher scope so it's accessible to drag functions
-                let simulation;
+                // Calculate node radius based on influence
+                const influenceScale = d3.scaleSqrt()
+                    .domain([
+                        d3.min(data.nodes, d => d.influence || 0.0001),
+                        d3.max(data.nodes, d => d.influence || 1)
+                    ])
+                    .range([5, 25]);  // Min and max radius
                 
-                // Function to render the visualization after profile pictures are loaded
-                function renderVisualization() {
-                    // Clear loading indicator
-                    document.getElementById('networkContainer').innerHTML = '';
-                    
-                    // Set up dimensions
-                    const container = document.getElementById('networkContainer');
-                    const width = container.clientWidth || 600;
-                    const height = container.clientHeight || 400;
-                    
-                    // Define color scale for node types
-                    const nodeColors = {
-                        'center': '#3498db',
-                        'following': '#2ecc71',
-                        'followers': '#27ae60',
-                        'muting': '#f39c12',
-                        'muters': '#d35400',
-                        'reporting': '#e74c3c',
-                        'reporters': '#c0392b'
-                    };
-                    
-                    // Create SVG container
-                    const svg = d3.select('#networkContainer')
-                        .append('svg')
-                        .attr('width', width)
-                        .attr('height', height);
-                    
-                    // Add arrow markers for directional links
-                    svg.append("defs").selectAll("marker")
-                        .data(["following", "followers", "muting", "muters", "reporting", "reporters"])
-                        .enter().append("marker")
-                        .attr("id", d => `arrow-${d}`)
-                        .attr("viewBox", "0 -5 10 10")
-                        .attr("refX", 25)  // Position the arrow away from the node
-                        .attr("refY", 0)
-                        .attr("markerWidth", 6)
-                        .attr("markerHeight", 6)
-                        .attr("orient", "auto")
-                        .append("path")
-                        .attr("d", "M0,-5L10,0L0,5")
-                        .attr("fill", d => linkColors[d] || "#999");
-                    
-                    // Add defs for profile picture patterns
-                    const defs = svg.append("defs");
-                    
-                    // Create patterns for each node with a profile picture
-                    data.nodes.forEach(node => {
-                        if (node.profilePicture) {
-                            console.log(`Creating pattern for ${node.id} with image ${node.profilePicture}`);
-                            
-                            // Create a pattern with a unique ID
-                            const patternId = `profile-pic-${node.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                            
-                            // Create a pattern for the profile picture
-                            const pattern = defs.append("pattern")
-                                .attr("id", patternId)
-                                .attr("patternUnits", "objectBoundingBox")
-                                .attr("width", 1)
-                                .attr("height", 1);
-                            
-                            // Add a white background circle to ensure the image is visible
-                            pattern.append("circle")
-                                .attr("cx", 0.5)
-                                .attr("cy", 0.5)
-                                .attr("r", 0.5)
-                                .attr("fill", "white");
-                            
-                            // Add the image to the pattern
-                            pattern.append("image")
-                                .attr("xlink:href", node.profilePicture)
-                                .attr("x", 0)
-                                .attr("y", 0)
-                                .attr("width", 1)
-                                .attr("height", 1)
-                                .attr("preserveAspectRatio", "xMidYMid slice");
-                            
-                            // Store the pattern ID in the node for reference
-                            node.patternId = patternId;
+                // Create force simulation
+                const simulation = d3.forceSimulation(data.nodes)
+                    .force('link', d3.forceLink(data.links)
+                        .id(d => d.id)
+                        .distance(d => {
+                            // Make distance dependent on node sizes
+                            const sourceNode = data.nodes.find(n => n.id === d.source);
+                            const targetNode = data.nodes.find(n => n.id === d.target);
+                            const sourceRadius = influenceScale(sourceNode.influence || 0.0001);
+                            const targetRadius = influenceScale(targetNode.influence || 0.0001);
+                            return 100 + sourceRadius + targetRadius;
+                        }))
+                    .force('charge', d3.forceManyBody().strength(-300))
+                    .force('center', d3.forceCenter(300, 200))
+                    .force('collision', d3.forceCollide().radius(d => influenceScale(d.influence || 0.0001) + 5));
+                
+                // Create links as paths for directional arrows
+                const link = svg.append('g')
+                    .selectAll('path')
+                    .data(data.links)
+                    .enter()
+                    .append('path')
+                    .attr('stroke', d => linkColors[d.type] || '#999')
+                    .attr('stroke-opacity', 0.6)
+                    .attr('stroke-width', 2)
+                    .attr('fill', 'none')
+                    .attr('marker-end', d => `url(#arrow-${d.type})`);
+                
+                // Create node groups
+                const nodeGroup = svg.append('g')
+                    .selectAll('g')
+                    .data(data.nodes)
+                    .enter()
+                    .append('g')
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended));
+                
+                // Add circle for each node
+                const node = nodeGroup.append('circle')
+                    .attr('r', d => influenceScale(d.influence || 0.0001))
+                    .attr('fill', d => {
+                        // Use profile picture if available, otherwise use color
+                        if (d.patternId) {
+                            return `url(#${d.patternId})`;
                         }
-                    });
-                    
-                    // Create tooltip
-                    const tooltip = d3.select('#networkContainer')
-                        .append('div')
-                        .attr('class', 'tooltip')
-                        .style('opacity', 0)
-                        .style('position', 'absolute')
-                        .style('background-color', 'white')
-                        .style('border', '1px solid #ddd')
-                        .style('border-radius', '4px')
-                        .style('padding', '8px')
-                        .style('pointer-events', 'none')
-                        .style('font-size', '12px')
-                        .style('z-index', '10')
-                        .style('max-width', '300px');
-                    
-                    // Calculate node radius based on influence
-                    const influenceScale = d3.scaleSqrt()
-                        .domain([
-                            d3.min(data.nodes, d => d.influence || 0.0001),
-                            d3.max(data.nodes, d => d.influence || 1)
-                        ])
-                        .range([5, 25]);  // Min and max radius
-                    
-                    // Create force simulation
-                    simulation = d3.forceSimulation(data.nodes)
-                        .force('link', d3.forceLink(validLinks)
-                            .id(d => d.id)
-                            .distance(d => {
-                                // Make distance dependent on node sizes
-                                const sourceNode = nodesById[d.source.id || d.source];
-                                const targetNode = nodesById[d.target.id || d.target];
-                                const sourceRadius = influenceScale(sourceNode.influence || 0.0001);
-                                const targetRadius = influenceScale(targetNode.influence || 0.0001);
-                                return 100 + sourceRadius + targetRadius;
-                            }))
-                        .force('charge', d3.forceManyBody().strength(-300))
-                        .force('center', d3.forceCenter(width / 2, height / 2))
-                        .force('collision', d3.forceCollide().radius(d => influenceScale(d.influence || 0.0001) + 5));
-                    
-                    // Create links as paths for directional arrows
-                    const link = svg.append('g')
-                        .selectAll('path')
-                        .data(validLinks)
-                        .enter()
-                        .append('path')
-                        .attr('stroke', d => linkColors[d.type] || '#999')
-                        .attr('stroke-opacity', 0.6)
-                        .attr('stroke-width', 2)
-                        .attr('fill', 'none')
-                        .attr('marker-end', d => `url(#arrow-${d.type})`);
-                    
-                    // Create node groups
-                    const nodeGroup = svg.append('g')
-                        .selectAll('g')
-                        .data(data.nodes)
-                        .enter()
-                        .append('g')
-                        .call(d3.drag()
-                            .on('start', dragstarted)
-                            .on('drag', dragged)
-                            .on('end', dragended));
-                    
-                    // Add circle for each node
-                    const node = nodeGroup.append('circle')
-                        .attr('r', d => influenceScale(d.influence || 0.0001))
-                        .attr('fill', d => {
-                            // Use profile picture if available, otherwise use color
-                            if (d.patternId) {
-                                return `url(#${d.patternId})`;
-                            }
-                            return nodeColors[d.type] || '#999';
-                        })
-                        .attr('stroke', d => nodeColors[d.type] || '#999')
-                        .attr('stroke-width', 2);
-                    
-                    // Add node labels
-                    const labels = nodeGroup.append('text')
-                        .text(d => {
-                            // Show short name for center node, nothing for others to avoid clutter
-                            if (d.type === 'center') {
-                                return d.name || d.id.substring(0, 6) + '...';
-                            }
-                            return '';
-                        })
-                        .attr('font-size', '10px')
-                        .attr('dx', d => influenceScale(d.influence || 0.0001) + 5)
-                        .attr('dy', 4)
-                        .attr('fill', '#333');
-                    
-                    // Add hover effects and tooltips
-                    nodeGroup.on('mouseover', function(event, d) {
-                            // Highlight connected links and nodes
-                            link.style('stroke-opacity', l => {
-                                // Check if the link is connected to this node
-                                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-                                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
-                                return sourceId === d.id || targetId === d.id ? 1 : 0.1;
+                        return '#999';
+                    })
+                    .attr('stroke', d => '#999')
+                    .attr('stroke-width', 2);
+                
+                // Add node labels
+                const labels = nodeGroup.append('text')
+                    .text(d => {
+                        // Show short name for center node, nothing for others to avoid clutter
+                        if (d.type === 'center') {
+                            return d.name || d.id.substring(0, 6) + '...';
+                        }
+                        return '';
+                    })
+                    .attr('font-size', '10px')
+                    .attr('dx', d => influenceScale(d.influence || 0.0001) + 5)
+                    .attr('dy', 4)
+                    .attr('fill', '#333');
+                
+                // Add hover effects and tooltips
+                nodeGroup.on('mouseover', function(event, d) {
+                        // Highlight connected links and nodes
+                        link.style('stroke-opacity', l => {
+                            // Check if the link is connected to this node
+                            const sourceId = l.source.id || l.source;
+                            const targetId = l.target.id || l.target;
+                            return sourceId === d.id || targetId === d.id ? 1 : 0.1;
+                        });
+                        
+                        nodeGroup.style('opacity', n => {
+                            // Check if this node is connected to the hovered node
+                            if (n.id === d.id) return 1;
+                            
+                            // Check if there's a link between these nodes
+                            const connected = data.links.some(l => {
+                                const sourceId = l.source.id || l.source;
+                                const targetId = l.target.id || l.target;
+                                return (sourceId === d.id && targetId === n.id) || 
+                                       (sourceId === n.id && targetId === d.id);
                             });
                             
-                            nodeGroup.style('opacity', n => {
-                                // Check if this node is connected to the hovered node
-                                if (n.id === d.id) return 1;
-                                
-                                // Check if there's a link between these nodes
-                                const connected = validLinks.some(l => {
-                                    const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-                                    const targetId = typeof l.target === 'object' ? l.target.id : l.target;
-                                    return (sourceId === d.id && targetId === n.id) || 
-                                           (sourceId === n.id && targetId === d.id);
-                                });
-                                
-                                return connected ? 1 : 0.3;
-                            });
-                            
-                            // Show tooltip
-                            tooltip.transition()
-                                .duration(200)
-                                .style('opacity', .9);
-                            
-                            // Format tooltip content with detailed web of trust scores
-                            let tooltipContent = `
-                                <div style="text-align: center; margin-bottom: 8px;">
-                                    ${d.profilePicture ? `<img src="${d.profilePicture}" style="width: 50px; height: 50px; border-radius: 25px; margin-bottom: 5px;">` : ''}
-                                    <strong>${d.name || (d.id || '').substring(0, 10) + '...'}</strong>
-                                </div>
-                                <div style="font-size: 11px; color: #666;">Pubkey: ${(d.id || '').substring(0, 10)}...</div>
-                                <hr style="margin: 5px 0; border-top: 1px solid #eee;">
-                                <div><strong>Web of Trust Scores:</strong></div>
-                                <div>Hops: ${d.hops !== undefined && d.hops !== null ? d.hops : 'N/A'}</div>
-                                <div>Influence: ${d.influence !== undefined && d.influence !== null ? parseFloat(d.influence).toFixed(6) : 'N/A'}</div>
-                                <div>PageRank: ${d.personalizedPageRank !== undefined && d.personalizedPageRank !== null ? parseFloat(d.personalizedPageRank).toFixed(6) : 'N/A'}</div>
-                                <div>Relationship: ${d.type || 'N/A'}</div>
-                            `;
-                            
-                            tooltip.html(tooltipContent)
-                                .style('left', (event.pageX + 10) + 'px')
-                                .style('top', (event.pageY - 28) + 'px');
-                        })
-                        .on('mouseout', function() {
-                            // Reset link and node opacity
-                            link.style('stroke-opacity', 0.6);
-                            nodeGroup.style('opacity', 1);
-                            
-                            // Hide tooltip
-                            tooltip.transition()
-                                .duration(500)
-                                .style('opacity', 0);
-                        });
-                    
-                    // Add simulation tick handler
-                    simulation.on('tick', () => {
-                        // Update link paths for curved directional links
-                        link.attr('d', d => {
-                            // Get source and target nodes
-                            const source = typeof d.source === 'object' ? d.source : nodesById[d.source];
-                            const target = typeof d.target === 'object' ? d.target : nodesById[d.target];
-                            
-                            // Safety check for valid coordinates
-                            if (!source || !target || 
-                                typeof source.x !== 'number' || typeof source.y !== 'number' ||
-                                typeof target.x !== 'number' || typeof target.y !== 'number' ||
-                                isNaN(source.x) || isNaN(source.y) || 
-                                isNaN(target.x) || isNaN(target.y)) {
-                                return ''; // Return empty path if coordinates are invalid
-                            }
-                            
-                            // Calculate path for directional arrow
-                            const dx = target.x - source.x;
-                            const dy = target.y - source.y;
-                            const length = Math.sqrt(dx * dx + dy * dy);
-                            
-                            // Safety check for zero length
-                            if (length === 0) {
-                                return ''; // Return empty path if length is zero
-                            }
-                            
-                            // Calculate the normalized direction vector
-                            const normX = dx / length;
-                            const normY = dy / length;
-                            
-                            // Get node radii
-                            const sourceRadius = influenceScale(source.influence || 0.0001);
-                            const targetRadius = influenceScale(target.influence || 0.0001);
-                            
-                            // Calculate start and end points, offset by node radius
-                            const startX = source.x + (sourceRadius * normX);
-                            const startY = source.y + (sourceRadius * normY);
-                            const endX = target.x - (targetRadius * normX);
-                            const endY = target.y - (targetRadius * normY);
-                            
-                            // Safety check for valid path points
-                            if (isNaN(startX) || isNaN(startY) || isNaN(endX) || isNaN(endY)) {
-                                return ''; // Return empty path if any coordinate is NaN
-                            }
-                            
-                            // Return a straight line instead of a curve to avoid arc calculation issues
-                            return `M${startX},${startY}L${endX},${endY}`;
+                            return connected ? 1 : 0.3;
                         });
                         
-                        // Update node group positions
-                        nodeGroup.attr('transform', d => {
-                            // Safety check for valid coordinates
-                            if (typeof d.x !== 'number' || typeof d.y !== 'number' || isNaN(d.x) || isNaN(d.y)) {
-                                d.x = width / 2;
-                                d.y = height / 2;
-                            }
-                            
-                            // Keep nodes within bounds
-                            const radius = influenceScale(d.influence || 0.0001);
-                            d.x = Math.max(radius, Math.min(width - radius, d.x));
-                            d.y = Math.max(radius, Math.min(height - radius, d.y));
-                            
-                            return `translate(${d.x}, ${d.y})`;
-                        });
+                        // Show tooltip
+                        tooltip.transition()
+                            .duration(200)
+                            .style('opacity', .9);
+                        
+                        // Format tooltip content with detailed web of trust scores
+                        let tooltipContent = `
+                            <div style="text-align: center; margin-bottom: 8px;">
+                                ${d.profilePicture ? `<img src="${d.profilePicture}" style="width: 50px; height: 50px; border-radius: 25px; margin-bottom: 5px;">` : ''}
+                                <strong>${d.name || (d.id || '').substring(0, 10) + '...'}</strong>
+                            </div>
+                            <div style="font-size: 11px; color: #666;">Pubkey: ${(d.id || '').substring(0, 10)}...</div>
+                            <hr style="margin: 5px 0; border-top: 1px solid #eee;">
+                            <div><strong>Web of Trust Scores:</strong></div>
+                            <div>Hops: ${d.hops !== undefined && d.hops !== null ? d.hops : 'N/A'}</div>
+                            <div>Influence: ${d.influence !== undefined && d.influence !== null ? parseFloat(d.influence).toFixed(6) : 'N/A'}</div>
+                            <div>PageRank: ${d.personalizedPageRank !== undefined && d.personalizedPageRank !== null ? parseFloat(d.personalizedPageRank).toFixed(6) : 'N/A'}</div>
+                            <div>Relationship: ${d.type || 'N/A'}</div>
+                        `;
+                        
+                        tooltip.html(tooltipContent)
+                            .style('left', (event.pageX + 10) + 'px')
+                            .style('top', (event.pageY - 28) + 'px');
+                    })
+                    .on('mouseout', function() {
+                        // Reset link and node opacity
+                        link.style('stroke-opacity', 0.6);
+                        nodeGroup.style('opacity', 1);
+                        
+                        // Hide tooltip
+                        tooltip.transition()
+                            .duration(500)
+                            .style('opacity', 0);
+                    });
+                
+                // Add simulation tick handler
+                simulation.on('tick', () => {
+                    // Update link paths for curved directional links
+                    link.attr('d', d => {
+                        // Get source and target nodes
+                        const source = data.nodes.find(n => n.id === d.source);
+                        const target = data.nodes.find(n => n.id === d.target);
+                        
+                        // Safety check for valid coordinates
+                        if (!source || !target || 
+                            typeof source.x !== 'number' || typeof source.y !== 'number' ||
+                            typeof target.x !== 'number' || typeof target.y !== 'number' ||
+                            isNaN(source.x) || isNaN(source.y) || 
+                            isNaN(target.x) || isNaN(target.y)) {
+                            return ''; // Return empty path if coordinates are invalid
+                        }
+                        
+                        // Calculate path for directional arrow
+                        const dx = target.x - source.x;
+                        const dy = target.y - source.y;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // Safety check for zero length
+                        if (length === 0) {
+                            return ''; // Return empty path if length is zero
+                        }
+                        
+                        // Calculate the normalized direction vector
+                        const normX = dx / length;
+                        const normY = dy / length;
+                        
+                        // Get node radii
+                        const sourceRadius = influenceScale(source.influence || 0.0001);
+                        const targetRadius = influenceScale(target.influence || 0.0001);
+                        
+                        // Calculate start and end points, offset by node radius
+                        const startX = source.x + (sourceRadius * normX);
+                        const startY = source.y + (sourceRadius * normY);
+                        const endX = target.x - (targetRadius * normX);
+                        const endY = target.y - (targetRadius * normY);
+                        
+                        // Safety check for valid path points
+                        if (isNaN(startX) || isNaN(startY) || isNaN(endX) || isNaN(endY)) {
+                            return ''; // Return empty path if any coordinate is NaN
+                        }
+                        
+                        // Return a straight line instead of a curve to avoid arc calculation issues
+                        return `M${startX},${startY}L${endX},${endY}`;
                     });
                     
-                    // Add a legend for relationship types
-                    const legend = svg.append('g')
-                        .attr('class', 'legend')
-                        .attr('transform', 'translate(20, 20)');
-                    
-                    const legendItems = [
-                        { type: 'center', label: 'Center User' },
-                        { type: 'following', label: 'Following' },
-                        { type: 'followers', label: 'Followers' },
-                        { type: 'muting', label: 'Muting' },
-                        { type: 'muters', label: 'Muters' },
-                        { type: 'reporting', label: 'Reporting' },
-                        { type: 'reporters', label: 'Reporters' }
-                    ];
-                    
-                    legendItems.forEach((item, i) => {
-                        const legendItem = legend.append('g')
-                            .attr('transform', `translate(0, ${i * 20})`);
+                    // Update node group positions
+                    nodeGroup.attr('transform', d => {
+                        // Safety check for valid coordinates
+                        if (typeof d.x !== 'number' || typeof d.y !== 'number' || isNaN(d.x) || isNaN(d.y)) {
+                            d.x = 300;
+                            d.y = 200;
+                        }
                         
-                        legendItem.append('circle')
-                            .attr('r', 6)
-                            .attr('fill', nodeColors[item.type] || '#999');
+                        // Keep nodes within bounds
+                        const radius = influenceScale(d.influence || 0.0001);
+                        d.x = Math.max(radius, Math.min(600 - radius, d.x));
+                        d.y = Math.max(radius, Math.min(400 - radius, d.y));
                         
-                        legendItem.append('text')
-                            .attr('x', 15)
-                            .attr('y', 4)
-                            .text(item.label)
-                            .attr('font-size', '12px');
+                        return `translate(${d.x}, ${d.y})`;
                     });
-                    
-                    // Add an influence scale legend
-                    const influenceLegend = svg.append('g')
-                        .attr('class', 'influence-legend')
-                        .attr('transform', `translate(${width - 150}, 20)`);
-                    
-                    influenceLegend.append('text')
-                        .attr('x', 0)
-                        .attr('y', 0)
-                        .text('Influence Scale:')
-                        .attr('font-size', '12px')
-                        .attr('font-weight', 'bold');
-                    
-                    // Show 3 example sizes
-                    const influenceExamples = [
-                        { label: 'Low', value: d3.min(data.nodes, d => d.influence || 0.0001) },
-                        { label: 'Medium', value: (d3.min(data.nodes, d => d.influence || 0.0001) + d3.max(data.nodes, d => d.influence || 1)) / 2 },
-                        { label: 'High', value: d3.max(data.nodes, d => d.influence || 1) }
-                    ];
-                    
-                    influenceExamples.forEach((example, i) => {
-                        const exampleItem = influenceLegend.append('g')
-                            .attr('transform', `translate(30, ${i * 30 + 20})`);
-                        
-                        exampleItem.append('circle')
-                            .attr('r', influenceScale(example.value))
-                            .attr('fill', '#999')
-                            .attr('opacity', 0.5);
-                        
-                        exampleItem.append('text')
-                            .attr('x', 35)
-                            .attr('y', 4)
-                            .text(`${example.label}: ${example.value.toFixed(6)}`)
-                            .attr('font-size', '10px');
-                    });
-                }
+                });
                 
-                // Drag functions
-                function dragstarted(event, d) {
-                    if (!event.active) simulation.alphaTarget(0.3).restart();
-                    d.fx = d.x;
-                    d.fy = d.y;
-                }
+                // Add a legend for relationship types
+                const legend = svg.append('g')
+                    .attr('class', 'legend')
+                    .attr('transform', 'translate(20, 20)');
                 
-                function dragged(event, d) {
-                    d.fx = event.x;
-                    d.fy = event.y;
-                }
+                const legendItems = [
+                    { type: 'center', label: 'Center User' },
+                    { type: 'following', label: 'Following' },
+                    { type: 'followers', label: 'Followers' },
+                    { type: 'muting', label: 'Muting' },
+                    { type: 'muters', label: 'Muters' },
+                    { type: 'reporting', label: 'Reporting' },
+                    { type: 'reporters', label: 'Reporters' }
+                ];
                 
-                function dragended(event, d) {
-                    if (!event.active) simulation.alphaTarget(0);
-                    d.fx = null;
-                    d.fy = null;
-                }
+                legendItems.forEach((item, i) => {
+                    const legendItem = legend.append('g')
+                        .attr('transform', `translate(0, ${i * 20})`);
+                    
+                    legendItem.append('circle')
+                        .attr('r', 6)
+                        .attr('fill', item.type === 'center' ? '#3498db' : linkColors[item.type] || '#999');
+                    
+                    legendItem.append('text')
+                        .attr('x', 15)
+                        .attr('y', 4)
+                        .text(item.label)
+                        .attr('font-size', '12px');
+                });
+                
+                // Add an influence scale legend
+                const influenceLegend = svg.append('g')
+                    .attr('class', 'influence-legend')
+                    .attr('transform', `translate(${600 - 150}, 20)`);
+                
+                influenceLegend.append('text')
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .text('Influence Scale:')
+                    .attr('font-size', '12px')
+                    .attr('font-weight', 'bold');
+                
+                // Show 3 example sizes
+                const influenceExamples = [
+                    { label: 'Low', value: d3.min(data.nodes, d => d.influence || 0.0001) },
+                    { label: 'Medium', value: (d3.min(data.nodes, d => d.influence || 0.0001) + d3.max(data.nodes, d => d.influence || 1)) / 2 },
+                    { label: 'High', value: d3.max(data.nodes, d => d.influence || 1) }
+                ];
+                
+                influenceExamples.forEach((example, i) => {
+                    const exampleItem = influenceLegend.append('g')
+                        .attr('transform', `translate(30, ${i * 30 + 20})`);
+                    
+                    exampleItem.append('circle')
+                        .attr('r', influenceScale(example.value))
+                        .attr('fill', '#999')
+                        .attr('opacity', 0.5);
+                    
+                    exampleItem.append('text')
+                        .attr('x', 35)
+                        .attr('y', 4)
+                        .text(`${example.label}: ${example.value.toFixed(6)}`)
+                        .attr('font-size', '10px');
+                });
             } catch (error) {
                 console.error('Error rendering network visualization:', error);
                 document.getElementById('networkContainer').innerHTML = 
                     `<div class="error-message">Error rendering network visualization: ${error.message}</div>`;
             }
+        }
+        
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
         }
     </script>
 </body>

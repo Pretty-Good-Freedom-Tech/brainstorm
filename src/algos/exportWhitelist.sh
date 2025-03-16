@@ -2,7 +2,7 @@
 
 source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
-echo "Running exportWhiteList. This script updates /usr/local/lib/node_modules/hasenpfeffr/src/plugins/whitelist_pubkeys.json based on personalizedPageRank scores stored in neo4j."
+echo "Running exportWhiteList. This script updates /usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json based on personalizedPageRank scores stored in neo4j."
 
 CYPHER1="
 MATCH (n:NostrUser) WHERE n.personalizedPageRank > 0.000001
@@ -39,7 +39,7 @@ done < /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelistQueryOutput.tx
 
 echo "}" >> /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelist_pubkeys.json
 
-sudo mv /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelist_pubkeys.json /usr/local/lib/node_modules/hasenpfeffr/src/plugins/whitelist_pubkeys.json
+sudo mv /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelist_pubkeys.json /usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json
 
 # clean up
 sudo rm /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelistQueryOutput.txt
