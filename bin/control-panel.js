@@ -1037,27 +1037,21 @@ function handlePublishKind30382(req, res) {
         stdio: ['ignore', 'pipe', 'pipe']
     });
     
-    // Log start of background process
-    console.log(`Started background process for publishing kind 30382 events (PID: ${childProcess.pid})`);
+    let output = '';
+    let errorOutput = '';
     
-    // Collect output for logging
-    let stdoutData = '';
-    let stderrData = '';
-    
-    // Optional: Log output for debugging
     childProcess.stdout.on('data', (data) => {
         const dataStr = data.toString();
-        stdoutData += dataStr;
         console.log(`Kind 30382 background process output: ${dataStr}`);
+        output += dataStr;
     });
     
     childProcess.stderr.on('data', (data) => {
         const dataStr = data.toString();
-        stderrData += dataStr;
         console.error(`Kind 30382 background process error: ${dataStr}`);
+        errorOutput += dataStr;
     });
     
-    // Handle process completion
     childProcess.on('close', (code) => {
         console.log(`Kind 30382 background process exited with code ${code}`);
         
@@ -1071,13 +1065,13 @@ function handlePublishKind30382(req, res) {
         }
         
         const logFile = path.join(logDir, `kind30382_${timestamp}.log`);
-        fs.writeFileSync(logFile, `STDOUT:\n${stdoutData}\n\nSTDERR:\n${stderrData}\n\nExit code: ${code}`);
+        fs.writeFileSync(logFile, `STDOUT:\n${output}\n\nSTDERR:\n${errorOutput}\n\nExit code: ${code}`);
         console.log(`Kind 30382 process log saved to ${logFile}`);
         
         // Try to parse the last JSON output if available
         try {
             // Look for the last JSON object in the output
-            const jsonMatch = stdoutData.match(/\{[\s\S]*\}/g);
+            const jsonMatch = output.match(/\{[\s\S]*\}/g);
             if (jsonMatch) {
                 const lastJson = jsonMatch[jsonMatch.length - 1];
                 const result = JSON.parse(lastJson);
@@ -1456,14 +1450,19 @@ function handleGetNetworkProximity(req, res) {
     
     const session = driver.session();
     
-    // Build the Cypher query to get network proximity data
+    // Build a simplified Cypher query to get network proximity data
+    // This version is more efficient and less likely to time out
     const query = `
       // Find the central user
       MATCH (center:NostrUser {pubkey: $pubkey})
       
-      // Get users that the central user follows
+      // Get a limited number of relationships for each type
+      // Following relationships
       OPTIONAL MATCH (center)-[f:FOLLOWS]->(following:NostrUser)
       WHERE following.hops IS NOT NULL
+      WITH center, following, f
+      ORDER BY following.influence DESC
+      LIMIT toInteger($relationshipLimit)
       WITH center, collect({
         pubkey: following.pubkey,
         hops: following.hops,
@@ -1472,9 +1471,12 @@ function handleGetNetworkProximity(req, res) {
         timestamp: f.timestamp
       }) AS followingNodes
       
-      // Get users that follow the central user
+      // Follower relationships
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(center)
       WHERE follower.hops IS NOT NULL AND follower.hops < 20
+      WITH center, followingNodes, follower, f2
+      ORDER BY follower.influence DESC
+      LIMIT toInteger($relationshipLimit)
       WITH center, followingNodes, collect({
         pubkey: follower.pubkey,
         hops: follower.hops,
@@ -1483,9 +1485,12 @@ function handleGetNetworkProximity(req, res) {
         timestamp: f2.timestamp
       }) AS followerNodes
       
-      // Get users that the central user mutes
+      // Muting relationships
       OPTIONAL MATCH (center)-[m:MUTES]->(muted:NostrUser)
       WHERE muted.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, muted, m
+      ORDER BY muted.influence DESC
+      LIMIT toInteger($relationshipLimit)
       WITH center, followingNodes, followerNodes, collect({
         pubkey: muted.pubkey,
         hops: muted.hops,
@@ -1494,9 +1499,12 @@ function handleGetNetworkProximity(req, res) {
         timestamp: m.timestamp
       }) AS mutingNodes
       
-      // Get users that mute the central user
+      // Muter relationships
       OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(center)
       WHERE muter.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, mutingNodes, muter, m2
+      ORDER BY muter.influence DESC
+      LIMIT toInteger($relationshipLimit)
       WITH center, followingNodes, followerNodes, mutingNodes, collect({
         pubkey: muter.pubkey,
         hops: muter.hops,
@@ -1505,9 +1513,12 @@ function handleGetNetworkProximity(req, res) {
         timestamp: m2.timestamp
       }) AS muterNodes
       
-      // Get users that the central user reports
+      // Reporting relationships
       OPTIONAL MATCH (center)-[r:REPORTS]->(reported:NostrUser)
       WHERE reported.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, mutingNodes, muterNodes, reported, r
+      ORDER BY reported.influence DESC
+      LIMIT toInteger($relationshipLimit)
       WITH center, followingNodes, followerNodes, mutingNodes, muterNodes, collect({
         pubkey: reported.pubkey,
         hops: reported.hops,
@@ -1516,9 +1527,12 @@ function handleGetNetworkProximity(req, res) {
         timestamp: r.timestamp
       }) AS reportingNodes
       
-      // Get users that report the central user
+      // Reporter relationships
       OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(center)
       WHERE reporter.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, mutingNodes, muterNodes, reportingNodes, reporter, r2
+      ORDER BY reporter.influence DESC
+      LIMIT toInteger($relationshipLimit)
       WITH center, followingNodes, followerNodes, mutingNodes, muterNodes, reportingNodes, collect({
         pubkey: reporter.pubkey,
         hops: reporter.hops,
@@ -1547,8 +1561,10 @@ function handleGetNetworkProximity(req, res) {
       } AS networkData
     `;
     
-    // Execute the query
-    session.run(query, { pubkey, limit })
+    // Execute the query with a relationship limit parameter
+    const relationshipLimit = Math.min(limit / 6, 20); // Divide the total limit among the 6 relationship types, max 20 per type
+    
+    session.run(query, { pubkey, relationshipLimit })
       .then(result => {
         if (result.records.length === 0) {
           return res.status(404).json({

@@ -475,21 +475,21 @@
                 return;
             }
             
-            // Set the pubkey in the display
-            pubkeyDisplay.textContent = pubkey;
+            // Hide error message
+            errorMessage.style.display = 'none';
             
-            // Fetch profile data
-            fetchProfileData(pubkey);
-        });
-        
-        function fetchProfileData(pubkey) {
             // Show loading indicator
             loadingIndicator.style.display = 'flex';
             profileContainer.style.display = 'none';
-            errorMessage.style.display = 'none';
             
-            // Fetch Neo4j data first
-            fetch(`/control/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`)
+            // Set the pubkey in the display
+            pubkeyDisplay.textContent = pubkey;
+            
+            // Determine the base URL for API calls
+            const baseUrl = window.location.pathname.includes('/control/') ? '/control' : '';
+            
+            // Fetch profile data
+            fetch(`${baseUrl}/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -497,7 +497,7 @@
                         updateProfileStats(data.data);
                         
                         // Now fetch the kind 0 event
-                        return fetch(`/control/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`);
+                        return fetch(`${baseUrl}/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`);
                     } else {
                         throw new Error(data.message || 'Failed to fetch Neo4j data');
                     }
@@ -513,7 +513,7 @@
                         profileContainer.style.display = 'flex';
                         
                         // Fetch and display network data
-                        fetchAndDisplayNetworkData(pubkey);
+                        fetchAndDisplayNetworkData(pubkey, baseUrl);
                     } else {
                         // If we can't get kind 0 data, still show what we have
                         console.warn('Could not fetch kind 0 data:', data.message);
@@ -525,7 +525,7 @@
                     console.error('Error fetching profile data:', error);
                     showError(`Error fetching profile data: ${error.message}`);
                 });
-        }
+        });
         
         function updateProfileStats(userData) {
             // Update the profile stats with Neo4j data
@@ -703,13 +703,21 @@
             errorMessage.textContent = message;
         }
         
-        function fetchAndDisplayNetworkData(pubkey) {
+        function fetchAndDisplayNetworkData(pubkey, baseUrl) {
             // Show network loading state
-            document.getElementById('networkLoading').style.display = 'flex';
+            const networkLoading = document.getElementById('networkLoading');
+            if (networkLoading) {
+                networkLoading.style.display = 'flex';
+            }
             
             // Fetch network data from API
-            fetch(`/control/api/get-network-proximity?pubkey=${pubkey}&limit=50`)
-                .then(response => response.json())
+            fetch(`${baseUrl}/api/get-network-proximity?pubkey=${pubkey}&limit=50`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         renderNetworkVisualization(data.data);
@@ -726,150 +734,166 @@
                 })
                 .finally(() => {
                     // Hide network loading state
-                    document.getElementById('networkLoading').style.display = 'none';
+                    if (networkLoading) {
+                        networkLoading.style.display = 'none';
+                    }
                 });
         }
         
         function renderNetworkVisualization(data) {
-            // Clear any existing visualization
-            d3.select('#networkContainer svg').remove();
-            
-            // Set up dimensions
-            const width = document.getElementById('networkContainer').clientWidth;
-            const height = document.getElementById('networkContainer').clientHeight;
-            
-            // Create SVG container
-            const svg = d3.select('#networkContainer')
-                .append('svg')
-                .attr('width', width)
-                .attr('height', height);
-            
-            // Create tooltip
-            const tooltip = d3.select('#networkContainer')
-                .append('div')
-                .attr('class', 'tooltip')
-                .style('opacity', 0);
-            
-            // Define color scale for node types
-            const nodeColors = {
-                'center': '#3498db',
-                'following': '#2ecc71',
-                'followers': '#27ae60',
-                'muting': '#f39c12',
-                'muters': '#d35400',
-                'reporting': '#e74c3c',
-                'reporters': '#c0392b'
-            };
-            
-            // Define link colors based on relationship type
-            const linkColors = {
-                'following': '#2ecc71',
-                'followers': '#27ae60',
-                'muting': '#f39c12',
-                'muters': '#d35400',
-                'reporting': '#e74c3c',
-                'reporters': '#c0392b'
-            };
-            
-            // Create force simulation
-            const simulation = d3.forceSimulation(data.nodes)
-                .force('link', d3.forceLink(data.links)
-                    .id(d => d.id)
-                    .distance(100))
-                .force('charge', d3.forceManyBody().strength(-300))
-                .force('center', d3.forceCenter(width / 2, height / 2))
-                .force('collision', d3.forceCollide().radius(30));
-            
-            // Create links
-            const link = svg.append('g')
-                .selectAll('line')
-                .data(data.links)
-                .enter()
-                .append('line')
-                .attr('stroke', d => linkColors[d.type] || '#999')
-                .attr('stroke-opacity', 0.6)
-                .attr('stroke-width', 2);
-            
-            // Create nodes
-            const node = svg.append('g')
-                .selectAll('circle')
-                .data(data.nodes)
-                .enter()
-                .append('circle')
-                .attr('r', d => d.type === 'center' ? 15 : 8)
-                .attr('fill', d => nodeColors[d.type] || '#999')
-                .call(d3.drag()
-                    .on('start', dragstarted)
-                    .on('drag', dragged)
-                    .on('end', dragended));
-            
-            // Add hover effects and tooltips
-            node.on('mouseover', function(event, d) {
-                    // Highlight connected links and nodes
-                    link.style('stroke-opacity', l => 
-                        l.source.id === d.id || l.target.id === d.id ? 1 : 0.1);
-                    node.style('opacity', n => 
-                        n.id === d.id || 
-                        data.links.some(l => 
-                            (l.source.id === d.id && l.target.id === n.id) || 
-                            (l.source.id === n.id && l.target.id === d.id)
-                        ) ? 1 : 0.3);
-                    
-                    // Show tooltip
-                    tooltip.transition()
-                        .duration(200)
-                        .style('opacity', .9);
-                    
-                    // Format tooltip content
-                    let tooltipContent = `<strong>Pubkey:</strong> ${d.id.substring(0, 10)}...<br>`;
-                    if (d.hops !== undefined) tooltipContent += `<strong>Hops:</strong> ${d.hops}<br>`;
-                    if (d.influence !== undefined) tooltipContent += `<strong>Influence:</strong> ${d.influence.toFixed(4)}<br>`;
-                    if (d.type) tooltipContent += `<strong>Type:</strong> ${d.type}`;
-                    
-                    tooltip.html(tooltipContent)
-                        .style('left', (event.pageX + 10) + 'px')
-                        .style('top', (event.pageY - 28) + 'px');
-                })
-                .on('mouseout', function() {
-                    // Reset link and node opacity
-                    link.style('stroke-opacity', 0.6);
-                    node.style('opacity', 1);
-                    
-                    // Hide tooltip
-                    tooltip.transition()
-                        .duration(500)
-                        .style('opacity', 0);
-                });
-            
-            // Add simulation tick handler
-            simulation.on('tick', () => {
-                link
-                    .attr('x1', d => d.source.x)
-                    .attr('y1', d => d.source.y)
-                    .attr('x2', d => d.target.x)
-                    .attr('y2', d => d.target.y);
+            try {
+                // Check if we have valid data
+                if (!data || !data.nodes || !data.links || data.nodes.length === 0) {
+                    document.getElementById('networkContainer').innerHTML = 
+                        '<div class="error-message">No network data available for this user.</div>';
+                    return;
+                }
                 
-                node
-                    .attr('cx', d => d.x = Math.max(15, Math.min(width - 15, d.x)))
-                    .attr('cy', d => d.y = Math.max(15, Math.min(height - 15, d.y)));
-            });
-            
-            // Drag functions
-            function dragstarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-            }
-            
-            function dragged(event, d) {
-                d.fx = event.x;
-                d.fy = event.y;
-            }
-            
-            function dragended(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
+                // Clear any existing visualization
+                d3.select('#networkContainer svg').remove();
+                
+                // Set up dimensions
+                const container = document.getElementById('networkContainer');
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                
+                // Create SVG container
+                const svg = d3.select('#networkContainer')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Create tooltip
+                const tooltip = d3.select('#networkContainer')
+                    .append('div')
+                    .attr('class', 'tooltip')
+                    .style('opacity', 0);
+                
+                // Define color scale for node types
+                const nodeColors = {
+                    'center': '#3498db',
+                    'following': '#2ecc71',
+                    'followers': '#27ae60',
+                    'muting': '#f39c12',
+                    'muters': '#d35400',
+                    'reporting': '#e74c3c',
+                    'reporters': '#c0392b'
+                };
+                
+                // Define link colors based on relationship type
+                const linkColors = {
+                    'following': '#2ecc71',
+                    'followers': '#27ae60',
+                    'muting': '#f39c12',
+                    'muters': '#d35400',
+                    'reporting': '#e74c3c',
+                    'reporters': '#c0392b'
+                };
+                
+                // Create force simulation
+                const simulation = d3.forceSimulation(data.nodes)
+                    .force('link', d3.forceLink(data.links)
+                        .id(d => d.id)
+                        .distance(100))
+                    .force('charge', d3.forceManyBody().strength(-300))
+                    .force('center', d3.forceCenter(width / 2, height / 2))
+                    .force('collision', d3.forceCollide().radius(30));
+                
+                // Create links
+                const link = svg.append('g')
+                    .selectAll('line')
+                    .data(data.links)
+                    .enter()
+                    .append('line')
+                    .attr('stroke', d => linkColors[d.type] || '#999')
+                    .attr('stroke-opacity', 0.6)
+                    .attr('stroke-width', 2);
+                
+                // Create nodes
+                const node = svg.append('g')
+                    .selectAll('circle')
+                    .data(data.nodes)
+                    .enter()
+                    .append('circle')
+                    .attr('r', d => d.type === 'center' ? 15 : 8)
+                    .attr('fill', d => nodeColors[d.type] || '#999')
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended));
+                
+                // Add hover effects and tooltips
+                node.on('mouseover', function(event, d) {
+                        // Highlight connected links and nodes
+                        link.style('stroke-opacity', l => 
+                            l.source.id === d.id || l.target.id === d.id ? 1 : 0.1);
+                        node.style('opacity', n => 
+                            n.id === d.id || 
+                            data.links.some(l => 
+                                (l.source.id === d.id && l.target.id === n.id) || 
+                                (l.source.id === n.id && l.target.id === d.id)
+                            ) ? 1 : 0.3);
+                        
+                        // Show tooltip
+                        tooltip.transition()
+                            .duration(200)
+                            .style('opacity', .9);
+                        
+                        // Format tooltip content
+                        let tooltipContent = `<strong>Pubkey:</strong> ${d.id.substring(0, 10)}...<br>`;
+                        if (d.hops !== undefined && d.hops !== null) tooltipContent += `<strong>Hops:</strong> ${d.hops}<br>`;
+                        if (d.influence !== undefined && d.influence !== null) tooltipContent += `<strong>Influence:</strong> ${parseFloat(d.influence).toFixed(4)}<br>`;
+                        if (d.type) tooltipContent += `<strong>Type:</strong> ${d.type}`;
+                        
+                        tooltip.html(tooltipContent)
+                            .style('left', (event.pageX + 10) + 'px')
+                            .style('top', (event.pageY - 28) + 'px');
+                    })
+                    .on('mouseout', function() {
+                        // Reset link and node opacity
+                        link.style('stroke-opacity', 0.6);
+                        node.style('opacity', 1);
+                        
+                        // Hide tooltip
+                        tooltip.transition()
+                            .duration(500)
+                            .style('opacity', 0);
+                    });
+                
+                // Add simulation tick handler
+                simulation.on('tick', () => {
+                    link
+                        .attr('x1', d => d.source.x)
+                        .attr('y1', d => d.source.y)
+                        .attr('x2', d => d.target.x)
+                        .attr('y2', d => d.target.y);
+                    
+                    node
+                        .attr('cx', d => d.x = Math.max(15, Math.min(width - 15, d.x)))
+                        .attr('cy', d => d.y = Math.max(15, Math.min(height - 15, d.y)));
+                });
+                
+                // Drag functions
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+                
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+                
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+            } catch (error) {
+                console.error('Error rendering network visualization:', error);
+                document.getElementById('networkContainer').innerHTML = 
+                    `<div class="error-message">Error rendering network visualization: ${error.message}</div>`;
             }
         }
     </script>
