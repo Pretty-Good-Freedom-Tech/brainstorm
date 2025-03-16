@@ -835,36 +835,49 @@
                 // Log data for debugging
                 console.log('Rendering network with nodes:', data.nodes.length, 'links:', data.links.length);
                 
+                // Ensure all nodes have an id property
+                data.nodes.forEach((node, index) => {
+                    if (!node.id) {
+                        console.warn('Node missing id, adding one:', node);
+                        node.id = node.pubkey || `node_${index}`;
+                    }
+                });
+                
                 // Fix data format issues - ensure nodes have unique IDs and links reference them correctly
-                // This is crucial for D3's force simulation to work properly
                 const nodesById = {};
                 
                 // Create a map of nodes by ID for quick lookup
                 data.nodes.forEach(node => {
-                    // Ensure each node has a proper id property
                     nodesById[node.id] = node;
                 });
                 
                 // Filter out any links that reference non-existent nodes
                 const validLinks = data.links.filter(link => {
-                    // Check if both source and target exist in our nodes
-                    const sourceExists = typeof link.source === 'string' ? 
-                        nodesById[link.source] !== undefined : 
-                        nodesById[link.source.id] !== undefined;
+                    // Check if source exists
+                    let sourceExists = false;
+                    if (typeof link.source === 'string') {
+                        sourceExists = nodesById[link.source] !== undefined;
+                    } else if (link.source && link.source.id) {
+                        sourceExists = nodesById[link.source.id] !== undefined;
+                    }
                     
-                    const targetExists = typeof link.target === 'string' ? 
-                        nodesById[link.target] !== undefined : 
-                        nodesById[link.target.id] !== undefined;
+                    // Check if target exists
+                    let targetExists = false;
+                    if (typeof link.target === 'string') {
+                        targetExists = nodesById[link.target] !== undefined;
+                    } else if (link.target && link.target.id) {
+                        targetExists = nodesById[link.target.id] !== undefined;
+                    }
                     
                     return sourceExists && targetExists;
                 });
                 
                 // Convert any object references to string IDs for consistency
                 validLinks.forEach(link => {
-                    if (typeof link.source !== 'string' && link.source.id) {
+                    if (typeof link.source !== 'string' && link.source && link.source.id) {
                         link.source = link.source.id;
                     }
-                    if (typeof link.target !== 'string' && link.target.id) {
+                    if (typeof link.target !== 'string' && link.target && link.target.id) {
                         link.target = link.target.id;
                     }
                 });
@@ -956,8 +969,8 @@
                         // Highlight connected links and nodes
                         link.style('stroke-opacity', l => {
                             // Check if the link is connected to this node
-                            const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-                            const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                            const sourceId = typeof l.source === 'object' && l.source ? l.source.id : l.source;
+                            const targetId = typeof l.target === 'object' && l.target ? l.target.id : l.target;
                             return sourceId === d.id || targetId === d.id ? 1 : 0.1;
                         });
                         
@@ -967,8 +980,8 @@
                             
                             // Check if there's a link between these nodes
                             const connected = validLinks.some(l => {
-                                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-                                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                                const sourceId = typeof l.source === 'object' && l.source ? l.source.id : l.source;
+                                const targetId = typeof l.target === 'object' && l.target ? l.target.id : l.target;
                                 return (sourceId === d.id && targetId === n.id) || 
                                        (sourceId === n.id && targetId === d.id);
                             });
@@ -982,7 +995,7 @@
                             .style('opacity', .9);
                         
                         // Format tooltip content
-                        let tooltipContent = `<strong>Pubkey:</strong> ${d.id.substring(0, 10)}...<br>`;
+                        let tooltipContent = `<strong>Pubkey:</strong> ${(d.id || '').substring(0, 10)}...<br>`;
                         if (d.hops !== undefined && d.hops !== null) tooltipContent += `<strong>Hops:</strong> ${d.hops}<br>`;
                         if (d.influence !== undefined && d.influence !== null) tooltipContent += `<strong>Influence:</strong> ${parseFloat(d.influence).toFixed(4)}<br>`;
                         if (d.type) tooltipContent += `<strong>Type:</strong> ${d.type}`;
@@ -1007,24 +1020,30 @@
                     link
                         .attr('x1', d => {
                             const source = typeof d.source === 'object' ? d.source : null;
-                            return source ? source.x : 0;
+                            return source && source.x ? source.x : 0;
                         })
                         .attr('y1', d => {
                             const source = typeof d.source === 'object' ? d.source : null;
-                            return source ? source.y : 0;
+                            return source && source.y ? source.y : 0;
                         })
                         .attr('x2', d => {
                             const target = typeof d.target === 'object' ? d.target : null;
-                            return target ? target.x : 0;
+                            return target && target.x ? target.x : 0;
                         })
                         .attr('y2', d => {
                             const target = typeof d.target === 'object' ? d.target : null;
-                            return target ? target.y : 0;
+                            return target && target.y ? target.y : 0;
                         });
                     
                     node
-                        .attr('cx', d => d.x = Math.max(15, Math.min(width - 15, d.x)))
-                        .attr('cy', d => d.y = Math.max(15, Math.min(height - 15, d.y)));
+                        .attr('cx', d => {
+                            if (!d.x) d.x = width / 2;
+                            return d.x = Math.max(15, Math.min(width - 15, d.x));
+                        })
+                        .attr('cy', d => {
+                            if (!d.y) d.y = height / 2;
+                            return d.y = Math.max(15, Math.min(height - 15, d.y));
+                        });
                 });
                 
                 // Drag functions
