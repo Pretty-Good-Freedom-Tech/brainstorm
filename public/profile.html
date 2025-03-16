@@ -992,15 +992,20 @@
                     // Create patterns for each node with a profile picture
                     data.nodes.forEach(node => {
                         if (node.profilePicture) {
-                            defs.append("pattern")
+                            // Create a pattern for the profile picture
+                            const pattern = defs.append("pattern")
                                 .attr("id", `profile-pic-${node.id}`)
+                                .attr("patternUnits", "objectBoundingBox")
+                                .attr("width", 1)
+                                .attr("height", 1);
+                            
+                            // Add the image to the pattern
+                            pattern.append("image")
+                                .attr("xlink:href", node.profilePicture)
+                                .attr("x", 0)
+                                .attr("y", 0)
                                 .attr("width", 1)
                                 .attr("height", 1)
-                                .attr("patternUnits", "objectBoundingBox")
-                                .append("image")
-                                .attr("xlink:href", node.profilePicture)
-                                .attr("width", 60)  // Make this larger than the max node size
-                                .attr("height", 60)
                                 .attr("preserveAspectRatio", "xMidYMid slice");
                         }
                     });
