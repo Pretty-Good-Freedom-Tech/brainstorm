@@ -260,12 +260,52 @@
                 <input type="text" id="filterPubkey" placeholder="Enter pubkey...">
             </div>
             <div class="filter-group">
-                <label for="filterHops">Max Hops</label>
-                <input type="number" id="filterHops" placeholder="Max hops" min="1" max="20">
+                <label for="filterMinHops">Min Hops</label>
+                <input type="number" id="filterMinHops" placeholder="Min hops" min="0" max="20">
             </div>
             <div class="filter-group">
-                <label for="filterRank">Min PageRank</label>
-                <input type="number" id="filterRank" placeholder="Min rank" min="0" step="0.01">
+                <label for="filterMaxHops">Max Hops</label>
+                <input type="number" id="filterMaxHops" placeholder="Max hops" min="1" max="20">
+            </div>
+            <div class="filter-group">
+                <label for="filterMinRank">Min PageRank</label>
+                <input type="number" id="filterMinRank" placeholder="Min rank" min="0" step="0.000001">
+            </div>
+            <div class="filter-group">
+                <label for="filterMaxRank">Max PageRank</label>
+                <input type="number" id="filterMaxRank" placeholder="Max rank" min="0" step="0.000001">
+            </div>
+            <div class="filter-group">
+                <label for="filterMinInfluence">Min Influence</label>
+                <input type="number" id="filterMinInfluence" placeholder="Min influence" min="0" step="0.000001">
+            </div>
+            <div class="filter-group">
+                <label for="filterMaxInfluence">Max Influence</label>
+                <input type="number" id="filterMaxInfluence" placeholder="Max influence" min="0" step="0.000001">
+            </div>
+            <div class="filter-group">
+                <label for="filterMinAverage">Min Average</label>
+                <input type="number" id="filterMinAverage" placeholder="Min average" min="-1" max="1" step="0.01">
+            </div>
+            <div class="filter-group">
+                <label for="filterMaxAverage">Max Average</label>
+                <input type="number" id="filterMaxAverage" placeholder="Max average" min="-1" max="1" step="0.01">
+            </div>
+            <div class="filter-group">
+                <label for="filterMinConfidence">Min Confidence</label>
+                <input type="number" id="filterMinConfidence" placeholder="Min confidence" min="0" max="1" step="0.01">
+            </div>
+            <div class="filter-group">
+                <label for="filterMaxConfidence">Max Confidence</label>
+                <input type="number" id="filterMaxConfidence" placeholder="Max confidence" min="0" max="1" step="0.01">
+            </div>
+            <div class="filter-group">
+                <label for="filterMinInput">Min Input</label>
+                <input type="number" id="filterMinInput" placeholder="Min input" min="0" step="0.01">
+            </div>
+            <div class="filter-group">
+                <label for="filterMaxInput">Max Input</label>
+                <input type="number" id="filterMaxInput" placeholder="Max input" min="0" step="0.01">
             </div>
             <div class="filter-group">
                 <label for="limitSelect">Results Per Page</label>
@@ -319,8 +359,18 @@
             },
             filters: {
                 pubkey: '',
-                hops: '',
-                rank: ''
+                minHops: '',
+                maxHops: '',
+                minRank: '',
+                maxRank: '',
+                minInfluence: '',
+                maxInfluence: '',
+                minAverage: '',
+                maxAverage: '',
+                minConfidence: '',
+                maxConfidence: '',
+                minInput: '',
+                maxInput: ''
             },
             sorting: {
                 column: 'personalizedPageRank',
@@ -337,8 +387,18 @@
         
         // Filter elements
         const filterPubkey = document.getElementById('filterPubkey');
-        const filterHops = document.getElementById('filterHops');
-        const filterRank = document.getElementById('filterRank');
+        const filterMinHops = document.getElementById('filterMinHops');
+        const filterMaxHops = document.getElementById('filterMaxHops');
+        const filterMinRank = document.getElementById('filterMinRank');
+        const filterMaxRank = document.getElementById('filterMaxRank');
+        const filterMinInfluence = document.getElementById('filterMinInfluence');
+        const filterMaxInfluence = document.getElementById('filterMaxInfluence');
+        const filterMinAverage = document.getElementById('filterMinAverage');
+        const filterMaxAverage = document.getElementById('filterMaxAverage');
+        const filterMinConfidence = document.getElementById('filterMinConfidence');
+        const filterMaxConfidence = document.getElementById('filterMaxConfidence');
+        const filterMinInput = document.getElementById('filterMinInput');
+        const filterMaxInput = document.getElementById('filterMaxInput');
         const limitSelect = document.getElementById('limitSelect');
         const applyFiltersBtn = document.getElementById('applyFiltersBtn');
         const resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -382,8 +442,18 @@
             // Filter buttons
             applyFiltersBtn.addEventListener('click', () => {
                 state.filters.pubkey = filterPubkey.value.trim();
-                state.filters.hops = filterHops.value.trim();
-                state.filters.rank = filterRank.value.trim();
+                state.filters.minHops = filterMinHops.value.trim();
+                state.filters.maxHops = filterMaxHops.value.trim();
+                state.filters.minRank = filterMinRank.value.trim();
+                state.filters.maxRank = filterMaxRank.value.trim();
+                state.filters.minInfluence = filterMinInfluence.value.trim();
+                state.filters.maxInfluence = filterMaxInfluence.value.trim();
+                state.filters.minAverage = filterMinAverage.value.trim();
+                state.filters.maxAverage = filterMaxAverage.value.trim();
+                state.filters.minConfidence = filterMinConfidence.value.trim();
+                state.filters.maxConfidence = filterMaxConfidence.value.trim();
+                state.filters.minInput = filterMinInput.value.trim();
+                state.filters.maxInput = filterMaxInput.value.trim();
                 state.pagination.limit = parseInt(limitSelect.value);
                 state.pagination.page = 1; // Reset to first page
                 fetchProfiles();
@@ -391,13 +461,32 @@
             
             resetFiltersBtn.addEventListener('click', () => {
                 filterPubkey.value = '';
-                filterHops.value = '';
-                filterRank.value = '';
-                limitSelect.value = '100';
+                filterMinHops.value = '';
+                filterMaxHops.value = '';
+                filterMinRank.value = '';
+                filterMaxRank.value = '';
+                filterMinInfluence.value = '';
+                filterMaxInfluence.value = '';
+                filterMinAverage.value = '';
+                filterMaxAverage.value = '';
+                filterMinConfidence.value = '';
+                filterMaxConfidence.value = '';
+                filterMinInput.value = '';
+                filterMaxInput.value = '';
                 
                 state.filters.pubkey = '';
-                state.filters.hops = '';
-                state.filters.rank = '';
+                state.filters.minHops = '';
+                state.filters.maxHops = '';
+                state.filters.minRank = '';
+                state.filters.maxRank = '';
+                state.filters.minInfluence = '';
+                state.filters.maxInfluence = '';
+                state.filters.minAverage = '';
+                state.filters.maxAverage = '';
+                state.filters.minConfidence = '';
+                state.filters.maxConfidence = '';
+                state.filters.minInput = '';
+                state.filters.maxInput = '';
                 state.pagination.limit = 100;
                 state.pagination.page = 1;
                 
@@ -429,8 +518,18 @@
             
             // Add filters if they exist
             if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
-            if (state.filters.hops) params.append('filterHops', state.filters.hops);
-            if (state.filters.rank) params.append('filterRank', state.filters.rank);
+            if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
+            if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
+            if (state.filters.minRank) params.append('filterMinRank', state.filters.minRank);
+            if (state.filters.maxRank) params.append('filterMaxRank', state.filters.maxRank);
+            if (state.filters.minInfluence) params.append('filterMinInfluence', state.filters.minInfluence);
+            if (state.filters.maxInfluence) params.append('filterMaxInfluence', state.filters.maxInfluence);
+            if (state.filters.minAverage) params.append('filterMinAverage', state.filters.minAverage);
+            if (state.filters.maxAverage) params.append('filterMaxAverage', state.filters.maxAverage);
+            if (state.filters.minConfidence) params.append('filterMinConfidence', state.filters.minConfidence);
+            if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
+            if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
+            if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
             
             // Fetch data from API
             fetch(`/control/api/get-profiles?${params.toString()}`)
@@ -659,8 +758,18 @@
             
             // Add filters if they exist
             if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
-            if (state.filters.hops) params.append('filterHops', state.filters.hops);
-            if (state.filters.rank) params.append('filterRank', state.filters.rank);
+            if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
+            if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
+            if (state.filters.minRank) params.append('filterMinRank', state.filters.minRank);
+            if (state.filters.maxRank) params.append('filterMaxRank', state.filters.maxRank);
+            if (state.filters.minInfluence) params.append('filterMinInfluence', state.filters.minInfluence);
+            if (state.filters.maxInfluence) params.append('filterMaxInfluence', state.filters.maxInfluence);
+            if (state.filters.minAverage) params.append('filterMinAverage', state.filters.minAverage);
+            if (state.filters.maxAverage) params.append('filterMaxAverage', state.filters.maxAverage);
+            if (state.filters.minConfidence) params.append('filterMinConfidence', state.filters.minConfidence);
+            if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
+            if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
+            if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
             
             // Fetch all data for export
             fetch(`/control/api/get-profiles?${params.toString()}`)

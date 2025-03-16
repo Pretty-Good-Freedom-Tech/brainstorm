@@ -1197,9 +1197,21 @@ function handleGetProfiles(req, res) {
     const limit = parseInt(req.query.limit) || 100;
     const sortBy = req.query.sortBy || 'personalizedPageRank';
     const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
-    const filterHops = req.query.filterHops || '';
-    const filterRank = req.query.filterRank || '';
+    
+    // Get all filter parameters
     const filterPubkey = req.query.filterPubkey || '';
+    const filterMinHops = req.query.filterMinHops || '';
+    const filterMaxHops = req.query.filterMaxHops || '';
+    const filterMinRank = req.query.filterMinRank || '';
+    const filterMaxRank = req.query.filterMaxRank || '';
+    const filterMinInfluence = req.query.filterMinInfluence || '';
+    const filterMaxInfluence = req.query.filterMaxInfluence || '';
+    const filterMinAverage = req.query.filterMinAverage || '';
+    const filterMaxAverage = req.query.filterMaxAverage || '';
+    const filterMinConfidence = req.query.filterMinConfidence || '';
+    const filterMaxConfidence = req.query.filterMaxConfidence || '';
+    const filterMinInput = req.query.filterMinInput || '';
+    const filterMaxInput = req.query.filterMaxInput || '';
     
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
@@ -1220,12 +1232,52 @@ function handleGetProfiles(req, res) {
     `;
     
     // Add filters if provided
-    if (filterHops) {
-      query += ` AND u.hops <= ${parseInt(filterHops)}`;
+    if (filterMinHops) {
+      query += ` AND u.hops >= ${parseInt(filterMinHops)}`;
     }
     
-    if (filterRank) {
-      query += ` AND u.personalizedPageRank >= ${parseFloat(filterRank)}`;
+    if (filterMaxHops) {
+      query += ` AND u.hops <= ${parseInt(filterMaxHops)}`;
+    }
+    
+    if (filterMinRank) {
+      query += ` AND u.personalizedPageRank >= ${parseFloat(filterMinRank)}`;
+    }
+    
+    if (filterMaxRank) {
+      query += ` AND u.personalizedPageRank <= ${parseFloat(filterMaxRank)}`;
+    }
+    
+    if (filterMinInfluence) {
+      query += ` AND u.influence >= ${parseFloat(filterMinInfluence)}`;
+    }
+    
+    if (filterMaxInfluence) {
+      query += ` AND u.influence <= ${parseFloat(filterMaxInfluence)}`;
+    }
+    
+    if (filterMinAverage) {
+      query += ` AND u.average >= ${parseFloat(filterMinAverage)}`;
+    }
+    
+    if (filterMaxAverage) {
+      query += ` AND u.average <= ${parseFloat(filterMaxAverage)}`;
+    }
+    
+    if (filterMinConfidence) {
+      query += ` AND u.confidence >= ${parseFloat(filterMinConfidence)}`;
+    }
+    
+    if (filterMaxConfidence) {
+      query += ` AND u.confidence <= ${parseFloat(filterMaxConfidence)}`;
+    }
+    
+    if (filterMinInput) {
+      query += ` AND u.input >= ${parseFloat(filterMinInput)}`;
+    }
+    
+    if (filterMaxInput) {
+      query += ` AND u.input <= ${parseFloat(filterMaxInput)}`;
     }
     
     if (filterPubkey) {
