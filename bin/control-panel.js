@@ -121,6 +121,10 @@ app.get('/control/profiles', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/profiles-control-panel.html'));
 });
 
+app.get('/control/profile.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/profile.html'));
+});
+
 app.get('/control/nip85-control-panel.html', (req, res) => {
     serveHtmlFile('control/nip85-control-panel.html', res);
 });
@@ -253,6 +257,12 @@ app.get('/api/kind10040-info', handleKind10040Info);
 
 // API endpoint for getting NostrUser profiles data from Neo4j
 app.get('/api/get-profiles', handleGetProfiles);
+
+// API endpoint for getting individual user data from Neo4j
+app.get('/api/get-user-data', handleGetUserData);
+
+// API endpoint for getting kind 0 events from the nostr network
+app.get('/api/get-kind0', handleGetKind0Event);
 
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
@@ -1288,6 +1298,205 @@ function handleGetProfiles(req, res) {
       });
   } catch (error) {
     console.error('Error in handleGetProfiles:', error);
+    res.status(500).json({
+      success: false,
+      message: `Server error: ${error.message}`
+    });
+  }
+}
+
+// Handler for getting individual user data from Neo4j
+function handleGetUserData(req, res) {
+  try {
+    // Get query parameters for filtering
+    const pubkey = req.query.pubkey;
+    
+    if (!pubkey) {
+      return res.status(400).json({ error: 'Missing pubkey parameter' });
+    }
+    
+    // Create Neo4j driver
+    const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
+    const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
+    const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+    
+    const driver = neo4j.driver(
+      neo4jUri,
+      neo4j.auth.basic(neo4jUser, neo4jPassword)
+    );
+    
+    const session = driver.session();
+    
+    // Build the Cypher query
+    const query = `
+      MATCH (u:NostrUser { pubkey: '${pubkey}' })
+      RETURN u.pubkey as pubkey,
+             u.personalizedPageRank as personalizedPageRank,
+             u.hops as hops,
+             u.influence as influence,
+             u.average as average,
+             u.confidence as confidence,
+             u.input as input
+    `;
+    
+    // Execute the query
+    session.run(query)
+      .then(result => {
+        const user = result.records[0];
+        
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({
+          success: true,
+          data: {
+            pubkey: user.get('pubkey'),
+            personalizedPageRank: user.get('personalizedPageRank') ? parseFloat(user.get('personalizedPageRank').toString()) : null,
+            hops: user.get('hops') ? parseInt(user.get('hops').toString()) : null,
+            influence: user.get('influence') ? parseFloat(user.get('influence').toString()) : null,
+            average: user.get('average') ? parseFloat(user.get('average').toString()) : null,
+            confidence: user.get('confidence') ? parseFloat(user.get('confidence').toString()) : null,
+            input: user.get('input') ? parseFloat(user.get('input').toString()) : null
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({
+          success: false,
+          message: `Error fetching user data: ${error.message}`
+        });
+      })
+      .finally(() => {
+        session.close();
+        driver.close();
+      });
+  } catch (error) {
+    console.error('Error in handleGetUserData:', error);
+    res.status(500).json({
+      success: false,
+      message: `Server error: ${error.message}`
+    });
+  }
+}
+
+// Handler for getting kind 0 events from the nostr network
+function handleGetKind0Event(req, res) {
+  try {
+    // Get query parameters for filtering
+    const pubkey = req.query.pubkey;
+    
+    if (!pubkey) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing pubkey parameter'
+      });
+    }
+    
+    // Get relay URL from config
+    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL');
+    
+    // First try to get the event from our local strfry relay
+    const strfryCommand = `strfry scan --limit 1 '{"kinds":[0],"authors":["${pubkey}"]}'`;
+    
+    exec(strfryCommand, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing strfry query: ${stderr || error.message}`);
+        return res.status(500).json({
+          success: false,
+          message: `Error executing strfry query: ${stderr || error.message}`
+        });
+      }
+      
+      try {
+        // Parse the JSON output
+        const events = stdout.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
+        
+        if (events.length > 0) {
+          // Return the most recent event
+          return res.json({
+            success: true,
+            data: events[0]
+          });
+        } else {
+          // If no events found in local relay, try to query the Neo4j database for metadata
+          const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
+          const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
+          const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+          
+          const driver = neo4j.driver(
+            neo4jUri,
+            neo4j.auth.basic(neo4jUser, neo4jPassword)
+          );
+          
+          const session = driver.session();
+          
+          // Query for any metadata we might have stored
+          const query = `
+            MATCH (u:NostrUser { pubkey: $pubkey })
+            RETURN u.metadata as metadata
+          `;
+          
+          session.run(query, { pubkey })
+            .then(result => {
+              if (result.records.length > 0 && result.records[0].get('metadata')) {
+                try {
+                  // If we have metadata stored in Neo4j, use that
+                  const metadata = result.records[0].get('metadata');
+                  const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+                  
+                  // Construct a kind 0 event from the metadata
+                  const kind0Event = {
+                    kind: 0,
+                    pubkey: pubkey,
+                    content: JSON.stringify(metadataObj),
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: []
+                  };
+                  
+                  return res.json({
+                    success: true,
+                    data: kind0Event,
+                    source: 'neo4j'
+                  });
+                } catch (parseError) {
+                  console.error('Error parsing metadata from Neo4j:', parseError);
+                  return res.json({
+                    success: false,
+                    message: 'No profile data found for this user'
+                  });
+                }
+              } else {
+                // If no metadata in Neo4j, return empty
+                return res.json({
+                  success: false,
+                  message: 'No profile data found for this user'
+                });
+              }
+            })
+            .catch(neo4jError => {
+              console.error('Error querying Neo4j:', neo4jError);
+              return res.status(500).json({
+                success: false,
+                message: `Error querying Neo4j: ${neo4jError.message}`
+              });
+            })
+            .finally(() => {
+              session.close();
+              driver.close();
+            });
+        }
+      } catch (parseError) {
+        console.error('Error parsing strfry output:', parseError, 'Output was:', stdout);
+        return res.status(500).json({
+          success: false,
+          message: `Error parsing strfry output: ${parseError.message}`
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error in handleGetKind0Event:', error);
     res.status(500).json({
       success: false,
       message: `Server error: ${error.message}`

@@ -231,6 +231,15 @@
             visibility: visible;
             opacity: 1;
         }
+        
+        .pubkey-link {
+            text-decoration: none;
+            color: #337ab7;
+        }
+        
+        .pubkey-link:hover {
+            color: #23527c;
+        }
     </style>
 </head>
 <body>
@@ -464,11 +473,17 @@
             state.profiles.forEach(profile => {
                 const row = document.createElement('tr');
                 
-                // Pubkey cell with truncation
+                // Pubkey cell with truncation and hyperlink
                 const pubkeyCell = document.createElement('td');
                 pubkeyCell.className = 'pubkey-cell';
-                pubkeyCell.title = profile.pubkey;
-                pubkeyCell.textContent = profile.pubkey;
+                
+                const pubkeyLink = document.createElement('a');
+                pubkeyLink.href = `/control/profile.html?pubkey=${encodeURIComponent(profile.pubkey)}`;
+                pubkeyLink.title = profile.pubkey;
+                pubkeyLink.textContent = profile.pubkey;
+                pubkeyLink.className = 'pubkey-link';
+                
+                pubkeyCell.appendChild(pubkeyLink);
                 row.appendChild(pubkeyCell);
                 
                 // Other cells

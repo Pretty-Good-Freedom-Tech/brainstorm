@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nostr User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .profile-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .profile-sidebar {
+            flex: 0 0 250px;
+        }
+        
+        .profile-content {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .profile-picture {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #3498db;
+        }
+        
+        .profile-info {
+            margin-bottom: 20px;
+        }
+        
+        .profile-info h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .profile-info p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+        
+        .profile-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background-color: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .stat-box h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .stat-box p {
+            margin: 5px 0 0 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .profile-links {
+            margin-top: 15px;
+        }
+        
+        .profile-links a {
+            display: inline-block;
+            margin-right: 10px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .profile-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            width: 100%;
+        }
+        
+        .loading::after {
+            content: "Loading profile...";
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .error-message {
+            padding: 15px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-links a {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background-color: #2980b9;
+        }
+        
+        .profile-about {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            line-height: 1.6;
+        }
+        
+        .profile-about h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .profile-about p {
+            margin-bottom: 0;
+        }
+        
+        .profile-about a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .profile-about a:hover {
+            text-decoration: underline;
+        }
+        
+        .profile-metadata {
+            margin-top: 20px;
+        }
+        
+        .profile-metadata h3 {
+            margin-bottom: 10px;
+        }
+        
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .metadata-table th, .metadata-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .metadata-table th {
+            background-color: #f2f2f2;
+            font-weight: normal;
+            width: 40%;
+        }
+        
+        .metadata-table td {
+            word-break: break-word;
+        }
+        
+        .pubkey-display {
+            font-family: monospace;
+            word-break: break-all;
+            background-color: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Nostr User Profile</h1>
+            <div class="nav-links">
+                <a href="/control">Control Panel</a>
+                <a href="/control/profiles">All Profiles</a>
+            </div>
+        </div>
+        
+        <div id="loadingIndicator" class="loading"></div>
+        
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        
+        <div id="profileContainer" class="profile-container" style="display: none;">
+            <div class="profile-sidebar">
+                <img id="profilePicture" class="profile-picture" src="/img/default-avatar.png" alt="Profile Picture">
+                <div class="profile-info">
+                    <h2 id="displayName">Loading...</h2>
+                    <p id="username">@username</p>
+                    <p id="nip05" style="display: none;"></p>
+                    <div class="pubkey-display" id="pubkeyDisplay"></div>
+                </div>
+                <div class="profile-links" id="profileLinks">
+                    <!-- Links will be added here -->
+                </div>
+            </div>
+            
+            <div class="profile-content">
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <h3>PageRank</h3>
+                        <p id="pageRankValue">-</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Hops</h3>
+                        <p id="hopsValue">-</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Influence</h3>
+                        <p id="influenceValue">-</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Confidence</h3>
+                        <p id="confidenceValue">-</p>
+                    </div>
+                </div>
+                
+                <div class="profile-about" id="aboutSection">
+                    <h3>About</h3>
+                    <p id="aboutText">No information available</p>
+                </div>
+                
+                <div class="profile-metadata">
+                    <h3>Profile Metadata</h3>
+                    <table class="metadata-table" id="metadataTable">
+                        <tbody>
+                            <!-- Metadata will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Get pubkey from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const pubkey = urlParams.get('pubkey');
+        
+        // DOM Elements
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessage = document.getElementById('errorMessage');
+        const profileContainer = document.getElementById('profileContainer');
+        const profilePicture = document.getElementById('profilePicture');
+        const displayName = document.getElementById('displayName');
+        const username = document.getElementById('username');
+        const nip05 = document.getElementById('nip05');
+        const pubkeyDisplay = document.getElementById('pubkeyDisplay');
+        const profileLinks = document.getElementById('profileLinks');
+        const pageRankValue = document.getElementById('pageRankValue');
+        const hopsValue = document.getElementById('hopsValue');
+        const influenceValue = document.getElementById('influenceValue');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const aboutText = document.getElementById('aboutText');
+        const metadataTable = document.getElementById('metadataTable');
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!pubkey) {
+                showError('No pubkey provided');
+                return;
+            }
+            
+            // Set the pubkey in the display
+            pubkeyDisplay.textContent = pubkey;
+            
+            // Fetch profile data
+            fetchProfileData(pubkey);
+        });
+        
+        function fetchProfileData(pubkey) {
+            // Show loading indicator
+            loadingIndicator.style.display = 'flex';
+            profileContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            // Fetch Neo4j data first
+            fetch(`/control/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the profile stats
+                        updateProfileStats(data.data);
+                        
+                        // Now fetch the kind 0 event
+                        return fetch(`/control/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`);
+                    } else {
+                        throw new Error(data.message || 'Failed to fetch Neo4j data');
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the profile with kind 0 data
+                        updateProfileFromKind0(data.data);
+                        
+                        // Show the profile container
+                        loadingIndicator.style.display = 'none';
+                        profileContainer.style.display = 'flex';
+                    } else {
+                        // If we can't get kind 0 data, still show what we have
+                        console.warn('Could not fetch kind 0 data:', data.message);
+                        loadingIndicator.style.display = 'none';
+                        profileContainer.style.display = 'flex';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching profile data:', error);
+                    showError(`Error fetching profile data: ${error.message}`);
+                });
+        }
+        
+        function updateProfileStats(userData) {
+            // Update the profile stats with Neo4j data
+            if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
+                pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
+            }
+            
+            if (userData.hops !== null && userData.hops !== undefined) {
+                hopsValue.textContent = userData.hops;
+            }
+            
+            if (userData.influence !== null && userData.influence !== undefined) {
+                influenceValue.textContent = parseFloat(userData.influence).toFixed(4);
+            }
+            
+            if (userData.confidence !== null && userData.confidence !== undefined) {
+                confidenceValue.textContent = parseFloat(userData.confidence).toFixed(4);
+            }
+        }
+        
+        function updateProfileFromKind0(kind0Data) {
+            if (!kind0Data || !kind0Data.content) {
+                return;
+            }
+            
+            try {
+                // Parse the content as JSON
+                const profileContent = JSON.parse(kind0Data.content);
+                
+                // Update display name
+                if (profileContent.name) {
+                    displayName.textContent = profileContent.name;
+                    document.title = `${profileContent.name} - Nostr Profile`;
+                }
+                
+                // Update username/nickname
+                if (profileContent.display_name || profileContent.displayName) {
+                    const nick = profileContent.display_name || profileContent.displayName;
+                    username.textContent = nick;
+                } else if (profileContent.name) {
+                    username.textContent = `@${profileContent.name.toLowerCase().replace(/\s+/g, '_')}`;
+                }
+                
+                // Update profile picture
+                if (profileContent.picture) {
+                    profilePicture.src = profileContent.picture;
+                    profilePicture.onerror = () => {
+                        profilePicture.src = '/img/default-avatar.png';
+                    };
+                }
+                
+                // Update NIP-05 identifier
+                if (profileContent.nip05) {
+                    nip05.textContent = `✓ ${profileContent.nip05}`;
+                    nip05.style.display = 'block';
+                }
+                
+                // Update about text
+                if (profileContent.about) {
+                    aboutText.textContent = profileContent.about;
+                    
+                    // Convert URLs to links
+                    aboutText.innerHTML = aboutText.innerHTML.replace(
+                        /(https?:\/\/[^\s]+)/g, 
+                        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+                    );
+                }
+                
+                // Add website link if available
+                if (profileContent.website) {
+                    addProfileLink('Website', profileContent.website);
+                }
+                
+                // Add social media links
+                const socialPlatforms = {
+                    twitter: { label: 'Twitter', url: 'https://twitter.com/' },
+                    github: { label: 'GitHub', url: 'https://github.com/' },
+                    instagram: { label: 'Instagram', url: 'https://instagram.com/' },
+                    linkedin: { label: 'LinkedIn', url: 'https://linkedin.com/in/' }
+                };
+                
+                for (const [platform, info] of Object.entries(socialPlatforms)) {
+                    if (profileContent[platform]) {
+                        const username = profileContent[platform].replace('@', '');
+                        addProfileLink(info.label, `${info.url}${username}`);
+                    }
+                }
+                
+                // Add all metadata to the table
+                metadataTable.innerHTML = '';
+                for (const [key, value] of Object.entries(profileContent)) {
+                    if (value && typeof value === 'string') {
+                        addMetadataRow(key, value);
+                    }
+                }
+                
+                // Add event metadata
+                if (kind0Data.created_at) {
+                    const date = new Date(kind0Data.created_at * 1000);
+                    addMetadataRow('Profile Updated', date.toLocaleString());
+                }
+                
+                if (kind0Data.id) {
+                    addMetadataRow('Event ID', kind0Data.id);
+                }
+            } catch (error) {
+                console.error('Error parsing profile content:', error);
+            }
+        }
+        
+        function addProfileLink(label, url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = label;
+            profileLinks.appendChild(link);
+        }
+        
+        function addMetadataRow(key, value) {
+            const row = document.createElement('tr');
+            
+            const keyCell = document.createElement('th');
+            keyCell.textContent = key.replace(/([A-Z])/g, ' $1')
+                .replace(/_/g, ' ')
+                .replace(/^./, str => str.toUpperCase());
+            
+            const valueCell = document.createElement('td');
+            
+            // Check if value is a URL
+            if (value.match(/^https?:\/\//)) {
+                const link = document.createElement('a');
+                link.href = value;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = value;
+                valueCell.appendChild(link);
+            } else {
+                valueCell.textContent = value;
+            }
+            
+            row.appendChild(keyCell);
+            row.appendChild(valueCell);
+            metadataTable.appendChild(row);
+        }
+        
+        function showError(message) {
+            loadingIndicator.style.display = 'none';
+            profileContainer.style.display = 'none';
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = message;
+        }
+    </script>
+</body>
+</html>
