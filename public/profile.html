@@ -1006,10 +1006,9 @@
                             // Create a pattern for the profile picture
                             const pattern = defs.append("pattern")
                                 .attr("id", patternId)
+                                .attr("patternUnits", "objectBoundingBox")
                                 .attr("width", 1)
-                                .attr("height", 1)
-                                .attr("x", 0)
-                                .attr("y", 0);
+                                .attr("height", 1);
                             
                             // Add a white background circle to ensure the image is visible
                             pattern.append("circle")
@@ -1185,26 +1184,36 @@
                     simulation.on('tick', () => {
                         // Update link paths for curved directional links
                         link.attr('d', d => {
-                            const source = typeof d.source === 'object' && d.source ? d.source : nodesById[d.source];
-                            const target = typeof d.target === 'object' && d.target ? d.target : nodesById[d.target];
+                            // Get source and target nodes
+                            const source = typeof d.source === 'object' ? d.source : nodesById[d.source];
+                            const target = typeof d.target === 'object' ? d.target : nodesById[d.target];
                             
-                            if (!source || !source.x || !source.y || !target || !target.x || !target.y) {
-                                return 'M0,0L0,0'; // Fallback for missing coordinates
+                            // Safety check for valid coordinates
+                            if (!source || !target || 
+                                typeof source.x !== 'number' || typeof source.y !== 'number' ||
+                                typeof target.x !== 'number' || typeof target.y !== 'number' ||
+                                isNaN(source.x) || isNaN(source.y) || 
+                                isNaN(target.x) || isNaN(target.y)) {
+                                return ''; // Return empty path if coordinates are invalid
                             }
                             
                             // Calculate path for directional arrow
                             const dx = target.x - source.x;
                             const dy = target.y - source.y;
-                            const dr = Math.sqrt(dx * dx + dy * dy);
-                            
-                            // Adjust the path to not overlap with nodes
-                            const sourceRadius = influenceScale(source.influence || 0.0001);
-                            const targetRadius = influenceScale(target.influence || 0.0001);
-                            
-                            // Calculate the total length and normalized direction vector
                             const length = Math.sqrt(dx * dx + dy * dy);
+                            
+                            // Safety check for zero length
+                            if (length === 0) {
+                                return ''; // Return empty path if length is zero
+                            }
+                            
+                            // Calculate the normalized direction vector
                             const normX = dx / length;
                             const normY = dy / length;
+                            
+                            // Get node radii
+                            const sourceRadius = influenceScale(source.influence || 0.0001);
+                            const targetRadius = influenceScale(target.influence || 0.0001);
                             
                             // Calculate start and end points, offset by node radius
                             const startX = source.x + (sourceRadius * normX);
@@ -1212,18 +1221,27 @@
                             const endX = target.x - (targetRadius * normX);
                             const endY = target.y - (targetRadius * normY);
                             
-                            // Return a curved path
-                            return `M${startX},${startY}A${dr},${dr} 0 0,1 ${endX},${endY}`;
+                            // Safety check for valid path points
+                            if (isNaN(startX) || isNaN(startY) || isNaN(endX) || isNaN(endY)) {
+                                return ''; // Return empty path if any coordinate is NaN
+                            }
+                            
+                            // Return a straight line instead of a curve to avoid arc calculation issues
+                            return `M${startX},${startY}L${endX},${endY}`;
                         });
                         
                         // Update node group positions
                         nodeGroup.attr('transform', d => {
-                            if (!d.x) d.x = width / 2;
-                            if (!d.y) d.y = height / 2;
+                            // Safety check for valid coordinates
+                            if (typeof d.x !== 'number' || typeof d.y !== 'number' || isNaN(d.x) || isNaN(d.y)) {
+                                d.x = width / 2;
+                                d.y = height / 2;
+                            }
                             
                             // Keep nodes within bounds
-                            d.x = Math.max(influenceScale(d.influence || 0.0001), Math.min(width - influenceScale(d.influence || 0.0001), d.x));
-                            d.y = Math.max(influenceScale(d.influence || 0.0001), Math.min(height - influenceScale(d.influence || 0.0001), d.y));
+                            const radius = influenceScale(d.influence || 0.0001);
+                            d.x = Math.max(radius, Math.min(width - radius, d.x));
+                            d.y = Math.max(radius, Math.min(height - radius, d.y));
                             
                             return `translate(${d.x}, ${d.y})`;
                         });
