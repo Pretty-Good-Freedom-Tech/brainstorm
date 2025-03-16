@@ -897,6 +897,21 @@
                     .attr('width', width)
                     .attr('height', height);
                 
+                // Add arrow markers for directional links
+                svg.append("defs").selectAll("marker")
+                    .data(["following", "followers", "muting", "muters", "reporting", "reporters"])
+                    .enter().append("marker")
+                    .attr("id", d => `arrow-${d}`)
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 25)  // Position the arrow away from the node
+                    .attr("refY", 0)
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .attr("orient", "auto")
+                    .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")
+                    .attr("fill", d => linkColors[d] || "#999");
+                
                 // Create tooltip
                 const tooltip = d3.select('#networkContainer')
                     .append('div')
@@ -941,15 +956,17 @@
                     .force('center', d3.forceCenter(width / 2, height / 2))
                     .force('collision', d3.forceCollide().radius(30));
                 
-                // Create links
+                // Create links as paths for directional arrows
                 const link = svg.append('g')
-                    .selectAll('line')
+                    .selectAll('path')
                     .data(validLinks)
                     .enter()
-                    .append('line')
+                    .append('path')
                     .attr('stroke', d => linkColors[d.type] || '#999')
                     .attr('stroke-opacity', 0.6)
-                    .attr('stroke-width', 2);
+                    .attr('stroke-width', 2)
+                    .attr('fill', 'none')
+                    .attr('marker-end', d => `url(#arrow-${d.type})`);
                 
                 // Create nodes
                 const node = svg.append('g')
@@ -963,6 +980,23 @@
                         .on('start', dragstarted)
                         .on('drag', dragged)
                         .on('end', dragended));
+                
+                // Add node labels
+                const labels = svg.append('g')
+                    .selectAll('text')
+                    .data(data.nodes)
+                    .enter()
+                    .append('text')
+                    .text(d => {
+                        // Show short pubkey for center node, nothing for others to avoid clutter
+                        if (d.type === 'center') {
+                            return d.id.substring(0, 6) + '...';
+                        }
+                        return '';
+                    })
+                    .attr('font-size', '10px')
+                    .attr('dx', 12)
+                    .attr('dy', 4);
                 
                 // Add hover effects and tooltips
                 node.on('mouseover', function(event, d) {
@@ -1017,24 +1051,40 @@
                 
                 // Add simulation tick handler
                 simulation.on('tick', () => {
-                    link
-                        .attr('x1', d => {
-                            const source = typeof d.source === 'object' ? d.source : null;
-                            return source && source.x ? source.x : 0;
-                        })
-                        .attr('y1', d => {
-                            const source = typeof d.source === 'object' ? d.source : null;
-                            return source && source.y ? source.y : 0;
-                        })
-                        .attr('x2', d => {
-                            const target = typeof d.target === 'object' ? d.target : null;
-                            return target && target.x ? target.x : 0;
-                        })
-                        .attr('y2', d => {
-                            const target = typeof d.target === 'object' ? d.target : null;
-                            return target && target.y ? target.y : 0;
-                        });
+                    // Update link paths for curved directional links
+                    link.attr('d', d => {
+                        const source = typeof d.source === 'object' && d.source ? d.source : nodesById[d.source];
+                        const target = typeof d.target === 'object' && d.target ? d.target : nodesById[d.target];
+                        
+                        if (!source || !source.x || !source.y || !target || !target.x || !target.y) {
+                            return 'M0,0L0,0'; // Fallback for missing coordinates
+                        }
+                        
+                        // Calculate path for directional arrow
+                        const dx = target.x - source.x;
+                        const dy = target.y - source.y;
+                        const dr = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // Adjust the path to not overlap with nodes
+                        const sourceRadius = source.type === 'center' ? 15 : 8;
+                        const targetRadius = target.type === 'center' ? 15 : 8;
+                        
+                        // Calculate the total length and normalized direction vector
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const normX = dx / length;
+                        const normY = dy / length;
+                        
+                        // Calculate start and end points, offset by node radius
+                        const startX = source.x + (sourceRadius * normX);
+                        const startY = source.y + (sourceRadius * normY);
+                        const endX = target.x - (targetRadius * normX);
+                        const endY = target.y - (targetRadius * normY);
+                        
+                        // Return a curved path
+                        return `M${startX},${startY}A${dr},${dr} 0 0,1 ${endX},${endY}`;
+                    });
                     
+                    // Update node positions
                     node
                         .attr('cx', d => {
                             if (!d.x) d.x = width / 2;
@@ -1044,6 +1094,47 @@
                             if (!d.y) d.y = height / 2;
                             return d.y = Math.max(15, Math.min(height - 15, d.y));
                         });
+                    
+                    // Update label positions
+                    labels
+                        .attr('x', d => {
+                            if (!d.x) d.x = width / 2;
+                            return d.x;
+                        })
+                        .attr('y', d => {
+                            if (!d.y) d.y = height / 2;
+                            return d.y;
+                        });
+                });
+                
+                // Add a legend for relationship types
+                const legend = svg.append('g')
+                    .attr('class', 'legend')
+                    .attr('transform', 'translate(20, 20)');
+                
+                const legendItems = [
+                    { type: 'center', label: 'Center User' },
+                    { type: 'following', label: 'Following' },
+                    { type: 'followers', label: 'Followers' },
+                    { type: 'muting', label: 'Muting' },
+                    { type: 'muters', label: 'Muters' },
+                    { type: 'reporting', label: 'Reporting' },
+                    { type: 'reporters', label: 'Reporters' }
+                ];
+                
+                legendItems.forEach((item, i) => {
+                    const legendItem = legend.append('g')
+                        .attr('transform', `translate(0, ${i * 20})`);
+                    
+                    legendItem.append('circle')
+                        .attr('r', 6)
+                        .attr('fill', nodeColors[item.type] || '#999');
+                    
+                    legendItem.append('text')
+                        .attr('x', 15)
+                        .attr('y', 4)
+                        .text(item.label)
+                        .attr('font-size', '12px');
                 });
                 
                 // Drag functions
