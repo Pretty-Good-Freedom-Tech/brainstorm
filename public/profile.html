@@ -900,6 +900,14 @@
                     }
                 });
                 
+                // Clear any existing visualization
+                d3.select('#networkContainer svg').remove();
+                d3.select('#networkContainer .tooltip').remove();
+                
+                // Show loading indicator while fetching profile pictures
+                document.getElementById('networkContainer').innerHTML = 
+                    '<div class="loading-indicator">Loading profile pictures...</div>';
+                
                 // Fetch profile pictures for all nodes
                 const fetchProfilePictures = async () => {
                     const promises = data.nodes.map(async (node) => {
@@ -916,6 +924,7 @@
                                     if (content.picture) {
                                         node.profilePicture = content.picture;
                                         node.name = content.name || content.display_name || node.id.substring(0, 8);
+                                        console.log(`Found profile picture for ${node.id}: ${node.profilePicture}`);
                                     }
                                 } catch (e) {
                                     console.warn('Error parsing kind0 content for', node.id, e);
@@ -928,21 +937,18 @@
                     
                     // Wait for all profile picture fetches to complete
                     await Promise.allSettled(promises);
+                    console.log('All profile pictures fetched, nodes with pictures:', 
+                        data.nodes.filter(n => n.profilePicture).length);
                     
                     // Now render the visualization with profile pictures
                     renderVisualization();
                 };
                 
-                // Clear any existing visualization
-                d3.select('#networkContainer svg').remove();
-                d3.select('#networkContainer .tooltip').remove();
-                
-                // Show loading indicator while fetching profile pictures
-                document.getElementById('networkContainer').innerHTML = 
-                    '<div class="loading-indicator">Loading profile pictures...</div>';
-                
                 // Start fetching profile pictures
                 fetchProfilePictures();
+                
+                // Declare simulation at a higher scope so it's accessible to drag functions
+                let simulation;
                 
                 // Function to render the visualization after profile pictures are loaded
                 function renderVisualization() {
@@ -992,12 +998,25 @@
                     // Create patterns for each node with a profile picture
                     data.nodes.forEach(node => {
                         if (node.profilePicture) {
+                            console.log(`Creating pattern for ${node.id} with image ${node.profilePicture}`);
+                            
+                            // Create a pattern with a unique ID
+                            const patternId = `profile-pic-${node.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                            
                             // Create a pattern for the profile picture
                             const pattern = defs.append("pattern")
-                                .attr("id", `profile-pic-${node.id}`)
-                                .attr("patternUnits", "objectBoundingBox")
+                                .attr("id", patternId)
                                 .attr("width", 1)
-                                .attr("height", 1);
+                                .attr("height", 1)
+                                .attr("x", 0)
+                                .attr("y", 0);
+                            
+                            // Add a white background circle to ensure the image is visible
+                            pattern.append("circle")
+                                .attr("cx", 0.5)
+                                .attr("cy", 0.5)
+                                .attr("r", 0.5)
+                                .attr("fill", "white");
                             
                             // Add the image to the pattern
                             pattern.append("image")
@@ -1007,6 +1026,9 @@
                                 .attr("width", 1)
                                 .attr("height", 1)
                                 .attr("preserveAspectRatio", "xMidYMid slice");
+                            
+                            // Store the pattern ID in the node for reference
+                            node.patternId = patternId;
                         }
                     });
                     
@@ -1034,7 +1056,7 @@
                         .range([5, 25]);  // Min and max radius
                     
                     // Create force simulation
-                    const simulation = d3.forceSimulation(data.nodes)
+                    simulation = d3.forceSimulation(data.nodes)
                         .force('link', d3.forceLink(validLinks)
                             .id(d => d.id)
                             .distance(d => {
@@ -1077,8 +1099,8 @@
                         .attr('r', d => influenceScale(d.influence || 0.0001))
                         .attr('fill', d => {
                             // Use profile picture if available, otherwise use color
-                            if (d.profilePicture) {
-                                return `url(#profile-pic-${d.id})`;
+                            if (d.patternId) {
+                                return `url(#${d.patternId})`;
                             }
                             return nodeColors[d.type] || '#999';
                         })
