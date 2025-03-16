@@ -882,6 +882,16 @@
                     }
                 });
                 
+                // Define link colors based on relationship type
+                const linkColors = {
+                    'following': '#2ecc71',
+                    'followers': '#27ae60',
+                    'muting': '#f39c12',
+                    'muters': '#d35400',
+                    'reporting': '#e74c3c',
+                    'reporters': '#c0392b'
+                };
+                
                 // Clear any existing visualization
                 d3.select('#networkContainer svg').remove();
                 d3.select('#networkContainer .tooltip').remove();
@@ -929,16 +939,6 @@
                 // Define color scale for node types
                 const nodeColors = {
                     'center': '#3498db',
-                    'following': '#2ecc71',
-                    'followers': '#27ae60',
-                    'muting': '#f39c12',
-                    'muters': '#d35400',
-                    'reporting': '#e74c3c',
-                    'reporters': '#c0392b'
-                };
-                
-                // Define link colors based on relationship type
-                const linkColors = {
                     'following': '#2ecc71',
                     'followers': '#27ae60',
                     'muting': '#f39c12',
