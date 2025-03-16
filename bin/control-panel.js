@@ -262,6 +262,9 @@ app.get('/api/get-profiles', handleGetProfiles);
 // API endpoint for getting individual user data from Neo4j
 app.get('/api/get-user-data', handleGetUserData);
 
+// API endpoint for getting network proximity data
+app.get('/api/get-network-proximity', handleGetNetworkProximity);
+
 // API endpoint for getting kind 0 events from the nostr network
 app.get('/api/get-kind0', handleGetKind0Event);
 
@@ -1246,7 +1249,11 @@ function handleGetProfiles(req, res) {
              u.influence as influence,
              u.average as average,
              u.confidence as confidence,
-             u.input as input
+             u.input as input,
+             u.mutingCount as mutingCount,
+             u.muterCount as muterCount,
+             u.reportingCount as reportingCount,
+             u.reporterCount as reporterCount
       ORDER BY u.${sortBy} ${sortOrder}
       SKIP ${(page - 1) * limit}
       LIMIT ${limit}
@@ -1268,7 +1275,11 @@ function handleGetProfiles(req, res) {
                 influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
                 average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
                 confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
-                input: record.get('input') ? parseFloat(record.get('input').toString()) : null
+                input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
+                mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
+                muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
+                reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
+                reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0
               };
             });
             
@@ -1339,6 +1350,22 @@ function handleGetUserData(req, res) {
       // Count users that follow this user (with hops < 20)
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE follower.hops IS NOT NULL AND follower.hops < 20
+      WITH u, followingCount, count(follower) as followerCount
+      
+      // Count users that this user mutes
+      OPTIONAL MATCH (u)-[m:MUTES]->(muted:NostrUser)
+      WITH u, followingCount, followerCount, count(muted) as mutingCount
+      
+      // Count users that mute this user
+      OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(u)
+      WITH u, followingCount, followerCount, mutingCount, count(muter) as muterCount
+      
+      // Count users that this user reports
+      OPTIONAL MATCH (u)-[r:REPORTS]->(reported:NostrUser)
+      WITH u, followingCount, followerCount, mutingCount, muterCount, count(reported) as reportingCount
+      
+      // Count users that report this user
+      OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
       
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
@@ -1348,7 +1375,11 @@ function handleGetUserData(req, res) {
              u.confidence as confidence,
              u.input as input,
              followingCount,
-             count(follower) as followerCount
+             followerCount,
+             mutingCount,
+             muterCount,
+             reportingCount,
+             count(reporter) as reporterCount
     `;
     
     // Execute the query
@@ -1371,7 +1402,11 @@ function handleGetUserData(req, res) {
             confidence: user.get('confidence') ? parseFloat(user.get('confidence').toString()) : null,
             input: user.get('input') ? parseFloat(user.get('input').toString()) : null,
             followingCount: user.get('followingCount') ? parseInt(user.get('followingCount').toString()) : 0,
-            followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0
+            followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0,
+            mutingCount: user.get('mutingCount') ? parseInt(user.get('mutingCount').toString()) : 0,
+            muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
+            reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
+            reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0
           }
         });
       })
@@ -1388,6 +1423,231 @@ function handleGetUserData(req, res) {
       });
   } catch (error) {
     console.error('Error in handleGetUserData:', error);
+    res.status(500).json({
+      success: false,
+      message: `Server error: ${error.message}`
+    });
+  }
+}
+
+// Handler for getting network proximity data
+function handleGetNetworkProximity(req, res) {
+  try {
+    // Get query parameters
+    const pubkey = req.query.pubkey;
+    const limit = parseInt(req.query.limit) || 50; // Default to 50 connections
+    
+    if (!pubkey) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing pubkey parameter'
+      });
+    }
+    
+    // Create Neo4j driver
+    const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
+    const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
+    const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+    
+    const driver = neo4j.driver(
+      neo4jUri,
+      neo4j.auth.basic(neo4jUser, neo4jPassword)
+    );
+    
+    const session = driver.session();
+    
+    // Build the Cypher query to get network proximity data
+    const query = `
+      // Find the central user
+      MATCH (center:NostrUser {pubkey: $pubkey})
+      
+      // Get users that the central user follows
+      OPTIONAL MATCH (center)-[f:FOLLOWS]->(following:NostrUser)
+      WHERE following.hops IS NOT NULL
+      WITH center, collect({
+        pubkey: following.pubkey,
+        hops: following.hops,
+        influence: following.influence,
+        relationship: 'following',
+        timestamp: f.timestamp
+      }) AS followingNodes
+      
+      // Get users that follow the central user
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(center)
+      WHERE follower.hops IS NOT NULL AND follower.hops < 20
+      WITH center, followingNodes, collect({
+        pubkey: follower.pubkey,
+        hops: follower.hops,
+        influence: follower.influence,
+        relationship: 'follower',
+        timestamp: f2.timestamp
+      }) AS followerNodes
+      
+      // Get users that the central user mutes
+      OPTIONAL MATCH (center)-[m:MUTES]->(muted:NostrUser)
+      WHERE muted.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, collect({
+        pubkey: muted.pubkey,
+        hops: muted.hops,
+        influence: muted.influence,
+        relationship: 'muting',
+        timestamp: m.timestamp
+      }) AS mutingNodes
+      
+      // Get users that mute the central user
+      OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(center)
+      WHERE muter.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, mutingNodes, collect({
+        pubkey: muter.pubkey,
+        hops: muter.hops,
+        influence: muter.influence,
+        relationship: 'muter',
+        timestamp: m2.timestamp
+      }) AS muterNodes
+      
+      // Get users that the central user reports
+      OPTIONAL MATCH (center)-[r:REPORTS]->(reported:NostrUser)
+      WHERE reported.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, mutingNodes, muterNodes, collect({
+        pubkey: reported.pubkey,
+        hops: reported.hops,
+        influence: reported.influence,
+        relationship: 'reporting',
+        timestamp: r.timestamp
+      }) AS reportingNodes
+      
+      // Get users that report the central user
+      OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(center)
+      WHERE reporter.hops IS NOT NULL
+      WITH center, followingNodes, followerNodes, mutingNodes, muterNodes, reportingNodes, collect({
+        pubkey: reporter.pubkey,
+        hops: reporter.hops,
+        influence: reporter.influence,
+        relationship: 'reporter',
+        timestamp: r2.timestamp
+      }) AS reporterNodes
+      
+      // Return the central user and all connected nodes
+      RETURN {
+        center: {
+          pubkey: center.pubkey,
+          hops: center.hops,
+          influence: center.influence,
+          personalizedPageRank: center.personalizedPageRank,
+          confidence: center.confidence
+        },
+        connections: {
+          following: followingNodes,
+          followers: followerNodes,
+          muting: mutingNodes,
+          muters: muterNodes,
+          reporting: reportingNodes,
+          reporters: reporterNodes
+        }
+      } AS networkData
+    `;
+    
+    // Execute the query
+    session.run(query, { pubkey, limit })
+      .then(result => {
+        if (result.records.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: 'User not found or has no connections'
+          });
+        }
+        
+        const networkData = result.records[0].get('networkData');
+        
+        // Process the data to create a D3-friendly format
+        const nodes = [
+          {
+            id: networkData.center.pubkey,
+            type: 'center',
+            hops: networkData.center.hops,
+            influence: networkData.center.influence,
+            personalizedPageRank: networkData.center.personalizedPageRank,
+            confidence: networkData.center.confidence
+          }
+        ];
+        
+        const links = [];
+        const nodeMap = new Map();
+        nodeMap.set(networkData.center.pubkey, true);
+        
+        // Process each type of connection
+        Object.entries(networkData.connections).forEach(([connectionType, connections]) => {
+          connections.forEach(connection => {
+            // Only add each node once
+            if (!nodeMap.has(connection.pubkey)) {
+              nodes.push({
+                id: connection.pubkey,
+                type: connectionType,
+                hops: connection.hops,
+                influence: connection.influence
+              });
+              nodeMap.set(connection.pubkey, true);
+            }
+            
+            // Add the link
+            const source = connectionType.endsWith('s') ? connection.pubkey : networkData.center.pubkey;
+            const target = connectionType.endsWith('s') ? networkData.center.pubkey : connection.pubkey;
+            
+            links.push({
+              source,
+              target,
+              type: connectionType,
+              timestamp: connection.timestamp
+            });
+          });
+        });
+        
+        // Limit the number of nodes if necessary
+        if (nodes.length > limit + 1) { // +1 for the center node
+          // Sort connections by influence and take the top ones
+          const sortedNodes = nodes.slice(1).sort((a, b) => {
+            return (b.influence || 0) - (a.influence || 0);
+          });
+          
+          const topNodes = sortedNodes.slice(0, limit);
+          const topNodeIds = new Set([networkData.center.pubkey, ...topNodes.map(n => n.id)]);
+          
+          // Filter nodes and links
+          const filteredNodes = [nodes[0], ...topNodes];
+          const filteredLinks = links.filter(link => 
+            topNodeIds.has(link.source) && topNodeIds.has(link.target)
+          );
+          
+          res.json({
+            success: true,
+            data: {
+              nodes: filteredNodes,
+              links: filteredLinks
+            }
+          });
+        } else {
+          res.json({
+            success: true,
+            data: {
+              nodes,
+              links
+            }
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching network proximity data:', error);
+        res.status(500).json({
+          success: false,
+          message: `Error fetching network proximity data: ${error.message}`
+        });
+      })
+      .finally(() => {
+        session.close();
+        driver.close();
+      });
+  } catch (error) {
+    console.error('Error in handleGetNetworkProximity:', error);
     res.status(500).json({
       success: false,
       message: `Server error: ${error.message}`

@@ -222,6 +222,84 @@
             margin-top: 5px;
             font-size: 14px;
         }
+        
+        /* Network Visualization Styles */
+        .network-visualization {
+            margin-top: 30px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .network-visualization h3 {
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .network-container {
+            height: 500px;
+            position: relative;
+            background-color: #f9f9f9;
+        }
+        
+        .network-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 10;
+        }
+        
+        .network-loading::after {
+            content: "Loading network data...";
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .network-legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+            z-index: 5;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 20;
+            max-width: 250px;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -283,6 +361,28 @@
                     </div>
                 </div>
                 
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <h3>Muting</h3>
+                        <p id="mutingCountValue">-</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Muters</h3>
+                        <p id="muterCountValue">-</p>
+                    </div>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <h3>Reporting</h3>
+                        <p id="reportingCountValue">-</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Reporters</h3>
+                        <p id="reporterCountValue">-</p>
+                    </div>
+                </div>
+                
                 <div class="profile-about" id="aboutSection">
                     <h3>About</h3>
                     <p id="aboutText">No information available</p>
@@ -296,9 +396,49 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <div class="network-visualization">
+                    <h3>Network Proximity Visualization</h3>
+                    <div id="networkContainer" class="network-container">
+                        <div id="networkLoading" class="network-loading"></div>
+                        <div id="networkLegend" class="network-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #3498db;"></div>
+                                <span>Center (This User)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #2ecc71;"></div>
+                                <span>Following</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #27ae60;"></div>
+                                <span>Followers</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #f39c12;"></div>
+                                <span>Muting</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #d35400;"></div>
+                                <span>Muters</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #e74c3c;"></div>
+                                <span>Reporting</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #c0392b;"></div>
+                                <span>Reporters</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <!-- Include D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     
     <script>
         // Get pubkey from URL
@@ -323,6 +463,10 @@
         const metadataTable = document.getElementById('metadataTable');
         const followingCountValue = document.getElementById('followingCountValue');
         const followerCountValue = document.getElementById('followerCountValue');
+        const mutingCountValue = document.getElementById('mutingCountValue');
+        const muterCountValue = document.getElementById('muterCountValue');
+        const reportingCountValue = document.getElementById('reportingCountValue');
+        const reporterCountValue = document.getElementById('reporterCountValue');
         
         // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
@@ -367,6 +511,9 @@
                         // Show the profile container
                         loadingIndicator.style.display = 'none';
                         profileContainer.style.display = 'flex';
+                        
+                        // Fetch and display network data
+                        fetchAndDisplayNetworkData(pubkey);
                     } else {
                         // If we can't get kind 0 data, still show what we have
                         console.warn('Could not fetch kind 0 data:', data.message);
@@ -404,6 +551,22 @@
             
             if (userData.followerCount !== null && userData.followerCount !== undefined) {
                 followerCountValue.textContent = userData.followerCount;
+            }
+            
+            if (userData.mutingCount !== null && userData.mutingCount !== undefined) {
+                mutingCountValue.textContent = userData.mutingCount;
+            }
+            
+            if (userData.muterCount !== null && userData.muterCount !== undefined) {
+                muterCountValue.textContent = userData.muterCount;
+            }
+            
+            if (userData.reportingCount !== null && userData.reportingCount !== undefined) {
+                reportingCountValue.textContent = userData.reportingCount;
+            }
+            
+            if (userData.reporterCount !== null && userData.reporterCount !== undefined) {
+                reporterCountValue.textContent = userData.reporterCount;
             }
         }
         
@@ -538,6 +701,176 @@
             profileContainer.style.display = 'none';
             errorMessage.style.display = 'block';
             errorMessage.textContent = message;
+        }
+        
+        function fetchAndDisplayNetworkData(pubkey) {
+            // Show network loading state
+            document.getElementById('networkLoading').style.display = 'flex';
+            
+            // Fetch network data from API
+            fetch(`/control/api/get-network-proximity?pubkey=${pubkey}&limit=50`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderNetworkVisualization(data.data);
+                    } else {
+                        console.error('Failed to fetch network data:', data.message);
+                        document.getElementById('networkContainer').innerHTML = 
+                            `<div class="error-message">Failed to load network data: ${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching network data:', error);
+                    document.getElementById('networkContainer').innerHTML = 
+                        '<div class="error-message">Error loading network data. Please try again later.</div>';
+                })
+                .finally(() => {
+                    // Hide network loading state
+                    document.getElementById('networkLoading').style.display = 'none';
+                });
+        }
+        
+        function renderNetworkVisualization(data) {
+            // Clear any existing visualization
+            d3.select('#networkContainer svg').remove();
+            
+            // Set up dimensions
+            const width = document.getElementById('networkContainer').clientWidth;
+            const height = document.getElementById('networkContainer').clientHeight;
+            
+            // Create SVG container
+            const svg = d3.select('#networkContainer')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // Create tooltip
+            const tooltip = d3.select('#networkContainer')
+                .append('div')
+                .attr('class', 'tooltip')
+                .style('opacity', 0);
+            
+            // Define color scale for node types
+            const nodeColors = {
+                'center': '#3498db',
+                'following': '#2ecc71',
+                'followers': '#27ae60',
+                'muting': '#f39c12',
+                'muters': '#d35400',
+                'reporting': '#e74c3c',
+                'reporters': '#c0392b'
+            };
+            
+            // Define link colors based on relationship type
+            const linkColors = {
+                'following': '#2ecc71',
+                'followers': '#27ae60',
+                'muting': '#f39c12',
+                'muters': '#d35400',
+                'reporting': '#e74c3c',
+                'reporters': '#c0392b'
+            };
+            
+            // Create force simulation
+            const simulation = d3.forceSimulation(data.nodes)
+                .force('link', d3.forceLink(data.links)
+                    .id(d => d.id)
+                    .distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(30));
+            
+            // Create links
+            const link = svg.append('g')
+                .selectAll('line')
+                .data(data.links)
+                .enter()
+                .append('line')
+                .attr('stroke', d => linkColors[d.type] || '#999')
+                .attr('stroke-opacity', 0.6)
+                .attr('stroke-width', 2);
+            
+            // Create nodes
+            const node = svg.append('g')
+                .selectAll('circle')
+                .data(data.nodes)
+                .enter()
+                .append('circle')
+                .attr('r', d => d.type === 'center' ? 15 : 8)
+                .attr('fill', d => nodeColors[d.type] || '#999')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // Add hover effects and tooltips
+            node.on('mouseover', function(event, d) {
+                    // Highlight connected links and nodes
+                    link.style('stroke-opacity', l => 
+                        l.source.id === d.id || l.target.id === d.id ? 1 : 0.1);
+                    node.style('opacity', n => 
+                        n.id === d.id || 
+                        data.links.some(l => 
+                            (l.source.id === d.id && l.target.id === n.id) || 
+                            (l.source.id === n.id && l.target.id === d.id)
+                        ) ? 1 : 0.3);
+                    
+                    // Show tooltip
+                    tooltip.transition()
+                        .duration(200)
+                        .style('opacity', .9);
+                    
+                    // Format tooltip content
+                    let tooltipContent = `<strong>Pubkey:</strong> ${d.id.substring(0, 10)}...<br>`;
+                    if (d.hops !== undefined) tooltipContent += `<strong>Hops:</strong> ${d.hops}<br>`;
+                    if (d.influence !== undefined) tooltipContent += `<strong>Influence:</strong> ${d.influence.toFixed(4)}<br>`;
+                    if (d.type) tooltipContent += `<strong>Type:</strong> ${d.type}`;
+                    
+                    tooltip.html(tooltipContent)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                    // Reset link and node opacity
+                    link.style('stroke-opacity', 0.6);
+                    node.style('opacity', 1);
+                    
+                    // Hide tooltip
+                    tooltip.transition()
+                        .duration(500)
+                        .style('opacity', 0);
+                });
+            
+            // Add simulation tick handler
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                node
+                    .attr('cx', d => d.x = Math.max(15, Math.min(width - 15, d.x)))
+                    .attr('cy', d => d.y = Math.max(15, Math.min(height - 15, d.y)));
+            });
+            
+            // Drag functions
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
         }
     </script>
 </body>
