@@ -915,7 +915,23 @@
                             // Skip if this is not a valid pubkey
                             if (!node.id || node.id.length < 32) return;
                             
-                            const response = await fetch(`${window.location.origin}/control/api/get-kind0?pubkey=${encodeURIComponent(node.id)}`);
+                            const apiUrl = `${window.location.origin}/control/api/get-kind0?pubkey=${encodeURIComponent(node.id)}`;
+                            console.log(`Fetching profile for ${node.id} from ${apiUrl}`);
+                            
+                            const response = await fetch(apiUrl);
+                            
+                            // Check if response is OK and has the correct content type
+                            if (!response.ok) {
+                                console.warn(`Error fetching profile for ${node.id}: HTTP ${response.status}`);
+                                return;
+                            }
+                            
+                            const contentType = response.headers.get('content-type');
+                            if (!contentType || !contentType.includes('application/json')) {
+                                console.warn(`Invalid content type for ${node.id}: ${contentType}`);
+                                return;
+                            }
+                            
                             const kind0Data = await response.json();
                             
                             if (kind0Data.success && kind0Data.data && kind0Data.data.content) {
@@ -1125,8 +1141,8 @@
                             // Highlight connected links and nodes
                             link.style('stroke-opacity', l => {
                                 // Check if the link is connected to this node
-                                const sourceId = typeof l.source === 'object' && l.source ? l.source.id : l.source;
-                                const targetId = typeof l.target === 'object' && l.target ? l.target.id : l.target;
+                                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
                                 return sourceId === d.id || targetId === d.id ? 1 : 0.1;
                             });
                             
@@ -1136,8 +1152,8 @@
                                 
                                 // Check if there's a link between these nodes
                                 const connected = validLinks.some(l => {
-                                    const sourceId = typeof l.source === 'object' && l.source ? l.source.id : l.source;
-                                    const targetId = typeof l.target === 'object' && l.target ? l.target.id : l.target;
+                                    const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                                    const targetId = typeof l.target === 'object' ? l.target.id : l.target;
                                     return (sourceId === d.id && targetId === n.id) || 
                                            (sourceId === n.id && targetId === d.id);
                                 });
