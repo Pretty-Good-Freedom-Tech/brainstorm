@@ -215,7 +215,7 @@ async function createHasenpfeffrConfigFile() {
   // Get configuration values from user
   const relayUrl = await askQuestion('Enter your Nostr relay URL (e.g., wss://relay.example.com): ');
   const ownerPubkey = await askQuestion('Enter your Hasenpfeffr owner pubkey (for PageRank calculations): ');
-  const neo4jPassword = await askQuestion('Enter a password for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
+  const neo4jPassword = await askQuestion('Neo4j will prompt you to change the default password from neo4j to something else.Enter the password that you intend to use for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
   const domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com): ');
   
   // Create hasenpfeffr configuration content
