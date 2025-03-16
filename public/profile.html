@@ -710,34 +710,71 @@
                 networkLoading.style.display = 'flex';
             }
             
-            // Fetch network data from API
-            fetch(`${baseUrl}/api/get-network-proximity?pubkey=${pubkey}&limit=50`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        renderNetworkVisualization(data.data);
-                    } else {
-                        console.error('Failed to fetch network data:', data.message);
+            // Use the absolute URL that we know works directly in the browser
+            const apiUrl = `${window.location.origin}/control/api/get-network-proximity?pubkey=${encodeURIComponent(pubkey)}&limit=50`;
+            console.log('Fetching network data from:', apiUrl);
+            
+            // Create a new XMLHttpRequest with timeout
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', apiUrl, true);
+            xhr.timeout = 30000; // 30 second timeout
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('Cache-Control', 'no-cache');
+            
+            xhr.onload = function() {
+                console.log('XHR status:', xhr.status);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        console.log('Network data received:', data);
+                        if (data.success) {
+                            renderNetworkVisualization(data.data);
+                        } else {
+                            console.error('Failed to fetch network data:', data.message);
+                            document.getElementById('networkContainer').innerHTML = 
+                                `<div class="error-message">Failed to load network data: ${data.message}</div>`;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON response:', e);
                         document.getElementById('networkContainer').innerHTML = 
-                            `<div class="error-message">Failed to load network data: ${data.message}</div>`;
+                            `<div class="error-message">Error parsing network data: ${e.message}</div>`;
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching network data:', error);
+                } else {
+                    console.error('XHR error:', xhr.status, xhr.statusText);
                     document.getElementById('networkContainer').innerHTML = 
-                        '<div class="error-message">Error loading network data. Please try again later.</div>';
-                })
-                .finally(() => {
-                    // Hide network loading state
-                    if (networkLoading) {
-                        networkLoading.style.display = 'none';
-                    }
-                });
+                        `<div class="error-message">Error loading network data: ${xhr.status} ${xhr.statusText}</div>`;
+                }
+                
+                // Hide network loading state
+                if (networkLoading) {
+                    networkLoading.style.display = 'none';
+                }
+            };
+            
+            xhr.ontimeout = function() {
+                console.error('Network request timed out');
+                document.getElementById('networkContainer').innerHTML = 
+                    '<div class="error-message">Network request timed out. The server might be busy processing the request.</div>';
+                
+                // Hide network loading state
+                if (networkLoading) {
+                    networkLoading.style.display = 'none';
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('Network request failed');
+                document.getElementById('networkContainer').innerHTML = 
+                    '<div class="error-message">Network request failed. Please check your connection and try again.</div>';
+                
+                // Hide network loading state
+                if (networkLoading) {
+                    networkLoading.style.display = 'none';
+                }
+            };
+            
+            // Send the request
+            xhr.send();
         }
         
         function renderNetworkVisualization(data) {

@@ -6,6 +6,6 @@
 echo "Starting Negentropy sync with relay.hasenpfeffr.com..."
 
 # Run strfry sync with negentropy
-sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[3, 1984, 10000]}' --dir down
+sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[3, 1984, 10000, 30000]}' --dir down
 
 echo "Negentropy sync completed!"
