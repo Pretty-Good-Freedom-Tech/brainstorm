@@ -15,6 +15,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 const { exec, execSync } = require('child_process');
+const WebSocket = require('ws');
 
 // Import configuration
 let config;
@@ -1329,7 +1330,7 @@ function handleGetUserData(req, res) {
     
     // Build the Cypher query
     const query = `
-      MATCH (u:NostrUser { pubkey: '${pubkey}' })
+      MATCH (u:NostrUser { pubkey: $pubkey })
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
              u.hops as hops,
@@ -1340,7 +1341,7 @@ function handleGetUserData(req, res) {
     `;
     
     // Execute the query
-    session.run(query)
+    session.run(query, { pubkey })
       .then(result => {
         const user = result.records[0];
         
@@ -1394,19 +1395,24 @@ function handleGetKind0Event(req, res) {
       });
     }
     
-    // Get relay URL from config
-    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL');
+    // Define the relays to query
+    const relays = [
+      'wss://relay.hasenpfeffr.com',
+      'wss://profiles.nostr1.com',
+      'wss://relay.nostr.band',
+      'wss://relay.damus.io',
+      'wss://relay.primal.net'
+    ];
     
     // First try to get the event from our local strfry relay
     const strfryCommand = `strfry scan --limit 1 '{"kinds":[0],"authors":["${pubkey}"]}'`;
     
     exec(strfryCommand, (error, stdout, stderr) => {
       if (error) {
-        console.error(`Error executing strfry query: ${stderr || error.message}`);
-        return res.status(500).json({
-          success: false,
-          message: `Error executing strfry query: ${stderr || error.message}`
-        });
+        console.log(`Local strfry query failed, trying external relays: ${stderr || error.message}`);
+        // If local strfry fails, continue to external relays
+        fetchFromExternalRelays();
+        return;
       }
       
       try {
@@ -1414,87 +1420,222 @@ function handleGetKind0Event(req, res) {
         const events = stdout.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
         
         if (events.length > 0) {
-          // Return the most recent event
+          // Return the most recent event from local strfry
           return res.json({
             success: true,
-            data: events[0]
+            data: events[0],
+            source: 'local_strfry'
           });
         } else {
-          // If no events found in local relay, try to query the Neo4j database for metadata
-          const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
-          const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
-          const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
-          
-          const driver = neo4j.driver(
-            neo4jUri,
-            neo4j.auth.basic(neo4jUser, neo4jPassword)
-          );
-          
-          const session = driver.session();
-          
-          // Query for any metadata we might have stored
-          const query = `
-            MATCH (u:NostrUser { pubkey: $pubkey })
-            RETURN u.metadata as metadata
-          `;
-          
-          session.run(query, { pubkey })
-            .then(result => {
-              if (result.records.length > 0 && result.records[0].get('metadata')) {
-                try {
-                  // If we have metadata stored in Neo4j, use that
-                  const metadata = result.records[0].get('metadata');
-                  const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-                  
-                  // Construct a kind 0 event from the metadata
-                  const kind0Event = {
-                    kind: 0,
-                    pubkey: pubkey,
-                    content: JSON.stringify(metadataObj),
-                    created_at: Math.floor(Date.now() / 1000),
-                    tags: []
-                  };
-                  
-                  return res.json({
-                    success: true,
-                    data: kind0Event,
-                    source: 'neo4j'
-                  });
-                } catch (parseError) {
-                  console.error('Error parsing metadata from Neo4j:', parseError);
-                  return res.json({
-                    success: false,
-                    message: 'No profile data found for this user'
-                  });
-                }
-              } else {
-                // If no metadata in Neo4j, return empty
-                return res.json({
-                  success: false,
-                  message: 'No profile data found for this user'
-                });
-              }
-            })
-            .catch(neo4jError => {
-              console.error('Error querying Neo4j:', neo4jError);
-              return res.status(500).json({
-                success: false,
-                message: `Error querying Neo4j: ${neo4jError.message}`
-              });
-            })
-            .finally(() => {
-              session.close();
-              driver.close();
-            });
+          // If no events found in local relay, try external relays
+          fetchFromExternalRelays();
         }
       } catch (parseError) {
-        console.error('Error parsing strfry output:', parseError, 'Output was:', stdout);
-        return res.status(500).json({
-          success: false,
-          message: `Error parsing strfry output: ${parseError.message}`
-        });
+        console.log('Error parsing strfry output, trying external relays:', parseError);
+        // If parsing fails, continue to external relays
+        fetchFromExternalRelays();
       }
     });
+    
+    // Function to fetch from external relays
+    function fetchFromExternalRelays() {
+      console.log(`Fetching kind 0 event for ${pubkey} from external relays...`);
+      
+      let foundEvent = null;
+      let completedRelays = 0;
+      let activeConnections = 0;
+      const maxWaitTime = 10000; // 10 seconds max wait time
+      
+      // Set a timeout to ensure we don't wait forever
+      const timeoutId = setTimeout(() => {
+        if (!foundEvent) {
+          // If we haven't found an event yet, check Neo4j
+          checkNeo4j();
+        }
+      }, maxWaitTime);
+      
+      // Query each relay
+      relays.forEach(relayUrl => {
+        activeConnections++;
+        
+        const ws = new WebSocket(relayUrl);
+        let subscriptionId = crypto.randomBytes(16).toString('hex');
+        
+        // Set a timeout for this specific relay connection
+        const connectionTimeout = setTimeout(() => {
+          console.log(`Connection timeout for relay: ${relayUrl}`);
+          ws.close();
+          checkCompletion();
+        }, 5000); // 5 seconds timeout for each connection
+        
+        ws.on('open', () => {
+          console.log(`Connected to relay: ${relayUrl}`);
+          clearTimeout(connectionTimeout);
+          
+          // Send REQ message to the relay
+          const reqMessage = JSON.stringify([
+            "REQ",
+            subscriptionId,
+            {
+              "kinds": [0],
+              "authors": [pubkey],
+              "limit": 1
+            }
+          ]);
+          
+          ws.send(reqMessage);
+          
+          // Set a timeout for the response
+          setTimeout(() => {
+            console.log(`Response timeout for relay: ${relayUrl}`);
+            ws.close();
+            checkCompletion();
+          }, 5000); // 5 seconds timeout for response
+        });
+        
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
+            
+            // Check if it's an EVENT message
+            if (message[0] === 'EVENT' && message[1] === subscriptionId) {
+              const event = message[2];
+              
+              // Validate the event
+              if (event && event.kind === 0 && event.pubkey === pubkey) {
+                console.log(`Found kind 0 event from relay: ${relayUrl}`);
+                
+                // Store the event if we haven't found one yet or if this one is newer
+                if (!foundEvent || event.created_at > foundEvent.created_at) {
+                  foundEvent = event;
+                }
+                
+                // Close the connection as we found what we needed
+                ws.close();
+                checkCompletion();
+              }
+            }
+            
+            // Check if it's an EOSE (End of Stored Events) message
+            if (message[0] === 'EOSE' && message[1] === subscriptionId) {
+              console.log(`End of stored events from relay: ${relayUrl}`);
+              ws.close();
+              checkCompletion();
+            }
+          } catch (error) {
+            console.error(`Error parsing message from relay ${relayUrl}:`, error);
+          }
+        });
+        
+        ws.on('error', (error) => {
+          console.error(`WebSocket error for relay ${relayUrl}:`, error.message);
+          clearTimeout(connectionTimeout);
+          ws.close();
+          checkCompletion();
+        });
+        
+        ws.on('close', () => {
+          console.log(`Connection closed for relay: ${relayUrl}`);
+          checkCompletion();
+        });
+      });
+      
+      // Check if we've completed all relay queries
+      function checkCompletion() {
+        activeConnections--;
+        completedRelays++;
+        
+        console.log(`Completed ${completedRelays}/${relays.length} relays, active connections: ${activeConnections}`);
+        
+        if (activeConnections <= 0 || foundEvent) {
+          clearTimeout(timeoutId);
+          
+          if (foundEvent) {
+            // Return the found event
+            return res.json({
+              success: true,
+              data: foundEvent,
+              source: 'external_relay'
+            });
+          } else if (completedRelays >= relays.length) {
+            // If we've checked all relays and found nothing, check Neo4j
+            checkNeo4j();
+          }
+        }
+      }
+    }
+    
+    // Function to check Neo4j for metadata
+    function checkNeo4j() {
+      console.log(`Checking Neo4j for metadata for ${pubkey}`);
+      
+      // Create Neo4j driver
+      const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
+      const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
+      const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+      
+      const driver = neo4j.driver(
+        neo4jUri,
+        neo4j.auth.basic(neo4jUser, neo4jPassword)
+      );
+      
+      const session = driver.session();
+      
+      // Query for any metadata we might have stored
+      const query = `
+        MATCH (u:NostrUser { pubkey: $pubkey })
+        RETURN u.metadata as metadata
+      `;
+      
+      session.run(query, { pubkey })
+        .then(result => {
+          if (result.records.length > 0 && result.records[0].get('metadata')) {
+            try {
+              // If we have metadata stored in Neo4j, use that
+              const metadata = result.records[0].get('metadata');
+              const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+              
+              // Construct a kind 0 event from the metadata
+              const kind0Event = {
+                kind: 0,
+                pubkey: pubkey,
+                content: JSON.stringify(metadataObj),
+                created_at: Math.floor(Date.now() / 1000),
+                tags: []
+              };
+              
+              return res.json({
+                success: true,
+                data: kind0Event,
+                source: 'neo4j'
+              });
+            } catch (parseError) {
+              console.error('Error parsing metadata from Neo4j:', parseError);
+              return res.json({
+                success: false,
+                message: 'No profile data found for this user'
+              });
+            }
+          } else {
+            // If no metadata in Neo4j, return empty
+            return res.json({
+              success: false,
+              message: 'No profile data found for this user'
+            });
+          }
+        })
+        .catch(neo4jError => {
+          console.error('Error querying Neo4j:', neo4jError);
+          return res.status(500).json({
+            success: false,
+            message: `Error querying Neo4j: ${neo4jError.message}`
+          });
+        })
+        .finally(() => {
+          session.close();
+          driver.close();
+        });
+    }
   } catch (error) {
     console.error('Error in handleGetKind0Event:', error);
     res.status(500).json({
