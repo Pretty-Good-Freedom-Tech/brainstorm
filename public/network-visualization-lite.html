@@ -142,6 +142,7 @@
                 '<div class="loading-indicator">Loading network data...</div>';
             
             const apiUrl = `${window.location.origin}/control/api/get-network-proximity?pubkey=${encodeURIComponent(pubkey)}&limit=50`;
+            console.log('Fetching network data from:', apiUrl);
             
             fetch(apiUrl)
                 .then(response => {
@@ -152,8 +153,14 @@
                 })
                 .then(data => {
                     if (data.success) {
-                        currentNetworkData = data.data;
-                        renderNetworkVisualization(data.data);
+                        // Log the raw data from the API for debugging
+                        console.log('Raw network data received:', JSON.stringify(data.data, null, 2));
+                        
+                        // Process the data to ensure proper types for numeric values
+                        const processedData = processNetworkData(data.data);
+                        
+                        currentNetworkData = processedData;
+                        renderNetworkVisualization(processedData);
                     } else {
                         console.error('Failed to fetch network data:', data.message);
                         document.getElementById('networkContainer').innerHTML = 
@@ -165,6 +172,39 @@
                     document.getElementById('networkContainer').innerHTML = 
                         `<div class="error-message">Error fetching network data: ${error.message}</div>`;
                 });
+        }
+        
+        // Function to process network data and ensure proper types
+        function processNetworkData(data) {
+            // Create a deep copy to avoid modifying the original
+            const processedData = JSON.parse(JSON.stringify(data));
+            
+            // Process nodes to ensure proper types for numeric values
+            if (processedData.nodes && Array.isArray(processedData.nodes)) {
+                processedData.nodes.forEach(node => {
+                    // Convert influence to number if it's a string
+                    if (typeof node.influence === 'string') {
+                        node.influence = parseFloat(node.influence);
+                    }
+                    
+                    // Convert personalizedPageRank to number if it's a string
+                    if (typeof node.personalizedPageRank === 'string') {
+                        node.personalizedPageRank = parseFloat(node.personalizedPageRank);
+                    }
+                    
+                    // Convert hops to number if it's a string
+                    if (typeof node.hops === 'string' && !isNaN(node.hops)) {
+                        node.hops = parseInt(node.hops, 10);
+                    }
+                    
+                    // Ensure node has an id
+                    if (!node.id && node.pubkey) {
+                        node.id = node.pubkey;
+                    }
+                });
+            }
+            
+            return processedData;
         }
         
         // Function to reset the visualization
@@ -206,6 +246,14 @@
                     if (!node.influence || node.influence < 0.0001) {
                         node.influence = 0.0001;
                     }
+                    
+                    // Log node data for debugging
+                    console.log(`Node ${node.id} data:`, {
+                        hops: node.hops,
+                        influence: node.influence,
+                        personalizedPageRank: node.personalizedPageRank,
+                        type: node.type
+                    });
                 });
                 
                 // Define link colors based on relationship type
@@ -413,9 +461,9 @@
                             <div style="font-size: 11px; color: #666;">Pubkey: ${(d.id || '').substring(0, 10)}...</div>
                             <hr style="margin: 5px 0; border-top: 1px solid #eee;">
                             <div><strong>Web of Trust Scores:</strong></div>
-                            <div>Hops: ${d.hops !== undefined && d.hops !== null ? d.hops : 'N/A'}</div>
-                            <div>Influence: ${d.influence !== undefined && d.influence !== null ? parseFloat(d.influence).toFixed(6) : 'N/A'}</div>
-                            <div>PageRank: ${d.personalizedPageRank !== undefined && d.personalizedPageRank !== null ? parseFloat(d.personalizedPageRank).toFixed(6) : 'N/A'}</div>
+                            <div>Hops: ${typeof d.hops === 'number' ? d.hops : (typeof d.hops === 'string' ? d.hops : (d.hops ? JSON.stringify(d.hops) : 'N/A'))}</div>
+                            <div>Influence: ${typeof d.influence === 'number' && d.influence > 0.0001 ? d.influence.toFixed(6) : 'N/A'}</div>
+                            <div>PageRank: ${typeof d.personalizedPageRank === 'number' ? d.personalizedPageRank.toFixed(6) : 'N/A'}</div>
                             <div>Relationship: ${d.type || 'N/A'}</div>
                         `;
                         
