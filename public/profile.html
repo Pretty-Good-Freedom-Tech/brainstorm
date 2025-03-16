@@ -272,6 +272,17 @@
                     </div>
                 </div>
                 
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <h3>Following</h3>
+                        <p id="followingCountValue">-</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Followers</h3>
+                        <p id="followerCountValue">-</p>
+                    </div>
+                </div>
+                
                 <div class="profile-about" id="aboutSection">
                     <h3>About</h3>
                     <p id="aboutText">No information available</p>
@@ -310,6 +321,8 @@
         const confidenceValue = document.getElementById('confidenceValue');
         const aboutText = document.getElementById('aboutText');
         const metadataTable = document.getElementById('metadataTable');
+        const followingCountValue = document.getElementById('followingCountValue');
+        const followerCountValue = document.getElementById('followerCountValue');
         
         // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
@@ -383,6 +396,14 @@
             
             if (userData.confidence !== null && userData.confidence !== undefined) {
                 confidenceValue.textContent = parseFloat(userData.confidence).toFixed(4);
+            }
+            
+            if (userData.followingCount !== null && userData.followingCount !== undefined) {
+                followingCountValue.textContent = userData.followingCount;
+            }
+            
+            if (userData.followerCount !== null && userData.followerCount !== undefined) {
+                followerCountValue.textContent = userData.followerCount;
             }
         }
         

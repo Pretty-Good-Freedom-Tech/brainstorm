@@ -1328,16 +1328,27 @@ function handleGetUserData(req, res) {
     
     const session = driver.session();
     
-    // Build the Cypher query
+    // Build the Cypher query to get user data and counts
     const query = `
       MATCH (u:NostrUser { pubkey: $pubkey })
+      
+      // Count users that this user follows
+      OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)
+      WITH u, count(following) as followingCount
+      
+      // Count users that follow this user (with hops < 20)
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE follower.hops IS NOT NULL AND follower.hops < 20
+      
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
              u.hops as hops,
              u.influence as influence,
              u.average as average,
              u.confidence as confidence,
-             u.input as input
+             u.input as input,
+             followingCount,
+             count(follower) as followerCount
     `;
     
     // Execute the query
@@ -1358,7 +1369,9 @@ function handleGetUserData(req, res) {
             influence: user.get('influence') ? parseFloat(user.get('influence').toString()) : null,
             average: user.get('average') ? parseFloat(user.get('average').toString()) : null,
             confidence: user.get('confidence') ? parseFloat(user.get('confidence').toString()) : null,
-            input: user.get('input') ? parseFloat(user.get('input').toString()) : null
+            input: user.get('input') ? parseFloat(user.get('input').toString()) : null,
+            followingCount: user.get('followingCount') ? parseInt(user.get('followingCount').toString()) : 0,
+            followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0
           }
         });
       })
