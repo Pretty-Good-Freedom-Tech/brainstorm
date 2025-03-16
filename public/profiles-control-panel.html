@@ -535,7 +535,7 @@
             if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
             
             // Fetch data from API
-            fetch(`/control/api/get-profiles?${params.toString()}`)
+            fetch(`/api/get-profiles?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -777,7 +777,7 @@
             if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
             
             // Fetch all data for export
-            fetch(`/control/api/get-profiles?${params.toString()}`)
+            fetch(`/api/get-profiles?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.data.users.length > 0) {
