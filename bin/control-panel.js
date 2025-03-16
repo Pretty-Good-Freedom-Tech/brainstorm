@@ -1467,6 +1467,7 @@ function handleGetNetworkProximity(req, res) {
         pubkey: following.pubkey,
         hops: following.hops,
         influence: following.influence,
+        personalizedPageRank: following.personalizedPageRank,
         relationship: 'following',
         timestamp: f.timestamp
       }) AS followingNodes
@@ -1481,6 +1482,7 @@ function handleGetNetworkProximity(req, res) {
         pubkey: follower.pubkey,
         hops: follower.hops,
         influence: follower.influence,
+        personalizedPageRank: follower.personalizedPageRank,
         relationship: 'follower',
         timestamp: f2.timestamp
       }) AS followerNodes
@@ -1495,6 +1497,7 @@ function handleGetNetworkProximity(req, res) {
         pubkey: muted.pubkey,
         hops: muted.hops,
         influence: muted.influence,
+        personalizedPageRank: muted.personalizedPageRank,
         relationship: 'muting',
         timestamp: m.timestamp
       }) AS mutingNodes
@@ -1509,6 +1512,7 @@ function handleGetNetworkProximity(req, res) {
         pubkey: muter.pubkey,
         hops: muter.hops,
         influence: muter.influence,
+        personalizedPageRank: muter.personalizedPageRank,
         relationship: 'muter',
         timestamp: m2.timestamp
       }) AS muterNodes
@@ -1523,6 +1527,7 @@ function handleGetNetworkProximity(req, res) {
         pubkey: reported.pubkey,
         hops: reported.hops,
         influence: reported.influence,
+        personalizedPageRank: reported.personalizedPageRank,
         relationship: 'reporting',
         timestamp: r.timestamp
       }) AS reportingNodes
@@ -1537,6 +1542,7 @@ function handleGetNetworkProximity(req, res) {
         pubkey: reporter.pubkey,
         hops: reporter.hops,
         influence: reporter.influence,
+        personalizedPageRank: reporter.personalizedPageRank,
         relationship: 'reporter',
         timestamp: r2.timestamp
       }) AS reporterNodes
@@ -1600,7 +1606,8 @@ function handleGetNetworkProximity(req, res) {
                 id: connection.pubkey,
                 type: connectionType,
                 hops: connection.hops,
-                influence: connection.influence
+                influence: connection.influence,
+                personalizedPageRank: connection.personalizedPageRank
               });
               nodeMap.set(connection.pubkey, true);
             }
