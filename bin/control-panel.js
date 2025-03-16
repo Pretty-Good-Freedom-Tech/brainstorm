@@ -960,6 +960,37 @@ function handlePublishKind10040(req, res) {
         
         child.on('close', (code) => {
             console.log(`publish_nip85_10040.mjs exited with code ${code}`);
+            
+            // Save the output to a log file for debugging
+            const timestamp = new Date().toISOString().replace(/:/g, '-');
+            const logDir = path.join(__dirname, '../logs');
+            
+            // Create logs directory if it doesn't exist
+            if (!fs.existsSync(logDir)) {
+                fs.mkdirSync(logDir, { recursive: true });
+            }
+            
+            const logFile = path.join(logDir, `kind10040_${timestamp}.log`);
+            fs.writeFileSync(logFile, `STDOUT:\n${output}\n\nSTDERR:\n${errorOutput}\n\nExit code: ${code}`);
+            console.log(`Kind 10040 process log saved to ${logFile}`);
+            
+            // Try to parse the last JSON output if available
+            try {
+                // Look for the last JSON object in the output
+                const jsonMatch = output.match(/\{[\s\S]*\}/g);
+                if (jsonMatch) {
+                    const lastJson = jsonMatch[jsonMatch.length - 1];
+                    const result = JSON.parse(lastJson);
+                    
+                    // Store the result in a file that can be retrieved later
+                    const resultFile = path.join(logDir, `kind10040_result_${timestamp}.json`);
+                    fs.writeFileSync(resultFile, JSON.stringify(result, null, 2));
+                    console.log(`Kind 10040 result saved to ${resultFile}`);
+                }
+            } catch (error) {
+                console.error('Error parsing JSON output:', error);
+            }
+            
             if (code === 0) {
                 // Success
                 return res.json({ 
@@ -1287,60 +1318,71 @@ function handleGetProfiles(req, res) {
     // Add count query for pagination
     const countQuery = query + ` RETURN count(u) as total`;
     
-    // Add sorting and pagination to the main query
-    query += `
-      RETURN u.pubkey as pubkey,
-             u.personalizedPageRank as personalizedPageRank,
-             u.hops as hops,
-             u.influence as influence,
-             u.average as average,
-             u.confidence as confidence,
-             u.input as input,
-             u.mutingCount as mutingCount,
-             u.muterCount as muterCount,
-             u.reportingCount as reportingCount,
-             u.reporterCount as reporterCount
-      ORDER BY u.${sortBy} ${sortOrder}
-      SKIP ${(page - 1) * limit}
-      LIMIT ${limit}
+    // Add a query to get the total count of all profiles (unfiltered)
+    const totalCountQuery = `
+      MATCH (u:NostrUser)
+      WHERE u.pubkey IS NOT NULL
+      RETURN count(u) as totalUnfiltered
     `;
     
-    // Execute count query first
-    session.run(countQuery)
-      .then(countResult => {
-        const total = parseInt(countResult.records[0].get('total').toString());
+    // Get total count of all profiles
+    session.run(totalCountQuery)
+      .then(totalResult => {
+        const totalUnfiltered = parseInt(totalResult.records[0].get('totalUnfiltered').toString());
         
-        // Then execute the main query
-        return session.run(query)
-          .then(result => {
-            const users = result.records.map(record => {
-              return {
-                pubkey: record.get('pubkey'),
-                personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
-                hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
-                influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
-                average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
-                confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
-                input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
-                mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
-                muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
-                reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
-                reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0
-              };
-            });
+        // Get count of filtered profiles
+        session.run(countQuery)
+          .then(countResult => {
+            const total = parseInt(countResult.records[0].get('total').toString());
             
-            res.json({
-              success: true,
-              data: {
-                users,
-                pagination: {
-                  total,
-                  page,
-                  limit,
-                  pages: Math.ceil(total / limit)
-                }
-              }
-            });
+            // Then execute the main query
+            return session.run(query + `
+              RETURN u.pubkey as pubkey,
+                     u.personalizedPageRank as personalizedPageRank,
+                     u.hops as hops,
+                     u.influence as influence,
+                     u.average as average,
+                     u.confidence as confidence,
+                     u.input as input,
+                     u.mutingCount as mutingCount,
+                     u.muterCount as muterCount,
+                     u.reportingCount as reportingCount,
+                     u.reporterCount as reporterCount
+              ORDER BY u.${sortBy} ${sortOrder}
+              SKIP ${(page - 1) * limit}
+              LIMIT ${limit}
+            `)
+              .then(result => {
+                const users = result.records.map(record => {
+                  return {
+                    pubkey: record.get('pubkey'),
+                    personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
+                    hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
+                    influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
+                    average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
+                    confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
+                    input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
+                    mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
+                    muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
+                    reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
+                    reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0
+                  };
+                });
+                
+                res.json({
+                  success: true,
+                  data: {
+                    users,
+                    pagination: {
+                      total,
+                      totalUnfiltered,
+                      page,
+                      limit,
+                      pages: Math.ceil(total / limit)
+                    }
+                  }
+                });
+              });
           });
       })
       .catch(error => {

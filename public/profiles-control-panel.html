@@ -324,6 +324,7 @@
         
         <div id="tableContainer">
             <div id="loadingIndicator" class="loading"></div>
+            <div id="tableStats" style="margin-bottom: 10px; font-size: 14px; color: #666;"></div>
             <table id="profilesTable" style="display: none;">
                 <thead>
                     <tr>
@@ -355,7 +356,8 @@
                 total: 0,
                 page: 1,
                 limit: 100,
-                pages: 0
+                pages: 0,
+                totalUnfiltered: 0
             },
             filters: {
                 pubkey: '',
@@ -384,6 +386,7 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         const paginationContainer = document.getElementById('paginationContainer');
         const statusMessage = document.getElementById('statusMessage');
+        const tableStats = document.getElementById('tableStats');
         
         // Filter elements
         const filterPubkey = document.getElementById('filterPubkey');
@@ -536,23 +539,17 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update state
                         state.profiles = data.data.users;
-                        state.pagination = data.data.pagination;
+                        state.pagination.total = data.data.pagination.total;
+                        state.pagination.totalUnfiltered = data.data.pagination.totalUnfiltered;
+                        state.pagination.pages = data.data.pagination.pages;
                         
-                        // Render table and pagination
                         renderTable();
                         renderPagination();
                         
-                        // Hide loading indicator
-                        loadingIndicator.style.display = 'none';
                         profilesTable.style.display = 'table';
-                        paginationContainer.style.display = 'flex';
-                        
-                        // Show success message
-                        showStatusMessage(`Loaded ${state.profiles.length} of ${state.pagination.total} profiles`, 'success');
+                        loadingIndicator.style.display = 'none';
                     } else {
-                        // Show error message
                         showStatusMessage(`Error: ${data.message}`, 'error');
                         loadingIndicator.style.display = 'none';
                     }
@@ -607,6 +604,9 @@
                 row.appendChild(cell);
                 tableBody.appendChild(row);
             }
+            
+            // Update table statistics
+            updateTableStats();
         }
         
         function addNumericCell(row, value, decimals = 0) {
@@ -731,6 +731,11 @@
             }
         }
         
+        function updateTableStats() {
+            const statsText = `Showing ${state.profiles.length} of ${state.pagination.total} filtered profiles (${state.pagination.totalUnfiltered} total in database)`;
+            tableStats.textContent = statsText;
+        }
+        
         function showStatusMessage(message, type) {
             statusMessage.textContent = message;
             statusMessage.className = `status-message status-${type}`;
@@ -776,39 +781,33 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.data.users.length > 0) {
-                        const profiles = data.data.users;
+                        const allProfiles = data.data.users;
+                        const total = data.data.pagination.total;
+                        const totalUnfiltered = data.data.pagination.totalUnfiltered;
                         
-                        // Create CSV header
-                        let csv = 'pubkey,hops,personalizedPageRank,influence,average,confidence,input\n';
+                        // Create CSV content
+                        let csvContent = 'pubkey,personalizedPageRank,hops,influence,average,confidence,input,mutingCount,muterCount,reportingCount,reporterCount\n';
                         
-                        // Add rows
-                        profiles.forEach(profile => {
-                            csv += `"${profile.pubkey}",`;
-                            csv += `${profile.hops || ''},`;
-                            csv += `${profile.personalizedPageRank || ''},`;
-                            csv += `${profile.influence || ''},`;
-                            csv += `${profile.average || ''},`;
-                            csv += `${profile.confidence || ''},`;
-                            csv += `${profile.input || ''}\n`;
+                        allProfiles.forEach(profile => {
+                            csvContent += `${profile.pubkey},${profile.personalizedPageRank || ''},${profile.hops || ''},${profile.influence || ''},${profile.average || ''},${profile.confidence || ''},${profile.input || ''},${profile.mutingCount || ''},${profile.muterCount || ''},${profile.reportingCount || ''},${profile.reporterCount || ''}\n`;
                         });
                         
                         // Create download link
-                        const blob = new Blob([csv], { type: 'text/csv' });
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.setAttribute('hidden', '');
-                        a.setAttribute('href', url);
-                        a.setAttribute('download', `nostr_profiles_${new Date().toISOString().slice(0,10)}.csv`);
-                        document.body.appendChild(a);
+                        const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csvContent);
+                        const link = document.createElement('a');
+                        link.setAttribute('href', encodedUri);
+                        link.setAttribute('download', `nostr_profiles_export_${new Date().toISOString().slice(0, 10)}.csv`);
+                        document.body.appendChild(link);
                         
-                        // Trigger download
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        a.remove();
+                        // Download file
+                        link.click();
                         
-                        showStatusMessage(`Exported ${profiles.length} profiles to CSV`, 'success');
+                        // Clean up
+                        document.body.removeChild(link);
+                        
+                        showStatusMessage(`Exported ${allProfiles.length} of ${total} filtered profiles (${totalUnfiltered} total in database)`, 'success');
                     } else {
-                        showStatusMessage('No data to export', 'error');
+                        showStatusMessage(`Error exporting data: ${data.message}`, 'error');
                     }
                 })
                 .catch(error => {
