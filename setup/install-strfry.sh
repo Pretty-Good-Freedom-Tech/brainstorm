@@ -97,6 +97,7 @@ cp "$STRFRY_SRC_DIR/strfry.conf" "$STRFRY_CONF"
 # Modify the config file to set nofiles to 0 and update other necessary settings
 sed -i "s|^db = .*|db = \"$STRFRY_DATA_DIR\"|" "$STRFRY_CONF"
 sed -i "s|^    nofiles = .*|    nofiles = 0|" "$STRFRY_CONF"
+sed -i "s|^    maxEventSize = 65536|    maxEventSize = 1048576|" "$STRFRY_CONF"
 
 # Update relay info if pubkey is available
 if [ ! -z "$RELAY_PUBKEY" ]; then
