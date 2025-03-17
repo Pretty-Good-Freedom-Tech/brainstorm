@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrapeRank Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #3498db;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white !important;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .info {
+            background-color: #d9edf7;
+            color: #31708f;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow-x: auto;
+            max-height: 300px;
+            margin-top: 10px;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        .home-btn {
+            background-color: #27ae60;
+        }
+        .home-btn:hover {
+            background-color: #219955;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        .parameter-group {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .parameter-group h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .preset-btn {
+            padding: 8px 15px;
+        }
+        .last-calculated {
+            font-style: italic;
+            margin-top: 10px;
+            color: #666;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .tab-button {
+            padding: 10px 15px;
+            background-color: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 0 4px 4px 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <h1>GrapeRank Control Panel</h1>
+            <div class="nav-links">
+                <a href="/control/index.html" class="button home-btn">Home</a>
+                <a href="/control/control-panel.html" class="button">Main Control Panel</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>GrapeRank Configuration</h2>
+            <div class="card">
+                <h3>GrapeRank Parameters</h3>
+                <p>Configure the parameters used for GrapeRank calculation. These parameters affect how different relationships (follows, mutes, reports) influence the final GrapeRank scores.</p>
+                
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" onclick="openTab(event, 'liveParams')">Live Parameters</button>
+                        <button class="tab-button" onclick="openTab(event, 'presets')">Presets</button>
+                    </div>
+                    
+                    <div id="liveParams" class="tab-content active">
+                        <div class="preset-buttons">
+                            <button id="loadLaxBtn" class="button preset-btn">Load Lax Preset</button>
+                            <button id="loadDefaultBtn" class="button preset-btn">Load Default Preset</button>
+                            <button id="loadRigorousBtn" class="button preset-btn">Load Rigorous Preset</button>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Core Parameters</h3>
+                            <div class="form-group">
+                                <label for="RIGOR">Rigor (0.0 - 1.0):</label>
+                                <input type="number" id="RIGOR" min="0" max="1" step="0.01" placeholder="0.5">
+                                <small>Higher values make the algorithm more strict about evidence quality.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="ATTENUATION_FACTOR">Attenuation Factor (0.0 - 1.0):</label>
+                                <input type="number" id="ATTENUATION_FACTOR" min="0" max="1" step="0.01" placeholder="0.85">
+                                <small>Controls how quickly trust decays across the network.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Follow Parameters</h3>
+                            <div class="form-group">
+                                <label for="FOLLOW_RATING">Follow Rating:</label>
+                                <input type="number" id="FOLLOW_RATING" step="0.1" placeholder="1">
+                                <small>Rating assigned to follow relationships.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="FOLLOW_CONFIDENCE">Follow Confidence (0.0 - 1.0):</label>
+                                <input type="number" id="FOLLOW_CONFIDENCE" min="0" max="1" step="0.01" placeholder="0.03">
+                                <small>Confidence in follow relationships.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="FOLLOW_CONFIDENCE_OF_OBSERVER">Follow Confidence of Observer (0.0 - 1.0):</label>
+                                <input type="number" id="FOLLOW_CONFIDENCE_OF_OBSERVER" min="0" max="1" step="0.01" placeholder="0.5">
+                                <small>Confidence in the observer's follow judgments.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Mute Parameters</h3>
+                            <div class="form-group">
+                                <label for="MUTE_RATING">Mute Rating:</label>
+                                <input type="number" id="MUTE_RATING" step="0.1" placeholder="-0.1">
+                                <small>Rating assigned to mute relationships (typically negative).</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="MUTE_CONFIDENCE">Mute Confidence (0.0 - 1.0):</label>
+                                <input type="number" id="MUTE_CONFIDENCE" min="0" max="1" step="0.01" placeholder="0.5">
+                                <small>Confidence in mute relationships.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Report Parameters</h3>
+                            <div class="form-group">
+                                <label for="REPORT_RATING">Report Rating:</label>
+                                <input type="number" id="REPORT_RATING" step="0.1" placeholder="-0.1">
+                                <small>Rating assigned to report relationships (typically negative).</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="REPORT_CONFIDENCE">Report Confidence (0.0 - 1.0):</label>
+                                <input type="number" id="REPORT_CONFIDENCE" min="0" max="1" step="0.01" placeholder="0.5">
+                                <small>Confidence in report relationships.</small>
+                            </div>
+                        </div>
+                        
+                        <div id="lastCalculated" class="last-calculated">
+                            Last calculated: Never
+                        </div>
+                        
+                        <button id="saveConfigBtn" class="button">Save Configuration</button>
+                        <div id="configStatus" class="status"></div>
+                    </div>
+                    
+                    <div id="presets" class="tab-content">
+                        <div class="parameter-group">
+                            <h3>Lax Preset</h3>
+                            <p>A more permissive configuration that puts more weight on follows and less on mutes/reports.</p>
+                            <pre id="laxPreset"></pre>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Default Preset</h3>
+                            <p>The standard balanced configuration.</p>
+                            <pre id="defaultPreset"></pre>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Rigorous Preset</h3>
+                            <p>A stricter configuration that puts more weight on mutes and reports.</p>
+                            <pre id="rigorousPreset"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Generate GrapeRank Data</h3>
+                <p>Calculate GrapeRank scores using the current configuration parameters.</p>
+                <button id="generateGrapeRankBtn" class="button">Generate GrapeRank Data</button>
+                <div id="generateGrapeRankStatus" class="status"></div>
+                <pre id="generateGrapeRankOutput" style="display: none;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+            const configStatus = document.getElementById('configStatus');
+            const generateGrapeRankBtn = document.getElementById('generateGrapeRankBtn');
+            const generateGrapeRankStatus = document.getElementById('generateGrapeRankStatus');
+            const generateGrapeRankOutput = document.getElementById('generateGrapeRankOutput');
+            const lastCalculated = document.getElementById('lastCalculated');
+            
+            // Preset buttons
+            const loadLaxBtn = document.getElementById('loadLaxBtn');
+            const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+            const loadRigorousBtn = document.getElementById('loadRigorousBtn');
+            
+            // Preset display elements
+            const laxPreset = document.getElementById('laxPreset');
+            const defaultPreset = document.getElementById('defaultPreset');
+            const rigorousPreset = document.getElementById('rigorousPreset');
+            
+            // Parameter input fields
+            const parameterInputs = {
+                RIGOR: document.getElementById('RIGOR'),
+                ATTENUATION_FACTOR: document.getElementById('ATTENUATION_FACTOR'),
+                FOLLOW_RATING: document.getElementById('FOLLOW_RATING'),
+                FOLLOW_CONFIDENCE: document.getElementById('FOLLOW_CONFIDENCE'),
+                FOLLOW_CONFIDENCE_OF_OBSERVER: document.getElementById('FOLLOW_CONFIDENCE_OF_OBSERVER'),
+                MUTE_RATING: document.getElementById('MUTE_RATING'),
+                MUTE_CONFIDENCE: document.getElementById('MUTE_CONFIDENCE'),
+                REPORT_RATING: document.getElementById('REPORT_RATING'),
+                REPORT_CONFIDENCE: document.getElementById('REPORT_CONFIDENCE')
+            };
+            
+            // Preset configurations
+            const presets = {
+                lax: {
+                    RIGOR: 0.3,
+                    ATTENUATION_FACTOR: 0.95,
+                    FOLLOW_RATING: 1,
+                    FOLLOW_CONFIDENCE: 0.1,
+                    MUTE_RATING: 0,
+                    MUTE_CONFIDENCE: 0.1,
+                    REPORT_RATING: 0,
+                    REPORT_CONFIDENCE: 0.1,
+                    FOLLOW_CONFIDENCE_OF_OBSERVER: 0.1
+                },
+                default: {
+                    RIGOR: 0.5,
+                    ATTENUATION_FACTOR: 0.85,
+                    FOLLOW_RATING: 1,
+                    FOLLOW_CONFIDENCE: 0.03,
+                    MUTE_RATING: -0.1,
+                    MUTE_CONFIDENCE: 0.5,
+                    REPORT_RATING: -0.1,
+                    REPORT_CONFIDENCE: 0.5,
+                    FOLLOW_CONFIDENCE_OF_OBSERVER: 0.5
+                },
+                rigorous: {
+                    RIGOR: 0.65,
+                    ATTENUATION_FACTOR: 0.5,
+                    FOLLOW_RATING: 1,
+                    FOLLOW_CONFIDENCE: 0.03,
+                    MUTE_RATING: -0.9,
+                    MUTE_CONFIDENCE: 0.9,
+                    REPORT_RATING: -0.9,
+                    REPORT_CONFIDENCE: 0.9,
+                    FOLLOW_CONFIDENCE_OF_OBSERVER: 0.5
+                }
+            };
+            
+            // Display preset configurations
+            laxPreset.textContent = JSON.stringify(presets.lax, null, 2);
+            defaultPreset.textContent = JSON.stringify(presets.default, null, 2);
+            rigorousPreset.textContent = JSON.stringify(presets.rigorous, null, 2);
+            
+            // Load current configuration
+            function loadCurrentConfig() {
+                fetch('/control/api/graperank-config')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const config = data.config;
+                            
+                            // Update input fields with current values
+                            for (const [key, input] of Object.entries(parameterInputs)) {
+                                if (config[key]) {
+                                    input.value = config[key];
+                                }
+                            }
+                            
+                            // Update last calculated time
+                            if (config.WHEN_LAST_CALCULATED && config.WHEN_LAST_CALCULATED !== '0') {
+                                const timestamp = parseInt(config.WHEN_LAST_CALCULATED);
+                                const date = new Date(timestamp * 1000);
+                                lastCalculated.textContent = `Last calculated: ${date.toLocaleString()}`;
+                            } else {
+                                lastCalculated.textContent = 'Last calculated: Never';
+                            }
+                        } else {
+                            configStatus.style.display = 'block';
+                            configStatus.className = 'status error';
+                            configStatus.textContent = 'Error loading configuration: ' + data.error;
+                        }
+                    })
+                    .catch(error => {
+                        configStatus.style.display = 'block';
+                        configStatus.className = 'status error';
+                        configStatus.textContent = 'Error loading configuration: ' + error.message;
+                    });
+            }
+            
+            // Load configuration on page load
+            loadCurrentConfig();
+            
+            // Save configuration
+            saveConfigBtn.addEventListener('click', function() {
+                saveConfigBtn.disabled = true;
+                configStatus.style.display = 'block';
+                configStatus.className = 'status info';
+                configStatus.textContent = 'Saving configuration...';
+                
+                // Collect values from input fields
+                const updatedConfig = {};
+                for (const [key, input] of Object.entries(parameterInputs)) {
+                    if (input.value) {
+                        updatedConfig[key] = input.value;
+                    }
+                }
+                
+                // Send updated configuration to the server
+                fetch('/control/api/graperank-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedConfig)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    saveConfigBtn.disabled = false;
+                    
+                    if (data.success) {
+                        configStatus.className = 'status success';
+                        configStatus.textContent = 'Configuration saved successfully!';
+                        
+                        // Reload the configuration to ensure we have the latest values
+                        loadCurrentConfig();
+                    } else {
+                        configStatus.className = 'status error';
+                        configStatus.textContent = 'Error saving configuration: ' + data.error;
+                    }
+                })
+                .catch(error => {
+                    saveConfigBtn.disabled = false;
+                    configStatus.className = 'status error';
+                    configStatus.textContent = 'Error saving configuration: ' + error.message;
+                });
+            });
+            
+            // Load preset configurations
+            loadLaxBtn.addEventListener('click', function() {
+                applyPreset(presets.lax);
+            });
+            
+            loadDefaultBtn.addEventListener('click', function() {
+                applyPreset(presets.default);
+            });
+            
+            loadRigorousBtn.addEventListener('click', function() {
+                applyPreset(presets.rigorous);
+            });
+            
+            // Apply preset to input fields
+            function applyPreset(preset) {
+                for (const [key, value] of Object.entries(preset)) {
+                    if (parameterInputs[key]) {
+                        parameterInputs[key].value = value;
+                    }
+                }
+                
+                configStatus.style.display = 'block';
+                configStatus.className = 'status info';
+                configStatus.textContent = 'Preset loaded. Click "Save Configuration" to apply these changes.';
+            }
+            
+            // Generate GrapeRank data
+            generateGrapeRankBtn.addEventListener('click', function() {
+                generateGrapeRankBtn.disabled = true;
+                generateGrapeRankStatus.style.display = 'block';
+                generateGrapeRankStatus.className = 'status info';
+                generateGrapeRankStatus.textContent = 'Generating GrapeRank data...';
+                generateGrapeRankOutput.style.display = 'none';
+                
+                fetch('/control/api/generate-graperank')
+                    .then(response => response.json())
+                    .then(data => {
+                        generateGrapeRankBtn.disabled = false;
+                        if (data.success) {
+                            generateGrapeRankStatus.className = 'status success';
+                            generateGrapeRankStatus.textContent = 'GrapeRank data generated successfully!';
+                            if (data.output) {
+                                generateGrapeRankOutput.style.display = 'block';
+                                generateGrapeRankOutput.textContent = data.output;
+                            }
+                            
+                            // Update the last calculated time
+                            const now = Math.floor(Date.now() / 1000);
+                            fetch('/control/api/graperank-config', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    WHEN_LAST_CALCULATED: now.toString()
+                                })
+                            })
+                            .then(() => {
+                                // Reload the configuration to update the last calculated time
+                                loadCurrentConfig();
+                            });
+                        } else {
+                            generateGrapeRankStatus.className = 'status error';
+                            generateGrapeRankStatus.textContent = 'Error generating GrapeRank data';
+                            if (data.output) {
+                                generateGrapeRankOutput.style.display = 'block';
+                                generateGrapeRankOutput.textContent = data.output;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        generateGrapeRankBtn.disabled = false;
+                        generateGrapeRankStatus.className = 'status error';
+                        generateGrapeRankStatus.textContent = 'Error generating GrapeRank data: ' + error.message;
+                    });
+            });
+        });
+        
+        // Tab functionality
+        function openTab(evt, tabName) {
+            // Declare all variables
+            var i, tabcontent, tabbuttons;
+
+            // Get all elements with class="tab-content" and hide them
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+
+            // Get all elements with class="tab-button" and remove the class "active"
+            tabbuttons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].classList.remove("active");
+            }
+
+            // Show the current tab, and add an "active" class to the button that opened the tab
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+</body>
+</html>

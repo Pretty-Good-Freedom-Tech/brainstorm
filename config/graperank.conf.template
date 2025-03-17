@@ -6,20 +6,57 @@
 # and ownership: chown root:hasenpfeffr /etc/graperank.conf
 
 # ==========================================
-# DEFAULT VALUES:
-# const attenuationFactor_default = 0.85
-# const rigor_default = 0.5
-# const followRating_default = 1
-# const followConfidence_default = 0.03
-# const muteRating_default = -0.1
-# const muteConfidence_default = 0.5
-# const reportRating_default = -0.1
-# const reportConfidence_default = 0.5
-# const followConfidenceOfObserver_default = 0.5
+# DEFAULT PARAMETERS
+
+# PARAMETER: MINIMUM, MAXIMUM
+# RIGOR: 0.00, 1.00
+# ATTENUATION_FACTOR: 0.00, 1.00
+# FOLLOW_RATING: -1.00, 1.00
+# FOLLOW_CONFIDENCE: 0.00, 1.00
+# MUTE_RATING: -1.00, 1.00
+# MUTE_CONFIDENCE: 0.00, 1.00
+# REPORT_RATING: -1.00, 1.00
+# REPORT_CONFIDENCE: 0.00, 1.00
+# FOLLOW_CONFIDENCE_OF_OBSERVER: 0.00, 1.00
+
+# DEFAULT PARAMETERS (LAX)
+export rigor_lax = 0.3
+export attenuationFactor_lax = 0.95
+export followRating_lax = 1
+export followConfidence_lax = 0.1
+export muteRating_lax = 0
+export muteConfidence_lax = 0.1
+export reportRating_lax = 0
+export reportConfidence_lax = 0.1
+export followConfidenceOfObserver_lax = 0.1
+
+# DEFAULT PARAMETERS (DEFAULT)
+export rigor_default = 0.5
+export attenuationFactor_default = 0.85
+export followRating_default = 1
+export followConfidence_default = 0.03
+export muteRating_default = -0.1
+export muteConfidence_default = 0.5
+export reportRating_default = -0.1
+export reportConfidence_default = 0.5
+export followConfidenceOfObserver_default = 0.5
+
+# DEFAULT PARAMETERS (RIGOROUS)
+export rigor_rigorous = 0.65
+export attenuationFactor_rigorous = 0.5
+export followRating_rigorous = 1
+export followConfidence_rigorous = 0.03
+export muteRating_rigorous = -0.9
+export muteConfidence_rigorous = 0.9
+export reportRating_rigorous = -0.9
+export reportConfidence_rigorous = 0.9
+export followConfidenceOfObserver_rigorous = 0.5
+
 # ==========================================
 
-export ATTENUATION_FACTOR=0.85
+# LIVE PARAMETERS
 export RIGOR=0.5
+export ATTENUATION_FACTOR=0.85
 export FOLLOW_RATING=1
 export FOLLOW_CONFIDENCE=0.03
 export MUTE_RATING=-0.1
@@ -27,3 +64,6 @@ export MUTE_CONFIDENCE=0.5
 export REPORT_RATING=-0.1
 export REPORT_CONFIDENCE=0.5
 export FOLLOW_CONFIDENCE_OF_OBSERVER=0.5
+
+# WHEN LAST CALCULATED: unix timestamp; 0 indicates not yet calculated
+export WHEN_LAST_CALCULATED=0
