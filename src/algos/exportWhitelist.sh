@@ -40,6 +40,7 @@ done < /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelistQueryOutput.tx
 echo "}" >> /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelist_pubkeys.json
 
 sudo mv /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelist_pubkeys.json /usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json
+sudo chown hasenpfeffr:hasenpfeffr /usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json
 
 # clean up
 sudo rm /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelistQueryOutput.txt

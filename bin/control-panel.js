@@ -594,6 +594,7 @@ async function handleStrfryPlugin(req, res) {
 
     try {
         const strfryConfPath = '/etc/strfry.conf';
+        const strfryRouterConfPath = '/etc/strfry-router.config';
         let pluginStatus = 'unknown';
         
         // Check if strfry.conf exists
@@ -624,7 +625,7 @@ async function handleStrfryPlugin(req, res) {
             return res.json({ status: pluginStatus });
         }
         
-        if (action === 'enable') {
+        if (action === 'enable' || action === 'disable') {
             // Set plugin path
             const pluginPath = '/usr/local/lib/strfry/plugins/hasenpfeffr.js';
             
@@ -639,22 +640,42 @@ async function handleStrfryPlugin(req, res) {
                 execSync(`sudo chmod +x ${pluginPath}`);
             }
             
-            // Update strfry.conf
-            if (writePolicyMatch) {
-                // Update the existing plugin setting in the writePolicy section
-                confContent = confContent.replace(writePolicyPluginRegex, (match) => {
-                    return match.replace(/plugin\s*=\s*"[^"]*"/, `plugin = "${pluginPath}"`);
-                });
-            } else {
-                // If writePolicy section exists but without plugin setting, we need to add it
-                const writePolicySectionRegex = /(writePolicy\s*{[^}]*)(})/s;
-                const writePolicySectionMatch = confContent.match(writePolicySectionRegex);
-                
-                if (writePolicySectionMatch) {
-                    confContent = confContent.replace(writePolicySectionRegex, `$1        plugin = "${pluginPath}"\n    $2`);
+            // Update strfry.conf based on action
+            if (action === 'enable') {
+                if (writePolicyMatch) {
+                    // Update the existing plugin setting in the writePolicy section
+                    confContent = confContent.replace(writePolicyPluginRegex, (match) => {
+                        return match.replace(/plugin\s*=\s*"[^"]*"/, `plugin = "${pluginPath}"`);
+                    });
                 } else {
-                    // If writePolicy section doesn't exist, this is unexpected but we'll add it
-                    confContent += `\n    writePolicy {\n        plugin = "${pluginPath}"\n    }\n`;
+                    // If writePolicy section exists but without plugin setting, we need to add it
+                    const writePolicySectionRegex = /(writePolicy\s*{[^}]*)(})/s;
+                    const writePolicySectionMatch = confContent.match(writePolicySectionRegex);
+                    
+                    if (writePolicySectionMatch) {
+                        confContent = confContent.replace(writePolicySectionRegex, `$1        plugin = "${pluginPath}"\n    $2`);
+                    } else {
+                        // If writePolicy section doesn't exist, this is unexpected but we'll add it
+                        confContent += `\n    writePolicy {\n        plugin = "${pluginPath}"\n    }\n`;
+                    }
+                }
+            } else { // action === 'disable'
+                if (writePolicyMatch) {
+                    // Update the existing plugin setting in the writePolicy section to empty string
+                    confContent = confContent.replace(writePolicyPluginRegex, (match) => {
+                        return match.replace(/plugin\s*=\s*"[^"]*"/, 'plugin = ""');
+                    });
+                } else {
+                    // If writePolicy section exists but without plugin setting, we need to add it
+                    const writePolicySectionRegex = /(writePolicy\s*{[^}]*)(})/s;
+                    const writePolicySectionMatch = confContent.match(writePolicySectionRegex);
+                    
+                    if (writePolicySectionMatch) {
+                        confContent = confContent.replace(writePolicySectionRegex, `$1        plugin = ""\n    $2`);
+                    } else {
+                        // If writePolicy section doesn't exist, this is unexpected but we'll add it
+                        confContent += `\n    writePolicy {\n        plugin = ""\n    }\n`;
+                    }
                 }
             }
             
@@ -669,41 +690,39 @@ async function handleStrfryPlugin(req, res) {
             execSync(`sudo cp ${tempConfigPath} ${strfryConfPath}`);
             fs.unlinkSync(tempConfigPath);
             
-            return res.json({ status: 'enabled', message: 'Plugin enabled successfully' });
-        }
-        
-        if (action === 'disable') {
-            // Update strfry.conf
-            if (writePolicyMatch) {
-                // Update the existing plugin setting in the writePolicy section to empty string
-                confContent = confContent.replace(writePolicyPluginRegex, (match) => {
-                    return match.replace(/plugin\s*=\s*"[^"]*"/, 'plugin = ""');
-                });
-            } else {
-                // If writePolicy section exists but without plugin setting, we need to add it
-                const writePolicySectionRegex = /(writePolicy\s*{[^}]*)(})/s;
-                const writePolicySectionMatch = confContent.match(writePolicySectionRegex);
-                
-                if (writePolicySectionMatch) {
-                    confContent = confContent.replace(writePolicySectionRegex, `$1        plugin = ""\n    $2`);
-                } else {
-                    // If writePolicy section doesn't exist, this is unexpected but we'll add it
-                    confContent += `\n    writePolicy {\n        plugin = ""\n    }\n`;
+            // Update strfry-router.config based on action
+            try {
+                let sourceConfigPath;
+                if (action === 'enable') {
+                    sourceConfigPath = '/usr/local/lib/node_modules/hasenpfeffr/setup/strfry-router-plugin.config';
+                } else { // action === 'disable'
+                    sourceConfigPath = '/usr/local/lib/node_modules/hasenpfeffr/setup/strfry-router.config';
                 }
+                
+                // Check if source config exists
+                if (!fs.existsSync(sourceConfigPath)) {
+                    console.error(`Source config file not found: ${sourceConfigPath}`);
+                    return res.status(404).json({ error: `Source config file not found: ${sourceConfigPath}` });
+                }
+                
+                // Copy the appropriate config file to /etc/strfry-router.config
+                execSync(`sudo cp ${sourceConfigPath} ${strfryRouterConfPath}`);
+                
+                // Restart strfry service
+                execSync('sudo systemctl restart strfry');
+                
+                return res.json({ 
+                    status: action === 'enable' ? 'enabled' : 'disabled', 
+                    message: `Plugin ${action === 'enable' ? 'enabled' : 'disabled'} successfully and strfry service restarted`
+                });
+            } catch (configError) {
+                console.error('Error updating strfry-router.config:', configError);
+                return res.status(500).json({ 
+                    error: `Error updating strfry-router.config: ${configError.message}`,
+                    status: action === 'enable' ? 'enabled' : 'disabled',
+                    message: `Plugin ${action === 'enable' ? 'enabled' : 'disabled'} but strfry-router.config update failed`
+                });
             }
-            
-            // Remove any incorrect relay.writePolicy.plugin line if it exists
-            if (relayMatch) {
-                confContent = confContent.replace(/\nrelay\.writePolicy\.plugin\s*=\s*"[^"]*"\n?/, '\n');
-            }
-            
-            // Write config to a temporary file and then use sudo to move it
-            const tempConfigPath = '/tmp/strfry.conf.tmp';
-            fs.writeFileSync(tempConfigPath, confContent);
-            execSync(`sudo cp ${tempConfigPath} ${strfryConfPath}`);
-            fs.unlinkSync(tempConfigPath);
-            
-            return res.json({ status: 'disabled', message: 'Plugin disabled successfully' });
         }
         
         return res.status(400).json({ error: 'Invalid action' });
