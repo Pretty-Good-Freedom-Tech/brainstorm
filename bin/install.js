@@ -93,26 +93,26 @@ async function configureSudoPrivileges() {
   if (!isRoot) {
     console.log('\x1b[33mWarning: Not running as root. Sudo privileges configuration will be skipped.\x1b[0m');
     console.log('To configure sudo privileges later, run:');
-    console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
-    console.log(`sudo ${configPaths.controlPanelSudoScript}`);
+    console.log(`sudo bash ${configPaths.sudoPrivilegesScript}`);
+    console.log(`sudo bash ${configPaths.controlPanelSudoScript}`);
     return;
   }
   
   try {
     // Configure general sudo privileges for hasenpfeffr user
     console.log('Configuring sudo privileges for hasenpfeffr user...');
-    execSync(`bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
+    execSync(`sudo bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
     
     // Configure specific sudo privileges for control panel
     console.log('Configuring sudo privileges for control panel...');
-    execSync(`bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
+    execSync(`sudo bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
     
     console.log('\x1b[32mSudo privileges configured successfully.\x1b[0m');
   } catch (error) {
     console.error('\x1b[31mError configuring sudo privileges:\x1b[0m', error.message);
     console.log('You can configure sudo privileges manually later by running:');
-    console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
-    console.log(`sudo ${configPaths.controlPanelSudoScript}`);
+    console.log(`sudo bash ${configPaths.sudoPrivilegesScript}`);
+    console.log(`sudo bash ${configPaths.controlPanelSudoScript}`);
   }
 }
 
@@ -215,7 +215,7 @@ async function createHasenpfeffrConfigFile() {
   // Get configuration values from user
   const relayUrl = await askQuestion('Enter your Nostr relay URL (e.g., wss://relay.example.com): ');
   const ownerPubkey = await askQuestion('Enter your Hasenpfeffr owner pubkey (for PageRank calculations): ');
-  const neo4jPassword = await askQuestion('Enter a password for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
+  const neo4jPassword = await askQuestion('Neo4j will prompt you to change the default password from neo4j to something else.Enter the password that you intend to use for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
   const domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com): ');
   
   // Create hasenpfeffr configuration content

@@ -2,11 +2,11 @@
 
 const fs = require('node:fs');
 
-const whitelist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/src/plugins/whitelist_pubkeys.json', 'utf8'))
+const whitelist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json', 'utf8'))
 
-const blacklist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/src/plugins/blacklist_pubkeys.json', 'utf8'))
+const blacklist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/plugins/blacklist_pubkeys.json', 'utf8'))
 
-const whitelist_kinds = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/src/plugins/whitelist_kinds.json', 'utf8'))
+const whitelist_kinds = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_kinds.json', 'utf8'))
 
 const rl = require('readline').createInterface({
   input: process.stdin,

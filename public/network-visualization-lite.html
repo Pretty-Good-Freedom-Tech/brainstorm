@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Visualization - Lite Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .network-container {
+            width: 100%;
+            height: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            position: relative;
+        }
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #e74c3c;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            pointer-events: none;
+            font-size: 12px;
+            z-index: 10;
+            max-width: 300px;
+        }
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .controls button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .controls button:hover {
+            background-color: #2980b9;
+        }
+        .pubkey-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px;
+            margin: 0 auto;
+            display: block;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .back-button {
+            margin-bottom: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-button" onclick="window.history.back()">← Back</button>
+        <h1>Network Proximity Visualization (Lite Version)</h1>
+        <p>This is a lightweight version of the network visualization that doesn't fetch profile pictures to prevent server overload.</p>
+        
+        <div id="networkContainer" class="network-container">
+            <div class="loading-indicator">Loading network data...</div>
+        </div>
+        
+        <div class="controls">
+            <button id="resetButton">Reset View</button>
+            <button id="toggleLabelsButton">Toggle Labels</button>
+        </div>
+    </div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get pubkey from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pubkey = urlParams.get('pubkey');
+            
+            if (!pubkey) {
+                document.getElementById('networkContainer').innerHTML = 
+                    '<div class="error-message">No pubkey specified. Please provide a pubkey parameter in the URL.</div>';
+                return;
+            }
+            
+            // Fetch and display network data
+            fetchAndDisplayNetworkData(pubkey);
+            
+            // Add event listeners for control buttons
+            document.getElementById('resetButton').addEventListener('click', resetVisualization);
+            document.getElementById('toggleLabelsButton').addEventListener('click', toggleLabels);
+        });
+        
+        // Global variables for visualization controls
+        let showLabels = false;
+        let currentNetworkData = null;
+        
+        // Function to fetch network data from the API
+        function fetchAndDisplayNetworkData(pubkey) {
+            document.getElementById('networkContainer').innerHTML = 
+                '<div class="loading-indicator">Loading network data...</div>';
+            
+            const apiUrl = `${window.location.origin}/control/api/get-network-proximity?pubkey=${encodeURIComponent(pubkey)}&limit=50`;
+            console.log('Fetching network data from:', apiUrl);
+            
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Log the raw data from the API for debugging
+                        console.log('Raw network data received:', JSON.stringify(data.data, null, 2));
+                        
+                        // Process the data to ensure proper types for numeric values
+                        const processedData = processNetworkData(data.data);
+                        
+                        currentNetworkData = processedData;
+                        renderNetworkVisualization(processedData);
+                    } else {
+                        console.error('Failed to fetch network data:', data.message);
+                        document.getElementById('networkContainer').innerHTML = 
+                            `<div class="error-message">Failed to fetch network data: ${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching network data:', error);
+                    document.getElementById('networkContainer').innerHTML = 
+                        `<div class="error-message">Error fetching network data: ${error.message}</div>`;
+                });
+        }
+        
+        // Function to process network data and ensure proper types
+        function processNetworkData(data) {
+            // Create a deep copy to avoid modifying the original
+            const processedData = JSON.parse(JSON.stringify(data));
+            
+            // Process nodes to ensure proper types for numeric values
+            if (processedData.nodes && Array.isArray(processedData.nodes)) {
+                processedData.nodes.forEach(node => {
+                    // Convert influence to number if it's a string
+                    if (typeof node.influence === 'string') {
+                        node.influence = parseFloat(node.influence);
+                    }
+                    
+                    // Convert personalizedPageRank to number if it's a string
+                    if (typeof node.personalizedPageRank === 'string') {
+                        node.personalizedPageRank = parseFloat(node.personalizedPageRank);
+                    }
+                    
+                    // Handle Neo4j Integer objects for hops (with low and high properties)
+                    if (node.hops && typeof node.hops === 'object' && node.hops.hasOwnProperty('low')) {
+                        node.hops = node.hops.low;
+                    } else if (typeof node.hops === 'string' && !isNaN(node.hops)) {
+                        node.hops = parseInt(node.hops, 10);
+                    }
+                    
+                    // Ensure node has an id
+                    if (!node.id && node.pubkey) {
+                        node.id = node.pubkey;
+                    }
+                });
+            }
+            
+            return processedData;
+        }
+        
+        // Function to reset the visualization
+        function resetVisualization() {
+            if (currentNetworkData) {
+                renderNetworkVisualization(currentNetworkData);
+            }
+        }
+        
+        // Function to toggle node labels
+        function toggleLabels() {
+            showLabels = !showLabels;
+            if (currentNetworkData) {
+                renderNetworkVisualization(currentNetworkData);
+            }
+        }
+        
+        // Function to render network visualization
+        function renderNetworkVisualization(data) {
+            try {
+                // Check if we have valid data
+                if (!data || !data.nodes || !data.links || data.nodes.length === 0) {
+                    document.getElementById('networkContainer').innerHTML = 
+                        '<div class="error-message">No network data available for this user.</div>';
+                    return;
+                }
+                
+                // Log data for debugging
+                console.log('Rendering network with nodes:', data.nodes.length, 'links:', data.links.length);
+                
+                // Ensure all nodes have an id property
+                data.nodes.forEach((node, index) => {
+                    if (!node.id) {
+                        console.warn('Node missing id, adding one:', node);
+                        node.id = node.pubkey || `node_${index}`;
+                    }
+                    
+                    // Set a minimum influence value to avoid tiny nodes
+                    if (!node.influence || node.influence < 0.0001) {
+                        node.influence = 0.0001;
+                    }
+                    
+                    // Log node data for debugging
+                    console.log(`Node ${node.id} data:`, {
+                        hops: node.hops,
+                        influence: node.influence,
+                        personalizedPageRank: node.personalizedPageRank,
+                        type: node.type
+                    });
+                });
+                
+                // Define link colors based on relationship type
+                const linkColors = {
+                    'following': '#2ecc71',
+                    'followers': '#27ae60',
+                    'muting': '#f39c12',
+                    'muters': '#d35400',
+                    'reporting': '#e74c3c',
+                    'reporters': '#c0392b'
+                };
+                
+                // Fix data format issues - ensure nodes have unique IDs and links reference them correctly
+                const nodesById = {};
+                
+                // Create a map of nodes by ID for quick lookup
+                data.nodes.forEach(node => {
+                    nodesById[node.id] = node;
+                });
+                
+                // Filter out any links that reference non-existent nodes
+                const validLinks = data.links.filter(link => {
+                    // Check if source exists
+                    let sourceExists = false;
+                    if (typeof link.source === 'string') {
+                        sourceExists = nodesById[link.source] !== undefined;
+                    } else if (link.source && link.source.id) {
+                        sourceExists = nodesById[link.source.id] !== undefined;
+                    }
+                    
+                    // Check if target exists
+                    let targetExists = false;
+                    if (typeof link.target === 'string') {
+                        targetExists = nodesById[link.target] !== undefined;
+                    } else if (link.target && link.target.id) {
+                        targetExists = nodesById[link.target.id] !== undefined;
+                    }
+                    
+                    return sourceExists && targetExists;
+                });
+                
+                // Convert any object references to string IDs for consistency
+                validLinks.forEach(link => {
+                    if (typeof link.source !== 'string' && link.source && link.source.id) {
+                        link.source = link.source.id;
+                    }
+                    if (typeof link.target !== 'string' && link.target && link.target.id) {
+                        link.target = link.target.id;
+                    }
+                });
+                
+                // Clear any existing visualization
+                d3.select('#networkContainer svg').remove();
+                d3.select('#networkContainer .tooltip').remove();
+                
+                // Clear loading indicator
+                document.getElementById('networkContainer').innerHTML = '';
+                
+                // Set up dimensions
+                const container = document.getElementById('networkContainer');
+                const width = container.clientWidth || 600;
+                const height = container.clientHeight || 400;
+                
+                // Define color scale for node types
+                const nodeColors = {
+                    'center': '#3498db',
+                    'following': '#2ecc71',
+                    'followers': '#27ae60',
+                    'muting': '#f39c12',
+                    'muters': '#d35400',
+                    'reporting': '#e74c3c',
+                    'reporters': '#c0392b'
+                };
+                
+                // Create SVG container
+                const svg = d3.select('#networkContainer')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Add arrow markers for directional links
+                svg.append("defs").selectAll("marker")
+                    .data(["following", "followers", "muting", "muters", "reporting", "reporters"])
+                    .enter().append("marker")
+                    .attr("id", d => `arrow-${d}`)
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 25)  // Position the arrow away from the node
+                    .attr("refY", 0)
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .attr("orient", "auto")
+                    .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")
+                    .attr("fill", d => linkColors[d] || "#999");
+                
+                // Create tooltip
+                const tooltip = d3.select('#networkContainer')
+                    .append('div')
+                    .attr('class', 'tooltip')
+                    .style('opacity', 0);
+                
+                // Calculate node radius based on influence
+                const influenceScale = d3.scaleSqrt()
+                    .domain([
+                        d3.min(data.nodes, d => d.influence || 0.0001),
+                        d3.max(data.nodes, d => d.influence || 1)
+                    ])
+                    .range([5, 25]);  // Min and max radius
+                
+                // Create force simulation
+                const simulation = d3.forceSimulation(data.nodes)
+                    .force('link', d3.forceLink(validLinks)
+                        .id(d => d.id)
+                        .distance(d => {
+                            // Make distance dependent on node sizes
+                            const sourceNode = nodesById[d.source.id || d.source];
+                            const targetNode = nodesById[d.target.id || d.target];
+                            const sourceRadius = influenceScale(sourceNode.influence || 0.0001);
+                            const targetRadius = influenceScale(targetNode.influence || 0.0001);
+                            return 100 + sourceRadius + targetRadius;
+                        }))
+                    .force('charge', d3.forceManyBody().strength(-300))
+                    .force('center', d3.forceCenter(width / 2, height / 2))
+                    .force('collision', d3.forceCollide().radius(d => influenceScale(d.influence || 0.0001) + 5));
+                
+                // Create links as paths for directional arrows
+                const link = svg.append('g')
+                    .selectAll('path')
+                    .data(validLinks)
+                    .enter()
+                    .append('path')
+                    .attr('stroke', d => linkColors[d.type] || '#999')
+                    .attr('stroke-opacity', 0.6)
+                    .attr('stroke-width', 2)
+                    .attr('fill', 'none')
+                    .attr('marker-end', d => `url(#arrow-${d.type})`);
+                
+                // Create node groups
+                const nodeGroup = svg.append('g')
+                    .selectAll('g')
+                    .data(data.nodes)
+                    .enter()
+                    .append('g')
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended));
+                
+                // Add circle for each node
+                const node = nodeGroup.append('circle')
+                    .attr('r', d => influenceScale(d.influence || 0.0001))
+                    .attr('fill', d => nodeColors[d.type] || '#999')
+                    .attr('stroke', d => nodeColors[d.type] || '#999')
+                    .attr('stroke-width', 2);
+                
+                // Add node labels
+                const labels = nodeGroup.append('text')
+                    .text(d => {
+                        // Show short name for center node, nothing for others unless toggle is on
+                        if (d.type === 'center' || showLabels) {
+                            return d.name || d.id.substring(0, 6) + '...';
+                        }
+                        return '';
+                    })
+                    .attr('font-size', '10px')
+                    .attr('dx', d => influenceScale(d.influence || 0.0001) + 5)
+                    .attr('dy', 4)
+                    .attr('fill', '#333');
+                
+                // Add hover effects and tooltips
+                nodeGroup.on('mouseover', function(event, d) {
+                        // Highlight connected links and nodes
+                        link.style('stroke-opacity', l => {
+                            // Check if the link is connected to this node
+                            const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                            const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                            return sourceId === d.id || targetId === d.id ? 1 : 0.1;
+                        });
+                        
+                        nodeGroup.style('opacity', n => {
+                            // Check if this node is connected to the hovered node
+                            if (n.id === d.id) return 1;
+                            
+                            // Check if there's a link between these nodes
+                            const connected = validLinks.some(l => {
+                                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                                return (sourceId === d.id && targetId === n.id) || 
+                                       (sourceId === n.id && targetId === d.id);
+                            });
+                            
+                            return connected ? 1 : 0.3;
+                        });
+                        
+                        // Show tooltip
+                        tooltip.transition()
+                            .duration(200)
+                            .style('opacity', .9);
+                        
+                        // Format tooltip content with detailed web of trust scores
+                        let tooltipContent = `
+                            <div style="text-align: center; margin-bottom: 8px;">
+                                <strong>${d.name || (d.id || '').substring(0, 10) + '...'}</strong>
+                            </div>
+                            <div style="font-size: 11px; color: #666;">Pubkey: ${(d.id || '').substring(0, 10)}...</div>
+                            <hr style="margin: 5px 0; border-top: 1px solid #eee;">
+                            <div><strong>Web of Trust Scores:</strong></div>
+                            <div>Hops: ${typeof d.hops === 'number' ? d.hops : 'N/A'}</div>
+                            <div>Influence: ${typeof d.influence === 'number' && d.influence > 0.0001 ? d.influence.toFixed(6) : 'N/A'}</div>
+                            <div>PageRank: ${typeof d.personalizedPageRank === 'number' ? d.personalizedPageRank.toFixed(6) : 'N/A'}</div>
+                            <div>Relationship: ${d.type || 'N/A'}</div>
+                        `;
+                        
+                        tooltip.html(tooltipContent)
+                            .style('left', (event.pageX + 10) + 'px')
+                            .style('top', (event.pageY - 28) + 'px');
+                    })
+                    .on('mouseout', function() {
+                        // Reset link and node opacity
+                        link.style('stroke-opacity', 0.6);
+                        nodeGroup.style('opacity', 1);
+                        
+                        // Hide tooltip
+                        tooltip.transition()
+                            .duration(500)
+                            .style('opacity', 0);
+                    });
+                
+                // Add simulation tick handler
+                simulation.on('tick', () => {
+                    // Update link paths for directional links
+                    link.attr('d', d => {
+                        // Get source and target nodes
+                        const source = typeof d.source === 'object' ? d.source : nodesById[d.source];
+                        const target = typeof d.target === 'object' ? d.target : nodesById[d.target];
+                        
+                        // Safety check for valid coordinates
+                        if (!source || !target || 
+                            typeof source.x !== 'number' || typeof source.y !== 'number' ||
+                            typeof target.x !== 'number' || typeof target.y !== 'number' ||
+                            isNaN(source.x) || isNaN(source.y) || 
+                            isNaN(target.x) || isNaN(target.y)) {
+                            return ''; // Return empty path if coordinates are invalid
+                        }
+                        
+                        // Calculate path for directional arrow
+                        const dx = target.x - source.x;
+                        const dy = target.y - source.y;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // Safety check for zero length
+                        if (length === 0) {
+                            return ''; // Return empty path if length is zero
+                        }
+                        
+                        // Calculate the normalized direction vector
+                        const normX = dx / length;
+                        const normY = dy / length;
+                        
+                        // Get node radii
+                        const sourceRadius = influenceScale(source.influence || 0.0001);
+                        const targetRadius = influenceScale(target.influence || 0.0001);
+                        
+                        // Calculate start and end points, offset by node radius
+                        const startX = source.x + (sourceRadius * normX);
+                        const startY = source.y + (sourceRadius * normY);
+                        const endX = target.x - (targetRadius * normX);
+                        const endY = target.y - (targetRadius * normY);
+                        
+                        // Safety check for valid path points
+                        if (isNaN(startX) || isNaN(startY) || isNaN(endX) || isNaN(endY)) {
+                            return ''; // Return empty path if any coordinate is NaN
+                        }
+                        
+                        // Return a straight line instead of a curve to avoid arc calculation issues
+                        return `M${startX},${startY}L${endX},${endY}`;
+                    });
+                    
+                    // Update node group positions
+                    nodeGroup.attr('transform', d => {
+                        // Safety check for valid coordinates
+                        if (typeof d.x !== 'number' || typeof d.y !== 'number' || isNaN(d.x) || isNaN(d.y)) {
+                            d.x = width / 2;
+                            d.y = height / 2;
+                        }
+                        
+                        // Keep nodes within bounds
+                        const radius = influenceScale(d.influence || 0.0001);
+                        d.x = Math.max(radius, Math.min(width - radius, d.x));
+                        d.y = Math.max(radius, Math.min(height - radius, d.y));
+                        
+                        return `translate(${d.x}, ${d.y})`;
+                    });
+                });
+                
+                // Add a legend for relationship types
+                const legend = svg.append('g')
+                    .attr('class', 'legend')
+                    .attr('transform', 'translate(20, 20)');
+                
+                const legendItems = [
+                    { type: 'center', label: 'Center User' },
+                    { type: 'following', label: 'Following' },
+                    { type: 'followers', label: 'Followers' },
+                    { type: 'muting', label: 'Muting' },
+                    { type: 'muters', label: 'Muters' },
+                    { type: 'reporting', label: 'Reporting' },
+                    { type: 'reporters', label: 'Reporters' }
+                ];
+                
+                legendItems.forEach((item, i) => {
+                    const legendItem = legend.append('g')
+                        .attr('transform', `translate(0, ${i * 20})`);
+                    
+                    legendItem.append('circle')
+                        .attr('r', 6)
+                        .attr('fill', nodeColors[item.type] || '#999');
+                    
+                    legendItem.append('text')
+                        .attr('x', 15)
+                        .attr('y', 4)
+                        .text(item.label)
+                        .attr('font-size', '12px');
+                });
+                
+                // Add an influence scale legend
+                const influenceLegend = svg.append('g')
+                    .attr('class', 'influence-legend')
+                    .attr('transform', `translate(${width - 150}, 20)`);
+                
+                influenceLegend.append('text')
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .text('Influence Scale:')
+                    .attr('font-size', '12px')
+                    .attr('font-weight', 'bold');
+                
+                // Show 3 example sizes
+                const influenceExamples = [
+                    { label: 'Low', value: d3.min(data.nodes, d => d.influence || 0.0001) },
+                    { label: 'Medium', value: (d3.min(data.nodes, d => d.influence || 0.0001) + d3.max(data.nodes, d => d.influence || 1)) / 2 },
+                    { label: 'High', value: d3.max(data.nodes, d => d.influence || 1) }
+                ];
+                
+                influenceExamples.forEach((example, i) => {
+                    const exampleItem = influenceLegend.append('g')
+                        .attr('transform', `translate(30, ${i * 30 + 20})`);
+                    
+                    exampleItem.append('circle')
+                        .attr('r', influenceScale(example.value))
+                        .attr('fill', '#999')
+                        .attr('opacity', 0.5);
+                    
+                    exampleItem.append('text')
+                        .attr('x', 35)
+                        .attr('y', 4)
+                        .text(`${example.label}: ${example.value.toFixed(6)}`)
+                        .attr('font-size', '10px');
+                });
+                
+                // Drag functions
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+                
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+                
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+            } catch (error) {
+                console.error('Error rendering network visualization:', error);
+                document.getElementById('networkContainer').innerHTML = 
+                    `<div class="error-message">Error rendering network visualization: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

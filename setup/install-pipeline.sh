@@ -15,22 +15,22 @@ echo "=== Hasenpfeffr ETL Pipeline Installation ==="
 
 # chmod +x all scripts
 cd /usr/local/lib/node_modules/hasenpfeffr/src/pipeline
-chmod +x */*.sh
-chmod +x */*.js
-chmod +x */*.mjs
+sudo chmod +x */*.sh
+sudo chmod +x */*.js
+sudo chmod +x */*.mjs
 
 echo "=== Webs of Trust Calculations Installation ==="
 
 mkdir -p /var/log/hasenpfeffr
 touch /var/log/hasenpfeffr/calculateHops.log
 cd /usr/local/lib/node_modules/hasenpfeffr/src/algos
-chmod +x *.sh
-chmod +x *.js
-chmod +x *.mjs
+sudo chmod +x *.sh
+sudo chmod +x *.js
+sudo chmod +x *.mjs
 
 echo "=== Plugins Installation ==="
-cd /usr/local/lib/node_modules/hasenpfeffr/src/plugins
-chmod +x *.js
+cd /usr/local/lib/node_modules/hasenpfeffr/plugins
+sudo chmod +x *.js
 
 cd /var/lib
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr

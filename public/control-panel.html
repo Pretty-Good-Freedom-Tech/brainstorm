@@ -42,7 +42,7 @@
         .button {
             display: inline-block;
             background-color: #3498db;
-            color: white;
+            color: white !important;
             padding: 10px 20px;
             margin: 10px 0;
             border: none;
@@ -126,7 +126,8 @@
             <div class="nav-links">
                 <a href="/control/index.html" class="button home-btn">Home</a>
                 <a href="/" id="relayLink" class="button secondary-btn">Go to Relay</a>
-                <a href="/control/nip85-control-panel.html" class="button secondary-btn">NIP-85 Control Panel</a>
+                <a href="/control/profiles-control-panel.html" class="button profiles-btn">User Profiles</a>
+                <a href="/control/nip85-control-panel.html" class="button nip85-btn">NIP-85 Control Panel</a>
                 <button id="logoutBtn" class="button logout-btn">Logout</button>
                 <span id="authStatus" class="auth-status"></span>
             </div>
@@ -150,16 +151,28 @@
                 background-color: #c0392b;
             }
             .secondary-btn {
-                background-color: #3498db;
+                background-color: #95a5a6;
             }
             .secondary-btn:hover {
-                background-color: #2980b9;
+                background-color: #7f8c8d;
             }
             .home-btn {
                 background-color: #2ecc71;
             }
             .home-btn:hover {
                 background-color: #27ae60;
+            }
+            .profiles-btn {
+                background-color: #9b59b6;
+            }
+            .profiles-btn:hover {
+                background-color: #8e44ad;
+            }
+            .nip85-btn {
+                background-color: #3498db;
+            }
+            .nip85-btn:hover {
+                background-color: #2980b9;
             }
             .auth-status {
                 margin-left: 15px;
@@ -304,7 +317,7 @@
             <h2>Strfry Plugin Management</h2>
             <div class="card">
                 <h3>Hasenpfeffr Strfry Plugin</h3>
-                <p>Enable or disable the Hasenpfeffr plugin for strfry. This plugin controls which events are accepted by the relay based on configured rules.</p>
+                <p>Enable or disable the Hasenpfeffr plugin for strfry. When active, content (type 1 notes) are streamed and filtered by the plugin, using a whitelist based on the GrapeRank influence score (assuming it's been calculated -- don't forget to do this!). When inactive, baselineWoT events continue to stream.</p>
                 <div style="display: flex; align-items: center;">
                     <div id="pluginStatusIndicator" style="width: 15px; height: 15px; border-radius: 50%; background-color: gray; margin-right: 10px;"></div>
                     <span id="pluginStatusText">Checking status...</span>
@@ -534,9 +547,9 @@
                             'neo4j': 'Graph database for storing Nostr relationships',
                             'strfry': 'Nostr relay for receiving and serving events',
                             'hasenpfeffr-control-panel': 'Web interface for system management',
-                            'strfry-router': 'Routes events between relays',
-                            'addToQueue': 'Adds pubkeys to processing queue',
-                            'processQueue': 'Processes pubkeys from queue',
+                            'strfry-router': 'Live stream events from the nostr network, including baselineWoT (kinds 3, 1984, and 10000)',
+                            'addToQueue': 'Add pubkeys to processing queue with recently updated WoT events.',
+                            'processQueue': 'Process pubkeys from queue.',
                             'reconcile.timer': 'Scheduled task to reconcile graph data',
                             'calculateHops.timer': 'Scheduled task to calculate network hops',
                             'calculatePersonalizedPageRank.timer': 'Scheduled task to calculate PageRank scores',
