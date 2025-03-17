@@ -194,7 +194,23 @@
             <h2>Data Management</h2>
             <div class="card">
                 <h3>Strfry Negentropy Sync</h3>
-                <p>Use <a href="https://github.com/hoytech/negentropy" target="_blank">negentropy</a> to download FOLLOWS, MUTES and REPORTS data (kinds 3, 1984, 10000) from wss://relay.hasenpfeffr.com.</p>
+                <p>Use <a href="https://github.com/hoytech/negentropy" target="_blank">negentropy</a> to download FOLLOWS, MUTES and REPORTS data (kinds 3, 1984, 10000) from a Nostr relay.</p>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="relaySelector" style="display: block; margin-bottom: 5px; font-weight: bold;">Select Relay:</label>
+                    <select id="relaySelector" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                        <option value="wss://relay.hasenpfeffr.com">wss://relay.hasenpfeffr.com</option>
+                        <option value="wss://relay.primal.net">wss://relay.primal.net</option>
+                        <option value="wss://profiles.nostr1.com">wss://profiles.nostr1.com</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="customFilter" style="display: block; margin-bottom: 5px; font-weight: bold;">Custom Filter (JSON):</label>
+                    <input type="text" id="customFilter" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;" placeholder='{"kinds":[3, 1984, 10000]}' value='{"kinds":[3, 1984, 10000]}'>
+                    <small style="display: block; margin-top: 5px; color: #666;">Default filter includes FOLLOWS (kind 3), REPORTS (kind 1984), and MUTES (kind 10000)</small>
+                </div>
+                
                 <button id="negentropyBtn" class="button">Sync with Negentropy</button>
                 <div id="negentropyStatus" class="status" style="display: none;"></div>
                 <div class="progress-container" style="display: none;" id="negentropyProgress">
@@ -1034,7 +1050,23 @@
                 negentropyStatus.className = 'status info';
                 negentropyStatus.textContent = 'Syncing with Negentropy... This may take a while.';
                 negentropyOutput.style.display = 'block';
-                negentropyOutput.textContent = 'Starting Negentropy sync...\n';
+                
+                // Get the selected relay and custom filter
+                const selectedRelay = document.getElementById('relaySelector').value;
+                let customFilter = document.getElementById('customFilter').value;
+                
+                // Validate JSON filter
+                try {
+                    // Parse and stringify to ensure valid JSON
+                    customFilter = JSON.stringify(JSON.parse(customFilter));
+                } catch (e) {
+                    negentropyStatus.className = 'status error';
+                    negentropyStatus.textContent = 'Error: Invalid JSON filter format';
+                    negentropyBtn.disabled = false;
+                    return;
+                }
+                
+                negentropyOutput.textContent = `Starting Negentropy sync with ${selectedRelay} using filter ${customFilter}...\n`;
                 negentropyProgress.style.display = 'block';
                 
                 // Simulate progress updates (in a real implementation, this would be based on actual progress)
@@ -1046,9 +1078,16 @@
                     if (progress === 100) clearInterval(progressInterval);
                 }, 1000);
                 
-                // Make AJAX request to the server
+                // Make AJAX request to the server with relay and filter parameters
                 fetch('/control/api/negentropy-sync', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        relay: selectedRelay,
+                        filter: customFilter
+                    })
                 })
                 .then(response => {
                     // Check if the response is JSON

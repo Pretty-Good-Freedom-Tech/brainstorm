@@ -466,17 +466,27 @@ function handleNegentropySync(req, res) {
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
+    // Get relay and filter parameters from request body
+    const relay = req.body.relay || 'wss://relay.hasenpfeffr.com';
+    const filter = req.body.filter || '{"kinds":[3, 1984, 10000]}';
+    
+    console.log(`Using relay: ${relay}, filter: ${filter}`);
+    
     // Set a timeout to ensure the response doesn't hang
     const timeoutId = setTimeout(() => {
         console.log('Negentropy sync is taking longer than expected, sending initial response...');
         res.json({
             success: true,
-            output: 'Negentropy sync started. This process will continue in the background.\n',
+            output: `Negentropy sync with ${relay} started. This process will continue in the background.\n`,
             error: null
         });
     }, 30000); // 30 seconds timeout
     
-    exec('hasenpfeffr-negentropy-sync', (error, stdout, stderr) => {
+    // Build the command with the provided relay and filter
+    const command = `sudo strfry sync ${relay} --filter '${filter}' --dir down`;
+    console.log(`Executing command: ${command}`);
+    
+    exec(command, (error, stdout, stderr) => {
         // Clear the timeout if the command completes before the timeout
         clearTimeout(timeoutId);
         
