@@ -34,13 +34,10 @@ echo "=== GrapeRank and Blacklist Installation ==="
 cd /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank
 sudo chmod +x *.sh
 sudo chmod +x *.js
-sudo chmod +x *.mjs
 
 # Set up Personalized Blacklist
 cd /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedBlacklist
 sudo chmod +x *.sh
-sudo chmod +x *.js
-sudo chmod +x *.mjs
 
 # Create empty blacklist file if it doesn't exist
 mkdir -p /usr/local/lib/node_modules/hasenpfeffr/plugins
