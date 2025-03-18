@@ -52,4 +52,4 @@ sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrap
 sudo chown root:hasenpfeffr /etc/hasenpfeffr.conf
 sudo chown root:hasenpfeffr /etc/graperank.conf
 sudo chown root:hasenpfeffr /etc/blacklist.conf
-sudo chown root:hasenpfeffr /etc/strfry-router.conf
+sudo chown root:hasenpfeffr /etc/strfry-router.config
