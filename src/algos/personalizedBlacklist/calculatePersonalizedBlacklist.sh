@@ -100,7 +100,7 @@ for PUBKEY in $BLACKLISTED_PUBKEYS; do
     else
         echo "," >> "$BLACKLIST_OUTPUT_FILE.tmp"
     fi
-    echo "  \"$PUBKEY\": true" >> "$BLACKLIST_OUTPUT_FILE.tmp"
+    echo "  $PUBKEY: true" >> "$BLACKLIST_OUTPUT_FILE.tmp"
 done
 echo "}" >> "$BLACKLIST_OUTPUT_FILE.tmp"
 

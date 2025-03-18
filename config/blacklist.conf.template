@@ -18,34 +18,34 @@
 
 # ==========================================
 # DEFAULT PARAMETERS (LAX)
-export WEIGHT_FOLLOWED_lax=1.0
-export WEIGHT_MUTED_lax=0.5
-export WEIGHT_REPORTED_lax=0.5
-export BLACKLIST_ABSOLUTE_CUTOFF_lax=5.0
-export BLACKLIST_RELATIVE_CUTOFF_lax=0.2
+export WEIGHT_FOLLOWED_lax=1
+export WEIGHT_MUTED_lax=1
+export WEIGHT_REPORTED_lax=1
+export BLACKLIST_ABSOLUTE_CUTOFF_lax=5
+export BLACKLIST_RELATIVE_CUTOFF_lax=10
 
 # DEFAULT PARAMETERS (DEFAULT)
-export WEIGHT_FOLLOWED_default=1.0
-export WEIGHT_MUTED_default=1.0
-export WEIGHT_REPORTED_default=1.0
-export BLACKLIST_ABSOLUTE_CUTOFF_default=3.0
-export BLACKLIST_RELATIVE_CUTOFF_default=0.5
+export WEIGHT_FOLLOWED_default=1
+export WEIGHT_MUTED_default=1
+export WEIGHT_REPORTED_default=1
+export BLACKLIST_ABSOLUTE_CUTOFF_default=3
+export BLACKLIST_RELATIVE_CUTOFF_default=20
 
 # DEFAULT PARAMETERS (RIGOROUS)
-export WEIGHT_FOLLOWED_rigorous=1.0
-export WEIGHT_MUTED_rigorous=2.0
-export WEIGHT_REPORTED_rigorous=2.0
-export BLACKLIST_ABSOLUTE_CUTOFF_rigorous=2.0
-export BLACKLIST_RELATIVE_CUTOFF_rigorous=1.0
+export WEIGHT_FOLLOWED_rigorous=1
+export WEIGHT_MUTED_rigorous=1
+export WEIGHT_REPORTED_rigorous=1
+export BLACKLIST_ABSOLUTE_CUTOFF_rigorous=2
+export BLACKLIST_RELATIVE_CUTOFF_rigorous=100
 
 # ==========================================
 # LIVE PARAMETERS
 
-export WEIGHT_FOLLOWED=1.0
-export WEIGHT_MUTED=1.0
-export WEIGHT_REPORTED=1.0
-export BLACKLIST_ABSOLUTE_CUTOFF=3.0
-export BLACKLIST_RELATIVE_CUTOFF=0.5
+export WEIGHT_FOLLOWED=1
+export WEIGHT_MUTED=1
+export WEIGHT_REPORTED=1
+export BLACKLIST_ABSOLUTE_CUTOFF=3
+export BLACKLIST_RELATIVE_CUTOFF=20
 
 # WHEN LAST CALCULATED: unix timestamp; 0 indicates not yet calculated
 export WHEN_LAST_CALCULATED=0

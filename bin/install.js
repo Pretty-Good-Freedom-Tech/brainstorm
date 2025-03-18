@@ -213,10 +213,10 @@ async function createHasenpfeffrConfigFile() {
   }
   
   // Get configuration values from user
-  const relayUrl = await askQuestion('Enter your Nostr relay URL (e.g., wss://relay.example.com): ');
+  const domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com; do not include the wss://): ');
   const ownerPubkey = await askQuestion('Enter your Hasenpfeffr owner pubkey (for PageRank calculations): ');
   const neo4jPassword = await askQuestion('Neo4j will prompt you to change the default password from neo4j to something else.Enter the password that you intend to use for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
-  const domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com): ');
+  const relayUrl = `wss://${domainName}`
   
   // Create hasenpfeffr configuration content
   const hasenpfeffrConfigContent = `# Hasenpfeffr Configuration
@@ -256,6 +256,7 @@ export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
   if (isRoot) {
     fs.writeFileSync(configPaths.hasenpfeffrConfDestination, hasenpfeffrConfigContent);
     execSync(`sudo chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
+    execSync(`sudo chown root:hasenpfeffr ${configPaths.hasenpfeffrConfDestination}`);
     console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
     // Generate Nostr identity
@@ -951,9 +952,6 @@ async function finalSetup() {
   console.log(`sudo ${configPaths.sudoPrivilegesScript}`);
   console.log(`sudo ${configPaths.controlPanelSudoScript}`);
   console.log('These scripts are required for the control panel to manage systemd services.');
-  
-  // Wait for user acknowledgment
-  await askQuestion('Press Enter to continue...');
 }
 
 // Helper function to ask questions
