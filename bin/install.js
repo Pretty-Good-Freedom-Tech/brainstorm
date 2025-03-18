@@ -325,11 +325,11 @@ async function installPipeline() {
     return;
   }
   
-  const installPipeline = await askQuestion('Would you like to install Strfry to neo4j Pipeline? (y/n): ');
-  if (installPipeline.toLowerCase() !== 'y') {
-    console.log('Skipping pipeline installation.');
-    return;
-  }
+  // const installPipeline = await askQuestion('Would you like to install Strfry to neo4j Pipeline? (y/n): ');
+  // if (installPipeline.toLowerCase() !== 'y') {
+  //   console.log('Skipping pipeline installation.');
+  //   return;
+  // }
   
   try {
     // Make script executable
@@ -359,11 +359,11 @@ async function installStrfry() {
     return;
   }
   
-  const installStrfry = await askQuestion('Would you like to install Strfry Nostr relay? (y/n): ');
-  if (installStrfry.toLowerCase() !== 'y') {
-    console.log('Skipping Strfry installation.');
-    return;
-  }
+  // const installStrfry = await askQuestion('Would you like to install Strfry Nostr relay? (y/n): ');
+  // if (installStrfry.toLowerCase() !== 'y') {
+  //   console.log('Skipping Strfry installation.');
+  //   return;
+  // }
   
   try {
     // Make script executable

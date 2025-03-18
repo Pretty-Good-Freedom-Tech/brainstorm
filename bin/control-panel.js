@@ -2272,7 +2272,7 @@ function handleUpdateGrapeRankConfig(req, res) {
         // Use sudo to copy the temporary file to the actual configuration file
         execSync(`sudo cp ${tempConfigPath} ${configPath}`);
         execSync(`sudo chown root:hasenpfeffr ${configPath}`);
-        execSync(`sudo chmod 640 ${configPath}`);
+        execSync(`sudo chmod 644 ${configPath}`);
         
         // Clean up the temporary file
         fs.unlinkSync(tempConfigPath);
@@ -2396,7 +2396,7 @@ function handleUpdateBlacklistConfig(req, res) {
     
     // Copy the temporary file to the actual configuration file with sudo
     execSync(`sudo cp ${tempConfigPath} ${configPath}`);
-    execSync(`sudo chmod 640 ${configPath}`);
+    execSync(`sudo chmod 644 ${configPath}`);
     execSync(`sudo chown root:hasenpfeffr ${configPath}`);
     
     // Clean up the temporary file

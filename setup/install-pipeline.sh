@@ -50,7 +50,7 @@ fi
 # Copy configuration files if they don't exist
 if [ ! -f "/etc/blacklist.conf" ]; then
   cp /usr/local/lib/node_modules/hasenpfeffr/config/blacklist.conf.template /etc/blacklist.conf
-  sudo chmod 640 /etc/blacklist.conf
+  sudo chmod 644 /etc/blacklist.conf
   sudo chown root:hasenpfeffr /etc/blacklist.conf
 fi
 
