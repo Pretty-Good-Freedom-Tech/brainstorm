@@ -188,7 +188,7 @@ async function createStrfryRouterConfigFile() {
     // Write the content to the destination file
     fs.writeFileSync(configPaths.strfryRouterConfigDestination, configFileContent);
 
-    execSync(`chmod 644 ${configPaths.strfryRouterConfigDestination}`);
+    execSync(`sudo chmod 644 ${configPaths.strfryRouterConfigDestination}`);
     console.log(`Configuration file created at ${configPaths.strfryRouterConfigDestination}`);
 
   } else {
@@ -255,13 +255,13 @@ export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
   // Write hasenpfeffr configuration file
   if (isRoot) {
     fs.writeFileSync(configPaths.hasenpfeffrConfDestination, hasenpfeffrConfigContent);
-    execSync(`chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
+    execSync(`sudo chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
     console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
     // Generate Nostr identity
     console.log('\x1b[36m=== Generating Nostr Identity for Relay ===\x1b[0m');
     try {
-      execSync(`chmod +x ${configPaths.createNostrIdentityScript}`);
+      execSync(`sudo chmod +x ${configPaths.createNostrIdentityScript}`);
       execSync(configPaths.createNostrIdentityScript, { stdio: 'inherit' });
       console.log('Nostr identity generated successfully.');
     } catch (error) {
@@ -298,8 +298,8 @@ async function installNeo4j() {
   
   try {
     // Make scripts executable
-    execSync(`chmod +x ${configPaths.neo4jInstallScript}`);
-    execSync(`chmod +x ${configPaths.neo4jIndicesScript}`);
+    execSync(`sudo chmod +x ${configPaths.neo4jInstallScript}`);
+    execSync(`sudo chmod +x ${configPaths.neo4jIndicesScript}`);
     
     // Run Neo4j installation script - use script -c to avoid hanging on systemctl status
     console.log('Installing Neo4j (this may take a few minutes)...');
@@ -332,7 +332,7 @@ async function installPipeline() {
   
   try {
     // Make script executable
-    execSync(`chmod +x ${configPaths.pipelineInstallScript}`);
+    execSync(`sudo chmod +x ${configPaths.pipelineInstallScript}`);
     
     // Run pipeline installation script
     console.log('Installing pipeline (this may take a few minutes)...');
@@ -366,7 +366,7 @@ async function installStrfry() {
   
   try {
     // Make script executable
-    execSync(`chmod +x ${configPaths.strfryInstallScript}`);
+    execSync(`sudo chmod +x ${configPaths.strfryInstallScript}`);
     
     // Run Strfry installation script - use script -c to avoid hanging on systemctl status
     console.log('Installing Strfry (this may take a few minutes)...');
@@ -410,7 +410,7 @@ async function setupStrfryPlugins() {
       
       if (fs.existsSync(sourcePluginFile)) {
         execSync(`cp ${sourcePluginFile} ${destPluginFile}`);
-        execSync(`chmod +x ${destPluginFile}`);
+        execSync(`sudo chmod +x ${destPluginFile}`);
         console.log(`Plugin file copied to ${destPluginFile}`);
       } else {
         console.warn(`Plugin file not found at ${sourcePluginFile}`);
@@ -837,8 +837,8 @@ async function setupPipelineDirectories() {
     
     // Set appropriate permissions
     console.log('Setting appropriate permissions...');
-    execSync(`chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
-    execSync(`chmod -R 755 ${baseDir}`);
+    execSync(`sudo chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
+    execSync(`sudo chmod -R 755 ${baseDir}`);
     
     console.log('Pipeline directories setup completed successfully.');
   } catch (error) {
