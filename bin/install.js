@@ -559,7 +559,7 @@ async function setupCalculatePersonalizedPageRankService() {
     console.log(`calculate personalized PageRank service file created at ${configPaths.calculatePersonalizedPageRankServiceFileDestination}`);
 
     // enable the service
-    execSync(`systemctl enable calculate-personalized-page-rank.service`);
+    execSync(`systemctl enable calculatePersonalizedPageRank.service`);
     console.log('calculate personalized PageRank service enabled');
 
     // starting the service will be performed at the control panel
@@ -636,7 +636,7 @@ async function setupCalculateHopsService() {
     console.log(`calculateHops timer file created at ${configPaths.calculateHopsTimerFileDestination}`);
 
     // enable the timer
-    execSync(`systemctl enable calculate-hops.timer`);
+    execSync(`systemctl enable calculateHops.timer`);
     console.log('calculateHops timer enabled');
   } catch (error) {
     console.error(`Error setting up calculateHops timer file: ${error.message}`);
