@@ -114,8 +114,8 @@ export CONTROL_PANEL_PORT="$CONTROL_PANEL_PORT"
 EOF
 
 # Set proper permissions
-chown root:hasenpfeffr "$CONFIG_FILE" 2>/dev/null || echo "Warning: Could not set ownership to root:hasenpfeffr"
-chmod 640 "$CONFIG_FILE"
+sudo chown root:hasenpfeffr "$CONFIG_FILE" 2>/dev/null || echo "Warning: Could not set ownership to root:hasenpfeffr"
+sudo chmod 640 "$CONFIG_FILE"
 
 echo ""
 echo "Configuration updated successfully!"
