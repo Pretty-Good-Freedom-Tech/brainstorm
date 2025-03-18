@@ -60,4 +60,13 @@ sudo bash $THIS_DIR/updateNeo4j.sh
 
 # clean up tmp files
 
+# Update the WHEN_LAST_CALCULATED timestamp in the configuration file
+TIMESTAMP=$(date +%s)
+TMP_CONF=$(mktemp)
+cat /etc/graperank.conf | sed "s/^export WHEN_LAST_CALCULATED=.*$/export WHEN_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
+sudo cp "$TMP_CONF" /etc/graperank.conf
+sudo chmod 644 /etc/graperank.conf
+sudo chown root:hasenpfeffr /etc/graperank.conf
+rm "$TMP_CONF"
+
 echo "$(date): Finished calculatePersonalizedGrapeRank" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log

@@ -529,11 +529,35 @@ function handleGenerate(req, res) {
 function handleGenerateGrapeRank(req, res) {
     console.log('Generating GrapeRank data...');
     
-    exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', (error, stdout, stderr) => {
+    // Set a longer timeout for the response (10 minutes)
+    req.setTimeout(600000); // 10 minutes in milliseconds
+    res.setTimeout(600000);
+    
+    // Use execFile instead of exec for better security and control
+    const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', {
+        timeout: 590000, // slightly less than the HTTP timeout
+        maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
+    }, (error, stdout, stderr) => {
+        console.log('GrapeRank calculation completed');
+        
+        if (error) {
+            console.error('Error generating GrapeRank data:', error);
+            return res.json({
+                success: false,
+                output: stderr || stdout || error.message
+            });
+        }
+        
+        console.log('GrapeRank data generated successfully');
         return res.json({
-            success: !error,
+            success: true,
             output: stdout || stderr
         });
+    });
+    
+    // Log when the process starts
+    child.on('spawn', () => {
+        console.log('GrapeRank calculation process started');
     });
 }
 
@@ -2416,12 +2440,38 @@ function handleUpdateBlacklistConfig(req, res) {
 
 // Handler for generating blacklist
 function handleGenerateBlacklist(req, res) {
-  exec('/usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedBlacklist/calculatePersonalizedBlacklist.sh', (error, stdout, stderr) => {
-    return res.json({
-      success: !error,
-      output: stdout || stderr
+    console.log('Generating blacklist data...');
+    
+    // Set a longer timeout for the response (10 minutes)
+    req.setTimeout(600000); // 10 minutes in milliseconds
+    res.setTimeout(600000);
+    
+    // Use exec with timeout options
+    const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedBlacklist/calculatePersonalizedBlacklist.sh', {
+        timeout: 590000, // slightly less than the HTTP timeout
+        maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
+    }, (error, stdout, stderr) => {
+        console.log('Blacklist calculation completed');
+        
+        if (error) {
+            console.error('Error generating blacklist data:', error);
+            return res.json({
+                success: false,
+                output: stderr || stdout || error.message
+            });
+        }
+        
+        console.log('Blacklist data generated successfully');
+        return res.json({
+            success: true,
+            output: stdout || stderr
+        });
     });
-  });
+    
+    // Log when the process starts
+    child.on('spawn', () => {
+        console.log('Blacklist calculation process started');
+    });
 }
 
 // Start the server
