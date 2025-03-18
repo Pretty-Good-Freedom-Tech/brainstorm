@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Hasenpfeffr Personalized Blacklist Configuration
+# This file contains parameters for the personalized blacklist algorithm.
+#
+# IMPORTANT: This file should be owned by root with restricted permissions:
+# permissions: chmod 640 /etc/blacklist.conf
+# and ownership: chown root:hasenpfeffr /etc/blacklist.conf
+
+# ==========================================
+# PARAMETER DESCRIPTIONS AND RANGES
+
+# WEIGHT_FOLLOWED: Weight assigned to follows when calculating followedInput (-1.00 to 1.00)
+# WEIGHT_MUTED: Weight assigned to mutes when calculating mutedInput (-1.00 to 1.00)
+# WEIGHT_REPORTED: Weight assigned to reports when calculating reportedInput (-1.00 to 1.00)
+# BLACKLIST_ABSOLUTE_CUTOFF: Absolute threshold for blacklisting (0.00 to 10.00)
+# BLACKLIST_RELATIVE_CUTOFF: Relative threshold for blacklisting as a ratio (0.00 to 10.00)
+
+# ==========================================
+# DEFAULT PARAMETERS (LAX)
+export WEIGHT_FOLLOWED_lax=1.0
+export WEIGHT_MUTED_lax=0.5
+export WEIGHT_REPORTED_lax=0.5
+export BLACKLIST_ABSOLUTE_CUTOFF_lax=5.0
+export BLACKLIST_RELATIVE_CUTOFF_lax=0.2
+
+# DEFAULT PARAMETERS (DEFAULT)
+export WEIGHT_FOLLOWED_default=1.0
+export WEIGHT_MUTED_default=1.0
+export WEIGHT_REPORTED_default=1.0
+export BLACKLIST_ABSOLUTE_CUTOFF_default=3.0
+export BLACKLIST_RELATIVE_CUTOFF_default=0.5
+
+# DEFAULT PARAMETERS (RIGOROUS)
+export WEIGHT_FOLLOWED_rigorous=1.0
+export WEIGHT_MUTED_rigorous=2.0
+export WEIGHT_REPORTED_rigorous=2.0
+export BLACKLIST_ABSOLUTE_CUTOFF_rigorous=2.0
+export BLACKLIST_RELATIVE_CUTOFF_rigorous=1.0
+
+# ==========================================
+# LIVE PARAMETERS
+
+export WEIGHT_FOLLOWED=1.0
+export WEIGHT_MUTED=1.0
+export WEIGHT_REPORTED=1.0
+export BLACKLIST_ABSOLUTE_CUTOFF=3.0
+export BLACKLIST_RELATIVE_CUTOFF=0.5
+
+# WHEN LAST CALCULATED: unix timestamp; 0 indicates not yet calculated
+export WHEN_LAST_CALCULATED=0
+
+# Add to blacklist if: 
+# AND weight_muted + weight_reported > BLACKLIST_ABSOLUTE_CUTOFF
+# AND weight_followed / (weight_muted + weight_reported) < BLACKLIST_RELATIVE_CUTOFF

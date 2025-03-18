@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blacklist Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #3498db;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white !important;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .info {
+            background-color: #d9edf7;
+            color: #31708f;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow-x: auto;
+            max-height: 300px;
+            margin-top: 10px;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        .home-btn {
+            background-color: #27ae60;
+        }
+        .home-btn:hover {
+            background-color: #219955;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        .parameter-group {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .parameter-group h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .preset-btn {
+            padding: 8px 15px;
+        }
+        .last-calculated {
+            font-style: italic;
+            margin-top: 10px;
+            color: #666;
+        }
+        .blacklist-stats {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .blacklist-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .tab-button {
+            padding: 10px 15px;
+            background-color: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 0 4px 4px 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <h1>Personalized Blacklist Control Panel</h1>
+            <div class="nav-links">
+                <a href="/control/index.html" class="button home-btn">Home</a>
+                <a href="/control/control-panel.html" class="button">Main Control Panel</a>
+                <a href="/control/graperank-control-panel.html" class="button">GrapeRank Panel</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Blacklist Configuration</h2>
+            <div class="card">
+                <div class="blacklist-stats">
+                    <h3>Blacklist Statistics</h3>
+                    <p>Currently blacklisted pubkeys: <span id="blacklistedCount" class="blacklist-count">0</span></p>
+                    <div id="lastCalculated" class="last-calculated">Last calculated: Never</div>
+                </div>
+                
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" onclick="openTab(event, 'liveParams')">Live Parameters</button>
+                        <button class="tab-button" onclick="openTab(event, 'presets')">Presets</button>
+                        <button class="tab-button" onclick="openTab(event, 'algorithm')">Algorithm Info</button>
+                    </div>
+                    
+                    <div id="liveParams" class="tab-content active">
+                        <div class="preset-buttons">
+                            <button id="loadLaxBtn" class="button preset-btn">Load Lax Preset</button>
+                            <button id="loadDefaultBtn" class="button preset-btn">Load Default Preset</button>
+                            <button id="loadRigorousBtn" class="button preset-btn">Load Rigorous Preset</button>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Relationship Weights</h3>
+                            <div class="form-group">
+                                <label for="WEIGHT_FOLLOWED">Follow Weight:</label>
+                                <input type="number" id="WEIGHT_FOLLOWED" step="0.1" min="-1" max="1" placeholder="1.0">
+                                <small>Weight assigned to follows when calculating followedInput.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="WEIGHT_MUTED">Mute Weight:</label>
+                                <input type="number" id="WEIGHT_MUTED" step="0.1" min="-1" max="1" placeholder="1.0">
+                                <small>Weight assigned to mutes when calculating mutedInput.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="WEIGHT_REPORTED">Report Weight:</label>
+                                <input type="number" id="WEIGHT_REPORTED" step="0.1" min="-1" max="1" placeholder="1.0">
+                                <small>Weight assigned to reports when calculating reportedInput.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Blacklist Thresholds</h3>
+                            <div class="form-group">
+                                <label for="BLACKLIST_ABSOLUTE_CUTOFF">Absolute Cutoff:</label>
+                                <input type="number" id="BLACKLIST_ABSOLUTE_CUTOFF" step="0.1" min="0" max="10" placeholder="3.0">
+                                <small>Absolute threshold for blacklisting (WEIGHT_MUTED + WEIGHT_REPORTED must exceed this value).</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="BLACKLIST_RELATIVE_CUTOFF">Relative Cutoff:</label>
+                                <input type="number" id="BLACKLIST_RELATIVE_CUTOFF" step="0.1" min="0" max="10" placeholder="0.5">
+                                <small>Relative threshold for blacklisting (WEIGHT_FOLLOWED must be less than this ratio times (WEIGHT_MUTED + WEIGHT_REPORTED)).</small>
+                            </div>
+                        </div>
+                        
+                        <button id="saveConfigBtn" class="button">Save Configuration</button>
+                        <div id="configStatus" class="status"></div>
+                    </div>
+                    
+                    <div id="presets" class="tab-content">
+                        <div class="parameter-group">
+                            <h3>Lax Preset</h3>
+                            <p>A more permissive configuration that requires stronger negative signals to blacklist users.</p>
+                            <pre id="laxPreset"></pre>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Default Preset</h3>
+                            <p>The standard balanced configuration.</p>
+                            <pre id="defaultPreset"></pre>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Rigorous Preset</h3>
+                            <p>A stricter configuration that more aggressively blacklists users based on negative signals.</p>
+                            <pre id="rigorousPreset"></pre>
+                        </div>
+                    </div>
+                    
+                    <div id="algorithm" class="tab-content">
+                        <div class="parameter-group">
+                            <h3>Blacklist Algorithm Explanation</h3>
+                            <p>The personalized blacklist algorithm works as follows:</p>
+                            <ol>
+                                <li>For each NostrUser in the database, calculate three input values:
+                                    <ul>
+                                        <li><strong>followedInput</strong>: Weighted sum of influence scores from users who FOLLOW this user</li>
+                                        <li><strong>mutedInput</strong>: Weighted sum of influence scores from users who MUTE this user</li>
+                                        <li><strong>reportedInput</strong>: Weighted sum of influence scores from users who REPORT this user</li>
+                                    </ul>
+                                </li>
+                                <li>A user is blacklisted if both of these conditions are met:
+                                    <ul>
+                                        <li>The sum of mutedInput and reportedInput exceeds the BLACKLIST_ABSOLUTE_CUTOFF</li>
+                                        <li>The followedInput is less than BLACKLIST_RELATIVE_CUTOFF times the sum of mutedInput and reportedInput</li>
+                                    </ul>
+                                </li>
+                                <li>The blacklist is saved to a JSON file used by the strfry plugin to filter content.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Generate Blacklist</h3>
+                <p>Calculate personalized blacklist using the current configuration parameters.</p>
+                <button id="generateBlacklistBtn" class="button">Generate Blacklist</button>
+                <div id="generateBlacklistStatus" class="status"></div>
+                <pre id="generateBlacklistOutput" style="display: none;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+            const configStatus = document.getElementById('configStatus');
+            const generateBlacklistBtn = document.getElementById('generateBlacklistBtn');
+            const generateBlacklistStatus = document.getElementById('generateBlacklistStatus');
+            const generateBlacklistOutput = document.getElementById('generateBlacklistOutput');
+            const lastCalculated = document.getElementById('lastCalculated');
+            const blacklistedCount = document.getElementById('blacklistedCount');
+            
+            // Preset buttons
+            const loadLaxBtn = document.getElementById('loadLaxBtn');
+            const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+            const loadRigorousBtn = document.getElementById('loadRigorousBtn');
+            
+            // Preset display elements
+            const laxPreset = document.getElementById('laxPreset');
+            const defaultPreset = document.getElementById('defaultPreset');
+            const rigorousPreset = document.getElementById('rigorousPreset');
+            
+            // Parameter input fields
+            const parameterInputs = {
+                WEIGHT_FOLLOWED: document.getElementById('WEIGHT_FOLLOWED'),
+                WEIGHT_MUTED: document.getElementById('WEIGHT_MUTED'),
+                WEIGHT_REPORTED: document.getElementById('WEIGHT_REPORTED'),
+                BLACKLIST_ABSOLUTE_CUTOFF: document.getElementById('BLACKLIST_ABSOLUTE_CUTOFF'),
+                BLACKLIST_RELATIVE_CUTOFF: document.getElementById('BLACKLIST_RELATIVE_CUTOFF')
+            };
+            
+            // Preset configurations
+            const presets = {
+                lax: {
+                    WEIGHT_FOLLOWED: 1.0,
+                    WEIGHT_MUTED: 0.5,
+                    WEIGHT_REPORTED: 0.5,
+                    BLACKLIST_ABSOLUTE_CUTOFF: 5.0,
+                    BLACKLIST_RELATIVE_CUTOFF: 0.2
+                },
+                default: {
+                    WEIGHT_FOLLOWED: 1.0,
+                    WEIGHT_MUTED: 1.0,
+                    WEIGHT_REPORTED: 1.0,
+                    BLACKLIST_ABSOLUTE_CUTOFF: 3.0,
+                    BLACKLIST_RELATIVE_CUTOFF: 0.5
+                },
+                rigorous: {
+                    WEIGHT_FOLLOWED: 1.0,
+                    WEIGHT_MUTED: 2.0,
+                    WEIGHT_REPORTED: 2.0,
+                    BLACKLIST_ABSOLUTE_CUTOFF: 2.0,
+                    BLACKLIST_RELATIVE_CUTOFF: 1.0
+                }
+            };
+            
+            // Display preset configurations
+            laxPreset.textContent = JSON.stringify(presets.lax, null, 2);
+            defaultPreset.textContent = JSON.stringify(presets.default, null, 2);
+            rigorousPreset.textContent = JSON.stringify(presets.rigorous, null, 2);
+            
+            // Load current configuration
+            function loadCurrentConfig() {
+                fetch('/control/api/blacklist-config')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const config = data.config;
+                            
+                            // Update input fields with current values
+                            for (const [key, input] of Object.entries(parameterInputs)) {
+                                if (config[key]) {
+                                    input.value = config[key];
+                                }
+                            }
+                            
+                            // Update blacklisted count
+                            blacklistedCount.textContent = data.blacklistedCount || 0;
+                            
+                            // Update last calculated time
+                            if (config.WHEN_LAST_CALCULATED && config.WHEN_LAST_CALCULATED !== '0') {
+                                const timestamp = parseInt(config.WHEN_LAST_CALCULATED);
+                                const date = new Date(timestamp * 1000);
+                                lastCalculated.textContent = `Last calculated: ${date.toLocaleString()}`;
+                            } else {
+                                lastCalculated.textContent = 'Last calculated: Never';
+                            }
+                        } else {
+                            configStatus.style.display = 'block';
+                            configStatus.className = 'status error';
+                            configStatus.textContent = 'Error loading configuration: ' + data.error;
+                        }
+                    })
+                    .catch(error => {
+                        configStatus.style.display = 'block';
+                        configStatus.className = 'status error';
+                        configStatus.textContent = 'Error loading configuration: ' + error.message;
+                    });
+            }
+            
+            // Load configuration on page load
+            loadCurrentConfig();
+            
+            // Save configuration
+            saveConfigBtn.addEventListener('click', function() {
+                saveConfigBtn.disabled = true;
+                configStatus.style.display = 'block';
+                configStatus.className = 'status info';
+                configStatus.textContent = 'Saving configuration...';
+                
+                // Collect values from input fields
+                const updatedConfig = {};
+                for (const [key, input] of Object.entries(parameterInputs)) {
+                    if (input.value) {
+                        updatedConfig[key] = input.value;
+                    }
+                }
+                
+                // Send updated configuration to the server
+                fetch('/control/api/blacklist-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedConfig)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    saveConfigBtn.disabled = false;
+                    
+                    if (data.success) {
+                        configStatus.className = 'status success';
+                        configStatus.textContent = 'Configuration saved successfully!';
+                        
+                        // Reload the configuration to ensure we have the latest values
+                        loadCurrentConfig();
+                    } else {
+                        configStatus.className = 'status error';
+                        configStatus.textContent = 'Error saving configuration: ' + data.error;
+                    }
+                })
+                .catch(error => {
+                    saveConfigBtn.disabled = false;
+                    configStatus.className = 'status error';
+                    configStatus.textContent = 'Error saving configuration: ' + error.message;
+                });
+            });
+            
+            // Load preset configurations
+            loadLaxBtn.addEventListener('click', function() {
+                applyPreset(presets.lax);
+            });
+            
+            loadDefaultBtn.addEventListener('click', function() {
+                applyPreset(presets.default);
+            });
+            
+            loadRigorousBtn.addEventListener('click', function() {
+                applyPreset(presets.rigorous);
+            });
+            
+            // Apply preset to input fields
+            function applyPreset(preset) {
+                for (const [key, value] of Object.entries(preset)) {
+                    if (parameterInputs[key]) {
+                        parameterInputs[key].value = value;
+                    }
+                }
+                
+                configStatus.style.display = 'block';
+                configStatus.className = 'status info';
+                configStatus.textContent = 'Preset loaded. Click "Save Configuration" to apply these changes.';
+            }
+            
+            // Generate Blacklist
+            generateBlacklistBtn.addEventListener('click', function() {
+                generateBlacklistBtn.disabled = true;
+                generateBlacklistStatus.style.display = 'block';
+                generateBlacklistStatus.className = 'status info';
+                generateBlacklistStatus.textContent = 'Generating blacklist...';
+                generateBlacklistOutput.style.display = 'none';
+                
+                fetch('/control/api/generate-blacklist')
+                    .then(response => response.json())
+                    .then(data => {
+                        generateBlacklistBtn.disabled = false;
+                        if (data.success) {
+                            generateBlacklistStatus.className = 'status success';
+                            generateBlacklistStatus.textContent = 'Blacklist generated successfully!';
+                            if (data.output) {
+                                generateBlacklistOutput.style.display = 'block';
+                                generateBlacklistOutput.textContent = data.output;
+                            }
+                            
+                            // Reload the configuration to update the stats
+                            loadCurrentConfig();
+                        } else {
+                            generateBlacklistStatus.className = 'status error';
+                            generateBlacklistStatus.textContent = 'Error generating blacklist';
+                            if (data.output) {
+                                generateBlacklistOutput.style.display = 'block';
+                                generateBlacklistOutput.textContent = data.output;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        generateBlacklistBtn.disabled = false;
+                        generateBlacklistStatus.className = 'status error';
+                        generateBlacklistStatus.textContent = 'Error generating blacklist: ' + error.message;
+                    });
+            });
+        });
+        
+        // Tab functionality
+        function openTab(evt, tabName) {
+            // Declare all variables
+            var i, tabcontent, tabbuttons;
+
+            // Get all elements with class="tab-content" and hide them
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+
+            // Get all elements with class="tab-button" and remove the class "active"
+            tabbuttons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].classList.remove("active");
+            }
+
+            // Show the current tab, and add an "active" class to the button that opened the tab
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+</body>
+</html>

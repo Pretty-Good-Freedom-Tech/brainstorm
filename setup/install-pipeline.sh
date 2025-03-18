@@ -28,6 +28,35 @@ sudo chmod +x *.sh
 sudo chmod +x *.js
 sudo chmod +x *.mjs
 
+echo "=== GrapeRank and Blacklist Installation ==="
+
+# Set up GrapeRank
+cd /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank
+sudo chmod +x *.sh
+sudo chmod +x *.js
+sudo chmod +x *.mjs
+
+# Set up Personalized Blacklist
+cd /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedBlacklist
+sudo chmod +x *.sh
+sudo chmod +x *.js
+sudo chmod +x *.mjs
+
+# Create empty blacklist file if it doesn't exist
+mkdir -p /usr/local/lib/node_modules/hasenpfeffr/plugins
+BLACKLIST_FILE="/usr/local/lib/node_modules/hasenpfeffr/plugins/blacklist_pubkeys.json"
+if [ ! -f "$BLACKLIST_FILE" ]; then
+  echo "{}" > "$BLACKLIST_FILE"
+  chmod 644 "$BLACKLIST_FILE"
+fi
+
+# Copy configuration files if they don't exist
+if [ ! -f "/etc/blacklist.conf" ]; then
+  cp /usr/local/lib/node_modules/hasenpfeffr/config/blacklist.conf.template /etc/blacklist.conf
+  chmod 640 /etc/blacklist.conf
+  chown root:hasenpfeffr /etc/blacklist.conf
+fi
+
 echo "=== Plugins Installation ==="
 cd /usr/local/lib/node_modules/hasenpfeffr/plugins
 sudo chmod +x *.js
