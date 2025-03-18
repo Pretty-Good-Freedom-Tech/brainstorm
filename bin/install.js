@@ -256,7 +256,8 @@ export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
   if (isRoot) {
     fs.writeFileSync(configPaths.hasenpfeffrConfDestination, hasenpfeffrConfigContent);
     execSync(`sudo chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
-    execSync(`sudo chown root:hasenpfeffr ${configPaths.hasenpfeffrConfDestination}`);
+    // move this to configure-sudo-privileges.sh
+    // execSync(`sudo chown root:hasenpfeffr ${configPaths.hasenpfeffrConfDestination}`);
     console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
     // Generate Nostr identity

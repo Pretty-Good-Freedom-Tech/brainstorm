@@ -47,3 +47,9 @@ echo "The user can now run sudo commands without being prompted for a password"
 # Set permissions for Hasenpfeffr scripts
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.sh
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.js
+
+# set ownershiup for configuration files 
+sudo chown root:hasenpfeffr /etc/hasenpfeffr.conf
+sudo chown root:hasenpfeffr /etc/graperank.conf
+sudo chown root:hasenpfeffr /etc/blacklist.conf
+sudo chown root:hasenpfeffr /etc/strfry-router.conf
