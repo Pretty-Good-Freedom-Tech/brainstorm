@@ -114,7 +114,7 @@ TIMESTAMP=$(date +%s)
 TMP_CONF=$(mktemp)
 cat "$BLACKLIST_CONF" | sed "s/^export WHEN_LAST_CALCULATED=.*$/export WHEN_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
 sudo cp "$TMP_CONF" "$BLACKLIST_CONF"
-sudo chmod 640 "$BLACKLIST_CONF"
+sudo chmod 644 "$BLACKLIST_CONF"
 sudo chown root:hasenpfeffr "$BLACKLIST_CONF"
 rm "$TMP_CONF"
 

@@ -529,7 +529,7 @@ function handleGenerate(req, res) {
 function handleGenerateGrapeRank(req, res) {
     console.log('Generating GrapeRank data...');
     
-    exec('/usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', (error, stdout, stderr) => {
+    exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', (error, stdout, stderr) => {
         return res.json({
             success: !error,
             output: stdout || stderr

@@ -115,7 +115,7 @@ EOF
 
 # Set proper permissions
 sudo chown root:hasenpfeffr "$CONFIG_FILE" 2>/dev/null || echo "Warning: Could not set ownership to root:hasenpfeffr"
-sudo chmod 640 "$CONFIG_FILE"
+sudo chmod 644 "$CONFIG_FILE"
 
 echo ""
 echo "Configuration updated successfully!"

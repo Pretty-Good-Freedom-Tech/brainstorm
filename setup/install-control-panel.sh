@@ -138,7 +138,7 @@ if [ ! -f /etc/hasenpfeffr.conf ]; then
     
     # Set secure permissions
     chown root:$HASENPFEFFR_GROUP /etc/hasenpfeffr.conf
-    chmod 640 /etc/hasenpfeffr.conf
+    chmod 644 /etc/hasenpfeffr.conf
     
     echo "Configuration file installed at /etc/hasenpfeffr.conf"
     echo "Please update it with your specific settings using bin/update-config.sh"
@@ -153,7 +153,7 @@ if [ ! -f /etc/graperank.conf ]; then
     
     # Set secure permissions
     chown root:$HASENPFEFFR_GROUP /etc/graperank.conf
-    chmod 640 /etc/graperank.conf
+    chmod 644 /etc/graperank.conf
     
     echo "GrapeRank configuration file installed at /etc/graperank.conf"
 else
