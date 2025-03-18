@@ -11,7 +11,14 @@ BLACKLIST_CONF="/etc/blacklist.conf"
 BLACKLIST_OUTPUT_DIR="/usr/local/lib/node_modules/hasenpfeffr/plugins"
 BLACKLIST_OUTPUT_FILE="$BLACKLIST_OUTPUT_DIR/blacklist_pubkeys.json"
 NEO4J_USERNAME="neo4j"
-NEO4J_PASSWORD=$(grep -oP '^NEO4J_PASSWORD=\K.*' /etc/hasenpfeffr.conf 2>/dev/null || echo "neo4j")
+NEO4J_PASSWORD="neo4j"
+if [ -f "/etc/hasenpfeffr.conf" ]; then
+  source /etc/hasenpfeffr.conf
+  NEO4J_PASSWORD=${NEO4J_PASSWORD:-neo4j}
+else
+  NEO4J_PASSWORD="neo4j"
+  echo "Warning: /etc/hasenpfeffr.conf not found, using default Neo4j password"
+fi
 
 # Load blacklist configuration
 if [ -f "$BLACKLIST_CONF" ]; then
@@ -99,7 +106,8 @@ echo "}" >> "$BLACKLIST_OUTPUT_FILE.tmp"
 
 # Move the temporary file to the final location
 mv "$BLACKLIST_OUTPUT_FILE.tmp" "$BLACKLIST_OUTPUT_FILE"
-chmod 644 "$BLACKLIST_OUTPUT_FILE"
+sudo chmod 644 "$BLACKLIST_OUTPUT_FILE"
+sudo chown hasenpfeffr:hasenpfeffr "$BLACKLIST_OUTPUT_FILE"
 
 # Update the WHEN_LAST_CALCULATED timestamp in the configuration file
 TIMESTAMP=$(date +%s)
