@@ -74,7 +74,7 @@ function getConfig() : Map<protocol,ProtocolParams> {
         path : path.join(TEMP_DIR, 'reports.csv'),
       }]
       ]);
-  } catch (error) {
+  } catch (error : any) {
     console.error(`Error loading configuration: ${error.message}`);
     process.exit(1);
   }
@@ -94,7 +94,7 @@ function parseRatings() : RatingsList {
     let isFirstLine = true;
 
     // Process each line
-    rl.on('line', (line) => {
+    rl.on('line', (line : any) => {
       if (isFirstLine) {
         isFirstLine = false;
         return;
@@ -162,9 +162,9 @@ async function updateNeo4j(scorecards : ScorecardsEntry[]) {
       const params = {
         updates: batch.map(entry => {
           let weights = 0
-          Object.keys(entry[1].interpretersums || {}).forEach((protocol)=>{
+          Object.keys(entry[1].interpretersums || {}).forEach((protocol : any)=>{
             if(entry[1].interpretersums)
-            weights += entry[1].interpretersums[protocol].weight
+            weights += entry[1].interpretersums[protocol].weighted
           })
 
           let average = entry[1].score && entry[1].confidence  ? entry[1].score / entry[1].confidence : 0
@@ -196,7 +196,7 @@ async function updateNeo4j(scorecards : ScorecardsEntry[]) {
     
     await session.close();
     console.log('Neo4j update completed successfully');
-  } catch (error) {
+  } catch (error : any) {
     console.error(`Error updating Neo4j: ${error.message}`);
     process.exit(1);
   } finally {
@@ -232,7 +232,7 @@ function getNeo4jConfig() {
       username: neo4jUsername,
       password: neo4jPassword
     };
-  } catch (error) {
+  } catch (error : any) {
     console.error(`Error loading Neo4j configuration: ${error.message}`);
     process.exit(1);
   }
