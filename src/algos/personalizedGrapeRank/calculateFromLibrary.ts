@@ -2,7 +2,6 @@ import { Calculator } from 'graperank-calculator';
 import { execSync } from 'child_process';
 import { CalculatorParams, protocol, ProtocolParams, ProtocolRequest, Rating, RatingsList, ScorecardsEntry } from 'graperank-nodejs/src/types';
 import neo4j from 'neo4j-driver';
-import { forEachBigArray, sliceBigArray } from 'graperank-nodejs/src/utils';
 
 const fs = require('fs');
 const path = require('path');
@@ -16,13 +15,18 @@ const CONFIG_FILES = {
   hasenpfeffr: '/etc/hasenpfeffr.conf'
 };
 
-let observer = getPubkey();
-let ratings = parseRatings();
-let params = getCalculatorParams();
-let calculator = new Calculator(observer,ratings,params)
-let scorecards = await calculator.calculate()
+const observer = getPubkey();
+const ratings = parseRatings();
+const params = getCalculatorParams();
+const calculator = new Calculator(observer,ratings,params)
+calculator.calculate().then((scorecards) => {
+  console.log(`scorecards.length: ${scorecards.length}`)
+  updateNeo4j(scorecards);
+})
 
-console.log(`scorecards.length: ${scorecards.length}`)
+
+
+
 
 function getCalculatorParams() : Partial<CalculatorParams> {
   const params = execSync(`source ${CONFIG_FILES.graperank} && echo $RIGOR,$ATTENUATION_FACTOR`, { 
@@ -149,12 +153,14 @@ async function updateNeo4j(scorecards : ScorecardsEntry[]) {
     // Get all pubkeys
     // const pubkeys = Object.keys(scorecards);
     // console.log(`Updating ${pubkeys.length} users in Neo4j...`);
-    const batch = await sliceBigArray(scorecards, BATCH_SIZE);
-
-    for(let scorecardentries of batch) {
-      // Create parameters for batch update
+    
+    // const batch = await sliceBigArray(scorecards, BATCH_SIZE);
+    for (let i = 0; i < scorecards.length; i += BATCH_SIZE) {
+      const batch = scorecards.slice(i, i + BATCH_SIZE);
+      console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(scorecards.length/BATCH_SIZE)} (${batch.length} users)...`);
+      
       const params = {
-        updates: scorecardentries.map(entry => {
+        updates: batch.map(entry => {
           let weights = 0
           Object.keys(entry[1].interpretersums || {}).forEach((protocol)=>{
             if(entry[1].interpretersums)

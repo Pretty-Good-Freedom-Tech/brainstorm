@@ -49,7 +49,7 @@ cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3" > 
 # calculate GrapeRank from imported GrapeRank engine library
 # sudo bash $THIS_DIR/calculateFromLibrary.sh
 
-tsc $THIS_DIR/calculateFromLibrary.ts
+# tsc $THIS_DIR/calculateFromLibrary.ts
 node $THIS_DIR/calculateFromLibrary.js
 
 # create one large raw data object oRatingsReverse.json of format: [context][ratee][rater] = [score, confidence]
