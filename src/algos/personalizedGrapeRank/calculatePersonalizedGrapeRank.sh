@@ -46,17 +46,23 @@ cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1" > 
 cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2" > $TEMP_DIR/mutes.csv
 cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3" > $TEMP_DIR/reports.csv
 
+# calculate GrapeRank from imported GrapeRank engine library
+# sudo bash $THIS_DIR/calculateFromLibrary.sh
+
+tsc $THIS_DIR/calculateFromLibrary.ts
+node $THIS_DIR/calculateFromLibrary.js
+
 # create one large raw data object oRatingsReverse.json of format: [context][ratee][rater] = [score, confidence]
-sudo bash $THIS_DIR/initializeRatings.sh
+# sudo bash $THIS_DIR/initializeRatings.sh
 
 # intialize oScorecards: iterate through ratees.csv and create empty objects for each ratee
-sudo bash $THIS_DIR/initializeScorecards.sh
+# sudo bash $THIS_DIR/initializeScorecards.sh
 
 # iterate through GrapeRank until max iterations or until convergence
-sudo bash $THIS_DIR/calculateGrapeRank.sh
+# sudo bash $THIS_DIR/calculateGrapeRank.sh
 
 # update Neo4j with data from scorecards.json
-sudo bash $THIS_DIR/updateNeo4j.sh
+# sudo bash $THIS_DIR/updateNeo4j.sh
 
 # clean up tmp files
 
