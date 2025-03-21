@@ -1,0 +1,6 @@
+This file is a modification of the personalizedGrapeRank algorithm. The local graperank calculation scripts are replaced by manime's implementation, imported from the graperank-nodejs repository.
+
+Problems we encountered as of 21 March 2025:
+the graperank-nodejs repository requires typescript compilation but lacked the needed infrastructure to do so. Specifically, it requires tsconfig.json files and a package.json file with the correct configuration. To address these issues, a tsconfig.json file and a prepare script were included in the repository root file. Not yet completed but needed: same fixes to Calculator, Interpretor, and Storage subdirectories. Alterative plan: install Calculator but not Interpretor and Storage. Need to figure out the correct URL to do that. Alternatively, we could break the repo into multiple repos.
+
+Long term plan may be to calculate graperank using the local graperank calculation scripts as well as the imported graperank-nodejs repository Calculator, to load results into Neo4j, and to compare results.
