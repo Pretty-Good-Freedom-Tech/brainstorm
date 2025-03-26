@@ -1,143 +1,93 @@
 # Hasenpfeffr
 
-Hasenpfeffr is a personalized Webs of Trust nostr relay that uses advanced centrality algorithms (personalized PageRank and personalized GrapeRank) to calculate your webs of trust, resulting in better personalized curation of your nostr content.
+Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced techniques to calculate personalized webs of trust, resulting in high-quality, spam-free nostr content, curated by _your_ Nostr community.
 
-WORK IN PROGRESS: currently refactoring [manual installation repo](https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr-manual-installation) to create a nodejs package structure.
+## Why use Hasenpfeffr?
 
-## Features (when ready)
+- You and your friends can use your hasenpfeffr relay as a normal Nostr contentrelay, with spam and other unwanted content removed using state of the art WoT technology
+- Export personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events), ready for usage by all NIP-85-compliant clients
 
-- strfry and Neo4j integration
-- personalized PageRank
-- personalized hops (degrees of separation by follows)
-- Publish personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events)
-- Web-based control panel for easy management
-- Optimized for large-scale data processing (100,000+ events)
-- Performance monitoring and logging
+## What do I need?
 
-## TODO (ASAP) (last updated 11 Mar 2025)
+- A Linux server (e.g., Ubuntu 22.04 LTS)
+- A domain name (e.g., `relay.myCoolDomain.com`)
 
-- page to modify GrapeRank parameters
-- review GrapeRank scores on profile page
-- PageRank vs GrapeRank vs dos charts, similar to previous work
-- add verified followers score
-- calculate separate GrapeRank score for muted and reported
-- make scores accessible through API (WoT DVM)
-- neo4j update password
-- view / change relay nsec 
-- data navigation pages: table of all pubkeys, my followers, recommended follows, etc
+## Features
+
+- ✅ strfry and Neo4j integration
+- ✅ personalized GrapeRank
+- ✅ personalized PageRank
+- ✅ personalized hops (degrees of separation by follows)
+- ✅ page to modify GrapeRank parameters
+- ✅ Publish personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events)
+- ✅ Web-based control panels
+- ✅ table of all profiles with WoT scores
+- ✅ individual profile pages
+- ✅ Performance monitoring and logging
+- ☐ verify calculation of GrapeRank scores on profile page
+- ☐ PageRank vs GrapeRank vs dos charts, similar to previous work at https://grapevine-brainstorm.vercel.app/
+- ☐ add verified followers score to profile page
+- ☐ calculate separate GrapeRank scores: gr_basic, gr_muted, gr_reported
+- ☐ make WoT scores accessible through API (WoT DVM)
+- ☐ neo4j update password
+- ☐ access neo4j password from neo4j.conf rather than hasenpfeffr.conf
+- ☐ view / change relay nsec 
+- ☐ data navigation pages: table of all pubkeys, my followers, recommended follows, etc
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
 ## Installation
 
-### From GitHub
-
-```bash
-# Clone the repository
-git clone https://github.com/Prett-Good-Freedom-Tech/hasenpfeffr.git
-cd hasenpfeffr
-
-# Install dependencies
-npm install
-
-# Run the installation script (requires sudo)
-sudo npm run install-hasenpfeffr
-```
-
-### As a Global Package
-
-```bash
-# Install globally
-npm install -g hasenpfeffr
-
-# Run the installation script (requires sudo)
-sudo hasenpfeffr-install
-```
+See instructions in docs/INSTALLATION_INSTRUCTIONS.md.
 
 The installation script will:
-1. Create a configuration file at `/etc/hasenpfeffr.conf`
-2. Install and configure Neo4j Community Edition
-3. Install Neo4j Graph Data Science plugin
-4. Install Neo4j APOC plugin
-5. Set up Neo4j constraints and indices
-6. Optionally install and configure Strfry Nostr relay
-7. Configure the Hasenpfeffr Control Panel service
 
-## Configuration
+1. Install and configure Neo4j Community Edition, the Neo4j Graph Data Science plugin, and the Neo4j APOC plugin
+2. Set up Neo4j constraints and indices
+3. Install and configure Strfry Nostr relay
+4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
+5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`
 
-The installation script will create a configuration file at `/etc/hasenpfeffr.conf` with the following content:
+## ETL Pipeline
 
-```bash
-# Relay configuration
-export HASENPFEFFR_RELAY_URL="wss://your-relay-url.com"
-export HASENPFEFFR_RELAY_PUBKEY="your-relay-pubkey"
-export HASENPFEFFR_RELAY_NSEC="your-relay-private-key"
+The strfry to Neo4j ETL pipeline consists of three modules:
 
-# Neo4j configuration
-export NEO4J_PASSWORD="your-neo4j-password"
-
-# Strfry configuration
-export STRFRY_DOMAIN="your-relay-domain.com"
-
-# Reference pubkey for PageRank calculations
-export HASENPFEFFR_OWNER_PUBKEY="your-reference-pubkey"
-```
-
-You can also manually create this file or use a `.env` file in your project directory with the same variables.
-
-## Project Structure
-
-The Hasenpfeffr project is organized as follows:
-
-- `bin/` - Contains executable scripts used in production
-  - `control-panel.js` - The main control panel script used in production
-- `public/` - Web interface files
-- `setup/` - Installation and setup scripts
-- `systemd/` - Systemd service files
-- `archived/` - Contains deprecated files that are no longer in active use but kept for reference
-
-Note: The `archived/` directory contains files that were previously used but have been replaced by newer versions. See the [archived/README.md](archived/README.md) for more details.
+1. Batch: `src/pipeline/batch`, used at installation for loading data in bulk
+2. Streaming: `src/pipeline/stream`, used for real-time processing of new events. This is managed by systemd services listed below (strfry-router, addToQueue, and processQueue).
+3. Reconciliation: `src/pipeline/reconcile`, used to reconcile data between strfry and Neo4j. This is managed by the systemd service `reconcile.timer`
 
 ## Usage
 
-### Control Panel
+Upon installation, perform the following actions:
 
-```bash
-# Start the control panel
-hasenpfeffr-control-panel
+1. Access the Neo4j Browser at `http://your-domain:7474` (note: not https!!). You will be prompted to change the password. This should match the password that you entered during installation.
 
-# Using npm scripts
-npm run control-panel
-```
+2. Access the Strfry relay at `https://your-domain` to verify it is working.
 
-The control panel will be available at http://localhost:7778 by default.
+3. Access the Hasenpfeffr main page at `https://your-domain/control/index.html` and sign in via NIP-07.
 
-You can also set up the control panel as a systemd service:
+4. Batch loading of data: 
+- Use Negentropy to import kinds 3, 1984, and 10000 events to strfry in bulk from `wss://relay.hasenpfeffr.com`. Note that you can use this tool to import from other relays and using other filters. This can also be repeated to import any events that may have been missed. Monitor importation progress and verify successful import using the control panel, by checking the strfry logs, or at the command line `journalctl -u strfry.service` or `sudo strfry scan --count '{"kinds": [3, 1984, 10000]}'`.
+- Bulk transfer from strfry to Neo4j. This should create 200 to 300 thousand NostrUser nodes and approximately 8 million FOLLOWS, MUTES, and REPORTS relationships. Monitor progress and verify successful transfer using the control panel or at the Neo4j browser: `http://your-domain:7474`.
 
-```bash
-# Copy the service file
-sudo cp /usr/local/lib/node_modules/hasenpfeffr/systemd/hasenpfeffr-control-panel.service /etc/systemd/system/
+5. At the control panel, turn on ETL pipeline systemd services, including:
+- strfry-router, which will stream events in real time to strfry from a hardcoded list of relays (todo: edit relays)
+- addToQueue and processQueue, which will stream events in real time from strfry to Neo4j.
+- reconcile.timer, which will periodically check for discrepancies between strfry and Neo4j and will import any events from strfry to Neo4j that may have been missed
 
-# Enable and start the service
-sudo systemctl enable hasenpfeffr-control-panel.service
-sudo systemctl start hasenpfeffr-control-panel.service
-```
+6. Calculate Webs of Trust by hand: 
+- hops (needs a button!)
+- personalized PageRank
+- personalized GrapeRank
 
-### Nginx Configuration
+7. Export NIP-85 by clicking the export buttons in the NIP-85 control panel. These buttons should publish 10^5 kind 30382 events to your WoT relay, and one kind 10040 event to multiple relays. The NIP-85 control panel should indicate statistics on kind 30382 events, and you can also verify them at the command line. 
 
-If you installed Strfry during the setup process, Nginx has already been configured to serve both the Strfry relay and the Hasenpfeffr control panel. The control panel is available at `https://your-domain/control/`.
+8. Activate Strfry Plugin (if desired), which streams content in real time to your relay, filtered by your whitelist and blacklist. You should only activate this is once your whitelist has been created and you have verified that it is working correctly. Once activated, you and your friends can use your relay as a normal Nostr relay, one that filters out spam and other unwanted content.
 
-If you did not install Strfry and are running the control panel behind Nginx, add the following configuration to your Nginx server block:
+9. Turn on Webs of Trust calculation systemd services, including:
+- calculateHops.timer, calculatePersonalizedPageRank.timer, and calculatePersonalizedGrapeRank.timer, which will periodically calculate hops, personalized page rank, and personalized grape rank for all NostrUsers.
 
-```nginx
-# Hasenpfeffr Control Panel
-location /control/ {
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Host $host;
-    proxy_pass http://127.0.0.1:7778/;
-    proxy_http_version 1.1;
-}
-```
+
 
 ### URL Structure
 
@@ -155,7 +105,7 @@ Hasenpfeffr's control panel is designed to be accessible in read-only mode witho
 
 ### Strfry Nostr Relay
 
-If you chose to install Strfry during the setup process, it will be configured as a systemd service and started automatically. The relay will be available at `https://your-domain/`.
+The Strfry Nostr relay will be available at `https://your-domain/`.
 
 To check the status of the Strfry service:
 
@@ -188,15 +138,6 @@ hasenpfeffr-publish
 # Using npm scripts
 npm run publish
 ```
-
-## Architecture
-
-Hasenpfeffr consists of several components:
-
-1. **Data Generation**: Calculates personalized PageRank scores and network hops
-2. **Event Creation**: Creates NIP-85 kind 30382 events with appropriate tags
-3. **Publication**: Publishes events to Nostr relays with optimized connection handling
-4. **Strfry Relay**: Optional integrated Nostr relay for publishing and consuming events
 
 ## Performance
 

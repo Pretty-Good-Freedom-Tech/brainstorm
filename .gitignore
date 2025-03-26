@@ -34,6 +34,7 @@ coverage
 .nyc_output
 
 # Dependency directories
+archived/
 archived2/
 node_modules/
 jspm_packages/

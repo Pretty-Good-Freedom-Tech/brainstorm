@@ -1,6 +1,6 @@
-# Setting Up a New EC2 Instance for Testing
+# Installation of Hasenpfeffr
 
-Follow these steps to create a new EC2 instance to test the Hasenpfeffr installation process:
+The following instructions are for setting up a new Amazon AWS EC2 instance to test the Hasenpfeffr installation process. They can be adapted for other Linux distributions.
 
 ## 1. Launch a New EC2 Instance
 
@@ -32,6 +32,16 @@ ssh -i /path/to/your-key.pem ubuntu@your-ec2-public-dns
 ```
 
 ## 3. Install Hasenpfeffr
+
+During installation, you will be prompted to enter the following 3 pieces of information:
+
+1. Your domain name (e.g., "relay.myCoolDomain.com"). This will be used for:
+   - relay websocket:`wss://relay.myCoolDomain.com`
+   - Strfry information: `https://relay.myCoolDomain.com`
+   - Neo4j browser: `http://relay.myCoolDomain.com:7474` (note: not https!!)
+   - Hasenpfeffr control panel: `https://relay.myCoolDomain.com/control`
+2. Your pubkey, e.g. `e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f`, i.e. the "owner" of the personal Webs of Trust relay.
+3. The Neo4j password that you will later be asked to enter when you access the Neo4j browser for the first time.
 
 ```bash
 # Update system packages
@@ -69,9 +79,15 @@ After the installation is complete, verify that:
    sudo systemctl status neo4j
    ```
 
-2. Strfry is running (if installed):
+2. Strfry is running:
    ```bash
    sudo systemctl status strfry
+   ```
+
+   Verify events are being input:
+
+   ```bash
+   sudo strfry scan --count '{"kinds":[3, 1984, 10000]}'
    ```
 
 3. Hasenpfeffr Control Panel is running:
@@ -79,11 +95,11 @@ After the installation is complete, verify that:
    sudo systemctl status hasenpfeffr-control-panel
    ```
 
-4. Access the Neo4j Browser at `http://your-ec2-public-dns:7474`
+4. Access the Neo4j Browser at `http://your-domain:7474`
+   - Default credentials: `neo4j` / `neo4j`
+   - Change password after first login to the password that you entered during installation
 
-5. Access the Hasenpfeffr Control Panel:
-   - If using Nginx: `https://your-domain/control/`
-   - If not using Nginx: `http://your-ec2-public-dns:7778`
+5. Access the Hasenpfeffr Control Panel at: `https://your-domain/control/`
 
 ## 5. Troubleshooting
 
@@ -96,9 +112,21 @@ If you encounter any issues:
    sudo journalctl -u hasenpfeffr-control-panel
    ```
 
-2. Verify the configuration file:
+2. Verify the configuration files:
    ```bash
    sudo cat /etc/hasenpfeffr.conf
+   sudo cat /etc/graperank.conf
+   sudo cat /etc/blacklist.conf
+
+   sudo cat /etc/strfry.conf
+   sudo cat /etc/neo4j/neo4j.conf
+   sudo cat /etc/neo4j/apoc.conf
    ```
 
 3. Check for any error messages in the installation output
+
+## 6. Update
+
+To update Hasenpfeffr, see `docs/UPDATE_INSTRUCTIONS.md`.
+
+
