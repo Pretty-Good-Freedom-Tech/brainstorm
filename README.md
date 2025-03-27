@@ -43,7 +43,7 @@ See instructions in docs/INSTALLATION_INSTRUCTIONS.md.
 The installation script will:
 
 1. Install and configure Neo4j Community Edition, the Neo4j Graph Data Science plugin, and the Neo4j APOC plugin
-2. Set up Neo4j constraints and indices
+2. Set up Neo4j constraints and indexes
 3. Install and configure Strfry Nostr relay
 4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
 5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`

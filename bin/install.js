@@ -40,7 +40,7 @@ const configPaths = {
   setupDir: path.join(packageRoot, 'setup'),
   strfryRouterConfigSource: path.join(packageRoot, 'setup', 'strfry-router.config'),
   neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
-  neo4jIndicesScript: path.join(packageRoot, 'setup', 'neo4jCommandsAndIndices.sh'),
+  neo4jConstraintsAndIndexesScript: path.join(packageRoot, 'setup', 'neo4jConstraintsAndIndexes.sh'),
 
   strfryInstallScript: path.join(packageRoot, 'setup', 'install-strfry.sh'),
   controlPanelInstallScript: path.join(packageRoot, 'setup', 'install-control-panel.sh'),
@@ -301,7 +301,7 @@ async function installNeo4j() {
   try {
     // Make scripts executable
     execSync(`sudo chmod +x ${configPaths.neo4jInstallScript}`);
-    execSync(`sudo chmod +x ${configPaths.neo4jIndicesScript}`);
+    execSync(`sudo chmod +x ${configPaths.neo4jConstraintsAndIndexesScript}`);
     
     // Run Neo4j installation script - use script -c to avoid hanging on systemctl status
     console.log('Installing Neo4j (this may take a few minutes)...');
@@ -921,11 +921,30 @@ async function finalSetup() {
   console.log('3. You will be prompted to change the default password');
   console.log('4. After changing the password, update it in your Hasenpfeffr configuration:');
   console.log('   Edit /etc/hasenpfeffr.conf and update the NEO4J_PASSWORD value');
-  console.log('5. Run the following commands in the Neo4j Browser to set up constraints and indices:');
-  console.log('   CREATE CONSTRAINT IF NOT EXISTS FOR (u:NostrUser) REQUIRE u.pubkey IS UNIQUE;');
-  console.log('   CREATE CONSTRAINT IF NOT EXISTS FOR (e:NostrEvent) REQUIRE e.id IS UNIQUE;');
-  console.log('   CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.pubkey);');
-  console.log('   CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.kind);');
+  console.log('5. set up Neo4j constraints and indexes at the Neo4j Control Panel or by running the following commands in the Neo4j Browser:');
+
+  console.log('   CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;');
+  console.log('   CREATE INDEX nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) ON (n.pubkey);');
+  console.log('   CREATE INDEX nostrUser_kind3EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3EventId);');
+  console.log('   CREATE INDEX nostrUser_kind3CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3CreatedAt);');
+  console.log('   CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);');
+  console.log('   CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);');
+
+  console.log('   CREATE INDEX nostrUser_influence IF NOT EXISTS FOR (n:NostrUser) ON (n.influence);');
+  console.log('   CREATE INDEX nostrUser_average IF NOT EXISTS FOR (n:NostrUser) ON (n.average);');
+  console.log('   CREATE INDEX nostrUser_confidence IF NOT EXISTS FOR (n:NostrUser) ON (n.confidence);');
+  console.log('   CREATE INDEX nostrUser_input IF NOT EXISTS FOR (n:NostrUser) ON (n.input);');
+
+  console.log('   CREATE INDEX nostrUser_followedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followedInput);');
+  console.log('   CREATE INDEX nostrUser_mutedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.mutedInput);');
+  console.log('   CREATE INDEX nostrUser_reportedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reportedInput);');
+  console.log('   CREATE INDEX nostrUser_blacklisted IF NOT EXISTS FOR (n:NostrUser) ON (n.blacklisted);');
+
+  console.log('   CREATE CONSTRAINT nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) REQUIRE n.event_id IS UNIQUE;');
+  console.log('   CREATE INDEX nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) ON (n.event_id);');
+  console.log('   CREATE INDEX nostrEvent_kind IF NOT EXISTS FOR (n:NostrEvent) ON (n.kind);');
+  console.log('   CREATE INDEX nostrEvent_created_at IF NOT EXISTS FOR (n:NostrEvent) ON (n.created_at);');
+  console.log('   CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);');
   
   // Nginx configuration instructions
   console.log('\nNginx Configuration:');

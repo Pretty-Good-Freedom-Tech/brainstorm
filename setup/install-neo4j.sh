@@ -93,28 +93,46 @@ else
   exit 1
 fi
 
-# Step 7: Set up Neo4j constraints and indices
-echo "=== Setting up Neo4j constraints and indices ==="
+# Step 7: Set up Neo4j constraints and indexes
+echo "=== Setting up Neo4j constraints and indexes ==="
 # Wait for Neo4j to fully start
 sleep 10
 
-# Create a Cypher file for constraints and indices
+# Create a Cypher file for constraints and indexes
 CYPHER_FILE="/tmp/neo4j_constraints.cypher"
 cat > "$CYPHER_FILE" << EOF
-CREATE CONSTRAINT IF NOT EXISTS FOR (u:NostrUser) REQUIRE u.pubkey IS UNIQUE;
-CREATE CONSTRAINT IF NOT EXISTS FOR (e:NostrEvent) REQUIRE e.id IS UNIQUE;
-CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.pubkey);
-CREATE INDEX IF NOT EXISTS FOR (e:NostrEvent) ON (e.kind);
+CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;
+CREATE INDEX nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) ON (n.pubkey);
+CREATE INDEX nostrUser_kind3EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3EventId);
+CREATE INDEX nostrUser_kind3CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3CreatedAt);
+CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);
+CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);
+
+CREATE INDEX nostrUser_influence IF NOT EXISTS FOR (n:NostrUser) ON (n.influence);
+CREATE INDEX nostrUser_average IF NOT EXISTS FOR (n:NostrUser) ON (n.average);
+CREATE INDEX nostrUser_confidence IF NOT EXISTS FOR (n:NostrUser) ON (n.confidence);
+CREATE INDEX nostrUser_input IF NOT EXISTS FOR (n:NostrUser) ON (n.input);
+
+CREATE INDEX nostrUser_followedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followedInput);
+CREATE INDEX nostrUser_mutedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.mutedInput);
+CREATE INDEX nostrUser_reportedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reportedInput);
+CREATE INDEX nostrUser_blacklisted IF NOT EXISTS FOR (n:NostrUser) ON (n.blacklisted);
+
+CREATE CONSTRAINT nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) REQUIRE n.event_id IS UNIQUE;
+CREATE INDEX nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) ON (n.event_id);
+CREATE INDEX nostrEvent_kind IF NOT EXISTS FOR (n:NostrEvent) ON (n.kind);
+CREATE INDEX nostrEvent_created_at IF NOT EXISTS FOR (n:NostrEvent) ON (n.created_at);
+CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);
 EOF
 
 # Use cypher-shell to execute the commands
-echo "Running Neo4j constraints and indices setup..."
+echo "Running Neo4j constraints and indexes setup..."
 if command -v cypher-shell &> /dev/null; then
   # Try with default password first
   if cypher-shell -u neo4j -p neo4j --file "$CYPHER_FILE" 2>/dev/null; then
-    echo "Neo4j constraints and indices set up successfully."
+    echo "Neo4j constraints and indexes set up successfully."
   else
-    echo "Could not set up Neo4j constraints and indices with default password."
+    echo "Could not set up Neo4j constraints and indexes with default password."
     echo "You will need to run the following commands manually after setting up your password:"
     cat "$CYPHER_FILE"
   fi

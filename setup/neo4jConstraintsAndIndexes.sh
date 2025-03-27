@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Hasenpfeffr Neo4j Constraints and Indices Setup
-# This script sets up the necessary constraints and indices for the Hasenpfeffr project
+# Hasenpfeffr Neo4j Constraints and Indexes Setup
+# This script sets up the necessary constraints and indexes for the Hasenpfeffr project
 
 # Get the Neo4j password from the Hasenpfeffr configuration
 if [ -f "/etc/hasenpfeffr.conf" ]; then
@@ -12,7 +12,7 @@ else
   echo "Warning: /etc/hasenpfeffr.conf not found, using default Neo4j password"
 fi
 
-# Run Cypher commands to set up constraints and indices
+# Run Cypher commands to set up constraints and indexes
 neo4j-admin dbms run --user=neo4j --password="$NEO4J_PASSWORD" --database=neo4j "
 CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;
 CREATE INDEX nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) ON (n.pubkey);
@@ -64,5 +64,5 @@ CREATE INDEX nostrEvent_created_at IF NOT EXISTS FOR (n:NostrEvent) ON (n.create
 CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);
 "
 
-echo "Neo4j constraints and indices have been set up successfully."
+echo "Neo4j constraints and indexes have been set up successfully."
 echo "You can verify by running 'SHOW CONSTRAINTS;' and 'SHOW INDEXES;' in the Neo4j Browser."
