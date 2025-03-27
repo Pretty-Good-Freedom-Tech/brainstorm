@@ -180,7 +180,7 @@
             display: block;
         }
     </style>
-    <script src="/header.js"></script>
+    <script src="./header.js"></script>
 </head>
 <body>
     <!-- Include the header component -->
@@ -313,7 +313,7 @@
 
     <script>
         // Load the header component
-        fetch('/header.html')
+        fetch('./header.html')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('headerContainer').innerHTML = html;
