@@ -11,6 +11,20 @@
             <a href="/control/sign-in.html" id="signInLink" class="btn">Sign In</a>
         </div>
     </div>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="navbar-content">
+            <a href="/control/" class="nav-btn home-btn active-page">Home</a>
+            <a href="/control/main.html" class="nav-btn">Main Control Panel</a>
+            <a href="/control/neo4j.html" class="nav-btn">Neo4j Control Panel</a>
+            <a href="/control/nip85.html" class="nav-btn">NIP 85 Control Panel</a>
+            <a href="/control/graperank.html" class="nav-btn">GrapeRank Control Panel</a>
+            <a href="/control/blacklist.html" class="nav-btn">Blacklist Control Panel</a>
+            <a href="/control/profiles.html" class="nav-btn">User Profiles</a>
+            <a href="/control/visualization.html" class="nav-btn">Network Visualization</a>
+            <a href="/control/strfry.html" class="nav-btn">Strfry Relay</a>
+        </div>
+    </div>
 </div>
 
 <!-- Header Styles -->
@@ -18,7 +32,7 @@
     .header {
         background-color: #333;
         color: #fff;
-        padding: 20px;
+        padding: 20px 20px 0 20px;
     }
     .header-content {
         display: flex;
@@ -30,6 +44,7 @@
     .header-title {
         color: #fff;
         border: 0px;
+        margin: 0;
     }
     .auth-status {
         display: flex;
@@ -53,18 +68,95 @@
         font-weight: bold;
     }
     .btn {
-        display: inline-block;
-        background-color: #3498db;
-        color: #fff !important;
-        border: none;
-        padding: 10px 20px;
-        margin: 10px 0;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 16px;
         text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
     }
     .btn:hover {
-        background-color: #2980b9;
+        background-color: #45a049;
+    }
+    
+    /* Navbar Styles */
+    .navbar {
+        margin-top: 20px;
+        background-color: #444;
+        padding: 10px 0;
+        border-radius: 5px 5px 0 0;
+    }
+    .navbar-content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 10px;
+        justify-content: center;
+    }
+    .nav-btn {
+        background-color: #2196F3;
+        color: white;
+        padding: 8px 12px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: background-color 0.3s, transform 0.1s;
+        white-space: nowrap;
+    }
+    .nav-btn:hover {
+        background-color: #0b7dda;
+        transform: translateY(-2px);
+    }
+    .home-btn {
+        background-color: #4CAF50;
+    }
+    .home-btn:hover {
+        background-color: #45a049;
+    }
+    /* Active page highlight */
+    .active-page {
+        background-color: #ff9800;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+        position: relative;
+    }
+    .active-page:hover {
+        background-color: #e68a00;
+    }
+    .active-page::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid #ff9800;
+    }
+    .active-page:hover::after {
+        border-top-color: #e68a00;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .navbar-content {
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+    }
+    @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .auth-status {
+            align-self: flex-end;
+        }
     }
 </style>

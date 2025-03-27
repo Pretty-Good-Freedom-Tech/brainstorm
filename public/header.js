@@ -59,6 +59,59 @@ function initializeHeader() {
                 console.error('Error fetching STRFRY_DOMAIN:', error);
             });
     }
+    
+    // Highlight the current page in the navbar
+    highlightCurrentPage();
+}
+
+/**
+ * Highlights the current page in the navigation bar
+ */
+function highlightCurrentPage() {
+    // Get all navigation buttons
+    const navButtons = document.querySelectorAll('.nav-btn');
+    if (!navButtons || navButtons.length === 0) return;
+    
+    // Get the current page path
+    const currentPath = window.location.pathname;
+    
+    // Flag to track if any button was highlighted
+    let buttonHighlighted = false;
+    
+    // Check each button to see if its href matches the current path
+    navButtons.forEach(button => {
+        // Get the path from the button's href
+        const buttonPath = new URL(button.href).pathname;
+        
+        // Special case for home page
+        if (buttonPath === '/control/' && (currentPath === '/control/' || currentPath === '/control/index.html')) {
+            button.classList.add('active-page');
+            buttonHighlighted = true;
+        } 
+        // For other pages, check if the current path matches or ends with the button path
+        else if (currentPath === buttonPath || 
+                (buttonPath !== '/control/' && currentPath.endsWith(buttonPath.split('/').pop()))) {
+            button.classList.add('active-page');
+            buttonHighlighted = true;
+        }
+    });
+    
+    // If no button was highlighted and we're on a subpage, highlight the parent section
+    if (!buttonHighlighted) {
+        // Extract the first part of the path after /control/
+        const pathParts = currentPath.split('/');
+        if (pathParts.length >= 3 && pathParts[1] === 'control') {
+            const mainSection = pathParts[2].split('-')[0].split('.')[0];
+            
+            // Try to find a button that contains this section
+            navButtons.forEach(button => {
+                const buttonText = button.textContent.toLowerCase();
+                if (buttonText.includes(mainSection.toLowerCase())) {
+                    button.classList.add('active-page');
+                }
+            });
+        }
+    }
 }
 
 /**
