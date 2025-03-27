@@ -21,11 +21,16 @@ const WebSocket = require('ws');
 let config;
 try {
   const configModule = require('../lib/config');
-  config = configModule.getAll();
+  config = configModule.loadConfig();
 } catch (error) {
   console.warn('Could not load configuration:', error.message);
   config = {};
 }
+
+// Get path constants from config
+const BASE_DIR = config.paths ? config.paths.baseDir : process.cwd();
+const PUBLIC_DIR = config.paths ? config.paths.publicDir : path.join(BASE_DIR, 'public');
+const SETUP_DIR = config.paths ? config.paths.setupDir : path.join(BASE_DIR, 'setup');
 
 // Function to get configuration values directly from /etc/hasenpfeffr.conf
 function getConfigFromFile(varName, defaultValue = null) {
@@ -77,18 +82,18 @@ function getNeo4jConnection() {
 
 // Create Express app
 const app = express();
-const port = process.env.CONTROL_PANEL_PORT || 7778;
+const port = config.web ? config.web.port : (process.env.CONTROL_PANEL_PORT || 7778);
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(PUBLIC_DIR));
 
 // Session middleware
 app.use(session({
-    secret: crypto.randomBytes(32).toString('hex'),
+    secret: process.env.SESSION_SECRET || 'hasenpfeffr-secret',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
@@ -96,17 +101,15 @@ app.use(session({
 
 // Helper function to serve HTML files
 function serveHtmlFile(filename, res) {
-    try {
-        const filePath = path.join(__dirname, '../public', filename);
-        if (fs.existsSync(filePath)) {
-            res.sendFile(filePath);
-        } else {
-            res.status(404).send('File not found');
+    const filePath = path.join(PUBLIC_DIR, filename);
+    
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            console.error(`Error reading file ${filePath}:`, err);
+            return res.status(500).send('Error loading page');
         }
-    } catch (error) {
-        console.error('Error serving HTML file:', error);
-        res.status(500).send('Internal server error');
-    }
+        res.send(data);
+    });
 }
 
 // Serve the HTML files
@@ -115,15 +118,15 @@ app.get('/', (req, res) => {
 });
 
 app.get('/control', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
+    res.sendFile(path.join(PUBLIC_DIR, 'nip85-control-panel.html'));
 });
 
 app.get('/control/profiles', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/profiles-control-panel.html'));
+    res.sendFile(path.join(PUBLIC_DIR, 'profiles-control-panel.html'));
 });
 
 app.get('/control/profile.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/profile.html'));
+    res.sendFile(path.join(PUBLIC_DIR, 'profile.html'));
 });
 
 app.get('/control/nip85-control-panel.html', (req, res) => {
@@ -303,6 +306,21 @@ app.get('/api/auth/status', (req, res) => {
 });
 app.get('/api/auth/logout', handleAuthLogout);
 app.get('/control/api/auth/logout', handleAuthLogout);
+
+// Client-side configuration endpoint
+app.get('/control/api/config', (req, res) => {
+    // Only share safe configuration values (no secrets)
+    const clientConfig = {
+        baseUrl: config.web ? config.web.url : '/',
+        relay: {
+            url: config.relay ? config.relay.url : null,
+            pubkey: config.relay ? config.relay.pubkey : null
+        },
+        version: process.env.npm_package_version || '1.0.0'
+    };
+    
+    res.json(clientConfig);
+});
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {
@@ -1023,6 +1041,20 @@ function handlePublishKind10040(req, res) {
         
         child.on('close', (code) => {
             console.log(`publish_nip85_10040.mjs exited with code ${code}`);
+            
+            // Save the output to a log file for debugging
+            const timestamp = new Date().toISOString().replace(/:/g, '-');
+            const logDir = path.join(__dirname, '../logs');
+            
+            // Create logs directory if it doesn't exist
+            if (!fs.existsSync(logDir)) {
+                fs.mkdirSync(logDir, { recursive: true });
+            }
+            
+            const logFile = path.join(logDir, `kind10040_${timestamp}.log`);
+            fs.writeFileSync(logFile, `STDOUT:\n${output}\n\nSTDERR:\n${errorOutput}\n\nExit code: ${code}`);
+            console.log(`Kind 10040 process log saved to ${logFile}`);
+            
             if (code === 0) {
                 // Success
                 return res.json({ 
@@ -2485,41 +2517,29 @@ function handleNeo4jSetupConstraints(req, res) {
         });
     }
     
-    // Execute the setup script
-    const setupScript = path.join(__dirname, '..', 'setup', 'neo4jConstraintsAndIndexes.sh');
-    
-    // Check if the script exists
-    if (!fs.existsSync(setupScript)) {
-        return res.status(404).json({
-            success: false,
-            error: 'Setup script not found',
-            output: `Script not found at: ${setupScript}`
-        });
-    }
-    
-    // Make the script executable
-    try {
-        fs.chmodSync(setupScript, '755');
-    } catch (error) {
-        console.error('Error making script executable:', error);
-    }
-    
+    // Path to the setup script
+    const scriptPath = path.join(SETUP_DIR, 'neo4jConstraintsAndIndexes.sh');
+
+    console.log(`Executing Neo4j setup script: ${scriptPath}`);
+
     // Execute the script
-    exec(setupScript, (error, stdout, stderr) => {
+    exec(scriptPath, (error, stdout, stderr) => {
         if (error) {
-            console.error(`Error executing Neo4j constraints setup: ${error.message}`);
-            return res.json({
+            console.error(`Error executing Neo4j setup script: ${error.message}`);
+            return res.status(500).json({
                 success: false,
+                message: 'Failed to execute Neo4j setup script',
                 error: error.message,
-                output: stdout + '\n' + stderr
+                stderr: stderr
             });
         }
-        
-        console.log('Neo4j constraints and indexes set up successfully');
-        res.json({
+
+        // Return success response with script output
+        return res.json({
             success: true,
-            message: 'Neo4j constraints and indexes set up successfully',
-            output: stdout
+            message: 'Neo4j constraints and indexes setup completed successfully',
+            stdout: stdout,
+            stderr: stderr
         });
     });
 }
