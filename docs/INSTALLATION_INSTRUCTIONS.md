@@ -4,6 +4,13 @@ The following instructions are for setting up a new Amazon AWS EC2 instance to t
 
 ## 1. Launch a New EC2 Instance
 
+### Recommended specifications:
+
+- t2.medium or larger
+- 20GB at least; 50GB recommended
+
+### Instructions
+
 1. Go to the AWS Management Console and navigate to EC2
 2. Click "Launch Instance"
 3. Choose a name for your instance (e.g., "hasenpfeffr-test")
@@ -13,7 +20,7 @@ The following instructions are for setting up a new Amazon AWS EC2 instance to t
    - Network: Default VPC
    - Subnet: Any availability zone
    - Auto-assign Public IP: Enable
-7. Add storage (at least 20GB)
+7. Add storage (at least 20GB, recommended 50GB)
 8. Configure security group:
    - Allow SSH (port 22) from your IP
    - Allow HTTP (port 80) from anywhere
@@ -72,34 +79,38 @@ sudo npm run install-hasenpfeffr
 
 ## 4. Testing the Installation
 
-After the installation is complete, verify that:
+### In the browser
 
-1. Neo4j is running:
+1. Access the strfry relay at `https://your-domain`
+2. Access the Neo4j Browser at `http://your-domain:7474` (note: not https!!)
+   - Default credentials: `neo4j` / `neo4j`
+   - Change password after first login to the password that you entered during installation
+3. Access the Hasenpfeffr Control Panel at: `https://your-domain/control/index.html`
+
+### At the command line, 
+
+Upon installation, three systemd services should be running:
+
+1. Neo4j:
    ```bash
    sudo systemctl status neo4j
    ```
 
-2. Strfry is running:
+2. Strfry:
    ```bash
    sudo systemctl status strfry
    ```
 
-   Verify events are being input:
+   Verify events are being input (only do this after loading up strfry with some events using the control panel):
 
    ```bash
    sudo strfry scan --count '{"kinds":[3, 1984, 10000]}'
    ```
 
-3. Hasenpfeffr Control Panel is running:
+3. Hasenpfeffr Control Panel:
    ```bash
    sudo systemctl status hasenpfeffr-control-panel
    ```
-
-4. Access the Neo4j Browser at `http://your-domain:7474`
-   - Default credentials: `neo4j` / `neo4j`
-   - Change password after first login to the password that you entered during installation
-
-5. Access the Hasenpfeffr Control Panel at: `https://your-domain/control/`
 
 ## 5. Troubleshooting
 

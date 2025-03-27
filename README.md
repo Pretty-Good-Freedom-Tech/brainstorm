@@ -4,7 +4,7 @@ Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced tec
 
 ## Why use Hasenpfeffr?
 
-- You and your friends can use your hasenpfeffr relay as a normal Nostr contentrelay, with spam and other unwanted content removed using state of the art WoT technology
+- You and your friends can use your hasenpfeffr relay as a normal Nostr content relay, with spam and other unwanted content removed using state of the art WoT technology
 - Export personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events), ready for usage by all NIP-85-compliant clients
 
 ## What do I need?
@@ -48,13 +48,13 @@ The installation script will:
 4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
 5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`
 
-## ETL Pipeline
+## Pipeline from strfry to Neo4j
 
-The strfry to Neo4j ETL pipeline consists of three modules:
+The strfry to Neo4j extract, transform, load (ETL) pipeline consists of three modules:
 
-1. Batch: `src/pipeline/batch`, used at installation for loading data in bulk
-2. Streaming: `src/pipeline/stream`, used for real-time processing of new events. This is managed by systemd services listed below (strfry-router, addToQueue, and processQueue).
-3. Reconciliation: `src/pipeline/reconcile`, used to reconcile data between strfry and Neo4j. This is managed by the systemd service `reconcile.timer`
+1. Batch: `src/pipeline/batch`, used for loading data in bulk. This should create 200 to 300 thousand NostrUser nodes and approximately 8 million FOLLOWS, MUTES, and REPORTS relationships. Typically run only once at installation but can be re-run as desired.
+2. Streaming: `src/pipeline/stream`, used for real-time processing of new events. This is managed by systemd services listed below (strfry-router, addToQueue, and processQueue). Typically, this will run indefinitely, processing updates to FOLLOWS and new MUTES and REPORTS as they arrive, usually on the order of 3 to 5 per minute. 
+3. Reconciliation: `src/pipeline/reconcile`, used to fix any data mismatches between strfry and Neo4j. This is managed by the systemd service `reconcile.timer`
 
 ## Usage
 
