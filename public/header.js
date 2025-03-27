@@ -66,12 +66,18 @@ function initializeHeader() {
  * @param {string} pubkey - User's public key
  */
 function fetchUserProfile(pubkey) {
+    // Get DOM elements again in case they've changed
     const userAvatar = document.getElementById('userAvatar');
     const userName = document.getElementById('userName');
     
+    // Ensure elements exist before proceeding
+    if (!userAvatar || !userName) {
+        console.error('User avatar or name elements not found');
+        return;
+    }
+    
     // Fetch user profile from kind 0 event
-    fetch(`/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`)
-        .catch(() => fetch(`/control/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`))
+    fetch(`/control/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`)
         .then(response => response.json())
         .then(result => {
             if (result.success && result.data) {
@@ -130,5 +136,8 @@ function fetchUserProfile(pubkey) {
         });
 }
 
-// Initialize the header when the DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeHeader);
+// Wait for DOM to be fully loaded before initializing
+document.addEventListener('DOMContentLoaded', function() {
+    // Small delay to ensure all elements are properly loaded
+    setTimeout(initializeHeader, 50);
+});
