@@ -60,5 +60,6 @@ sudo chmod +x *.js
 
 cd /var/lib
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
+sudo chmod -R 755 hasenpfeffr
 cd /var/log
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr

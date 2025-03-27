@@ -837,10 +837,11 @@ async function setupPipelineDirectories() {
       }
     }
     
+    // move this to install-pipeline.sh
     // Set appropriate permissions
-    console.log('Setting appropriate permissions...');
-    execSync(`sudo chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
-    execSync(`sudo chmod -R 755 ${baseDir}`);
+    // console.log('Setting appropriate permissions...');
+    // execSync(`sudo chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
+    // execSync(`sudo chmod -R 755 ${baseDir}`);
     
     console.log('Pipeline directories setup completed successfully.');
   } catch (error) {
