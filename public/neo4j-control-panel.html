@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo4j Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #3498db;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white !important;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #3498db;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        .secondary-btn {
+            background-color: #95a5a6;
+        }
+        .secondary-btn:hover {
+            background-color: #7f8c8d;
+        }
+        .home-btn {
+            background-color: #2ecc71;
+        }
+        .home-btn:hover {
+            background-color: #27ae60;
+        }
+        .auth-status {
+            margin-left: 15px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .authenticated {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .read-only {
+            background-color: #f39c12;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <h1>Neo4j Control Panel</h1>
+            <div class="nav-links">
+                <a href="/control/index.html" class="button home-btn">Home</a>
+                <a href="/control-panel.html" class="button secondary-btn">Main Control Panel</a>
+                <a href="/" id="relayLink" class="button secondary-btn">Go to Relay</a>
+                <button id="logoutBtn" class="button logout-btn">Logout</button>
+                <span id="authStatus" class="auth-status"></span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Neo4j Database Status</h2>
+            <div class="card">
+                <h3>Neo4j Database Statistics and Status</h3>
+                <p>View Neo4j database statistics and status.</p>
+                <button id="checkNeo4jBtn" class="button">Check Neo4j Status</button>
+                <div id="neo4jStatus" class="status" style="display: none;"></div>
+                <div id="neo4jContainer" style="display: none; margin-top: 15px;">
+                    <div id="neo4jServiceStatus" style="margin-bottom: 10px; padding: 8px; border-radius: 4px;"></div>
+                    <h4>Database Statistics</h4>
+                    <table class="stats-table" style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Metric</th>
+                            <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Count</th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">NostrUser Nodes</td>
+                            <td id="userCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">FOLLOWS Relationships</td>
+                            <td id="followCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">MUTES Relationships</td>
+                            <td id="muteCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #ddd;">REPORTS Relationships</td>
+                            <td id="reportCount" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">-</td>
+                        </tr>
+                    </table>
+                    <h4>Constraints</h4>
+                    <div id="constraintsOutput" style="max-height: 150px; overflow-y: auto;"></div>
+                    <h4>Indexes</h4>
+                    <div id="indexesOutput" style="max-height: 150px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Constraints and Indexes</h2>
+            <div class="card">
+                <h3>Neo4j Constraints and Indexes Setup</h3>
+                <p>Set up or update Neo4j constraints and indexes for the Hasenpfeffr project.</p>
+                <button id="setupConstraintsBtn" class="button">Setup Constraints and Indexes</button>
+                <div id="constraintsStatus" class="status" style="display: none;"></div>
+                <pre id="constraintsSetupOutput" style="display: none;"></pre>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Neo4j Systemd Service</h2>
+            <div class="card">
+                <h3>Neo4j Service Control</h3>
+                <p>Manage the Neo4j systemd service.</p>
+                <div id="neo4jServiceContainer" style="margin-top: 15px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; padding: 8px; border-bottom: 2px solid #3498db;">Service</th>
+                                <th style="text-align: center; padding: 8px; border-bottom: 2px solid #3498db;">Status</th>
+                                <th style="text-align: right; padding: 8px; border-bottom: 2px solid #3498db;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="neo4jServiceTableBody">
+                            <!-- Neo4j service row will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="neo4jServiceControlStatus" class="status" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up the relay link with the correct domain from the server
+            const relayLink = document.getElementById('relayLink');
+            if (relayLink) {
+                const currentDomain = window.location.hostname;
+                relayLink.href = `https://${currentDomain}`;
+            }
+            
+            // Check authentication status and update UI
+            const authStatus = document.getElementById('authStatus');
+            if (authStatus) {
+                fetch('/control/api/auth/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.authenticated) {
+                            authStatus.textContent = `Authenticated as: ${data.pubkey.substring(0, 8)}...`;
+                            authStatus.classList.add('authenticated');
+                        } else {
+                            authStatus.textContent = 'Read-only mode';
+                            authStatus.classList.add('read-only');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking authentication status:', error);
+                        authStatus.textContent = 'Authentication status unknown';
+                    });
+            }
+            
+            // Logout functionality
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    fetch('/control/api/auth/logout')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '/control/sign-in.html';
+                            } else {
+                                console.error('Logout failed:', data.message);
+                                alert('Logout failed: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error during logout:', error);
+                            alert('Error during logout. Please try again.');
+                        });
+                });
+            }
+            
+            // Neo4j Status Button
+            const checkNeo4jBtn = document.getElementById('checkNeo4jBtn');
+            const neo4jStatus = document.getElementById('neo4jStatus');
+            const neo4jContainer = document.getElementById('neo4jContainer');
+            const neo4jServiceStatus = document.getElementById('neo4jServiceStatus');
+            const userCount = document.getElementById('userCount');
+            const followCount = document.getElementById('followCount');
+            const muteCount = document.getElementById('muteCount');
+            const reportCount = document.getElementById('reportCount');
+            const constraintsOutput = document.getElementById('constraintsOutput');
+            const indexesOutput = document.getElementById('indexesOutput');
+            
+            checkNeo4jBtn.addEventListener('click', function() {
+                checkNeo4jBtn.disabled = true;
+                neo4jStatus.style.display = 'block';
+                neo4jStatus.className = 'status info';
+                neo4jStatus.textContent = 'Checking Neo4j status...';
+                neo4jContainer.style.display = 'none';
+                
+                fetch('/control/api/neo4j-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        neo4jStatus.className = 'status success';
+                        neo4jStatus.textContent = 'Neo4j status retrieved successfully!';
+                        neo4jContainer.style.display = 'block';
+                        
+                        // Update service status
+                        if (data.status.running) {
+                            neo4jServiceStatus.textContent = 'Neo4j Service: Running';
+                            neo4jServiceStatus.style.backgroundColor = '#dff0d8';
+                            neo4jServiceStatus.style.color = '#3c763d';
+                            
+                            // Update statistics
+                            userCount.textContent = data.status.userCount.toLocaleString();
+                            followCount.textContent = data.status.relationships.follow.toLocaleString();
+                            muteCount.textContent = data.status.relationships.mute.toLocaleString();
+                            reportCount.textContent = data.status.relationships.report.toLocaleString();
+                            
+                            // Update constraints and indexes
+                            if (data.status.constraints && data.status.constraints.trim()) {
+                                displayCsvAsTable(data.status.constraints, constraintsOutput);
+                            } else {
+                                constraintsOutput.textContent = 'No constraints found';
+                            }
+                            
+                            if (data.status.indexes && data.status.indexes.trim()) {
+                                displayCsvAsTable(data.status.indexes, indexesOutput);
+                            } else {
+                                indexesOutput.textContent = 'No indexes found';
+                            }
+                        } else {
+                            neo4jServiceStatus.textContent = 'Neo4j Service: Not Running';
+                            neo4jServiceStatus.style.backgroundColor = '#f2dede';
+                            neo4jServiceStatus.style.color = '#a94442';
+                            
+                            // Reset statistics
+                            userCount.textContent = '-';
+                            followCount.textContent = '-';
+                            muteCount.textContent = '-';
+                            reportCount.textContent = '-';
+                            constraintsOutput.textContent = 'Neo4j service is not running';
+                            indexesOutput.textContent = 'Neo4j service is not running';
+                        }
+                    } else {
+                        neo4jStatus.className = 'status error';
+                        neo4jStatus.textContent = 'Error retrieving Neo4j status: ' + data.error;
+                    }
+                    checkNeo4jBtn.disabled = false;
+                })
+                .catch(error => {
+                    neo4jStatus.className = 'status error';
+                    neo4jStatus.textContent = 'Error retrieving Neo4j status: ' + error.message;
+                    checkNeo4jBtn.disabled = false;
+                });
+            });
+            
+            // Setup Constraints and Indexes Button
+            const setupConstraintsBtn = document.getElementById('setupConstraintsBtn');
+            const constraintsStatus = document.getElementById('constraintsStatus');
+            const constraintsSetupOutput = document.getElementById('constraintsSetupOutput');
+            
+            setupConstraintsBtn.addEventListener('click', function() {
+                setupConstraintsBtn.disabled = true;
+                constraintsStatus.style.display = 'block';
+                constraintsStatus.className = 'status info';
+                constraintsStatus.textContent = 'Setting up Neo4j constraints and indexes...';
+                constraintsSetupOutput.style.display = 'none';
+                
+                fetch('/control/api/neo4j-setup-constraints')
+                    .then(response => response.json())
+                    .then(data => {
+                        setupConstraintsBtn.disabled = false;
+                        if (data.success) {
+                            constraintsStatus.className = 'status success';
+                            constraintsStatus.textContent = 'Neo4j constraints and indexes set up successfully!';
+                            if (data.output) {
+                                constraintsSetupOutput.style.display = 'block';
+                                constraintsSetupOutput.textContent = data.output;
+                            }
+                        } else {
+                            constraintsStatus.className = 'status error';
+                            constraintsStatus.textContent = 'Error setting up Neo4j constraints and indexes: ' + data.error;
+                            if (data.output) {
+                                constraintsSetupOutput.style.display = 'block';
+                                constraintsSetupOutput.textContent = data.output;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        setupConstraintsBtn.disabled = false;
+                        constraintsStatus.className = 'status error';
+                        constraintsStatus.textContent = 'Error setting up Neo4j constraints and indexes: ' + error.message;
+                    });
+            });
+            
+            // Neo4j Service Control
+            const neo4jServiceTableBody = document.getElementById('neo4jServiceTableBody');
+            const neo4jServiceControlStatus = document.getElementById('neo4jServiceControlStatus');
+            
+            function loadNeo4jServiceStatus() {
+                fetch('/control/api/systemd-services?service=neo4j')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear the table
+                        neo4jServiceTableBody.innerHTML = '';
+                        
+                        if (data.services && 'neo4j' in data.services) {
+                            const status = data.services.neo4j;
+                            const row = createServiceRow('neo4j', status);
+                            neo4jServiceTableBody.appendChild(row);
+                        } else {
+                            const row = document.createElement('tr');
+                            const cell = document.createElement('td');
+                            cell.colSpan = 3;
+                            cell.textContent = 'Neo4j service information not available';
+                            cell.style.padding = '8px';
+                            cell.style.textAlign = 'center';
+                            row.appendChild(cell);
+                            neo4jServiceTableBody.appendChild(row);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading Neo4j service status:', error);
+                        neo4jServiceControlStatus.style.display = 'block';
+                        neo4jServiceControlStatus.className = 'status error';
+                        neo4jServiceControlStatus.textContent = 'Error loading Neo4j service status: ' + error.message;
+                    });
+            }
+            
+            function createServiceRow(service, status) {
+                const row = document.createElement('tr');
+                
+                // Service name cell
+                const nameCell = document.createElement('td');
+                nameCell.style.padding = '8px';
+                nameCell.style.borderBottom = '1px solid #ddd';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = service;
+                nameSpan.style.fontWeight = 'bold';
+                nameCell.appendChild(nameSpan);
+                
+                // Add description
+                const descSpan = document.createElement('div');
+                descSpan.textContent = 'Graph database for storing Nostr relationships';
+                descSpan.style.fontSize = '0.8em';
+                descSpan.style.color = '#666';
+                nameCell.appendChild(descSpan);
+                
+                row.appendChild(nameCell);
+                
+                // Status cell
+                const statusCell = document.createElement('td');
+                statusCell.style.padding = '8px';
+                statusCell.style.borderBottom = '1px solid #ddd';
+                statusCell.style.textAlign = 'center';
+                
+                const statusIndicator = document.createElement('span');
+                statusIndicator.textContent = status;
+                statusIndicator.style.padding = '4px 8px';
+                statusIndicator.style.borderRadius = '4px';
+                statusIndicator.style.fontWeight = 'bold';
+                
+                if (status === 'active') {
+                    statusIndicator.style.backgroundColor = '#2ecc71';
+                    statusIndicator.style.color = 'white';
+                } else {
+                    statusIndicator.style.backgroundColor = '#e74c3c';
+                    statusIndicator.style.color = 'white';
+                }
+                
+                statusCell.appendChild(statusIndicator);
+                row.appendChild(statusCell);
+                
+                // Actions cell
+                const actionsCell = document.createElement('td');
+                actionsCell.style.padding = '8px';
+                actionsCell.style.borderBottom = '1px solid #ddd';
+                actionsCell.style.textAlign = 'right';
+                
+                // Start button
+                const startBtn = document.createElement('button');
+                startBtn.className = 'button';
+                startBtn.style.backgroundColor = '#2ecc71';
+                startBtn.style.marginRight = '5px';
+                startBtn.style.padding = '5px 10px';
+                startBtn.textContent = 'Start';
+                startBtn.onclick = () => controlNeo4jService('start');
+                
+                // Stop button
+                const stopBtn = document.createElement('button');
+                stopBtn.className = 'button';
+                stopBtn.style.backgroundColor = '#e74c3c';
+                stopBtn.style.marginRight = '5px';
+                stopBtn.style.padding = '5px 10px';
+                stopBtn.textContent = 'Stop';
+                stopBtn.onclick = () => controlNeo4jService('stop');
+                
+                // Restart button
+                const restartBtn = document.createElement('button');
+                restartBtn.className = 'button';
+                restartBtn.style.backgroundColor = '#3498db';
+                restartBtn.style.padding = '5px 10px';
+                restartBtn.textContent = 'Restart';
+                restartBtn.onclick = () => controlNeo4jService('restart');
+                
+                actionsCell.appendChild(startBtn);
+                actionsCell.appendChild(stopBtn);
+                actionsCell.appendChild(restartBtn);
+                row.appendChild(actionsCell);
+                
+                return row;
+            }
+            
+            function controlNeo4jService(action) {
+                neo4jServiceControlStatus.style.display = 'block';
+                neo4jServiceControlStatus.className = 'status info';
+                neo4jServiceControlStatus.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)}ing Neo4j service...`;
+                
+                fetch(`/control/api/systemd-services?service=neo4j&action=${action}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            neo4jServiceControlStatus.className = 'status success';
+                            neo4jServiceControlStatus.textContent = data.message;
+                            // Reload service status after a short delay
+                            setTimeout(loadNeo4jServiceStatus, 1000);
+                        } else {
+                            neo4jServiceControlStatus.className = 'status error';
+                            neo4jServiceControlStatus.textContent = data.message;
+                        }
+                    })
+                    .catch(error => {
+                        neo4jServiceControlStatus.className = 'status error';
+                        neo4jServiceControlStatus.textContent = 'Error controlling Neo4j service: ' + error.message;
+                    });
+            }
+            
+            // Function to parse CSV and display as table
+            function displayCsvAsTable(csvString, targetElement) {
+                // Clear previous content
+                targetElement.innerHTML = '';
+                
+                // Parse CSV
+                const lines = csvString.trim().split('\n');
+                if (lines.length < 2) {
+                    targetElement.textContent = 'No data available';
+                    return;
+                }
+                
+                // Create table
+                const table = document.createElement('table');
+                table.style.width = '100%';
+                table.style.borderCollapse = 'collapse';
+                table.style.fontSize = '0.9em';
+                
+                // Create header row
+                const headers = lines[0].split(',').map(header => header.trim());
+                const headerRow = document.createElement('tr');
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    th.style.padding = '6px';
+                    th.style.backgroundColor = '#f2f2f2';
+                    th.style.borderBottom = '1px solid #ddd';
+                    th.style.textAlign = 'left';
+                    headerRow.appendChild(th);
+                });
+                table.appendChild(headerRow);
+                
+                // Create data rows
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    
+                    const dataRow = document.createElement('tr');
+                    const cells = lines[i].split(',').map(cell => cell.trim());
+                    
+                    cells.forEach(cell => {
+                        const td = document.createElement('td');
+                        td.textContent = cell;
+                        td.style.padding = '4px 6px';
+                        td.style.borderBottom = '1px solid #ddd';
+                        dataRow.appendChild(td);
+                    });
+                    
+                    table.appendChild(dataRow);
+                }
+                
+                targetElement.appendChild(table);
+            }
+            
+            // Load Neo4j service status on page load
+            loadNeo4jServiceStatus();
+            
+            // Check Neo4j status on page load
+            checkNeo4jBtn.click();
+        });
+    </script>
+</body>
+</html>

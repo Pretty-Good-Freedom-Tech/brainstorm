@@ -203,6 +203,11 @@ app.get('/api/strfry-stats', handleStrfryStats);
 
 // API endpoint to get Neo4j status information
 app.get('/api/neo4j-status', handleNeo4jStatus);
+app.get('/control/api/neo4j-status', handleNeo4jStatus);
+
+// API endpoint for setting up Neo4j constraints and indexes
+app.get('/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
+app.get('/control/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 
 // API endpoint for Negentropy sync
 app.post('/api/negentropy-sync', handleNegentropySync);
@@ -445,16 +450,10 @@ function handleNeo4jStatus(req, res) {
                         // Get constraints
                         executeCypher('SHOW CONSTRAINTS;', (output) => {
                             neo4jStatus.constraints = output
-                                .split('\n')
-                                .filter(line => line.includes('|'))
-                                .map(line => line.trim());
                             
                             // Get indexes
                             executeCypher('SHOW INDEXES;', (output) => {
                                 neo4jStatus.indexes = output
-                                    .split('\n')
-                                    .filter(line => line.includes('|'))
-                                    .map(line => line.trim());
                                 
                                 // Return the final result
                                 res.json({
@@ -2471,6 +2470,57 @@ function handleGenerateBlacklist(req, res) {
     // Log when the process starts
     child.on('spawn', () => {
         console.log('Blacklist calculation process started');
+    });
+}
+
+// Handler for setting up Neo4j constraints and indexes
+function handleNeo4jSetupConstraints(req, res) {
+    console.log('Setting up Neo4j constraints and indexes...');
+    
+    // Check authentication for write operations
+    if (req.method !== 'GET' && (!req.session || !req.session.authenticated)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Authentication required for this operation'
+        });
+    }
+    
+    // Execute the setup script
+    const setupScript = path.join(__dirname, '..', 'setup', 'neo4jConstraintsAndIndexes.sh');
+    
+    // Check if the script exists
+    if (!fs.existsSync(setupScript)) {
+        return res.status(404).json({
+            success: false,
+            error: 'Setup script not found',
+            output: `Script not found at: ${setupScript}`
+        });
+    }
+    
+    // Make the script executable
+    try {
+        fs.chmodSync(setupScript, '755');
+    } catch (error) {
+        console.error('Error making script executable:', error);
+    }
+    
+    // Execute the script
+    exec(setupScript, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing Neo4j constraints setup: ${error.message}`);
+            return res.json({
+                success: false,
+                error: error.message,
+                output: stdout + '\n' + stderr
+            });
+        }
+        
+        console.log('Neo4j constraints and indexes set up successfully');
+        res.json({
+            success: true,
+            message: 'Neo4j constraints and indexes set up successfully',
+            output: stdout
+        });
     });
 }
 

@@ -298,9 +298,9 @@
                         </tr>
                     </table>
                     <h4>Constraints</h4>
-                    <pre id="constraintsOutput" style="max-height: 150px; overflow-y: auto;"></pre>
+                    <div id="constraintsOutput" style="max-height: 150px; overflow-y: auto;"></div>
                     <h4>Indexes</h4>
-                    <pre id="indexesOutput" style="max-height: 150px; overflow-y: auto;"></pre>
+                    <div id="indexesOutput" style="max-height: 150px; overflow-y: auto;"></div>
                 </div>
             </div>
         </div>
@@ -725,15 +725,11 @@
                 fetch(`/control/api/systemd-services?service=${service}&action=${action}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.success) {
-                            servicesStatus.className = 'status success';
-                            servicesStatus.textContent = data.message;
-                            // Reload service statuses after a short delay
-                            setTimeout(loadServiceStatus, 1000);
-                        } else {
-                            servicesStatus.className = 'status error';
-                            servicesStatus.textContent = data.message;
-                        }
+                        refreshServicesBtn.disabled = false;
+                        servicesStatus.style.display = 'none';
+                        
+                        // Reload service statuses after a short delay
+                        setTimeout(loadServiceStatus, 1000);
                     })
                     .catch(error => {
                         servicesStatus.className = 'status error';
@@ -852,8 +848,21 @@
                             reportCount.textContent = data.status.relationships.report.toLocaleString();
                             
                             // Update constraints and indexes
-                            constraintsOutput.textContent = data.status.constraints.join('\n') || 'No constraints found';
-                            indexesOutput.textContent = data.status.indexes.join('\n') || 'No indexes found';
+                            if (data.status.constraints && typeof data.status.constraints === 'string' && data.status.constraints.trim()) {
+                                displayCsvAsTable(data.status.constraints, constraintsOutput);
+                            } else if (Array.isArray(data.status.constraints) && data.status.constraints.length > 0) {
+                                constraintsOutput.textContent = data.status.constraints.join('\n');
+                            } else {
+                                constraintsOutput.textContent = 'No constraints found';
+                            }
+                            
+                            if (data.status.indexes && typeof data.status.indexes === 'string' && data.status.indexes.trim()) {
+                                displayCsvAsTable(data.status.indexes, indexesOutput);
+                            } else if (Array.isArray(data.status.indexes) && data.status.indexes.length > 0) {
+                                indexesOutput.textContent = data.status.indexes.join('\n');
+                            } else {
+                                indexesOutput.textContent = 'No indexes found';
+                            }
                         } else {
                             neo4jServiceStatus.textContent = 'Neo4j Service: Not Running';
                             neo4jServiceStatus.style.backgroundColor = '#f2dede';
@@ -879,6 +888,59 @@
                     checkNeo4jBtn.disabled = false;
                 });
             });
+            
+            // Function to parse CSV and display as table
+            function displayCsvAsTable(csvString, targetElement) {
+                // Clear previous content
+                targetElement.innerHTML = '';
+                
+                // Parse CSV
+                const lines = csvString.trim().split('\n');
+                if (lines.length < 2) {
+                    targetElement.textContent = 'No data available';
+                    return;
+                }
+                
+                // Create table
+                const table = document.createElement('table');
+                table.style.width = '100%';
+                table.style.borderCollapse = 'collapse';
+                table.style.fontSize = '0.9em';
+                
+                // Create header row
+                const headers = lines[0].split(',').map(header => header.trim());
+                const headerRow = document.createElement('tr');
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    th.style.padding = '6px';
+                    th.style.backgroundColor = '#f2f2f2';
+                    th.style.borderBottom = '1px solid #ddd';
+                    th.style.textAlign = 'left';
+                    headerRow.appendChild(th);
+                });
+                table.appendChild(headerRow);
+                
+                // Create data rows
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    
+                    const dataRow = document.createElement('tr');
+                    const cells = lines[i].split(',').map(cell => cell.trim());
+                    
+                    cells.forEach(cell => {
+                        const td = document.createElement('td');
+                        td.textContent = cell;
+                        td.style.padding = '4px 6px';
+                        td.style.borderBottom = '1px solid #ddd';
+                        dataRow.appendChild(td);
+                    });
+                    
+                    table.appendChild(dataRow);
+                }
+                
+                targetElement.appendChild(table);
+            }
             
             // Generate Data Button
             const generateBtn = document.getElementById('generateBtn');
