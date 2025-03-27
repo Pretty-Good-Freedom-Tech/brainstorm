@@ -94,11 +94,10 @@ app.use(session({
 
 // Parse JSON request bodies
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public directory
-// The /control prefix is important for nginx reverse proxy
-app.use('/control', express.static(PUBLIC_DIR));
-// Also serve static files without the /control prefix for direct access
+// IMPORTANT: With nginx stripping the /control/ prefix, we need to serve files at the root
 app.use(express.static(PUBLIC_DIR));
 
 // Helper function to serve HTML files
@@ -114,218 +113,86 @@ function serveHtmlFile(filename, res) {
     });
 }
 
-// Serve the HTML files
+// Serve the HTML files - these routes handle the stripped /control/ prefix
 app.get('/', (req, res) => {
     serveHtmlFile('index.html', res);
 });
 
-app.get('/control', (req, res) => {
+app.get('/index.html', (req, res) => {
     serveHtmlFile('index.html', res);
 });
 
-app.get('/control/control-panel.html', (req, res) => {
+app.get('/control-panel.html', (req, res) => {
     serveHtmlFile('control-panel.html', res);
 });
 
-app.get('/control/profiles', (req, res) => {
+app.get('/profiles-control-panel.html', (req, res) => {
     serveHtmlFile('profiles-control-panel.html', res);
 });
 
-app.get('/control/profile.html', (req, res) => {
+app.get('/profile.html', (req, res) => {
     serveHtmlFile('profile.html', res);
 });
 
-app.get('/control/nip85-control-panel.html', (req, res) => {
+app.get('/nip85-control-panel.html', (req, res) => {
     serveHtmlFile('nip85-control-panel.html', res);
 });
 
-app.get('/control/neo4j-control-panel.html', (req, res) => {
+app.get('/neo4j-control-panel.html', (req, res) => {
     serveHtmlFile('neo4j-control-panel.html', res);
 });
 
-app.get('/control/graperank-control-panel.html', (req, res) => {
+app.get('/graperank-control-panel.html', (req, res) => {
     serveHtmlFile('graperank-control-panel.html', res);
 });
 
-app.get('/control/blacklist-control-panel.html', (req, res) => {
+app.get('/blacklist-control-panel.html', (req, res) => {
     serveHtmlFile('blacklist-control-panel.html', res);
 });
 
 // For backward compatibility, redirect old URLs to new ones
-app.get('/control-panel.html', (req, res) => {
-    res.redirect('/control/control-panel.html');
-});
-
-app.get('/nip85-control-panel.html', (req, res) => {
-    res.redirect('/control/nip85-control-panel.html');
-});
-
-app.get('/sign-in.html', (req, res) => {
-    res.redirect('/control/sign-in.html');
+app.get('/index.html', (req, res) => {
+    res.redirect('/control-panel.html');
 });
 
 // Authentication middleware
-const authMiddleware = (req, res, next) => {
-    // Skip auth for static resources, sign-in page and auth-related endpoints
-    if (req.path === '/sign-in.html' || 
-        req.path === '/index.html' ||
-        req.path.startsWith('/api/auth/') ||
-        req.path === '/' || 
-        req.path === '/control-panel.html' ||
-        req.path === '/nip85-control-panel.html' ||
-        !req.path.startsWith('/api/')) {
+function authMiddleware(req, res, next) {
+    // Skip authentication for status check and login endpoints
+    if (req.path === '/api/auth/status' || 
+        req.path === '/api/auth/login' || 
+        req.path === '/api/auth/verify' ||
+        req.path === '/api/status' ||
+        req.path === '/api/config') {
         return next();
     }
     
-    // Check if user is authenticated for API calls
-    if (req.session && req.session.authenticated) {
-        return next();
-    } else {
-        // For API calls that modify data, return unauthorized status
-        const writeEndpoints = [
-            '/bulk-transfer',
-            '/generate',
-            '/publish',
-            '/negentropy-sync',
-            '/strfry-plugin',
-            '/create-kind10040',
-            '/publish-kind10040',
-            '/publish-kind30382'
-        ];
-        
-        // Check if the current path is a write endpoint
-        const isWriteEndpoint = writeEndpoints.some(endpoint => 
-            req.path.includes(endpoint) && (req.method === 'POST' || req.path.includes('?action=enable') || req.path.includes('?action=disable'))
-        );
-        
-        if (isWriteEndpoint) {
-            return res.status(401).json({ error: 'Authentication required for this action' });
-        }
-        
-        // Allow read-only API access
-        return next();
+    // Check if user is authenticated
+    if (!req.session.authenticated && req.path.startsWith('/api/')) {
+        // For API endpoints, return 401 Unauthorized
+        return res.status(401).json({ 
+            success: false, 
+            message: 'Authentication required' 
+        });
     }
-};
+    
+    // Allow read-only access to pages without authentication
+    next();
+}
 
 // Apply auth middleware
 app.use(authMiddleware);
 
-// Define API routes
-
-// API endpoint to check system status
-app.get('/api/status', handleStatus);
-
-// API endpoint to get strfry event statistics
-app.get('/api/strfry-stats', handleStrfryStats);
-
-// API endpoint to get Neo4j status information
-app.get('/api/neo4j-status', handleNeo4jStatus);
-app.get('/control/api/neo4j-status', handleNeo4jStatus);
-
-// API endpoint for setting up Neo4j constraints and indexes
-app.get('/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
-app.get('/control/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
-
-// API endpoint for Negentropy sync
-app.post('/api/negentropy-sync', handleNegentropySync);
-
-// API endpoint to generate NIP-85 data
-app.get('/api/generate', handleGenerate);
-app.post('/api/generate', handleGenerate);
-app.get('/control/api/generate-pagerank', handleGenerate);
-app.post('/control/api/generate-pagerank', handleGenerate);
-
-// API endpoint to generate GrapeRank data
-app.get('/api/generate-graperank', handleGenerateGrapeRank);
-app.post('/api/generate-graperank', handleGenerateGrapeRank);
-app.get('/control/api/generate-graperank', handleGenerateGrapeRank);
-app.post('/control/api/generate-graperank', handleGenerateGrapeRank);
-
-// API endpoint to publish NIP-85 events
-app.get('/api/publish', handlePublish);
-app.post('/api/publish', handlePublish);
-
-// API endpoint for systemd services management
-app.get('/api/systemd-services', handleSystemdServices);
-app.get('/control/api/systemd-services', handleSystemdServices);
-
-// API endpoint for strfry plugin management
-app.get('/api/strfry-plugin', handleStrfryPlugin);
-app.get('/control/api/strfry-plugin', handleStrfryPlugin);
-
-// API endpoint for bulk transfer
-app.post('/api/bulk-transfer', handleBulkTransfer);
-app.post('/control/api/bulk-transfer', handleBulkTransfer);
-
-// API endpoint to create kind 10040 events
-app.post('/api/create-kind10040', handleCreateKind10040);
-
-// API endpoint to get unsigned kind 10040 event
-app.get('/api/get-kind10040-event', handleGetKind10040Event);
-
-// API endpoint to publish kind 10040 events
-app.post('/api/publish-kind10040', handlePublishKind10040);
-
-// API endpoint to publish kind 30382 events
-app.post('/api/publish-kind30382', handlePublishKind30382);
-
-// API endpoint for getting relay configuration
-app.get('/api/relay-config', handleRelayConfig);
-
-// API endpoint for getting kind 30382 event information
-app.get('/api/kind30382-info', handleKind30382Info);
-
-// API endpoint for getting kind 10040 event information
-app.get('/api/kind10040-info', handleKind10040Info);
-
-// API endpoint for getting NostrUser profiles data from Neo4j
-app.get('/api/get-profiles', handleGetProfiles);
-
-// API endpoint for getting individual user data from Neo4j
-app.get('/api/get-user-data', handleGetUserData);
-
-// API endpoint for getting network proximity data
-app.get('/api/get-network-proximity', handleGetNetworkProximity);
-
-// API endpoint for getting kind 0 events from the nostr network
-app.get('/api/get-kind0', handleGetKind0Event);
-
-// GrapeRank configuration endpoints
-app.get('/api/graperank-config', handleGetGrapeRankConfig);
-app.post('/api/graperank-config', handleUpdateGrapeRankConfig);
-app.get('/control/api/graperank-config', handleGetGrapeRankConfig);
-app.post('/control/api/graperank-config', handleUpdateGrapeRankConfig);
-
-// Blacklist Configuration API Endpoints
-app.get('/api/blacklist-config', handleGetBlacklistConfig);
-app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
-app.get('/api/generate-blacklist', handleGenerateBlacklist);
-
-// Authentication endpoints
+// Define API routes - with nginx stripping the /control/ prefix
+app.get('/api/auth/status', handleAuthStatus);
 app.post('/api/auth/verify', handleAuthVerify);
 app.post('/api/auth/login', handleAuthLogin);
-
-// API endpoint for checking authentication status
-app.get('/api/auth/status', (req, res) => {
-    if (req.session && req.session.authenticated) {
-        res.json({
-            authenticated: true,
-            pubkey: req.session.pubkey
-        });
-    } else {
-        res.json({
-            authenticated: false
-        });
-    }
-});
-app.get('/api/auth/logout', handleAuthLogout);
-app.get('/control/api/auth/logout', handleAuthLogout);
+app.post('/api/auth/logout', handleAuthLogout);
 
 // Client-side configuration endpoint
-app.get('/control/api/config', (req, res) => {
+app.get('/api/config', (req, res) => {
     // Only share safe configuration values (no secrets)
     const clientConfig = {
-        baseUrl: config.web ? config.web.url : '/',
+        baseUrl: config.web ? config.web.baseUrl : '/',
         relay: {
             url: config.relay ? config.relay.url : null,
             pubkey: config.relay ? config.relay.pubkey : null
@@ -335,6 +202,52 @@ app.get('/control/api/config', (req, res) => {
     
     res.json(clientConfig);
 });
+
+// Status and monitoring endpoints
+app.get('/api/status', handleStatus);
+app.get('/api/strfry-stats', handleStrfryStats);
+app.get('/api/neo4j-status', handleNeo4jStatus);
+app.get('/api/negentropy-sync', handleNegentropySync);
+
+// NIP-85 endpoints
+app.post('/api/generate', handleGenerate);
+app.post('/api/generate-graperank', handleGenerateGrapeRank);
+app.post('/api/publish', handlePublish);
+
+// System control endpoints
+app.get('/api/systemd-services', handleSystemdServices);
+app.post('/api/systemd-services', handleSystemdServices);
+app.post('/api/strfry-plugin', handleStrfryPlugin);
+app.post('/api/bulk-transfer', handleBulkTransfer);
+
+// Kind 10040 endpoints
+app.post('/api/create-kind10040', handleCreateKind10040);
+app.get('/api/get-kind10040-event', handleGetKind10040Event);
+app.post('/api/publish-kind10040', handlePublishKind10040);
+app.get('/api/kind10040-info', handleKind10040Info);
+
+// Kind 30382 endpoints
+app.post('/api/publish-kind30382', handlePublishKind30382);
+app.get('/api/kind30382-info', handleKind30382Info);
+
+// Relay configuration endpoint
+app.get('/api/relay-config', handleRelayConfig);
+
+// Profile and user data endpoints
+app.get('/api/profiles', handleGetProfiles);
+app.get('/api/user-data', handleGetUserData);
+app.get('/api/network-proximity', handleGetNetworkProximity);
+app.get('/api/kind0-event', handleGetKind0Event);
+
+// GrapeRank and blacklist configuration endpoints
+app.get('/api/graperank-config', handleGetGrapeRankConfig);
+app.post('/api/graperank-config', handleUpdateGrapeRankConfig);
+app.get('/api/blacklist-config', handleGetBlacklistConfig);
+app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
+app.post('/api/generate-blacklist', handleGenerateBlacklist);
+
+// Neo4j setup endpoint
+app.post('/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {

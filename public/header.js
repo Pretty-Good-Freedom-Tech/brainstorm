@@ -35,13 +35,9 @@ function initializeHeader() {
     const signInLink = document.getElementById('signInLink');
     const relayLink = document.getElementById('relayLink');
 
-    // Determine the base URL for API calls
-    const baseApiUrl = window.location.pathname.includes('/control/') ? '/control' : '';
-
     // Check authentication status
-    fetch(`${baseApiUrl}/api/auth/status`)
+    fetch('/api/auth/status')
         .then(response => response.json())
-        .catch(() => fetch(`${baseApiUrl}/api/auth/status`).then(response => response.json()))
         .then(data => {
             if (data && data.authenticated) {
                 // User is authenticated
@@ -75,7 +71,7 @@ function initializeHeader() {
                 }
                 
                 // Fall back to API call if config doesn't have relay URL
-                return fetch(`${baseApiUrl}/api/status`)
+                return fetch('/api/status')
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.strfryDomain) {
@@ -91,7 +87,7 @@ function initializeHeader() {
             .catch(error => {
                 // Fall back to API call if config loading fails
                 console.warn('Failed to load config, falling back to API:', error);
-                fetch(`${baseApiUrl}/api/status`)
+                fetch('/api/status')
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.strfryDomain) {
