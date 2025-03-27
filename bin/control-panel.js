@@ -84,20 +84,22 @@ function getNeo4jConnection() {
 const app = express();
 const port = config.web ? config.web.port : (process.env.CONTROL_PANEL_PORT || 7778);
 
-// Middleware
+// Configure session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'hasenpfeffr-secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}));
+
+// Parse JSON request bodies
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public directory
+// The /control prefix is important for nginx reverse proxy
+app.use('/control', express.static(PUBLIC_DIR));
+// Also serve static files without the /control prefix for direct access
 app.use(express.static(PUBLIC_DIR));
-
-// Session middleware
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'hasenpfeffr-secret',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
-}));
 
 // Helper function to serve HTML files
 function serveHtmlFile(filename, res) {
@@ -118,28 +120,40 @@ app.get('/', (req, res) => {
 });
 
 app.get('/control', (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'nip85-control-panel.html'));
+    serveHtmlFile('index.html', res);
+});
+
+app.get('/control/control-panel.html', (req, res) => {
+    serveHtmlFile('control-panel.html', res);
 });
 
 app.get('/control/profiles', (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'profiles-control-panel.html'));
+    serveHtmlFile('profiles-control-panel.html', res);
 });
 
 app.get('/control/profile.html', (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'profile.html'));
+    serveHtmlFile('profile.html', res);
 });
 
 app.get('/control/nip85-control-panel.html', (req, res) => {
-    serveHtmlFile('control/nip85-control-panel.html', res);
+    serveHtmlFile('nip85-control-panel.html', res);
 });
 
-app.get('/control/sign-in.html', (req, res) => {
-    serveHtmlFile('control/sign-in.html', res);
+app.get('/control/neo4j-control-panel.html', (req, res) => {
+    serveHtmlFile('neo4j-control-panel.html', res);
+});
+
+app.get('/control/graperank-control-panel.html', (req, res) => {
+    serveHtmlFile('graperank-control-panel.html', res);
+});
+
+app.get('/control/blacklist-control-panel.html', (req, res) => {
+    serveHtmlFile('blacklist-control-panel.html', res);
 });
 
 // For backward compatibility, redirect old URLs to new ones
 app.get('/control-panel.html', (req, res) => {
-    res.redirect('/control/nip85-control-panel.html');
+    res.redirect('/control/control-panel.html');
 });
 
 app.get('/nip85-control-panel.html', (req, res) => {
