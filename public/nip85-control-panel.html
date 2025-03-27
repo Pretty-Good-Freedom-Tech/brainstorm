@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIP-85 Control Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/nostr-tools/lib/nostr.bundle.min.js"></script>
+    <script src="/header.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -160,6 +161,9 @@
     </style>
 </head>
 <body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
     <div class="container">
         <div class="nav">
             <h1>NIP-85 Control Panel</h1>
@@ -277,6 +281,18 @@
     </div>
 
     <script>
+        // Load the header component
+        fetch('/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+            
         document.addEventListener('DOMContentLoaded', function() {
             // Kind 30382 Event Management
             const publishKind30382Btn = document.getElementById('publishKind30382Btn');

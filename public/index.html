@@ -18,54 +18,6 @@
             margin: 0 auto;
             padding: 20px;
         }
-        .header {
-            background-color: #333;
-            color: #fff;
-            padding: 20px;
-        }
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .auth-status {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .user-info {
-            display: none;
-            align-items: center;
-            gap: 10px;
-        }
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #555;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #3498db;
-            color: #fff !important;
-            border: none;
-            padding: 10px 20px;
-            margin: 10px 0;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-        }
-        .btn:hover {
-            background-color: #2980b9;
-        }
         .card {
             background-color: #fff;
             border-radius: 5px;
@@ -113,21 +65,11 @@
             text-decoration: underline;
         }
     </style>
+    <script src="/header.js"></script>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1>Hasenpfeffr</h1>
-            <div class="auth-status">
-                <div id="userInfo" class="user-info">
-                    <div class="user-avatar" id="userAvatar"></div>
-                    <span id="userName">Authenticated</span>
-                    <a href="/control/sign-in.html?logout=true" class="btn">Logout</a>
-                </div>
-                <a href="/control/sign-in.html" id="signInLink" class="btn">Sign In</a>
-            </div>
-        </div>
-    </div>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
 
     <div class="container">
         <div class="card">
@@ -181,59 +123,17 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const userInfo = document.getElementById('userInfo');
-            const userAvatar = document.getElementById('userAvatar');
-            const userName = document.getElementById('userName');
-            const signInLink = document.getElementById('signInLink');
-            const relayLink = document.getElementById('relayLink');
-
-            // Check authentication status
-            fetch('/control/api/auth/status')
-                .then(response => response.json())
-                .catch(() => fetch('/control/api/auth/status').then(response => response.json()))
-                .then(data => {
-                    if (data && data.authenticated) {
-                        // User is authenticated
-                        userInfo.style.display = 'flex';
-                        signInLink.style.display = 'none';
-                        
-                        // Set user avatar with first letter of pubkey
-                        if (data.pubkey) {
-                            userAvatar.textContent = data.pubkey.substring(0, 1).toUpperCase();
-                            userName.textContent = `${data.pubkey.substring(0, 8)}...`;
-                        }
-                    } else {
-                        // User is not authenticated
-                        userInfo.style.display = 'none';
-                        signInLink.style.display = 'inline-block';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking authentication status:', error);
-                });
-
-            // Set up the relay link with the correct domain
-            if (relayLink) {
-                fetch('/control/api/status')
-                    .then(response => response.json())
-                    .catch(() => fetch('/control/api/status').then(response => response.json()))
-                    .then(data => {
-                        if (data && data.strfryDomain) {
-                            // Set the relay link to the /strfry/ path
-                            let domain = data.strfryDomain;
-                            if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
-                                domain = 'https://' + domain;
-                            }
-                            relayLink.href = `${domain}/strfry/`;
-                            console.log('Set relay link to:', `${domain}/strfry/`);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching STRFRY_DOMAIN:', error);
-                    });
-            }
-        });
+        // Load the header component
+        fetch('/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
     </script>
 </body>
 </html>

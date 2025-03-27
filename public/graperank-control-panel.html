@@ -169,8 +169,12 @@
             display: block;
         }
     </style>
+    <script src="/header.js"></script>
 </head>
 <body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
     <div class="container">
         <div class="nav">
             <h1>GrapeRank Control Panel</h1>
@@ -301,6 +305,18 @@
     </div>
 
     <script>
+        // Load the header component
+        fetch('/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+            
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
             const saveConfigBtn = document.getElementById('saveConfigBtn');

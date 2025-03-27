@@ -1,0 +1,66 @@
+<!-- Hasenpfeffr Header Component -->
+<div class="header">
+    <div class="header-content">
+        <h1>Hasenpfeffr</h1>
+        <div class="auth-status">
+            <div id="userInfo" class="user-info">
+                <div class="user-avatar" id="userAvatar"></div>
+                <span id="userName">Authenticated</span>
+                <a href="/control/sign-in.html?logout=true" class="btn">Logout</a>
+            </div>
+            <a href="/control/sign-in.html" id="signInLink" class="btn">Sign In</a>
+        </div>
+    </div>
+</div>
+
+<!-- Header Styles -->
+<style>
+    .header {
+        background-color: #333;
+        color: #fff;
+        padding: 20px;
+    }
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .auth-status {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .user-info {
+        display: none;
+        align-items: center;
+        gap: 10px;
+    }
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #555;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+    }
+    .btn {
+        display: inline-block;
+        background-color: #3498db;
+        color: #fff !important;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px 0;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        text-decoration: none;
+    }
+    .btn:hover {
+        background-color: #2980b9;
+    }
+</style>

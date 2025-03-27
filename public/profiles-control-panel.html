@@ -241,8 +241,12 @@
             color: #23527c;
         }
     </style>
+    <script src="/header.js"></script>
 </head>
 <body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
     <div class="container">
         <div class="header">
             <h1>Nostr User Profiles</h1>
@@ -348,65 +352,77 @@
     </div>
     
     <script>
-        // State management
-        const state = {
-            profiles: [],
-            pagination: {
-                total: 0,
-                page: 1,
-                limit: 100,
-                pages: 0
-            },
-            filters: {
-                pubkey: '',
-                minHops: '',
-                maxHops: '',
-                minRank: '',
-                maxRank: '',
-                minInfluence: '',
-                maxInfluence: '',
-                minAverage: '',
-                maxAverage: '',
-                minConfidence: '',
-                maxConfidence: '',
-                minInput: '',
-                maxInput: ''
-            },
-            sorting: {
-                column: 'personalizedPageRank',
-                order: 'desc'
-            }
-        };
-        
-        // DOM Elements
-        const tableBody = document.getElementById('profilesTableBody');
-        const profilesTable = document.getElementById('profilesTable');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const paginationContainer = document.getElementById('paginationContainer');
-        const statusMessage = document.getElementById('statusMessage');
-        
-        // Filter elements
-        const filterPubkey = document.getElementById('filterPubkey');
-        const filterMinHops = document.getElementById('filterMinHops');
-        const filterMaxHops = document.getElementById('filterMaxHops');
-        const filterMinRank = document.getElementById('filterMinRank');
-        const filterMaxRank = document.getElementById('filterMaxRank');
-        const filterMinInfluence = document.getElementById('filterMinInfluence');
-        const filterMaxInfluence = document.getElementById('filterMaxInfluence');
-        const filterMinAverage = document.getElementById('filterMinAverage');
-        const filterMaxAverage = document.getElementById('filterMaxAverage');
-        const filterMinConfidence = document.getElementById('filterMinConfidence');
-        const filterMaxConfidence = document.getElementById('filterMaxConfidence');
-        const filterMinInput = document.getElementById('filterMinInput');
-        const filterMaxInput = document.getElementById('filterMaxInput');
-        const limitSelect = document.getElementById('limitSelect');
-        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-        const refreshBtn = document.getElementById('refreshBtn');
-        const exportCsvBtn = document.getElementById('exportCsvBtn');
-        
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', () => {
+        // Load the header component
+        fetch('/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+            
+        document.addEventListener('DOMContentLoaded', function() {
+            // State management
+            const state = {
+                profiles: [],
+                pagination: {
+                    total: 0,
+                    page: 1,
+                    limit: 100,
+                    pages: 0
+                },
+                filters: {
+                    pubkey: '',
+                    minHops: '',
+                    maxHops: '',
+                    minRank: '',
+                    maxRank: '',
+                    minInfluence: '',
+                    maxInfluence: '',
+                    minAverage: '',
+                    maxAverage: '',
+                    minConfidence: '',
+                    maxConfidence: '',
+                    minInput: '',
+                    maxInput: ''
+                },
+                sorting: {
+                    column: 'personalizedPageRank',
+                    order: 'desc'
+                }
+            };
+            
+            // DOM Elements
+            const tableBody = document.getElementById('profilesTableBody');
+            const profilesTable = document.getElementById('profilesTable');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const paginationContainer = document.getElementById('paginationContainer');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Filter elements
+            const filterPubkey = document.getElementById('filterPubkey');
+            const filterMinHops = document.getElementById('filterMinHops');
+            const filterMaxHops = document.getElementById('filterMaxHops');
+            const filterMinRank = document.getElementById('filterMinRank');
+            const filterMaxRank = document.getElementById('filterMaxRank');
+            const filterMinInfluence = document.getElementById('filterMinInfluence');
+            const filterMaxInfluence = document.getElementById('filterMaxInfluence');
+            const filterMinAverage = document.getElementById('filterMinAverage');
+            const filterMaxAverage = document.getElementById('filterMaxAverage');
+            const filterMinConfidence = document.getElementById('filterMinConfidence');
+            const filterMaxConfidence = document.getElementById('filterMaxConfidence');
+            const filterMinInput = document.getElementById('filterMinInput');
+            const filterMaxInput = document.getElementById('filterMaxInput');
+            const limitSelect = document.getElementById('limitSelect');
+            const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            
+            // Initialize the page
             // Set up event listeners
             setupEventListeners();
             

@@ -118,8 +118,12 @@
             text-decoration: underline;
         }
     </style>
+    <script src="/header.js"></script>
 </head>
 <body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
     <div class="container">
         <div class="nav">
             <h1>Hasenpfeffr Control Panel</h1>
@@ -375,6 +379,18 @@
     </div>
 
     <script>
+        // Load the header component
+        fetch('/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+            
         document.addEventListener('DOMContentLoaded', function() {
             // Set up the relay link with the correct domain from the server
             const relayLink = document.getElementById('relayLink');
