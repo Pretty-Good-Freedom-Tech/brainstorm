@@ -17,6 +17,9 @@ function initializeHeader() {
         .then(data => {
             if (data && data.authenticated) {
                 // User is authenticated
+                if (!userInfo.getAttribute('style')) {
+                    userInfo.style = {};
+                }
                 userInfo.style.display = 'flex';
                 signInLink.style.display = 'none';
                 

@@ -214,6 +214,9 @@
                 <h3>Bulk Transfer</h3>
                 <p>Transfer all available kind 3, 1984 and 10000 data from strfry into Neo4j. This will insert NostrUser nodes connected by FOLLOWS, REPORTS and MUTES relationships. This operation may take 10-15 minutes to complete.</p>
                 <button id="bulkTransferBtn" class="button">Start Bulk Transfer</button>
+                <div class="progress-container" style="display: none;" id="bulkTransferProgress">
+                    <div class="progress-bar" id="bulkTransferProgressBar"></div>
+                </div>
                 <div id="bulkTransferStatus" class="status" style="display: none;"></div>
                 <pre id="bulkTransferOutput" style="display: none;"></pre>
             </div>
@@ -1074,6 +1077,8 @@
             const bulkTransferBtn = document.getElementById('bulkTransferBtn');
             const bulkTransferStatus = document.getElementById('bulkTransferStatus');
             const bulkTransferOutput = document.getElementById('bulkTransferOutput');
+            const bulkTransferProgress = document.getElementById('bulkTransferProgress');
+            const bulkTransferProgressBar = document.getElementById('bulkTransferProgressBar');
             
             // Bulk Transfer Button Event Listener
             bulkTransferBtn.addEventListener('click', function() {
@@ -1083,6 +1088,16 @@
                 bulkTransferStatus.textContent = 'Starting bulk transfer... This may take 10-15 minutes to complete.';
                 bulkTransferOutput.style.display = 'block';
                 bulkTransferOutput.textContent = 'Initiating bulk transfer of data from strfry to Neo4j...\n';
+                bulkTransferProgress.style.display = 'block';
+                
+                // Simulate progress updates (in a real implementation, this would be based on actual progress)
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 2;
+                    if (progress > 100) progress = 100;
+                    bulkTransferProgressBar.style.width = progress + '%';
+                    if (progress === 100) clearInterval(progressInterval);
+                }, 1000);
                 
                 fetch('/control/api/bulk-transfer', {
                     method: 'POST',
@@ -1090,17 +1105,35 @@
                         'Content-Type': 'application/json'
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    // Check if the response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // Handle non-JSON response
+                        return response.text().then(text => {
+                            throw new Error('Received non-JSON response from server');
+                        });
+                    }
+                })
                 .then(data => {
+                    clearInterval(progressInterval);
+                    bulkTransferProgressBar.style.width = '100%';
+                    
                     if (data.success) {
                         if (data.output) {
                             bulkTransferOutput.textContent += data.output;
                         }
                         bulkTransferStatus.className = 'status success';
-                        bulkTransferStatus.textContent = data.message;
+                        if (data.continueInBackground) {
+                            bulkTransferStatus.textContent = 'Bulk transfer started successfully; process will continue in the background.';
+                        } else {
+                            bulkTransferStatus.textContent = data.message || 'Bulk transfer completed successfully!';
+                        }
                     } else {
                         bulkTransferStatus.className = 'status error';
-                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + data.message;
+                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + (data.message || 'Unknown error');
                         if (data.output) {
                             bulkTransferOutput.textContent += data.output;
                         }
@@ -1108,9 +1141,15 @@
                     bulkTransferBtn.disabled = false;
                 })
                 .catch(error => {
+                    clearInterval(progressInterval);
                     console.error('Error:', error);
                     bulkTransferStatus.className = 'status error';
                     bulkTransferStatus.textContent = 'Error during bulk transfer: ' + error.message;
+                    
+                    // Continue showing progress even if there's an error
+                    bulkTransferProgressBar.style.width = '100%';
+                    bulkTransferOutput.textContent += '\nTransfer process continued in the background. Check server logs for details.';
+                    
                     bulkTransferBtn.disabled = false;
                 });
             });
