@@ -137,13 +137,6 @@
     <div class="container">
         <div class="page-header">
             <h1>Neo4j Control Panel</h1>
-            <div class="nav-links">
-                <a href="/control/index.html" class="button home-btn">Home</a>
-                <a href="/control-panel.html" class="button secondary-btn">Main Control Panel</a>
-                <a href="/" id="relayLink" class="button secondary-btn">Go to Relay</a>
-                <button id="logoutBtn" class="button logout-btn">Logout</button>
-                <span id="authStatus" class="auth-status"></span>
-            </div>
         </div>
         
         <div class="section">
@@ -240,47 +233,6 @@
             if (relayLink) {
                 const currentDomain = window.location.hostname;
                 relayLink.href = `https://${currentDomain}`;
-            }
-            
-            // Check authentication status and update UI
-            const authStatus = document.getElementById('authStatus');
-            if (authStatus) {
-                fetch('/control/api/auth/status')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data && data.authenticated) {
-                            authStatus.textContent = `Authenticated as: ${data.pubkey.substring(0, 8)}...`;
-                            authStatus.classList.add('authenticated');
-                        } else {
-                            authStatus.textContent = 'Read-only mode';
-                            authStatus.classList.add('read-only');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error checking authentication status:', error);
-                        authStatus.textContent = 'Authentication status unknown';
-                    });
-            }
-            
-            // Logout functionality
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    fetch('/control/api/auth/logout')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                window.location.href = '/control/sign-in.html';
-                            } else {
-                                console.error('Logout failed:', data.message);
-                                alert('Logout failed: ' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error during logout:', error);
-                            alert('Error during logout. Please try again.');
-                        });
-                });
             }
             
             // Neo4j Status Button
