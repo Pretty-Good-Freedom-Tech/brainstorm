@@ -14,7 +14,6 @@ function initializeHeader() {
     // Check authentication status
     fetch('/control/api/auth/status')
         .then(response => response.json())
-        .catch(() => fetch('/control/api/auth/status').then(response => response.json()))
         .then(data => {
             if (data && data.authenticated) {
                 // User is authenticated

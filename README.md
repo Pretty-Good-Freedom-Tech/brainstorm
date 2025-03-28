@@ -106,6 +106,35 @@ hasenpfeffr-publish
 npm run publish
 ```
 
+## Configuration
+
+Hasenpfeffr can be configured using environment variables or a configuration file at `/etc/hasenpfeffr.conf`.
+
+### Session Security
+
+For production environments, it's important to set a secure `SESSION_SECRET` to ensure user sessions remain valid across server restarts and to enhance security. You can set this in your configuration file:
+
+```bash
+# In /etc/hasenpfeffr.conf
+export SESSION_SECRET="your-secure-random-string-here"
+```
+
+Or as an environment variable:
+
+```bash
+export SESSION_SECRET="your-secure-random-string-here"
+```
+
+A strong session secret should be at least 32 characters long and include a mix of letters, numbers, and special characters. You can generate a secure random string using:
+
+```bash
+openssl rand -base64 32
+```
+
+If not specified, a default secret will be used, but this is not recommended for production environments.
+
+### Other Configuration Options
+
 ## Performance
 
 The system is optimized for publishing large volumes of events (100,000+) with features such as:

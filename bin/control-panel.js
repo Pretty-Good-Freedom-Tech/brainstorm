@@ -88,7 +88,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Session middleware
 app.use(session({
-    secret: crypto.randomBytes(32).toString('hex'),
+    secret: getConfigFromFile('SESSION_SECRET', 'hasenpfeffr-default-session-secret-please-change-in-production'),
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
@@ -1827,7 +1827,7 @@ function handleGetKind0Event(req, res) {
       }
       
       try {
-        // Parse the JSON output
+        // Parse the JSON output from the script
         const events = stdout.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
         
         if (events.length > 0) {
@@ -1851,7 +1851,6 @@ function handleGetKind0Event(req, res) {
     // Function to fetch from external relays
     function fetchFromExternalRelays() {
       console.log(`Fetching kind 0 event for ${pubkey} from external relays...`);
-      
       let foundEvent = null;
       let completedRelays = 0;
       let activeConnections = 0;
