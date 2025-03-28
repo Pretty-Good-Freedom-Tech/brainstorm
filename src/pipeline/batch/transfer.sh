@@ -12,17 +12,34 @@ source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+######################## FOLLOWS ###########################
 # Execute the scripts with full paths
 sudo "$SCRIPT_DIR/strfryToKind3Events.sh" "$1" "$2"
 sudo "$SCRIPT_DIR/kind3EventsToFollows.sh"
 
 # add FOLLOWS relationships from followsToAddToNeo4j.json
-sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand1" > /dev/null
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand1_follows" > /dev/null
 
 # update NostrUser kind3EventId and kind3CreatedAt properties by iterating through allKind3EventsStripped.json
-sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand2" > /dev/null
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand2_follows" > /dev/null
 
-# clean up
+# clean up follows
 
 sudo rm /var/lib/neo4j/import/followsToAddToNeo4j.json
 sudo rm /var/lib/neo4j/import/allKind3EventsStripped.json
+
+######################## MUTES ###########################
+# Execute the scripts with full paths
+sudo "$SCRIPT_DIR/strfryToKind10000Events.sh" "$1" "$2"
+sudo "$SCRIPT_DIR/kind10000EventsToMutes.sh"
+
+# add MUTES relationships from mutesToAddToNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand1_mutes" > /dev/null
+
+# update NostrUser kind10000EventId and kind10000CreatedAt properties by iterating through allKind10000EventsStripped.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand2_mutes" > /dev/null
+
+# clean up mutes
+
+sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
+sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json

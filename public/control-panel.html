@@ -212,7 +212,7 @@
             
             <div class="card">
                 <h3>Bulk Transfer</h3>
-                <p>Transfer all available kind 3 data from strfry into Neo4j. This operation may take 10-15 minutes to complete.</p>
+                <p>Transfer all available kind 3, 1984 and 10000 data from strfry into Neo4j. This will insert NostrUser nodes connected by FOLLOWS, REPORTS and MUTES relationships. This operation may take 10-15 minutes to complete.</p>
                 <button id="bulkTransferBtn" class="button">Start Bulk Transfer</button>
                 <div id="bulkTransferStatus" class="status" style="display: none;"></div>
                 <pre id="bulkTransferOutput" style="display: none;"></pre>
@@ -1082,7 +1082,7 @@
                 bulkTransferStatus.className = 'status info';
                 bulkTransferStatus.textContent = 'Starting bulk transfer... This may take 10-15 minutes to complete.';
                 bulkTransferOutput.style.display = 'block';
-                bulkTransferOutput.textContent = 'Initiating bulk transfer of kind 3 data from strfry to Neo4j...\n';
+                bulkTransferOutput.textContent = 'Initiating bulk transfer of data from strfry to Neo4j...\n';
                 
                 fetch('/control/api/bulk-transfer', {
                     method: 'POST',
