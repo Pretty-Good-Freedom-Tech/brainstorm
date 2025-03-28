@@ -73,6 +73,12 @@ function highlightCurrentPage() {
     
     // Get the current page path
     const currentPath = window.location.pathname;
+    console.log('Current path:', currentPath);
+    
+    // Clear any existing highlights first
+    navButtons.forEach(button => {
+        button.classList.remove('active-page');
+    });
     
     // Flag to track if any button was highlighted
     let buttonHighlighted = false;
@@ -81,15 +87,26 @@ function highlightCurrentPage() {
     navButtons.forEach(button => {
         // Get the path from the button's href
         const buttonPath = new URL(button.href).pathname;
+        console.log('Button path:', buttonPath, 'for button:', button.textContent);
         
         // Special case for home page
-        if (buttonPath === '/control/' && (currentPath === '/control/' || currentPath === '/control/index.html')) {
-            button.classList.add('active-page');
-            buttonHighlighted = true;
+        if (buttonPath === '/control/' || buttonPath === '/control/index.html') {
+            if (currentPath === '/control/' || currentPath === '/control/index.html') {
+                button.classList.add('active-page');
+                buttonHighlighted = true;
+            }
         } 
-        // For other pages, check if the current path matches or ends with the button path
+        // Special case for Strfry Relay (root path)
+        else if (buttonPath === '/') {
+            if (currentPath === '/' || currentPath === '/index.html') {
+                button.classList.add('active-page');
+                buttonHighlighted = true;
+            }
+        }
+        // For other pages, check for exact match or matching filename
         else if (currentPath === buttonPath || 
-                (buttonPath !== '/control/' && currentPath.endsWith(buttonPath.split('/').pop()))) {
+                (currentPath.split('/').pop() === buttonPath.split('/').pop() && 
+                 buttonPath !== '/' && buttonPath !== '/control/')) {
             button.classList.add('active-page');
             buttonHighlighted = true;
         }
@@ -100,12 +117,27 @@ function highlightCurrentPage() {
         // Extract the first part of the path after /control/
         const pathParts = currentPath.split('/');
         if (pathParts.length >= 3 && pathParts[1] === 'control') {
-            const mainSection = pathParts[2].split('-')[0].split('.')[0];
+            // Get the base name without extension and split by hyphen
+            const pageName = pathParts[2].split('.')[0];
+            const mainSection = pageName.split('-')[0];
+            
+            console.log('Looking for section match for:', mainSection);
             
             // Try to find a button that contains this section
             navButtons.forEach(button => {
                 const buttonText = button.textContent.toLowerCase();
-                if (buttonText.includes(mainSection.toLowerCase())) {
+                const buttonPath = new URL(button.href).pathname;
+                const buttonPageName = buttonPath.split('/').pop().split('.')[0];
+                
+                // Skip the home and root buttons for this matching
+                if (buttonPath === '/control/' || buttonPath === '/control/index.html' || buttonPath === '/') {
+                    return;
+                }
+                
+                // Check if button text or button filename contains the section name
+                if (buttonText.includes(mainSection.toLowerCase()) || 
+                    buttonPageName.includes(mainSection.toLowerCase())) {
+                    console.log('Found section match:', buttonText);
                     button.classList.add('active-page');
                 }
             });
