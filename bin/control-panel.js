@@ -492,7 +492,8 @@ function handleNegentropySync(req, res) {
         console.log('Negentropy sync is taking longer than expected, sending initial response...');
         res.json({
             success: true,
-            output: `Negentropy sync with ${relay} started. This process will continue in the background.\n`,
+            continueInBackground: true,
+            output: `Negentropy sync with ${relay} started.\nThis process will continue in the background. You can check Strfry Event statistics to track progress.\n`,
             error: null
         });
     }, 30000); // 30 seconds timeout

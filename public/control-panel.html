@@ -1178,7 +1178,11 @@
                     
                     if (data.success) {
                         negentropyStatus.className = 'status success';
-                        negentropyStatus.textContent = 'Negentropy sync completed successfully!';
+                        if (data.continueInBackground) {
+                            negentropyStatus.textContent = 'Negentropy sync started successfully; process will continue in the backgound.';
+                        } else {
+                            negentropyStatus.textContent = 'Negentropy sync completed successfully!';
+                        }
                     } else {
                         negentropyStatus.className = 'status error';
                         negentropyStatus.textContent = 'Error syncing with Negentropy: ' + data.error;
