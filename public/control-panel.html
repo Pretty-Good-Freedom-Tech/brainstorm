@@ -1103,7 +1103,8 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    signal: AbortSignal.timeout(180000) // 3 minutes timeout
                 })
                 .then(response => {
                     // Try to parse as JSON regardless of content-type header
@@ -1133,14 +1134,14 @@
                     bulkTransferProgressBar.style.width = '100%';
                     
                     if (data.success) {
-                        if (data.output) {
-                            bulkTransferOutput.textContent += data.output;
-                        }
                         bulkTransferStatus.className = 'status success';
                         if (data.continueInBackground) {
                             bulkTransferStatus.textContent = 'Bulk transfer started successfully; process will continue in the background.';
                         } else {
                             bulkTransferStatus.textContent = data.message || 'Bulk transfer completed successfully!';
+                        }
+                        if (data.output) {
+                            bulkTransferOutput.textContent += data.output;
                         }
                     } else {
                         bulkTransferStatus.className = 'status error';
@@ -1229,7 +1230,7 @@
                     if (data.success) {
                         negentropyStatus.className = 'status success';
                         if (data.continueInBackground) {
-                            negentropyStatus.textContent = 'Negentropy sync started successfully; process will continue in the backgound.';
+                            negentropyStatus.textContent = 'Negentropy sync started successfully; process will continue in the background.';
                         } else {
                             negentropyStatus.textContent = 'Negentropy sync completed successfully!';
                         }
