@@ -15,7 +15,12 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 const { exec, execSync } = require('child_process');
+const WebSocket = require('ws');
 const { NDKEvent, NDK } = require('@nostr-dev-kit/ndk');
+// Set up WebSocket implementation for NDK in Node.js environment
+const { useWebSocketImplementation } = require('nostr-tools/pool');
+require('websocket-polyfill');
+useWebSocketImplementation(WebSocket);
 
 // Import configuration
 let config;
@@ -1838,7 +1843,8 @@ function handleGetKind0Event(req, res) {
             source: 'local_strfry'
           });
         } else {
-          // If no events found in local relay, try external relays
+          console.log('No kind 0 events found via local strfry, trying external relays');
+          // If no events found, try external relays
           fetchFromExternalRelays();
         }
       } catch (parseError) {
@@ -1854,17 +1860,24 @@ function handleGetKind0Event(req, res) {
       
       try {
         // Initialize NDK with the relays
+        console.log('Initializing NDK with relays:', relays);
         const ndk = new NDK({
           explicitRelayUrls: relays
         });
         
         // Connect to relays
-        await ndk.connect();
-        console.log('Connected to relays via NDK');
+        console.log('Attempting to connect to relays via NDK...');
+        try {
+          await ndk.connect();
+          console.log('Successfully connected to relays via NDK');
+        } catch (connectError) {
+          console.error('Error connecting to relays via NDK:', connectError);
+          throw connectError;
+        }
         
         // Set a timeout to ensure we don't wait forever
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('NDK fetch timeout')), 10000);
+          setTimeout(() => reject(new Error('NDK fetch timeout after 10 seconds')), 10000);
         });
         
         // Create a filter for the kind 0 event
@@ -1873,20 +1886,31 @@ function handleGetKind0Event(req, res) {
           authors: [pubkey],
           limit: 1
         };
+        console.log('Using filter:', JSON.stringify(filter));
         
         // Fetch the events with a timeout
-        const fetchPromise = ndk.fetchEvents(filter);
+        console.log('Fetching events from relays...');
+        let fetchPromise;
+        try {
+          fetchPromise = ndk.fetchEvents(filter);
+        } catch (fetchError) {
+          console.error('Error creating fetch promise:', fetchError);
+          throw fetchError;
+        }
         
         // Race between fetch and timeout
+        console.log('Waiting for events or timeout...');
         const events = await Promise.race([fetchPromise, timeoutPromise]);
         
         // Convert the NDK events to an array
+        console.log('Processing events received from relays...');
         const eventArray = Array.from(events || []);
+        console.log(`Found ${eventArray.length} events`);
         
         if (eventArray.length > 0) {
           // Get the raw event data
           const rawEvent = eventArray[0].rawEvent();
-          console.log('Found kind 0 event via NDK');
+          console.log('Found kind 0 event via NDK:', JSON.stringify(rawEvent).substring(0, 100) + '...');
           
           // Return the event
           return res.json({
@@ -1901,6 +1925,8 @@ function handleGetKind0Event(req, res) {
         }
       } catch (error) {
         console.error('Error fetching from external relays via NDK:', error);
+        console.error('Error details:', error.stack || 'No stack trace available');
+        console.log('Falling back to Neo4j due to NDK error');
         // If NDK fetch fails, check Neo4j
         checkNeo4j();
       }
@@ -1924,7 +1950,7 @@ function handleGetKind0Event(req, res) {
       
       // Query for any metadata we might have stored
       const query = `
-        MATCH (u:NostrUser { pubkey: $pubkey })
+        MATCH (u:NostrUser {pubkey: $pubkey})
         RETURN u.metadata as metadata
       `;
       
