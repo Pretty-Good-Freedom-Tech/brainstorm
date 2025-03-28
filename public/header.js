@@ -17,21 +17,21 @@ function initializeHeader() {
         .then(data => {
             if (data && data.authenticated) {
                 // User is authenticated
-                if (userInfo) { userInfo.style = { display: 'flex' }; }
-                if (signInLink) { signInLink.style = { display: 'none' }; }
+                if (userInfo) { userInfo.style.display = 'flex' }
+                if (signInLink) { signInLink.style.display = 'none' }
                 
                 // Set default user avatar with first letter of pubkey
                 if (data.pubkey) {
-                    userAvatar.textContent = data.pubkey.substring(0, 1).toUpperCase();
-                    userName.textContent = `${data.pubkey.substring(0, 8)}...`;
+                    if (userAvatar) { userAvatar.textContent = data.pubkey.substring(0, 1).toUpperCase() }
+                    if (userName) { userName.textContent = `${data.pubkey.substring(0, 8)}...` }
                     
                     // Fetch user profile information from kind 0 event
                     fetchUserProfile(data.pubkey);
                 }
             } else {
                 // User is not authenticated
-                if (userInfo) { userInfo.style = { display: 'none' }; }
-                if (signInLink) { signInLink.style = { display: 'inline-block' }; }
+                if (userInfo) { userInfo.style.display = 'none' }
+                if (signInLink) { signInLink.style.display = 'inline-block' }
             }
         })
         .catch(error => {

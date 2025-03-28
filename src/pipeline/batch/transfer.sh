@@ -43,3 +43,21 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCR
 
 sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
 sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
+
+######################## REPORTS ###########################
+# Execute the scripts with full paths
+sudo "$SCRIPT_DIR/strfryToKind1984Events.sh" "$1" "$2"
+sudo "$SCRIPT_DIR/kind1984EventsToReports.sh"
+
+# add REPORTS relationships from reportsToAddToNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand1_reports" > /dev/null
+
+# update NostrUser kind1984EventId and kind1984CreatedAt properties by iterating through allKind1984EventsStripped.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$SCRIPT_DIR/apocCypherCommand2_reports" > /dev/null
+
+# clean up reports
+
+sudo rm /var/lib/neo4j/import/reportsToAddToNeo4j.json
+sudo rm /var/lib/neo4j/import/allKind1984EventsStripped.json
+
+######################## END ###########################
