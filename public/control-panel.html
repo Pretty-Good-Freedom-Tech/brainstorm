@@ -127,14 +127,6 @@
     <div class="container">
         <div class="nav">
             <h1>Hasenpfeffr Control Panel</h1>
-            <div class="nav-links">
-                <a href="/control/index.html" class="button home-btn">Home</a>
-                <a href="/" id="relayLink" class="button secondary-btn">Go to Relay</a>
-                <a href="/control/profiles-control-panel.html" class="button profiles-btn">User Profiles</a>
-                <a href="/control/nip85-control-panel.html" class="button nip85-btn">NIP-85 Control Panel</a>
-                <button id="logoutBtn" class="button logout-btn">Logout</button>
-                <span id="authStatus" class="auth-status"></span>
-            </div>
         </div>
         <style>
             .nav {
@@ -421,6 +413,7 @@
                     });
             }
             
+            /*
             // Check authentication status and update UI
             const authStatus = document.getElementById('authStatus');
             if (authStatus) {
@@ -460,6 +453,7 @@
                         });
                 });
             }
+            */
             // Strfry Plugin Management
             const pluginStatusIndicator = document.getElementById('pluginStatusIndicator');
             const pluginStatusText = document.getElementById('pluginStatusText');
