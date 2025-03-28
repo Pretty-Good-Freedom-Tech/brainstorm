@@ -18,7 +18,8 @@ CALL apoc.periodic.iterate(
     "
     MATCH (u1:NostrUser {pubkey:line.pk_rater})
     MATCH (u2:NostrUser {pubkey:line.pk_ratee})
-    MERGE (u1)-[r:MUTES {timestamp: line.timestamp}]->(u2)
+    MERGE (u1)-[r:MUTES]->(u2)
+    SET r.timestamp = line.timestamp
     ",
     {batchSize:250, parallel:false, retries:5}
 );
