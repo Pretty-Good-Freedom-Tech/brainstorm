@@ -96,6 +96,8 @@
     </style>
 </head>
 <body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
     <div class="container">
         <button class="back-button" onclick="window.history.back()">← Back</button>
         <h1>Network Proximity Visualization (Lite Version)</h1>
@@ -113,6 +115,17 @@
     
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
+        // Load the header component
+        fetch('./header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
         document.addEventListener('DOMContentLoaded', function() {
             // Get pubkey from URL
             const urlParams = new URLSearchParams(window.location.search);
