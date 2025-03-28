@@ -784,7 +784,15 @@ async function handleStrfryPlugin(req, res) {
 
 // Handler for bulk transfer
 function handleBulkTransfer(req, res) {
-    console.log('Starting bulk transfer of kind 3 data from strfry to Neo4j...');
+    console.log('Starting bulk transfer of kinds 3, 1984, and 10000 data from strfry to Neo4j...');
+    
+    // Send an immediate response to prevent timeout
+    res.json({
+        success: true,
+        message: 'Bulk transfer initiated',
+        continueInBackground: true,
+        output: 'Bulk transfer process started. This will continue in the background.\n'
+    });
     
     // Create a child process to run the transfer script
     const transferProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/transfer.sh');
@@ -805,27 +813,15 @@ function handleBulkTransfer(req, res) {
         console.log(`Bulk Transfer process exited with code ${code}`);
         
         if (code === 0) {
-            res.json({
-                success: true,
-                message: 'Bulk transfer completed successfully',
-                output: output
-            });
+            console.log('Bulk transfer completed successfully');
         } else {
-            res.json({
-                success: false,
-                message: `Bulk transfer failed with exit code ${code}`,
-                output: output
-            });
+            console.error(`Bulk transfer failed with exit code ${code}`);
         }
     });
     
     // Handle unexpected errors
     transferProcess.on('error', (error) => {
         console.error(`Bulk Transfer error: ${error.message}`);
-        res.status(500).json({
-            success: false,
-            message: `Bulk transfer error: ${error.message}`
-        });
     });
 }
 
@@ -1029,23 +1025,40 @@ function handlePublishKind10040(req, res) {
         
         child.on('close', (code) => {
             console.log(`publish_nip85_10040.mjs exited with code ${code}`);
-            if (code === 0) {
-                // Success
-                return res.json({ 
-                    success: true, 
-                    message: 'Kind 10040 event published successfully', 
-                    output: output 
-                });
-            } else {
-                // Error
-                return res.json({ 
-                    success: false, 
-                    error: 'Error publishing kind 10040 event', 
-                    details: errorOutput || 'No error details available',
-                    output: output
-                });
+            
+            // Save the output to a log file for debugging
+            const timestamp = new Date().toISOString().replace(/:/g, '-');
+            const logDir = path.join(__dirname, '../logs');
+            
+            // Create logs directory if it doesn't exist
+            if (!fs.existsSync(logDir)) {
+                fs.mkdirSync(logDir, { recursive: true });
+            }
+            
+            const logFile = path.join(logDir, `kind10040_${timestamp}.log`);
+            fs.writeFileSync(logFile, `STDOUT:\n${output}\n\nSTDERR:\n${errorOutput}\n\nExit code: ${code}`);
+            console.log(`Kind 10040 process log saved to ${logFile}`);
+            
+            // Try to parse the last JSON output if available
+            try {
+                // Look for the last JSON object in the output
+                const jsonMatch = output.match(/\{[\s\S]*\}/g);
+                if (jsonMatch) {
+                    const lastJson = jsonMatch[jsonMatch.length - 1];
+                    const result = JSON.parse(lastJson);
+                    
+                    // Store the result in a file that can be retrieved later
+                    const resultFile = path.join(logDir, `kind10040_result_${timestamp}.json`);
+                    fs.writeFileSync(resultFile, JSON.stringify(result, null, 2));
+                    console.log(`Kind 10040 result saved to ${resultFile}`);
+                }
+            } catch (error) {
+                console.error('Error parsing JSON output:', error);
             }
         });
+        
+        // Unref the child to allow the parent process to exit independently
+        child.unref();
     } catch (error) {
         console.error('Error publishing kind 10040 event:', error);
         return res.status(500).json({ 
@@ -1456,7 +1469,7 @@ function handleGetUserData(req, res) {
     
     // Build the Cypher query to get user data and counts
     const query = `
-      MATCH (u:NostrUser { pubkey: $pubkey })
+      MATCH (u:NostrUser {pubkey: $pubkey})
       
       // Count users that this user follows
       OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)

@@ -17,11 +17,8 @@ function initializeHeader() {
         .then(data => {
             if (data && data.authenticated) {
                 // User is authenticated
-                if (!userInfo.getAttribute('style')) {
-                    userInfo.style = {};
-                }
-                userInfo.style.display = 'flex';
-                signInLink.style.display = 'none';
+                if (userInfo) { userInfo.style = { display: 'flex' }; }
+                if (signInLink) { signInLink.style = { display: 'none' }; }
                 
                 // Set default user avatar with first letter of pubkey
                 if (data.pubkey) {
@@ -33,8 +30,8 @@ function initializeHeader() {
                 }
             } else {
                 // User is not authenticated
-                userInfo.style.display = 'none';
-                signInLink.style.display = 'inline-block';
+                if (userInfo) { userInfo.style = { display: 'none' }; }
+                if (signInLink) { signInLink.style = { display: 'inline-block' }; }
             }
         })
         .catch(error => {

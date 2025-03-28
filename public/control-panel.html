@@ -184,7 +184,7 @@
         <div class="section">
             <h2>Data Management</h2>
             <div class="card">
-                <h3>Strfry Negentropy Sync</h3>
+                <h3>Load Strfry</h3>
                 <p>Use <a href="https://github.com/hoytech/negentropy" target="_blank">negentropy</a> to download FOLLOWS, MUTES and REPORTS data (kinds 3, 1984, 10000) from a Nostr relay.</p>
                 
                 <div class="form-group" style="margin-bottom: 15px;">
@@ -211,7 +211,7 @@
             </div>
             
             <div class="card">
-                <h3>Bulk Transfer</h3>
+                <h3>Load Neo4j</h3>
                 <p>Transfer all available kind 3, 1984 and 10000 data from strfry into Neo4j. This will insert NostrUser nodes connected by FOLLOWS, REPORTS and MUTES relationships. This operation may take 10-15 minutes to complete.</p>
                 <button id="bulkTransferBtn" class="button">Start Bulk Transfer</button>
                 <div class="progress-container" style="display: none;" id="bulkTransferProgress">
@@ -1106,16 +1106,27 @@
                     }
                 })
                 .then(response => {
-                    // Check if the response is JSON
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json();
-                    } else {
-                        // Handle non-JSON response
-                        return response.text().then(text => {
-                            throw new Error('Received non-JSON response from server');
-                        });
-                    }
+                    // Try to parse as JSON regardless of content-type header
+                    return response.text().then(text => {
+                        try {
+                            // Try to parse as JSON
+                            return JSON.parse(text);
+                        } catch (e) {
+                            // If parsing fails, check if we got a response with status OK
+                            if (response.ok) {
+                                // If the response was OK but not JSON, assume success
+                                return {
+                                    success: true,
+                                    message: 'Bulk transfer initiated',
+                                    continueInBackground: true,
+                                    output: 'Process started and continuing in the background.\n'
+                                };
+                            } else {
+                                // If not OK and not JSON, throw error
+                                throw new Error('Server returned an error: ' + response.status);
+                            }
+                        }
+                    });
                 })
                 .then(data => {
                     clearInterval(progressInterval);
