@@ -15,7 +15,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 const { exec, execSync } = require('child_process');
-const WebSocket = require('ws');
+const { NDKEvent, NDK } = require('@nostr-dev-kit/ndk');
 
 // Import configuration
 let config;
@@ -1848,130 +1848,61 @@ function handleGetKind0Event(req, res) {
       }
     });
     
-    // Function to fetch from external relays
-    function fetchFromExternalRelays() {
-      console.log(`Fetching kind 0 event for ${pubkey} from external relays...`);
-      let foundEvent = null;
-      let completedRelays = 0;
-      let activeConnections = 0;
-      const maxWaitTime = 10000; // 10 seconds max wait time
+    // Function to fetch from external relays using NDK
+    async function fetchFromExternalRelays() {
+      console.log(`Fetching kind 0 event for ${pubkey} from external relays using NDK...`);
       
-      // Set a timeout to ensure we don't wait forever
-      const timeoutId = setTimeout(() => {
-        if (!foundEvent) {
-          // If we haven't found an event yet, check Neo4j
+      try {
+        // Initialize NDK with the relays
+        const ndk = new NDK({
+          explicitRelayUrls: relays
+        });
+        
+        // Connect to relays
+        await ndk.connect();
+        console.log('Connected to relays via NDK');
+        
+        // Set a timeout to ensure we don't wait forever
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('NDK fetch timeout')), 10000);
+        });
+        
+        // Create a filter for the kind 0 event
+        const filter = {
+          kinds: [0],
+          authors: [pubkey],
+          limit: 1
+        };
+        
+        // Fetch the events with a timeout
+        const fetchPromise = ndk.fetchEvents(filter);
+        
+        // Race between fetch and timeout
+        const events = await Promise.race([fetchPromise, timeoutPromise]);
+        
+        // Convert the NDK events to an array
+        const eventArray = Array.from(events || []);
+        
+        if (eventArray.length > 0) {
+          // Get the raw event data
+          const rawEvent = eventArray[0].rawEvent();
+          console.log('Found kind 0 event via NDK');
+          
+          // Return the event
+          return res.json({
+            success: true,
+            data: rawEvent,
+            source: 'ndk_external_relay'
+          });
+        } else {
+          console.log('No kind 0 events found via NDK, checking Neo4j');
+          // If no events found, check Neo4j
           checkNeo4j();
         }
-      }, maxWaitTime);
-      
-      // Query each relay
-      relays.forEach(relayUrl => {
-        activeConnections++;
-        
-        const ws = new WebSocket(relayUrl);
-        let subscriptionId = crypto.randomBytes(16).toString('hex');
-        
-        // Set a timeout for this specific relay connection
-        const connectionTimeout = setTimeout(() => {
-          console.log(`Connection timeout for relay: ${relayUrl}`);
-          ws.close();
-          checkCompletion();
-        }, 5000); // 5 seconds timeout for each connection
-        
-        ws.on('open', () => {
-          console.log(`Connected to relay: ${relayUrl}`);
-          clearTimeout(connectionTimeout);
-          
-          // Send REQ message to the relay
-          const reqMessage = JSON.stringify([
-            "REQ",
-            subscriptionId,
-            {
-              "kinds": [0],
-              "authors": [pubkey],
-              "limit": 1
-            }
-          ]);
-          
-          ws.send(reqMessage);
-          
-          // Set a timeout for the response
-          setTimeout(() => {
-            console.log(`Response timeout for relay: ${relayUrl}`);
-            ws.close();
-            checkCompletion();
-          }, 5000); // 5 seconds timeout for response
-        });
-        
-        ws.on('message', (data) => {
-          try {
-            const message = JSON.parse(data.toString());
-            
-            // Check if it's an EVENT message
-            if (message[0] === 'EVENT' && message[1] === subscriptionId) {
-              const event = message[2];
-              
-              // Validate the event
-              if (event && event.kind === 0 && event.pubkey === pubkey) {
-                console.log(`Found kind 0 event from relay: ${relayUrl}`);
-                
-                // Store the event if we haven't found one yet or if this one is newer
-                if (!foundEvent || event.created_at > foundEvent.created_at) {
-                  foundEvent = event;
-                }
-                
-                // Close the connection as we found what we needed
-                ws.close();
-                checkCompletion();
-              }
-            }
-            
-            // Check if it's an EOSE (End of Stored Events) message
-            if (message[0] === 'EOSE' && message[1] === subscriptionId) {
-              console.log(`End of stored events from relay: ${relayUrl}`);
-              ws.close();
-              checkCompletion();
-            }
-          } catch (error) {
-            console.error(`Error parsing message from relay ${relayUrl}:`, error);
-          }
-        });
-        
-        ws.on('error', (error) => {
-          console.error(`WebSocket error for relay ${relayUrl}:`, error.message);
-          clearTimeout(connectionTimeout);
-          ws.close();
-          checkCompletion();
-        });
-        
-        ws.on('close', () => {
-          console.log(`Connection closed for relay: ${relayUrl}`);
-          checkCompletion();
-        });
-      });
-      
-      // Check if we've completed all relay queries
-      function checkCompletion() {
-        activeConnections--;
-        completedRelays++;
-        
-        console.log(`Completed ${completedRelays}/${relays.length} relays, active connections: ${activeConnections}`);
-        
-        if (activeConnections <= 0 || foundEvent) {
-          clearTimeout(timeoutId);
-          
-          if (foundEvent) {
-            // Return the found event
-            return res.json({
-              success: true,
-              data: foundEvent,
-              source: 'external_relay'
-            });
-          } else if (completedRelays >= relays.length) {
-            // If we've checked all relays and found nothing, check Neo4j
-            checkNeo4j();
-          }
-        }
+      } catch (error) {
+        console.error('Error fetching from external relays via NDK:', error);
+        // If NDK fetch fails, check Neo4j
+        checkNeo4j();
       }
     }
     
@@ -2107,7 +2038,7 @@ function handleAuthLogin(req, res) {
             return res.status(400).json({ error: 'Missing event parameter' });
         }
         
-        // Verify the event is properly signed
+        // Verify that the event has a signature
         // In a production environment, you would want to use a proper Nostr library for verification
         // For this example, we'll just check that the pubkey matches and the challenge is included
         
