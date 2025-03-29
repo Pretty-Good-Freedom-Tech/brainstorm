@@ -34,6 +34,21 @@ Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced tec
 - ☐ view / change relay nsec 
 - ☐ data navigation pages: table of all pubkeys, my followers, recommended follows, etc
 
+## TO DO
+- make sure whitelist and blacklist are handled properly; check that paths are correct
+- make big script with systemd service to calculate, in order: hops, pagerank, graperank, update whitelist and blacklist, update NIP-85 events
+- bar across top showing number of events in strfry and summary of data in Neo4j
+- make big startup script to go down Big Checklist of all the things that need to be done on startup; have page to monitor all of this; one big button to start everything; different control panel page for each function; status: green check if OK; spinning wheel if in progress; red cross if failed; 
+    - add Neo4j constraints and indexes
+    - negentropy sync: kinds 3, 1984, 10000 (hasenpfeffr)
+    - negentropy sync: kind 0 (nostr1)
+    - negentropy sync: personal content (primal)
+    - turn on streaming pipeline
+    - turn on periodic recalculation of WoT scores
+- make sure strfry-router streams all the right things, including my personal content (all events authored by me))
+
+
+
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
 ## Installation
