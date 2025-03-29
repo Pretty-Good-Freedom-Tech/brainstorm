@@ -290,6 +290,17 @@ export STRFRY_DOMAIN="${domainName}"
 # Owner pubkey for PageRank calculations
 export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
 
+# Status of Hasenpfeffr service
+# 0 = disabled, 1 = enabled, 2 = starting, 3 = running negentropy sync, 4 = stopping, 5 = error
+export HASENPFEFFR_STATUS=0
+
+######################### actions #########################
+
+# when STRFRY SYNC via NEGENTROPY was last run successfully
+export NEGENTROPY_WEB_OF_TRUST=0
+export NEGENTROPY_PROFILES=0
+export NEGENTROPY_PERSONAL_EVENTS=0
+
 `;
   
   // Write hasenpfeffr configuration file

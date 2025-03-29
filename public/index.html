@@ -6,8 +6,7 @@
     <title>Hasenpfeffr</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
@@ -30,6 +29,80 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
         }
+        .master-control {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .control-button {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            margin: 0 10px;
+        }
+        .on-button {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .on-button:hover {
+            background-color: #27ae60;
+        }
+        .off-button {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .off-button:hover {
+            background-color: #c0392b;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .status-on {
+            background-color: #2ecc71;
+        }
+        .status-off {
+            background-color: #e74c3c;
+        }
+        .status-unknown {
+            background-color: #f39c12;
+        }
+        .status-text {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .status-details {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 5px solid #3498db;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
     <script src="./header.js"></script>
 </head>
@@ -38,8 +111,20 @@
     <div id="headerContainer"></div>
 
     <div class="container">
+        <div class="master-control">
+            <h2>Hasenpfeffr Master Control</h2>
+            <div class="status-text">
+                <span id="statusIndicator" class="status-indicator status-unknown"></span>
+                Status: <span id="statusText">Checking...</span>
+            </div>
+            <div class="control-buttons">
+                <button id="turnOnButton" class="control-button on-button" onclick="controlHasenpfeffr('on')">Turn On</button>
+                <button id="turnOffButton" class="control-button off-button" onclick="controlHasenpfeffr('off')">Turn Off</button>
+            </div>
+            <div id="statusDetails" class="status-details" style="display: none;"></div>
+        </div>
+
         <div class="card">
-            <h2>Main Control Panel</h2>
             <p>Use this page to manage your Hasenpfeffr installation, monitor relay status, and configure settings.</p>
         </div>
     </div>
@@ -55,6 +140,94 @@
             .catch(error => {
                 console.error('Error loading header component:', error);
             });
+
+        // Check services status on page load
+        document.addEventListener('DOMContentLoaded', checkServicesStatus);
+
+        function checkServicesStatus() {
+            // For now, we'll just check if the strfry service is running
+            fetch('/api/service-status?service=strfry')
+                .then(response => response.json())
+                .then(data => {
+                    updateStatusUI(data.running ? 'on' : 'off');
+                })
+                .catch(error => {
+                    console.error('Error checking services status:', error);
+                    updateStatusUI('unknown');
+                });
+        }
+
+        function updateStatusUI(status) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            statusIndicator.className = 'status-indicator';
+            
+            if (status === 'on') {
+                statusIndicator.classList.add('status-on');
+                statusText.textContent = 'Running';
+                document.getElementById('turnOnButton').disabled = true;
+                document.getElementById('turnOffButton').disabled = false;
+            } else if (status === 'off') {
+                statusIndicator.classList.add('status-off');
+                statusText.textContent = 'Stopped';
+                document.getElementById('turnOnButton').disabled = false;
+                document.getElementById('turnOffButton').disabled = true;
+            } else {
+                statusIndicator.classList.add('status-unknown');
+                statusText.textContent = 'Unknown';
+                document.getElementById('turnOnButton').disabled = false;
+                document.getElementById('turnOffButton').disabled = false;
+            }
+        }
+
+        function controlHasenpfeffr(action) {
+            // Show loading state
+            const statusText = document.getElementById('statusText');
+            const statusIndicator = document.getElementById('statusIndicator');
+            statusIndicator.className = 'loading';
+            statusText.textContent = action === 'on' ? 'Starting...' : 'Stopping...';
+            
+            // Disable both buttons during operation
+            document.getElementById('turnOnButton').disabled = true;
+            document.getElementById('turnOffButton').disabled = true;
+            
+            // Show status details
+            const statusDetails = document.getElementById('statusDetails');
+            statusDetails.style.display = 'block';
+            statusDetails.innerHTML = `<p>Executing ${action === 'on' ? 'startup' : 'shutdown'} script...</p>`;
+            
+            // Call the API
+            fetch('/api/hasenpfeffr-control', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatusUI(action);
+                    statusDetails.innerHTML += `<p>${data.message}</p>`;
+                    if (data.output) {
+                        statusDetails.innerHTML += `<pre>${data.output}</pre>`;
+                    }
+                } else {
+                    updateStatusUI('unknown');
+                    statusDetails.innerHTML += `<p>Error: ${data.error}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error(`Error turning Hasenpfeffr ${action}:`, error);
+                updateStatusUI('unknown');
+                statusDetails.innerHTML += `<p>Error: ${error.message}</p>`;
+                
+                // Re-enable buttons
+                document.getElementById('turnOnButton').disabled = false;
+                document.getElementById('turnOffButton').disabled = false;
+            });
+        }
     </script>
 </body>
 </html>

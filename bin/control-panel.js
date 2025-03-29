@@ -178,7 +178,8 @@ const authMiddleware = (req, res, next) => {
             '/strfry-plugin',
             '/create-kind10040',
             '/publish-kind10040',
-            '/publish-kind30382'
+            '/publish-kind30382',
+            '/hasenpfeffr-control'
         ];
         
         // Check if the current path is a write endpoint
@@ -308,6 +309,10 @@ app.get('/api/auth/status', (req, res) => {
 });
 app.get('/api/auth/logout', handleAuthLogout);
 app.get('/control/api/auth/logout', handleAuthLogout);
+
+// Add route handler for Hasenpfeffr control
+app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
+app.post('/control/api/hasenpfeffr-control', handleHasenpfeffrControl);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {
@@ -2548,6 +2553,55 @@ function handleNeo4jSetupConstraints(req, res) {
             output: stdout
         });
     });
+}
+
+// Handler for turning Hasenpfeffr on and off
+async function handleHasenpfeffrControl(req, res) {
+    const { action } = req.body;
+    
+    if (!action || (action !== 'on' && action !== 'off')) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Invalid action. Must be "on" or "off".' 
+        });
+    }
+    
+    try {
+        let scriptPath;
+        if (action === 'on') {
+            scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOn.sh';
+        } else {
+            scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOff.sh';
+        }
+        
+        // Check if script exists
+        if (!fs.existsSync(scriptPath)) {
+            return res.status(404).json({ 
+                success: false, 
+                error: `Script not found: ${scriptPath}` 
+            });
+        }
+        
+        // Make script executable if it's not already
+        execSync(`sudo chmod +x ${scriptPath}`);
+        
+        // Execute the script
+        console.log(`Executing ${scriptPath}...`);
+        const output = execSync(`sudo ${scriptPath}`, { timeout: 60000 }).toString();
+        
+        return res.json({
+            success: true,
+            action,
+            message: `Hasenpfeffr turned ${action} successfully`,
+            output
+        });
+    } catch (error) {
+        console.error(`Error turning Hasenpfeffr ${action}:`, error);
+        return res.status(500).json({ 
+            success: false, 
+            error: `Failed to turn Hasenpfeffr ${action}: ${error.message}` 
+        });
+    }
 }
 
 // Start the server
