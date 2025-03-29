@@ -126,6 +126,7 @@ After successful installation, perform the following actions:
 
 5. Batch loading of data: 
 - Use Negentropy to import kinds 3, 1984, and 10000 events to strfry in bulk from `wss://relay.hasenpfeffr.com`. Note that you can use this tool to import from other relays and using other filters. This can also be repeated to import any events that may have been missed. Monitor importation progress and verify successful import using the control panel, by checking the strfry logs, or at the command line `journalctl -u strfry.service` or `sudo strfry scan --count '{"kinds": [3, 1984, 10000]}'`.
+- Use Negentropy to import all personal events from the primal relay.
 - Bulk transfer from strfry to Neo4j. This should create 200 to 300 thousand NostrUser nodes and approximately 8 million FOLLOWS, MUTES, and REPORTS relationships. Monitor progress and verify successful transfer using the control panel or at the Neo4j browser: `http://your-domain:7474`.
 
 6. At the control panel, turn on ETL pipeline systemd services, including:

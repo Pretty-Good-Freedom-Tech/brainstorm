@@ -352,75 +352,82 @@
     </div>
     
     <script>
-        // Load the header component
-        fetch('./header.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('headerContainer').innerHTML = html;
-                // Re-initialize the header after loading
-                initializeHeader();
-            })
-            .catch(error => {
-                console.error('Error loading header component:', error);
-            });
+        // Global state management
+        let state = {
+            profiles: [],
+            pagination: {
+                total: 0,
+                page: 1,
+                limit: 100,
+                pages: 0
+            },
+            filters: {
+                pubkey: '',
+                minHops: '',
+                maxHops: '',
+                minRank: '',
+                maxRank: '',
+                minInfluence: '',
+                maxInfluence: '',
+                minAverage: '',
+                maxAverage: '',
+                minConfidence: '',
+                maxConfidence: '',
+                minInput: '',
+                maxInput: ''
+            },
+            sorting: {
+                column: 'personalizedPageRank',
+                order: 'desc'
+            }
+        };
+        
+        // Global DOM element references
+        let tableBody, profilesTable, loadingIndicator, paginationContainer, statusMessage;
+        let filterPubkey, filterMinHops, filterMaxHops, filterMinRank, filterMaxRank;
+        let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
+        let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
+        let limitSelect, applyFiltersBtn, resetFiltersBtn, refreshBtn, exportCsvBtn;
             
         document.addEventListener('DOMContentLoaded', function() {
-            // State management
-            const state = {
-                profiles: [],
-                pagination: {
-                    total: 0,
-                    page: 1,
-                    limit: 100,
-                    pages: 0
-                },
-                filters: {
-                    pubkey: '',
-                    minHops: '',
-                    maxHops: '',
-                    minRank: '',
-                    maxRank: '',
-                    minInfluence: '',
-                    maxInfluence: '',
-                    minAverage: '',
-                    maxAverage: '',
-                    minConfidence: '',
-                    maxConfidence: '',
-                    minInput: '',
-                    maxInput: ''
-                },
-                sorting: {
-                    column: 'personalizedPageRank',
-                    order: 'desc'
-                }
-            };
-            
-            // DOM Elements
-            const tableBody = document.getElementById('profilesTableBody');
-            const profilesTable = document.getElementById('profilesTable');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const paginationContainer = document.getElementById('paginationContainer');
-            const statusMessage = document.getElementById('statusMessage');
+            // Initialize DOM element references
+            tableBody = document.getElementById('profilesTableBody');
+            profilesTable = document.getElementById('profilesTable');
+            loadingIndicator = document.getElementById('loadingIndicator');
+            paginationContainer = document.getElementById('paginationContainer');
+            statusMessage = document.getElementById('statusMessage');
             
             // Filter elements
-            const filterPubkey = document.getElementById('filterPubkey');
-            const filterMinHops = document.getElementById('filterMinHops');
-            const filterMaxHops = document.getElementById('filterMaxHops');
-            const filterMinRank = document.getElementById('filterMinRank');
-            const filterMaxRank = document.getElementById('filterMaxRank');
-            const filterMinInfluence = document.getElementById('filterMinInfluence');
-            const filterMaxInfluence = document.getElementById('filterMaxInfluence');
-            const filterMinAverage = document.getElementById('filterMinAverage');
-            const filterMaxAverage = document.getElementById('filterMaxAverage');
-            const filterMinConfidence = document.getElementById('filterMinConfidence');
-            const filterMaxConfidence = document.getElementById('filterMaxConfidence');
-            const filterMinInput = document.getElementById('filterMinInput');
-            const filterMaxInput = document.getElementById('filterMaxInput');
-            const limitSelect = document.getElementById('limitSelect');
-            const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-            const refreshBtn = document.getElementById('refreshBtn');
-            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            filterPubkey = document.getElementById('filterPubkey');
+            filterMinHops = document.getElementById('filterMinHops');
+            filterMaxHops = document.getElementById('filterMaxHops');
+            filterMinRank = document.getElementById('filterMinRank');
+            filterMaxRank = document.getElementById('filterMaxRank');
+            filterMinInfluence = document.getElementById('filterMinInfluence');
+            filterMaxInfluence = document.getElementById('filterMaxInfluence');
+            filterMinAverage = document.getElementById('filterMinAverage');
+            filterMaxAverage = document.getElementById('filterMaxAverage');
+            filterMinConfidence = document.getElementById('filterMinConfidence');
+            filterMaxConfidence = document.getElementById('filterMaxConfidence');
+            filterMinInput = document.getElementById('filterMinInput');
+            filterMaxInput = document.getElementById('filterMaxInput');
+            limitSelect = document.getElementById('limitSelect');
+            applyFiltersBtn = document.getElementById('applyFiltersBtn');
+            resetFiltersBtn = document.getElementById('resetFiltersBtn');
+            refreshBtn = document.getElementById('refreshBtn');
+            exportCsvBtn = document.getElementById('exportCsvBtn');
+            
+            // Load the header component
+            fetch('./header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('headerContainer').innerHTML = html;
+                    // Re-initialize the header after loading
+                    initializeHeader();
+                })
+                .catch(error => {
+                    console.error('Error loading header component:', error);
+                });
             
             // Initialize the page
             // Set up event listeners
@@ -428,410 +435,410 @@
             
             // Load initial data
             fetchProfiles();
-        });
-        
-        function setupEventListeners() {
-            // Table header sorting
-            const headers = document.querySelectorAll('th[data-sort]');
-            headers.forEach(header => {
-                header.addEventListener('click', () => {
-                    const column = header.getAttribute('data-sort');
-                    let order = 'desc';
-                    
-                    // Toggle sort order if clicking the same column
-                    if (state.sorting.column === column) {
-                        order = state.sorting.order === 'desc' ? 'asc' : 'desc';
-                    }
-                    
-                    // Update sorting state
-                    state.sorting.column = column;
-                    state.sorting.order = order;
-                    
-                    // Update UI
-                    updateSortIndicators(column, order);
-                    
-                    // Fetch data with new sorting
+            
+            function fetchProfiles() {
+                // Show loading indicator
+                loadingIndicator.style.display = 'flex';
+                profilesTable.style.display = 'none';
+                paginationContainer.style.display = 'none';
+                
+                // Build query parameters
+                const params = new URLSearchParams({
+                    page: state.pagination.page,
+                    limit: state.pagination.limit,
+                    sortBy: state.sorting.column,
+                    sortOrder: state.sorting.order
+                });
+                
+                // Add filters if they exist
+                if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
+                if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
+                if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
+                if (state.filters.minRank) params.append('filterMinRank', state.filters.minRank);
+                if (state.filters.maxRank) params.append('filterMaxRank', state.filters.maxRank);
+                if (state.filters.minInfluence) params.append('filterMinInfluence', state.filters.minInfluence);
+                if (state.filters.maxInfluence) params.append('filterMaxInfluence', state.filters.maxInfluence);
+                if (state.filters.minAverage) params.append('filterMinAverage', state.filters.minAverage);
+                if (state.filters.maxAverage) params.append('filterMaxAverage', state.filters.maxAverage);
+                if (state.filters.minConfidence) params.append('filterMinConfidence', state.filters.minConfidence);
+                if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
+                if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
+                if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
+                
+                // Fetch data from API
+                fetch(`/control/api/get-profiles?${params.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update state
+                            state.profiles = data.data.users;
+                            state.pagination = data.data.pagination;
+                            
+                            // Render table and pagination
+                            renderTable();
+                            renderPagination();
+                            
+                            // Hide loading indicator
+                            loadingIndicator.style.display = 'none';
+                            profilesTable.style.display = 'table';
+                            paginationContainer.style.display = 'flex';
+                            
+                            // Show success message
+                            showStatusMessage(`Loaded ${state.profiles.length} of ${state.pagination.total} profiles`, 'success');
+                        } else {
+                            // Show error message
+                            showStatusMessage(`Error: ${data.message}`, 'error');
+                            loadingIndicator.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching profiles:', error);
+                        showStatusMessage(`Error fetching profiles: ${error.message}`, 'error');
+                        loadingIndicator.style.display = 'none';
+                    });
+            }
+            
+            function setupEventListeners() {
+                // Table header sorting
+                const headers = document.querySelectorAll('th[data-sort]');
+                headers.forEach(header => {
+                    header.addEventListener('click', () => {
+                        const column = header.getAttribute('data-sort');
+                        let order = 'desc';
+                        
+                        // Toggle sort order if clicking the same column
+                        if (state.sorting.column === column) {
+                            order = state.sorting.order === 'desc' ? 'asc' : 'desc';
+                        }
+                        
+                        // Update sorting state
+                        state.sorting.column = column;
+                        state.sorting.order = order;
+                        
+                        // Update UI
+                        updateSortIndicators(column, order);
+                        
+                        // Fetch data with new sorting
+                        fetchProfiles();
+                    });
+                });
+                
+                // Filter buttons
+                applyFiltersBtn.addEventListener('click', () => {
+                    state.filters.pubkey = filterPubkey.value.trim();
+                    state.filters.minHops = filterMinHops.value.trim();
+                    state.filters.maxHops = filterMaxHops.value.trim();
+                    state.filters.minRank = filterMinRank.value.trim();
+                    state.filters.maxRank = filterMaxRank.value.trim();
+                    state.filters.minInfluence = filterMinInfluence.value.trim();
+                    state.filters.maxInfluence = filterMaxInfluence.value.trim();
+                    state.filters.minAverage = filterMinAverage.value.trim();
+                    state.filters.maxAverage = filterMaxAverage.value.trim();
+                    state.filters.minConfidence = filterMinConfidence.value.trim();
+                    state.filters.maxConfidence = filterMaxConfidence.value.trim();
+                    state.filters.minInput = filterMinInput.value.trim();
+                    state.filters.maxInput = filterMaxInput.value.trim();
+                    state.pagination.limit = parseInt(limitSelect.value);
+                    state.pagination.page = 1; // Reset to first page
                     fetchProfiles();
                 });
-            });
-            
-            // Filter buttons
-            applyFiltersBtn.addEventListener('click', () => {
-                state.filters.pubkey = filterPubkey.value.trim();
-                state.filters.minHops = filterMinHops.value.trim();
-                state.filters.maxHops = filterMaxHops.value.trim();
-                state.filters.minRank = filterMinRank.value.trim();
-                state.filters.maxRank = filterMaxRank.value.trim();
-                state.filters.minInfluence = filterMinInfluence.value.trim();
-                state.filters.maxInfluence = filterMaxInfluence.value.trim();
-                state.filters.minAverage = filterMinAverage.value.trim();
-                state.filters.maxAverage = filterMaxAverage.value.trim();
-                state.filters.minConfidence = filterMinConfidence.value.trim();
-                state.filters.maxConfidence = filterMaxConfidence.value.trim();
-                state.filters.minInput = filterMinInput.value.trim();
-                state.filters.maxInput = filterMaxInput.value.trim();
-                state.pagination.limit = parseInt(limitSelect.value);
-                state.pagination.page = 1; // Reset to first page
-                fetchProfiles();
-            });
-            
-            resetFiltersBtn.addEventListener('click', () => {
-                filterPubkey.value = '';
-                filterMinHops.value = '';
-                filterMaxHops.value = '';
-                filterMinRank.value = '';
-                filterMaxRank.value = '';
-                filterMinInfluence.value = '';
-                filterMaxInfluence.value = '';
-                filterMinAverage.value = '';
-                filterMaxAverage.value = '';
-                filterMinConfidence.value = '';
-                filterMaxConfidence.value = '';
-                filterMinInput.value = '';
-                filterMaxInput.value = '';
                 
-                state.filters.pubkey = '';
-                state.filters.minHops = '';
-                state.filters.maxHops = '';
-                state.filters.minRank = '';
-                state.filters.maxRank = '';
-                state.filters.minInfluence = '';
-                state.filters.maxInfluence = '';
-                state.filters.minAverage = '';
-                state.filters.maxAverage = '';
-                state.filters.minConfidence = '';
-                state.filters.maxConfidence = '';
-                state.filters.minInput = '';
-                state.filters.maxInput = '';
-                state.pagination.limit = 100;
-                state.pagination.page = 1;
-                
-                fetchProfiles();
-            });
-            
-            // Refresh button
-            refreshBtn.addEventListener('click', () => {
-                fetchProfiles();
-            });
-            
-            // Export CSV button
-            exportCsvBtn.addEventListener('click', exportToCsv);
-        }
-        
-        function fetchProfiles() {
-            // Show loading indicator
-            loadingIndicator.style.display = 'flex';
-            profilesTable.style.display = 'none';
-            paginationContainer.style.display = 'none';
-            
-            // Build query parameters
-            const params = new URLSearchParams({
-                page: state.pagination.page,
-                limit: state.pagination.limit,
-                sortBy: state.sorting.column,
-                sortOrder: state.sorting.order
-            });
-            
-            // Add filters if they exist
-            if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
-            if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
-            if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
-            if (state.filters.minRank) params.append('filterMinRank', state.filters.minRank);
-            if (state.filters.maxRank) params.append('filterMaxRank', state.filters.maxRank);
-            if (state.filters.minInfluence) params.append('filterMinInfluence', state.filters.minInfluence);
-            if (state.filters.maxInfluence) params.append('filterMaxInfluence', state.filters.maxInfluence);
-            if (state.filters.minAverage) params.append('filterMinAverage', state.filters.minAverage);
-            if (state.filters.maxAverage) params.append('filterMaxAverage', state.filters.maxAverage);
-            if (state.filters.minConfidence) params.append('filterMinConfidence', state.filters.minConfidence);
-            if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
-            if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
-            if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
-            
-            // Fetch data from API
-            fetch(`/control/api/get-profiles?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update state
-                        state.profiles = data.data.users;
-                        state.pagination = data.data.pagination;
-                        
-                        // Render table and pagination
-                        renderTable();
-                        renderPagination();
-                        
-                        // Hide loading indicator
-                        loadingIndicator.style.display = 'none';
-                        profilesTable.style.display = 'table';
-                        paginationContainer.style.display = 'flex';
-                        
-                        // Show success message
-                        showStatusMessage(`Loaded ${state.profiles.length} of ${state.pagination.total} profiles`, 'success');
-                    } else {
-                        // Show error message
-                        showStatusMessage(`Error: ${data.message}`, 'error');
-                        loadingIndicator.style.display = 'none';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching profiles:', error);
-                    showStatusMessage(`Error fetching profiles: ${error.message}`, 'error');
-                    loadingIndicator.style.display = 'none';
-                });
-        }
-        
-        function renderTable() {
-            // Clear existing table rows
-            tableBody.innerHTML = '';
-            
-            // Create rows for each profile
-            state.profiles.forEach(profile => {
-                const row = document.createElement('tr');
-                
-                // Pubkey cell with truncation and hyperlink
-                const pubkeyCell = document.createElement('td');
-                pubkeyCell.className = 'pubkey-cell';
-                
-                const pubkeyLink = document.createElement('a');
-                pubkeyLink.href = `/control/profile.html?pubkey=${encodeURIComponent(profile.pubkey)}`;
-                pubkeyLink.title = profile.pubkey;
-                pubkeyLink.textContent = profile.pubkey;
-                pubkeyLink.className = 'pubkey-link';
-                
-                pubkeyCell.appendChild(pubkeyLink);
-                row.appendChild(pubkeyCell);
-                
-                // Other cells
-                addNumericCell(row, profile.hops);
-                addNumericCell(row, profile.personalizedPageRank, 4);
-                addNumericCell(row, profile.influence, 4);
-                addNumericCell(row, profile.average, 4);
-                addNumericCell(row, profile.confidence, 4);
-                addNumericCell(row, profile.input, 4);
-                
-                tableBody.appendChild(row);
-            });
-            
-            // If no data, show a message
-            if (state.profiles.length === 0) {
-                const row = document.createElement('tr');
-                const cell = document.createElement('td');
-                cell.colSpan = 7;
-                cell.textContent = 'No profiles found matching the current filters';
-                cell.style.textAlign = 'center';
-                cell.style.padding = '20px';
-                row.appendChild(cell);
-                tableBody.appendChild(row);
-            }
-        }
-        
-        function addNumericCell(row, value, decimals = 0) {
-            const cell = document.createElement('td');
-            cell.className = 'numeric-cell';
-            
-            if (value === null || value === undefined) {
-                cell.textContent = '-';
-            } else {
-                if (typeof value === 'number') {
-                    cell.textContent = decimals > 0 ? value.toFixed(decimals) : value;
-                } else {
-                    cell.textContent = value;
-                }
-            }
-            
-            row.appendChild(cell);
-        }
-        
-        function renderPagination() {
-            // Clear existing pagination
-            paginationContainer.innerHTML = '';
-            
-            // Create pagination controls
-            const totalPages = state.pagination.pages;
-            const currentPage = state.pagination.page;
-            
-            // Previous button
-            const prevButton = document.createElement('button');
-            prevButton.textContent = '←';
-            prevButton.disabled = currentPage === 1;
-            prevButton.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    state.pagination.page = currentPage - 1;
-                    fetchProfiles();
-                }
-            });
-            paginationContainer.appendChild(prevButton);
-            
-            // Page buttons
-            const maxPageButtons = 7;
-            let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
-            let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
-            
-            // Adjust if we're near the end
-            if (endPage - startPage + 1 < maxPageButtons && startPage > 1) {
-                startPage = Math.max(1, endPage - maxPageButtons + 1);
-            }
-            
-            // First page button if not visible
-            if (startPage > 1) {
-                const firstButton = document.createElement('button');
-                firstButton.textContent = '1';
-                firstButton.addEventListener('click', () => {
+                resetFiltersBtn.addEventListener('click', () => {
+                    filterPubkey.value = '';
+                    filterMinHops.value = '';
+                    filterMaxHops.value = '';
+                    filterMinRank.value = '';
+                    filterMaxRank.value = '';
+                    filterMinInfluence.value = '';
+                    filterMaxInfluence.value = '';
+                    filterMinAverage.value = '';
+                    filterMaxAverage.value = '';
+                    filterMinConfidence.value = '';
+                    filterMaxConfidence.value = '';
+                    filterMinInput.value = '';
+                    filterMaxInput.value = '';
+                    
+                    state.filters.pubkey = '';
+                    state.filters.minHops = '';
+                    state.filters.maxHops = '';
+                    state.filters.minRank = '';
+                    state.filters.maxRank = '';
+                    state.filters.minInfluence = '';
+                    state.filters.maxInfluence = '';
+                    state.filters.minAverage = '';
+                    state.filters.maxAverage = '';
+                    state.filters.minConfidence = '';
+                    state.filters.maxConfidence = '';
+                    state.filters.minInput = '';
+                    state.filters.maxInput = '';
+                    state.pagination.limit = 100;
                     state.pagination.page = 1;
+                    
                     fetchProfiles();
                 });
-                paginationContainer.appendChild(firstButton);
                 
-                if (startPage > 2) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.textContent = '...';
-                    ellipsis.style.margin = '0 5px';
-                    paginationContainer.appendChild(ellipsis);
-                }
-            }
-            
-            // Page number buttons
-            for (let i = startPage; i <= endPage; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.textContent = i;
-                pageButton.className = i === currentPage ? 'active' : '';
-                pageButton.addEventListener('click', () => {
-                    state.pagination.page = i;
+                // Refresh button
+                refreshBtn.addEventListener('click', () => {
                     fetchProfiles();
                 });
-                paginationContainer.appendChild(pageButton);
-            }
-            
-            // Last page button if not visible
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.textContent = '...';
-                    ellipsis.style.margin = '0 5px';
-                    paginationContainer.appendChild(ellipsis);
-                }
                 
-                const lastButton = document.createElement('button');
-                lastButton.textContent = totalPages;
-                lastButton.addEventListener('click', () => {
-                    state.pagination.page = totalPages;
-                    fetchProfiles();
+                // Export CSV button
+                exportCsvBtn.addEventListener('click', exportToCsv);
+            }
+            
+            function renderTable() {
+                // Clear existing table rows
+                tableBody.innerHTML = '';
+                
+                // Create rows for each profile
+                state.profiles.forEach(profile => {
+                    const row = document.createElement('tr');
+                    
+                    // Pubkey cell with truncation and hyperlink
+                    const pubkeyCell = document.createElement('td');
+                    pubkeyCell.className = 'pubkey-cell';
+                    
+                    const pubkeyLink = document.createElement('a');
+                    pubkeyLink.href = `/control/profile.html?pubkey=${encodeURIComponent(profile.pubkey)}`;
+                    pubkeyLink.title = profile.pubkey;
+                    pubkeyLink.textContent = profile.pubkey;
+                    pubkeyLink.className = 'pubkey-link';
+                    
+                    pubkeyCell.appendChild(pubkeyLink);
+                    row.appendChild(pubkeyCell);
+                    
+                    // Other cells
+                    addNumericCell(row, profile.hops);
+                    addNumericCell(row, profile.personalizedPageRank, 4);
+                    addNumericCell(row, profile.influence, 4);
+                    addNumericCell(row, profile.average, 4);
+                    addNumericCell(row, profile.confidence, 4);
+                    addNumericCell(row, profile.input, 4);
+                    
+                    tableBody.appendChild(row);
                 });
-                paginationContainer.appendChild(lastButton);
-            }
-            
-            // Next button
-            const nextButton = document.createElement('button');
-            nextButton.textContent = '→';
-            nextButton.disabled = currentPage === totalPages;
-            nextButton.addEventListener('click', () => {
-                if (currentPage < totalPages) {
-                    state.pagination.page = currentPage + 1;
-                    fetchProfiles();
+                
+                // If no data, show a message
+                if (state.profiles.length === 0) {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+                    cell.colSpan = 7;
+                    cell.textContent = 'No profiles found matching the current filters';
+                    cell.style.textAlign = 'center';
+                    cell.style.padding = '20px';
+                    row.appendChild(cell);
+                    tableBody.appendChild(row);
                 }
-            });
-            paginationContainer.appendChild(nextButton);
-        }
-        
-        function updateSortIndicators(column, order) {
-            // Remove existing sort indicators
-            const headers = document.querySelectorAll('th');
-            headers.forEach(header => {
-                header.classList.remove('sort-asc', 'sort-desc');
-            });
-            
-            // Add indicator to current sort column
-            const currentHeader = document.querySelector(`th[data-sort="${column}"]`);
-            if (currentHeader) {
-                currentHeader.classList.add(order === 'asc' ? 'sort-asc' : 'sort-desc');
             }
-        }
-        
-        function showStatusMessage(message, type) {
-            statusMessage.textContent = message;
-            statusMessage.className = `status-message status-${type}`;
-            statusMessage.style.display = 'block';
             
-            // Auto-hide success messages after 5 seconds
-            if (type === 'success') {
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, 5000);
-            }
-        }
-        
-        function exportToCsv() {
-            // Show loading message
-            showStatusMessage('Preparing CSV export...', 'info');
-            
-            // Build query parameters for export (get all results)
-            const params = new URLSearchParams({
-                page: 1,
-                limit: 10000, // Get a large number of results
-                sortBy: state.sorting.column,
-                sortOrder: state.sorting.order
-            });
-            
-            // Add filters if they exist
-            if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
-            if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
-            if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
-            if (state.filters.minRank) params.append('filterMinRank', state.filters.minRank);
-            if (state.filters.maxRank) params.append('filterMaxRank', state.filters.maxRank);
-            if (state.filters.minInfluence) params.append('filterMinInfluence', state.filters.minInfluence);
-            if (state.filters.maxInfluence) params.append('filterMaxInfluence', state.filters.maxInfluence);
-            if (state.filters.minAverage) params.append('filterMinAverage', state.filters.minAverage);
-            if (state.filters.maxAverage) params.append('filterMaxAverage', state.filters.maxAverage);
-            if (state.filters.minConfidence) params.append('filterMinConfidence', state.filters.minConfidence);
-            if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
-            if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
-            if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
-            
-            // Fetch all data for export
-            fetch(`/control/api/get-profiles?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.data.users.length > 0) {
-                        const profiles = data.data.users;
-                        
-                        // Create CSV header
-                        let csv = 'pubkey,hops,personalizedPageRank,influence,average,confidence,input\n';
-                        
-                        // Add rows
-                        profiles.forEach(profile => {
-                            csv += `"${profile.pubkey}",`;
-                            csv += `${profile.hops || ''},`;
-                            csv += `${profile.personalizedPageRank || ''},`;
-                            csv += `${profile.influence || ''},`;
-                            csv += `${profile.average || ''},`;
-                            csv += `${profile.confidence || ''},`;
-                            csv += `${profile.input || ''}\n`;
-                        });
-                        
-                        // Create download link
-                        const blob = new Blob([csv], { type: 'text/csv' });
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.setAttribute('hidden', '');
-                        a.setAttribute('href', url);
-                        a.setAttribute('download', `nostr_profiles_${new Date().toISOString().slice(0,10)}.csv`);
-                        document.body.appendChild(a);
-                        
-                        // Trigger download
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        a.remove();
-                        
-                        showStatusMessage(`Exported ${profiles.length} profiles to CSV`, 'success');
+            function addNumericCell(row, value, decimals = 0) {
+                const cell = document.createElement('td');
+                cell.className = 'numeric-cell';
+                
+                if (value === null || value === undefined) {
+                    cell.textContent = '-';
+                } else {
+                    if (typeof value === 'number') {
+                        cell.textContent = decimals > 0 ? value.toFixed(decimals) : value;
                     } else {
-                        showStatusMessage('No data to export', 'error');
+                        cell.textContent = value;
                     }
-                })
-                .catch(error => {
-                    console.error('Error exporting to CSV:', error);
-                    showStatusMessage(`Error exporting to CSV: ${error.message}`, 'error');
+                }
+                
+                row.appendChild(cell);
+            }
+            
+            function renderPagination() {
+                // Clear existing pagination
+                paginationContainer.innerHTML = '';
+                
+                // Create pagination controls
+                const totalPages = state.pagination.pages;
+                const currentPage = state.pagination.page;
+                
+                // Previous button
+                const prevButton = document.createElement('button');
+                prevButton.textContent = '←';
+                prevButton.disabled = currentPage === 1;
+                prevButton.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        state.pagination.page = currentPage - 1;
+                        fetchProfiles();
+                    }
                 });
-        }
+                paginationContainer.appendChild(prevButton);
+                
+                // Page buttons
+                const maxPageButtons = 7;
+                let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+                let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+                
+                // Adjust if we're near the end
+                if (endPage - startPage + 1 < maxPageButtons && startPage > 1) {
+                    startPage = Math.max(1, endPage - maxPageButtons + 1);
+                }
+                
+                // First page button if not visible
+                if (startPage > 1) {
+                    const firstButton = document.createElement('button');
+                    firstButton.textContent = '1';
+                    firstButton.addEventListener('click', () => {
+                        state.pagination.page = 1;
+                        fetchProfiles();
+                    });
+                    paginationContainer.appendChild(firstButton);
+                    
+                    if (startPage > 2) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.textContent = '...';
+                        ellipsis.style.margin = '0 5px';
+                        paginationContainer.appendChild(ellipsis);
+                    }
+                }
+                
+                // Page number buttons
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = i === currentPage ? 'active' : '';
+                    pageButton.addEventListener('click', () => {
+                        state.pagination.page = i;
+                        fetchProfiles();
+                    });
+                    paginationContainer.appendChild(pageButton);
+                }
+                
+                // Last page button if not visible
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.textContent = '...';
+                        ellipsis.style.margin = '0 5px';
+                        paginationContainer.appendChild(ellipsis);
+                    }
+                    
+                    const lastButton = document.createElement('button');
+                    lastButton.textContent = totalPages;
+                    lastButton.addEventListener('click', () => {
+                        state.pagination.page = totalPages;
+                        fetchProfiles();
+                    });
+                    paginationContainer.appendChild(lastButton);
+                }
+                
+                // Next button
+                const nextButton = document.createElement('button');
+                nextButton.textContent = '→';
+                nextButton.disabled = currentPage === totalPages;
+                nextButton.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        state.pagination.page = currentPage + 1;
+                        fetchProfiles();
+                    }
+                });
+                paginationContainer.appendChild(nextButton);
+            }
+            
+            function updateSortIndicators(column, order) {
+                // Remove existing sort indicators
+                const headers = document.querySelectorAll('th');
+                headers.forEach(header => {
+                    header.classList.remove('sort-asc', 'sort-desc');
+                });
+                
+                // Add indicator to current sort column
+                const currentHeader = document.querySelector(`th[data-sort="${column}"]`);
+                if (currentHeader) {
+                    currentHeader.classList.add(order === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            }
+            
+            function showStatusMessage(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = `status-message status-${type}`;
+                statusMessage.style.display = 'block';
+                
+                // Auto-hide success messages after 5 seconds
+                if (type === 'success') {
+                    setTimeout(() => {
+                        statusMessage.style.display = 'none';
+                    }, 5000);
+                }
+            }
+            
+            function exportToCsv() {
+                // Show loading message
+                showStatusMessage('Preparing CSV export...', 'info');
+                
+                // Build query parameters for export (get all results)
+                const params = new URLSearchParams({
+                    page: 1,
+                    limit: 10000, // Get a large number of results
+                    sortBy: state.sorting.column,
+                    sortOrder: state.sorting.order
+                });
+                
+                // Add filters if they exist
+                if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
+                if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
+                if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
+                if (state.filters.minRank) params.append('filterMinRank', state.filters.minRank);
+                if (state.filters.maxRank) params.append('filterMaxRank', state.filters.maxRank);
+                if (state.filters.minInfluence) params.append('filterMinInfluence', state.filters.minInfluence);
+                if (state.filters.maxInfluence) params.append('filterMaxInfluence', state.filters.maxInfluence);
+                if (state.filters.minAverage) params.append('filterMinAverage', state.filters.minAverage);
+                if (state.filters.maxAverage) params.append('filterMaxAverage', state.filters.maxAverage);
+                if (state.filters.minConfidence) params.append('filterMinConfidence', state.filters.minConfidence);
+                if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
+                if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
+                if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
+                
+                // Fetch all data for export
+                fetch(`/control/api/get-profiles?${params.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.data.users.length > 0) {
+                            const profiles = data.data.users;
+                            
+                            // Create CSV header
+                            let csv = 'pubkey,hops,personalizedPageRank,influence,average,confidence,input\n';
+                            
+                            // Add rows
+                            profiles.forEach(profile => {
+                                csv += `"${profile.pubkey}",`;
+                                csv += `${profile.hops || ''},`;
+                                csv += `${profile.personalizedPageRank || ''},`;
+                                csv += `${profile.influence || ''},`;
+                                csv += `${profile.average || ''},`;
+                                csv += `${profile.confidence || ''},`;
+                                csv += `${profile.input || ''}\n`;
+                            });
+                            
+                            // Create download link
+                            const blob = new Blob([csv], { type: 'text/csv' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.setAttribute('hidden', '');
+                            a.setAttribute('href', url);
+                            a.setAttribute('download', `nostr_profiles_${new Date().toISOString().slice(0,10)}.csv`);
+                            document.body.appendChild(a);
+                            
+                            // Trigger download
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            a.remove();
+                            
+                            showStatusMessage(`Exported ${profiles.length} profiles to CSV`, 'success');
+                        } else {
+                            showStatusMessage('No data to export', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error exporting to CSV:', error);
+                        showStatusMessage(`Error exporting to CSV: ${error.message}`, 'error');
+                    });
+            }
+        });
     </script>
 </body>
 </html>

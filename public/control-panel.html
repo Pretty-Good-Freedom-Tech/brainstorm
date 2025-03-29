@@ -1099,14 +1099,26 @@
                     if (progress === 100) clearInterval(progressInterval);
                 }, 1000);
                 
+                // Set a timeout to handle the case where the fetch request takes too long
+                const timeoutId = setTimeout(() => {
+                    // This will execute if the fetch doesn't complete within 60 seconds
+                    clearInterval(progressInterval);
+                    bulkTransferProgressBar.style.width = '100%';
+                    bulkTransferStatus.className = 'status success';
+                    bulkTransferStatus.textContent = 'Bulk transfer started successfully; process will continue in the background.';
+                    bulkTransferOutput.textContent += '\nTransfer process will continue in the background. Check the Neo4j Database Status button or visit the Neo4j browser for details. You will know the transfer is complete when Neo4j node and relationship counts stop increasing.';
+                    bulkTransferBtn.disabled = false;
+                }, 60000); // 60 seconds timeout
+                
                 fetch('/control/api/bulk-transfer', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    },
-                    signal: AbortSignal.timeout(180000) // 3 minutes timeout
+                    }
                 })
                 .then(response => {
+                    clearTimeout(timeoutId); // Clear the timeout if fetch completes
+                    
                     // Try to parse as JSON regardless of content-type header
                     return response.text().then(text => {
                         try {
@@ -1121,6 +1133,14 @@
                                     message: 'Bulk transfer initiated',
                                     continueInBackground: true,
                                     output: 'Process started and continuing in the background.\n'
+                                };
+                            } else if (response.status === 504) {
+                                // Handle 504 Gateway Timeout specifically
+                                return {
+                                    success: true,
+                                    continueInBackground: true,
+                                    message: 'Bulk transfer initiated (server timeout)',
+                                    output: 'The server took too long to respond, but the process has been started and will continue in the background.\n'
                                 };
                             } else {
                                 // If not OK and not JSON, throw error
@@ -1153,14 +1173,22 @@
                     bulkTransferBtn.disabled = false;
                 })
                 .catch(error => {
+                    clearTimeout(timeoutId); // Clear the timeout if fetch fails
                     clearInterval(progressInterval);
                     console.error('Error:', error);
-                    bulkTransferStatus.className = 'status error';
-                    bulkTransferStatus.textContent = 'Error during bulk transfer: ' + error.message;
+                    
+                    // Check if this is a timeout or network error, which likely means the process is still running
+                    if (error.message.includes('timeout') || error.message.includes('network') || error.message.includes('504')) {
+                        bulkTransferStatus.className = 'status success';
+                        bulkTransferStatus.textContent = 'Bulk transfer started successfully; process will continue in the background.';
+                    } else {
+                        bulkTransferStatus.className = 'status error';
+                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + error.message;
+                    }
                     
                     // Continue showing progress even if there's an error
                     bulkTransferProgressBar.style.width = '100%';
-                    bulkTransferOutput.textContent += '\nTransfer process continued in the background. Check server logs for details.';
+                    bulkTransferOutput.textContent += '\nTransfer process will continue in the background. Check the Neo4j Database Status button or visit the Neo4j browser for details. You will know the transfer is complete when Neo4j node and relationship counts stop increasing.';
                     
                     bulkTransferBtn.disabled = false;
                 });
@@ -1200,6 +1228,17 @@
                     if (progress === 100) clearInterval(progressInterval);
                 }, 1000);
                 
+                // Set a timeout to handle the case where the fetch request takes too long
+                const timeoutId = setTimeout(() => {
+                    // This will execute if the fetch doesn't complete within 60 seconds
+                    clearInterval(progressInterval);
+                    negentropyProgressBar.style.width = '100%';
+                    negentropyStatus.className = 'status success';
+                    negentropyStatus.textContent = 'Negentropy sync started successfully; process will continue in the background.';
+                    negentropyOutput.textContent += '\nSync process will continue in the background. Check Strfry Event Statistics for details. You will know sync is complete when strfry event count stops increasing.';
+                    negentropyBtn.disabled = false;
+                }, 60000); // 60 seconds timeout
+                
                 // Make AJAX request to the server with relay and filter parameters
                 fetch('/control/api/negentropy-sync', {
                     method: 'POST',
@@ -1212,16 +1251,35 @@
                     })
                 })
                 .then(response => {
-                    // Check if the response is JSON
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json();
-                    } else {
-                        // Handle non-JSON response
-                        return response.text().then(text => {
-                            throw new Error('Received non-JSON response from server');
-                        });
-                    }
+                    clearTimeout(timeoutId); // Clear the timeout if fetch completes
+                    
+                    // Try to parse as JSON regardless of content-type header
+                    return response.text().then(text => {
+                        try {
+                            // Try to parse as JSON
+                            return JSON.parse(text);
+                        } catch (e) {
+                            // If parsing fails, check if we got a response with status OK
+                            if (response.ok) {
+                                // If the response was OK but not JSON, assume success
+                                return {
+                                    success: true,
+                                    continueInBackground: true,
+                                    output: `Negentropy sync with ${selectedRelay} started.\nThis process will continue in the background. You can check Strfry Event statistics to track progress.\n`
+                                };
+                            } else if (response.status === 504) {
+                                // Handle 504 Gateway Timeout specifically
+                                return {
+                                    success: true,
+                                    continueInBackground: true,
+                                    output: `The server took too long to respond, but the Negentropy sync with ${selectedRelay} has been started and will continue in the background.\n`
+                                };
+                            } else {
+                                // If not OK and not JSON, throw error
+                                throw new Error('Server returned an error: ' + response.status);
+                            }
+                        }
+                    });
                 })
                 .then(data => {
                     clearInterval(progressInterval);
@@ -1236,20 +1294,31 @@
                         }
                     } else {
                         negentropyStatus.className = 'status error';
-                        negentropyStatus.textContent = 'Error syncing with Negentropy: ' + data.error;
+                        negentropyStatus.textContent = 'Error syncing with Negentropy: ' + (data.error || 'Unknown error');
                     }
                     
-                    negentropyOutput.textContent += data.output;
+                    if (data.output) {
+                        negentropyOutput.textContent += data.output;
+                    }
                     negentropyBtn.disabled = false;
                 })
                 .catch(error => {
+                    clearTimeout(timeoutId); // Clear the timeout if fetch fails
                     clearInterval(progressInterval);
-                    negentropyStatus.className = 'status error';
-                    negentropyStatus.textContent = 'Error syncing with Negentropy: ' + error.message;
+                    console.error('Error:', error);
+                    
+                    // Check if this is a timeout or network error, which likely means the process is still running
+                    if (error.message.includes('timeout') || error.message.includes('network') || error.message.includes('504')) {
+                        negentropyStatus.className = 'status success';
+                        negentropyStatus.textContent = 'Negentropy sync started successfully; process will continue in the background.';
+                    } else {
+                        negentropyStatus.className = 'status error';
+                        negentropyStatus.textContent = 'Error syncing with Negentropy: ' + error.message;
+                    }
                     
                     // Continue showing progress even if there's an error
                     negentropyProgressBar.style.width = '100%';
-                    negentropyOutput.textContent += '\nSync process continued in the background. Check server logs for details.';
+                    negentropyOutput.textContent += '\nSync process will continue in the background. Check Strfry Event Statistics for details. You will know sync is complete when strfry event count stops increasing.';
                     
                     negentropyBtn.disabled = false;
                 });
