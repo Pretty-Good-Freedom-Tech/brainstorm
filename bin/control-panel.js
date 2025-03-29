@@ -755,8 +755,26 @@ async function handleStrfryPlugin(req, res) {
                     return res.status(404).json({ error: `Source config file not found: ${sourceConfigPath}` });
                 }
                 
-                // Copy the appropriate config file to /etc/strfry-router.config
-                execSync(`sudo cp ${sourceConfigPath} ${strfryRouterConfPath}`);
+                // Get owner pubkey from hasenpfeffr.conf
+                const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+                
+                if (!ownerPubkey) {
+                    console.warn('HASENPFEFFR_OWNER_PUBKEY not found in configuration');
+                }
+                
+                // Read the config file content
+                let routerConfigContent = fs.readFileSync(sourceConfigPath, 'utf8');
+                
+                // Replace ${ownerPubkey} placeholder with actual owner pubkey
+                routerConfigContent = routerConfigContent.replace(/\${ownerPubkey}/g, ownerPubkey);
+                
+                // Write the modified content to a temporary file
+                const tempRouterConfigPath = '/tmp/strfry-router.config.tmp';
+                fs.writeFileSync(tempRouterConfigPath, routerConfigContent);
+                
+                // Copy the temporary file to the destination
+                execSync(`sudo cp ${tempRouterConfigPath} ${strfryRouterConfPath}`);
+                fs.unlinkSync(tempRouterConfigPath);
                 
                 // Restart strfry service
                 execSync('sudo systemctl restart strfry');

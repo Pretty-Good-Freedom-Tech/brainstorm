@@ -259,10 +259,14 @@ async function createHasenpfeffrConfigFile() {
 HASENPFEFFR_FILES_BASE="/usr/local/lib/node_modules/hasenpfeffr/"
 HASENPFEFFR_FILES_SRC="\${HASENPFEFFR_FILES_BASE}src/"
 HASENPFEFFR_FILES_ALGOS="\${HASENPFEFFR_FILES_BASE}src/algos/"
+STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins"
+STRFRY_PLUGINS_DATA="\${STRFRY_PLUGINS_BASE}/data"
 
 export HASENPFEFFR_FILES_BASE
 export HASENPFEFFR_FILES_SRC
 export HASENPFEFFR_FILES_ALGOS
+export STRFRY_PLUGINS_BASE
+export STRFRY_PLUGINS_DATA
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"
