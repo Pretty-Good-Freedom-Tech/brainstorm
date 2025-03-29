@@ -265,14 +265,16 @@ async function createHasenpfeffrConfigFile() {
 HASENPFEFFR_FILES_BASE="/usr/local/lib/node_modules/hasenpfeffr/"
 HASENPFEFFR_FILES_SRC="\${HASENPFEFFR_FILES_BASE}src/"
 HASENPFEFFR_FILES_ALGOS="\${HASENPFEFFR_FILES_BASE}src/algos/"
-STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins"
-STRFRY_PLUGINS_DATA="\${STRFRY_PLUGINS_BASE}/data"
+STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins/"
+STRFRY_PLUGINS_DATA="\${STRFRY_PLUGINS_BASE}/data/"
+HASENPFEFFR_LOG_FILES="/var/log/hasenpfeffr/"
 
 export HASENPFEFFR_FILES_BASE
 export HASENPFEFFR_FILES_SRC
 export HASENPFEFFR_FILES_ALGOS
 export STRFRY_PLUGINS_BASE
 export STRFRY_PLUGINS_DATA
+export HASENPFEFFR_LOG_FILES
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"
@@ -303,16 +305,33 @@ export HASENPFEFFR_STATUS=0
 ######################### actions #########################
 
 # when STRFRY SYNC via NEGENTROPY was last run successfully
-export NEGENTROPY_WEB_OF_TRUST=0
-export NEGENTROPY_PROFILES=0
-export NEGENTROPY_PERSONAL_EVENTS=0
+export NEGENTROPY_LAST_SYNC_WEB_OF_TRUST=0
+export NEGENTROPY_LAST_SYNC_PROFILES=0
+export NEGENTROPY_LAST_SYNC_PERSONAL_EVENTS=0
 
 # when last batch transfer to neo4j was run successfully
-export NEO4J_BATCH_TRANSFER=0
+export NEO4J_LAST_BATCH_TRANSFER=0
 
 # when last reconciliation of neo4j was run successfully
-export NEO4J_RECONCILE=0
+export NEO4J_LAST_RECONCILED=0
 
+# when WoT calculations were last performed
+export HOPS_LAST_CALCULATED=0
+
+# when PageRank calculations were last performed
+export PAGERANK_LAST_CALCULATED=0
+
+# when GrapeRank calculations were last performed
+export GRAPERANK_LAST_CALCULATED=0
+
+# when whitelist was last updated
+export WHITELIST_LAST_UPDATED=0
+
+# when blacklist was last updated
+export BLACKLIST_LAST_UPDATED=0
+
+# when NIP-85 was last exported
+export NIP85_LAST_EXPORTED=0
 `;
   
   // Write hasenpfeffr configuration file

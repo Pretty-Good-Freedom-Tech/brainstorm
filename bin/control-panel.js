@@ -314,6 +314,10 @@ app.get('/control/api/auth/logout', handleAuthLogout);
 app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
 app.post('/control/api/hasenpfeffr-control', handleHasenpfeffrControl);
 
+// Add route handler for getting calculation status
+app.get('/api/calculation-status', handleCalculationStatus);
+app.get('/control/api/calculation-status', handleCalculationStatus);
+
 // Handler functions for API endpoints
 function handleStatus(req, res) {
     console.log('Checking status...');
@@ -2089,6 +2093,68 @@ function handleGetKind0Event(req, res) {
       message: `Server error: ${error.message}`
     });
   }
+}
+
+// Handler for getting calculation status
+function handleCalculationStatus(req, res) {
+    console.log('Getting calculation status...');
+    
+    try {
+        // Get calculation timestamps from hasenpfeffr.conf
+        const hopsLastCalculated = getConfigFromFile('HOPS_LAST_CALCULATED', '0');
+        const pageRankLastCalculated = getConfigFromFile('PAGERANK_LAST_CALCULATED', '0');
+        const grapeRankLastCalculated = getConfigFromFile('GRAPERANK_LAST_CALCULATED', '0');
+        const whitelistLastUpdated = getConfigFromFile('WHITELIST_LAST_UPDATED', '0');
+        const blacklistLastUpdated = getConfigFromFile('BLACKLIST_LAST_UPDATED', '0');
+        const nip85LastExported = getConfigFromFile('NIP85_LAST_EXPORTED', '0');
+        
+        // Format timestamps
+        const formatTimestamp = (timestamp) => {
+            if (timestamp === '0') return 'Never';
+            
+            try {
+                const date = new Date(parseInt(timestamp) * 1000);
+                return date.toLocaleString();
+            } catch (e) {
+                return 'Invalid date';
+            }
+        };
+        
+        // Return the status
+        res.json({
+            success: true,
+            hops: {
+                lastCalculated: hopsLastCalculated,
+                formattedTime: formatTimestamp(hopsLastCalculated)
+            },
+            pageRank: {
+                lastCalculated: pageRankLastCalculated,
+                formattedTime: formatTimestamp(pageRankLastCalculated)
+            },
+            grapeRank: {
+                lastCalculated: grapeRankLastCalculated,
+                formattedTime: formatTimestamp(grapeRankLastCalculated)
+            },
+            whitelist: {
+                lastUpdated: whitelistLastUpdated,
+                formattedTime: formatTimestamp(whitelistLastUpdated)
+            },
+            blacklist: {
+                lastUpdated: blacklistLastUpdated,
+                formattedTime: formatTimestamp(blacklistLastUpdated)
+            },
+            nip85: {
+                lastExported: nip85LastExported,
+                formattedTime: formatTimestamp(nip85LastExported)
+            }
+        });
+    } catch (error) {
+        console.error('Error getting calculation status:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get calculation status: ' + error.message
+        });
+    }
 }
 
 // Authentication handlers

@@ -89,6 +89,106 @@
             border-radius: 5px;
             border-left: 5px solid #3498db;
         }
+        .calculation-status {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 5px solid #2ecc71;
+        }
+        .calculation-status h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        .calculation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .calculation-item {
+            background-color: white;
+            padding: 12px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .calculation-item h4 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #3498db;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .calculation-item p {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .calculation-item .timestamp {
+            font-weight: bold;
+            color: #34495e;
+        }
+        .info-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            margin-left: 5px;
+            cursor: help;
+        }
+        .tooltip {
+            visibility: hidden;
+            width: 200px;
+            background-color: #34495e;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            pointer-events: none;
+        }
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #34495e transparent transparent transparent;
+        }
+        .info-icon:hover + .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        .refresh-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
         .loading {
             display: inline-block;
             width: 20px;
@@ -126,6 +226,36 @@
             </div>
             <div id="statusDetails" class="status-details" style="display: none;"></div>
         </div>
+        <div class="calculation-status">
+            <h3>Last Calculation Times</h3>
+            <div class="calculation-grid">
+                <div class="calculation-item">
+                    <h4>Hops <span class="info-icon">i</span><span class="tooltip">Calculates network distance (hops) between users in the Web of Trust based on FOLLOWS relationships in Neo4j</span></h4>
+                    <p id="hops-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>PageRank <span class="info-icon">i</span><span class="tooltip">Calculates influence scores using the PageRank algorithm on the FOLLOWS relationships in Neo4j</span></h4>
+                    <p id="pagerank-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>GrapeRank <span class="info-icon">i</span><span class="tooltip">Personalized ranking algorithm that considers FOLLOWS (positive), MUTES (negative), and REPORTS (negative) relationships with configurable weights</span></h4>
+                    <p id="graperank-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>Whitelist <span class="info-icon">i</span><span class="tooltip">Generates a whitelist of pubkeys based on GrapeRank scores for content filtering in the strfry relay</span></h4>
+                    <p id="whitelist-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>Blacklist <span class="info-icon">i</span><span class="tooltip">Generates a blacklist of pubkeys based on negative ratings from MUTES and REPORTS relationships</span></h4>
+                    <p id="blacklist-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>NIP-85 Export <span class="info-icon">i</span><span class="tooltip">Exports Web of Trust scores as NIP-85 events that can be shared with other relays and clients</span></h4>
+                    <p id="nip85-last-calculation-time" class="timestamp"></p>
+                </div>
+            </div>
+            <button class="refresh-btn" onclick="refreshCalculationTimes()">Refresh</button>
+        </div>
     </div>
     <script>
         // Load the header component
@@ -141,7 +271,10 @@
             });
 
         // Check services status on page load
-        document.addEventListener('DOMContentLoaded', checkServicesStatus);
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServicesStatus();
+            loadCalculationTimes();
+        });
 
         function checkServicesStatus() {
             // For now, we'll just check if the strfry service is running
@@ -241,6 +374,50 @@
                 document.getElementById('turnOnButton').disabled = false;
                 document.getElementById('turnOffButton').disabled = false;
             });
+        }
+
+        function refreshCalculationTimes() {
+            loadCalculationTimes();
+        }
+        
+        function loadCalculationTimes() {
+            // Show loading state
+            document.getElementById('hops-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
+            document.getElementById('pagerank-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
+            document.getElementById('graperank-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
+            document.getElementById('whitelist-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
+            document.getElementById('blacklist-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
+            document.getElementById('nip85-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
+            
+            fetch('/api/calculation-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('hops-last-calculation-time').textContent = data.hops.formattedTime;
+                        document.getElementById('pagerank-last-calculation-time').textContent = data.pageRank.formattedTime;
+                        document.getElementById('graperank-last-calculation-time').textContent = data.grapeRank.formattedTime;
+                        document.getElementById('whitelist-last-calculation-time').textContent = data.whitelist.formattedTime;
+                        document.getElementById('blacklist-last-calculation-time').textContent = data.blacklist.formattedTime;
+                        document.getElementById('nip85-last-calculation-time').textContent = data.nip85.formattedTime;
+                    } else {
+                        console.error('Error loading calculation times:', data.error);
+                        document.getElementById('hops-last-calculation-time').textContent = 'Error loading';
+                        document.getElementById('pagerank-last-calculation-time').textContent = 'Error loading';
+                        document.getElementById('graperank-last-calculation-time').textContent = 'Error loading';
+                        document.getElementById('whitelist-last-calculation-time').textContent = 'Error loading';
+                        document.getElementById('blacklist-last-calculation-time').textContent = 'Error loading';
+                        document.getElementById('nip85-last-calculation-time').textContent = 'Error loading';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading calculation times:', error);
+                    document.getElementById('hops-last-calculation-time').textContent = 'Error loading';
+                    document.getElementById('pagerank-last-calculation-time').textContent = 'Error loading';
+                    document.getElementById('graperank-last-calculation-time').textContent = 'Error loading';
+                    document.getElementById('whitelist-last-calculation-time').textContent = 'Error loading';
+                    document.getElementById('blacklist-last-calculation-time').textContent = 'Error loading';
+                    document.getElementById('nip85-last-calculation-time').textContent = 'Error loading';
+                });
         }
     </script>
 </body>
