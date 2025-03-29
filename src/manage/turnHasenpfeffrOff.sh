@@ -42,6 +42,5 @@ sudo systemctl stop neo4j
 sleep 5
 
 echo "Hasenpfeffr services stopped successfully."
-echo "You can restart services from the control panel at http://localhost:3000"
 
 exit 0

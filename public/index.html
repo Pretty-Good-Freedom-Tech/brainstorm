@@ -197,15 +197,25 @@
             statusDetails.style.display = 'block';
             statusDetails.innerHTML = `<p>Executing ${action === 'on' ? 'startup' : 'shutdown'} script...</p>`;
             
-            // Call the API
-            fetch('/api/hasenpfeffr-control', {
+            // Call the API - use the /control/api path to ensure proper routing
+            fetch('/control/api/hasenpfeffr-control', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    // Include credentials to ensure cookies are sent
+                    'credentials': 'same-origin'
                 },
                 body: JSON.stringify({ action }),
             })
-            .then(response => response.json())
+            .then(response => {
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                }
+                // If not JSON, it might be a redirect to login page or other HTML
+                throw new Error('Received non-JSON response. You may need to log in first.');
+            })
             .then(data => {
                 if (data.success) {
                     updateStatusUI(action);
@@ -222,6 +232,11 @@
                 console.error(`Error turning Hasenpfeffr ${action}:`, error);
                 updateStatusUI('unknown');
                 statusDetails.innerHTML += `<p>Error: ${error.message}</p>`;
+                
+                // If it seems like an authentication issue, suggest logging in
+                if (error.message.includes('non-JSON') || error.message.includes('Unexpected token')) {
+                    statusDetails.innerHTML += `<p>This may be an authentication issue. Please ensure you're logged in to the control panel.</p>`;
+                }
                 
                 // Re-enable buttons
                 document.getElementById('turnOnButton').disabled = false;

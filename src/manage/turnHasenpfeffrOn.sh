@@ -46,6 +46,5 @@ echo "Initiating Negentropy sync for Web of Trust events..."
 curl -s "http://localhost:3000/api/negentropy-sync?relay=wss://relay.primal.net&kinds=3,1984,10000" > /dev/null
 
 echo "Hasenpfeffr services started successfully."
-echo "You can now access the control panel at http://localhost:3000"
 
 exit 0
