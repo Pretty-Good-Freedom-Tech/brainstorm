@@ -696,6 +696,8 @@ async function handleStrfryPlugin(req, res) {
                 execSync(`sudo chmod +x ${pluginPath}`);
             }
             
+            /*
+            // NO LONGER NEEDED. plugin is now implemented via strfry-router.config
             // Update strfry.conf based on action
             if (action === 'enable') {
                 if (writePolicyMatch) {
@@ -734,6 +736,7 @@ async function handleStrfryPlugin(req, res) {
                     }
                 }
             }
+            */
             
             // Remove any incorrect relay.writePolicy.plugin line if it exists
             if (relayMatch) {
