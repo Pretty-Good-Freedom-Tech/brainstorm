@@ -152,53 +152,52 @@ app.get('/sign-in.html', (req, res) => {
     res.redirect('/control/sign-in.html');
 });
 
-// Middleware to check if user is authenticated
-function isAuthenticated(req, res, next) {
-    // Skip authentication for specific paths
-    const publicPaths = [
-        '/login',
-        '/api/auth/login',
-        '/api/auth/status',
-        '/api/service-status'
-    ];
-    
-    // Skip authentication for GET requests to static files
-    if (req.method === 'GET' && (
-        req.path.startsWith('/css/') || 
-        req.path.startsWith('/js/') || 
-        req.path.startsWith('/img/') ||
-        req.path.endsWith('.html') ||
-        req.path.endsWith('.js') ||
-        req.path.endsWith('.css') ||
-        req.path.endsWith('.png') ||
-        req.path.endsWith('.jpg') ||
-        req.path.endsWith('.svg') ||
-        req.path.endsWith('.ico')
-    )) {
+// Authentication middleware
+const authMiddleware = (req, res, next) => {
+    // Skip auth for static resources, sign-in page and auth-related endpoints
+    if (req.path === '/sign-in.html' || 
+        req.path === '/index.html' ||
+        req.path.startsWith('/api/auth/') ||
+        req.path === '/' || 
+        req.path === '/control-panel.html' ||
+        req.path === '/nip85-control-panel.html' ||
+        !req.path.startsWith('/api/')) {
         return next();
     }
     
-    // Check if path is in public paths
-    if (publicPaths.some(publicPath => req.path.endsWith(publicPath))) {
-        return next();
-    }
-    
-    // Check if user is authenticated
+    // Check if user is authenticated for API calls
     if (req.session && req.session.authenticated) {
         return next();
+    } else {
+        // For API calls that modify data, return unauthorized status
+        const writeEndpoints = [
+            '/bulk-transfer',
+            '/generate',
+            '/publish',
+            '/negentropy-sync',
+            '/strfry-plugin',
+            '/create-kind10040',
+            '/publish-kind10040',
+            '/publish-kind30382',
+            '/hasenpfeffr-control'
+        ];
+        
+        // Check if the current path is a write endpoint
+        const isWriteEndpoint = writeEndpoints.some(endpoint => 
+            req.path.includes(endpoint) && (req.method === 'POST' || req.path.includes('?action=enable') || req.path.includes('?action=disable'))
+        );
+        
+        if (isWriteEndpoint) {
+            return res.status(401).json({ error: 'Authentication required for this action' });
     }
     
-    // If API request, return 401 Unauthorized
-    if (req.path.includes('/api/')) {
-        return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    // Otherwise redirect to login page
-    res.redirect('/login.html');
+        // Allow read-only API access
+        return next();
 }
+};
 
-// Apply authentication middleware
-app.use(isAuthenticated);
+// Apply auth middleware
+app.use(authMiddleware);
 
 // Define API routes
 
