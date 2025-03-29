@@ -11,6 +11,7 @@ sudo systemctl stop hasenpfeffr-control-panel
 sudo systemctl stop addToQueue
 sudo systemctl stop processQueue
 sudo systemctl stop strfry-router
+sudo systemctl stop processAllScores.timer
 sudo systemctl stop reconcile.timer
 sudo systemctl stop calculateHops.timer
 sudo systemctl stop calculatePersonalizedPageRank.timer
@@ -19,6 +20,8 @@ sudo rm /etc/systemd/system/hasenpfeffr-control-panel.service
 sudo rm /etc/systemd/system/addToQueue.service
 sudo rm /etc/systemd/system/processQueue.service
 sudo rm /etc/systemd/system/strfry-router.service
+sudo rm /etc/systemd/system/processAllScores.service
+sudo rm /etc/systemd/system/processAllScores.timer
 sudo rm /etc/systemd/system/reconcile.service
 sudo rm /etc/systemd/system/reconcile.timer
 sudo rm /etc/systemd/system/calculateHops.service

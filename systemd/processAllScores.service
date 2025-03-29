@@ -1,0 +1,18 @@
+[Unit]
+Description=Process all Webs of Trust scores
+After=network.target neo4j.service
+
+[Service]
+Type=simple
+User=hasenpfeffr
+EnvironmentFile=/etc/hasenpfeffr.conf
+ExecStart=/usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/algos/processAllScores.sh
+Restart=on-failure
+RestartSec=30
+# Set resource limits to prevent excessive resource usage
+CPUQuota=70%
+# Add additional security measures
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

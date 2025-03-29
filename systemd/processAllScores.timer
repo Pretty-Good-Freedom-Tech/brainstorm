@@ -1,0 +1,12 @@
+[Unit]
+Description=Process all Webs of Trust scores periodically
+After=network.target neo4j.service
+
+[Timer]
+# Run every 6 hours
+OnBootSec=5min
+OnUnitActiveSec=6h
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

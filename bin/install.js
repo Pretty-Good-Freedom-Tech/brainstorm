@@ -66,6 +66,11 @@ const configPaths = {
   reconcileServiceFileDestination: path.join(systemdServiceDir, 'reconcile.service'),
   reconcileTimerFileDestination: path.join(systemdServiceDir, 'reconcile.timer'),
 
+  processAllScoresServiceFileSource: path.join(packageRoot, 'systemd', 'processAllScores.service'),
+  processAllScoresTimerFileSource: path.join(packageRoot, 'systemd', 'processAllScores.timer'),
+  processAllScoresServiceFileDestination: path.join(systemdServiceDir, 'processAllScores.service'),
+  processAllScoresTimerFileDestination: path.join(systemdServiceDir, 'processAllScores.timer'),
+
   calculateHopsServiceFileSource: path.join(packageRoot, 'systemd', 'calculateHops.service'),
   calculateHopsTimerFileSource: path.join(packageRoot, 'systemd', 'calculateHops.timer'),
   calculateHopsServiceFileDestination: path.join(systemdServiceDir, 'calculateHops.service'),
@@ -144,6 +149,7 @@ async function install() {
     await setupAddToQueueService();
     await setupProcessQueueService();
     await setupReconcileService();
+    await setupProcessAllScoresService();
     await setupCalculatePersonalizedPageRankService();
     await setupCalculateHopsService();
     await setupCalculatePersonalizedGrapeRankService();
@@ -589,6 +595,62 @@ async function setupStrfryRouterService() {
     console.error(`Error setting up strfry router service: ${error.message}`);
     console.log(`Source file: ${configPaths.strfryRouterServiceFileSource}`);
     console.log(`Destination file: ${configPaths.strfryRouterServiceFileDestination}`);
+  }
+}
+
+async function setupProcessAllScoresService() {
+  console.log('\x1b[36m=== Setting Up Process All Scores Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up process all scores systemd service without root privileges.\x1b[0m');
+
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if process all scores service file already exists
+  if (fs.existsSync(configPaths.processAllScoresServiceFileDestination)) {
+    console.log(`process all scores service file ${configPaths.processAllScoresServiceFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.processAllScoresServiceFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.processAllScoresServiceFileDestination, serviceFileContent);
+    console.log(`process all scores service file created at ${configPaths.processAllScoresServiceFileDestination}`);
+
+    // enable the service
+    execSync(`systemctl enable processAllScores.service`);
+    console.log('Process all scores service enabled');
+
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up process all scores service: ${error.message}`);
+    console.log(`Source file: ${configPaths.processAllScoresServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.processAllScoresServiceFileDestination}`);
+  }
+
+  // check if processAllScores timer file already exists
+  if (fs.existsSync(configPaths.processAllScoresTimerFileDestination)) {
+    console.log(`process all scores timer file ${configPaths.processAllScoresTimerFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const timerFileContent = fs.readFileSync(configPaths.processAllScoresTimerFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.processAllScoresTimerFileDestination, timerFileContent);
+    console.log(`process all scores timer file created at ${configPaths.processAllScoresTimerFileDestination}`);
+  } catch (error) {
+    console.error(`Error setting up process all scores timer: ${error.message}`);
+    console.log(`Source file: ${configPaths.processAllScoresTimerFileSource}`);
+    console.log(`Destination file: ${configPaths.processAllScoresTimerFileDestination}`);
   }
 }
 
