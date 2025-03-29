@@ -149,72 +149,120 @@ async function processCSVFile(filePath, ratings, config, ratingType) {
   });
 }
 
-// Write ratings to file using a streaming approach
+// Write ratings to file using a memory-efficient streaming approach
 async function writeRatingsToFile(ratingsFile, ratings) {
   return new Promise((resolve, reject) => {
     try {
       // Create a writable stream
       const stream = fs.createWriteStream(ratingsFile);
       
+      // Get all contexts (should only be 'verifiedUsers' in this case)
+      const contexts = Object.keys(ratings);
+      let contextIndex = 0;
+      
       // Write the opening brace
       stream.write('{\n');
       
-      // Get all contexts (should only be 'verifiedUsers' in this case)
-      const contexts = Object.keys(ratings);
-      
-      // Process each context
-      contexts.forEach((context, contextIndex) => {
+      // Process contexts one at a time
+      function processNextContext() {
+        if (contextIndex >= contexts.length) {
+          // All contexts processed, close the JSON
+          stream.write('}\n');
+          stream.end();
+          return;
+        }
+        
+        const context = contexts[contextIndex];
         // Write context key
         stream.write(`  "${context}": {\n`);
         
         // Get all ratees for this context
         const ratees = Object.keys(ratings[context]);
+        let rateeIndex = 0;
         
-        // Process each ratee
-        ratees.forEach((ratee, rateeIndex) => {
-          // Write ratee key
-          stream.write(`    "${ratee}": {\n`);
-          
-          // Get all raters for this ratee
-          const raters = Object.keys(ratings[context][ratee]);
-          
-          // Process each rater
-          raters.forEach((rater, raterIndex) => {
-            // Get rating and confidence
-            const [rating, confidence] = ratings[context][ratee][rater];
-            
-            // Write rater key and value
-            stream.write(`      "${rater}": [${rating}, ${confidence}]`);
-            
-            // Add comma if not the last rater
-            if (raterIndex < raters.length - 1) {
-              stream.write(',\n');
+        // Process ratees in batches to avoid memory issues
+        function processNextRateeBatch() {
+          if (rateeIndex >= ratees.length) {
+            // All ratees in this context processed
+            if (contextIndex < contexts.length - 1) {
+              stream.write('  },\n');
             } else {
-              stream.write('\n');
+              stream.write('  }\n');
             }
-          });
-          
-          // Close ratee object
-          if (rateeIndex < ratees.length - 1) {
-            stream.write('    },\n');
-          } else {
-            stream.write('    }\n');
+            
+            // Move to next context
+            contextIndex++;
+            process.nextTick(processNextContext);
+            return;
           }
-        });
-        
-        // Close context object
-        if (contextIndex < contexts.length - 1) {
-          stream.write('  },\n');
-        } else {
-          stream.write('  }\n');
+          
+          // Process a batch of ratees
+          const batchSize = 1000; // Adjust based on memory constraints
+          const endIndex = Math.min(rateeIndex + batchSize, ratees.length);
+          let batchPromises = [];
+          
+          for (let i = rateeIndex; i < endIndex; i++) {
+            const ratee = ratees[i];
+            batchPromises.push(new Promise((resolveRatee) => {
+              // Process this ratee
+              let rateeOutput = '';
+              
+              // Write ratee key
+              rateeOutput += `    "${ratee}": {\n`;
+              
+              // Get all raters for this ratee
+              const raters = Object.keys(ratings[context][ratee]);
+              
+              // Process each rater
+              raters.forEach((rater, raterIndex) => {
+                // Get rating and confidence
+                const [rating, confidence] = ratings[context][ratee][rater];
+                
+                // Write rater key and value
+                rateeOutput += `      "${rater}": [${rating}, ${confidence}]`;
+                
+                // Add comma if not the last rater
+                if (raterIndex < raters.length - 1) {
+                  rateeOutput += ',\n';
+                } else {
+                  rateeOutput += '\n';
+                }
+              });
+              
+              // Close ratee object
+              if (i < ratees.length - 1) {
+                rateeOutput += '    },\n';
+              } else {
+                rateeOutput += '    }\n';
+              }
+              
+              // Write to stream and resolve when drain is complete
+              if (stream.write(rateeOutput)) {
+                resolveRatee();
+              } else {
+                stream.once('drain', resolveRatee);
+              }
+            }));
+          }
+          
+          // After batch is processed, move to next batch
+          Promise.all(batchPromises)
+            .then(() => {
+              rateeIndex = endIndex;
+              // Use process.nextTick to avoid stack overflow
+              process.nextTick(processNextRateeBatch);
+            })
+            .catch(err => {
+              reject(err);
+            });
         }
-      });
+        
+        // Start processing ratees
+        processNextRateeBatch();
+      }
       
-      // Write the closing brace
-      stream.write('}\n');
-      
-      // End the stream
-      stream.end();
+      // Start processing contexts
+      processNextContext();
       
       // Handle stream events
       stream.on('finish', () => {
