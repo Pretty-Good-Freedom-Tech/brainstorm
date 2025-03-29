@@ -23,3 +23,7 @@ sleep 10
 sleep 10
 
 # sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/publish_nip85.sh
+
+sleep 10
+
+# ? turn on Stream Filtered Content if not already active

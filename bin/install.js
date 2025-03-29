@@ -183,9 +183,39 @@ async function createStrfryRouterConfigFile() {
   // Write strfry router configuration file
   if (isRoot) {
     // Read the content of the source file
-    const configFileContent = fs.readFileSync(configPaths.strfryRouterConfigSource, 'utf8');
+    let configFileContent = fs.readFileSync(configPaths.strfryRouterConfigSource, 'utf8');
+    
+    // Get owner pubkey from hasenpfeffr.conf
+    const hasenpfeffrConfContent = fs.readFileSync(configPaths.hasenpfeffrConfDestination, 'utf8');
+    const ownerPubkeyMatch = hasenpfeffrConfContent.match(/HASENPFEFFR_OWNER_PUBKEY="([^"]+)"/);
+    const ownerPubkey = ownerPubkeyMatch ? ownerPubkeyMatch[1] : '';
+    
+    if (ownerPubkey) {
+      // Add personalContent section after baselineWoT section
+      const personalContentSection = `
+    personalContent {
+        dir = "down"
 
-    // Write the content to the destination file
+        filter = { "authors": ["${ownerPubkey}"], "limit": 5 }
+
+        urls = [
+            "wss://relay.primal.net",
+            "wss://relay.hasenpfeffr.com",
+            "wss://profiles.nostr1.com",
+            "wss://relay.damus.io",
+            "wss://relay.nostr.band"
+        ]
+    }`;
+      
+      // Insert the personalContent section before the closing brace of the streams section
+      configFileContent = configFileContent.replace(/(\s*\}\s*)$/, `${personalContentSection}$1`);
+      
+      console.log(`Added personalContent section with owner pubkey: ${ownerPubkey}`);
+    } else {
+      console.log('\x1b[33mWarning: Could not find HASENPFEFFR_OWNER_PUBKEY in configuration. Personal content stream not added.\x1b[0m');
+    }
+
+    // Write the modified content to the destination file
     fs.writeFileSync(configPaths.strfryRouterConfigDestination, configFileContent);
 
     execSync(`sudo chmod 644 ${configPaths.strfryRouterConfigDestination}`);
@@ -226,9 +256,13 @@ async function createHasenpfeffrConfigFile() {
 # and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
 
 # File paths
-export HASENPFEFFR_FILES_BASE="/usr/local/lib/node_modules/hasenpfeffr/"
-export HASENPFEFFR_FILES_SRC="$HASENPFEFFR_FILES_BASEsrc/"
-export HASENPFEFFR_FILES_ALGOS="$HASENPFEFFR_FILES_BASEsrc/algos/"
+HASENPFEFFR_FILES_BASE="/usr/local/lib/node_modules/hasenpfeffr/"
+HASENPFEFFR_FILES_SRC="${HASENPFEFFR_FILES_BASE}src/"
+HASENPFEFFR_FILES_ALGOS="${HASENPFEFFR_FILES_BASE}src/algos/"
+
+export HASENPFEFFR_FILES_BASE
+export HASENPFEFFR_FILES_SRC
+export HASENPFEFFR_FILES_ALGOS
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"
