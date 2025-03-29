@@ -38,7 +38,7 @@ const configPaths = {
   hasenpfeffrConfDestination: '/etc/hasenpfeffr.conf',
   strfryRouterConfigDestination: `/etc/strfry-router.config`,
   setupDir: path.join(packageRoot, 'setup'),
-  strfryRouterConfigSource: path.join(packageRoot, 'setup', 'strfry-router.config'),
+  strfryRouterConfigSource: path.join(packageRoot, 'setup', 'strfry-router-install.config'),
   neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
   neo4jConstraintsAndIndexesScript: path.join(packageRoot, 'setup', 'neo4jConstraintsAndIndexes.sh'),
 
