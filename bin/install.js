@@ -226,7 +226,9 @@ async function createHasenpfeffrConfigFile() {
 # and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
 
 # File paths
-export HASENPFEFFR_FILES_SRC="/usr/local/lib/node_modules/hasenpfeffr/src/"
+export HASENPFEFFR_FILES_BASE="/usr/local/lib/node_modules/hasenpfeffr/"
+export HASENPFEFFR_FILES_SRC="$HASENPFEFFR_FILES_BASEsrc/"
+export HASENPFEFFR_FILES_ALGOS="$HASENPFEFFR_FILES_BASEsrc/algos/"
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"

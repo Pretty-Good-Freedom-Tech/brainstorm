@@ -30,40 +30,6 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
         }
-        .links-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .link-card {
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            transition: transform 0.3s ease;
-        }
-        .link-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        .link-card h3 {
-            color: #3498db;
-            margin-top: 0;
-        }
-        .link-card p {
-            color: #666;
-        }
-        .link-card a {
-            display: inline-block;
-            margin-top: 10px;
-            color: #3498db;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .link-card a:hover {
-            text-decoration: underline;
-        }
     </style>
     <script src="./header.js"></script>
 </head>
@@ -73,55 +39,10 @@
 
     <div class="container">
         <div class="card">
-            <h2>Welcome to Hasenpfeffr</h2>
-            <p>Hasenpfeffr is a powerful Nostr relay management system that provides advanced control and monitoring capabilities for your Nostr infrastructure.</p>
-        </div>
-
-        <div class="links-grid">
-            <div class="link-card">
-                <h3>Main Control Panel</h3>
-                <p>Access the main Hasenpfeffr control panel to manage your Hasenpfeffr installation, monitor relay status, and configure settings.</p>
-                <a href="/control/control-panel.html" class="btn">Go to Control Panel</a>
-            </div>
-
-            <div class="link-card">
-                <h3>Neo4j Control Panel</h3>
-                <p>Manage Neo4j specific functionality and settings.</p>
-                <a href="/control/neo4j-control-panel.html" class="btn">Go to Neo4j Panel</a>
-            </div>
-
-            <div class="link-card">
-                <h3>NIP-85 Control Panel</h3>
-                <p>Manage NIP-85 specific functionality and settings for your relay.</p>
-                <a href="/control/nip85-control-panel.html" class="btn">Go to NIP-85 Panel</a>
-            </div>
-
-            <div class="link-card">
-                <h3>GrapeRank Control Panel</h3>
-                <p>Calculate GrapeRank scores one time or on a schedule and update GrapeRank parameters.</p>
-                <a href="/control/graperank-control-panel.html" class="btn">Go to GrapeRank Control Panel</a>
-            </div>
-
-            <div class="link-card">
-                <h3>Blacklist Control Panel</h3>
-                <p>Calculate blacklist and update blacklist parameters.</p>
-                <a href="/control/blacklist-control-panel.html" class="btn">Go to Blacklist Control Panel</a>
-            </div>
-
-            <div class="link-card">
-                <h3>User Profiles</h3>
-                <p>Table of Nostr User Profiles and their Webs of Trust scores.</p>
-                <a href="/control/profiles-control-panel.html" class="btn">Go to Profiles</a>
-            </div>
-
-            <div class="link-card">
-                <h3>Strfry Relay</h3>
-                <p>Access your Nostr relay directly to interact with the Nostr network.</p>
-                <a href="/" id="relayLink" class="btn">Go to Relay</a>
-            </div>
+            <h2>Main Control Panel</h2>
+            <p>Use this page to manage your Hasenpfeffr installation, monitor relay status, and configure settings.</p>
         </div>
     </div>
-
     <script>
         // Load the header component
         fetch('./header.html')

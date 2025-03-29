@@ -1,20 +1,25 @@
 #!/bin/bash
 
-# Perform all of the following steps:
+CONFIG_FILE="/etc/hasenpfeffr.conf"
+source "$CONFIG_FILE"
+HASENPFEFFR_FILES_SRC=$HASENPFEFFR_FILES_SRC
 
-# calculateHops.sh
-# calculatePersonalizedPageRank.sh
-# calculatePersonalizedGrapeRank.sh (forthcoming)
-# exportWhitelist.sh
-# exportNip85.sh (forthcoming)
+echo "HASENPFEFFR_FILES_SRC: $HASENPFEFFR_FILES_SRC"
 
-sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculateHops.sh
+# sudo $HASENPFEFFR_FILES_SRC/algos/calculateHops.sh
 
-sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculatePersonalizedPageRank.sh
+sleep 10
 
-sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
+# sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculatePersonalizedPageRank.sh
 
-sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/exportWhitelist.sh
+sleep 10
 
-# forthcoming:
-# sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/exportNip85.sh
+# sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
+
+sleep 10
+
+# sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/exportWhitelist.sh
+
+sleep 10
+
+# sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/publish_nip85.sh
