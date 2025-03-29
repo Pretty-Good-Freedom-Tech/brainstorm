@@ -291,7 +291,7 @@ export STRFRY_DOMAIN="${domainName}"
 export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
 
 # Status of Hasenpfeffr service
-# 0 = disabled, 1 = enabled, 2 = starting, 3 = running negentropy sync, 4 = stopping, 5 = error
+# 0 = disabled, 1 = enabled, 2 = starting, 3 = running negentropy sync, 4 = batch transfer to neo4j, 5 = stopping, 6 = error
 export HASENPFEFFR_STATUS=0
 
 ######################### actions #########################
@@ -300,6 +300,12 @@ export HASENPFEFFR_STATUS=0
 export NEGENTROPY_WEB_OF_TRUST=0
 export NEGENTROPY_PROFILES=0
 export NEGENTROPY_PERSONAL_EVENTS=0
+
+# when last batch transfer to neo4j was run successfully
+export NEO4J_BATCH_TRANSFER=0
+
+# when last reconciliation of neo4j was run successfully
+export NEO4J_RECONCILE=0
 
 `;
   
