@@ -236,11 +236,8 @@
     <div id="headerContainer"></div>
 
     <div class="container">
-        <div class="card">
-            <p>Use this page to manage your Hasenpfeffr installation, monitor relay status, and configure settings.</p>
-        </div>
         <div class="master-control">
-            <h2>Hasenpfeffr Master Control</h2>
+            <h2>Hasenpfeffr Master Switch</h2>
             <div class="status-text">
                 <span id="statusIndicator" class="status-indicator status-unknown"></span>
                 Status: <span id="statusText">Checking...</span>
@@ -252,7 +249,7 @@
             <div id="statusDetails" class="status-details" style="display: none;"></div>
         </div>
         <div class="calculation-status">
-            <h3>Negentropy data sync</h3>
+            <h3>Negentropy: download events in bulk to strfry</h3>
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <h4>FOLLOWS, MUTES, & REPORTS <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kinds 3, 1984, and 1000 events from wss://relay.hasenpfeffr.com</span></h4>
@@ -267,7 +264,8 @@
                     <p id="syncPersonal-last-calculation-time" class="timestamp"></p>
                 </div>
             </div>
-            <h3>Score Calculations</h3>
+            <br/>
+            <h3>Webs of Trust Score Calculations and Export</h3>
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <h4>Hops <span class="info-icon">i</span><span class="tooltip">Calculates network distance (hops) between users in the Web of Trust based on FOLLOWS relationships in Neo4j</span></h4>
@@ -527,10 +525,10 @@
                     const serviceDescriptions = {
                         'neo4j': 'Graph database for storing Nostr relationships',
                         'strfry': 'Nostr relay for receiving and serving events',
-                        'hasenpfeffr-control-panel': 'Web interface for system management',
+                        // 'hasenpfeffr-control-panel': 'Web interface for system management',
                         'strfry-router': 'Live stream events from the nostr network, including: baselineWoT (kinds 3, 1984, and 10000), profile info (kind 0), and all personal events',
-                        'addToQueue': 'Add pubkeys to processing queue with recently updated WoT events',
-                        'processQueue': 'Process pubkeys from queue',
+                        'addToQueue': 'Add to queue whenever strfry receives new follows, mutes, or reports',
+                        'processQueue': 'Process queue to update Neo4j with new data',
                         'processAllScores.timer': 'Calculate all WoT scores; update and export them',
                         'reconcile.timer': 'Scheduled task to reconcile graph data'
                     };
@@ -542,8 +540,9 @@
                         'calculatePersonalizedGrapeRank.timer'
                     ];
                     
-                    // Separate regular services from timer services
-                    const regularServices = [];
+                    // Separate services into different categories
+                    const coreServices = [];
+                    const streamingServices = [];
                     const timerServices = [];
                     
                     Object.entries(data.services).forEach(([service, status]) => {
@@ -554,8 +553,13 @@
                         
                         if (service.endsWith('.timer')) {
                             timerServices.push([service, status]);
+                        } else if (service === 'neo4j' || service === 'strfry') {
+                            coreServices.push([service, status]);
+                        } else if (service === 'strfry-router' || service === 'addToQueue' || service === 'processQueue') {
+                            streamingServices.push([service, status]);
                         } else {
-                            regularServices.push([service, status]);
+                            // Any other services go to core by default
+                            coreServices.push([service, status]);
                         }
                     });
                     
@@ -638,37 +642,42 @@
                         return row;
                     }
                     
-                    // Add regular services
-                    if (regularServices.length > 0) {
-                        // Add header for regular services
+                    // Function to add a section header
+                    function addSectionHeader(title) {
                         const headerRow = document.createElement('tr');
                         const headerCell = document.createElement('td');
                         headerCell.colSpan = 3;
                         headerCell.style.backgroundColor = '#f2f2f2';
                         headerCell.style.padding = '8px';
                         headerCell.style.fontWeight = 'bold';
-                        headerCell.textContent = 'Core Services';
+                        headerCell.textContent = title;
                         headerRow.appendChild(headerCell);
                         servicesTableBody.appendChild(headerRow);
+                    }
+                    
+                    // Add core services
+                    if (coreServices.length > 0) {
+                        addSectionHeader('Core Services');
                         
-                        // Add each regular service
-                        regularServices.forEach(([service, status]) => {
+                        // Add each core service
+                        coreServices.forEach(([service, status]) => {
+                            servicesTableBody.appendChild(createServiceRow(service, status));
+                        });
+                    }
+                    
+                    // Add streaming services
+                    if (streamingServices.length > 0) {
+                        addSectionHeader('Streaming Data');
+                        
+                        // Add each streaming service
+                        streamingServices.forEach(([service, status]) => {
                             servicesTableBody.appendChild(createServiceRow(service, status));
                         });
                     }
                     
                     // Add timer services
                     if (timerServices.length > 0) {
-                        // Add header for timer services
-                        const headerRow = document.createElement('tr');
-                        const headerCell = document.createElement('td');
-                        headerCell.colSpan = 3;
-                        headerCell.style.backgroundColor = '#f2f2f2';
-                        headerCell.style.padding = '8px';
-                        headerCell.style.fontWeight = 'bold';
-                        headerCell.textContent = 'Scheduled Tasks';
-                        headerRow.appendChild(headerCell);
-                        servicesTableBody.appendChild(headerRow);
+                        addSectionHeader('Scheduled Tasks');
                         
                         // Add each timer service
                         timerServices.forEach(([service, status]) => {
