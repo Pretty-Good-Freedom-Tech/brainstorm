@@ -303,6 +303,7 @@
             </div>
             <div id="statusDetails" class="status-details" style="display: none;"></div>
         </div>
+        <h3>Routine actions</h3>
         <div class="calculation-status">
             <h3>Negentropy: download events in bulk to strfry</h3>
             <div class="calculation-grid">
@@ -339,6 +340,38 @@
                         <h4>Personal <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available personal events from wss://relay.primal.net</span></h4>
                         <p id="syncPersonal-last-calculation-time" class="timestamp"></p>
                         <p id="syncPersonal-last-calculation-duration" class="duration"></p>
+                    </div>
+                    <div class="calculation-actions">
+                        <button class="action-btn">Run</button>
+                        <div class="progress-container">
+                            <div class="progress-bar"></div>
+                        </div>
+                        <span class="progress-text">0%</span>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <h3>Transfer from strfry to Neo4j</h3>
+            <div class="calculation-grid">
+                <div class="calculation-item">
+                    <div class="calculation-item-content">
+                        <h4>Bulk Transfer <span class="info-icon">i</span><span class="tooltip">Bulk transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This does not erase obsolute follows!</span></h4>
+                        <p id="runBulkTransfer-last-calculation-time" class="timestamp"></p>
+                        <p id="runBulkTransfer-last-calculation-duration" class="duration"></p>
+                    </div>
+                    <div class="calculation-actions">
+                        <button class="action-btn">Run</button>
+                        <div class="progress-container">
+                            <div class="progress-bar"></div>
+                        </div>
+                        <span class="progress-text">0%</span>
+                    </div>
+                </div>
+                <div class="calculation-item">
+                    <div class="calculation-item-content">
+                        <h4>Reconciliation <span class="info-icon">i</span><span class="tooltip">Reconciles Neo4j database with strfry. This erases obsolete follows!</span></h4>
+                        <p id="runReconciliation-last-calculation-time" class="timestamp"></p>
+                        <p id="runReconciliation-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -701,6 +734,7 @@
                     
                     // List of services to exclude
                     const excludedServices = [
+                        'hasenpfeffr-control-panel',
                         'calculateHops.timer',
                         'calculatePersonalizedPageRank.timer',
                         'calculatePersonalizedGrapeRank.timer'

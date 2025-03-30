@@ -22,6 +22,13 @@ echo "$(date): Starting processAllScores" >> ${HASENPFEFFR_LOG_DIR}/processAllSc
 
 # echo "HASENPFEFFR_MODULE_ALGOS_DIR: $HASENPFEFFR_MODULE_ALGOS_DIR"
 
+# TODO:
+# negentropy sync follows, mutes, and reports
+# negentropy sync profiles
+# negentropy sync personal
+# neo4j transfer if needed (do only once? repeat infrequently? probably only once; otherwise do reconciliation)
+# neo4j reconciliation
+
 sudo $HASENPFEFFR_MODULE_ALGOS_DIR/calculateHops.sh
 echo "$(date): Continuing processAllScores; calculateHops.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
 

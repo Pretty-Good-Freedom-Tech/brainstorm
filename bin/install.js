@@ -265,6 +265,7 @@ async function createHasenpfeffrConfigFile() {
 HASENPFEFFR_MODULE_BASE_DIR="/usr/local/lib/node_modules/hasenpfeffr/"
 HASENPFEFFR_MODULE_SRC_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/"
 HASENPFEFFR_MODULE_ALGOS_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/algos"
+HASENPFEFFR_MODULE_PIPELINE_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/pipeline"
 STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins/"
 STRFRY_PLUGINS_DATA="\${STRFRY_PLUGINS_BASE}/data/"
 HASENPFEFFR_LOG_DIR="/var/log/hasenpfeffr"

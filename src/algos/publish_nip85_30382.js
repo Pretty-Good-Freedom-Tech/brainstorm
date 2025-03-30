@@ -383,6 +383,7 @@ async function publishEventToRelay(relayUrl, event, pool) {
 // Main function
 async function publishNip85() {
   console.log('Starting Nip85 data publishing...');
+  execSync(`echo "$(date): Starting publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
   
   // Get Nostr keys
   const keys = getNostrKeys();
@@ -438,6 +439,8 @@ async function publishNip85() {
   console.log(`Counting total lines in ${inputFile}...`);
   const totalToProcess = await countLines(inputFile);
   console.log(`Total records to process: ${totalToProcess}`);
+
+  execSync(`echo "$(date): Total records to process: ${totalToProcess}" >> /var/log/hasenpfeffr/publishNip85.log`)
   
   // Initialize the monitor
   monitor = new PublishingMonitor(totalToProcess);
@@ -480,6 +483,8 @@ async function publishNip85() {
       }
     }
   }
+
+  execSync(`echo "$(date): about to process any remaining records; publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
   
   // Process any remaining records
   if (currentBatch.length > 0) {
@@ -487,12 +492,16 @@ async function publishNip85() {
     console.log(`Processing final batch ${batchCount} (records ${lineCount - currentBatch.length + 1}-${lineCount})...`);
     await processBatch(currentBatch, primaryPool, relayUrl, keys, additionalPools);
   }
+
+  execSync(`echo "$(date): about to close connection pools; publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
   
   // Close all connection pools
   await primaryPool.closeAll();
   for (const additionalRelay of Object.keys(additionalPools)) {
     await additionalPools[additionalRelay].closeAll();
   }
+
+  execSync(`echo "$(date): Completed publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
   
   monitor.stop();
 }

@@ -4,18 +4,18 @@
 # following the Trusted Assertions protocol (NIP-85)
 
 # Source the configuration file
-source /etc/hasenpfeffr.conf
+source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR, HASENPFEFFR_MODULE_ALGOS_DIR, HASENPFEFFR_RELAY_URL
 
 touch ${HASENPFEFFR_LOG_DIR}/publishNip85.log
 sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/publishNip85.log
 
+echo "$(date): Starting publishNip85"
 echo "$(date): Starting publishNip85" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log  
 
 set -e  # Exit on error
 
 # Directory setup
-SCRIPT_DIR="/usr/local/lib/node_modules/hasenpfeffr/src/algos"
-cd "$SCRIPT_DIR"
+cd "$HASENPFEFFR_MODULE_ALGOS_DIR"
 
 # Check if HASENPFEFFR_RELAY_URL is set
 if [ -z "$HASENPFEFFR_RELAY_URL" ]; then
@@ -48,15 +48,21 @@ if ! npm list | grep -q "websocket"; then
 fi
 
 # Check if nip85.json exists
-if [ ! -f "$SCRIPT_DIR/nip85.json" ]; then
+if [ ! -f "$HASENPFEFFR_MODULE_ALGOS_DIR/nip85.json" ]; then
     echo "Error: nip85.json not found. Please run generateNip85.sh first."
+    echo "Error: nip85.json not found. Please run generateNip85.sh first." >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log
     exit 1
 fi
 
+# TODO: call script to publish kind 10040 event
+
+# ??? TODO: call script to create nip85.json ??? run generateNip85.sh ???
+
+echo "$(date): Continuing publishNip85 ... calling publish_nip85_30382.js"
+echo "$(date): Continuing publishNip85 ... calling publish_nip85_30382.js" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log
+
 # Run the JavaScript script with Node.js garbage collection enabled for large datasets
-echo "Publishing nip85.json data to Nostr network as kind 30382 events..."
-node --expose-gc --max-old-space-size=4096 "$SCRIPT_DIR/publish_nip85_30382.js"
+node --expose-gc --max-old-space-size=4096 "$HASENPFEFFR_MODULE_ALGOS_DIR/publish_nip85_30382.js"
 
-echo "nip85.json publishing complete!"
-
+echo "$(date): Finished publishNip85"
 echo "$(date): Finished publishNip85" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log
