@@ -296,6 +296,30 @@
             </div>
             <button class="refresh-btn" onclick="refreshCalculationTimes()">Refresh</button>
         </div>
+
+        <div class="section">
+            <h2>Hasenpfeffr Systemd Services</h2>
+            <div class="card">
+                <h3>Service Status and Control</h3>
+                <p>Manage and monitor Hasenpfeffr systemd services.</p>
+                <button id="refreshServicesBtn" class="button">Refresh Status</button>
+                <div id="servicesStatus" class="status" style="display: none;"></div>
+                <div id="servicesContainer" style="margin-top: 15px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; padding: 8px; border-bottom: 2px solid #3498db;">Service</th>
+                                <th style="text-align: center; padding: 8px; border-bottom: 2px solid #3498db;">Status</th>
+                                <th style="text-align: right; padding: 8px; border-bottom: 2px solid #3498db;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTableBody">
+                            <!-- Service rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
         // Load the header component
@@ -314,6 +338,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             checkServicesStatus();
             loadCalculationTimes();
+            loadServicesStatus();
         });
 
         function checkServicesStatus() {
@@ -480,6 +505,206 @@
                             element.innerHTML = '<span class="status-indicator status-error"></span>Error loading';
                         }
                     });
+                });
+        }
+
+        function loadServicesStatus() {
+            const servicesStatus = document.getElementById('servicesStatus');
+            servicesStatus.style.display = 'block';
+            servicesStatus.className = 'status info';
+            servicesStatus.textContent = 'Loading service statuses...';
+            
+            fetch('/control/api/systemd-services')
+                .then(response => response.json())
+                .then(data => {
+                    servicesStatus.style.display = 'none';
+                    
+                    // Clear the table
+                    const servicesTableBody = document.getElementById('servicesTableBody');
+                    servicesTableBody.innerHTML = '';
+                    
+                    // Service descriptions
+                    const serviceDescriptions = {
+                        'neo4j': 'Graph database for storing Nostr relationships',
+                        'strfry': 'Nostr relay for receiving and serving events',
+                        'hasenpfeffr-control-panel': 'Web interface for system management',
+                        'strfry-router': 'Live stream events from the nostr network, including: baselineWoT (kinds 3, 1984, and 10000), profile info (kind 0), and all personal events',
+                        'addToQueue': 'Add pubkeys to processing queue with recently updated WoT events',
+                        'processQueue': 'Process pubkeys from queue',
+                        'processAllScores.timer': 'Calculate all WoT scores; update and export them',
+                        'reconcile.timer': 'Scheduled task to reconcile graph data'
+                    };
+                    
+                    // List of services to exclude
+                    const excludedServices = [
+                        'calculateHops.timer',
+                        'calculatePersonalizedPageRank.timer',
+                        'calculatePersonalizedGrapeRank.timer'
+                    ];
+                    
+                    // Separate regular services from timer services
+                    const regularServices = [];
+                    const timerServices = [];
+                    
+                    Object.entries(data.services).forEach(([service, status]) => {
+                        // Skip excluded services
+                        if (excludedServices.includes(service)) {
+                            return;
+                        }
+                        
+                        if (service.endsWith('.timer')) {
+                            timerServices.push([service, status]);
+                        } else {
+                            regularServices.push([service, status]);
+                        }
+                    });
+                    
+                    // Function to create a service row
+                    function createServiceRow(service, status, isTimer = false) {
+                        const row = document.createElement('tr');
+                        
+                        // Service name cell
+                        const nameCell = document.createElement('td');
+                        nameCell.style.padding = '8px';
+                        nameCell.style.borderBottom = '1px solid #ddd';
+                        
+                        const nameSpan = document.createElement('span');
+                        nameSpan.textContent = service;
+                        nameSpan.style.fontWeight = 'bold';
+                        nameCell.appendChild(nameSpan);
+                        
+                        // Add description if available
+                        if (serviceDescriptions[service]) {
+                            const descSpan = document.createElement('div');
+                            descSpan.textContent = serviceDescriptions[service];
+                            descSpan.style.fontSize = '0.8em';
+                            descSpan.style.color = '#666';
+                            nameCell.appendChild(descSpan);
+                        }
+                        
+                        row.appendChild(nameCell);
+                        
+                        // Status cell
+                        const statusCell = document.createElement('td');
+                        statusCell.style.padding = '8px';
+                        statusCell.style.borderBottom = '1px solid #ddd';
+                        statusCell.style.textAlign = 'center';
+                        
+                        const statusIndicator = document.createElement('span');
+                        statusIndicator.textContent = status;
+                        statusIndicator.style.padding = '4px 8px';
+                        statusIndicator.style.borderRadius = '4px';
+                        statusIndicator.style.fontWeight = 'bold';
+                        
+                        if (status === 'active') {
+                            statusIndicator.style.backgroundColor = '#2ecc71';
+                            statusIndicator.style.color = 'white';
+                        } else {
+                            statusIndicator.style.backgroundColor = '#e74c3c';
+                            statusIndicator.style.color = 'white';
+                        }
+                        
+                        statusCell.appendChild(statusIndicator);
+                        row.appendChild(statusCell);
+                        
+                        // Actions cell
+                        const actionsCell = document.createElement('td');
+                        actionsCell.style.padding = '8px';
+                        actionsCell.style.borderBottom = '1px solid #ddd';
+                        actionsCell.style.textAlign = 'right';
+                        
+                        // Start button
+                        const startBtn = document.createElement('button');
+                        startBtn.className = 'button';
+                        startBtn.style.backgroundColor = '#2ecc71';
+                        startBtn.style.marginRight = '5px';
+                        startBtn.style.padding = '5px 10px';
+                        startBtn.textContent = isTimer ? 'Enable' : 'Start';
+                        startBtn.onclick = () => controlService(service, 'start');
+                        
+                        // Stop button
+                        const stopBtn = document.createElement('button');
+                        stopBtn.className = 'button';
+                        stopBtn.style.backgroundColor = '#e74c3c';
+                        stopBtn.style.marginRight = '5px';
+                        stopBtn.style.padding = '5px 10px';
+                        stopBtn.textContent = isTimer ? 'Disable' : 'Stop';
+                        stopBtn.onclick = () => controlService(service, 'stop');
+                        
+                        actionsCell.appendChild(startBtn);
+                        actionsCell.appendChild(stopBtn);
+                        row.appendChild(actionsCell);
+                        
+                        return row;
+                    }
+                    
+                    // Add regular services
+                    if (regularServices.length > 0) {
+                        // Add header for regular services
+                        const headerRow = document.createElement('tr');
+                        const headerCell = document.createElement('td');
+                        headerCell.colSpan = 3;
+                        headerCell.style.backgroundColor = '#f2f2f2';
+                        headerCell.style.padding = '8px';
+                        headerCell.style.fontWeight = 'bold';
+                        headerCell.textContent = 'Core Services';
+                        headerRow.appendChild(headerCell);
+                        servicesTableBody.appendChild(headerRow);
+                        
+                        // Add each regular service
+                        regularServices.forEach(([service, status]) => {
+                            servicesTableBody.appendChild(createServiceRow(service, status));
+                        });
+                    }
+                    
+                    // Add timer services
+                    if (timerServices.length > 0) {
+                        // Add header for timer services
+                        const headerRow = document.createElement('tr');
+                        const headerCell = document.createElement('td');
+                        headerCell.colSpan = 3;
+                        headerCell.style.backgroundColor = '#f2f2f2';
+                        headerCell.style.padding = '8px';
+                        headerCell.style.fontWeight = 'bold';
+                        headerCell.textContent = 'Scheduled Tasks';
+                        headerRow.appendChild(headerCell);
+                        servicesTableBody.appendChild(headerRow);
+                        
+                        // Add each timer service
+                        timerServices.forEach(([service, status]) => {
+                            servicesTableBody.appendChild(createServiceRow(service, status, true));
+                        });
+                    }
+                })
+                .catch(error => {
+                    servicesStatus.className = 'status error';
+                    servicesStatus.textContent = 'Error loading services: ' + error.message;
+                });
+        }
+        
+        function controlService(service, action) {
+            const servicesStatus = document.getElementById('servicesStatus');
+            servicesStatus.style.display = 'block';
+            servicesStatus.className = 'status info';
+            servicesStatus.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)}ing ${service} service...`;
+            
+            fetch(`/control/api/systemd-services?service=${service}&action=${action}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        servicesStatus.className = 'status success';
+                        servicesStatus.textContent = data.message || `Service ${service} ${action} successful`;
+                    } else {
+                        servicesStatus.className = 'status error';
+                        servicesStatus.textContent = data.message || `Failed to ${action} ${service}`;
+                    }
+                    
+                    // Reload service statuses after a short delay
+                    setTimeout(loadServicesStatus, 1000);
+                })
+                .catch(error => {
+                    servicesStatus.className = 'status error';
+                    servicesStatus.textContent = 'Error controlling service: ' + error.message;
                 });
         }
     </script>
