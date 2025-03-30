@@ -219,16 +219,28 @@ app.get('/control/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 app.post('/api/negentropy-sync', handleNegentropySync);
 
 // API endpoint to generate NIP-85 data
-app.get('/api/generate', handleGenerate);
-app.post('/api/generate', handleGenerate);
-app.get('/control/api/generate-pagerank', handleGenerate);
-app.post('/control/api/generate-pagerank', handleGenerate);
+app.get('/api/generate-nip85', handleGenerateNip85);
+app.post('/api/generate-nip85', handleGenerateNip85);
+app.get('/control/api/generate-nip85', handleGenerateNip85);
+app.post('/control/api/generate-nip85', handleGenerateNip85);
+
+// API endpoint to generate PageRank data
+app.get('/api/generate-pagerank', handleGeneratePageRank);
+app.post('/api/generate-pagerank', handleGeneratePageRank);
+app.get('/control/api/generate-pagerank', handleGeneratePageRank);
+app.post('/control/api/generate-pagerank', handleGeneratePageRank);
 
 // API endpoint to generate GrapeRank data
 app.get('/api/generate-graperank', handleGenerateGrapeRank);
 app.post('/api/generate-graperank', handleGenerateGrapeRank);
 app.get('/control/api/generate-graperank', handleGenerateGrapeRank);
 app.post('/control/api/generate-graperank', handleGenerateGrapeRank);
+
+// API endpoint to export Whitelist data
+app.get('/api/export-whitelist', handleExportWhitelist);
+app.post('/api/export-whitelist', handleExportWhitelist);
+app.get('/control/api/export-whitelist', handleExportWhitelist);
+app.post('/control/api/export-whitelist', handleExportWhitelist);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
@@ -529,7 +541,7 @@ function handleNegentropySync(req, res) {
     });
 }
 
-function handleGenerate(req, res) {
+function handleGenerateNip85(req, res) {
     console.log('Generating NIP-85 data...');
     
     exec('hasenpfeffr-generate', (error, stdout, stderr) => {
@@ -538,6 +550,76 @@ function handleGenerate(req, res) {
             output: stdout || stderr
         });
     });
+}
+
+function handleGeneratePageRank(req, res) {
+  console.log('Generating PageRank data...');
+  
+  // Set a longer timeout for the response (10 minutes)
+  req.setTimeout(600000); // 10 minutes in milliseconds
+  res.setTimeout(600000);
+  
+  // Use execFile instead of exec for better security and control
+  const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculatePersonalizedPageRank.sh', {
+      timeout: 590000, // slightly less than the HTTP timeout
+      maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
+  }, (error, stdout, stderr) => {
+      console.log('PageRank calculation completed');
+      
+      if (error) {
+          console.error('Error generating PageRank data:', error);
+          return res.json({
+              success: false,
+              output: stderr || stdout || error.message
+          });
+      }
+      
+      console.log('PageRank data generated successfully');
+      return res.json({
+          success: true,
+          output: stdout || stderr
+      });
+  });
+  
+  // Log when the process starts
+  child.on('spawn', () => {
+      console.log('PageRank calculation process started');
+  });
+}
+
+function handleExportWhitelist(req, res) {
+  console.log('Exporting Whitelist data...');
+  
+  // Set a longer timeout for the response (10 minutes)
+  req.setTimeout(600000); // 10 minutes in milliseconds
+  res.setTimeout(600000);
+  
+  // Use execFile instead of exec for better security and control
+  const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/exportWhitelist.sh', {
+      timeout: 590000, // slightly less than the HTTP timeout
+      maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
+  }, (error, stdout, stderr) => {
+      console.log('Whitelist export completed');
+      
+      if (error) {
+          console.error('Error exporting Whitelist data:', error);
+          return res.json({
+              success: false,
+              output: stderr || stdout || error.message
+          });
+      }
+      
+      console.log('Whitelist exported successfully');
+      return res.json({
+          success: true,
+          output: stdout || stderr
+      });
+  });
+  
+  // Log when the process starts
+  child.on('spawn', () => {
+      console.log('Whitelist export process started');
+  });
 }
 
 function handleGenerateGrapeRank(req, res) {
