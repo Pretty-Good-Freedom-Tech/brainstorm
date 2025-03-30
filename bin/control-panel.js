@@ -2126,19 +2126,53 @@ function handleCalculationStatus(req, res) {
                 const fileContent = fs.readFileSync(logFile, 'utf8');
                 
                 // Check for the most recent "Starting" and "Finished" entries
-                const startMatches = [...fileContent.matchAll(/([^:]+): Starting/g)];
-                const finishMatches = [...fileContent.matchAll(/([^:]+): Finished/g)];
+                // The date format in the log files is like: "Sun Mar 30 00:18:14 UTC 2025"
+                const startMatches = [...fileContent.matchAll(/(.*?): Starting/g)];
+                const finishMatches = [...fileContent.matchAll(/(.*?): Finished/g)];
                 
                 if (startMatches.length === 0) {
                     return { status: 'Never', timestamp: 0, formattedTime: 'Never' };
                 }
                 
+                // Parse the date strings
+                const parseLogDate = (dateStr) => {
+                    try {
+                        // Convert the log date format to a standard format that JavaScript can parse
+                        return new Date(dateStr.trim());
+                    } catch (err) {
+                        console.error(`Error parsing date: ${dateStr}`, err);
+                        return null;
+                    }
+                };
+                
                 const lastStartMatch = startMatches[startMatches.length - 1];
-                const lastStartDate = new Date(lastStartMatch[1]);
+                const lastStartDate = parseLogDate(lastStartMatch[1]);
+                
+                if (!lastStartDate) {
+                    return { status: 'Error', timestamp: 0, formattedTime: 'Error parsing date' };
+                }
+                
                 const lastStartTimestamp = Math.floor(lastStartDate.getTime() / 1000);
                 
-                if (finishMatches.length === 0 || 
-                    new Date(finishMatches[finishMatches.length - 1][1]) < lastStartDate) {
+                // Check if there's a finish entry after the last start entry
+                let isCompleted = false;
+                let lastFinishDate = null;
+                let lastFinishTimestamp = 0;
+                
+                if (finishMatches.length > 0) {
+                    // Find the most recent finish entry
+                    for (let i = finishMatches.length - 1; i >= 0; i--) {
+                        const finishDate = parseLogDate(finishMatches[i][1]);
+                        if (finishDate && finishDate > lastStartDate) {
+                            isCompleted = true;
+                            lastFinishDate = finishDate;
+                            lastFinishTimestamp = Math.floor(lastFinishDate.getTime() / 1000);
+                            break;
+                        }
+                    }
+                }
+                
+                if (!isCompleted) {
                     // In progress - started but not finished
                     const now = new Date();
                     const elapsedSeconds = Math.floor((now - lastStartDate) / 1000);
@@ -2162,10 +2196,6 @@ function handleCalculationStatus(req, res) {
                     };
                 } else {
                     // Completed
-                    const lastFinishMatch = finishMatches[finishMatches.length - 1];
-                    const lastFinishDate = new Date(lastFinishMatch[1]);
-                    const lastFinishTimestamp = Math.floor(lastFinishDate.getTime() / 1000);
-                    
                     const now = new Date();
                     const elapsedSeconds = Math.floor((now - lastFinishDate) / 1000);
                     const elapsedMinutes = Math.floor(elapsedSeconds / 60);
