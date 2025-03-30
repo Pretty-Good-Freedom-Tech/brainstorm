@@ -1,12 +1,11 @@
 #!/bin/bash
 
-CONFIG_FILES=(
-  graperank='/etc/graperank.conf',
-  hasenpfeffr='/etc/hasenpfeffr.conf'
-);
+# Source configuration
+source /etc/hasenpfeffr.conf # HASENPFEFFR_OWNER_PUBKEY
+source /etc/graperank.conf   # Rating and confidence values
 
-source ${CONFIG_FILES[hasenpfeffr]} # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, HASENPFEFFR_OWNER_PUBKEY, HASENPFEFFR_LOG_DIR, HASENPFEFFR_MODULE_ALGOS_DIR
-source ${CONFIG_FILES[graperank]} # GrapeRank configuration values
+touch ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 echo "$(date): Starting calculatePersonalizedGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 

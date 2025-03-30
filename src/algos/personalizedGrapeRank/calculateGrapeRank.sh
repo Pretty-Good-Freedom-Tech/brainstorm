@@ -6,11 +6,7 @@
 # Source configuration
 source /etc/hasenpfeffr.conf # HASENPFEFFR_OWNER_PUBKEY
 source /etc/graperank.conf   # ATTENUATION_FACTOR, RIGOR
-
-touch ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
-sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
-
-echo "$(date): Starting calculateGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... starting calculateGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 # Create the base directory structure if it doesn't exist
 USERNAME="hasenpfeffr"
@@ -25,4 +21,4 @@ chmod -R 755 "$TEMP_DIR"
 # Run the JavaScript script
 node $ALGOS_DIR/personalizedGrapeRank/calculateGrapeRank.js
 
-echo "$(date): Finished calculateGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... finished calculateGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log

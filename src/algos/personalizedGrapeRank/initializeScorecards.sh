@@ -6,7 +6,7 @@
 # Source configuration
 source /etc/hasenpfeffr.conf # HASENPFEFFR_OWNER_PUBKEY
 
-echo "$(date): Starting initializeScorecards" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... starting initializeScorecards" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 # Create the base directory structure if it doesn't exist
 USERNAME="hasenpfeffr"
@@ -21,4 +21,4 @@ chmod -R 755 "$TEMP_DIR"
 # Run the JavaScript script
 node /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/initializeScorecards.js
 
-echo "$(date): Finished initializeScorecards" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... finished initializeScorecards" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log

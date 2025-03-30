@@ -2314,44 +2314,33 @@ function handleCalculationStatus(req, res) {
         const getCalculationStatus = (logFile) => {
             try {
                 if (!fs.existsSync(logFile)) {
-                    return { status: 'Never', timestamp: 0, formattedTime: 'Never' };
+                    return { status: 'Never', timestamp: 0, formattedTime: 'Never', duration: null };
                 }
                 
                 const fileContent = fs.readFileSync(logFile, 'utf8');
                 
-                // Check for the most recent "Starting" and "Finished" entries
-                // The date format in the log files is like: "Sun Mar 30 00:18:14 UTC 2025"
-                const startMatches = [...fileContent.matchAll(/(.*?): Starting/g)];
-                const finishMatches = [...fileContent.matchAll(/(.*?): Finished/g)];
+                // Regular expressions to find start and finish entries
+                const startRegex = /([0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})?): Starting/g;
+                const finishRegex = /([0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})?): Finished/g;
+                
+                // Find all matches
+                const startMatches = Array.from(fileContent.matchAll(startRegex));
+                const finishMatches = Array.from(fileContent.matchAll(finishRegex));
                 
                 if (startMatches.length === 0) {
-                    return { status: 'Never', timestamp: 0, formattedTime: 'Never' };
+                    return { status: 'Never', timestamp: 0, formattedTime: 'Never', duration: null };
                 }
                 
-                // Parse the date strings
-                const parseLogDate = (dateStr) => {
-                    try {
-                        // Convert the log date format to a standard format that JavaScript can parse
-                        return new Date(dateStr.trim());
-                    } catch (err) {
-                        console.error(`Error parsing date: ${dateStr}`, err);
-                        return null;
-                    }
-                };
-                
+                // Get the last start entry
                 const lastStartMatch = startMatches[startMatches.length - 1];
                 const lastStartDate = parseLogDate(lastStartMatch[1]);
-                
-                if (!lastStartDate) {
-                    return { status: 'Error', timestamp: 0, formattedTime: 'Error parsing date' };
-                }
-                
                 const lastStartTimestamp = Math.floor(lastStartDate.getTime() / 1000);
                 
                 // Check if there's a finish entry after the last start entry
                 let isCompleted = false;
                 let lastFinishDate = null;
                 let lastFinishTimestamp = 0;
+                let duration = null;
                 
                 if (finishMatches.length > 0) {
                     // Find the most recent finish entry
@@ -2361,62 +2350,62 @@ function handleCalculationStatus(req, res) {
                             isCompleted = true;
                             lastFinishDate = finishDate;
                             lastFinishTimestamp = Math.floor(lastFinishDate.getTime() / 1000);
+                            
+                            // Calculate duration in seconds
+                            const durationSeconds = lastFinishTimestamp - lastStartTimestamp;
+                            duration = formatDuration(durationSeconds);
                             break;
                         }
                     }
                 }
                 
-                if (!isCompleted) {
-                    // In progress - started but not finished
-                    const now = new Date();
-                    const elapsedSeconds = Math.floor((now - lastStartDate) / 1000);
-                    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-                    const elapsedHours = Math.floor(elapsedMinutes / 60);
-                    
-                    let formattedElapsed;
-                    if (elapsedHours > 0) {
-                        formattedElapsed = `${elapsedHours}h ${elapsedMinutes % 60}m ago`;
-                    } else if (elapsedMinutes > 0) {
-                        formattedElapsed = `${elapsedMinutes}m ${elapsedSeconds % 60}s ago`;
-                    } else {
-                        formattedElapsed = `${elapsedSeconds}s ago`;
-                    }
-                    
-                    return {
-                        status: 'In Progress',
-                        timestamp: lastStartTimestamp,
-                        formattedTime: `Started ${formattedElapsed}`,
-                        startTime: lastStartDate.toLocaleString()
-                    };
-                } else {
-                    // Completed
-                    const now = new Date();
-                    const elapsedSeconds = Math.floor((now - lastFinishDate) / 1000);
-                    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-                    const elapsedHours = Math.floor(elapsedMinutes / 60);
-                    const elapsedDays = Math.floor(elapsedHours / 24);
-                    
-                    let formattedElapsed;
-                    if (elapsedDays > 0) {
-                        formattedElapsed = `${elapsedDays}d ${elapsedHours % 24}h ago`;
-                    } else if (elapsedHours > 0) {
-                        formattedElapsed = `${elapsedHours}h ${elapsedMinutes % 60}m ago`;
-                    } else if (elapsedMinutes > 0) {
-                        formattedElapsed = `${elapsedMinutes}m ${elapsedSeconds % 60}s ago`;
-                    } else {
-                        formattedElapsed = `${elapsedSeconds}s ago`;
-                    }
-                    
+                // Determine status and timestamp
+                if (isCompleted) {
                     return {
                         status: 'Completed',
                         timestamp: lastFinishTimestamp,
-                        formattedTime: `Completed ${formattedElapsed}`,
-                        finishTime: lastFinishDate.toLocaleString()
+                        formattedTime: formatTimestamp(lastFinishTimestamp),
+                        duration: duration
                     };
+                } else {
+                    const now = Math.floor(Date.now() / 1000);
+                    const elapsedSeconds = now - lastStartTimestamp;
+                    
+                    if (elapsedSeconds > 3600) { // If more than 1 hour has passed, assume error
+                        return {
+                            status: 'Error',
+                            timestamp: lastStartTimestamp,
+                            formattedTime: formatTimestamp(lastStartTimestamp),
+                            duration: null
+                        };
+                    } else {
+                        return {
+                            status: 'In Progress',
+                            timestamp: lastStartTimestamp,
+                            formattedTime: formatTimestamp(lastStartTimestamp),
+                            duration: formatDuration(elapsedSeconds) + ' (ongoing)'
+                        };
+                    }
                 }
             } catch (error) {
                 console.error(`Error reading log file ${logFile}:`, error);
-                return { status: 'Error', timestamp: 0, formattedTime: 'Error reading log' };
+                return { status: 'Error', timestamp: 0, formattedTime: 'Error', duration: null };
+            }
+        };
+        
+        // Format duration in seconds to a human-readable format
+        const formatDuration = (seconds) => {
+            if (seconds < 60) {
+                return `${seconds} sec`;
+            } else if (seconds < 3600) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes} min ${remainingSeconds} sec`;
+            } else {
+                const hours = Math.floor(seconds / 3600);
+                const remainingMinutes = Math.floor((seconds % 3600) / 60);
+                const remainingSeconds = seconds % 60;
+                return `${hours} hr ${remainingMinutes} min ${remainingSeconds} sec`;
             }
         };
         
@@ -2435,7 +2424,7 @@ function handleCalculationStatus(req, res) {
         console.error('Error getting calculation status:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to get calculation status'
+            error: error.message
         });
     }
 }

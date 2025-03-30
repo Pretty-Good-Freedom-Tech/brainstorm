@@ -4,9 +4,9 @@
 # This script updates Neo4j with GrapeRank scores from scorecards.json
 
 # Source configuration
-source /etc/hasenpfeffr.conf
+source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR
 
-echo "$(date): Starting updateNeo4j" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... starting updateNeo4j" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 # Create the base directory structure if it doesn't exist
 USERNAME="hasenpfeffr"
@@ -27,4 +27,4 @@ fi
 # Run the JavaScript script
 node /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/updateNeo4j.js
 
-echo "$(date): Finished updateNeo4j" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... finished updateNeo4j" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log

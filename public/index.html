@@ -136,6 +136,12 @@
         .calculation-item .timestamp {
             font-weight: bold;
             color: #34495e;
+            margin-bottom: 4px;
+        }
+        .calculation-item .duration {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-style: italic;
         }
         .calculation-actions {
             display: flex;
@@ -304,6 +310,7 @@
                     <div class="calculation-item-content">
                         <h4>FOLLOWS, MUTES, & REPORTS <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kinds 3, 1984, and 1000 events from wss://relay.hasenpfeffr.com</span></h4>
                         <p id="syncWoT-last-calculation-time" class="timestamp"></p>
+                        <p id="syncWoT-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -317,6 +324,7 @@
                     <div class="calculation-item-content">
                         <h4>Profiles <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kind 0 events from wss://profiles.nostr1.com</span></h4>
                         <p id="syncProfiles-last-calculation-time" class="timestamp"></p>
+                        <p id="syncProfiles-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -330,6 +338,7 @@
                     <div class="calculation-item-content">
                         <h4>Personal <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available personal events from wss://relay.primal.net</span></h4>
                         <p id="syncPersonal-last-calculation-time" class="timestamp"></p>
+                        <p id="syncPersonal-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -347,6 +356,7 @@
                     <div class="calculation-item-content">
                         <h4>Hops <span class="info-icon">i</span><span class="tooltip">Calculates network distance (hops) between users in the Web of Trust based on FOLLOWS relationships in Neo4j</span></h4>
                         <p id="hops-last-calculation-time" class="timestamp"></p>
+                        <p id="hops-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -360,6 +370,7 @@
                     <div class="calculation-item-content">
                         <h4>PageRank <span class="info-icon">i</span><span class="tooltip">Calculates importance scores using the personalized PageRank algorithm on the FOLLOWS relationships in Neo4j</span></h4>
                         <p id="pageRank-last-calculation-time" class="timestamp"></p>
+                        <p id="pageRank-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -373,6 +384,7 @@
                     <div class="calculation-item-content">
                         <h4>GrapeRank <span class="info-icon">i</span><span class="tooltip">Personalized ranking algorithm that considers FOLLOWS (positive), MUTES (negative), and REPORTS (negative) relationships with configurable weights</span></h4>
                         <p id="grapeRank-last-calculation-time" class="timestamp"></p>
+                        <p id="grapeRank-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -390,6 +402,7 @@
                     <div class="calculation-item-content">
                         <h4>Whitelist <span class="info-icon">i</span><span class="tooltip">Generates a whitelist of pubkeys based on GrapeRank scores for content filtering in the strfry relay</span></h4>
                         <p id="whitelist-last-calculation-time" class="timestamp"></p>
+                        <p id="whitelist-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -403,6 +416,7 @@
                     <div class="calculation-item-content">
                         <h4>Blacklist <span class="info-icon">i</span><span class="tooltip">Generates a blacklist of pubkeys based on negative ratings from MUTES and REPORTS relationships</span></h4>
                         <p id="blacklist-last-calculation-time" class="timestamp"></p>
+                        <p id="blacklist-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -416,6 +430,7 @@
                     <div class="calculation-item-content">
                         <h4>NIP-85 Export <span class="info-icon">i</span><span class="tooltip">Exports Web of Trust scores as NIP-85 events that can be shared with other relays and clients</span></h4>
                         <p id="nip85-last-calculation-time" class="timestamp"></p>
+                        <p id="nip85-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -587,6 +602,10 @@
                 if (element) {
                     element.innerHTML = '<span class="loading"></span> Loading...';
                 }
+                const durationElement = document.getElementById(`${item}-last-calculation-duration`);
+                if (durationElement) {
+                    durationElement.innerHTML = '';
+                }
             });
             
             fetch('/control/api/calculation-status')
@@ -596,6 +615,7 @@
                         // Update each calculation item with its status
                         calculationItems.forEach(item => {
                             const element = document.getElementById(`${item}-last-calculation-time`);
+                            const durationElement = document.getElementById(`${item}-last-calculation-duration`);
                             if (element && data[item]) {
                                 const status = data[item].status;
                                 let statusClass = '';
@@ -618,6 +638,9 @@
                                 }
                                 
                                 element.innerHTML = `<span class="status-indicator ${statusClass}"></span>${data[item].formattedTime}`;
+                                if (data[item].duration) {
+                                    durationElement.innerHTML = `Duration: ${data[item].duration}`;
+                                }
                             }
                         });
                     } else {
@@ -626,6 +649,10 @@
                             const element = document.getElementById(`${item}-last-calculation-time`);
                             if (element) {
                                 element.innerHTML = '<span class="status-indicator status-error"></span>Error loading';
+                            }
+                            const durationElement = document.getElementById(`${item}-last-calculation-duration`);
+                            if (durationElement) {
+                                durationElement.innerHTML = '';
                             }
                         });
                     }
@@ -636,6 +663,10 @@
                         const element = document.getElementById(`${item}-last-calculation-time`);
                         if (element) {
                             element.innerHTML = '<span class="status-indicator status-error"></span>Error loading';
+                        }
+                        const durationElement = document.getElementById(`${item}-last-calculation-duration`);
+                        if (durationElement) {
+                            durationElement.innerHTML = '';
                         }
                     });
                 });
