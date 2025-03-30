@@ -856,20 +856,20 @@
             // Define the configuration for each action button
             const actionConfig = {
                 'syncWoT': {
-                    endpoint: '/control/api/negentropy-sync',
-                    params: { relay: 'wss://relay.hasenpfeffr.com', filter: '{"kinds":[3,1984,10000]}' },
+                    endpoint: '/control/api/negentropy-sync-wot',
+                    // params: { relay: 'wss://relay.hasenpfeffr.com', filter: '{"kinds":[3,1984,10000]}' },
                     method: 'POST',
                     buttonText: 'Sync WoT'
                 },
                 'syncProfiles': {
-                    endpoint: '/control/api/negentropy-sync',
-                    params: { relay: 'wss://profiles.nostr1.com', filter: '{"kinds":[0]}' },
+                    endpoint: '/control/api/negentropy-sync-profiles',
+                    // params: { relay: 'wss://profiles.nostr1.com', filter: '{"kinds":[0]}' },
                     method: 'POST',
                     buttonText: 'Sync Profiles'
                 },
                 'syncPersonal': {
-                    endpoint: '/control/api/negentropy-sync',
-                    params: { relay: 'wss://relay.primal.net', filter: '{"authors":["HASENPFEFFR_OWNER_PUBKEY"]}' },
+                    endpoint: '/control/api/negentropy-sync-personal',
+                    // params: { relay: 'wss://relay.primal.net', filter: '{"authors":["HASENPFEFFR_OWNER_PUBKEY"]}' },
                     method: 'POST',
                     buttonText: 'Sync Personal'
                 },

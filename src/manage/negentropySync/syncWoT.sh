@@ -1,10 +1,6 @@
 #!/bin/bash
 
-const CONFIG_FILES = {
-  hasenpfeffr: '/etc/hasenpfeffr.conf'
-};
-
-source ${CONFIG_FILES.hasenpfeffr}
+source /etc/hasenpfeffr.conf
 
 touch ${HASENPFEFFR_LOG_DIR}/syncWoT.log
 
