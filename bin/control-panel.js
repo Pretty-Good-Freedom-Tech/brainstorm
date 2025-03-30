@@ -249,6 +249,12 @@ app.post('/api/export-whitelist', handleExportWhitelist);
 app.get('/control/api/export-whitelist', handleExportWhitelist);
 app.post('/control/api/export-whitelist', handleExportWhitelist);
 
+// API endpoint to generate Blacklist data
+app.get('/api/generate-blacklist', handleGenerateBlacklist);
+app.post('/api/generate-blacklist', handleGenerateBlacklist);
+app.get('/control/api/generate-blacklist', handleGenerateBlacklist);
+app.post('/control/api/generate-blacklist', handleGenerateBlacklist);
+
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
 app.post('/api/publish', handlePublish);
@@ -271,11 +277,17 @@ app.post('/api/create-kind10040', handleCreateKind10040);
 // API endpoint to get unsigned kind 10040 event
 app.get('/api/get-kind10040-event', handleGetKind10040Event);
 
-// API endpoint to publish kind 10040 events
-app.post('/api/publish-kind10040', handlePublishKind10040);
-
 // API endpoint to publish kind 30382 events
+app.get('/api/publish-kind30382', handlePublishKind30382);
 app.post('/api/publish-kind30382', handlePublishKind30382);
+app.get('/control/api/publish-kind30382', handlePublishKind30382);
+app.post('/control/api/publish-kind30382', handlePublishKind30382);
+
+// API endpoint to publish kind 10040 events
+app.get('/api/publish-kind10040', handlePublishKind10040);
+app.post('/api/publish-kind10040', handlePublishKind10040);
+app.get('/control/api/publish-kind10040', handlePublishKind10040);
+app.post('/control/api/publish-kind10040', handlePublishKind10040);
 
 // API endpoint for getting relay configuration
 app.get('/api/relay-config', handleRelayConfig);
@@ -307,7 +319,6 @@ app.post('/control/api/graperank-config', handleUpdateGrapeRankConfig);
 // Blacklist Configuration API Endpoints
 app.get('/api/blacklist-config', handleGetBlacklistConfig);
 app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
-app.get('/api/generate-blacklist', handleGenerateBlacklist);
 
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
