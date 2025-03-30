@@ -5,6 +5,7 @@ source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 WHITELIST_OUTPUT_DIR="/usr/local/lib/strfry/plugins/data"
 
 touch ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
 
 echo "$(date): Starting exportWhitelist" >> ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
 

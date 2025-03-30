@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 /**
- * publish_nip85.js
- * 
  * This script publishes the nip85.json data to the Nostr network as kind 30382 events
  * following the Trusted Assertions protocol (NIP-85).
  * It reads the nip85.json file and publishes each user as a separate event.

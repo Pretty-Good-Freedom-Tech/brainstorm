@@ -8,6 +8,7 @@ source /etc/hasenpfeffr.conf # HASENPFEFFR_OWNER_PUBKEY
 source /etc/graperank.conf   # ATTENUATION_FACTOR, RIGOR
 
 touch ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 echo "$(date): Starting calculateGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 

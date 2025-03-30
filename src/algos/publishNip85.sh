@@ -7,6 +7,7 @@
 source /etc/hasenpfeffr.conf
 
 touch ${HASENPFEFFR_LOG_DIR}/publishNip85.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/publishNip85.log
 
 echo "$(date): Starting publishNip85" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log  
 

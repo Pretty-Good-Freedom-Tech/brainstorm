@@ -7,6 +7,7 @@
 source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR
 
 touch ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log
 
 echo "$(date): Starting exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
 
