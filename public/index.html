@@ -252,7 +252,22 @@
             <div id="statusDetails" class="status-details" style="display: none;"></div>
         </div>
         <div class="calculation-status">
-            <h3>Last Calculation Times</h3>
+            <h3>Negentropy data sync</h3>
+            <div class="calculation-grid">
+                <div class="calculation-item">
+                    <h4>FOLLOWS, MUTES, & REPORTS <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kinds 3, 1984, and 1000 events from wss://relay.hasenpfeffr.com</span></h4>
+                    <p id="syncWoT-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>Profiles <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kind 0 events from wss://profiles.nostr1.com</span></h4>
+                    <p id="syncProfiles-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>Personal <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available personal events from wss://relay.primal.net</span></h4>
+                    <p id="syncPersonal-last-calculation-time" class="timestamp"></p>
+                </div>
+            </div>
+            <h3>Score Calculations</h3>
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <h4>Hops <span class="info-icon">i</span><span class="tooltip">Calculates network distance (hops) between users in the Web of Trust based on FOLLOWS relationships in Neo4j</span></h4>
@@ -260,11 +275,11 @@
                 </div>
                 <div class="calculation-item">
                     <h4>PageRank <span class="info-icon">i</span><span class="tooltip">Calculates importance scores using the personalized PageRank algorithm on the FOLLOWS relationships in Neo4j</span></h4>
-                    <p id="pagerank-last-calculation-time" class="timestamp"></p>
+                    <p id="pageRank-last-calculation-time" class="timestamp"></p>
                 </div>
                 <div class="calculation-item">
                     <h4>GrapeRank <span class="info-icon">i</span><span class="tooltip">Personalized ranking algorithm that considers FOLLOWS (positive), MUTES (negative), and REPORTS (negative) relationships with configurable weights</span></h4>
-                    <p id="graperank-last-calculation-time" class="timestamp"></p>
+                    <p id="grapeRank-last-calculation-time" class="timestamp"></p>
                 </div>
                 <div class="calculation-item">
                     <h4>Whitelist <span class="info-icon">i</span><span class="tooltip">Generates a whitelist of pubkeys based on GrapeRank scores for content filtering in the strfry relay</span></h4>
@@ -277,18 +292,6 @@
                 <div class="calculation-item">
                     <h4>NIP-85 Export <span class="info-icon">i</span><span class="tooltip">Exports Web of Trust scores as NIP-85 events that can be shared with other relays and clients</span></h4>
                     <p id="nip85-last-calculation-time" class="timestamp"></p>
-                </div>
-                <div class="calculation-item">
-                    <h4>Sync WoT <span class="info-icon">i</span><span class="tooltip">Syncs the Web of Trust with the latest data from the network</span></h4>
-                    <p id="syncWoT-last-calculation-time" class="timestamp"></p>
-                </div>
-                <div class="calculation-item">
-                    <h4>Sync Personal <span class="info-icon">i</span><span class="tooltip">Syncs personal data with the latest data from the network</span></h4>
-                    <p id="syncPersonal-last-calculation-time" class="timestamp"></p>
-                </div>
-                <div class="calculation-item">
-                    <h4>Sync Profiles <span class="info-icon">i</span><span class="tooltip">Syncs profiles with the latest data from the network</span></h4>
-                    <p id="syncProfiles-last-calculation-time" class="timestamp"></p>
                 </div>
             </div>
             <button class="refresh-btn" onclick="refreshCalculationTimes()">Refresh</button>
