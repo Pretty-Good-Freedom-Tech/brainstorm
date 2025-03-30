@@ -1,9 +1,14 @@
 #!/bin/bash
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, HASENPFEFFR_OWNER_PUBKEY
-source /etc/graperank.conf # GrapeRank configuration values
+CONFIG_FILES=(
+  graperank='/etc/graperank.conf',
+  hasenpfeffr='/etc/hasenpfeffr.conf'
+);
 
-echo "$(date): Starting calculatePersonalizedGrapeRank" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log
+source ${CONFIG_FILES[hasenpfeffr]} # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, HASENPFEFFR_OWNER_PUBKEY, HASENPFEFFR_LOG_DIR, HASENPFEFFR_MODULE_ALGOS_DIR
+source ${CONFIG_FILES[graperank]} # GrapeRank configuration values
+
+echo "$(date): Starting calculatePersonalizedGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 echo "HASENPFEFFR_OWNER_PUBKEY: $HASENPFEFFR_OWNER_PUBKEY"
 
@@ -63,10 +68,10 @@ sudo bash $THIS_DIR/updateNeo4j.sh
 # Update the WHEN_LAST_CALCULATED timestamp in the configuration file
 TIMESTAMP=$(date +%s)
 TMP_CONF=$(mktemp)
-cat /etc/graperank.conf | sed "s/^export WHEN_LAST_CALCULATED=.*$/export WHEN_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
-sudo cp "$TMP_CONF" /etc/graperank.conf
-sudo chmod 644 /etc/graperank.conf
-sudo chown root:hasenpfeffr /etc/graperank.conf
+cat ${CONFIG_FILES[graperank]} | sed "s/^export WHEN_LAST_CALCULATED=.*$/export WHEN_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
+sudo cp "$TMP_CONF" ${CONFIG_FILES[graperank]}
+sudo chmod 644 ${CONFIG_FILES[graperank]}
+sudo chown root:hasenpfeffr ${CONFIG_FILES[graperank]}
 rm "$TMP_CONF"
 
-echo "$(date): Finished calculatePersonalizedGrapeRank" >> /var/log/hasenpfeffr/calculatePersonalizedGrapeRank.log
+echo "$(date): Finished calculatePersonalizedGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log

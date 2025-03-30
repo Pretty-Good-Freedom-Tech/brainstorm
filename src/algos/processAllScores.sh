@@ -14,31 +14,31 @@
 
 CONFIG_FILE="/etc/hasenpfeffr.conf"
 source "$CONFIG_FILE"
-HASENPFEFFR_FILES_ALGOS=$HASENPFEFFR_FILES_ALGOS
+HASENPFEFFR_MODULE_ALGOS_DIR=$HASENPFEFFR_MODULE_ALGOS_DIR
 
-echo "HASENPFEFFR_FILES_ALGOS: $HASENPFEFFR_FILES_ALGOS"
+echo "HASENPFEFFR_MODULE_ALGOS_DIR: $HASENPFEFFR_MODULE_ALGOS_DIR"
 
-# sudo $HASENPFEFFR_FILES_ALGOS/calculateHops.sh
-
-sleep 5
-
-# sudo $HASENPFEFFR_FILES_ALGOS/calculatePersonalizedPageRank.sh
+# sudo $HASENPFEFFR_MODULE_ALGOS_DIR/calculateHops.sh
 
 sleep 5
 
-# sudo $HASENPFEFFR_FILES_ALGOS/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
+# sudo $HASENPFEFFR_MODULE_ALGOS_DIR/calculatePersonalizedPageRank.sh
 
 sleep 5
 
-# sudo $HASENPFEFFR_FILES_ALGOS/exportWhitelist.sh
+# sudo $HASENPFEFFR_MODULE_ALGOS_DIR/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
 
 sleep 5
 
-# sudo $HASENPFEFFR_FILES_ALGOS/personalizedBlacklist/calculatePersonalizedBlacklist.sh
+# sudo $HASENPFEFFR_MODULE_ALGOS_DIR/exportWhitelist.sh
 
 sleep 5
 
-# sudo $HASENPFEFFR_FILES_ALGOS/publish_nip85.sh
+# sudo $HASENPFEFFR_MODULE_ALGOS_DIR/personalizedBlacklist/calculatePersonalizedBlacklist.sh
+
+sleep 5
+
+# sudo $HASENPFEFFR_MODULE_ALGOS_DIR/publish_nip85.sh
 
 sleep 5
 

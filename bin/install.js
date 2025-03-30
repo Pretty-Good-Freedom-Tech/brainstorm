@@ -262,19 +262,21 @@ async function createHasenpfeffrConfigFile() {
 # and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
 
 # File paths
-HASENPFEFFR_FILES_BASE="/usr/local/lib/node_modules/hasenpfeffr/"
-HASENPFEFFR_FILES_SRC="\${HASENPFEFFR_FILES_BASE}src/"
-HASENPFEFFR_FILES_ALGOS="\${HASENPFEFFR_FILES_BASE}src/algos/"
+HASENPFEFFR_MODULE_BASE_DIR="/usr/local/lib/node_modules/hasenpfeffr/"
+HASENPFEFFR_MODULE_SRC_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/"
+HASENPFEFFR_MODULE_ALGOS_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/algos"
 STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins/"
 STRFRY_PLUGINS_DATA="\${STRFRY_PLUGINS_BASE}/data/"
-HASENPFEFFR_LOG_FILES="/var/log/hasenpfeffr/"
+HASENPFEFFR_LOG_DIR="/var/log/hasenpfeffr"
+HASENPFEFFR_BASE_DIR="/var/lib/hasenpfeffr"
 
-export HASENPFEFFR_FILES_BASE
-export HASENPFEFFR_FILES_SRC
-export HASENPFEFFR_FILES_ALGOS
+export HASENPFEFFR_MODULE_BASE_DIR
+export HASENPFEFFR_MODULE_SRC_DIR
+export HASENPFEFFR_MODULE_ALGOS_DIR
 export STRFRY_PLUGINS_BASE
 export STRFRY_PLUGINS_DATA
-export HASENPFEFFR_LOG_FILES
+export HASENPFEFFR_LOG_DIR
+export HASENPFEFFR_BASE_DIR
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"

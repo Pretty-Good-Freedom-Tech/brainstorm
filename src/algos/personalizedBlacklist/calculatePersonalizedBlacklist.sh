@@ -4,11 +4,16 @@
 # This script calculates personalized blacklists based on follows, mutes, and reports data in Neo4j
 # It updates the blacklist_pubkeys.json file used by the strfry plugin
 
+source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR
+
+touch ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedBlacklist.log
+
+echo "$(date): Starting calculatePersonalizedBlacklist" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedBlacklist.log  
+
 set -e  # Exit on error
 
 # Configuration
 BLACKLIST_CONF="/etc/blacklist.conf"
-# BLACKLIST_OUTPUT_DIR="/usr/local/lib/node_modules/hasenpfeffr/plugins"
 BLACKLIST_OUTPUT_DIR="/usr/local/lib/strfry/plugins/data"
 BLACKLIST_OUTPUT_FILE="$BLACKLIST_OUTPUT_DIR/blacklist_pubkeys.json"
 NEO4J_USERNAME="neo4j"
@@ -129,3 +134,5 @@ echo "Restarting strfry service to apply the new blacklist..."
 sudo systemctl restart strfry
 
 echo "Done!"
+
+echo "$(date): Finished calculatePersonalizedBlacklist" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedBlacklist.log  
