@@ -2407,13 +2407,29 @@ function handleCalculationStatus(req, res) {
                     } else {
                         formattedElapsed = `${elapsedSeconds}s ago`;
                     }
+
+                    const durationSeconds = Math.floor((lastFinishDate - lastStartDate) / 1000);
+                    const durationMinutes = Math.floor(durationSeconds / 60);
+                    const durationHours = Math.floor(durationMinutes / 60);
+                    const durationDays = Math.floor(durationHours / 24);
+                    
+                    let formattedDuration;
+                    if (durationDays > 0) {
+                        formattedDuration = `${durationDays}d ${durationHours % 24}h`;
+                    } else if (durationHours > 0) {
+                        formattedDuration = `${durationHours}h ${durationMinutes % 60}m`;
+                    } else if (durationMinutes > 0) {
+                        formattedDuration = `${durationMinutes}m ${durationSeconds % 60}s`;
+                    } else {
+                        formattedDuration = `${durationSeconds}s`;
+                    }
                     
                     return {
                         status: 'Completed',
                         timestamp: lastFinishTimestamp,
                         formattedTime: `Completed ${formattedElapsed}`,
                         finishTime: lastFinishDate.toLocaleString(),
-                        duration: 'to be determined'
+                        duration: formattedDuration
                     };
                 }
             } catch (error) {
