@@ -217,9 +217,13 @@ app.get('/control/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 
 // API endpoint for Negentropy sync
 app.post('/api/negentropy-sync', handleNegentropySync);
-app.post('/api/negentropy-sync-wot', handleNegentropySyncWot);
+app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
 app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
+
+app.get('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
+app.get('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
+app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
 // API endpoint to generate NIP-85 data
 app.get('/api/generate-nip85', handleGenerateNip85);
