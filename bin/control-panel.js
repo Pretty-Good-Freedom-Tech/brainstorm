@@ -2314,7 +2314,7 @@ function handleCalculationStatus(req, res) {
         const getCalculationStatus = (logFile) => {
             try {
                 if (!fs.existsSync(logFile)) {
-                    return { status: 'Never', timestamp: 0, formattedTime: 'Never' };
+                    return { status: 'Never', timestamp: 0, formattedTime: 'Never', duration: null };
                 }
                 
                 const fileContent = fs.readFileSync(logFile, 'utf8');
@@ -2325,7 +2325,7 @@ function handleCalculationStatus(req, res) {
                 const finishMatches = [...fileContent.matchAll(/(.*?): Finished/g)];
                 
                 if (startMatches.length === 0) {
-                    return { status: 'Never', timestamp: 0, formattedTime: 'Never' };
+                    return { status: 'Never', timestamp: 0, formattedTime: 'Never', duration: null };
                 }
                 
                 // Parse the date strings
@@ -2343,7 +2343,7 @@ function handleCalculationStatus(req, res) {
                 const lastStartDate = parseLogDate(lastStartMatch[1]);
                 
                 if (!lastStartDate) {
-                    return { status: 'Error', timestamp: 0, formattedTime: 'Error parsing date' };
+                    return { status: 'Error', timestamp: 0, formattedTime: 'Error parsing date', duration: null };
                 }
                 
                 const lastStartTimestamp = Math.floor(lastStartDate.getTime() / 1000);
@@ -2386,7 +2386,8 @@ function handleCalculationStatus(req, res) {
                         status: 'In Progress',
                         timestamp: lastStartTimestamp,
                         formattedTime: `Started ${formattedElapsed}`,
-                        startTime: lastStartDate.toLocaleString()
+                        startTime: lastStartDate.toLocaleString(),
+                        duration: null
                     };
                 } else {
                     // Completed
@@ -2411,7 +2412,8 @@ function handleCalculationStatus(req, res) {
                         status: 'Completed',
                         timestamp: lastFinishTimestamp,
                         formattedTime: `Completed ${formattedElapsed}`,
-                        finishTime: lastFinishDate.toLocaleString()
+                        finishTime: lastFinishDate.toLocaleString(),
+                        duration: 'to be determined'
                     };
                 }
             } catch (error) {
