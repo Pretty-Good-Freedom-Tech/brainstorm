@@ -6,6 +6,12 @@
 # Source the configuration file
 source /etc/hasenpfeffr.conf
 
+touch ${HASENPFEFFR_LOG_DIR}/publishNip85.log
+
+echo "$(date): Starting publishNip85" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log  
+
+set -e  # Exit on error
+
 # Directory setup
 SCRIPT_DIR="/usr/local/lib/node_modules/hasenpfeffr/src/algos"
 cd "$SCRIPT_DIR"
@@ -51,3 +57,5 @@ echo "Publishing nip85.json data to Nostr network as kind 30382 events..."
 node --expose-gc --max-old-space-size=4096 "$SCRIPT_DIR/publish_nip85_30382.js"
 
 echo "nip85.json publishing complete!"
+
+echo "$(date): Finished publishNip85" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log

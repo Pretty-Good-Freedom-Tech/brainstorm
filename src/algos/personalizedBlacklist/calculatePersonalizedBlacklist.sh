@@ -6,9 +6,9 @@
 
 source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR
 
-touch ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedBlacklist.log
+touch ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log
 
-echo "$(date): Starting calculatePersonalizedBlacklist" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedBlacklist.log  
+echo "$(date): Starting exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
 
 set -e  # Exit on error
 
@@ -135,4 +135,4 @@ sudo systemctl restart strfry
 
 echo "Done!"
 
-echo "$(date): Finished calculatePersonalizedBlacklist" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedBlacklist.log  
+echo "$(date): Finished exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  

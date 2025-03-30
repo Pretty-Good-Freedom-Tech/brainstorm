@@ -2100,59 +2100,118 @@ function handleCalculationStatus(req, res) {
     console.log('Getting calculation status...');
     
     try {
-        // Get calculation timestamps from hasenpfeffr.conf
-        const hopsLastCalculated = getConfigFromFile('HOPS_LAST_CALCULATED', '0');
-        const pageRankLastCalculated = getConfigFromFile('PAGERANK_LAST_CALCULATED', '0');
-        const grapeRankLastCalculated = getConfigFromFile('GRAPERANK_LAST_CALCULATED', '0');
-        const whitelistLastUpdated = getConfigFromFile('WHITELIST_LAST_UPDATED', '0');
-        const blacklistLastUpdated = getConfigFromFile('BLACKLIST_LAST_UPDATED', '0');
-        const nip85LastExported = getConfigFromFile('NIP85_LAST_EXPORTED', '0');
+        // Get HASENPFEFFR_LOG_DIR from hasenpfeffr.conf
+        const logDir = getConfigFromFile('HASENPFEFFR_LOG_DIR', '/var/log/hasenpfeffr');
         
-        // Format timestamps
-        const formatTimestamp = (timestamp) => {
-            if (timestamp === '0') return 'Never';
-            
+        // Define log files to check
+        const logFiles = {
+            hops: `${logDir}/calculateHops.log`,
+            pageRank: `${logDir}/calculatePersonalizedPageRank.log`,
+            grapeRank: `${logDir}/calculatePersonalizedGrapeRank.log`,
+            whitelist: `${logDir}/exportWhitelist.log`,
+            blacklist: `${logDir}/exportBlacklist.log`,
+            nip85: `${logDir}/publishNip85.log`,
+            syncWoT: `${logDir}/syncWoT.log`,
+            syncPersonal: `${logDir}/syncPersonal.log`,
+            syncProfiles: `${logDir}/syncProfiles.log`
+        };
+        
+        // Function to get calculation status from log file
+        const getCalculationStatus = (logFile) => {
             try {
-                const date = new Date(parseInt(timestamp) * 1000);
-                return date.toLocaleString();
-            } catch (e) {
-                return 'Invalid date';
+                if (!fs.existsSync(logFile)) {
+                    return { status: 'Never', timestamp: 0, formattedTime: 'Never' };
+                }
+                
+                const fileContent = fs.readFileSync(logFile, 'utf8');
+                
+                // Check for the most recent "Starting" and "Finished" entries
+                const startMatches = [...fileContent.matchAll(/([^:]+): Starting/g)];
+                const finishMatches = [...fileContent.matchAll(/([^:]+): Finished/g)];
+                
+                if (startMatches.length === 0) {
+                    return { status: 'Never', timestamp: 0, formattedTime: 'Never' };
+                }
+                
+                const lastStartMatch = startMatches[startMatches.length - 1];
+                const lastStartDate = new Date(lastStartMatch[1]);
+                const lastStartTimestamp = Math.floor(lastStartDate.getTime() / 1000);
+                
+                if (finishMatches.length === 0 || 
+                    new Date(finishMatches[finishMatches.length - 1][1]) < lastStartDate) {
+                    // In progress - started but not finished
+                    const now = new Date();
+                    const elapsedSeconds = Math.floor((now - lastStartDate) / 1000);
+                    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+                    const elapsedHours = Math.floor(elapsedMinutes / 60);
+                    
+                    let formattedElapsed;
+                    if (elapsedHours > 0) {
+                        formattedElapsed = `${elapsedHours}h ${elapsedMinutes % 60}m ago`;
+                    } else if (elapsedMinutes > 0) {
+                        formattedElapsed = `${elapsedMinutes}m ${elapsedSeconds % 60}s ago`;
+                    } else {
+                        formattedElapsed = `${elapsedSeconds}s ago`;
+                    }
+                    
+                    return {
+                        status: 'In Progress',
+                        timestamp: lastStartTimestamp,
+                        formattedTime: `Started ${formattedElapsed}`,
+                        startTime: lastStartDate.toLocaleString()
+                    };
+                } else {
+                    // Completed
+                    const lastFinishMatch = finishMatches[finishMatches.length - 1];
+                    const lastFinishDate = new Date(lastFinishMatch[1]);
+                    const lastFinishTimestamp = Math.floor(lastFinishDate.getTime() / 1000);
+                    
+                    const now = new Date();
+                    const elapsedSeconds = Math.floor((now - lastFinishDate) / 1000);
+                    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+                    const elapsedHours = Math.floor(elapsedMinutes / 60);
+                    const elapsedDays = Math.floor(elapsedHours / 24);
+                    
+                    let formattedElapsed;
+                    if (elapsedDays > 0) {
+                        formattedElapsed = `${elapsedDays}d ${elapsedHours % 24}h ago`;
+                    } else if (elapsedHours > 0) {
+                        formattedElapsed = `${elapsedHours}h ${elapsedMinutes % 60}m ago`;
+                    } else if (elapsedMinutes > 0) {
+                        formattedElapsed = `${elapsedMinutes}m ${elapsedSeconds % 60}s ago`;
+                    } else {
+                        formattedElapsed = `${elapsedSeconds}s ago`;
+                    }
+                    
+                    return {
+                        status: 'Completed',
+                        timestamp: lastFinishTimestamp,
+                        formattedTime: `Completed ${formattedElapsed}`,
+                        finishTime: lastFinishDate.toLocaleString()
+                    };
+                }
+            } catch (error) {
+                console.error(`Error reading log file ${logFile}:`, error);
+                return { status: 'Error', timestamp: 0, formattedTime: 'Error reading log' };
             }
         };
+        
+        // Get status for each calculation
+        const result = {};
+        for (const [key, logFile] of Object.entries(logFiles)) {
+            result[key] = getCalculationStatus(logFile);
+        }
         
         // Return the status
         res.json({
             success: true,
-            hops: {
-                lastCalculated: hopsLastCalculated,
-                formattedTime: formatTimestamp(hopsLastCalculated)
-            },
-            pageRank: {
-                lastCalculated: pageRankLastCalculated,
-                formattedTime: formatTimestamp(pageRankLastCalculated)
-            },
-            grapeRank: {
-                lastCalculated: grapeRankLastCalculated,
-                formattedTime: formatTimestamp(grapeRankLastCalculated)
-            },
-            whitelist: {
-                lastUpdated: whitelistLastUpdated,
-                formattedTime: formatTimestamp(whitelistLastUpdated)
-            },
-            blacklist: {
-                lastUpdated: blacklistLastUpdated,
-                formattedTime: formatTimestamp(blacklistLastUpdated)
-            },
-            nip85: {
-                lastExported: nip85LastExported,
-                formattedTime: formatTimestamp(nip85LastExported)
-            }
+            ...result
         });
     } catch (error) {
         console.error('Error getting calculation status:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to get calculation status: ' + error.message
+            error: 'Failed to get calculation status'
         });
     }
 }

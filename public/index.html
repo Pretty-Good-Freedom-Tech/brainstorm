@@ -131,6 +131,31 @@
             font-weight: bold;
             color: #34495e;
         }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-never {
+            background-color: #95a5a6;
+        }
+        .status-in-progress {
+            background-color: #f39c12;
+            animation: pulse 1.5s infinite;
+        }
+        .status-completed {
+            background-color: #2ecc71;
+        }
+        .status-error {
+            background-color: #e74c3c;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
         .info-icon {
             display: inline-block;
             width: 16px;
@@ -234,7 +259,7 @@
                     <p id="hops-last-calculation-time" class="timestamp"></p>
                 </div>
                 <div class="calculation-item">
-                    <h4>PageRank <span class="info-icon">i</span><span class="tooltip">Calculates influence scores using the PageRank algorithm on the FOLLOWS relationships in Neo4j</span></h4>
+                    <h4>PageRank <span class="info-icon">i</span><span class="tooltip">Calculates importance scores using the personalized PageRank algorithm on the FOLLOWS relationships in Neo4j</span></h4>
                     <p id="pagerank-last-calculation-time" class="timestamp"></p>
                 </div>
                 <div class="calculation-item">
@@ -252,6 +277,18 @@
                 <div class="calculation-item">
                     <h4>NIP-85 Export <span class="info-icon">i</span><span class="tooltip">Exports Web of Trust scores as NIP-85 events that can be shared with other relays and clients</span></h4>
                     <p id="nip85-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>Sync WoT <span class="info-icon">i</span><span class="tooltip">Syncs the Web of Trust with the latest data from the network</span></h4>
+                    <p id="syncWoT-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>Sync Personal <span class="info-icon">i</span><span class="tooltip">Syncs personal data with the latest data from the network</span></h4>
+                    <p id="syncPersonal-last-calculation-time" class="timestamp"></p>
+                </div>
+                <div class="calculation-item">
+                    <h4>Sync Profiles <span class="info-icon">i</span><span class="tooltip">Syncs profiles with the latest data from the network</span></h4>
+                    <p id="syncProfiles-last-calculation-time" class="timestamp"></p>
                 </div>
             </div>
             <button class="refresh-btn" onclick="refreshCalculationTimes()">Refresh</button>
@@ -278,7 +315,7 @@
 
         function checkServicesStatus() {
             // For now, we'll just check if the strfry service is running
-            fetch('/api/service-status?service=strfry')
+            fetch('/control/api/service-status?service=strfry')
                 .then(response => response.json())
                 .then(data => {
                     updateStatusUI(data.running ? 'on' : 'off');
@@ -381,42 +418,65 @@
         }
         
         function loadCalculationTimes() {
-            // Show loading state
-            document.getElementById('hops-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
-            document.getElementById('pagerank-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
-            document.getElementById('graperank-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
-            document.getElementById('whitelist-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
-            document.getElementById('blacklist-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
-            document.getElementById('nip85-last-calculation-time').innerHTML = '<span class="loading"></span> Loading...';
+            // Show loading state for all calculation items
+            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles'];
             
-            fetch('/api/calculation-status')
+            calculationItems.forEach(item => {
+                const element = document.getElementById(`${item}-last-calculation-time`);
+                if (element) {
+                    element.innerHTML = '<span class="loading"></span> Loading...';
+                }
+            });
+            
+            fetch('/control/api/calculation-status')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        document.getElementById('hops-last-calculation-time').textContent = data.hops.formattedTime;
-                        document.getElementById('pagerank-last-calculation-time').textContent = data.pageRank.formattedTime;
-                        document.getElementById('graperank-last-calculation-time').textContent = data.grapeRank.formattedTime;
-                        document.getElementById('whitelist-last-calculation-time').textContent = data.whitelist.formattedTime;
-                        document.getElementById('blacklist-last-calculation-time').textContent = data.blacklist.formattedTime;
-                        document.getElementById('nip85-last-calculation-time').textContent = data.nip85.formattedTime;
+                        // Update each calculation item with its status
+                        calculationItems.forEach(item => {
+                            const element = document.getElementById(`${item}-last-calculation-time`);
+                            if (element && data[item]) {
+                                const status = data[item].status;
+                                let statusClass = '';
+                                
+                                switch (status) {
+                                    case 'Never':
+                                        statusClass = 'status-never';
+                                        break;
+                                    case 'In Progress':
+                                        statusClass = 'status-in-progress';
+                                        break;
+                                    case 'Completed':
+                                        statusClass = 'status-completed';
+                                        break;
+                                    case 'Error':
+                                        statusClass = 'status-error';
+                                        break;
+                                    default:
+                                        statusClass = 'status-never';
+                                }
+                                
+                                element.innerHTML = `<span class="status-indicator ${statusClass}"></span>${data[item].formattedTime}`;
+                            }
+                        });
                     } else {
                         console.error('Error loading calculation times:', data.error);
-                        document.getElementById('hops-last-calculation-time').textContent = 'Error loading';
-                        document.getElementById('pagerank-last-calculation-time').textContent = 'Error loading';
-                        document.getElementById('graperank-last-calculation-time').textContent = 'Error loading';
-                        document.getElementById('whitelist-last-calculation-time').textContent = 'Error loading';
-                        document.getElementById('blacklist-last-calculation-time').textContent = 'Error loading';
-                        document.getElementById('nip85-last-calculation-time').textContent = 'Error loading';
+                        calculationItems.forEach(item => {
+                            const element = document.getElementById(`${item}-last-calculation-time`);
+                            if (element) {
+                                element.innerHTML = '<span class="status-indicator status-error"></span>Error loading';
+                            }
+                        });
                     }
                 })
                 .catch(error => {
                     console.error('Error loading calculation times:', error);
-                    document.getElementById('hops-last-calculation-time').textContent = 'Error loading';
-                    document.getElementById('pagerank-last-calculation-time').textContent = 'Error loading';
-                    document.getElementById('graperank-last-calculation-time').textContent = 'Error loading';
-                    document.getElementById('whitelist-last-calculation-time').textContent = 'Error loading';
-                    document.getElementById('blacklist-last-calculation-time').textContent = 'Error loading';
-                    document.getElementById('nip85-last-calculation-time').textContent = 'Error loading';
+                    calculationItems.forEach(item => {
+                        const element = document.getElementById(`${item}-last-calculation-time`);
+                        if (element) {
+                            element.innerHTML = '<span class="status-indicator status-error"></span>Error loading';
+                        }
+                    });
                 });
         }
     </script>
