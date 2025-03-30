@@ -183,7 +183,8 @@ if [ "$add_count" -gt 0 ]; then
         \"
         MATCH (u1:NostrUser {pubkey:line.pk_author})
         MATCH (u2:NostrUser {pubkey:line.pk_target})
-        MERGE (u1)-[r:$relationship_type {timestamp: $CREATED_AT}]->(u2)
+        MERGE (u1)-[r:$relationship_type]->(u2)
+        SET r.timestamp = $CREATED_AT
         \",
         {batchSize:100, parallel:false, retries:2}
     )

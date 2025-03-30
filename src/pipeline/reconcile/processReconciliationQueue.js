@@ -163,7 +163,8 @@ async function processQueueFile(queueFile) {
         UNWIND $relationships AS rel
         MATCH (author:NostrUser {pubkey: rel.pk_author})
         MATCH (target:NostrUser {pubkey: rel.pk_target})
-        MERGE (author)-[r:${relationshipTypes[kind]} {timestamp: rel.timestamp}]->(target)
+        MERGE (author)-[r:${relationshipTypes[kind]}]->(target)
+        SET r.timestamp = rel.timestamp
       `;
       
       const addRelationships = toAdd.map(targetPubkey => ({

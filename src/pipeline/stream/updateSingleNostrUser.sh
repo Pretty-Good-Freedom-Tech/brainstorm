@@ -166,7 +166,8 @@ if [ "$add_count" -gt 0 ]; then
         \"
         MATCH (u1:NostrUser {pubkey:line.pk_follower})
         MATCH (u2:NostrUser {pubkey:line.pk_followee})
-        MERGE (u1)-[r:FOLLOWS {timestamp: $CREATED_AT}]->(u2)
+        MERGE (u1)-[r:FOLLOWS]->(u2)
+        SET r.timestamp = $CREATED_AT
         \",
         {batchSize:100, parallel:false, retries:2}
     )

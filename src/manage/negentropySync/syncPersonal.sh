@@ -5,6 +5,7 @@ source /etc/hasenpfeffr.conf
 # Log start
 
 touch ${HASENPFEFFR_LOG_DIR}/syncPersonal.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/syncPersonal.log
 
 # Log start
 

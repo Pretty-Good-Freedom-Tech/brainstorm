@@ -2357,7 +2357,7 @@ function handleCalculationStatus(req, res) {
                     // Find the most recent finish entry
                     for (let i = finishMatches.length - 1; i >= 0; i--) {
                         const finishDate = parseLogDate(finishMatches[i][1]);
-                        if (finishDate && finishDate > lastStartDate) {
+                        if (finishDate && finishDate >= lastStartDate) {
                             isCompleted = true;
                             lastFinishDate = finishDate;
                             lastFinishTimestamp = Math.floor(lastFinishDate.getTime() / 1000);

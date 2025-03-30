@@ -3,6 +3,7 @@
 source /etc/hasenpfeffr.conf
 
 touch ${HASENPFEFFR_LOG_DIR}/syncWoT.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/syncWoT.log
 
 # Log start
 

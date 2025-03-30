@@ -53,7 +53,8 @@ CALL apoc.periodic.iterate(
     "
     MATCH (u1:NostrUser {pubkey:line.pk_author})
     MATCH (u2:NostrUser {pubkey:line.pk_target})
-    MERGE (u1)-[r:$RELATIONSHIP_TYPE {timestamp: line.timestamp}]->(u2)
+    MERGE (u1)-[r:$RELATIONSHIP_TYPE]->(u2)
+    SET r.timestamp = line.timestamp
     ",
     {batchSize:250, parallel:false, retries:5}
 );
