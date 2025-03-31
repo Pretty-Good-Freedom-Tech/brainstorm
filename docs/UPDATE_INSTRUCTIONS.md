@@ -30,6 +30,7 @@ sudo rm /etc/systemd/system/calculatePersonalizedPageRank.service
 sudo rm /etc/systemd/system/calculatePersonalizedPageRank.timer
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.timer
+sudo rm -r /var/lib/hasenpfeffr
 sudo rm -r /home/ubuntu/hasenpfeffr
 sudo rm -r /usr/local/lib/node_modules/hasenpfeffr
 

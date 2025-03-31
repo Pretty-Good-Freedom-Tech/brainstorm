@@ -144,6 +144,7 @@ function removeFiles() {
   
   const directories = [
     '/usr/local/lib/strfry',
+    '/var/lib/hasenpfeffr',
     '/home/ubuntu/hasenpfeffr',
     '/usr/local/lib/node_modules/hasenpfeffr'
   ];
