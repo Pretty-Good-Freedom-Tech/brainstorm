@@ -34,8 +34,9 @@ sudo systemctl start processQueue
 sleep 1
 
 # Start reconcile timer
-sudo systemctl start reconcile.timer
-sleep 1
+# This has been subsumed into the processAllTasks service
+# sudo systemctl start reconcile.timer
+# sleep 1
 
 # Start control panel
 sudo systemctl start hasenpfeffr-control-panel

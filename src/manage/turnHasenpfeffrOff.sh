@@ -11,8 +11,9 @@ source /etc/hasenpfeffr.conf
 echo "Stopping Hasenpfeffr ETL pipeline services..."
 
 # Stop reconcile timer
-sudo systemctl stop reconcile.timer
-sleep 1
+# This has been subsumed into the processAllTasks service
+# sudo systemctl stop reconcile.timer
+# sleep 1
 
 # Stop processQueue service
 sudo systemctl stop processQueue
