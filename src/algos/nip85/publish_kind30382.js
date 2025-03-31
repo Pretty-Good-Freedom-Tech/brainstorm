@@ -133,7 +133,7 @@ async function getUsers(limit = null) {
              u.confidence AS confidence,
              u.input AS input
       ORDER BY u.influence DESC
-      LIMIT 10
+      LIMIT 100
     `;
     
     if (limit !== null && !isNaN(parseInt(limit))) {

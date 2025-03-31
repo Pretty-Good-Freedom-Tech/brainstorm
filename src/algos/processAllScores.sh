@@ -29,6 +29,21 @@ echo "$(date): Starting processAllScores" >> ${HASENPFEFFR_LOG_DIR}/processAllSc
 # neo4j transfer if needed (do only once? repeat infrequently? probably only once; otherwise do reconciliation)
 # neo4j reconciliation
 
+sudo $HASENPFEFFR_MODULE_MANAGE_DIR/negentropySync/syncWoT.sh
+echo "$(date): Continuing processAllScores; syncWoT.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
+
+sleep 5
+
+sudo $HASENPFEFFR_MODULE_MANAGE_DIR/negentropySync/syncPersonal.sh
+echo "$(date): Continuing processAllScores; syncPersonal.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
+
+sleep 5
+
+sudo $HASENPFEFFR_MODULE_MANAGE_DIR/negentropySync/syncProfiles.sh
+echo "$(date): Continuing processAllScores; syncProfiles.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
+
+sleep 5
+
 sudo $HASENPFEFFR_MODULE_ALGOS_DIR/calculateHops.sh
 echo "$(date): Continuing processAllScores; calculateHops.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
 
@@ -54,7 +69,7 @@ echo "$(date): Continuing processAllScores; calculatePersonalizedBlacklist.sh co
 
 sleep 5
 
-sudo $HASENPFEFFR_MODULE_ALGOS_DIR/publishNip85.sh
+sudo $HASENPFEFFR_MODULE_ALGOS_DIR/nip85/publishNip85.sh
 echo "$(date): Continuing processAllScores; publishNip85.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
 
 sleep 5
