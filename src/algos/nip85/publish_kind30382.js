@@ -121,9 +121,10 @@ async function getUsers(limit = null) {
     let query = `
       MATCH (u:NostrUser)
       WHERE u.personalizedPageRank IS NOT NULL 
-        AND u.hops IS NOT NULL 
-        AND u.hops < 20
-        AND u.pubkey IS NOT NULL
+      AND u.influence IS NOT NULL
+      AND u.hops IS NOT NULL 
+      AND u.hops < 20
+      AND u.pubkey IS NOT NULL
       RETURN u.pubkey AS pubkey, 
              u.personalizedPageRank AS personalizedPageRank, 
              u.hops AS hops,

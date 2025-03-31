@@ -109,6 +109,7 @@ async function getTopUsers() {
     const result = await session.run(`
       MATCH (u:NostrUser)
       WHERE u.personalizedPageRank IS NOT NULL 
+      AND u.influence IS NOT NULL
         AND u.hops IS NOT NULL 
         AND u.hops < 20
         AND u.pubkey IS NOT NULL
@@ -142,6 +143,7 @@ async function getTopUsers() {
                u.average AS average,
                u.confidence AS confidence,
                u.input AS input
+        ORDER BY u.personalizedPageRank DESC
         LIMIT 100
       `);
       

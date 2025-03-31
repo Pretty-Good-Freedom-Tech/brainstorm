@@ -1414,7 +1414,7 @@ function handlePublishKind30382(req, res) {
     res.setHeader('Content-Type', 'application/json');
     
     // Get the full path to the script
-    const scriptPath = path.join(__dirname, 'hasenpfeffr-publish-kind30382.js');
+    const scriptPath = path.join(__dirname, '../src/algos/nip85/hasenpfeffr-publish-kind30382.js');
     console.log('Using script path:', scriptPath);
     
     // Send an initial response that the process has started
