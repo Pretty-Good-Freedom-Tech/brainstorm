@@ -44,6 +44,11 @@ echo "$(date): Continuing processAllScores; syncPersonal.sh completed" >> ${HASE
 
 sleep 5
 
+sudo $HASENPFEFFR_MODULE_PIPELINE_DIR/reconcile/runFullReconciliation.sh
+echo "$(date): Continuing processAllScores; runFullReconciliation.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
+
+sleep 5
+
 sudo $HASENPFEFFR_MODULE_ALGOS_DIR/calculateHops.sh
 echo "$(date): Continuing processAllScores; calculateHops.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
 
