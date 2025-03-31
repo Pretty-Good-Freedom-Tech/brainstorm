@@ -871,7 +871,7 @@ function handleSystemdServices(req, res) {
     'addToQueue',
     'processQueue',
     'reconcile.timer',
-    'processAllScores.timer',
+    'processAllTasks.timer',
     'calculateHops.timer',
     'calculatePersonalizedPageRank.timer',
     'calculatePersonalizedGrapeRank.timer'

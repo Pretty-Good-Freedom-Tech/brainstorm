@@ -71,10 +71,10 @@ const configPaths = {
   reconcileServiceFileDestination: path.join(systemdServiceDir, 'reconcile.service'),
   reconcileTimerFileDestination: path.join(systemdServiceDir, 'reconcile.timer'),
 
-  processAllScoresServiceFileSource: path.join(packageRoot, 'systemd', 'processAllScores.service'),
-  processAllScoresTimerFileSource: path.join(packageRoot, 'systemd', 'processAllScores.timer'),
-  processAllScoresServiceFileDestination: path.join(systemdServiceDir, 'processAllScores.service'),
-  processAllScoresTimerFileDestination: path.join(systemdServiceDir, 'processAllScores.timer'),
+  processAllTasksServiceFileSource: path.join(packageRoot, 'systemd', 'processAllTasks.service'),
+  processAllTasksTimerFileSource: path.join(packageRoot, 'systemd', 'processAllTasks.timer'),
+  processAllTasksServiceFileDestination: path.join(systemdServiceDir, 'processAllTasks.service'),
+  processAllTasksTimerFileDestination: path.join(systemdServiceDir, 'processAllTasks.timer'),
 
   calculateHopsServiceFileSource: path.join(packageRoot, 'systemd', 'calculateHops.service'),
   calculateHopsTimerFileSource: path.join(packageRoot, 'systemd', 'calculateHops.timer'),
@@ -88,11 +88,7 @@ const configPaths = {
   calculatePersonalizedGrapeRankServiceFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.service'),
   calculatePersonalizedGrapeRankTimerFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.timer'),
   calculatePersonalizedGrapeRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.service'),
-  calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer'),
-  hasenpfeffrConfFileSource: path.join(packageRoot, 'setup', 'hasenpfeffr.conf.template'),
-  hasenpfeffrConfFileDestination: '/etc/hasenpfeffr.conf',
-  grapeRankConfFileSource: path.join(packageRoot, 'setup', 'graperank.conf.template'),
-  grapeRankConfFileDestination: '/etc/graperank.conf'
+  calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer')
 };
 
 // Configure sudo privileges for hasenpfeffr user and control panel
@@ -720,47 +716,47 @@ async function setupProcessAllScoresService() {
   }
 
   // Check if process all scores service file already exists
-  if (fs.existsSync(configPaths.processAllScoresServiceFileDestination)) {
-    console.log(`process all scores service file ${configPaths.processAllScoresServiceFileDestination} already exists.`);
+  if (fs.existsSync(configPaths.processAllTasksServiceFileDestination)) {
+    console.log(`process all scores service file ${configPaths.processAllTasksServiceFileDestination} already exists.`);
     return;
   }
 
   try {
     // Read the content of the source file
-    const serviceFileContent = fs.readFileSync(configPaths.processAllScoresServiceFileSource, 'utf8');
+    const serviceFileContent = fs.readFileSync(configPaths.processAllTasksServiceFileSource, 'utf8');
     
     // Write the content to the destination file
-    fs.writeFileSync(configPaths.processAllScoresServiceFileDestination, serviceFileContent);
-    console.log(`process all scores service file created at ${configPaths.processAllScoresServiceFileDestination}`);
+    fs.writeFileSync(configPaths.processAllTasksServiceFileDestination, serviceFileContent);
+    console.log(`process all scores service file created at ${configPaths.processAllTasksServiceFileDestination}`);
 
     // enable the service
-    execSync(`systemctl enable processAllScores.service`);
+    execSync(`systemctl enable processAllTasks.service`);
     console.log('Process all scores service enabled');
 
     // starting the service will be performed at the control panel
   } catch (error) {
     console.error(`Error setting up process all scores service: ${error.message}`);
-    console.log(`Source file: ${configPaths.processAllScoresServiceFileSource}`);
-    console.log(`Destination file: ${configPaths.processAllScoresServiceFileDestination}`);
+    console.log(`Source file: ${configPaths.processAllTasksServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.processAllTasksServiceFileDestination}`);
   }
 
-  // check if processAllScores timer file already exists
-  if (fs.existsSync(configPaths.processAllScoresTimerFileDestination)) {
-    console.log(`process all scores timer file ${configPaths.processAllScoresTimerFileDestination} already exists.`);
+  // check if processAllTasks timer file already exists
+  if (fs.existsSync(configPaths.processAllTasksTimerFileDestination)) {
+    console.log(`process all scores timer file ${configPaths.processAllTasksTimerFileDestination} already exists.`);
     return;
   }
 
   try {
     // Read the content of the source file
-    const timerFileContent = fs.readFileSync(configPaths.processAllScoresTimerFileSource, 'utf8');
+    const timerFileContent = fs.readFileSync(configPaths.processAllTasksTimerFileSource, 'utf8');
     
     // Write the content to the destination file
-    fs.writeFileSync(configPaths.processAllScoresTimerFileDestination, timerFileContent);
-    console.log(`process all scores timer file created at ${configPaths.processAllScoresTimerFileDestination}`);
+    fs.writeFileSync(configPaths.processAllTasksTimerFileDestination, timerFileContent);
+    console.log(`process all scores timer file created at ${configPaths.processAllTasksTimerFileDestination}`);
   } catch (error) {
     console.error(`Error setting up process all scores timer: ${error.message}`);
-    console.log(`Source file: ${configPaths.processAllScoresTimerFileSource}`);
-    console.log(`Destination file: ${configPaths.processAllScoresTimerFileDestination}`);
+    console.log(`Source file: ${configPaths.processAllTasksTimerFileSource}`);
+    console.log(`Destination file: ${configPaths.processAllTasksTimerFileDestination}`);
   }
 }
 

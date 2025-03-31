@@ -58,17 +58,17 @@ echo "=== Plugins Installation ==="
 cd /usr/local/lib/node_modules/hasenpfeffr/plugins
 sudo chmod +x *.js
 
-echo "=== Plugins Installation A ==="
+echo "=== /var/lib/hasenpfeffr files Installation ==="
 
-# need to reconsider these commands. data/published has lots of files and it takes forever to do these steps.
-# perhaps these files should be deleted upon reinstallation?
+mkdir -p /var/lib/hasenpfeffr/pipeline/stream
+mkdir -p /var/lib/hasenpfeffr/pipeline/reconcile
+mkdir -p /var/lib/hasenpfeffr/data/published
+mkdir -p /var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp
 cd /var/lib
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
 sudo chmod -R 755 hasenpfeffr
 
-echo "=== Plugins Installation B ==="
-
 cd /var/log
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
 
-echo "=== Plugins Installation Completed ==="
+echo "=== Hasenpfeffr ETL Pipeline Installation Completed ==="

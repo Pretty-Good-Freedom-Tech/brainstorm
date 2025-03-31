@@ -1,5 +1,5 @@
 [Unit]
-Description=Process all Webs of Trust scores periodically
+Description=Process all routine tasks periodically
 After=network.target neo4j.service
 
 [Timer]

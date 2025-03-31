@@ -1,12 +1,12 @@
 [Unit]
-Description=Process all Webs of Trust scores
+Description=Process all routine tasks
 After=network.target neo4j.service
 
 [Service]
 Type=simple
 User=hasenpfeffr
 EnvironmentFile=/etc/hasenpfeffr.conf
-ExecStart=sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/processAllScores.sh
+ExecStart=sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/processAllTasks.sh
 Restart=on-failure
 RestartSec=30
 # Set resource limits to prevent excessive resource usage

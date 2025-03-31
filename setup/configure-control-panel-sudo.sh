@@ -60,10 +60,10 @@ $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop processQueue
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart processQueue
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active processQueue
 
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start processAllScores.timer
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop processAllScores.timer
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart processAllScores.timer
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active processAllScores.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start processAllTasks.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop processAllTasks.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart processAllTasks.timer
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active processAllTasks.timer
 
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start reconcile.timer
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop reconcile.timer
