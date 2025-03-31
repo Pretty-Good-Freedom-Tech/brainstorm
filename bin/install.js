@@ -260,25 +260,38 @@ async function createStrfryRouterConfigFile() {
 async function createHasenpfeffrConfigFile() {
   console.log('\x1b[36m=== Creating Hasenpfeffr Configuration File ===\x1b[0m');
   
-  // Check if config file already exists
+  // Check if config file already exists and we're not in update mode
   if (fs.existsSync(configPaths.hasenpfeffrConfDestination) && !isUpdateMode) {
     console.log(`Hasenpfeffr configuration file ${configPaths.hasenpfeffrConfDestination} already exists.`);
     return;
   }
   
   let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultFriendRelays;
+  let relayPubkey, relayNsec, relayNpub;
   
   if (isUpdateMode) {
     // In update mode, use environment variables set from the backup
-    console.log('Using configuration values from previous installation...');
+    console.log('Using configuration values from environment variables...');
     
-    // Extract domain from relay URL
-    const relayUrlFromEnv = process.env.HASENPFEFFR_RELAY_URL || '';
-    domainName = relayUrlFromEnv.replace(/^wss:\/\//, '');
+    // Extract values from environment variables
+    domainName = process.env.STRFRY_DOMAIN || '';
+    if (!domainName && process.env.HASENPFEFFR_RELAY_URL) {
+      domainName = process.env.HASENPFEFFR_RELAY_URL.replace(/^wss:\/\//, '');
+    }
+    
     ownerPubkey = process.env.HASENPFEFFR_OWNER_PUBKEY || '';
+    relayPubkey = process.env.HASENPFEFFR_RELAY_PUBKEY || '';
+    relayNsec = process.env.HASENPFEFFR_RELAY_NSEC || '';
+    relayNpub = process.env.HASENPFEFFR_RELAY_NPUB || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
     relayUrl = process.env.HASENPFEFFR_RELAY_URL || '';
     defaultFriendRelays = process.env.HASENPFEFFR_DEFAULT_FRIEND_RELAYS || '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    
+    // Log what we found
+    console.log(`Found domain name: ${domainName || 'Not found'}`);
+    console.log(`Found owner pubkey: ${ownerPubkey ? 'Yes' : 'No'}`);
+    console.log(`Found relay pubkey: ${relayPubkey ? 'Yes' : 'No'}`);
+    console.log(`Found relay nsec: ${relayNsec ? 'Yes' : 'No'}`);
     
     if (!domainName || !ownerPubkey) {
       console.log('\x1b[33mWarning: Some configuration values missing from environment variables.\x1b[0m');
@@ -405,7 +418,7 @@ export NIP85_LAST_EXPORTED=0
     console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
     // Generate Nostr identity if not in update mode or if keys are missing
-    if (!isUpdateMode || !process.env.HASENPFEFFR_RELAY_NSEC || !process.env.HASENPFEFFR_RELAY_PUBKEY) {
+    if (!isUpdateMode || !relayNsec || !relayPubkey) {
       console.log('\x1b[36m=== Generating Nostr Identity for Relay ===\x1b[0m');
       try {
         execSync(`sudo chmod +x ${configPaths.createNostrIdentityScript}`);
@@ -420,9 +433,9 @@ export NIP85_LAST_EXPORTED=0
       // Add the relay keys to the config file
       const appendContent = `
 # Relay pubkey and nsec (from previous installation)
-export HASENPFEFFR_RELAY_PUBKEY="${process.env.HASENPFEFFR_RELAY_PUBKEY}"
-export HASENPFEFFR_RELAY_NSEC="${process.env.HASENPFEFFR_RELAY_NSEC}"
-export HASENPFEFFR_RELAY_NPUB="${process.env.HASENPFEFFR_RELAY_NPUB || ''}"
+export HASENPFEFFR_RELAY_PUBKEY="${relayPubkey}"
+export HASENPFEFFR_RELAY_NSEC="${relayNsec}"
+export HASENPFEFFR_RELAY_NPUB="${relayNpub || ''}"
 `;
       fs.appendFileSync(configPaths.hasenpfeffrConfDestination, appendContent);
       console.log('Existing Nostr identity configured successfully.');
