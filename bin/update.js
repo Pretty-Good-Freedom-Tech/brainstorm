@@ -188,13 +188,37 @@ function installNewVersion() {
   // Set update mode environment variable
   process.env.UPDATE_MODE = 'true';
   
-  // Run the installation script
+  // Determine home directory - same logic as in cloneRepository
+  let homeDir;
+  if (process.env.SUDO_USER) {
+    const originalUser = process.env.SUDO_USER;
+    homeDir = `/home/${originalUser}`;
+  } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
+    homeDir = '/home/ubuntu';
+  } else {
+    homeDir = process.env.HOME || '/home/ubuntu';
+  }
+  
+  const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
+  console.log(`Using project directory: ${hasenpfeffrDir}`);
+  
+  // Install dependencies first
+  console.log('Installing dependencies...');
+  executeCommand('npm install', {
+    cwd: hasenpfeffrDir,
+    exitOnError: true
+  });
+  
+  // Run the installation script from the correct directory
+  console.log('Running installation script...');
   executeCommand('sudo npm run install-hasenpfeffr', { 
+    cwd: hasenpfeffrDir,
     env: { ...process.env }
   });
   
   // Restore GrapeRank configuration if it was backed up
   if (backupData.GRAPERANK_CONFIG) {
+    console.log('Restoring GrapeRank configuration...');
     fs.writeFileSync('/tmp/hasenpfeffr-update/graperank.conf', backupData.GRAPERANK_CONFIG);
     executeCommand('sudo cp /tmp/hasenpfeffr-update/graperank.conf /etc/graperank.conf');
     executeCommand('sudo chown root:hasenpfeffr /etc/graperank.conf');
@@ -203,6 +227,7 @@ function installNewVersion() {
   
   // Restore blacklist configuration if it was backed up
   if (backupData.BLACKLIST_CONFIG) {
+    console.log('Restoring blacklist configuration...');
     fs.writeFileSync('/tmp/hasenpfeffr-update/blacklist.conf', backupData.BLACKLIST_CONFIG);
     executeCommand('sudo cp /tmp/hasenpfeffr-update/blacklist.conf /etc/blacklist.conf');
     executeCommand('sudo chown root:hasenpfeffr /etc/blacklist.conf');
@@ -256,9 +281,80 @@ function cleanup() {
   executeCommand('sudo rm -r /tmp/hasenpfeffr-update', { exitOnError: false });
 }
 
+// Update system packages and ensure dependencies are installed
+function prepareSystem() {
+  console.log('\x1b[36m=== Updating System Packages ===\x1b[0m');
+  console.log('Updating system packages and checking dependencies...');
+  
+  // Update system packages
+  executeCommand('sudo apt update', { exitOnError: false });
+  executeCommand('sudo apt upgrade -y', { exitOnError: false });
+  
+  // Check if Node.js is installed and at the correct version
+  try {
+    const nodeVersion = execSync('node --version').toString().trim();
+    console.log(`Node.js version: ${nodeVersion}`);
+    
+    // Check if version is 18.x or greater
+    const majorVersion = parseInt(nodeVersion.substring(1).split('.')[0], 10);
+    if (majorVersion < 18) {
+      console.log('\x1b[33mWarning: Node.js version is below 18.x, updating Node.js...\x1b[0m');
+      executeCommand('curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -', { exitOnError: false });
+      executeCommand('sudo apt install -y nodejs', { exitOnError: false });
+    }
+  } catch (error) {
+    console.log('\x1b[33mNode.js not found, installing...\x1b[0m');
+    executeCommand('sudo apt install -y curl', { exitOnError: false });
+    executeCommand('curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -', { exitOnError: false });
+    executeCommand('sudo apt install -y nodejs', { exitOnError: false });
+  }
+  
+  // Check if Git is installed
+  try {
+    const gitVersion = execSync('git --version').toString().trim();
+    console.log(`Git version: ${gitVersion}`);
+  } catch (error) {
+    console.log('\x1b[33mGit not found, installing...\x1b[0m');
+    executeCommand('sudo apt install -y git', { exitOnError: false });
+  }
+  
+  // Check if pv is installed
+  try {
+    const pvVersion = execSync('pv --version').toString().trim();
+    console.log(`Progress Viewer version: ${pvVersion}`);
+  } catch (error) {
+    console.log('\x1b[33mpv not found, installing...\x1b[0m');
+    executeCommand('sudo apt install -y pv', { exitOnError: false });
+  }
+  
+  console.log('System preparation complete.');
+}
+
 // Main update function
 async function update() {
   console.log('Starting Hasenpfeffr update...');
+  
+  // Ask if user wants to update system packages
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  
+  const answer = await new Promise(resolve => {
+    rl.question('\x1b[33mDo you want to update system packages and check dependencies? (y/n): \x1b[0m', answer => {
+      resolve(answer.trim().toLowerCase());
+    });
+  });
+  
+  rl.close();
+  
+  if (answer === 'y' || answer === 'yes') {
+    // Prepare system (update packages and check dependencies)
+    prepareSystem();
+  } else {
+    console.log('Skipping system preparation...');
+  }
   
   // Backup configuration
   backupConfiguration();
