@@ -171,7 +171,7 @@ const authMiddleware = (req, res, next) => {
     } else {
         // For API calls that modify data, return unauthorized status
         const writeEndpoints = [
-            '/bulk-transfer',
+            '/batch-transfer',
             '/generate',
             '/publish',
             '/negentropy-sync',
@@ -269,11 +269,11 @@ app.get('/control/api/systemd-services', handleSystemdServices);
 app.get('/api/strfry-plugin', handleStrfryPlugin);
 app.get('/control/api/strfry-plugin', handleStrfryPlugin);
 
-// API endpoint for bulk transfer
-app.get('/api/bulk-transfer', handleBulkTransfer);
-app.post('/api/bulk-transfer', handleBulkTransfer);
-app.get('/control/api/bulk-transfer', handleBulkTransfer);
-app.post('/control/api/bulk-transfer', handleBulkTransfer);
+// API endpoint for batch transfer
+app.get('/api/batch-transfer', handleBatchTransfer);
+app.post('/api/batch-transfer', handleBatchTransfer);
+app.get('/control/api/batch-transfer', handleBatchTransfer);
+app.post('/control/api/batch-transfer', handleBatchTransfer);
 
 // API endpoint for reconciliation
 app.get('/api/reconciliation', handleReconciliation);
@@ -1112,21 +1112,21 @@ function handleReconciliation(req, res) {
     });
 }
 
-// Handler for bulk transfer
-function handleBulkTransfer(req, res) {
-    console.log('Starting bulk transfer of kinds 3, 1984, and 10000 data from strfry to Neo4j...');
+// Handler for batch transfer
+function handleBatchTransfer(req, res) {
+    console.log('Starting batch transfer of kinds 3, 1984, and 10000 data from strfry to Neo4j...');
     
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
     // Set a timeout to ensure the response doesn't hang
     const timeoutId = setTimeout(() => {
-        console.log('Bulk transfer is taking longer than expected, sending initial response...');
+        console.log('Batch transfer is taking longer than expected, sending initial response...');
         res.json({
             success: true,
             continueInBackground: true,
-            message: 'Bulk transfer initiated',
-            output: 'Bulk transfer process started. This will continue in the background.\n'
+            message: 'Batch transfer initiated',
+            output: 'Batch transfer process started. This will continue in the background.\n'
         });
     }, 120000); // 2 minutes timeout
     
@@ -1136,39 +1136,39 @@ function handleBulkTransfer(req, res) {
     let output = '';
     
     transferProcess.stdout.on('data', (data) => {
-        console.log(`Bulk Transfer stdout: ${data}`);
+        console.log(`Batch Transfer stdout: ${data}`);
         output += data;
     });
     
     transferProcess.stderr.on('data', (data) => {
-        console.error(`Bulk Transfer stderr: ${data}`);
+        console.error(`Batch Transfer stderr: ${data}`);
         output += data;
     });
     
     transferProcess.on('close', (code) => {
-        console.log(`Bulk Transfer process exited with code ${code}`);
+        console.log(`Batch Transfer process exited with code ${code}`);
         
         // Clear the timeout if the command completes before the timeout
         clearTimeout(timeoutId);
         
         // Check if the response has already been sent
         if (res.headersSent) {
-            console.log('Response already sent, bulk transfer continuing in background');
+            console.log('Response already sent, batch transfer continuing in background');
             return;
         }
         
         if (code === 0) {
-            console.log('Bulk transfer completed successfully');
+            console.log('Batch transfer completed successfully');
             res.json({
                 success: true,
-                message: 'Bulk transfer completed successfully',
+                message: 'Batch transfer completed successfully',
                 output: output
             });
         } else {
-            console.error(`Bulk transfer failed with exit code ${code}`);
+            console.error(`Batch transfer failed with exit code ${code}`);
             res.json({
                 success: false,
-                message: `Bulk transfer failed with exit code ${code}`,
+                message: `Batch transfer failed with exit code ${code}`,
                 output: output
             });
         }
@@ -1181,14 +1181,14 @@ function handleBulkTransfer(req, res) {
         
         // Check if the response has already been sent
         if (res.headersSent) {
-            console.error(`Bulk Transfer error: ${error.message}`);
+            console.error(`Batch Transfer error: ${error.message}`);
             return;
         }
         
-        console.error(`Bulk Transfer error: ${error.message}`);
+        console.error(`Batch Transfer error: ${error.message}`);
         res.status(500).json({
             success: false,
-            message: `Bulk transfer error: ${error.message}`
+            message: `Batch transfer error: ${error.message}`
         });
     });
 }

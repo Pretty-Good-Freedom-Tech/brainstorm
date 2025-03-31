@@ -305,7 +305,7 @@
         </div>
         <h3>Routine actions</h3>
         <div class="calculation-status">
-            <h3>Negentropy: download events in bulk to strfry</h3>
+            <h3>Negentropy: download events in batch to strfry</h3>
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <div class="calculation-item-content">
@@ -355,9 +355,9 @@
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>Bulk Transfer <span class="info-icon">i</span><span class="tooltip">Bulk transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This does not erase obsolete follows!</span></h4>
-                        <p id="bulkTransfer-last-calculation-time" class="timestamp"></p>
-                        <p id="bulkTransfer-last-calculation-duration" class="duration"></p>
+                        <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This does not erase obsolete follows!</span></h4>
+                        <p id="batchTransfer-last-calculation-time" class="timestamp"></p>
+                        <p id="batchTransfer-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -628,7 +628,7 @@
         
         function loadCalculationTimes() {
             // Show loading state for all calculation items
-            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'bulkTransfer', 'reconciliation'];
+            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'batchTransfer', 'reconciliation'];
             
             calculationItems.forEach(item => {
                 const element = document.getElementById(`${item}-last-calculation-time`);
@@ -938,10 +938,10 @@
                     method: 'POST',
                     buttonText: 'Sync Personal'
                 },
-                'bulkTransfer': {
-                    endpoint: '/control/api/bulk-transfer',
+                'batchTransfer': {
+                    endpoint: '/control/api/batch-transfer',
                     method: 'POST',
-                    buttonText: 'Bulk Transfer'
+                    buttonText: 'Batch Transfer'
                 },
                 'reconciliation': {
                     endpoint: '/control/api/reconciliation',

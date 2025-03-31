@@ -213,12 +213,12 @@
             <div class="card">
                 <h3>Load Neo4j</h3>
                 <p>Transfer all available kind 3, 1984 and 10000 data from strfry into Neo4j. This will insert NostrUser nodes connected by FOLLOWS, REPORTS and MUTES relationships. This operation may take 10-15 minutes to complete.</p>
-                <button id="bulkTransferBtn" class="button">Start Bulk Transfer</button>
-                <div class="progress-container" style="display: none;" id="bulkTransferProgress">
-                    <div class="progress-bar" id="bulkTransferProgressBar"></div>
+                <button id="batchTransferBtn" class="button">Start Batch Transfer</button>
+                <div class="progress-container" style="display: none;" id="batchTransferProgress">
+                    <div class="progress-bar" id="batchTransferProgressBar"></div>
                 </div>
-                <div id="bulkTransferStatus" class="status" style="display: none;"></div>
-                <pre id="bulkTransferOutput" style="display: none;"></pre>
+                <div id="batchTransferStatus" class="status" style="display: none;"></div>
+                <pre id="batchTransferOutput" style="display: none;"></pre>
             </div>
         </div>
         
@@ -1072,29 +1072,29 @@
             const negentropyProgress = document.getElementById('negentropyProgress');
             const negentropyProgressBar = document.getElementById('negentropyProgressBar');
             
-            // Bulk Transfer Button
-            const bulkTransferBtn = document.getElementById('bulkTransferBtn');
-            const bulkTransferStatus = document.getElementById('bulkTransferStatus');
-            const bulkTransferOutput = document.getElementById('bulkTransferOutput');
-            const bulkTransferProgress = document.getElementById('bulkTransferProgress');
-            const bulkTransferProgressBar = document.getElementById('bulkTransferProgressBar');
+            // Batch Transfer Button
+            const batchTransferBtn = document.getElementById('batchTransferBtn');
+            const batchTransferStatus = document.getElementById('batchTransferStatus');
+            const batchTransferOutput = document.getElementById('batchTransferOutput');
+            const batchTransferProgress = document.getElementById('batchTransferProgress');
+            const batchTransferProgressBar = document.getElementById('batchTransferProgressBar');
             
-            // Bulk Transfer Button Event Listener
-            bulkTransferBtn.addEventListener('click', function() {
-                bulkTransferBtn.disabled = true;
-                bulkTransferStatus.style.display = 'block';
-                bulkTransferStatus.className = 'status info';
-                bulkTransferStatus.textContent = 'Starting bulk transfer... This may take 10-15 minutes to complete.';
-                bulkTransferOutput.style.display = 'block';
-                bulkTransferOutput.textContent = 'Initiating bulk transfer of data from strfry to Neo4j...\n';
-                bulkTransferProgress.style.display = 'block';
+            // Batch Transfer Button Event Listener
+            batchTransferBtn.addEventListener('click', function() {
+                batchTransferBtn.disabled = true;
+                batchTransferStatus.style.display = 'block';
+                batchTransferStatus.className = 'status info';
+                batchTransferStatus.textContent = 'Starting batch transfer... This may take 10-15 minutes to complete.';
+                batchTransferOutput.style.display = 'block';
+                batchTransferOutput.textContent = 'Initiating batch transfer of data from strfry to Neo4j...\n';
+                batchTransferProgress.style.display = 'block';
                 
                 // Simulate progress updates (in a real implementation, this would be based on actual progress)
                 let progress = 0;
                 const progressInterval = setInterval(() => {
                     progress += Math.random() * 2;
                     if (progress > 100) progress = 100;
-                    bulkTransferProgressBar.style.width = progress + '%';
+                    batchTransferProgressBar.style.width = progress + '%';
                     if (progress === 100) clearInterval(progressInterval);
                 }, 1000);
                 
@@ -1102,14 +1102,14 @@
                 const timeoutId = setTimeout(() => {
                     // This will execute if the fetch doesn't complete within 60 seconds
                     clearInterval(progressInterval);
-                    bulkTransferProgressBar.style.width = '100%';
-                    bulkTransferStatus.className = 'status success';
-                    bulkTransferStatus.textContent = 'Bulk transfer started successfully; process will continue in the background.';
-                    bulkTransferOutput.textContent += '\nTransfer process will continue in the background. Check the Neo4j Database Status button or visit the Neo4j browser for details. You will know the transfer is complete when Neo4j node and relationship counts stop increasing.';
-                    bulkTransferBtn.disabled = false;
+                    batchTransferProgressBar.style.width = '100%';
+                    batchTransferStatus.className = 'status success';
+                    batchTransferStatus.textContent = 'Batch transfer started successfully; process will continue in the background.';
+                    batchTransferOutput.textContent += '\nTransfer process will continue in the background. Check the Neo4j Database Status button or visit the Neo4j browser for details. You will know the transfer is complete when Neo4j node and relationship counts stop increasing.';
+                    batchTransferBtn.disabled = false;
                 }, 60000); // 60 seconds timeout
                 
-                fetch('/control/api/bulk-transfer', {
+                fetch('/control/api/batch-transfer', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1129,7 +1129,7 @@
                                 // If the response was OK but not JSON, assume success
                                 return {
                                     success: true,
-                                    message: 'Bulk transfer initiated',
+                                    message: 'Batch transfer initiated',
                                     continueInBackground: true,
                                     output: 'Process started and continuing in the background.\n'
                                 };
@@ -1138,7 +1138,7 @@
                                 return {
                                     success: true,
                                     continueInBackground: true,
-                                    message: 'Bulk transfer initiated (server timeout)',
+                                    message: 'Batch transfer initiated (server timeout)',
                                     output: 'The server took too long to respond, but the process has been started and will continue in the background.\n'
                                 };
                             } else {
@@ -1150,26 +1150,26 @@
                 })
                 .then(data => {
                     clearInterval(progressInterval);
-                    bulkTransferProgressBar.style.width = '100%';
+                    batchTransferProgressBar.style.width = '100%';
                     
                     if (data.success) {
-                        bulkTransferStatus.className = 'status success';
+                        batchTransferStatus.className = 'status success';
                         if (data.continueInBackground) {
-                            bulkTransferStatus.textContent = 'Bulk transfer started successfully; process will continue in the background.';
+                            batchTransferStatus.textContent = 'Batch transfer started successfully; process will continue in the background.';
                         } else {
-                            bulkTransferStatus.textContent = data.message || 'Bulk transfer completed successfully!';
+                            batchTransferStatus.textContent = data.message || 'Batch transfer completed successfully!';
                         }
                         if (data.output) {
-                            bulkTransferOutput.textContent += data.output;
+                            batchTransferOutput.textContent += data.output;
                         }
                     } else {
-                        bulkTransferStatus.className = 'status error';
-                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + (data.message || 'Unknown error');
+                        batchTransferStatus.className = 'status error';
+                        batchTransferStatus.textContent = 'Error during batch transfer: ' + (data.message || 'Unknown error');
                         if (data.output) {
-                            bulkTransferOutput.textContent += data.output;
+                            batchTransferOutput.textContent += data.output;
                         }
                     }
-                    bulkTransferBtn.disabled = false;
+                    batchTransferBtn.disabled = false;
                 })
                 .catch(error => {
                     clearTimeout(timeoutId); // Clear the timeout if fetch fails
@@ -1178,18 +1178,18 @@
                     
                     // Check if this is a timeout or network error, which likely means the process is still running
                     if (error.message.includes('timeout') || error.message.includes('network') || error.message.includes('504')) {
-                        bulkTransferStatus.className = 'status success';
-                        bulkTransferStatus.textContent = 'Bulk transfer started successfully; process will continue in the background.';
+                        batchTransferStatus.className = 'status success';
+                        batchTransferStatus.textContent = 'Batch transfer started successfully; process will continue in the background.';
                     } else {
-                        bulkTransferStatus.className = 'status error';
-                        bulkTransferStatus.textContent = 'Error during bulk transfer: ' + error.message;
+                        batchTransferStatus.className = 'status error';
+                        batchTransferStatus.textContent = 'Error during batch transfer: ' + error.message;
                     }
                     
                     // Continue showing progress even if there's an error
-                    bulkTransferProgressBar.style.width = '100%';
-                    bulkTransferOutput.textContent += '\nTransfer process will continue in the background. Check the Neo4j Database Status button or visit the Neo4j browser for details. You will know the transfer is complete when Neo4j node and relationship counts stop increasing.';
+                    batchTransferProgressBar.style.width = '100%';
+                    batchTransferOutput.textContent += '\nTransfer process will continue in the background. Check the Neo4j Database Status button or visit the Neo4j browser for details. You will know the transfer is complete when Neo4j node and relationship counts stop increasing.';
                     
-                    bulkTransferBtn.disabled = false;
+                    batchTransferBtn.disabled = false;
                 });
             });
             

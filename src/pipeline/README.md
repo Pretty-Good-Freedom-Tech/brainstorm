@@ -22,7 +22,7 @@ Located in the `stream/` directory, this component handles real-time updates as 
 
 ### 2. Batch Processing
 
-Located in the `batch/` directory, this component processes historical data in bulk.
+Located in the `batch/` directory, this component processes historical data in batch.
 
 - **processNostrEvents.sh**: Main script that orchestrates the batch processing of all event kinds.
 - **eventsToRelationships.js**: Processes events of a specific kind and extracts relationships to be added to Neo4j.
