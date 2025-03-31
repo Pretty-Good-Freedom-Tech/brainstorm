@@ -60,9 +60,30 @@ Currently two sets of scripts. Need to decide which one to keep and where to put
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
-## Installation
+## Installation (brief)
 
-See instructions in docs/INSTALLATION_INSTRUCTIONS.md.
+```bash
+# Clone the Hasenpfeffr repository
+git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
+cd hasenpfeffr
+
+# Install dependencies
+npm install
+
+# Run the installation script
+sudo npm run install-hasenpfeffr
+```
+
+To update:
+
+```bash
+cd ~/hasenpfeffr
+sudo npm run update
+```
+
+## Installation (detailed)
+
+If the above doesn't work, follow the instructions in docs/INSTALLATION_INSTRUCTIONS.md.
 
 The installation script will:
 
