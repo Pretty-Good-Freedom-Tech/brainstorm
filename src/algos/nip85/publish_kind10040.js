@@ -167,14 +167,9 @@ function createKind10040Event() {
 
 // Sign an event with the relay's private key
 function signEvent(event) {
-  // Calculate the event ID using getEventHash
-  event.id = nostrTools.getEventHash(event);
-  
-  // Sign the event with the private key
-  const signature = nostrTools.signEvent(event, relayPrivateKey);
-  event.sig = signature;
-  
-  return event;
+  // Use finishEvent to calculate ID and sign in one step
+  const signedEvent = nostrTools.finishEvent(event, relayPrivateKey);
+  return signedEvent;
 }
 
 // Function to publish an event to a relay via WebSocket

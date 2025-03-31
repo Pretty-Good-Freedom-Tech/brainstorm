@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to publish nip85.json data to the Nostr network as kind 30382 events
+# Script to publish Web of Trust scores to the Nostr network as kind 30382 events
 # following the Trusted Assertions protocol (NIP-85)
 
 # Source the configuration file
@@ -20,30 +20,15 @@ if [ ! -d "${HASENPFEFFR_NIP85_DIR}" ]; then
 fi
 
 # Make sure the scripts are executable
-chmod +x ${HASENPFEFFR_NIP85_DIR}/publish_kind10040.js
 chmod +x ${HASENPFEFFR_NIP85_DIR}/publish_kind30382.js
-
-echo "$(date): Continuing publishNip85 ... calling script to publish kind 10040 events"
-echo "$(date): Continuing publishNip85 ... calling script to publish kind 10040 events" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log
-
-# Publish the kind 10040 event to all friend relays
-node ${HASENPFEFFR_NIP85_DIR}/publish_kind10040.js
-RESULT_10040=$?
-
-if [ $RESULT_10040 -ne 0 ]; then
-    echo "Warning: Failed to publish kind 10040 event. Continuing with kind 30382 events..."
-    echo "$(date): Warning: Failed to publish kind 10040 event. Continuing with kind 30382 events..." >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log
-fi
 
 echo "$(date): Continuing publishNip85 ... calling script to publish kind 30382 events"
 echo "$(date): Continuing publishNip85 ... calling script to publish kind 30382 events" >> ${HASENPFEFFR_LOG_DIR}/publishNip85.log
 
 # Publish all kind 30382 events to HASENPFEFFR_RELAY_URL
 # The script will publish events only for NostrUsers whose hops parameter is not null and is less than 20
-
-# temporarily disabled
-# node ${HASENPFEFFR_NIP85_DIR}/publish_kind30382.js
-# RESULT_30382=$?
+node ${HASENPFEFFR_NIP85_DIR}/publish_kind30382.js
+RESULT_30382=$?
 
 if [ $RESULT_30382 -ne 0 ]; then
     echo "Error: Failed to publish kind 30382 events"

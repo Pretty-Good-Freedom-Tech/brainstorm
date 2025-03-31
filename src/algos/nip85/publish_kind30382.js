@@ -211,14 +211,8 @@ function createEvent(userPubkey, personalizedPageRank, hops, influence, average,
     content: ''
   };
   
-  // Calculate the event ID using getEventHash
-  event.id = nostrTools.getEventHash(event);
-  
-  // Sign the event with the relay's private key
-  const signature = nostrTools.signEvent(event, relayPrivateKey);
-  event.sig = signature;
-  
-  return event;
+  // Use finishEvent to calculate ID and sign in one step
+  return nostrTools.finishEvent(event, relayPrivateKey);
 }
 
 // Function to publish an event to the relay via WebSocket
