@@ -210,6 +210,34 @@ function installNewVersion() {
   }
 }
 
+// Clone the latest repository from GitHub
+function cloneRepository() {
+  console.log('Cloning the latest Hasenpfeffr repository from GitHub...');
+  
+  // Determine home directory
+  const homeDir = process.env.HOME || '/home/ubuntu';
+  console.log(`Using home directory: ${homeDir}`);
+  
+  // Remove old repository directory if it exists
+  if (fs.existsSync(`${homeDir}/hasenpfeffr`)) {
+    executeCommand(`rm -rf ${homeDir}/hasenpfeffr`, { exitOnError: false });
+  }
+  
+  // Clone the repository directly to the home directory
+  executeCommand('git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git', {
+    cwd: homeDir,
+    exitOnError: true
+  });
+  
+  // Create the npm link to the new version
+  executeCommand('npm link', {
+    cwd: `${homeDir}/hasenpfeffr`,
+    exitOnError: true
+  });
+  
+  console.log('Repository cloned successfully');
+}
+
 // Clean up temporary files
 function cleanup() {
   console.log('Cleaning up...');
@@ -228,6 +256,9 @@ async function update() {
   
   // Remove old files
   removeFiles();
+  
+  // Clone the latest repository from GitHub
+  cloneRepository();
   
   // Install new version
   installNewVersion();
