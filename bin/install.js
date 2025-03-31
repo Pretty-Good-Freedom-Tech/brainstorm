@@ -265,6 +265,7 @@ async function createHasenpfeffrConfigFile() {
 HASENPFEFFR_MODULE_BASE_DIR="/usr/local/lib/node_modules/hasenpfeffr/"
 HASENPFEFFR_MODULE_SRC_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/"
 HASENPFEFFR_MODULE_ALGOS_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/algos"
+HASENPFEFFR_NIP85_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/algos/nip85"
 HASENPFEFFR_MODULE_PIPELINE_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/pipeline"
 STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins/"
 STRFRY_PLUGINS_DATA="\${STRFRY_PLUGINS_BASE}/data/"
@@ -274,10 +275,14 @@ HASENPFEFFR_BASE_DIR="/var/lib/hasenpfeffr"
 export HASENPFEFFR_MODULE_BASE_DIR
 export HASENPFEFFR_MODULE_SRC_DIR
 export HASENPFEFFR_MODULE_ALGOS_DIR
+export HASENPFEFFR_NIP85_DIR
 export STRFRY_PLUGINS_BASE
 export STRFRY_PLUGINS_DATA
 export HASENPFEFFR_LOG_DIR
 export HASENPFEFFR_BASE_DIR
+
+# default friend relays
+export HASENPFEFFR_DEFAULT_FRIEND_RELAYS=[ "wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net" ]
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"

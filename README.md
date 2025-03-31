@@ -47,7 +47,16 @@ Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced tec
     - turn on periodic recalculation of WoT scores
 - make sure strfry-router streams all the right things, including my personal content (all events authored by me))
 
-
+## TODO: FIX NIP-85 PUBLISHING
+Currently two sets of scripts. Need to decide which one to keep and where to put them.
+1. one set called by NIP-85 Control Panel. It works but does not log results and is in an unusual location.
+- bin/hasenpfeffr-publish-kind30382.js
+- bin/hasenpfeffr-publish-kind10040.js
+- bin/hasenpfeffr-create-kind10040.js
+2. another set called by bin/control-panel.js, which is called by home page via api. It logs results but does not seem to function properly because nip85.json is not found and generateNip85.sh does not exist.
+- src/algos/publishNip85.sh
+- src/algos/publish_nip85_30382.js
+- src/algos/publish_nip85_10040.mjs
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
