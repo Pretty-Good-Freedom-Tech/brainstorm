@@ -34,13 +34,13 @@ echo "$(date): Continuing processAllScores; syncWoT.sh completed" >> ${HASENPFEF
 
 sleep 5
 
-sudo $HASENPFEFFR_MODULE_MANAGE_DIR/negentropySync/syncPersonal.sh
-echo "$(date): Continuing processAllScores; syncPersonal.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
+sudo $HASENPFEFFR_MODULE_MANAGE_DIR/negentropySync/syncProfiles.sh
+echo "$(date): Continuing processAllScores; syncProfiles.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
 
 sleep 5
 
-sudo $HASENPFEFFR_MODULE_MANAGE_DIR/negentropySync/syncProfiles.sh
-echo "$(date): Continuing processAllScores; syncProfiles.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
+sudo $HASENPFEFFR_MODULE_MANAGE_DIR/negentropySync/syncPersonal.sh
+echo "$(date): Continuing processAllScores; syncPersonal.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllScores.log
 
 sleep 5
 

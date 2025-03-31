@@ -256,12 +256,12 @@
                         const authData = await authResponse.json();
                         
                         if (authData.success) {
-                            signInStatus.textContent = 'Authentication successful! Redirecting to control panel...';
+                            signInStatus.textContent = 'Authentication successful! Redirecting to home page...';
                             signInStatus.className = 'status success';
                             
-                            // Redirect to control panel
+                            // Redirect to home page
                             setTimeout(() => {
-                                window.location.href = '/control/control-panel.html';
+                                window.location.href = '/control/index.html';
                             }, 1500);
                         } else {
                             signInStatus.textContent = 'Authentication failed: ' + authData.message;

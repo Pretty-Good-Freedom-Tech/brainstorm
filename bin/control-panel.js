@@ -217,7 +217,9 @@ app.get('/control/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 
 // API endpoint for Negentropy sync
 app.post('/api/negentropy-sync', handleNegentropySync);
+
 app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
+
 app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
 
 app.get('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
@@ -268,8 +270,16 @@ app.get('/api/strfry-plugin', handleStrfryPlugin);
 app.get('/control/api/strfry-plugin', handleStrfryPlugin);
 
 // API endpoint for bulk transfer
+app.get('/api/bulk-transfer', handleBulkTransfer);
 app.post('/api/bulk-transfer', handleBulkTransfer);
+app.get('/control/api/bulk-transfer', handleBulkTransfer);
 app.post('/control/api/bulk-transfer', handleBulkTransfer);
+
+// API endpoint for reconciliation
+app.get('/api/reconciliation', handleReconciliation);
+app.post('/api/reconciliation', handleReconciliation);
+app.get('/control/api/reconciliation', handleReconciliation);
+app.post('/control/api/reconciliation', handleReconciliation);
 
 // API endpoint to create kind 10040 events
 app.post('/api/create-kind10040', handleCreateKind10040);
@@ -1056,6 +1066,50 @@ async function handleStrfryPlugin(req, res) {
         console.error('Error handling strfry plugin:', error);
         return res.status(500).json({ error: error.message });
     }
+}
+
+// Handler for reconciliation
+function handleReconciliation(req, res) {
+    console.log('Starting reconciliation of kinds 3, 1984, and 10000 data from strfry to Neo4j...');
+    
+    // Set the response header to ensure it's always JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Set a timeout to ensure the response doesn't hang
+    const timeoutId = setTimeout(() => {
+        console.log('Reconciliation is taking longer than expected, sending initial response...');
+        res.json({
+            success: true,
+            continueInBackground: true,
+            message: 'Reconciliation initiated',
+            output: 'Reconciliation process started. This will continue in the background.\n'
+        });
+    }, 120000); // 2 minutes timeout
+    
+    // Create a child process to run the reconciliation script
+    const reconciliationProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/runFullReconciliation.sh');
+    
+    let output = '';
+    
+    reconciliationProcess.stdout.on('data', (data) => {
+        console.log(`Reconciliation stdout: ${data}`);
+        output += data;
+    });
+    
+    reconciliationProcess.stderr.on('data', (data) => {
+        console.error(`Reconciliation stderr: ${data}`);
+        output += data;
+    });
+    
+    reconciliationProcess.on('close', (code) => {
+        console.log(`Reconciliation process exited with code ${code}`);
+        clearTimeout(timeoutId);
+        res.json({
+            success: true,
+            message: 'Reconciliation completed',
+            output
+        });
+    });
 }
 
 // Handler for bulk transfer
@@ -2358,7 +2412,9 @@ function handleCalculationStatus(req, res) {
             nip85: `${logDir}/publishNip85.log`,
             syncWoT: `${logDir}/syncWoT.log`,
             syncPersonal: `${logDir}/syncPersonal.log`,
-            syncProfiles: `${logDir}/syncProfiles.log`
+            syncProfiles: `${logDir}/syncProfiles.log`,
+            batchTransfer: `${logDir}/batchTransfer.log`,
+            reconciliation: `${logDir}/runFullReconciliation.log`
         };
         
         // Function to get calculation status from log file

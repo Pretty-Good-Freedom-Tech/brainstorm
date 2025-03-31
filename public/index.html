@@ -355,7 +355,7 @@
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>Bulk Transfer <span class="info-icon">i</span><span class="tooltip">Bulk transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This does not erase obsolute follows!</span></h4>
+                        <h4>Bulk Transfer <span class="info-icon">i</span><span class="tooltip">Bulk transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This does not erase obsolete follows!</span></h4>
                         <p id="runBulkTransfer-last-calculation-time" class="timestamp"></p>
                         <p id="runBulkTransfer-last-calculation-duration" class="duration"></p>
                     </div>
@@ -628,7 +628,7 @@
         
         function loadCalculationTimes() {
             // Show loading state for all calculation items
-            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles'];
+            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'batchTransfer', 'reconciliation'];
             
             calculationItems.forEach(item => {
                 const element = document.getElementById(`${item}-last-calculation-time`);
@@ -937,6 +937,16 @@
                     // params: { relay: 'wss://relay.primal.net', filter: '{"authors":["HASENPFEFFR_OWNER_PUBKEY"]}' },
                     method: 'POST',
                     buttonText: 'Sync Personal'
+                },
+                'bulkTransfer': {
+                    endpoint: '/control/api/bulk-transfer',
+                    method: 'POST',
+                    buttonText: 'Bulk Transfer'
+                },
+                'reconciliation': {
+                    endpoint: '/control/api/reconciliation',
+                    method: 'POST',
+                    buttonText: 'Reconciliation'
                 },
                 'hops': {
                     endpoint: '/control/api/calculate-hops',
