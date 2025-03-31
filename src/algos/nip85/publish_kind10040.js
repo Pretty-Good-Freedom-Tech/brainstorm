@@ -51,12 +51,15 @@ const logDir = getConfigFromFile('HASENPFEFFR_LOG_DIR', '/var/log/hasenpfeffr');
 let friendRelays = [];
 try {
   const friendRelaysStr = getConfigFromFile('HASENPFEFFR_DEFAULT_FRIEND_RELAYS', '[]');
-  friendRelays = JSON.parse(friendRelaysStr);
+  // Remove any surrounding quotes (single or double) before parsing
+  const cleanStr = friendRelaysStr.replace(/^['"]|['"]$/g, '');
+  friendRelays = JSON.parse(cleanStr);
   if (!Array.isArray(friendRelays)) {
     friendRelays = [];
   }
 } catch (error) {
   console.error('Error parsing friend relays from config:', error);
+  execSync(`echo "$(date): Error parsing friend relays from config: ${error.message}" >> ${logDir}/publishNip85.log`);
   friendRelays = [];
 }
 
@@ -164,18 +167,10 @@ function createKind10040Event() {
 
 // Sign an event with the relay's private key
 function signEvent(event) {
-  const serializedEvent = JSON.stringify([
-    0,
-    event.pubkey,
-    event.created_at,
-    event.kind,
-    event.tags,
-    event.content
-  ]);
+  // Calculate the event ID using getEventHash
+  event.id = nostrTools.getEventHash(event);
   
-  const eventHash = nostrTools.sha256(serializedEvent);
-  event.id = eventHash;
-  
+  // Sign the event with the private key
   const signature = nostrTools.signEvent(event, relayPrivateKey);
   event.sig = signature;
   

@@ -282,7 +282,7 @@ export HASENPFEFFR_LOG_DIR
 export HASENPFEFFR_BASE_DIR
 
 # default friend relays
-export HASENPFEFFR_DEFAULT_FRIEND_RELAYS=[ "wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net" ]
+export HASENPFEFFR_DEFAULT_FRIEND_RELAYS='["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]'
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"
@@ -855,6 +855,7 @@ async function setupAddToQueueService() {
 
   if (!isRoot) {
     console.log('\x1b[33mCannot set up AddToQueue systemd service without root privileges.\x1b[0m');
+
     // Wait for user acknowledgment
     await askQuestion('Press Enter to continue...');
     return;

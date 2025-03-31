@@ -49,6 +49,8 @@ sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/negentropySync/
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/*.sh
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.sh
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.js
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.sh
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.js
 
 # set ownershiup for configuration files 
 sudo chown root:hasenpfeffr /etc/hasenpfeffr.conf

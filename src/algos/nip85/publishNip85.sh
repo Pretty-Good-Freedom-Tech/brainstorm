@@ -40,8 +40,10 @@ echo "$(date): Continuing publishNip85 ... calling script to publish kind 30382 
 
 # Publish all kind 30382 events to HASENPFEFFR_RELAY_URL
 # The script will publish events only for NostrUsers whose hops parameter is not null and is less than 20
-node ${HASENPFEFFR_NIP85_DIR}/publish_kind30382.js
-RESULT_30382=$?
+
+# temporarily disabled
+# node ${HASENPFEFFR_NIP85_DIR}/publish_kind30382.js
+# RESULT_30382=$?
 
 if [ $RESULT_30382 -ne 0 ]; then
     echo "Error: Failed to publish kind 30382 events"

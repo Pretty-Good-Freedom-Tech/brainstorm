@@ -211,19 +211,8 @@ function createEvent(userPubkey, personalizedPageRank, hops, influence, average,
     content: ''
   };
   
-  // Serialize the event for signing
-  const serializedEvent = JSON.stringify([
-    0,
-    event.pubkey,
-    event.created_at,
-    event.kind,
-    event.tags,
-    event.content
-  ]);
-  
-  // Calculate the event ID (sha256 hash of the serialized event)
-  const eventHash = nostrTools.sha256(serializedEvent);
-  event.id = eventHash;
+  // Calculate the event ID using getEventHash
+  event.id = nostrTools.getEventHash(event);
   
   // Sign the event with the relay's private key
   const signature = nostrTools.signEvent(event, relayPrivateKey);
