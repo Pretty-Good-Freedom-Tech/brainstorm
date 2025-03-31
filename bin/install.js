@@ -12,6 +12,10 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 const readline = require('readline');
 
+// Check if running in update mode
+const isUpdateMode = process.env.UPDATE_MODE === 'true';
+console.log(isUpdateMode ? '\x1b[32m=== Running in Update Mode ===\x1b[0m' : '\x1b[32m=== Running in Fresh Installation Mode ===\x1b[0m');
+
 // Create readline interface for user input
 const rl = readline.createInterface({
   input: process.stdin,
@@ -123,19 +127,28 @@ async function configureSudoPrivileges() {
 
 // Main installation function
 async function install() {
-  console.log('\x1b[32m=== Hasenpfeffr Installation ===\x1b[0m');
+  console.log('\x1b[32m=== Hasenpfeffr ' + (isUpdateMode ? 'Update' : 'Installation') + ' ===\x1b[0m');
   
   try {
     // Step 1: Create hasenpfeffr and strfry-router configuration files
     await createHasenpfeffrConfigFile();
-
     await createStrfryRouterConfigFile();
     
     // Step 2: Install Neo4j and plugins
-    await installNeo4j();
+    // Skip Neo4j installation in update mode to preserve data
+    if (!isUpdateMode) {
+      await installNeo4j();
+    } else {
+      console.log('\x1b[36m=== Preserving existing Neo4j database ===\x1b[0m');
+    }
     
     // Step 3: Install Strfry Nostr relay
-    await installStrfry();
+    // In update mode, preserve the strfry database
+    if (!isUpdateMode) {
+      await installStrfry();
+    } else {
+      console.log('\x1b[36m=== Preserving existing Strfry database ===\x1b[0m');
+    }
     
     // Step 4: Set up Strfry plugins
     await setupStrfryPlugins();
@@ -154,23 +167,28 @@ async function install() {
     await setupCalculateHopsService();
     await setupCalculatePersonalizedGrapeRankService();
 
-    // Step 5: Setup Strfry Neo4j Pipeline
+    // Step 7: Setup Strfry Neo4j Pipeline
     await installPipeline();
     
-    // Step 6: Configure sudo privileges
+    // Step 8: Configure sudo privileges
     await configureSudoPrivileges();
     
-    // Step 7: Final setup and instructions
+    // Step 9: Final setup and instructions
     await finalSetup();
     
-    console.log('\x1b[32m=== Installation Complete ===\x1b[0m');
-    console.log('Hasenpfeffr has been successfully installed and configured.');
-    console.log('You can access the control panel at: http://your-server-ip:7778');
-    console.log('or at: https://your-server-domain/control/ (if configured with Nginx)');
+    console.log('\x1b[32m=== ' + (isUpdateMode ? 'Update' : 'Installation') + ' Complete ===\x1b[0m');
+    console.log('Hasenpfeffr has been successfully ' + (isUpdateMode ? 'updated' : 'installed and configured') + '.');
+    
+    if (!isUpdateMode) {
+      console.log('You can access the control panel at: http://your-server-ip:7778');
+      console.log('or at: https://your-server-domain/control/ (if configured with Nginx)');
+    } else {
+      console.log('The control panel should be available at the same location as before.');
+    }
     
     rl.close();
   } catch (error) {
-    console.error('\x1b[31mError during installation:\x1b[0m', error.message);
+    console.error('\x1b[31mError during ' + (isUpdateMode ? 'update' : 'installation') + ':\x1b[0m', error.message);
     rl.close();
     process.exit(1);
   }
@@ -243,20 +261,54 @@ async function createHasenpfeffrConfigFile() {
   console.log('\x1b[36m=== Creating Hasenpfeffr Configuration File ===\x1b[0m');
   
   // Check if config file already exists
-  if (fs.existsSync(configPaths.hasenpfeffrConfDestination)) {
-    console.log(`Hseenpfeffr configuration file ${configPaths.hasenpfeffrConfDestination} already exists.`);
+  if (fs.existsSync(configPaths.hasenpfeffrConfDestination) && !isUpdateMode) {
+    console.log(`Hasenpfeffr configuration file ${configPaths.hasenpfeffrConfDestination} already exists.`);
     return;
   }
   
-  // Get configuration values from user
-  const domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com; do not include the wss://): ');
-  const ownerPubkey = await askQuestion('Enter your Hasenpfeffr owner pubkey: ');
-  const neo4jPassword = await askQuestion('Enter the password that you intend to use for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
-  const relayUrl = `wss://${domainName}`
+  let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultFriendRelays;
+  
+  if (isUpdateMode) {
+    // In update mode, use environment variables set from the backup
+    console.log('Using configuration values from previous installation...');
+    
+    // Extract domain from relay URL
+    const relayUrlFromEnv = process.env.HASENPFEFFR_RELAY_URL || '';
+    domainName = relayUrlFromEnv.replace(/^wss:\/\//, '');
+    ownerPubkey = process.env.HASENPFEFFR_OWNER_PUBKEY || '';
+    neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
+    relayUrl = process.env.HASENPFEFFR_RELAY_URL || '';
+    defaultFriendRelays = process.env.HASENPFEFFR_DEFAULT_FRIEND_RELAYS || '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    
+    if (!domainName || !ownerPubkey) {
+      console.log('\x1b[33mWarning: Some configuration values missing from environment variables.\x1b[0m');
+      console.log('Will ask for missing values...');
+    }
+  } else {
+    // Fresh installation, ask for values
+    defaultFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+  }
+  
+  // Get configuration values from user if not in environment or incomplete
+  if (!isUpdateMode || !domainName) {
+    domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com; do not include the wss://): ');
+  }
+  
+  if (!isUpdateMode || !ownerPubkey) {
+    ownerPubkey = await askQuestion('Enter your Hasenpfeffr owner pubkey: ');
+  }
+  
+  if (!isUpdateMode || !neo4jPassword) {
+    neo4jPassword = await askQuestion('Enter the password that you intend to use for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
+  }
+  
+  if (!relayUrl) {
+    relayUrl = `wss://${domainName}`;
+  }
   
   // Create hasenpfeffr configuration content
   const hasenpfeffrConfigContent = `# Hasenpfeffr Configuration
-# Created during installation
+# Created during ${isUpdateMode ? 'update' : 'installation'}
 # This file should be installed at /etc/hasenpfeffr.conf
 # with proper permissions: chmod 640 /etc/hasenpfeffr.conf
 # and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
@@ -284,7 +336,7 @@ export HASENPFEFFR_LOG_DIR
 export HASENPFEFFR_BASE_DIR
 
 # default friend relays
-export HASENPFEFFR_DEFAULT_FRIEND_RELAYS='["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]'
+export HASENPFEFFR_DEFAULT_FRIEND_RELAYS='${defaultFriendRelays}'
 
 # Performance tuning
 export HASENPFEFFR_BATCH_SIZE="100"
@@ -352,21 +404,34 @@ export NIP85_LAST_EXPORTED=0
     // execSync(`sudo chown root:hasenpfeffr ${configPaths.hasenpfeffrConfDestination}`);
     console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
-    // Generate Nostr identity
-    console.log('\x1b[36m=== Generating Nostr Identity for Relay ===\x1b[0m');
-    try {
-      execSync(`sudo chmod +x ${configPaths.createNostrIdentityScript}`);
-      execSync(configPaths.createNostrIdentityScript, { stdio: 'inherit' });
-      console.log('Nostr identity generated successfully.');
-    } catch (error) {
-      console.error('\x1b[31mError generating Nostr identity:\x1b[0m', error.message);
-      console.log('You will need to manually run the create_nostr_identity.sh script later.');
+    // Generate Nostr identity if not in update mode or if keys are missing
+    if (!isUpdateMode || !process.env.HASENPFEFFR_RELAY_NSEC || !process.env.HASENPFEFFR_RELAY_PUBKEY) {
+      console.log('\x1b[36m=== Generating Nostr Identity for Relay ===\x1b[0m');
+      try {
+        execSync(`sudo chmod +x ${configPaths.createNostrIdentityScript}`);
+        execSync(configPaths.createNostrIdentityScript, { stdio: 'inherit' });
+        console.log('Nostr identity generated successfully.');
+      } catch (error) {
+        console.error('\x1b[31mError generating Nostr identity:\x1b[0m', error.message);
+        console.log('You will need to manually run the create_nostr_identity.sh script later.');
+      }
+    } else {
+      console.log('\x1b[36m=== Using Existing Nostr Identity for Relay ===\x1b[0m');
+      // Add the relay keys to the config file
+      const appendContent = `
+# Relay pubkey and nsec (from previous installation)
+export HASENPFEFFR_RELAY_PUBKEY="${process.env.HASENPFEFFR_RELAY_PUBKEY}"
+export HASENPFEFFR_RELAY_NSEC="${process.env.HASENPFEFFR_RELAY_NSEC}"
+export HASENPFEFFR_RELAY_NPUB="${process.env.HASENPFEFFR_RELAY_NPUB || ''}"
+`;
+      fs.appendFileSync(configPaths.hasenpfeffrConfDestination, appendContent);
+      console.log('Existing Nostr identity configured successfully.');
     }
   } else {
     console.log('\x1b[33mCannot create configuration file without root privileges.\x1b[0m');
     console.log('Please manually create the file with the following content:');
     console.log('---');
-    console.log(configContent);
+    console.log(hasenpfeffrConfigContent);
     console.log('---');
     console.log(`Save it to: ${configPaths.hasenpfeffrConfDestination}`);
     console.log('And set permissions: chmod 644 ' + configPaths.hasenpfeffrConfDestination);
