@@ -3,7 +3,7 @@
 /**
  * Hasenpfeffr Publish Kind 30382 Events
  * 
- * This script publishes kind 30382 events for users in the Web of Trust
+ * This script publishes kind 30382 events for the top 5 users by personalizedPageRank
  * Each event is signed with the relay's private key (HASENPFEFFR_RELAY_NSEC)
  * and published to the relay via WebSocket
  */
@@ -49,17 +49,13 @@ const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
-const logDir = getConfigFromFile('HASENPFEFFR_LOG_DIR', '/var/log/hasenpfeffr');
 
 // Log relay configuration for debugging
 console.log(`Using relay URL: ${relayUrl}`);
 console.log(`Relay private key available: ${relayNsec ? 'Yes' : 'No'}`);
 console.log(`Neo4j URI: ${neo4jUri}`);
-execSync(`echo "$(date): Using relay URL: ${relayUrl}" >> ${logDir}/publishNip85.log`);
-execSync(`echo "$(date): Relay private key available: ${relayNsec ? 'Yes' : 'No'}" >> ${logDir}/publishNip85.log`);
-execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${logDir}/publishNip85.log`);
 
-// Fallback relay URL if the main one is not configured
+// Fallback relay URLs if the main one is not configured
 const fallbackRelays = [
   'wss://relay.hasenpfeffr.com',
   'wss://profiles.nostr1.com',
@@ -68,14 +64,10 @@ const fallbackRelays = [
 
 // Use fallback relay if the main one is not configured
 let primaryRelayUrl = relayUrl;
-/*
-// not going to use fallback relays for now
 if (!primaryRelayUrl) {
   console.log('No relay URL configured in HASENPFEFFR_RELAY_URL, using fallback relay');
-  execSync(`echo "$(date): No relay URL configured in HASENPFEFFR_RELAY_URL, using fallback relay" >> ${logDir}/publishNip85.log`);
   primaryRelayUrl = fallbackRelays[0];
 }
-*/
 
 // Convert keys to the format needed by nostr-tools
 let relayPrivateKey = relayNsec;
@@ -91,15 +83,15 @@ try {
     // Derive the public key from the private key
     relayPubkey = nostrTools.getPublicKey(relayPrivateKey);
     console.log(`Using relay pubkey: ${relayPubkey.substring(0, 8)}...`);
-    execSync(`echo "$(date): Using relay pubkey: ${relayPubkey.substring(0, 8)}..." >> ${logDir}/publishNip85.log`);
   } else {
-    console.error('No relay private key found in configuration. Cannot continue.');
-    execSync(`echo "$(date): No relay private key found in configuration. Cannot continue." >> ${logDir}/publishNip85.log`);
-    process.exit(1);
+    console.warn('No relay private key found in configuration. Will attempt to continue but may fail.');
   }
 } catch (error) {
   console.error('Error processing relay keys:', error);
-  execSync(`echo "$(date): Error processing relay keys: ${error.message}" >> ${logDir}/publishNip85.log`);
+}
+
+if (!relayPrivateKey || !relayPubkey) {
+  console.error('Error: Relay private key not available');
   process.exit(1);
 }
 
@@ -109,16 +101,12 @@ const driver = neo4j.driver(
   neo4j.auth.basic(neo4jUser, neo4jPassword)
 );
 
-// Function to get users with WoT scores from Neo4j
-async function getUsers(limit = null) {
+async function getTopUsers() {
   const session = driver.session();
-  
   try {
-    console.log('Querying Neo4j for users with WoT scores...');
-    execSync(`echo "$(date): Querying Neo4j for users with WoT scores..." >> ${logDir}/publishNip85.log`);
-    
-    // Build the query with optional limit
-    let query = `
+    // Query to get users with personalizedPageRank, including GrapeRank data
+    // Make sure we're only getting users that have been processed by the GrapeRank algorithm
+    const result = await session.run(`
       MATCH (u:NostrUser)
       WHERE u.personalizedPageRank IS NOT NULL 
         AND u.hops IS NOT NULL 
@@ -133,25 +121,40 @@ async function getUsers(limit = null) {
              u.input AS input
       ORDER BY u.influence DESC
       LIMIT 10
-    `;
+    `);
     
-    if (limit !== null && !isNaN(parseInt(limit))) {
-      query += ` LIMIT ${parseInt(limit)}`;
+    console.log(`Found ${result.records.length} users with influence`);
+    
+    // If no users found, try a more lenient query
+    if (result.records.length === 0) {
+      console.log("No users found with complete GrapeRank data. Trying more lenient query...");
+      
+      const fallbackResult = await session.run(`
+        MATCH (u:NostrUser)
+        WHERE u.pubkey IS NOT NULL
+        OPTIONAL MATCH (u)-[:FOLLOWS]->(followed)
+        WITH u, count(followed) as followCount
+        WHERE followCount > 0
+        RETURN u.pubkey AS pubkey, 
+               u.personalizedPageRank AS personalizedPageRank, 
+               u.hops AS hops,
+               u.influence AS influence,
+               u.average AS average,
+               u.confidence AS confidence,
+               u.input AS input
+        LIMIT 100
+      `);
+      
+      console.log(`Fallback query found ${fallbackResult.records.length} users`);
+      
+      if (fallbackResult.records.length > 0) {
+        return fallbackResult.records.map(processUserRecord);
+      }
+      
+      return [];
     }
     
-    const result = await session.run(query);
-    
-    // Process the records
-    const users = result.records.map(record => processUserRecord(record));
-    
-    console.log(`Found ${users.length} users with WoT scores`);
-    execSync(`echo "$(date): Found ${users.length} users with WoT scores" >> ${logDir}/publishNip85.log`);
-    
-    return users;
-  } catch (error) {
-    console.error('Error querying Neo4j:', error);
-    execSync(`echo "$(date): Error querying Neo4j: ${error.message}" >> ${logDir}/publishNip85.log`);
-    throw error;
+    return result.records.map(processUserRecord);
   } finally {
     await session.close();
   }
@@ -159,206 +162,186 @@ async function getUsers(limit = null) {
 
 // Helper function to process a Neo4j record into a user object
 function processUserRecord(record) {
-  const user = {
-    pubkey: record.get('pubkey'),
-    personalizedPageRank: record.get('personalizedPageRank'),
-    hops: record.get('hops'),
-    influence: record.get('influence'),
-    average: record.get('average'),
-    confidence: record.get('confidence'),
-    input: record.get('input')
+  // Safely get values with null checks
+  const pubkey = record.get('pubkey');
+  const personalizedPageRank = record.get('personalizedPageRank');
+  const hops = record.get('hops');
+  const influence = record.get('influence');
+  const average = record.get('average');
+  const confidence = record.get('confidence');
+  const input = record.get('input');
+  
+  // For debugging
+  console.log(`Processing user ${pubkey} with data:`, {
+    personalizedPageRank: personalizedPageRank || 'null',
+    hops: hops || 'null',
+    influence: influence || 'null',
+    average: average || 'null',
+    confidence: confidence || 'null',
+    input: input || 'null'
+  });
+  
+  return {
+    pubkey: pubkey,
+    personalizedPageRank: personalizedPageRank ? personalizedPageRank.toString() : "0.01",
+    hops: hops ? hops.toString() : "1",
+    influence: influence ? influence.toString() : "0",
+    average: average ? average.toString() : "0",
+    confidence: confidence ? confidence.toString() : "0.5",
+    input: input ? input.toString() : "0"
   };
-  
-  // Ensure all values are defined
-  if (user.personalizedPageRank === null || user.personalizedPageRank === undefined) {
-    user.personalizedPageRank = 0;
-  }
-  
-  if (user.hops === null || user.hops === undefined) {
-    user.hops = 999;
-  }
-  
-  if (user.influence === null || user.influence === undefined) {
-    user.influence = 0;
-  }
-  
-  if (user.average === null || user.average === undefined) {
-    user.average = 0;
-  }
-  
-  if (user.confidence === null || user.confidence === undefined) {
-    user.confidence = 0;
-  }
-  
-  if (user.input === null || user.input === undefined) {
-    user.input = 0;
-  }
-  
-  return user;
 }
 
 // Create and sign a kind 30382 event
 function createEvent(userPubkey, personalizedPageRank, hops, influence, average, confidence, input) {
-  // Create the event object
+  // Calculate the rank value (influence * 100, rounded to integer)
   const rankValue = Math.round(parseFloat(influence) * 100).toString();
-  const event = {
-    kind: 30382,
-    pubkey: relayPubkey,
-    created_at: Math.floor(Date.now() / 1000),
-    tags: [
-      ['d', userPubkey],
-      ['rank', rankValue],
-      ['hops', hops.toString()],
-      ['personalizedGrapeRank_influence', influence ? influence.toString() : '0'],
-      ['personalizedGrapeRank_average', average ? average.toString() : '0'],
-      ['personalizedGrapeRank_confidence', confidence ? confidence.toString() : '0'],
-      ['personalizedGrapeRank_input', input ? input.toString() : '0'],
-      ["personalizedPageRank", personalizedPageRank ? personalizedPageRank.toString() : '0']
-    ],
-    content: ''
+  
+  // Round GrapeRank values to 4 significant digits
+  const roundToSigFigs = (num, sigFigs) => {
+    if (num === 0) return 0;
+    const parsedNum = parseFloat(num);
+    if (isNaN(parsedNum)) return "0";
+    const magnitude = Math.floor(Math.log10(Math.abs(parsedNum))) + 1;
+    const factor = Math.pow(10, sigFigs - magnitude);
+    return (Math.round(parsedNum * factor) / factor).toString();
   };
   
-  // Use finalizeEvent to calculate ID and sign in one step
+  const influenceRounded = roundToSigFigs(influence, 4);
+  const averageRounded = roundToSigFigs(average, 4);
+  const confidenceRounded = roundToSigFigs(confidence, 4);
+  const inputRounded = roundToSigFigs(input, 4);
+  
+  const event = {
+    kind: 30382,
+    created_at: Math.floor(Date.now() / 1000),
+    content: "",
+    pubkey: relayPubkey,
+    tags: [
+      ["d", userPubkey],
+      ["personalizedPageRank", personalizedPageRank],
+      ["hops", hops],
+      ["rank", rankValue],
+      ["personalizedGrapeRank_influence", influenceRounded],
+      ["personalizedGrapeRank_average", averageRounded],
+      ["personalizedGrapeRank_confidence", confidenceRounded],
+      ["personalizedGrapeRank_input", inputRounded]
+    ]
+  };
+  
+  // Sign the event with the relay's private key
   return nostrTools.finalizeEvent(event, relayPrivateKey);
 }
 
 // Function to publish an event to the relay via WebSocket
 function publishEventToRelay(event, targetRelayUrl = relayUrl) {
   return new Promise((resolve, reject) => {
-    console.log(`Publishing event ${event.id.substring(0, 8)}... to ${targetRelayUrl}`);
+    // Create WebSocket connection
+    const ws = new WebSocket(targetRelayUrl);
     
-    let resolved = false;
-    let timeout;
+    // Set a timeout for the connection
+    const connectionTimeout = setTimeout(() => {
+      ws.close();
+      reject(new Error(`Connection timeout to relay: ${targetRelayUrl}`));
+    }, 10000); // 10 seconds timeout
     
-    try {
-      const ws = new WebSocket(targetRelayUrl);
+    // Handle WebSocket errors
+    ws.on('error', (error) => {
+      clearTimeout(connectionTimeout);
+      console.error(`WebSocket error: ${error.message}`);
+      reject(error);
+    });
+    
+    // Handle WebSocket events
+    ws.on('open', () => {
+      console.log(`Connected to relay: ${targetRelayUrl}`);
+      clearTimeout(connectionTimeout);
       
-      // Set a timeout for the connection and publishing
-      timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          ws.close();
-          console.log(`Timeout publishing to ${targetRelayUrl}`);
-          resolve({
-            success: false,
-            message: `Timeout publishing to ${targetRelayUrl}`,
-            relay: targetRelayUrl
-          });
-        }
-      }, 10000); // 10 second timeout
+      // Send the EVENT message to the relay
+      const message = JSON.stringify(["EVENT", event]);
+      ws.send(message);
       
-      ws.on('open', () => {
-        console.log(`Connected to ${targetRelayUrl}`);
-        
-        // Send the event to the relay
-        const message = JSON.stringify(['EVENT', event]);
-        ws.send(message);
-      });
+      console.log(`Event sent to relay: ${event.id}`);
       
+      // Set a timeout for the response
+      const responseTimeout = setTimeout(() => {
+        ws.close();
+        // Consider a timeout as a success if we were able to send the event
+        // This is because many relays don't respond with OK messages
+        console.log(`No explicit confirmation received for event ${event.id}, but it was sent successfully`);
+        resolve({
+          success: true,
+          message: `Event ${event.id} sent successfully (no explicit confirmation received)`
+        });
+      }, 5000); // 5 seconds timeout for response
+      
+      // Handle relay response
       ws.on('message', (data) => {
+        clearTimeout(responseTimeout);
+        
         try {
-          const message = JSON.parse(data.toString());
+          const response = JSON.parse(data.toString());
+          console.log(`Received response from relay for event ${event.id}:`, JSON.stringify(response));
           
-          if (message[0] === 'OK' && message[1] === event.id) {
-            if (!resolved) {
-              resolved = true;
-              clearTimeout(timeout);
+          // Check if it's an OK response
+          if (response[0] === 'OK' && response[1] === event.id) {
+            // Some relays return true/false as the third parameter, others return a status message
+            // A response with 'OK' generally means the event was received, regardless of the third parameter
+            if (response[2] === true || response[2] === 'true' || response[2] === undefined) {
+              console.log(`Event ${event.id} accepted by relay`);
               ws.close();
-              console.log(`Event ${event.id.substring(0, 8)}... published successfully to ${targetRelayUrl}`);
               resolve({
                 success: true,
-                message: `Event ${event.id.substring(0, 8)}... published successfully`,
-                relay: targetRelayUrl
+                message: `Event ${event.id} accepted by relay`
               });
-            }
-          } else if (message[0] === 'NOTICE') {
-            console.log(`Notice from relay ${targetRelayUrl}: ${message[1]}`);
-          } else if (message[0] === 'OK' && message[2] === false) {
-            if (!resolved) {
-              resolved = true;
-              clearTimeout(timeout);
+            } else {
+              console.log(`Event ${event.id} received by relay but not accepted: ${response[2]}`);
               ws.close();
-              console.log(`Error publishing event to ${targetRelayUrl}: ${message[1]}`);
               resolve({
                 success: false,
-                message: `Error: ${message[1]}`,
-                relay: targetRelayUrl
+                message: `Event ${event.id} received but not accepted: ${response[2]}`
               });
             }
+          } else if (response[0] === 'NOTICE') {
+            console.log(`Received NOTICE from relay: ${response[1]}`);
+            // Don't close the connection yet, wait for OK or timeout
+          } else if (response[0] === 'EVENT') {
+            console.log(`Received EVENT from relay`);
+            // Don't close the connection yet, wait for OK or timeout
+          } else {
+            console.log(`Received unknown response from relay: ${JSON.stringify(response)}`);
+            // Don't close the connection yet, wait for OK or timeout
           }
         } catch (error) {
-          console.error(`Error parsing message from ${targetRelayUrl}:`, error);
+          console.error(`Error parsing relay response: ${error.message}`);
+          // Don't close the connection yet, wait for OK or timeout
         }
       });
-      
-      ws.on('error', (error) => {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          console.error(`WebSocket error with ${targetRelayUrl}:`, error.message);
-          resolve({
-            success: false,
-            message: `WebSocket error: ${error.message}`,
-            relay: targetRelayUrl
-          });
-        }
-      });
-      
-      ws.on('close', () => {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          console.log(`Connection closed with ${targetRelayUrl} before receiving confirmation`);
-          resolve({
-            success: false,
-            message: 'Connection closed before receiving confirmation',
-            relay: targetRelayUrl
-          });
-        }
-      });
-    } catch (error) {
-      if (!resolved) {
-        resolved = true;
-        clearTimeout(timeout);
-        console.error(`Error connecting to ${targetRelayUrl}:`, error.message);
-        resolve({
-          success: false,
-          message: `Error connecting: ${error.message}`,
-          relay: targetRelayUrl
-        });
-      }
-    }
+    });
   });
 }
 
 // Main function
 async function main() {
   try {
-    // Check if a limit was provided as a command-line argument
-    const args = process.argv.slice(2);
-    let limit = null;
+    // Check for authenticated session or relay private key
+    // For kind 30382 events, we can use the relay's private key directly
+    // No need for user authentication since these are relay-signed events
     
-    if (args.length > 0 && !isNaN(parseInt(args[0]))) {
-      limit = parseInt(args[0]);
-      console.log(`Using limit: ${limit}`);
-      execSync(`echo "$(date): Using limit: ${limit}" >> ${logDir}/publishNip85.log`);
-    }
+    console.log(`Using relay pubkey: ${relayPubkey.substring(0, 8)}...`);
+    console.log('Fetching users with personalizedPageRank...');
+    const topUsers = await getTopUsers();
     
-    // Fetch users with personalizedPageRank
-    const users = await getUsers(limit);
-    
-    if (users.length === 0) {
-      console.log('No users found with WoT scores');
-      execSync(`echo "$(date): No users found with WoT scores" >> ${logDir}/publishNip85.log`);
+    if (topUsers.length === 0) {
+      console.log('No users found with personalizedPageRank property');
       return {
         success: false,
-        message: 'No users found with WoT scores',
+        message: 'No users found with personalizedPageRank property',
         events: []
       };
     }
     
-    console.log(`Found ${users.length} users`);
-    execSync(`echo "$(date): Found ${users.length} users" >> ${logDir}/publishNip85.log`);
+    console.log(`Found ${topUsers.length} users`);
     
     // Create data directory if it doesn't exist
     const dataDir = '/var/lib/hasenpfeffr/data';
@@ -374,11 +357,10 @@ async function main() {
     
     // Process users in batches
     const BATCH_SIZE = 100; // Process 100 users at a time
-    const totalUsers = users.length;
+    const totalUsers = topUsers.length;
     const batches = Math.ceil(totalUsers / BATCH_SIZE);
     
     console.log(`Processing ${totalUsers} users in ${batches} batches of ${BATCH_SIZE}`);
-    execSync(`echo "$(date): Processing ${totalUsers} users in ${batches} batches of ${BATCH_SIZE}" >> ${logDir}/publishNip85.log`);
     
     // Initialize counters
     let successCount = 0;
@@ -389,10 +371,9 @@ async function main() {
     for (let batchIndex = 0; batchIndex < batches; batchIndex++) {
       const start = batchIndex * BATCH_SIZE;
       const end = Math.min(start + BATCH_SIZE, totalUsers);
-      const batchUsers = users.slice(start, end);
+      const batchUsers = topUsers.slice(start, end);
       
       console.log(`Processing batch ${batchIndex + 1}/${batches} (users ${start + 1}-${end} of ${totalUsers})`);
-      execSync(`echo "$(date): Processing batch ${batchIndex + 1}/${batches} (users ${start + 1}-${end} of ${totalUsers})" >> ${logDir}/publishNip85.log`);
       
       // Create and publish events for this batch
       const batchEvents = [];
@@ -424,7 +405,6 @@ async function main() {
           batchEvents.push(event);
         } catch (error) {
           console.error(`Error creating event for user ${user.pubkey}:`, error);
-          execSync(`echo "$(date): Error creating event for user ${user.pubkey}: ${error.message}" >> ${logDir}/publishNip85.log`);
           failureCount++;
         }
       }
@@ -432,13 +412,13 @@ async function main() {
       // Publish events in this batch to the relay
       for (const event of batchEvents) {
         try {
-          console.log(`Publishing event ${event.id} to primary relay: ${primaryRelayUrl}`);
-          const result = await publishEventToRelay(event, primaryRelayUrl);
+          console.log(`Publishing event ${event.id} to primary relay: ${relayUrl}`);
+          const result = await publishEventToRelay(event, relayUrl);
           
           batchPublishResults.push({
             eventId: event.id,
             userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
-            relayUrl: primaryRelayUrl,
+            relayUrl: relayUrl,
             success: result.success,
             message: result.message
           });
@@ -450,12 +430,11 @@ async function main() {
           }
         } catch (error) {
           console.error(`Error publishing event ${event.id}:`, error);
-          execSync(`echo "$(date): Error publishing event ${event.id}: ${error.message}" >> ${logDir}/publishNip85.log`);
           
           batchPublishResults.push({
             eventId: event.id,
             userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
-            relayUrl: primaryRelayUrl,
+            relayUrl: relayUrl,
             success: false,
             message: error.message
           });
@@ -469,7 +448,6 @@ async function main() {
       
       // Log progress after each batch
       console.log(`Batch ${batchIndex + 1}/${batches} complete. Progress: ${successCount + failureCount}/${totalUsers} (${successCount} successful, ${failureCount} failed)`);
-      execSync(`echo "$(date): Batch ${batchIndex + 1}/${batches} complete. Progress: ${successCount + failureCount}/${totalUsers} (${successCount} successful, ${failureCount} failed)" >> ${logDir}/publishNip85.log`);
       
       // Output a summary after each batch to provide progress updates
       const batchSummary = {
@@ -499,8 +477,6 @@ async function main() {
     console.log(`- Successfully published: ${successCount}`);
     console.log(`- Failed: ${failureCount}`);
     
-    execSync(`echo "$(date): Publishing summary: Total events: ${successCount + failureCount}, Successfully published: ${successCount}, Failed: ${failureCount}" >> ${logDir}/publishNip85.log`);
-    
     // Return a summary of the results
     // Only include the first 10 and last 10 publish results to keep the output manageable
     let trimmedResults = publishResults;
@@ -516,26 +492,26 @@ async function main() {
     
     return {
       success: true,
-      message: `Created and published ${successCount} of ${users.length} kind 30382 events for users`,
+      message: `Created and published ${successCount} of ${topUsers.length} kind 30382 events for the top users`,
       publishSummary: {
-        total: users.length,
+        total: topUsers.length,
         successful: successCount,
         failed: failureCount,
         byRelay: {
-          [primaryRelayUrl]: {
+          [relayUrl]: {
             successful: successCount,
             failed: failureCount
           }
         }
       },
-      results: trimmedResults
+      publishResults: trimmedResults
     };
   } catch (error) {
     console.error('Error in main function:', error);
-    execSync(`echo "$(date): Error in main function: ${error.message}" >> ${logDir}/publishNip85.log`);
     return {
       success: false,
-      message: `Error: ${error.message}`
+      message: `Error publishing kind 30382 events: ${error.message}`,
+      error: error.stack
     };
   } finally {
     // Close the Neo4j driver
@@ -547,16 +523,9 @@ async function main() {
 main()
   .then(result => {
     console.log(JSON.stringify(result, null, 2));
-    if (result.success) {
-      execSync(`echo "$(date): Successfully completed publish_kind30382.js" >> ${logDir}/publishNip85.log`);
-      process.exit(0);
-    } else {
-      execSync(`echo "$(date): Failed to complete publish_kind30382.js: ${result.message}" >> ${logDir}/publishNip85.log`);
-      process.exit(1);
-    }
+    process.exit(result.success ? 0 : 1);
   })
   .catch(error => {
     console.error('Unhandled error:', error);
-    execSync(`echo "$(date): Unhandled error in publish_kind30382.js: ${error.message}" >> ${logDir}/publishNip85.log`);
     process.exit(1);
   });

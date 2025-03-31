@@ -167,8 +167,8 @@ function createKind10040Event() {
 
 // Sign an event with the relay's private key
 function signEvent(event) {
-  // Use finishEvent to calculate ID and sign in one step
-  const signedEvent = nostrTools.finishEvent(event, relayPrivateKey);
+  // Use finalizeEvent to calculate ID and sign in one step
+  const signedEvent = nostrTools.finalizeEvent(event, relayPrivateKey);
   return signedEvent;
 }
 
