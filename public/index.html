@@ -356,8 +356,8 @@
                 <div class="calculation-item">
                     <div class="calculation-item-content">
                         <h4>Bulk Transfer <span class="info-icon">i</span><span class="tooltip">Bulk transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This does not erase obsolete follows!</span></h4>
-                        <p id="runBulkTransfer-last-calculation-time" class="timestamp"></p>
-                        <p id="runBulkTransfer-last-calculation-duration" class="duration"></p>
+                        <p id="bulkTransfer-last-calculation-time" class="timestamp"></p>
+                        <p id="bulkTransfer-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -370,8 +370,8 @@
                 <div class="calculation-item">
                     <div class="calculation-item-content">
                         <h4>Reconciliation <span class="info-icon">i</span><span class="tooltip">Reconciles Neo4j database with strfry. This erases obsolete follows!</span></h4>
-                        <p id="runReconciliation-last-calculation-time" class="timestamp"></p>
-                        <p id="runReconciliation-last-calculation-duration" class="duration"></p>
+                        <p id="reconciliation-last-calculation-time" class="timestamp"></p>
+                        <p id="reconciliation-last-calculation-duration" class="duration"></p>
                     </div>
                     <div class="calculation-actions">
                         <button class="action-btn">Run</button>
@@ -628,7 +628,7 @@
         
         function loadCalculationTimes() {
             // Show loading state for all calculation items
-            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'batchTransfer', 'reconciliation'];
+            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'bulkTransfer', 'reconciliation'];
             
             calculationItems.forEach(item => {
                 const element = document.getElementById(`${item}-last-calculation-time`);
