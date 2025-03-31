@@ -211,7 +211,7 @@ function installNewVersion() {
   
   // Run the installation script from the correct directory
   console.log('Running installation script...');
-  executeCommand('sudo npm run install-hasenpfeffr', { 
+  executeCommand('sudo -E npm run install-hasenpfeffr', { 
     cwd: hasenpfeffrDir,
     env: { ...process.env }
   });

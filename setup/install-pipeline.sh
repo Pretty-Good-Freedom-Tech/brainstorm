@@ -60,6 +60,8 @@ sudo chmod +x *.js
 
 echo "=== Plugins Installation A ==="
 
+# need to reconsider these commands. data/published has lots of files and it takes forever to do these steps.
+# perhaps these files should be deleted upon reinstallation?
 cd /var/lib
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
 sudo chmod -R 755 hasenpfeffr

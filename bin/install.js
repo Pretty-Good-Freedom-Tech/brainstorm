@@ -13,7 +13,8 @@ const { execSync } = require('child_process');
 const readline = require('readline');
 
 // Check if running in update mode
-const isUpdateMode = process.env.UPDATE_MODE === 'true';
+const isUpdateMode = process.env.UPDATE_MODE === 'true' || process.env.UPDATE_MODE === 'TRUE' || process.env.UPDATE_MODE === '1' || process.env.UPDATE_MODE === 'yes' || process.env.UPDATE_MODE === 'Y';
+console.log('\x1b[32m=== UPDATE_MODE env var: "' + process.env.UPDATE_MODE + '" ===\x1b[0m');
 console.log(isUpdateMode ? '\x1b[32m=== Running in Update Mode ===\x1b[0m' : '\x1b[32m=== Running in Fresh Installation Mode ===\x1b[0m');
 
 // Create readline interface for user input
