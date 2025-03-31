@@ -58,9 +58,14 @@ echo "=== Plugins Installation ==="
 cd /usr/local/lib/node_modules/hasenpfeffr/plugins
 sudo chmod +x *.js
 
+echo "=== Plugins Installation A ==="
+
 cd /var/lib
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
 sudo chmod -R 755 hasenpfeffr
+
+echo "=== Plugins Installation B ==="
+
 cd /var/log
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
 

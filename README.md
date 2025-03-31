@@ -74,6 +74,8 @@ npm install
 sudo npm run install-hasenpfeffr
 ```
 
+If the above doesn't work, follow the instructions in docs/INSTALLATION_INSTRUCTIONS.md.
+
 To update:
 
 ```bash
@@ -81,9 +83,7 @@ cd ~/hasenpfeffr
 sudo npm run update
 ```
 
-## Installation (detailed)
-
-If the above doesn't work, follow the instructions in docs/INSTALLATION_INSTRUCTIONS.md.
+If the above doesn't work, follow the instructions in docs/UPDATE_INSTRUCTIONS.md.
 
 The installation script will:
 

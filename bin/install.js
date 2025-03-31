@@ -259,6 +259,8 @@ async function createStrfryRouterConfigFile() {
 // Create hasenpfeffr configuration file
 async function createHasenpfeffrConfigFile() {
   console.log('\x1b[36m=== Creating Hasenpfeffr Configuration File ===\x1b[0m');
+
+  console.log('\x1b[36m= isUpdateMode: ' + isUpdateMode + '\x1b[0m');
   
   // Check if config file already exists and we're not in update mode
   if (fs.existsSync(configPaths.hasenpfeffrConfDestination) && !isUpdateMode) {
