@@ -214,8 +214,20 @@ function installNewVersion() {
 function cloneRepository() {
   console.log('Cloning the latest Hasenpfeffr repository from GitHub...');
   
-  // Determine home directory
-  const homeDir = process.env.HOME || '/home/ubuntu';
+  // Determine home directory - handle sudo execution correctly
+  let homeDir;
+  if (process.env.SUDO_USER) {
+    // If running under sudo, use the original user's home directory
+    const originalUser = process.env.SUDO_USER;
+    homeDir = `/home/${originalUser}`;
+  } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
+    // Default to /home/ubuntu for AWS EC2 if running as root and the directory exists
+    homeDir = '/home/ubuntu';
+  } else {
+    // Fall back to the current HOME environment variable
+    homeDir = process.env.HOME || '/home/ubuntu';
+  }
+  
   console.log(`Using home directory: ${homeDir}`);
   
   // Remove old repository directory if it exists
