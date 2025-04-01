@@ -319,6 +319,10 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
     // Calculate GRAPERANK_INFLUENCE
     graperank_influence = graperank_average * graperank_confidence;
   }
+
+  if (graperank_influence < 0) {
+    graperank_influence = 0;
+  }
   
   return [graperank_influence, graperank_average, graperank_confidence, graperank_input];
 }
