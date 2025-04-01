@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, STRFRY_PLUGINS_DATA
 
-WHITELIST_OUTPUT_DIR="/usr/local/lib/strfry/plugins/data"
+WHITELIST_OUTPUT_DIR=${STRFRY_PLUGINS_DATA}
 
 touch ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
 sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log

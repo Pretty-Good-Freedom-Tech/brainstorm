@@ -15,7 +15,7 @@ set -e  # Exit on error
 
 # Configuration
 BLACKLIST_CONF="/etc/blacklist.conf"
-BLACKLIST_OUTPUT_DIR="/usr/local/lib/strfry/plugins/data"
+BLACKLIST_OUTPUT_DIR=${STRFRY_PLUGINS_DATA}
 BLACKLIST_OUTPUT_FILE="$BLACKLIST_OUTPUT_DIR/blacklist_pubkeys.json"
 NEO4J_USERNAME="neo4j"
 NEO4J_PASSWORD="neo4j"
