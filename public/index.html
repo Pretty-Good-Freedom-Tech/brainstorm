@@ -294,13 +294,10 @@
         }
         .service-toggles {
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 12px;
         }
         .service-toggle-item {
-            flex: 1 1 30%;
-            min-width: 250px;
             background-color: white;
             padding: 15px;
             border-radius: 5px;
@@ -316,17 +313,10 @@
             align-items: center;
             justify-content: space-between;
         }
-        .status-partial {
-            background-color: #f39c12;
-        }
-        .status-on {
-            background-color: #2ecc71;
-        }
-        .status-off {
-            background-color: #e74c3c;
-        }
-        .status-unknown {
-            background-color: #95a5a6;
+        .toggle-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
         }
         .switch {
             position: relative;
@@ -389,8 +379,7 @@
         <div class="master-control">
             <h2>Hasenpfeffr Master Switch</h2>
             <div class="status-text">
-                <span id="statusIndicator" class="status-indicator status-unknown"></span>
-                Status: <span id="statusText">Checking...</span>
+                <span id="statusText">Checking...</span>
             </div>
             <div class="control-buttons">
                 <button id="turnOnButton" class="control-button on-button" onclick="controlHasenpfeffr('on')">Turn On</button>
@@ -406,8 +395,7 @@
                 <div class="service-toggle-item">
                     <h4>Databases <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
                     <div class="toggle-container">
-                        <span id="databasesStatusIndicator" class="status-indicator status-unknown"></span>
-                        <span id="databasesStatusText">Checking...</span>
+                        <span class="toggle-label">Databases</span>
                         <label class="switch">
                             <input type="checkbox" id="databasesToggle" onchange="toggleService('databases', this.checked)">
                             <span class="slider round"></span>
@@ -417,8 +405,7 @@
                 <div class="service-toggle-item">
                     <h4>Streaming <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the ETL pipeline streaming services that process FOLLOWS, MUTES, and REPORTS relationships in real-time.</span></span></h4>
                     <div class="toggle-container">
-                        <span id="streamingStatusIndicator" class="status-indicator status-unknown"></span>
-                        <span id="streamingStatusText">Checking...</span>
+                        <span class="toggle-label">Streaming</span>
                         <label class="switch">
                             <input type="checkbox" id="streamingToggle" onchange="toggleService('streaming', this.checked)">
                             <span class="slider round"></span>
@@ -428,8 +415,7 @@
                 <div class="service-toggle-item">
                     <h4>Routine Tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly calculates GrapeRank scores and other metrics using the FOLLOWS, MUTES, and REPORTS relationships.</span></span></h4>
                     <div class="toggle-container">
-                        <span id="scoresStatusIndicator" class="status-indicator status-unknown"></span>
-                        <span id="scoresStatusText">Checking...</span>
+                        <span class="toggle-label">Routine Tasks</span>
                         <label class="switch">
                             <input type="checkbox" id="scoresToggle" onchange="toggleService('scores', this.checked)">
                             <span class="slider round"></span>
@@ -707,12 +693,9 @@
 
             console.log(`Checking status for ${groupName} services:`, group.services);
             
-            // Show checking state
-            const indicator = document.getElementById(`${groupName}StatusIndicator`);
-            const statusText = document.getElementById(`${groupName}StatusText`);
-            if (indicator && statusText) {
-                indicator.className = 'status-indicator status-unknown';
-                statusText.textContent = 'Checking...';
+            const toggleButton = document.getElementById(`${groupName}Toggle`);
+            if (toggleButton) {
+                toggleButton.disabled = true;
             }
 
             const serviceStatusPromises = group.services.map(service => {
@@ -757,22 +740,18 @@
         function updateServiceGroupUI(groupName, statusResults) {
             console.log(`Updating UI for ${groupName} with:`, statusResults);
             
-            const indicator = document.getElementById(`${groupName}StatusIndicator`);
-            const statusText = document.getElementById(`${groupName}StatusText`);
             const toggleButton = document.getElementById(`${groupName}Toggle`);
             
-            if (!indicator || !statusText || !toggleButton) {
-                console.error(`Missing UI elements for ${groupName}`);
+            if (!toggleButton) {
+                console.error(`Missing toggle button for ${groupName}`);
                 return;
             }
             
-            // Remove all status classes
-            indicator.classList.remove('status-on', 'status-off', 'status-partial', 'status-unknown');
+            // Re-enable the toggle
+            toggleButton.disabled = false;
             
             if (!statusResults || statusResults.length === 0) {
                 // Error or unknown state
-                indicator.classList.add('status-unknown');
-                statusText.textContent = 'Unknown';
                 toggleButton.checked = false;
                 console.log(`${groupName} status: Unknown (no results)`);
                 return;
@@ -784,20 +763,14 @@
             
             if (activeCount === 0) {
                 // All services are off
-                indicator.classList.add('status-off');
-                statusText.textContent = 'Off';
                 toggleButton.checked = false;
                 console.log(`${groupName} status: All Off`);
             } else if (activeCount === statusResults.length) {
                 // All services are on
-                indicator.classList.add('status-on');
-                statusText.textContent = 'On';
                 toggleButton.checked = true;
                 console.log(`${groupName} status: All On`);
             } else {
                 // Some services are on, some are off
-                indicator.classList.add('status-partial');
-                statusText.textContent = 'Partial';
                 toggleButton.checked = false;
                 console.log(`${groupName} status: Partial (${activeCount}/${statusResults.length} on)`);
             }
@@ -808,15 +781,15 @@
             const group = serviceGroups[groupName];
             if (!group) return;
             
-            const indicator = document.getElementById(`${groupName}StatusIndicator`);
             const toggleButton = document.getElementById(`${groupName}Toggle`);
             
-            // Determine action based on current status
+            // Determine action based on checked state
             const action = checked ? 'on' : 'off';
             
             // Disable button during operation
             toggleButton.disabled = true;
-            toggleButton.checked = checked;
+            
+            console.log(`Toggling ${groupName} ${action}`);
             
             // Call the appropriate script
             fetch(`/control/api/run-script`, {
@@ -834,6 +807,7 @@
                     toggleButton.disabled = false;
                     
                     if (data.success) {
+                        console.log(`Successfully toggled ${groupName} ${action}`);
                         // Wait a moment for services to fully start/stop
                         setTimeout(() => {
                             checkServiceGroupStatus(groupName);
@@ -841,6 +815,8 @@
                     } else {
                         console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, data.error);
                         alert(`Failed to ${action === 'on' ? 'start' : 'stop'} ${groupName} services. Check the console for details.`);
+                        // Set toggle back to previous state
+                        toggleButton.checked = !checked;
                         checkServiceGroupStatus(groupName);
                     }
                 })
@@ -848,6 +824,8 @@
                     console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, error);
                     alert(`Failed to ${action === 'on' ? 'start' : 'stop'} ${groupName} services. Check the console for details.`);
                     toggleButton.disabled = false;
+                    // Set toggle back to previous state
+                    toggleButton.checked = !checked;
                     checkServiceGroupStatus(groupName);
                 });
         }
@@ -867,23 +845,17 @@
         }
 
         function updateStatusUI(status) {
-            const statusIndicator = document.getElementById('statusIndicator');
             const statusText = document.getElementById('statusText');
             
-            statusIndicator.className = 'status-indicator';
-            
             if (status === 'on') {
-                statusIndicator.classList.add('status-on');
                 statusText.textContent = 'Running';
                 document.getElementById('turnOnButton').disabled = true;
                 document.getElementById('turnOffButton').disabled = false;
             } else if (status === 'off') {
-                statusIndicator.classList.add('status-off');
                 statusText.textContent = 'Stopped';
                 document.getElementById('turnOnButton').disabled = false;
                 document.getElementById('turnOffButton').disabled = true;
             } else {
-                statusIndicator.classList.add('status-unknown');
                 statusText.textContent = 'Unknown';
                 document.getElementById('turnOnButton').disabled = false;
                 document.getElementById('turnOffButton').disabled = false;
@@ -893,8 +865,6 @@
         function controlHasenpfeffr(action) {
             // Show loading state
             const statusText = document.getElementById('statusText');
-            const statusIndicator = document.getElementById('statusIndicator');
-            statusIndicator.className = 'loading';
             statusText.textContent = action === 'on' ? 'Starting...' : 'Stopping...';
             
             // Disable both buttons during operation
