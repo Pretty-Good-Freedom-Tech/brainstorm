@@ -216,10 +216,6 @@
                     <h3>Whitelist Statistics</h3>
                     <p>Currently whitelisted pubkeys: <span id="whitelistedCount" class="whitelist-count">0</span></p>
                     <div id="lastCalculated" class="last-calculated">Last calculated: Never</div>
-                    <div class="whitelist-preview">
-                        <h4>Whitelist Preview</h4>
-                        <p>Users matching all criteria: <span id="previewCount" class="whitelist-count">Loading...</span></p>
-                    </div>
                 </div>
                 
                 <div class="tab-container">
@@ -265,7 +261,13 @@
                                     <option value="false">No</option>
                                 </select>
                                 <small>Exclude users in the blacklist from the whitelist (true or false).</small>
+                                <div class="threshold-info">Users on blacklist: <span id="blacklistUserCount">Loading...</span></div>
                             </div>
+                        </div>
+                        
+                        <div class="whitelist-preview">
+                            <h4>Whitelist Preview</h4>
+                            <p>Users matching all criteria: <span id="previewCount" class="whitelist-count">Loading...</span></p>
                         </div>
                         
                         <button id="saveConfigBtn" class="button">Save Configuration</button>
@@ -473,6 +475,23 @@
             }
         }
         
+        // Load blacklist count
+        async function loadBlacklistCount() {
+            try {
+                const response = await fetch(`/control/api/blacklist-count`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('blacklistUserCount').textContent = data.count;
+                } else {
+                    document.getElementById('blacklistUserCount').textContent = 'Error loading count';
+                }
+            } catch (error) {
+                console.error('Error loading blacklist count:', error);
+                document.getElementById('blacklistUserCount').textContent = 'Error loading count';
+            }
+        }
+        
         // Load preview count with all current parameters
         async function loadPreviewCount() {
             try {
@@ -658,6 +677,9 @@
         
         // Load initial hops count with default threshold
         loadHopsCount(1);
+        
+        // Load initial blacklist count
+        loadBlacklistCount();
         
         // Load initial preview count with default parameters
         loadPreviewCount();
