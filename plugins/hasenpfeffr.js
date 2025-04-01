@@ -26,11 +26,7 @@ rl.on('line', (line) => {
 
     res.action = 'reject'
 
-    if (whitelist_kinds.includes(req.event.kind)) {
-        res.action = 'accept';
-    }
-
-    if (whitelist_pubkeys[req.event.pubkey]) {
+    if (whitelist_kinds.includes(req.event.kind) && whitelist_pubkeys[req.event.pubkey]) {
         res.action = 'accept';
     }
 
