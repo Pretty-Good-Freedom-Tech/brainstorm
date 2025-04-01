@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Hasenpfeffr Personalized Whitelist Configuration
+# This file contains parameters for the personalized whitelist algorithm.
+#
+# IMPORTANT: This file should be owned by root with restricted permissions:
+# permissions: chmod 640 /etc/whitelist.conf
+# and ownership: chown root:hasenpfeffr /etc/whitelist.conf
+
+# ==========================================
+# PARAMETER DESCRIPTIONS AND RANGES
+# INFLUENCE_CUTOFF: include any users with influence above this threshold (0.00 to 1.00)
+# COMBINATION_LOGIC: combine INFLUENCE_CUTOFF and INCLUDE_HOPS ('AND' or 'OR')
+# HOPS_CUTOFF: include users whose hops are less than or equal to this value (nonnegative integer)
+# INCORPORATE_BLACKLIST: exclude users in the blacklist (true or false)\
+
+# ==========================================
+
+# DEFAULT PARAMETERS (DEFAULT)
+export INFLUENCE_CUTOFF_default=0.8
+export COMBINATION_LOGIC_default='OR'
+export HOPS_CUTOFF_default=1
+export INCORPORATE_BLACKLIST_default=false
+
+# ==========================================
+# LIVE PARAMETERS
+
+export INFLUENCE_CUTOFF=0.8
+export COMBINATION_LOGIC='OR'
+export HOPS_CUTOFF=1
+export INCORPORATE_BLACKLIST=false
+
+# WHEN LAST CALCULATED: unix timestamp; 0 indicates not yet calculated
+export WHEN_LAST_CALCULATED=0
