@@ -358,6 +358,12 @@ app.post('/control/api/hasenpfeffr-control', handleHasenpfeffrControl);
 app.get('/api/calculation-status', handleCalculationStatus);
 app.get('/control/api/calculation-status', handleCalculationStatus);
 
+// Add route handler for running service management scripts
+app.post('/control/api/run-script', handleRunScript);
+
+// Add route handler for checking service status
+app.get('/control/api/service-status', handleServiceStatus);
+
 // Handler functions for API endpoints
 function handleStatus(req, res) {
     console.log('Checking status...');
@@ -955,8 +961,6 @@ async function handleStrfryPlugin(req, res) {
                 execSync(`sudo chmod +x ${pluginPath}`);
             }
             
-            /*
-            // NO LONGER NEEDED. plugin is now implemented via strfry-router.config
             // Update strfry.conf based on action
             if (action === 'enable') {
                 if (writePolicyMatch) {
@@ -995,7 +999,6 @@ async function handleStrfryPlugin(req, res) {
                     }
                 }
             }
-            */
             
             // Remove any incorrect relay.writePolicy.plugin line if it exists
             if (relayMatch) {
@@ -3078,6 +3081,71 @@ async function handleHasenpfeffrControl(req, res) {
         return res.status(500).json({ 
             success: false, 
             error: `Failed to turn Hasenpfeffr ${action}: ${error.message}` 
+        });
+    }
+}
+
+// Handler for running service management scripts
+function handleRunScript(req, res) {
+    const { script } = req.body;
+    
+    if (!script) {
+        return res.status(400).json({ error: 'Missing script parameter' });
+    }
+    
+    try {
+        // Check if script exists
+        if (!fs.existsSync(script)) {
+            return res.status(404).json({ 
+                success: false, 
+                error: `Script not found: ${script}` 
+            });
+        }
+        
+        // Make script executable if it's not already
+        execSync(`sudo chmod +x ${script}`);
+        
+        // Execute the script
+        console.log(`Executing ${script}...`);
+        const output = execSync(`sudo ${script}`, { timeout: 60000 }).toString();
+        
+        return res.json({
+            success: true,
+            message: `Script ${script} executed successfully`,
+            output
+        });
+    } catch (error) {
+        console.error(`Error executing script ${script}:`, error);
+        return res.status(500).json({ 
+            success: false, 
+            error: `Failed to execute script ${script}: ${error.message}` 
+        });
+    }
+}
+
+// Handler for getting service status
+function handleServiceStatus(req, res) {
+    console.log('Getting service status...');
+    
+    const { service } = req.query;
+    
+    if (!service) {
+        return res.status(400).json({ error: 'Missing service parameter' });
+    }
+    
+    try {
+        // Check if service is running using systemctl
+        const isActive = getServiceStatus(service);
+        
+        return res.json({
+            success: true,
+            active: isActive
+        });
+    } catch (error) {
+        console.error(`Error checking service status for ${service}:`, error);
+        return res.status(500).json({ 
+            success: false, 
+            error: `Failed to check service status: ${error.message}` 
         });
     }
 }
