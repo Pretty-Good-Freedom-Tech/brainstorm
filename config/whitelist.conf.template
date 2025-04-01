@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Hasenpfeffr Personalized Whitelist Configuration
-# This file contains parameters for the personalized whitelist algorithm.
+# This file contains parameters for determination of which profiles should be included in the whitelist.
 #
 # IMPORTANT: This file should be owned by root with restricted permissions:
 # permissions: chmod 640 /etc/whitelist.conf
@@ -9,26 +9,38 @@
 
 # ==========================================
 # PARAMETER DESCRIPTIONS AND RANGES
+
 # INFLUENCE_CUTOFF: include any users with influence above this threshold (0.00 to 1.00)
 # COMBINATION_LOGIC: combine INFLUENCE_CUTOFF and INCLUDE_HOPS ('AND' or 'OR')
 # HOPS_CUTOFF: include users whose hops are less than or equal to this value (nonnegative integer)
 # INCORPORATE_BLACKLIST: exclude users in the blacklist (true or false)\
 
 # ==========================================
+# DEFAULT PARAMETERS (lax)
+export INFLUENCE_CUTOFF_lax=0.1
+export COMBINATION_LOGIC_lax='OR'
+export HOPS_CUTOFF_lax=2
+export INCORPORATE_BLACKLIST_lax=false
 
 # DEFAULT PARAMETERS (DEFAULT)
-export INFLUENCE_CUTOFF_default=0.8
+export INFLUENCE_CUTOFF_default=0.5
 export COMBINATION_LOGIC_default='OR'
 export HOPS_CUTOFF_default=1
-export INCORPORATE_BLACKLIST_default=false
+export INCORPORATE_BLACKLIST_default=true
+
+# DEFAULT PARAMETERS (strict)
+export INFLUENCE_CUTOFF_strict=0.9
+export COMBINATION_LOGIC_strict='AND'
+export HOPS_CUTOFF_strict=3
+export INCORPORATE_BLACKLIST_strict=true
 
 # ==========================================
 # LIVE PARAMETERS
 
-export INFLUENCE_CUTOFF=0.8
+export INFLUENCE_CUTOFF=0.5
 export COMBINATION_LOGIC='OR'
 export HOPS_CUTOFF=1
-export INCORPORATE_BLACKLIST=false
+export INCORPORATE_BLACKLIST=true
 
 # WHEN LAST CALCULATED: unix timestamp; 0 indicates not yet calculated
 export WHEN_LAST_CALCULATED=0

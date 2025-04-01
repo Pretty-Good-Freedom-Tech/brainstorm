@@ -220,10 +220,11 @@ app.post('/api/negentropy-sync', handleNegentropySync);
 
 app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
 
+app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
 
 app.get('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
-app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
+app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.get('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
@@ -329,6 +330,14 @@ app.post('/control/api/graperank-config', handleUpdateGrapeRankConfig);
 // Blacklist Configuration API Endpoints
 app.get('/api/blacklist-config', handleGetBlacklistConfig);
 app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
+
+// Whitelist management
+app.get('/api/whitelist-config', handleGetWhitelistConfig);
+app.post('/api/whitelist-config', handleUpdateWhitelistConfig);
+app.get('/api/whitelist-stats', handleGetWhitelistStats);
+app.get('/control/api/whitelist-config', handleGetWhitelistConfig);
+app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
+app.get('/control/api/whitelist-stats', handleGetWhitelistStats);
 
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
@@ -1099,6 +1108,7 @@ function handleReconciliation(req, res) {
     const reconciliationProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/runFullReconciliation.sh');
     
     let output = '';
+    let errorOutput = '';
     
     reconciliationProcess.stdout.on('data', (data) => {
         console.log(`Reconciliation stdout: ${data}`);
@@ -1107,7 +1117,7 @@ function handleReconciliation(req, res) {
     
     reconciliationProcess.stderr.on('data', (data) => {
         console.error(`Reconciliation stderr: ${data}`);
-        output += data;
+        errorOutput += data;
     });
     
     reconciliationProcess.on('close', (code) => {
@@ -1116,7 +1126,7 @@ function handleReconciliation(req, res) {
         res.json({
             success: true,
             message: 'Reconciliation completed',
-            output
+            output: output
         });
     });
 }
@@ -1143,6 +1153,7 @@ function handleBatchTransfer(req, res) {
     const transferProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/transfer.sh');
     
     let output = '';
+    let errorOutput = '';
     
     transferProcess.stdout.on('data', (data) => {
         console.log(`Batch Transfer stdout: ${data}`);
@@ -1151,7 +1162,7 @@ function handleBatchTransfer(req, res) {
     
     transferProcess.stderr.on('data', (data) => {
         console.error(`Batch Transfer stderr: ${data}`);
-        output += data;
+        errorOutput += data;
     });
     
     transferProcess.on('close', (code) => {
@@ -3154,6 +3165,160 @@ function handleServiceStatus(req, res) {
             error: `Failed to check service status: ${error.message}` 
         });
     }
+}
+
+// Handler for getting whitelist configuration
+function handleGetWhitelistConfig(req, res) {
+  try {
+    const configPath = '/etc/whitelist.conf';
+    
+    // Check if the configuration file exists
+    if (!fs.existsSync(configPath)) {
+      return res.json({
+        success: false,
+        error: 'Whitelist configuration file not found'
+      });
+    }
+    
+    // Read the configuration file
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const config = {};
+    const lines = configContent.split('\n');
+    
+    // Parse the configuration file
+    for (const line of lines) {
+      if (line.startsWith('export ')) {
+        const parts = line.substring(7).split('=');
+        if (parts.length === 2) {
+          const key = parts[0].trim();
+          let value = parts[1].trim();
+          
+          // Remove any quotes from the value
+          if ((value.startsWith('"') && value.endsWith('"')) || 
+              (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.substring(1, value.length - 1);
+          }
+          
+          config[key] = value;
+        }
+      }
+    }
+    
+    return res.json({
+      success: true,
+      config: config
+    });
+  } catch (error) {
+    console.error('Error getting whitelist configuration:', error);
+    return res.json({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+// Handler for updating whitelist configuration
+function handleUpdateWhitelistConfig(req, res) {
+  try {
+    const configPath = '/etc/whitelist.conf';
+    const tempConfigPath = '/tmp/whitelist.conf.tmp';
+    
+    // Check if the configuration file exists
+    if (!fs.existsSync(configPath)) {
+      return res.json({
+        success: false,
+        error: 'Whitelist configuration file not found'
+      });
+    }
+    
+    // Read the configuration file
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const lines = configContent.split('\n');
+    const updatedLines = [];
+    
+    // Update the configuration file
+    for (const line of lines) {
+      let updatedLine = line;
+      
+      if (line.startsWith('export ')) {
+        const parts = line.substring(7).split('=');
+        if (parts.length === 2) {
+          const key = parts[0].trim();
+          
+          // Check if the key is in the request body
+          if (req.body[key] !== undefined) {
+            // Format the value with quotes
+            let value = req.body[key];
+            if (typeof value === 'string' && !value.startsWith('"') && !value.startsWith("'")) {
+              value = `'${value}'`;
+            }
+            updatedLine = `export ${key}=${value}`;
+          }
+        }
+      }
+      
+      updatedLines.push(updatedLine);
+    }
+    
+    // Write the updated configuration to a temporary file
+    fs.writeFileSync(tempConfigPath, updatedLines.join('\n'));
+    
+    // Copy the temporary file to the actual configuration file with sudo
+    execSync(`sudo cp ${tempConfigPath} ${configPath}`);
+    execSync(`sudo chmod 644 ${configPath}`);
+    execSync(`sudo chown root:hasenpfeffr ${configPath}`);
+    
+    // Clean up the temporary file
+    fs.unlinkSync(tempConfigPath);
+    
+    return res.json({
+      success: true
+    });
+  } catch (error) {
+    console.error('Error updating whitelist configuration:', error);
+    return res.json({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+// Handler for getting whitelist statistics
+function handleGetWhitelistStats(req, res) {
+  try {
+    let whitelistCount = 0;
+    let lastModified = null;
+    
+    // Path to the whitelist file
+    const whitelistPath = '/usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json';
+    
+    if (fs.existsSync(whitelistPath)) {
+      // Get the file stats for last modified time
+      const stats = fs.statSync(whitelistPath);
+      lastModified = stats.mtime.getTime();
+      
+      // Read the whitelist file to get the count
+      try {
+        const whitelistContent = fs.readFileSync(whitelistPath, 'utf8');
+        const whitelist = JSON.parse(whitelistContent);
+        whitelistCount = Object.keys(whitelist).length;
+      } catch (error) {
+        console.error('Error parsing whitelist file:', error);
+      }
+    }
+    
+    return res.json({
+      success: true,
+      count: whitelistCount,
+      lastModified: lastModified
+    });
+  } catch (error) {
+    console.error('Error getting whitelist stats:', error);
+    return res.json({
+      success: false,
+      error: error.message
+    });
+  }
 }
 
 // Start the server

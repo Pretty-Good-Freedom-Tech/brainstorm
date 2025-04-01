@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitelist Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #3498db;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white !important;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .info {
+            background-color: #d9edf7;
+            color: #31708f;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow-x: auto;
+            max-height: 300px;
+            margin-top: 10px;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        .home-btn {
+            background-color: #27ae60;
+        }
+        .home-btn:hover {
+            background-color: #219955;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"], select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        small {
+            display: block;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tab-buttons {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab-button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .tab-button:hover {
+            background-color: #ddd;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .parameter-group {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .parameter-group:last-child {
+            border-bottom: none;
+        }
+        .preset-buttons {
+            margin-bottom: 20px;
+        }
+        .preset-btn {
+            margin-right: 10px;
+        }
+        .whitelist-count {
+            font-weight: bold;
+            color: #3498db;
+        }
+        .last-calculated {
+            margin-top: 10px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <div class="container">
+        <div class="nav">
+            <h1>Personalized Whitelist Control Panel</h1>
+        </div>
+
+        <div class="section">
+            <h2>Whitelist Configuration</h2>
+            <div class="card">
+                <div class="whitelist-stats">
+                    <h3>Whitelist Statistics</h3>
+                    <p>Currently whitelisted pubkeys: <span id="whitelistedCount" class="whitelist-count">0</span></p>
+                    <div id="lastCalculated" class="last-calculated">Last calculated: Never</div>
+                </div>
+                
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" onclick="openTab(event, 'liveParams')">Live Parameters</button>
+                        <button class="tab-button" onclick="openTab(event, 'presets')">Presets</button>
+                        <button class="tab-button" onclick="openTab(event, 'algorithm')">Algorithm Info</button>
+                    </div>
+                    
+                    <div id="liveParams" class="tab-content active">
+                        <div class="preset-buttons">
+                            <button id="loadLaxBtn" class="button preset-btn">Load Lax Preset</button>
+                            <button id="loadDefaultBtn" class="button preset-btn">Load Default Preset</button>
+                            <button id="loadStrictBtn" class="button preset-btn">Load Strict Preset</button>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Whitelist Thresholds</h3>
+                            <div class="form-group">
+                                <label for="INFLUENCE_CUTOFF">Influence Cutoff:</label>
+                                <input type="number" id="INFLUENCE_CUTOFF" step="0.01" min="0" max="1" placeholder="0.5">
+                                <small>Include any users with influence above this threshold (0.00 to 1.00).</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="COMBINATION_LOGIC">Combination Logic:</label>
+                                <select id="COMBINATION_LOGIC">
+                                    <option value="AND">AND</option>
+                                    <option value="OR">OR</option>
+                                </select>
+                                <small>How to combine INFLUENCE_CUTOFF and HOPS_CUTOFF ('AND' or 'OR').</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="HOPS_CUTOFF">Hops Cutoff:</label>
+                                <input type="number" id="HOPS_CUTOFF" step="1" min="0" max="10" placeholder="1">
+                                <small>Include users whose hops are less than or equal to this value (nonnegative integer).</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="INCORPORATE_BLACKLIST">Incorporate Blacklist:</label>
+                                <select id="INCORPORATE_BLACKLIST">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                                <small>Exclude users in the blacklist from the whitelist (true or false).</small>
+                            </div>
+                        </div>
+                        
+                        <button id="saveConfigBtn" class="button">Save Configuration</button>
+                        <div id="configStatus" class="status"></div>
+                    </div>
+                    
+                    <div id="presets" class="tab-content">
+                        <div class="parameter-group">
+                            <h3>Lax Preset</h3>
+                            <p>A more permissive configuration that includes more users in the whitelist.</p>
+                            <pre id="laxPreset"></pre>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Default Preset</h3>
+                            <p>The standard balanced configuration.</p>
+                            <pre id="defaultPreset"></pre>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <h3>Strict Preset</h3>
+                            <p>A stricter configuration that more selectively includes users in the whitelist.</p>
+                            <pre id="strictPreset"></pre>
+                        </div>
+                    </div>
+                    
+                    <div id="algorithm" class="tab-content">
+                        <div class="parameter-group">
+                            <h3>Whitelist Algorithm Explanation</h3>
+                            <p>The personalized whitelist algorithm works as follows:</p>
+                            <ol>
+                                <li>For each NostrUser in the database, evaluate the following criteria:
+                                    <ul>
+                                        <li><strong>Influence Score</strong>: The GrapeRank influence score of the user</li>
+                                        <li><strong>Hops Distance</strong>: Number of follows between this user and the relay owner</li>
+                                    </ul>
+                                </li>
+                                <li>A user is whitelisted based on the COMBINATION_LOGIC:
+                                    <ul>
+                                        <li>If COMBINATION_LOGIC is "OR": The user's influence score is above INFLUENCE_CUTOFF <em>or</em> their hops distance is less than or equal to HOPS_CUTOFF</li>
+                                        <li>If COMBINATION_LOGIC is "AND": The user's influence score is above INFLUENCE_CUTOFF <em>and</em> their hops distance is less than or equal to HOPS_CUTOFF</li>
+                                    </ul>
+                                </li>
+                                <li>If INCORPORATE_BLACKLIST is true, any users in the blacklist are removed from the whitelist.</li>
+                                <li>The whitelist is saved to a JSON file used by the strfry plugin to filter content.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Generate Whitelist</h3>
+                <p>Calculate personalized whitelist using the current configuration parameters.</p>
+                <button id="generateWhitelistBtn" class="button">Generate Whitelist</button>
+                <div id="generateWhitelistStatus" class="status">Generating whitelist...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load the header component
+        fetch('./header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('headerContainer').innerHTML = data;
+            });
+        
+        // Elements
+        const whitelistedCountEl = document.getElementById('whitelistedCount');
+        const lastCalculatedEl = document.getElementById('lastCalculated');
+        const configStatusEl = document.getElementById('configStatus');
+        const saveConfigBtn = document.getElementById('saveConfigBtn');
+        const generateWhitelistBtn = document.getElementById('generateWhitelistBtn');
+        const generateWhitelistStatus = document.getElementById('generateWhitelistStatus');
+        const loadLaxBtn = document.getElementById('loadLaxBtn');
+        const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+        const loadStrictBtn = document.getElementById('loadStrictBtn');
+        
+        // Hide status elements initially
+        configStatusEl.style.display = 'none';
+        generateWhitelistStatus.style.display = 'none';
+        
+        // Preset data
+        const presets = {
+            lax: {
+                INFLUENCE_CUTOFF: 0.1,
+                COMBINATION_LOGIC: 'OR',
+                HOPS_CUTOFF: 2,
+                INCORPORATE_BLACKLIST: false
+            },
+            default: {
+                INFLUENCE_CUTOFF: 0.5,
+                COMBINATION_LOGIC: 'OR',
+                HOPS_CUTOFF: 1,
+                INCORPORATE_BLACKLIST: true
+            },
+            strict: {
+                INFLUENCE_CUTOFF: 0.9,
+                COMBINATION_LOGIC: 'AND',
+                HOPS_CUTOFF: 3,
+                INCORPORATE_BLACKLIST: true
+            }
+        };
+        
+        // Display preset values
+        document.getElementById('laxPreset').textContent = JSON.stringify(presets.lax, null, 2);
+        document.getElementById('defaultPreset').textContent = JSON.stringify(presets.default, null, 2);
+        document.getElementById('strictPreset').textContent = JSON.stringify(presets.strict, null, 2);
+        
+        // Load current configuration and whitelist stats
+        async function loadCurrentConfig() {
+            try {
+                const response = await fetch('/control/api/whitelist-config');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const config = data.config;
+                    
+                    // Set form values
+                    document.getElementById('INFLUENCE_CUTOFF').value = config.INFLUENCE_CUTOFF;
+                    document.getElementById('COMBINATION_LOGIC').value = config.COMBINATION_LOGIC;
+                    document.getElementById('HOPS_CUTOFF').value = config.HOPS_CUTOFF;
+                    document.getElementById('INCORPORATE_BLACKLIST').value = config.INCORPORATE_BLACKLIST.toString();
+                    
+                    // Update last calculated time
+                    if (config.WHEN_LAST_CALCULATED && config.WHEN_LAST_CALCULATED != '0') {
+                        const date = new Date(parseInt(config.WHEN_LAST_CALCULATED) * 1000);
+                        lastCalculatedEl.textContent = `Last calculated: ${date.toLocaleString()}`;
+                    }
+                } else {
+                    showStatus(configStatusEl, 'Error loading configuration: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showStatus(configStatusEl, 'Error loading configuration: ' + error, 'error');
+            }
+            
+            // Load whitelist stats
+            loadWhitelistStats();
+        }
+        
+        // Load whitelist statistics
+        async function loadWhitelistStats() {
+            try {
+                const response = await fetch('/control/api/whitelist-stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    whitelistedCountEl.textContent = data.count;
+                    
+                    if (data.lastModified) {
+                        const date = new Date(data.lastModified);
+                        lastCalculatedEl.textContent = `Last calculated: ${date.toLocaleString()}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading whitelist stats:', error);
+            }
+        }
+        
+        // Save configuration
+        saveConfigBtn.addEventListener('click', async function() {
+            const config = {
+                INFLUENCE_CUTOFF: parseFloat(document.getElementById('INFLUENCE_CUTOFF').value),
+                COMBINATION_LOGIC: document.getElementById('COMBINATION_LOGIC').value,
+                HOPS_CUTOFF: parseInt(document.getElementById('HOPS_CUTOFF').value),
+                INCORPORATE_BLACKLIST: document.getElementById('INCORPORATE_BLACKLIST').value === 'true'
+            };
+            
+            try {
+                saveConfigBtn.disabled = true;
+                showStatus(configStatusEl, 'Saving configuration...', 'info');
+                
+                const response = await fetch('/control/api/whitelist-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus(configStatusEl, 'Configuration saved successfully!', 'success');
+                } else {
+                    showStatus(configStatusEl, 'Error saving configuration: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showStatus(configStatusEl, 'Error saving configuration: ' + error, 'error');
+            } finally {
+                saveConfigBtn.disabled = false;
+            }
+        });
+        
+        // Apply preset to input fields
+        function applyPreset(preset) {
+            document.getElementById('INFLUENCE_CUTOFF').value = preset.INFLUENCE_CUTOFF;
+            document.getElementById('COMBINATION_LOGIC').value = preset.COMBINATION_LOGIC;
+            document.getElementById('HOPS_CUTOFF').value = preset.HOPS_CUTOFF;
+            document.getElementById('INCORPORATE_BLACKLIST').value = preset.INCORPORATE_BLACKLIST.toString();
+        }
+        
+        // Load preset buttons
+        loadLaxBtn.addEventListener('click', function() {
+            applyPreset(presets.lax);
+        });
+        
+        loadDefaultBtn.addEventListener('click', function() {
+            applyPreset(presets.default);
+        });
+        
+        loadStrictBtn.addEventListener('click', function() {
+            applyPreset(presets.strict);
+        });
+        
+        // Generate Whitelist
+        generateWhitelistBtn.addEventListener('click', function() {
+            generateWhitelistBtn.disabled = true;
+            generateWhitelistStatus.style.display = 'block';
+            generateWhitelistStatus.className = 'status info';
+            generateWhitelistStatus.textContent = 'Generating personalized whitelist. This may take a few minutes...';
+            
+            fetch('/control/api/export-whitelist', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    generateWhitelistStatus.className = 'status success';
+                    generateWhitelistStatus.textContent = 'Whitelist generated successfully!';
+                    
+                    // Reload stats after a delay
+                    setTimeout(() => {
+                        loadWhitelistStats();
+                    }, 2000);
+                } else {
+                    generateWhitelistStatus.className = 'status error';
+                    generateWhitelistStatus.textContent = 'Error generating whitelist: ' + data.error;
+                }
+            })
+            .catch(error => {
+                generateWhitelistStatus.className = 'status error';
+                generateWhitelistStatus.textContent = 'Error generating whitelist: ' + error;
+            })
+            .finally(() => {
+                generateWhitelistBtn.disabled = false;
+            });
+        });
+        
+        // Helper function to show status messages
+        function showStatus(element, message, type) {
+            element.textContent = message;
+            element.className = 'status ' + type;
+            element.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        // Tab functionality
+        function openTab(evt, tabName) {
+            // Hide all tab content
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            // Show the selected tab content and mark the button as active
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+        
+        // Load configuration on page load
+        loadCurrentConfig();
+    </script>
+</body>
+</html>

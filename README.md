@@ -62,7 +62,7 @@ The installation script will:
 
 ## Usage
 
-Once installed, go to https://your-domain.com/control/index.html to access the control panel. It should take several hours to download data from the network and calculate webs of trust scores, and to begin generating filtered content. Once this is complete, you and your friends can start to use your relay as a normal Nostr relay, one that is filtered by your WoT to remove spam and other unwanted content.
+Once installed, go to https://your-domain.com/control/index.html to access the main page where you can flip all the switches to activate your WoT relay. It should take several hours to download data from the network and calculate webs of trust scores, and to begin generating filtered content. Once this is complete, you and your friends can start to use your relay as a normal Nostr relay, one that is filtered by your WoT to remove spam and other unwanted content.
 
 Best way to test whether your WoT relay is working: Create a new npub; use your WoT relay as your sole relay; and set the feed to global. Not every client can do this. Try nosdrudel.ninja if your favorite client can't.
 
