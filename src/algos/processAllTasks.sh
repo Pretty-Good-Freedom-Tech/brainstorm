@@ -64,13 +64,13 @@ echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRank.sh com
 
 sleep 5
 
-sudo $HASENPFEFFR_MODULE_ALGOS_DIR/exportWhitelist.sh
-echo "$(date): Continuing processAllTasks; exportWhitelist.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllTasks.log
+sudo $HASENPFEFFR_MODULE_ALGOS_DIR/personalizedBlacklist/calculatePersonalizedBlacklist.sh
+echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $HASENPFEFFR_MODULE_ALGOS_DIR/personalizedBlacklist/calculatePersonalizedBlacklist.sh
-echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllTasks.log
+sudo $HASENPFEFFR_MODULE_ALGOS_DIR/exportWhitelist.sh
+echo "$(date): Continuing processAllTasks; exportWhitelist.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
