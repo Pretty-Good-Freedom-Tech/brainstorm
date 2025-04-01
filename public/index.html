@@ -705,64 +705,101 @@
             const group = serviceGroups[groupName];
             if (!group) return;
 
+            console.log(`Checking status for ${groupName} services:`, group.services);
+            
+            // Show checking state
+            const indicator = document.getElementById(`${groupName}StatusIndicator`);
+            const statusText = document.getElementById(`${groupName}StatusText`);
+            if (indicator && statusText) {
+                indicator.className = 'status-indicator status-unknown';
+                statusText.textContent = 'Checking...';
+            }
+
             const serviceStatusPromises = group.services.map(service => {
+                console.log(`Fetching status for service: ${service}`);
                 return fetch(`/control/api/service-status?service=${service}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(`Service ${service} status:`, data);
-                        return data;
+                    .then(response => {
+                        console.log(`Response for ${service}:`, response);
+                        if (!response.ok) {
+                            throw new Error(`Server returned ${response.status} for ${service}`);
+                        }
+                        return response.json();
                     })
-                    .catch(() => ({ active: false }));
+                    .then(data => {
+                        console.log(`Service ${service} status data:`, data);
+                        return {
+                            service: service,
+                            active: data.active === true
+                        };
+                    })
+                    .catch(error => {
+                        console.error(`Error checking ${service} status:`, error);
+                        return {
+                            service: service,
+                            active: false,
+                            error: error.message
+                        };
+                    });
             });
 
             Promise.all(serviceStatusPromises)
                 .then(statusResults => {
-                    console.log(`${groupName} status results:`, statusResults);
+                    console.log(`All ${groupName} status results:`, statusResults);
                     updateServiceGroupUI(groupName, statusResults);
                 })
                 .catch(error => {
-                    console.error(`Error checking ${groupName} status:`, error);
+                    console.error(`Error in Promise.all for ${groupName}:`, error);
                     updateServiceGroupUI(groupName, []);
                 });
         }
 
         // Update UI for service group based on status
         function updateServiceGroupUI(groupName, statusResults) {
+            console.log(`Updating UI for ${groupName} with:`, statusResults);
+            
             const indicator = document.getElementById(`${groupName}StatusIndicator`);
             const statusText = document.getElementById(`${groupName}StatusText`);
-            const toggleButton = document.getElementById(`${groupName.charAt(0).toUpperCase() + groupName.slice(1)}Toggle`);
+            const toggleButton = document.getElementById(`${groupName}Toggle`);
             
-            if (!indicator || !statusText || !toggleButton) return;
+            if (!indicator || !statusText || !toggleButton) {
+                console.error(`Missing UI elements for ${groupName}`);
+                return;
+            }
             
             // Remove all status classes
             indicator.classList.remove('status-on', 'status-off', 'status-partial', 'status-unknown');
             
-            if (statusResults.length === 0) {
+            if (!statusResults || statusResults.length === 0) {
                 // Error or unknown state
                 indicator.classList.add('status-unknown');
                 statusText.textContent = 'Unknown';
                 toggleButton.checked = false;
+                console.log(`${groupName} status: Unknown (no results)`);
                 return;
             }
             
             // Count active services
             const activeCount = statusResults.filter(result => result.active).length;
+            console.log(`${groupName} has ${activeCount} active out of ${statusResults.length} total services`);
             
             if (activeCount === 0) {
                 // All services are off
                 indicator.classList.add('status-off');
                 statusText.textContent = 'Off';
                 toggleButton.checked = false;
+                console.log(`${groupName} status: All Off`);
             } else if (activeCount === statusResults.length) {
                 // All services are on
                 indicator.classList.add('status-on');
                 statusText.textContent = 'On';
                 toggleButton.checked = true;
+                console.log(`${groupName} status: All On`);
             } else {
                 // Some services are on, some are off
                 indicator.classList.add('status-partial');
                 statusText.textContent = 'Partial';
                 toggleButton.checked = false;
+                console.log(`${groupName} status: Partial (${activeCount}/${statusResults.length} on)`);
             }
         }
 
@@ -772,7 +809,7 @@
             if (!group) return;
             
             const indicator = document.getElementById(`${groupName}StatusIndicator`);
-            const toggleButton = document.getElementById(`${groupName.charAt(0).toUpperCase() + groupName.slice(1)}Toggle`);
+            const toggleButton = document.getElementById(`${groupName}Toggle`);
             
             // Determine action based on current status
             const action = checked ? 'on' : 'off';
