@@ -340,6 +340,10 @@ app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
 app.get('/api/whitelist-stats', handleGetWhitelistStats);
 app.get('/control/api/whitelist-stats', handleGetWhitelistStats);
 
+// Endpoint to count users above influence threshold
+app.get('/api/influence-count', handleGetInfluenceCount);
+app.get('/control/api/influence-count', handleGetInfluenceCount);
+
 // Authentication endpoints
 app.post('/api/auth/verify', handleAuthVerify);
 app.post('/api/auth/login', handleAuthLogin);
@@ -3168,79 +3172,40 @@ function handleServiceStatus(req, res) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-// Handler for getting blacklist configuration
-function handleGetBlacklistConfig(req, res) {
-  try {
-    const configPath = '/etc/blacklist.conf';
+// Handler for getting influence count
+function handleGetInfluenceCount(req, res) {
+    const threshold = parseFloat(req.query.threshold || 0.5);
     
-    // Check if the configuration file exists
-    if (!fs.existsSync(configPath)) {
-      return res.json({
-        success: false,
-        error: 'Blacklist configuration file not found'
+    // Connect to Neo4j
+    const { uri, username, password } = getNeo4jConnection();
+    const driver = neo4j.driver(uri, neo4j.auth.basic(username, password));
+    const session = driver.session();
+    
+    const query = `
+      MATCH (n:NostrUser)
+      WHERE n.personalizedGrapeRank >= $threshold
+      RETURN count(n) as userCount
+    `;
+    
+    session.run(query, { threshold })
+      .then(result => {
+        const userCount = result.records[0].get('userCount').toNumber();
+        res.json({
+          success: true,
+          count: userCount
+        });
+      })
+      .catch(error => {
+        console.error('Error querying Neo4j for influence count:', error);
+        res.json({
+          success: false,
+          error: error.message
+        });
+      })
+      .finally(() => {
+        session.close();
+        driver.close();
       });
-    }
-    
-    // Read the configuration file
-    const configContent = fs.readFileSync(configPath, 'utf8');
-    const config = {};
-    const lines = configContent.split('\n');
-    
-    // Parse the configuration file
-    for (const line of lines) {
-      if (line.startsWith('export ')) {
-        const parts = line.substring(7).split('=');
-        if (parts.length === 2) {
-          const key = parts[0].trim();
-          let value = parts[1].trim();
-          
-          // Remove any quotes from the value
-          if (value.startsWith('"') && value.endsWith('"')) {
-            value = value.substring(1, value.length - 1);
-          }
-          
-          config[key] = value;
-        }
-      }
-    }
-    
-    // Get the count of blacklisted pubkeys
-    let blacklistedCount = 0;
-    const blacklistPath = '/usr/local/lib/strfry/plugins/data/blacklist_pubkeys.json';
-    if (fs.existsSync(blacklistPath)) {
-      try {
-        const blacklistContent = fs.readFileSync(blacklistPath, 'utf8');
-        const blacklist = JSON.parse(blacklistContent);
-        blacklistedCount = Object.keys(blacklist).length;
-      } catch (error) {
-        console.error('Error reading blacklist file:', error);
-      }
-    }
-    
-    return res.json({
-      success: true,
-      config: config,
-      blacklistedCount: blacklistedCount
-    });
-  } catch (error) {
-    console.error('Error getting blacklist configuration:', error);
-    return res.json({
-      success: false,
-      error: error.message
-    });
-  }
 }
 
 // Handler for getting whitelist configuration

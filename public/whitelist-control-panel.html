@@ -174,6 +174,18 @@
             font-style: italic;
             color: #7f8c8d;
         }
+        .threshold-info {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            font-size: 0.9em;
+            display: inline-block;
+        }
+        #influenceUserCount {
+            font-weight: bold;
+            color: #3498db;
+        }
     </style>
 </head>
 <body>
@@ -214,6 +226,7 @@
                                 <label for="INFLUENCE_CUTOFF">Influence Cutoff:</label>
                                 <input type="number" id="INFLUENCE_CUTOFF" step="0.01" min="0" max="1" placeholder="0.5">
                                 <small>Include any users with influence above this threshold (0.00 to 1.00).</small>
+                                <div class="threshold-info">Users with influence ≥ <span id="currentThreshold">0.5</span>: <span id="influenceUserCount">Loading...</span></div>
                             </div>
                             <div class="form-group">
                                 <label for="COMBINATION_LOGIC">Combination Logic:</label>
@@ -361,10 +374,18 @@
                     document.getElementById('HOPS_CUTOFF').value = config.HOPS_CUTOFF;
                     document.getElementById('INCORPORATE_BLACKLIST').value = config.INCORPORATE_BLACKLIST.toString();
                     
+                    // Update influence count with the loaded cutoff value
+                    loadInfluenceCount(parseFloat(config.INFLUENCE_CUTOFF));
+                    
                     // Update last calculated time
                     if (config.WHEN_LAST_CALCULATED && config.WHEN_LAST_CALCULATED != '0') {
                         const date = new Date(parseInt(config.WHEN_LAST_CALCULATED) * 1000);
                         lastCalculatedEl.textContent = `Last calculated: ${date.toLocaleString()}`;
+                    }
+                    
+                    // Update whitelisted count if available
+                    if (data.whitelistedCount !== undefined) {
+                        whitelistedCountEl.textContent = data.whitelistedCount;
                     }
                 } else {
                     showStatus(configStatusEl, 'Error loading configuration: ' + data.error, 'error');
@@ -395,6 +416,30 @@
                 console.error('Error loading whitelist stats:', error);
             }
         }
+        
+        // Load user count for current influence threshold
+        async function loadInfluenceCount(threshold) {
+            try {
+                const response = await fetch(`/control/api/influence-count?threshold=${threshold}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('influenceUserCount').textContent = data.count;
+                    document.getElementById('currentThreshold').textContent = threshold;
+                } else {
+                    document.getElementById('influenceUserCount').textContent = 'Error loading count';
+                }
+            } catch (error) {
+                console.error('Error loading influence count:', error);
+                document.getElementById('influenceUserCount').textContent = 'Error loading count';
+            }
+        }
+
+        // Update threshold when the input changes
+        document.getElementById('INFLUENCE_CUTOFF').addEventListener('input', function() {
+            const threshold = parseFloat(this.value) || 0;
+            loadInfluenceCount(threshold);
+        });
         
         // Save configuration
         saveConfigBtn.addEventListener('click', async function() {
@@ -520,6 +565,9 @@
         
         // Load configuration on page load
         loadCurrentConfig();
+        
+        // Load initial influence count with default threshold
+        loadInfluenceCount(0.5);
     </script>
 </body>
 </html>
