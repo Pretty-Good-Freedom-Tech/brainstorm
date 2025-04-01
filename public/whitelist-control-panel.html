@@ -328,12 +328,16 @@
         </div>
     </div>
 
+    <!-- Import header.js for authentication handling -->
+    <script src="./header.js"></script>
     <script>
         // Load the header component
         fetch('./header.html')
             .then(response => response.text())
             .then(data => {
                 document.getElementById('headerContainer').innerHTML = data;
+                // Initialize the header to check authentication status
+                initializeHeader();
             });
         
         // Elements
