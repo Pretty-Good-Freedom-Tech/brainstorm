@@ -27,7 +27,7 @@ Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced tec
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
-## Installation (brief)
+## Installation
 
 ```bash
 # Clone the Hasenpfeffr repository
@@ -59,6 +59,10 @@ The installation script will:
 3. Install and configure Strfry Nostr relay
 4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
 5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`
+
+## Usage
+
+Once installed, go to https://your-domain.com/control/index.html to access the control panel. It should take several hours to download data from the network and calculate webs of trust scores, and to begin generating filtered content. Once this is complete, you and your friends can start to use your relay as a normal Nostr relay, one that is filtered by your WoT to remove spam and other unwanted content. Perhaps a better option would be to export your relay's nsec into a client, add your WoT relay as the only relay, and test it out!
 
 ## License
 

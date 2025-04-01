@@ -91,6 +91,46 @@ const configPaths = {
   calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer')
 };
 
+// Helper function to get config from file
+function getConfigFromFile(varName, defaultValue = null) {
+  try {
+    // Try to read from /etc/hasenpfeffr.conf if it exists
+    if (fs.existsSync('/etc/hasenpfeffr.conf')) {
+      const configContent = fs.readFileSync('/etc/hasenpfeffr.conf', 'utf8');
+      const regex = new RegExp(`export ${varName}="([^"]*)"`, 'gm');
+      const match = regex.exec(configContent);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+
+    // Try to read from keys file if it exists
+    const keysFile = path.join(__dirname, '..', 'setup', 'nostr', 'keys', 'hasenpfeffr_relay_keys');
+    if (fs.existsSync(keysFile)) {
+      try {
+        const keysData = JSON.parse(fs.readFileSync(keysFile, 'utf8'));
+        if (varName === 'HASENPFEFFR_RELAY_PUBKEY' && keysData.pubkey) {
+          return keysData.pubkey;
+        } else if (varName === 'HASENPFEFFR_RELAY_PRIVKEY' && keysData.privkey) {
+          return keysData.privkey;
+        } else if (varName === 'HASENPFEFFR_RELAY_NSEC' && keysData.nsec) {
+          return keysData.nsec;
+        } else if (varName === 'HASENPFEFFR_RELAY_NPUB' && keysData.npub) {
+          return keysData.npub;
+        }
+      } catch (error) {
+        console.error(`Error reading keys file: ${error.message}`);
+      }
+    }
+
+    // Fallback to environment variable
+    return process.env[varName] || defaultValue;
+  } catch (error) {
+    console.error(`Error reading config for ${varName}: ${error.message}`);
+    return defaultValue;
+  }
+}
+
 // Configure sudo privileges for hasenpfeffr user and control panel
 async function configureSudoPrivileges() {
   console.log('\x1b[36m=== Configuring Sudo Privileges ===\x1b[0m');
@@ -266,7 +306,7 @@ async function createHasenpfeffrConfigFile() {
   }
   
   let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultFriendRelays;
-  let relayPubkey, relayNsec, relayNpub;
+  let relayPubkey, relayNsec, relayNpub, relayPrivkey;
   
   if (isUpdateMode) {
     // In update mode, use environment variables set from the backup
@@ -279,9 +319,10 @@ async function createHasenpfeffrConfigFile() {
     }
     
     ownerPubkey = process.env.HASENPFEFFR_OWNER_PUBKEY || '';
-    relayPubkey = process.env.HASENPFEFFR_RELAY_PUBKEY || '';
-    relayNsec = process.env.HASENPFEFFR_RELAY_PRIVKEY || '';
-    relayNpub = process.env.HASENPFEFFR_RELAY_NPUB || '';
+    relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY') || '';
+    relayPrivkey = getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY') || '';
+    relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC') || '';
+    relayNpub = getConfigFromFile('HASENPFEFFR_RELAY_NPUB') || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
     relayUrl = process.env.HASENPFEFFR_RELAY_URL || '';
     defaultFriendRelays = process.env.HASENPFEFFR_DEFAULT_FRIEND_RELAYS || '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
@@ -436,8 +477,8 @@ export NIP85_LAST_EXPORTED=0
           const appendContent = `
 # Relay pubkey and private keys (from previous installation)
 export HASENPFEFFR_RELAY_PUBKEY="${relayPubkey}"
-export HASENPFEFFR_RELAY_PRIVKEY="${relayNsec}"
-export HASENPFEFFR_RELAY_NSEC="${process.env.HASENPFEFFR_RELAY_NSEC || ''}"
+export HASENPFEFFR_RELAY_PRIVKEY="${relayPrivkey}"
+export HASENPFEFFR_RELAY_NSEC="${relayNsec}"
 export HASENPFEFFR_RELAY_NPUB="${relayNpub || ''}"
 `;
           fs.appendFileSync(configPaths.hasenpfeffrConfDestination, appendContent);
