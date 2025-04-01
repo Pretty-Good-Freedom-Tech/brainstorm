@@ -29,7 +29,7 @@ function getEnvVar(varName) {
 function getNostrKeys() {
   try {
     // Try environment variables first
-    const privateKey = getEnvVar('HASENPFEFFR_RELAY_NSEC');
+    const privateKey = getEnvVar('HASENPFEFFR_RELAY_PRIVKEY');
     const publicKey = getEnvVar('HASENPFEFFR_RELAY_PUBKEY');
     
     if (privateKey && publicKey) {
@@ -45,7 +45,7 @@ function getNostrKeys() {
       try {
         const keysData = JSON.parse(fs.readFileSync(keyFilePath, 'utf8'));
         
-        // The file has fields "nsec" and "pubkey" instead of HASENPFEFFR_RELAY_NSEC and HASENPFEFFR_RELAY_PUBKEY
+        // The file has fields "nsec" and "pubkey" instead of HASENPFEFFR_RELAY_PRIVKEY and HASENPFEFFR_RELAY_PUBKEY
         if (keysData.nsec && keysData.pubkey) {
           console.log(`Successfully read keys from ${keyFilePath}`);
           return {

@@ -51,16 +51,16 @@ const nsecEncoded = nostrTools.nip19.nsecEncode(privateKey);
 const privateKeyHex = Buffer.from(privateKey).toString('hex');
 
 console.log(JSON.stringify({
-  nsec: privateKeyHex,
-  nsecEncoded: nsecEncoded,
+  privkey: privateKeyHex,
+  nsec: nsecEncoded,
   pubkey: pubkey,
   npub: npub
 }));
 ")
 
 # Extract keys from JSON
+HASENPFEFFR_RELAY_PRIVKEY=$(echo $KEYS_JSON | jq -r '.privkey')
 HASENPFEFFR_RELAY_NSEC=$(echo $KEYS_JSON | jq -r '.nsec')
-HASENPFEFFR_RELAY_NSEC_ENCODED=$(echo $KEYS_JSON | jq -r '.nsecEncoded')
 HASENPFEFFR_RELAY_PUBKEY=$(echo $KEYS_JSON | jq -r '.pubkey')
 HASENPFEFFR_RELAY_NPUB=$(echo $KEYS_JSON | jq -r '.npub')
 
@@ -74,8 +74,8 @@ chmod 600 "$KEYS_FILE"
 
 # Also create a shell-compatible file for backward compatibility
 KEYS_SH_FILE="$KEYS_DIR/hasenpfeffr_relay_keys.sh"
-echo "HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" > "$KEYS_SH_FILE"
-echo "HASENPFEFFR_RELAY_NSEC_ENCODED='$HASENPFEFFR_RELAY_NSEC_ENCODED'" >> "$KEYS_SH_FILE"
+echo "HASENPFEFFR_RELAY_PRIVKEY='$HASENPFEFFR_RELAY_PRIVKEY'" > "$KEYS_SH_FILE"
+echo "HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" >> "$KEYS_SH_FILE"
 echo "HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" >> "$KEYS_SH_FILE"
 echo "HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" >> "$KEYS_SH_FILE"
 chmod 600 "$KEYS_SH_FILE"
@@ -88,12 +88,12 @@ if [ -f "/etc/hasenpfeffr.conf" ]; then
         echo "Keys already exist in config. Updating..."
         sudo sed -i "/HASENPFEFFR_RELAY_PUBKEY/c\export HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" /etc/hasenpfeffr.conf
         sudo sed -i "/HASENPFEFFR_RELAY_NPUB/c\export HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" /etc/hasenpfeffr.conf
-        sudo sed -i "/HASENPFEFFR_RELAY_NSEC/c\export HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" /etc/hasenpfeffr.conf
+        sudo sed -i "/HASENPFEFFR_RELAY_PRIVKEY/c\export HASENPFEFFR_RELAY_PRIVKEY='$HASENPFEFFR_RELAY_PRIVKEY'" /etc/hasenpfeffr.conf
     else
         echo "Adding new keys to config..."
         echo "export HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" | sudo tee -a /etc/hasenpfeffr.conf
         echo "export HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" | sudo tee -a /etc/hasenpfeffr.conf
-        echo "export HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" | sudo tee -a /etc/hasenpfeffr.conf
+        echo "export HASENPFEFFR_RELAY_PRIVKEY='$HASENPFEFFR_RELAY_PRIVKEY'" | sudo tee -a /etc/hasenpfeffr.conf
     fi
 else
     echo "Warning: /etc/hasenpfeffr.conf not found. Only storing keys in $KEYS_FILE."

@@ -13,7 +13,7 @@ export STRFRY_DOMAIN="your.relay.com"
 # Relay configuration
 export HASENPFEFFR_RELAY_URL="wss://your.relay.com"
 export HASENPFEFFR_RELAY_PUBKEY="your-relay-pubkey"
-export HASENPFEFFR_RELAY_NSEC="your-relay-private-key"
+export HASENPFEFFR_RELAY_PRIVKEY="your-relay-private-key"
 
 # Neo4j configuration
 export NEO4J_URI="bolt://localhost:7687"

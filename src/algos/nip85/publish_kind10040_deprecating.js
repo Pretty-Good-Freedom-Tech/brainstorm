@@ -44,7 +44,7 @@ function getConfigFromFile(varName, defaultValue = null) {
 // Get relay configuration
 const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
 const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
-const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC', '');
+const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY', '');
 const logDir = getConfigFromFile('HASENPFEFFR_LOG_DIR', '/var/log/hasenpfeffr');
 
 // Get friend relays from config

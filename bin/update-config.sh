@@ -56,7 +56,7 @@ echo ""
 # Get updated values
 RELAY_URL=$(get_config_value "HASENPFEFFR_RELAY_URL" "$HASENPFEFFR_RELAY_URL" "Relay URL" false)
 RELAY_PUBKEY=$(get_config_value "HASENPFEFFR_RELAY_PUBKEY" "$HASENPFEFFR_RELAY_PUBKEY" "Relay Public Key" false)
-RELAY_NSEC=$(get_config_value "HASENPFEFFR_RELAY_NSEC" "$HASENPFEFFR_RELAY_NSEC" "Relay Private Key" true)
+RELAY_NSEC=$(get_config_value "HASENPFEFFR_RELAY_PRIVKEY" "$HASENPFEFFR_RELAY_PRIVKEY" "Relay Private Key" true)
 
 NEO4J_URI=$(get_config_value "NEO4J_URI" "$NEO4J_URI" "Neo4j URI" false)
 NEO4J_USER=$(get_config_value "NEO4J_USER" "$NEO4J_USER" "Neo4j Username" false)
@@ -87,7 +87,7 @@ cat > "$CONFIG_FILE" << EOF
 # Relay configuration
 export HASENPFEFFR_RELAY_URL="$RELAY_URL"
 export HASENPFEFFR_RELAY_PUBKEY="$RELAY_PUBKEY"
-export HASENPFEFFR_RELAY_NSEC="$RELAY_NSEC"
+export HASENPFEFFR_RELAY_PRIVKEY="$RELAY_NSEC"
 
 # Neo4j configuration
 export NEO4J_URI="$NEO4J_URI"

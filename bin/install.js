@@ -280,7 +280,7 @@ async function createHasenpfeffrConfigFile() {
     
     ownerPubkey = process.env.HASENPFEFFR_OWNER_PUBKEY || '';
     relayPubkey = process.env.HASENPFEFFR_RELAY_PUBKEY || '';
-    relayNsec = process.env.HASENPFEFFR_RELAY_NSEC || '';
+    relayNsec = process.env.HASENPFEFFR_RELAY_PRIVKEY || '';
     relayNpub = process.env.HASENPFEFFR_RELAY_NPUB || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
     relayUrl = process.env.HASENPFEFFR_RELAY_URL || '';
@@ -430,14 +430,22 @@ export NIP85_LAST_EXPORTED=0
     } else {
       console.log('\x1b[36m=== Using Existing Nostr Identity for Relay ===\x1b[0m');
       // Add the relay keys to the config file
-      const appendContent = `
-# Relay pubkey and nsec (from previous installation)
+      if (fs.existsSync(configPaths.hasenpfeffrConfDestination)) {
+        console.log(`${configPaths.hasenpfeffrConfDestination} already exists, appending relay config...`);
+        try {
+          const appendContent = `
+# Relay pubkey and private keys (from previous installation)
 export HASENPFEFFR_RELAY_PUBKEY="${relayPubkey}"
-export HASENPFEFFR_RELAY_NSEC="${relayNsec}"
+export HASENPFEFFR_RELAY_PRIVKEY="${relayNsec}"
+export HASENPFEFFR_RELAY_NSEC="${process.env.HASENPFEFFR_RELAY_NSEC || ''}"
 export HASENPFEFFR_RELAY_NPUB="${relayNpub || ''}"
 `;
-      fs.appendFileSync(configPaths.hasenpfeffrConfDestination, appendContent);
-      console.log('Existing Nostr identity configured successfully.');
+          fs.appendFileSync(configPaths.hasenpfeffrConfDestination, appendContent);
+          console.log('Existing Nostr identity configured successfully.');
+        } catch (error) {
+          console.error('\x1b[31mError appending relay config to existing configuration file:\x1b[0m', error.message);
+        }
+      }
     }
   } else {
     console.log('\x1b[33mCannot create configuration file without root privileges.\x1b[0m');

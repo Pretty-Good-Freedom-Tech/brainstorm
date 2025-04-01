@@ -5,7 +5,7 @@
 // Set up environment variables for testing
 process.env.HASENPFEFFR_RELAY_URL = 'wss://env-test-relay.com';
 process.env.HASENPFEFFR_RELAY_PUBKEY = 'env-test-pubkey';
-process.env.HASENPFEFFR_RELAY_NSEC = 'env-test-nsec';
+process.env.HASENPFEFFR_RELAY_PRIVKEY = 'env-test-privkey';
 
 const fs = require('fs');
 const os = require('os');
@@ -17,7 +17,7 @@ fs.writeFileSync(testConfigPath, `#!/bin/bash
 # Test Configuration
 export HASENPFEFFR_RELAY_URL="wss://file-test-relay.com"
 export HASENPFEFFR_RELAY_PUBKEY="file-test-pubkey"
-export HASENPFEFFR_RELAY_NSEC="file-test-nsec"
+export HASENPFEFFR_RELAY_PRIVKEY="file-test-privkey"
 export NEO4J_URI="bolt://localhost:7687"
 export NEO4J_USER="neo4j"
 export NEO4J_PASSWORD="test-password"
@@ -56,8 +56,8 @@ require('child_process').execSync = (cmd) => {
         return 'wss://file-test-relay.com\n';
       case 'HASENPFEFFR_RELAY_PUBKEY':
         return 'file-test-pubkey\n';
-      case 'HASENPFEFFR_RELAY_NSEC':
-        return 'file-test-nsec\n';
+      case 'HASENPFEFFR_RELAY_PRIVKEY':
+        return 'file-test-privkey\n';
       case 'NEO4J_URI':
         return 'bolt://localhost:7687\n';
       case 'NEO4J_USER':

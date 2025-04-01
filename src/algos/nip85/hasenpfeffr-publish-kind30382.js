@@ -4,7 +4,7 @@
  * Hasenpfeffr Publish Kind 30382 Events
  * 
  * This script publishes kind 30382 events for the top 5 users by personalizedPageRank
- * Each event is signed with the relay's private key (HASENPFEFFR_RELAY_NSEC)
+ * Each event is signed with the relay's private key (HASENPFEFFR_RELAY_PRIVKEY)
  * and published to the relay via WebSocket
  */
 
@@ -45,7 +45,7 @@ function getConfigFromFile(varName, defaultValue = null) {
 
 // Get relay configuration
 const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC', '');
+const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
