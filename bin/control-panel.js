@@ -3509,7 +3509,7 @@ function handleGetWhitelistPreviewCount(req, res) {
         
         // Add blacklist condition if needed
         if (incorporateBlacklist) {
-            query += ` AND (NOT EXISTS(n.blacklist) OR n.blacklist <> 1)`;
+            query += ` AND (n.blacklisted IS NULL OR n.blacklisted = 0)`;
         }
         
         query += ` RETURN count(n) as userCount;`;
