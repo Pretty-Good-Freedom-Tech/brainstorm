@@ -621,22 +621,22 @@
             databases: {
                 services: ['neo4j', 'strfry'],
                 scripts: {
-                    on: '/src/manage/databases/turnOn.sh',
-                    off: '/src/manage/databases/turnOff.sh'
+                    on: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/databases/turnOn.sh',
+                    off: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/databases/turnOff.sh'
                 }
             },
             streaming: {
                 services: ['addToQueue', 'processQueue', 'strfry-router'],
                 scripts: {
-                    on: '/src/manage/streamingServices/turnOn.sh',
-                    off: '/src/manage/streamingServices/turnOff.sh'
+                    on: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/streamingServices/turnOn.sh',
+                    off: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/streamingServices/turnOff.sh'
                 }
             },
             scores: {
                 services: ['processAllTasks.timer'],
                 scripts: {
-                    on: '/src/manage/routineTasks/turnOn.sh',
-                    off: '/src/manage/routineTasks/turnOff.sh'
+                    on: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/routineTasks/turnOn.sh',
+                    off: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/routineTasks/turnOff.sh'
                 }
             }
         };
