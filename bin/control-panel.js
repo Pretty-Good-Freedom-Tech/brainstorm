@@ -3183,7 +3183,7 @@ function handleGetInfluenceCount(req, res) {
     
     const query = `
       MATCH (n:NostrUser)
-      WHERE n.personalizedGrapeRank >= $threshold
+      WHERE n.influence >= $threshold
       RETURN count(n) as userCount
     `;
     
