@@ -2,11 +2,13 @@
 
 const fs = require('node:fs');
 
-const whitelist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json', 'utf8'))
+const whitelist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json', 'utf8'))
 
-const blacklist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/plugins/blacklist_pubkeys.json', 'utf8'))
+const blacklist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/strfry/plugins/data/blacklist_pubkeys.json', 'utf8'))
 
-const whitelist_kinds = JSON.parse(fs.readFileSync('/usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_kinds.json', 'utf8'))
+const whitelist_kinds_acceptAll = JSON.parse(fs.readFileSync('/usr/local/lib/strfry/plugins/data/whitelist_kinds_acceptAll.json', 'utf8'))
+
+const whitelist_kinds_filterPubkeyWhitelist = JSON.parse(fs.readFileSync('/usr/local/lib/strfry/plugins/data/whitelist_kinds_filterPubkeyWhitelist.json', 'utf8'))
 
 const rl = require('readline').createInterface({
   input: process.stdin,
@@ -26,7 +28,11 @@ rl.on('line', (line) => {
 
     res.action = 'reject'
 
-    if (whitelist_kinds.includes(req.event.kind) && whitelist_pubkeys[req.event.pubkey]) {
+    if (whitelist_kinds_acceptAll.includes(req.event.kind)) {
+        res.action = 'accept';
+    }
+
+    if (whitelist_kinds_filterPubkeyWhitelist.includes(req.event.kind) && whitelist_pubkeys[req.event.pubkey]) {
         res.action = 'accept';
     }
 
