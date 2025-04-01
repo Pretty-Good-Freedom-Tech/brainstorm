@@ -240,6 +240,7 @@
                                 <label for="HOPS_CUTOFF">Hops Cutoff:</label>
                                 <input type="number" id="HOPS_CUTOFF" step="1" min="0" max="10" placeholder="1">
                                 <small>Include users whose hops are less than or equal to this value (nonnegative integer).</small>
+                                <div class="threshold-info">Users with hops ≤ <span id="currentHopsThreshold">1</span>: <span id="hopsUserCount">Loading...</span></div>
                             </div>
                             <div class="form-group">
                                 <label for="INCORPORATE_BLACKLIST">Incorporate Blacklist:</label>
@@ -377,6 +378,9 @@
                     // Update influence count with the loaded cutoff value
                     loadInfluenceCount(parseFloat(config.INFLUENCE_CUTOFF));
                     
+                    // Update hops count with the loaded cutoff value
+                    loadHopsCount(parseInt(config.HOPS_CUTOFF, 10));
+                    
                     // Update last calculated time
                     if (config.WHEN_LAST_CALCULATED && config.WHEN_LAST_CALCULATED != '0') {
                         const date = new Date(parseInt(config.WHEN_LAST_CALCULATED) * 1000);
@@ -435,10 +439,34 @@
             }
         }
 
+        // Load user count for current hops threshold
+        async function loadHopsCount(threshold) {
+            try {
+                const response = await fetch(`/control/api/hops-count?threshold=${threshold}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('hopsUserCount').textContent = data.count;
+                    document.getElementById('currentHopsThreshold').textContent = threshold;
+                } else {
+                    document.getElementById('hopsUserCount').textContent = 'Error loading count';
+                }
+            } catch (error) {
+                console.error('Error loading hops count:', error);
+                document.getElementById('hopsUserCount').textContent = 'Error loading count';
+            }
+        }
+
         // Update threshold when the input changes
         document.getElementById('INFLUENCE_CUTOFF').addEventListener('input', function() {
             const threshold = parseFloat(this.value) || 0;
             loadInfluenceCount(threshold);
+        });
+        
+        // Update hops threshold when the input changes
+        document.getElementById('HOPS_CUTOFF').addEventListener('input', function() {
+            const threshold = parseInt(this.value, 10) || 0;
+            loadHopsCount(threshold);
         });
         
         // Save configuration
@@ -568,6 +596,9 @@
         
         // Load initial influence count with default threshold
         loadInfluenceCount(0.5);
+        
+        // Load initial hops count with default threshold
+        loadHopsCount(1);
     </script>
 </body>
 </html>
