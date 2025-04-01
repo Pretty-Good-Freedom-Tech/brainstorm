@@ -334,9 +334,10 @@ app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
 // Whitelist management
 app.get('/api/whitelist-config', handleGetWhitelistConfig);
 app.post('/api/whitelist-config', handleUpdateWhitelistConfig);
-app.get('/api/whitelist-stats', handleGetWhitelistStats);
 app.get('/control/api/whitelist-config', handleGetWhitelistConfig);
 app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
+
+app.get('/api/whitelist-stats', handleGetWhitelistStats);
 app.get('/control/api/whitelist-stats', handleGetWhitelistStats);
 
 // Authentication endpoints
@@ -3167,6 +3168,81 @@ function handleServiceStatus(req, res) {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+// Handler for getting blacklist configuration
+function handleGetBlacklistConfig(req, res) {
+  try {
+    const configPath = '/etc/blacklist.conf';
+    
+    // Check if the configuration file exists
+    if (!fs.existsSync(configPath)) {
+      return res.json({
+        success: false,
+        error: 'Blacklist configuration file not found'
+      });
+    }
+    
+    // Read the configuration file
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const config = {};
+    const lines = configContent.split('\n');
+    
+    // Parse the configuration file
+    for (const line of lines) {
+      if (line.startsWith('export ')) {
+        const parts = line.substring(7).split('=');
+        if (parts.length === 2) {
+          const key = parts[0].trim();
+          let value = parts[1].trim();
+          
+          // Remove any quotes from the value
+          if (value.startsWith('"') && value.endsWith('"')) {
+            value = value.substring(1, value.length - 1);
+          }
+          
+          config[key] = value;
+        }
+      }
+    }
+    
+    // Get the count of blacklisted pubkeys
+    let blacklistedCount = 0;
+    const blacklistPath = '/usr/local/lib/strfry/plugins/data/blacklist_pubkeys.json';
+    if (fs.existsSync(blacklistPath)) {
+      try {
+        const blacklistContent = fs.readFileSync(blacklistPath, 'utf8');
+        const blacklist = JSON.parse(blacklistContent);
+        blacklistedCount = Object.keys(blacklist).length;
+      } catch (error) {
+        console.error('Error reading blacklist file:', error);
+      }
+    }
+    
+    return res.json({
+      success: true,
+      config: config,
+      blacklistedCount: blacklistedCount
+    });
+  } catch (error) {
+    console.error('Error getting blacklist configuration:', error);
+    return res.json({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
 // Handler for getting whitelist configuration
 function handleGetWhitelistConfig(req, res) {
   try {
@@ -3203,10 +3279,24 @@ function handleGetWhitelistConfig(req, res) {
         }
       }
     }
+
+    // Get the count of whitelisted pubkeys
+    let whitelistedCount = 0;
+    const whitelistPath = '/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json';
+    if (fs.existsSync(whitelistPath)) {
+      try {
+        const whitelistContent = fs.readFileSync(whitelistPath, 'utf8');
+        const whitelist = JSON.parse(whitelistContent);
+        whitelistedCount = Object.keys(whitelist).length;
+      } catch (error) {
+        console.error('Error reading whitelist file:', error);
+      }
+    }
     
     return res.json({
       success: true,
-      config: config
+      config: config,
+      whitelistedCount: whitelistedCount
     });
   } catch (error) {
     console.error('Error getting whitelist configuration:', error);
