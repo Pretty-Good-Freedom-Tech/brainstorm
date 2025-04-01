@@ -688,6 +688,9 @@
             checkServiceGroupStatus('streaming');
             checkServiceGroupStatus('scores');
             
+            // Check content filter status
+            checkFilteredContentStatus();
+            
             // Set up periodic refresh
             setInterval(function() {
                 refreshCalculationTimes();
@@ -698,6 +701,9 @@
                 checkServiceGroupStatus('databases');
                 checkServiceGroupStatus('streaming');
                 checkServiceGroupStatus('scores');
+                
+                // Also refresh content filter status
+                checkFilteredContentStatus();
             }, 60000); // Refresh every minute
         });
 
@@ -723,6 +729,10 @@
                     on: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/routineTasks/turnOn.sh',
                     off: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/routineTasks/turnOff.sh'
                 }
+            },
+            content: {
+                // Special handling for the content filter which uses the strfry plugin API
+                specialHandling: true
             }
         };
 
