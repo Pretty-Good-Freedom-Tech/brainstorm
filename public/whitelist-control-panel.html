@@ -182,9 +182,21 @@
             font-size: 0.9em;
             display: inline-block;
         }
-        #influenceUserCount {
+        #influenceUserCount, #hopsUserCount, #previewCount {
             font-weight: bold;
             color: #3498db;
+        }
+        .whitelist-preview {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #d9edf7;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .whitelist-preview h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #31708f;
         }
     </style>
 </head>
@@ -204,6 +216,10 @@
                     <h3>Whitelist Statistics</h3>
                     <p>Currently whitelisted pubkeys: <span id="whitelistedCount" class="whitelist-count">0</span></p>
                     <div id="lastCalculated" class="last-calculated">Last calculated: Never</div>
+                    <div class="whitelist-preview">
+                        <h4>Whitelist Preview</h4>
+                        <p>Users matching all criteria: <span id="previewCount" class="whitelist-count">Loading...</span></p>
+                    </div>
                 </div>
                 
                 <div class="tab-container">
@@ -456,17 +472,55 @@
                 document.getElementById('hopsUserCount').textContent = 'Error loading count';
             }
         }
+        
+        // Load preview count with all current parameters
+        async function loadPreviewCount() {
+            try {
+                // Get current values from form
+                const influence = parseFloat(document.getElementById('INFLUENCE_CUTOFF').value) || 0.5;
+                const hops = parseInt(document.getElementById('HOPS_CUTOFF').value, 10) || 1;
+                const logic = document.getElementById('COMBINATION_LOGIC').value;
+                const blacklist = document.getElementById('INCORPORATE_BLACKLIST').value;
+                
+                // Construct the query URL with all parameters
+                const url = `/control/api/whitelist-preview-count?influence=${influence}&hops=${hops}&logic=${logic}&blacklist=${blacklist}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('previewCount').textContent = data.count;
+                } else {
+                    document.getElementById('previewCount').textContent = 'Error loading count';
+                }
+            } catch (error) {
+                console.error('Error loading preview count:', error);
+                document.getElementById('previewCount').textContent = 'Error loading count';
+            }
+        }
 
         // Update threshold when the input changes
         document.getElementById('INFLUENCE_CUTOFF').addEventListener('input', function() {
             const threshold = parseFloat(this.value) || 0;
             loadInfluenceCount(threshold);
+            loadPreviewCount();
         });
         
         // Update hops threshold when the input changes
         document.getElementById('HOPS_CUTOFF').addEventListener('input', function() {
             const threshold = parseInt(this.value, 10) || 0;
             loadHopsCount(threshold);
+            loadPreviewCount();
+        });
+        
+        // Update preview when combination logic changes
+        document.getElementById('COMBINATION_LOGIC').addEventListener('change', function() {
+            loadPreviewCount();
+        });
+        
+        // Update preview when blacklist incorporation changes
+        document.getElementById('INCORPORATE_BLACKLIST').addEventListener('change', function() {
+            loadPreviewCount();
         });
         
         // Save configuration
@@ -510,6 +564,11 @@
             document.getElementById('COMBINATION_LOGIC').value = preset.COMBINATION_LOGIC;
             document.getElementById('HOPS_CUTOFF').value = preset.HOPS_CUTOFF;
             document.getElementById('INCORPORATE_BLACKLIST').value = preset.INCORPORATE_BLACKLIST.toString();
+            
+            // Update counts when preset is applied
+            loadInfluenceCount(preset.INFLUENCE_CUTOFF);
+            loadHopsCount(preset.HOPS_CUTOFF);
+            loadPreviewCount();
         }
         
         // Load preset buttons
@@ -599,6 +658,9 @@
         
         // Load initial hops count with default threshold
         loadHopsCount(1);
+        
+        // Load initial preview count with default parameters
+        loadPreviewCount();
     </script>
 </body>
 </html>
