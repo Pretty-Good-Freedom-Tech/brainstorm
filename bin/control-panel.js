@@ -2880,7 +2880,7 @@ function handleGetBlacklistConfig(req, res) {
     
     // Get the count of blacklisted pubkeys
     let blacklistedCount = 0;
-    const blacklistPath = '/usr/local/lib/node_modules/hasenpfeffr/plugins/blacklist_pubkeys.json';
+    const blacklistPath = '/usr/local/lib/strfry/plugins/data/blacklist_pubkeys.json';
     if (fs.existsSync(blacklistPath)) {
       try {
         const blacklistContent = fs.readFileSync(blacklistPath, 'utf8');
@@ -3290,7 +3290,7 @@ function handleGetWhitelistStats(req, res) {
     let lastModified = null;
     
     // Path to the whitelist file
-    const whitelistPath = '/usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json';
+    const whitelistPath = '/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json';
     
     if (fs.existsSync(whitelistPath)) {
       // Get the file stats for last modified time
