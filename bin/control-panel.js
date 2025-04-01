@@ -359,10 +359,16 @@ app.get('/api/calculation-status', handleCalculationStatus);
 app.get('/control/api/calculation-status', handleCalculationStatus);
 
 // Add route handler for running service management scripts
+app.get('/api/run-script', handleRunScript);
+app.post('/api/run-script', handleRunScript);
+app.get('/control/api/run-script', handleRunScript);
 app.post('/control/api/run-script', handleRunScript);
 
 // Add route handler for checking service status
+app.get('/api/service-status', handleServiceStatus);
+app.post('/api/service-status', handleServiceStatus);
 app.get('/control/api/service-status', handleServiceStatus);
+app.post('/control/api/service-status', handleServiceStatus);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {
