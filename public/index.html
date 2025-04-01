@@ -649,11 +649,16 @@
             const serviceStatusPromises = group.services.map(service => {
                 return fetch(`/control/api/service-status?service=${service}`)
                     .then(response => response.json())
+                    .then(data => {
+                        console.log(`Service ${service} status:`, data);
+                        return data;
+                    })
                     .catch(() => ({ active: false }));
             });
 
             Promise.all(serviceStatusPromises)
                 .then(statusResults => {
+                    console.log(`${groupName} status results:`, statusResults);
                     updateServiceGroupUI(groupName, statusResults);
                 })
                 .catch(error => {

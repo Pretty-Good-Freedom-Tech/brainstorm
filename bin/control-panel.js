@@ -3141,11 +3141,11 @@ function handleServiceStatus(req, res) {
     
     try {
         // Check if service is running using systemctl
-        const isActive = getServiceStatus(service);
+        const serviceStatus = getServiceStatus(service);
         
         return res.json({
             success: true,
-            active: isActive
+            active: serviceStatus === 'active'
         });
     } catch (error) {
         console.error(`Error checking service status for ${service}:`, error);
