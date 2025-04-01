@@ -1,7 +1,6 @@
 #!/bin/bash
 
 source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, STRFRY_PLUGINS_DATA
-source /etc/whitelist.conf
 
 WHITELIST_OUTPUT_DIR=${STRFRY_PLUGINS_DATA}
 
@@ -18,28 +17,7 @@ RETURN n.personalizedPageRank, n.pubkey
 ORDER BY n.personalizedPageRank DESC
 "
 
-CYPHER2="MATCH (n:NostrUser) "
-
-# Add condition based on combination logic
-if [ "$COMBINATION_LOGIC" = "AND" ]; then
-    CYPHER2+="WHERE (n.influence >= $INFLUENCE_CUTOFF AND n.hops <= $HOPS_CUTOFF)"
-else
-    CYPHER2+="WHERE (n.influence >= $INFLUENCE_CUTOFF OR n.hops <= $HOPS_CUTOFF)"
-fi
-
-# Add blacklist condition if needed
-if [ "$INCORPORATE_BLACKLIST" = "true" ]; then
-    CYPHER2+=" AND (n.blacklisted IS NULL OR n.blacklisted = 0)"
-fi
-        
-CYPHER2+="
-RETURN n.influence, n.pubkey
-ORDER BY n.influence DESC
-"
-
-echo "$CYPHER2" >> ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
-
-sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2" | tail -n +2 > ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt
+sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1" | tail -n +2 > ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt
 
 # create whitelist
 

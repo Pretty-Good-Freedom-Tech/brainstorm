@@ -17,13 +17,13 @@
 
 # ==========================================
 # DEFAULT PARAMETERS (lax)
-export INFLUENCE_CUTOFF_lax=0.1
+export INFLUENCE_CUTOFF_lax=0.05
 export COMBINATION_LOGIC_lax='OR'
 export HOPS_CUTOFF_lax=2
 export INCORPORATE_BLACKLIST_lax=false
 
 # DEFAULT PARAMETERS (DEFAULT)
-export INFLUENCE_CUTOFF_default=0.5
+export INFLUENCE_CUTOFF_default=0.6
 export COMBINATION_LOGIC_default='OR'
 export HOPS_CUTOFF_default=1
 export INCORPORATE_BLACKLIST_default=true
@@ -37,7 +37,7 @@ export INCORPORATE_BLACKLIST_strict=true
 # ==========================================
 # LIVE PARAMETERS
 
-export INFLUENCE_CUTOFF=0.5
+export INFLUENCE_CUTOFF=0.6
 export COMBINATION_LOGIC='OR'
 export HOPS_CUTOFF=1
 export INCORPORATE_BLACKLIST=true
