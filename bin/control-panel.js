@@ -2882,7 +2882,7 @@ function handleGetBlacklistConfig(req, res) {
         }
       }
     }
-    
+
     // Get the count of blacklisted pubkeys
     let blacklistedCount = 0;
     const blacklistPath = '/usr/local/lib/strfry/plugins/data/blacklist_pubkeys.json';
@@ -3189,7 +3189,7 @@ function handleGetInfluenceCount(req, res) {
         
         // Get Neo4j credentials from the configuration system
         const neo4jConnection = getNeo4jConnection();
-        const neo4jUser = neo4jConnection.username;
+        const neo4jUser = neo4jConnection.user;
         const neo4jPassword = neo4jConnection.password;
         
         if (!neo4jPassword) {
