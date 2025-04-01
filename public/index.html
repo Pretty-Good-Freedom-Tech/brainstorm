@@ -395,7 +395,7 @@
                 <div class="service-toggle-item">
                     <h4>Databases <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
                     <div class="toggle-container">
-                        <span class="toggle-label">Databases</span>
+                        <span class="toggle-label">Toggle strfry and neo4j on/off.</span>
                         <label class="switch">
                             <input type="checkbox" id="databasesToggle" onchange="toggleService('databases', this.checked)">
                             <span class="slider round"></span>
@@ -405,7 +405,7 @@
                 <div class="service-toggle-item">
                     <h4>Streaming <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the ETL pipeline streaming services that process FOLLOWS, MUTES, and REPORTS relationships in real-time.</span></span></h4>
                     <div class="toggle-container">
-                        <span class="toggle-label">Streaming</span>
+                        <span class="toggle-label">Stream follows, mutes, and reports in real time.</span>
                         <label class="switch">
                             <input type="checkbox" id="streamingToggle" onchange="toggleService('streaming', this.checked)">
                             <span class="slider round"></span>
@@ -415,7 +415,7 @@
                 <div class="service-toggle-item">
                     <h4>Routine Tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly calculates GrapeRank scores and other metrics using the FOLLOWS, MUTES, and REPORTS relationships.</span></span></h4>
                     <div class="toggle-container">
-                        <span class="toggle-label">Routine Tasks</span>
+                        <span class="toggle-label">Negentropy sync with friend relays, recalculate trust score metrics, export blacklist, whitelist, and NIP-85 data.</span>
                         <label class="switch">
                             <input type="checkbox" id="scoresToggle" onchange="toggleService('scores', this.checked)">
                             <span class="slider round"></span>

@@ -643,7 +643,7 @@ async function setupStrfryPlugins() {
       }
       
       // Copy JSON data files if they exist
-      const jsonFiles = ['whitelist_pubkeys.json', 'blacklist_pubkeys.json', 'whitelist_kinds.json'];
+      const jsonFiles = ['whitelist_pubkeys.json', 'blacklist_pubkeys.json', 'whitelist_kinds_filterPubkeyWhitelist.json', 'whitelist_kinds_acceptAll.json'];
       jsonFiles.forEach(jsonFile => {
         const sourceJsonFile = path.join(sourcePluginDir, jsonFile);
         const destJsonFile = path.join(pluginDataDir, jsonFile);
