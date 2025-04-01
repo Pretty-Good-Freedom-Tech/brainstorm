@@ -23,7 +23,7 @@ sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER
 
 touch ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
-echo "{" >> ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
+echo "{" > ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
 # iterate through all pubkeys and add to json file
 
