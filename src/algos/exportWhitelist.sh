@@ -21,13 +21,13 @@ sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER
 
 # create whitelist
 
-touch ${HASENPFEFFR_ALGOS_DIR}/whitelist_pubkeys.json
+touch ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
-echo "{" >> ${HASENPFEFFR_ALGOS_DIR}/whitelist_pubkeys.json
+echo "{" >> ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
 # iterate through all pubkeys and add to json file
 
-numLines=$(wc -l ${HASENPFEFFR_ALGOS_DIR}/whitelistQueryOutput.txt | awk '{print $1}')
+numLines=$(wc -l ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt | awk '{print $1}')
 
 whichLine=1
 while read -r p;
@@ -37,21 +37,18 @@ do
   IFS='"'
   read -ra array2 <<< "$p"
   if [ "$whichLine" -lt "$numLines" ]; then
-    echo "  \"${array2[1]}\": true," >> ${HASENPFEFFR_ALGOS_DIR}/whitelist_pubkeys.json
+    echo "  \"${array2[1]}\": true," >> ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
   else
-    echo "  \"${array2[1]}\": true" >> ${HASENPFEFFR_ALGOS_DIR}/whitelist_pubkeys.json
+    echo "  \"${array2[1]}\": true" >> ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
   fi
   ((whichLine++))
-done < ${HASENPFEFFR_ALGOS_DIR}/whitelistQueryOutput.txt
+done < ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt
 
-echo "}" >> ${HASENPFEFFR_ALGOS_DIR}/whitelist_pubkeys.json
+echo "}" >> ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
-# sudo mv /usr/local/lib/node_modules/hasenpfeffr/src/algos/whitelist_pubkeys.json /usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json
-# sudo chown hasenpfeffr:hasenpfeffr /usr/local/lib/node_modules/hasenpfeffr/plugins/whitelist_pubkeys.json
-sudo mv ${HASENPFEFFR_ALGOS_DIR}/whitelist_pubkeys.json ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 sudo chown hasenpfeffr:hasenpfeffr ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
 # clean up
-sudo rm ${HASENPFEFFR_ALGOS_DIR}/whitelistQueryOutput.txt
+sudo rm ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt
 
 echo "$(date): Finished exportWhitelist" >> ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
