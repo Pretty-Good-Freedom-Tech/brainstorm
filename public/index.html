@@ -283,6 +283,51 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Service Toggle Styles */
+        .service-toggles-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 5px solid #9b59b6;
+        }
+        .service-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .service-toggle-item {
+            flex: 1 1 30%;
+            min-width: 250px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .service-toggle-item h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status-partial {
+            background-color: #f39c12;
+        }
+        .status-on {
+            background-color: #2ecc71;
+        }
+        .status-off {
+            background-color: #e74c3c;
+        }
+        .status-unknown {
+            background-color: #95a5a6;
+        }
     </style>
     <script src="./header.js"></script>
 </head>
@@ -303,6 +348,38 @@
             </div>
             <div id="statusDetails" class="status-details" style="display: none;"></div>
         </div>
+
+        <!-- New Service Toggle Section -->
+        <div class="service-toggles-container">
+            <h3>Service Controls <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
+            <div class="service-toggles">
+                <div class="service-toggle-item">
+                    <h4>Databases <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
+                    <div class="toggle-container">
+                        <span id="databasesStatusIndicator" class="status-indicator status-unknown"></span>
+                        <span id="databasesStatusText">Checking...</span>
+                        <button id="toggleDatabasesButton" class="control-button" onclick="toggleService('databases')">Toggle</button>
+                    </div>
+                </div>
+                <div class="service-toggle-item">
+                    <h4>Streaming <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the ETL pipeline streaming services that process FOLLOWS, MUTES, and REPORTS relationships in real-time.</span></span></h4>
+                    <div class="toggle-container">
+                        <span id="streamingStatusIndicator" class="status-indicator status-unknown"></span>
+                        <span id="streamingStatusText">Checking...</span>
+                        <button id="toggleStreamingButton" class="control-button" onclick="toggleService('streaming')">Toggle</button>
+                    </div>
+                </div>
+                <div class="service-toggle-item">
+                    <h4>Routine Tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly calculates GrapeRank scores and other metrics using the FOLLOWS, MUTES, and REPORTS relationships.</span></span></h4>
+                    <div class="toggle-container">
+                        <span id="scoresStatusIndicator" class="status-indicator status-unknown"></span>
+                        <span id="scoresStatusText">Checking...</span>
+                        <button id="toggleScoresButton" class="control-button" onclick="toggleService('scores')">Toggle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <h3>Routine tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically every 6 hours when the processAllTasks systemd service timer is turned on. Alternatively, you can run them one at a time using the buttons below.</span></span></h3>
         <div class="calculation-status">
             <h3>Negentropy: download events in batch to strfry</h3>
@@ -516,12 +593,171 @@
 
         // Check services status on page load
         document.addEventListener('DOMContentLoaded', function() {
+            refreshCalculationTimes();
             checkServicesStatus();
-            loadCalculationTimes();
             loadServicesStatus();
             initializeActionButtons();
+            
+            // Check status of individual service groups
+            checkServiceGroupStatus('databases');
+            checkServiceGroupStatus('streaming');
+            checkServiceGroupStatus('scores');
+            
+            // Set up periodic refresh
+            setInterval(function() {
+                refreshCalculationTimes();
+                checkServicesStatus();
+                loadServicesStatus();
+                
+                // Refresh service group status
+                checkServiceGroupStatus('databases');
+                checkServiceGroupStatus('streaming');
+                checkServiceGroupStatus('scores');
+            }, 60000); // Refresh every minute
         });
 
+        // Define service groups and their member services
+        const serviceGroups = {
+            databases: {
+                services: ['neo4j', 'strfry'],
+                scripts: {
+                    on: '/src/manage/databases/turnOn.sh',
+                    off: '/src/manage/databases/turnOff.sh'
+                }
+            },
+            streaming: {
+                services: ['addToQueue', 'processQueue', 'strfry-router'],
+                scripts: {
+                    on: '/src/manage/streamingServices/turnOn.sh',
+                    off: '/src/manage/streamingServices/turnOff.sh'
+                }
+            },
+            scores: {
+                services: ['processAllTasks.timer'],
+                scripts: {
+                    on: '/src/manage/routineTasks/turnOn.sh',
+                    off: '/src/manage/routineTasks/turnOff.sh'
+                }
+            }
+        };
+
+        // Check status of a service group
+        function checkServiceGroupStatus(groupName) {
+            const group = serviceGroups[groupName];
+            if (!group) return;
+
+            const serviceStatusPromises = group.services.map(service => {
+                return fetch(`/control/api/service-status?service=${service}`)
+                    .then(response => response.json())
+                    .catch(() => ({ active: false }));
+            });
+
+            Promise.all(serviceStatusPromises)
+                .then(statusResults => {
+                    updateServiceGroupUI(groupName, statusResults);
+                })
+                .catch(error => {
+                    console.error(`Error checking ${groupName} status:`, error);
+                    updateServiceGroupUI(groupName, []);
+                });
+        }
+
+        // Update UI for service group based on status
+        function updateServiceGroupUI(groupName, statusResults) {
+            const indicator = document.getElementById(`${groupName}StatusIndicator`);
+            const statusText = document.getElementById(`${groupName}StatusText`);
+            const toggleButton = document.getElementById(`toggle${groupName.charAt(0).toUpperCase() + groupName.slice(1)}Button`);
+            
+            if (!indicator || !statusText || !toggleButton) return;
+            
+            // Remove all status classes
+            indicator.classList.remove('status-on', 'status-off', 'status-partial', 'status-unknown');
+            
+            if (statusResults.length === 0) {
+                // Error or unknown state
+                indicator.classList.add('status-unknown');
+                statusText.textContent = 'Unknown';
+                toggleButton.textContent = 'Toggle';
+                return;
+            }
+            
+            // Count active services
+            const activeCount = statusResults.filter(result => result.active).length;
+            
+            if (activeCount === 0) {
+                // All services are off
+                indicator.classList.add('status-off');
+                statusText.textContent = 'Off';
+                toggleButton.textContent = 'Turn On';
+                toggleButton.classList.remove('off-button');
+                toggleButton.classList.add('on-button');
+            } else if (activeCount === statusResults.length) {
+                // All services are on
+                indicator.classList.add('status-on');
+                statusText.textContent = 'On';
+                toggleButton.textContent = 'Turn Off';
+                toggleButton.classList.remove('on-button');
+                toggleButton.classList.add('off-button');
+            } else {
+                // Some services are on, some are off
+                indicator.classList.add('status-partial');
+                statusText.textContent = 'Partial';
+                toggleButton.textContent = 'Turn Off';
+                toggleButton.classList.remove('on-button');
+                toggleButton.classList.add('off-button');
+            }
+        }
+
+        // Toggle service group
+        function toggleService(groupName) {
+            const group = serviceGroups[groupName];
+            if (!group) return;
+            
+            const indicator = document.getElementById(`${groupName}StatusIndicator`);
+            const toggleButton = document.getElementById(`toggle${groupName.charAt(0).toUpperCase() + groupName.slice(1)}Button`);
+            
+            // Determine action based on current status
+            const action = indicator.classList.contains('status-on') ? 'off' : 'on';
+            
+            // Disable button during operation
+            toggleButton.disabled = true;
+            toggleButton.textContent = `${action === 'on' ? 'Starting' : 'Stopping'}...`;
+            
+            // Call the appropriate script
+            fetch(`/control/api/run-script`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    script: group.scripts[action]
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Re-enable button
+                    toggleButton.disabled = false;
+                    
+                    if (data.success) {
+                        // Wait a moment for services to fully start/stop
+                        setTimeout(() => {
+                            checkServiceGroupStatus(groupName);
+                        }, 2000);
+                    } else {
+                        console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, data.error);
+                        alert(`Failed to ${action === 'on' ? 'start' : 'stop'} ${groupName} services. Check the console for details.`);
+                        checkServiceGroupStatus(groupName);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, error);
+                    alert(`Failed to ${action === 'on' ? 'start' : 'stop'} ${groupName} services. Check the console for details.`);
+                    toggleButton.disabled = false;
+                    checkServiceGroupStatus(groupName);
+                });
+        }
+
+        // Check services status on page load
         function checkServicesStatus() {
             // For now, we'll just check if the strfry service is running
             fetch('/control/api/service-status?service=strfry')
