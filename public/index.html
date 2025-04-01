@@ -368,6 +368,35 @@
         .slider.round:before {
             border-radius: 50%;
         }
+        
+        /* Mini-status indicator styles */
+        .mini-status {
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .mini-status.active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .mini-status.inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .mini-status.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .mini-status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
     </style>
     <script src="./header.js"></script>
 </head>
@@ -421,6 +450,17 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
+                </div>
+                <div class="service-toggle-item">
+                    <h4>Stream Filtered Content <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls whether content events (kinds 1, 7, 30818, etc.) from whitelisted users are streamed through the relay.</span></span></h4>
+                    <div class="toggle-container">
+                        <span class="toggle-label">Stream content from whitelisted users only.</span>
+                        <label class="switch">
+                            <input type="checkbox" id="contentFilterToggle" onchange="toggleFilteredContent(this.checked)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div id="contentFilterStatus" class="mini-status"></div>
                 </div>
             </div>
         </div>
@@ -1369,6 +1409,77 @@
                         });
                 });
             });
+        }
+
+        // Function to check and set the status of all switches initially
+        function checkAllServices() {
+            checkServiceStatus('databases', 'databasesToggle');
+            checkServiceStatus('streaming', 'streamingToggle');
+            checkServiceStatus('scores', 'scoresToggle');
+            checkFilteredContentStatus();
+        }
+        
+        // Run initial status check
+        checkAllServices();
+
+        // Functions for content filter toggle
+        function checkFilteredContentStatus() {
+            fetch('/control/api/strfry-plugin?action=status')
+                .then(response => response.json())
+                .then(data => {
+                    const toggle = document.getElementById('contentFilterToggle');
+                    const statusEl = document.getElementById('contentFilterStatus');
+                    
+                    if (data.status === 'enabled') {
+                        toggle.checked = true;
+                        statusEl.textContent = 'Content filtering active';
+                        statusEl.className = 'mini-status active';
+                    } else {
+                        toggle.checked = false;
+                        statusEl.textContent = 'Content filtering inactive';
+                        statusEl.className = 'mini-status inactive';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking content filter status:', error);
+                    document.getElementById('contentFilterStatus').textContent = 'Status check failed';
+                    document.getElementById('contentFilterStatus').className = 'mini-status error';
+                });
+        }
+        
+        function toggleFilteredContent(enable) {
+            const toggle = document.getElementById('contentFilterToggle');
+            const statusEl = document.getElementById('contentFilterStatus');
+            
+            // Disable toggle while operation is in progress
+            toggle.disabled = true;
+            statusEl.textContent = enable ? 'Enabling content filtering...' : 'Disabling content filtering...';
+            statusEl.className = 'mini-status pending';
+            
+            // Call API to enable/disable the plugin
+            const action = enable ? 'enable' : 'disable';
+            fetch(`/control/api/strfry-plugin?action=${action}`)
+                .then(response => response.json())
+                .then(data => {
+                    toggle.disabled = false;
+                    
+                    if ((enable && data.status === 'enabled') || (!enable && data.status === 'disabled')) {
+                        statusEl.textContent = enable ? 'Content filtering active' : 'Content filtering inactive';
+                        statusEl.className = enable ? 'mini-status active' : 'mini-status inactive';
+                    } else {
+                        // Handle error
+                        toggle.checked = !enable; // Revert toggle position
+                        statusEl.textContent = 'Operation failed: ' + (data.error || 'Unknown error');
+                        statusEl.className = 'mini-status error';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling content filter:', error);
+                    toggle.disabled = false;
+                    toggle.checked = !enable; // Revert toggle position
+                    statusEl.textContent = 'Operation failed: ' + error.message;
+                    statusEl.className = 'mini-status error';
+                });
         }
     </script>
 </body>
