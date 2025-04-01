@@ -89,11 +89,14 @@ if [ -f "/etc/hasenpfeffr.conf" ]; then
         sudo sed -i "/HASENPFEFFR_RELAY_PUBKEY/c\export HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" /etc/hasenpfeffr.conf
         sudo sed -i "/HASENPFEFFR_RELAY_NPUB/c\export HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" /etc/hasenpfeffr.conf
         sudo sed -i "/HASENPFEFFR_RELAY_PRIVKEY/c\export HASENPFEFFR_RELAY_PRIVKEY='$HASENPFEFFR_RELAY_PRIVKEY'" /etc/hasenpfeffr.conf
+        sudo sed -i "/HASENPFEFFR_RELAY_NSEC/c\export HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" /etc/hasenpfeffr.conf
     else
         echo "Adding new keys to config..."
         echo "export HASENPFEFFR_RELAY_PUBKEY='$HASENPFEFFR_RELAY_PUBKEY'" | sudo tee -a /etc/hasenpfeffr.conf
         echo "export HASENPFEFFR_RELAY_NPUB='$HASENPFEFFR_RELAY_NPUB'" | sudo tee -a /etc/hasenpfeffr.conf
         echo "export HASENPFEFFR_RELAY_PRIVKEY='$HASENPFEFFR_RELAY_PRIVKEY'" | sudo tee -a /etc/hasenpfeffr.conf
+        echo "export HASENPFEFFR_RELAY_NSEC='$HASENPFEFFR_RELAY_NSEC'" | sudo tee -a /etc/hasenpfeffr.conf
+        echo "# keys added by create_nostr_identity.sh" | sudo tee -a /etc/hasenpfeffr.conf
     fi
 else
     echo "Warning: /etc/hasenpfeffr.conf not found. Only storing keys in $KEYS_FILE."
