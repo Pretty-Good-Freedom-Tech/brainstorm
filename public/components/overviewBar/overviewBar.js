@@ -144,7 +144,15 @@ class OverviewBar {
     fetchInstanceStatus() {
         console.log('Fetching instance status data for Overview Bar...');
         
-        fetch(window.location.origin + '/api/instance-status')
+        // Determine if we're in the /control/ path
+        const isControlPath = window.location.pathname.startsWith('/control/');
+        const apiUrl = isControlPath ? 
+            window.location.origin + '/control/api/instance-status' : 
+            window.location.origin + '/api/instance-status';
+        
+        console.log('Fetching from:', apiUrl);
+        
+        fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
