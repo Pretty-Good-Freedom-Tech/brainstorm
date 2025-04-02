@@ -6,6 +6,7 @@ source "$CONFIG_FILE" # HASENPFEFFR_MODULE_PIPELINE_DIR
 touch ${HASENPFEFFR_LOG_DIR}/callBatchTransferIfNeeded.log
 sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/callBatchTransferIfNeeded.log
 
+echo "$(date): Starting callBatchTransferIfNeeded"
 echo "$(date): Starting callBatchTransferIfNeeded" >> ${HASENPFEFFR_LOG_DIR}/callBatchTransferIfNeeded.log
 
 # First, determine from HASENPFEFFR_LOG_DIR/batchTransfer.log whether a transfer is needed
@@ -17,9 +18,15 @@ echo "$(date): Starting callBatchTransferIfNeeded" >> ${HASENPFEFFR_LOG_DIR}/cal
 
 batchTransferCompleted=$(cat ${HASENPFEFFR_LOG_DIR}/batchTransfer.log | grep "Finished batchTransfer")
 if [ -z "${batchTransferCompleted}" ]; then
+    echo "$(date): Continuing callBatchTransferIfNeeded ... starting batch/transfer.sh"
     echo "$(date): Continuing callBatchTransferIfNeeded ... starting batch/transfer.sh" >> ${HASENPFEFFR_LOG_DIR}/callBatchTransferIfNeeded.log
     sudo $HASENPFEFFR_MODULE_PIPELINE_DIR/batch/transfer.sh
+    echo "$(date): Continuing callBatchTransferIfNeeded ... batch/transfer.sh completed"
     echo "$(date): Continuing callBatchTransferIfNeeded ... batch/transfer.sh completed" >> ${HASENPFEFFR_LOG_DIR}/callBatchTransferIfNeeded.log
+else
+    echo "$(date): Continuing callBatchTransferIfNeeded ... batch/transfer.sh not needed"
+    echo "$(date): Continuing callBatchTransferIfNeeded ... batch/transfer.sh not needed" >> ${HASENPFEFFR_LOG_DIR}/callBatchTransferIfNeeded.log
 fi
 
+echo "$(date): Finished callBatchTransferIfNeeded"
 echo "$(date): Finished callBatchTransferIfNeeded" >> ${HASENPFEFFR_LOG_DIR}/callBatchTransferIfNeeded.log
