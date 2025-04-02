@@ -359,6 +359,10 @@
                         <h3>Followers</h3>
                         <p id="followerCountValue">-</p>
                     </div>
+                    <div class="stat-box">
+                        <h3>Verified Followers (influence > 0.05)</h3>
+                        <p id="verifiedFollowerCountValue">-</p>
+                    </div>
                 </div>
                 
                 <div class="profile-stats">
@@ -555,6 +559,10 @@
             if (data.followerCount !== null && data.followerCount !== undefined) {
                 followerCountValue.textContent = data.followerCount;
             }
+
+            if (data.verifiedFollowerCount !== null && data.verifiedFollowerCount !== undefined) {
+                verifiedFollowerCountValue.textContent = data.verifiedFollowerCount;
+            }
             
             if (data.mutingCount !== null && data.mutingCount !== undefined) {
                 mutingCountValue.textContent = data.mutingCount;
@@ -689,6 +697,10 @@
             
             if (userData.followerCount !== null && userData.followerCount !== undefined) {
                 followerCountValue.textContent = userData.followerCount;
+            }
+            
+            if (userData.verifiedFollowerCount !== null && userData.verifiedFollowerCount !== undefined) {
+                verifiedFollowerCountValue.textContent = userData.verifiedFollowerCount;
             }
             
             if (userData.mutingCount !== null && userData.mutingCount !== undefined) {

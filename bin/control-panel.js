@@ -1880,22 +1880,26 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)
       WITH u, count(following) as followingCount
       
-      // Count users that follow this user (with hops < 20)
+      // Count users that follow this user
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
-      WHERE follower.hops IS NOT NULL AND follower.hops < 20
       WITH u, followingCount, count(follower) as followerCount
-      
+
+      // Count verified users (influence > 0.05) that follow this user
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE follower.influence > 0.05
+      WITH u, followingCount, followerCount, count(follower) as verifiedFollowerCount
+
       // Count users that this user mutes
       OPTIONAL MATCH (u)-[m:MUTES]->(muted:NostrUser)
-      WITH u, followingCount, followerCount, count(muted) as mutingCount
+      WITH u, followingCount, followerCount, verifiedFollowerCount, count(muted) as mutingCount
       
       // Count users that mute this user
       OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(u)
-      WITH u, followingCount, followerCount, mutingCount, count(muter) as muterCount
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, count(muter) as muterCount
       
       // Count users that this user reports
       OPTIONAL MATCH (u)-[r:REPORTS]->(reported:NostrUser)
-      WITH u, followingCount, followerCount, mutingCount, muterCount, count(reported) as reportingCount
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, count(reported) as reportingCount
       
       // Count users that report this user
       OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
@@ -1908,6 +1912,7 @@ function handleGetUserData(req, res) {
              u.confidence as confidence,
              u.input as input,
              followingCount,
+             verifiedFollowerCount,
              followerCount,
              mutingCount,
              muterCount,
@@ -1936,6 +1941,7 @@ function handleGetUserData(req, res) {
             input: user.get('input') ? parseFloat(user.get('input').toString()) : null,
             followingCount: user.get('followingCount') ? parseInt(user.get('followingCount').toString()) : 0,
             followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0,
+            verifiedFollowerCount: user.get('verifiedFollowerCount') ? parseInt(user.get('verifiedFollowerCount').toString()) : 0,
             mutingCount: user.get('mutingCount') ? parseInt(user.get('mutingCount').toString()) : 0,
             muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
             reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,

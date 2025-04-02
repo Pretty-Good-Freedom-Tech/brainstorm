@@ -20,7 +20,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 ######################## FOLLOWS ###########################
 echo "$(date): Continuing batchTransfer ... starting to process follows"
-echo "$(date): Continuing batchTransfer ... starting to process follows" >> ${HASENPFEFFR_LOG_DIR}/runFullReconciliation.log
+echo "$(date): Continuing batchTransfer ... starting to process follows" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
 
 # Execute the scripts with full paths
 sudo "$SCRIPT_DIR/strfryToKind3Events.sh" "$1" "$2"
@@ -39,7 +39,7 @@ sudo rm /var/lib/neo4j/import/allKind3EventsStripped.json
 
 ######################## MUTES ###########################
 echo "$(date): Continuing batchTransfer ... finished processing follows, starting to process mutes"
-echo "$(date): Continuing batchTransfer ... finished processing follows, starting to process mutes" >> ${HASENPFEFFR_LOG_DIR}/runFullReconciliation.log
+echo "$(date): Continuing batchTransfer ... finished processing follows, starting to process mutes" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
 
 # Execute the scripts with full paths
 sudo "$SCRIPT_DIR/strfryToKind10000Events.sh" "$1" "$2"
@@ -58,7 +58,7 @@ sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
 
 ######################## REPORTS ###########################
 echo "$(date): Continuing batchTransfer ... finished processing mutes, starting to process reports"
-echo "$(date): Continuing batchTransfer ... finished processing mutes, starting to process reports" >> ${HASENPFEFFR_LOG_DIR}/runFullReconciliation.log
+echo "$(date): Continuing batchTransfer ... finished processing mutes, starting to process reports" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
 
 # Execute the scripts with full paths
 sudo "$SCRIPT_DIR/strfryToKind1984Events.sh" "$1" "$2"

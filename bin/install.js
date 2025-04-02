@@ -419,6 +419,15 @@ export HASENPFEFFR_STATUS=0
 
 ######################### actions #########################
 
+# whether to send email updates to owner
+export HASENPFEFFR_SEND_EMAIL_UPDATES=0
+
+# whether neo4j password has been reset
+export HASENPFEFFR_RESET_PASSWORD=0
+
+# whether neo4j constraints and indexes has been created
+export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=0
+
 # when STRFRY SYNC via NEGENTROPY was last run successfully
 export NEGENTROPY_LAST_SYNC_WEB_OF_TRUST=0
 export NEGENTROPY_LAST_SYNC_PROFILES=0

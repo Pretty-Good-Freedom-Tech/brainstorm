@@ -50,6 +50,8 @@ During installation, you will be prompted to enter the following 3 pieces of inf
 2. Your pubkey, e.g. `e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f`, i.e. the "owner" of the personal Webs of Trust relay.
 3. The Neo4j password that you will later be asked to enter when you access the Neo4j browser for the first time.
 
+After entering those 3 pieces of information, the installation takes quite a long time; about 8 minutes in total for me using an AWS EC2 t2.large instance.
+
 ```bash
 # Update system packages
 sudo apt update

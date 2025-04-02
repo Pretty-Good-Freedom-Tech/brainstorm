@@ -9,6 +9,7 @@ source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR
 touch ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log
 sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log
 
+echo "$(date): Starting exportBlacklist"
 echo "$(date): Starting exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
 
 set -e  # Exit on error
@@ -97,6 +98,9 @@ echo "Blacklisted $BLACKLISTED_COUNT users."
 echo "Retrieving blacklisted pubkeys..."
 BLACKLISTED_PUBKEYS=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$GET_BLACKLISTED_QUERY" | grep -v "pubkey" | grep -v "^$")
 
+echo "$(date): Continuing exportBlacklist ... finished cypher queries; about to create blacklist.json"
+echo "$(date): Continuing exportBlacklist ... finished cypher queries; about to create blacklist.json" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+
 # Create the blacklist JSON file
 echo "Creating blacklist JSON file..."
 echo "{" > "$BLACKLIST_OUTPUT_FILE.tmp"
@@ -116,6 +120,9 @@ mv "$BLACKLIST_OUTPUT_FILE.tmp" "$BLACKLIST_OUTPUT_FILE"
 sudo chmod 644 "$BLACKLIST_OUTPUT_FILE"
 sudo chown hasenpfeffr:hasenpfeffr "$BLACKLIST_OUTPUT_FILE"
 
+echo "$(date): Continuing exportBlacklist ... about to update blacklist.conf"
+echo "$(date): Continuing exportBlacklist ... about to update blacklist.conf" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+
 # Update the WHEN_LAST_CALCULATED timestamp in the configuration file
 TIMESTAMP=$(date +%s)
 TMP_CONF=$(mktemp)
@@ -131,9 +138,10 @@ echo "Total blacklisted pubkeys: $BLACKLISTED_COUNT"
 echo "Timestamp updated in $BLACKLIST_CONF"
 
 # Restart the strfry service to apply the new blacklist
-echo "Restarting strfry service to apply the new blacklist..."
-sudo systemctl restart strfry
+# echo "Restarting strfry service to apply the new blacklist..."
+# sudo systemctl restart strfry
 
 echo "Done!"
 
+echo "$(date): Finished exportBlacklist"
 echo "$(date): Finished exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  

@@ -60,11 +60,31 @@ The installation script will:
 4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
 5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`
 
+## Setup
+
+Once installed, go to https://relay.myCoolDomain.com/control/index.html to access the main page where you can flip all the switches to activate your WoT relay. It should take several hours to download follows, mutes and reports data from the network, calculate personalized webs of trust scores, create blacklists and whitelists, and begin to curate filtered content.
+
+## Customization
+
+There are several ways to customize your WoT relay. Each of the following has its own control panel.
+
+- Blacklist
+- Whitelist
+- GrapeRank parameters
+
 ## Usage
 
-Once installed, go to https://your-domain.com/control/index.html to access the main page where you can flip all the switches to activate your WoT relay. It should take several hours to download data from the network and calculate webs of trust scores, and to begin generating filtered content. Once this is complete, you and your friends can start to use your relay as a normal Nostr relay, one that is filtered by your WoT to remove spam and other unwanted content.
+### As a normal Nostr relay
 
-Best way to test whether your WoT relay is working: Create a new npub; use your WoT relay as your sole relay; and set the feed to global. Not every client can do this. Try nosdrudel.ninja if your favorite client can't.
+Once your WoT relay is active, you can use it as a normal Nostr relay, filtered by your WoT to remove spam and other unwanted content. A good way to test whether your WoT relay is working: Create a new npub; use your WoT relay as your sole relay; and set the feed to global. Not every client can do this. Try nosdrudel.ninja if your favorite client can't.
+
+### Use your personalized WoT scores with other nostr clients
+
+NIP-85 Trusted Assertions is a new feature of the Nostr protocol that allows you to publish your WoT scores to the network. This is a way to share your WoT scores with other relays and clients, and to make your WoT scores more accessible to the public.
+
+To export NIP-85 Trusted Assertions, go to https://relay.myCoolDomain.com/control/nip85-control-panel.html and publish a kind 10040 event. This is how nostr clients know how to access your WoT scores.
+
+As of April 2025, NIP-85 is not yet supported by any nostr clients. Hopefully it will be soon!
 
 ## License
 
