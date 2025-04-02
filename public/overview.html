@@ -4,20 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hasenpfeffr Instance Status Overview</title>
-    <!-- We'll load CSS dynamically based on path -->
-    <script>
-        // Determine if we're in the /control/ path
-        const isControlPath = window.location.pathname.startsWith('/control/');
-        const cssUrl = isControlPath ? 
-            window.location.origin + '/control/overviewBar/overviewBar.css' : 
-            window.location.origin + '/overviewBar/overviewBar.css';
-            
-        // Create link element for CSS
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = cssUrl;
-        document.head.appendChild(cssLink);
-    </script>
+    <!-- Use inline styles for the overview page to avoid MIME type issues -->
     <style>
         :root {
             --primary-color: #3498db;
@@ -149,6 +136,20 @@
         }
     </style>
     <script>
+        // Determine if we're in the /control/ path
+        const isControlPath = window.location.pathname.startsWith('/control/');
+        const cssUrl = isControlPath ? 
+            window.location.origin + '/control/overviewBar/overviewBar.css' : 
+            window.location.origin + '/overviewBar/overviewBar.css';
+            
+        // Create link element for CSS
+        const cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = cssUrl;
+        cssLink.type = 'text/css';
+        document.head.appendChild(cssLink);
+    </script>
+    <script>
         // Determine if we're in the /control/ path for header.js
         const headerJsPath = window.location.pathname.startsWith('/control/') ? 
             window.location.origin + '/control/header.js' : 
@@ -157,6 +158,7 @@
         // Dynamically load header.js
         const headerScript = document.createElement('script');
         headerScript.src = headerJsPath;
+        headerScript.type = 'text/javascript';
         document.head.appendChild(headerScript);
     </script>
     <!-- Load Chart.js before any scripts that use it -->

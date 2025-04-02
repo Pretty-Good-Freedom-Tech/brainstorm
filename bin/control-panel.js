@@ -92,7 +92,24 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public'), {
     setHeaders: (res, path, stat) => {
         if (path.endsWith('.css')) {
+            console.log('Setting CSS MIME type for:', path);
             res.set('Content-Type', 'text/css');
+        } else if (path.endsWith('.js')) {
+            console.log('Setting JS MIME type for:', path);
+            res.set('Content-Type', 'text/javascript');
+        }
+    }
+}));
+
+// Also serve /control/ as static files (mirror of public)
+app.use('/control', express.static(path.join(__dirname, '../public'), {
+    setHeaders: (res, path, stat) => {
+        if (path.endsWith('.css')) {
+            console.log('Setting CSS MIME type for /control path:', path);
+            res.set('Content-Type', 'text/css');
+        } else if (path.endsWith('.js')) {
+            console.log('Setting JS MIME type for /control path:', path);
+            res.set('Content-Type', 'text/javascript');
         }
     }
 }));
