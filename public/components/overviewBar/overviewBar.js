@@ -144,7 +144,7 @@ class OverviewBar {
     fetchInstanceStatus() {
         console.log('Fetching instance status data for Overview Bar...');
         
-        fetch('/api/instance-status')
+        fetch(window.location.origin + '/api/instance-status')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);

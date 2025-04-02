@@ -88,8 +88,14 @@ const port = process.env.CONTROL_PANEL_PORT || 7778;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, '../public')));
+// Serve static files from the public directory with proper MIME types
+app.use(express.static(path.join(__dirname, '../public'), {
+    setHeaders: (res, path, stat) => {
+        if (path.endsWith('.css')) {
+            res.set('Content-Type', 'text/css');
+        }
+    }
+}));
 
 // Session middleware
 app.use(session({
@@ -117,6 +123,14 @@ function serveHtmlFile(filename, res) {
 // Serve the HTML files
 app.get('/', (req, res) => {
     serveHtmlFile('index.html', res);
+});
+
+app.get('/overview.html', (req, res) => {
+    serveHtmlFile('overview.html', res);
+});
+
+app.get('/control/overview.html', (req, res) => {
+    serveHtmlFile('overview.html', res);
 });
 
 app.get('/control', (req, res) => {
