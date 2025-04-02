@@ -148,7 +148,19 @@
             }
         }
     </style>
-    <script src="./header.js"></script>
+    <script>
+        // Determine if we're in the /control/ path for header.js
+        const headerJsPath = window.location.pathname.startsWith('/control/') ? 
+            window.location.origin + '/control/header.js' : 
+            window.location.origin + '/header.js';
+        
+        // Dynamically load header.js
+        const headerScript = document.createElement('script');
+        headerScript.src = headerJsPath;
+        document.head.appendChild(headerScript);
+    </script>
+    <!-- Load Chart.js before any scripts that use it -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div id="header-placeholder"></div>
@@ -297,7 +309,7 @@
             <h2 class="section-title">Follows Network</h2>
             <div class="timestamp" id="followsNetworkTimestamp">Last calculated: -</div>
             
-            <div class="hops-chart" id="hopsChart"></div>
+            <canvas class="hops-chart" id="hopsChart"></canvas>
             
             <div class="grid-container">
                 <div class="stat-card">
@@ -327,9 +339,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Include Chart.js for visualizations -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
         // Function to load header
@@ -376,48 +385,70 @@
         let hopsChart;
         
         function initializeHopsChart(data) {
-            const ctx = document.getElementById('hopsChart').getContext('2d');
-            
-            // Destroy existing chart if it exists
-            if (hopsChart) {
-                hopsChart.destroy();
-            }
-            
-            const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', 'Disconnected'];
-            const hopData = [
-                data.followsNetwork.byHops[0],
-                data.followsNetwork.byHops[1],
-                data.followsNetwork.byHops[2],
-                data.followsNetwork.byHops[3],
-                data.followsNetwork.byHops[999]
-            ];
-            
-            hopsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: hopLabels,
-                    datasets: [{
-                        label: 'Users by Hops',
-                        data: hopData,
-                        backgroundColor: [
-                            '#3498db',
-                            '#2ecc71',
-                            '#9b59b6',
-                            '#e67e22',
-                            '#e74c3c'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            try {
+                const chartElement = document.getElementById('hopsChart');
+                
+                if (!chartElement) {
+                    console.error('Chart element not found');
+                    return;
+                }
+                
+                // Check if it's a canvas element
+                if (!(chartElement instanceof HTMLCanvasElement)) {
+                    console.error('Element is not a canvas:', chartElement);
+                    return;
+                }
+                
+                const ctx = chartElement.getContext('2d');
+                
+                if (!ctx) {
+                    console.error('Failed to get 2d context');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                if (hopsChart) {
+                    hopsChart.destroy();
+                }
+                
+                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', 'Disconnected'];
+                const hopData = [
+                    data.followsNetwork.byHops[0],
+                    data.followsNetwork.byHops[1],
+                    data.followsNetwork.byHops[2],
+                    data.followsNetwork.byHops[3],
+                    data.followsNetwork.byHops[999]
+                ];
+                
+                hopsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: hopLabels,
+                        datasets: [{
+                            label: 'Users by Hops',
+                            data: hopData,
+                            backgroundColor: [
+                                '#3498db',
+                                '#2ecc71',
+                                '#9b59b6',
+                                '#e67e22',
+                                '#e74c3c'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Error initializing hops chart:', error);
+            }
         }
         
         // Function to update the UI with the instance status data
