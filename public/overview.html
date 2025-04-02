@@ -148,6 +148,7 @@
             }
         }
     </style>
+    <script src="./header.js"></script>
 </head>
 <body>
     <div id="header-placeholder"></div>
@@ -332,6 +333,18 @@
     
     <script>
         // Function to load header
+        // Load the header component
+        fetch('./header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+        /*
         function loadHeader() {
             const headerPlaceholder = document.getElementById('header-placeholder');
             
@@ -356,6 +369,7 @@
                     console.error('Error loading header component:', error);
                 });
         }
+        */
         
         // Function to format timestamp
         function formatTimestamp(timestamp) {
@@ -523,7 +537,7 @@
         // Set up event listeners
         document.addEventListener('DOMContentLoaded', function() {
             // Load header
-            loadHeader();
+            // loadHeader();
             
             // Fetch initial data
             fetchInstanceStatus();
