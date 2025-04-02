@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview Bar Demo</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="./overviewBar.css">
+    <style>
+        .demo-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        
+        .code-block {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            overflow-x: auto;
+            white-space: pre;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 20px 0;
+        }
+        
+        .step {
+            margin-bottom: 30px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include the Overview Bar -->
+    <div id="overview-bar-placeholder"></div>
+    
+    <div id="header-placeholder"></div>
+    
+    <div class="demo-container">
+        <h1>How to Include the Overview Bar</h1>
+        
+        <div class="step">
+            <div class="step-title">Step 1: Include the CSS</div>
+            <p>Add the following link to your HTML head section:</p>
+            <div class="code-block">&lt;link rel="stylesheet" href="/components/overviewBar/overviewBar.css"&gt;</div>
+        </div>
+        
+        <div class="step">
+            <div class="step-title">Step 2: Add a placeholder in your HTML</div>
+            <p>Add a placeholder where you want the overview bar to appear (typically at the top of the page):</p>
+            <div class="code-block">&lt;div id="overview-bar-placeholder"&gt;&lt;/div&gt;</div>
+        </div>
+        
+        <div class="step">
+            <div class="step-title">Step 3: Load the component</div>
+            <p>Add JavaScript to load and initialize the component:</p>
+            <div class="code-block">
+// Load the overview bar component
+function loadOverviewBar() {
+    const placeholder = document.getElementById('overview-bar-placeholder');
+    
+    fetch('/components/overviewBar/overviewBar.html')
+        .then(response => response.text())
+        .then(html => {
+            placeholder.innerHTML = html;
+            
+            // Load the JavaScript
+            const script = document.createElement('script');
+            script.src = '/components/overviewBar/overviewBar.js';
+            document.body.appendChild(script);
+        })
+        .catch(error => console.error('Error loading overview bar:', error));
+}
+
+// Call this when your page loads
+document.addEventListener('DOMContentLoaded', loadOverviewBar);</div>
+        </div>
+        
+        <div class="step">
+            <div class="step-title">Additional Information</div>
+            <p>The overview bar will:</p>
+            <ul>
+                <li>Remember its collapsed/expanded state between page visits</li>
+                <li>Auto-refresh data every 5 minutes</li>
+                <li>Format large numbers in a compact form (1.2k, 3.5M)</li>
+                <li>Show relative timestamps (2m ago, 3h ago)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Load the header
+        function loadHeader() {
+            const headerPlaceholder = document.getElementById('header-placeholder');
+            
+            fetch('/header.html')
+                .then(response => response.text())
+                .then(data => {
+                    headerPlaceholder.innerHTML = data;
+                    // Initialize the header
+                    if (typeof initializeHeader === 'function') {
+                        initializeHeader();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading header component:', error);
+                });
+        }
+        
+        // Load the overview bar component
+        function loadOverviewBar() {
+            const placeholder = document.getElementById('overview-bar-placeholder');
+            
+            fetch('/components/overviewBar/overviewBar.html')
+                .then(response => response.text())
+                .then(html => {
+                    placeholder.innerHTML = html;
+                    
+                    // Load the JavaScript
+                    const script = document.createElement('script');
+                    script.src = '/components/overviewBar/overviewBar.js';
+                    document.body.appendChild(script);
+                })
+                .catch(error => console.error('Error loading overview bar:', error));
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHeader();
+            loadOverviewBar();
+        });
+    </script>
+</body>
+</html>

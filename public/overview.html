@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasenpfeffr Instance Status Overview</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --alert-color: #e74c3c;
+            --dark-color: #34495e;
+            --light-color: #ecf0f1;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .overview-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .overview-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        
+        .section-title {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-title {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-running {
+            background-color: var(--secondary-color);
+        }
+        
+        .status-stopped {
+            background-color: var(--alert-color);
+        }
+        
+        .status-unknown {
+            background-color: #f39c12;
+        }
+        
+        .timestamp {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .hops-chart {
+            height: 300px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: var(--box-shadow);
+            margin: 20px 0;
+            transition: background-color 0.2s ease;
+        }
+        
+        .refresh-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .last-updated {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .stat-value {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+    
+    <div class="overview-container">
+        <h1>Hasenpfeffr Instance Status Overview</h1>
+        
+        <button id="refreshButton" class="refresh-button">Refresh Data</button>
+        <div id="lastUpdated" class="last-updated">Last updated: Never</div>
+        
+        <!-- Strfry Section -->
+        <div class="overview-section">
+            <h2 class="section-title">Strfry Status</h2>
+            <div class="service-status" id="strfryServiceStatus">
+                <span class="status-indicator status-unknown"></span>
+                <span class="service-name">Service: </span>
+                <span class="service-state">checking...</span>
+            </div>
+            
+            <h3>Event Counts</h3>
+            <div class="grid-container">
+                <div class="stat-card">
+                    <div class="stat-title">Total Events</div>
+                    <div class="stat-value" id="totalEvents">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Recent (1h)</div>
+                    <div class="stat-value" id="recentEvents">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Profiles (Kind 0)</div>
+                    <div class="stat-value" id="profilesCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Notes (Kind 1)</div>
+                    <div class="stat-value" id="notesCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Follows (Kind 3)</div>
+                    <div class="stat-value" id="followsCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Reactions (Kind 7)</div>
+                    <div class="stat-value" id="reactionsCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Reports (Kind 1984)</div>
+                    <div class="stat-value" id="reportsCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Mutes (Kind 10000)</div>
+                    <div class="stat-value" id="mutesCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Wiki (Kind 30818)</div>
+                    <div class="stat-value" id="wikiCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">NIP-85 (Kind 10040)</div>
+                    <div class="stat-value" id="nip85Count">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Neo4j Section -->
+        <div class="overview-section">
+            <h2 class="section-title">Neo4j Status</h2>
+            <div class="service-status" id="neo4jServiceStatus">
+                <span class="status-indicator status-unknown"></span>
+                <span class="service-name">Service: </span>
+                <span class="service-state">checking...</span>
+            </div>
+            
+            <div class="grid-container">
+                <div class="stat-card">
+                    <div class="stat-title">Constraints</div>
+                    <div class="stat-value" id="neo4jConstraints">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Indexes</div>
+                    <div class="stat-value" id="neo4jIndexes">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Total Users</div>
+                    <div class="stat-value" id="totalUsers">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Total Relationships</div>
+                    <div class="stat-value" id="totalRelationships">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">FOLLOWS Relationships</div>
+                    <div class="stat-value" id="followsRelationships">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">REPORTS Relationships</div>
+                    <div class="stat-value" id="reportsRelationships">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">MUTES Relationships</div>
+                    <div class="stat-value" id="mutesRelationships">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Recent Relationships (1h)</div>
+                    <div class="stat-value" id="recentRelationships">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Whitelist & Blacklist Section -->
+        <div class="overview-section">
+            <h2 class="section-title">Whitelist & Blacklist</h2>
+            <div class="grid-container">
+                <div class="stat-card">
+                    <div class="stat-title">Whitelist Count</div>
+                    <div class="stat-value" id="whitelistCount">-</div>
+                    <div class="timestamp" id="whitelistTimestamp">Last updated: -</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Blacklist Count</div>
+                    <div class="stat-value" id="blacklistCount">-</div>
+                    <div class="timestamp" id="blacklistTimestamp">Last updated: -</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ranking Algorithms Section -->
+        <div class="overview-section">
+            <h2 class="section-title">Ranking Algorithms</h2>
+            <div class="grid-container">
+                <div class="stat-card">
+                    <div class="stat-title">GrapeRank Verified Users</div>
+                    <div class="stat-value" id="verifiedUsers">-</div>
+                    <div class="timestamp" id="grapeRankTimestamp">Last updated: -</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">PageRank</div>
+                    <div class="stat-value">-</div>
+                    <div class="timestamp" id="pageRankTimestamp">Last updated: -</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Follows Network Section -->
+        <div class="overview-section">
+            <h2 class="section-title">Follows Network</h2>
+            <div class="timestamp" id="followsNetworkTimestamp">Last calculated: -</div>
+            
+            <div class="hops-chart" id="hopsChart"></div>
+            
+            <div class="grid-container">
+                <div class="stat-card">
+                    <div class="stat-title">0 Hops (Self)</div>
+                    <div class="stat-value" id="hops0Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">1 Hop</div>
+                    <div class="stat-value" id="hops1Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">2 Hops</div>
+                    <div class="stat-value" id="hops2Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">3 Hops</div>
+                    <div class="stat-value" id="hops3Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Disconnected</div>
+                    <div class="stat-value" id="hops999Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Total Network</div>
+                    <div class="stat-value" id="followsNetworkTotal">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Function to load header
+        function loadHeader() {
+            const headerPlaceholder = document.getElementById('header-placeholder');
+            
+            fetch('header.html')
+                .then(response => response.text())
+                .then(data => {
+                    headerPlaceholder.innerHTML = data;
+                    // Initialize the header (call this after the header is loaded)
+                    if (typeof initializeHeader === 'function') {
+                        initializeHeader();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading header component:', error);
+                });
+        }
+        
+        // Function to format timestamp
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '-';
+            
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString();
+        }
+        
+        // Function to format large numbers with comma separators
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '-';
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // Initialize hops chart
+        let hopsChart;
+        
+        function initializeHopsChart(data) {
+            const ctx = document.getElementById('hopsChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (hopsChart) {
+                hopsChart.destroy();
+            }
+            
+            const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', 'Disconnected'];
+            const hopData = [
+                data.followsNetwork.byHops[0],
+                data.followsNetwork.byHops[1],
+                data.followsNetwork.byHops[2],
+                data.followsNetwork.byHops[3],
+                data.followsNetwork.byHops[999]
+            ];
+            
+            hopsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: hopLabels,
+                    datasets: [{
+                        label: 'Users by Hops',
+                        data: hopData,
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#9b59b6',
+                            '#e67e22',
+                            '#e74c3c'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Function to update the UI with the instance status data
+        function updateUI(data) {
+            console.log('Updating UI with data:', data);
+            
+            // Update last updated timestamp
+            document.getElementById('lastUpdated').textContent = `Last updated: ${formatTimestamp(data.timestamp)}`;
+            
+            // Update Strfry section
+            const strfryStatus = data.strfry.service.status;
+            const strfryStatusIndicator = document.querySelector('#strfryServiceStatus .status-indicator');
+            const strfryStatusText = document.querySelector('#strfryServiceStatus .service-state');
+            
+            strfryStatusIndicator.className = `status-indicator status-${strfryStatus === 'running' ? 'running' : 'stopped'}`;
+            strfryStatusText.textContent = strfryStatus;
+            
+            // Update event counts
+            document.getElementById('totalEvents').textContent = formatNumber(data.strfry.events.total);
+            document.getElementById('recentEvents').textContent = formatNumber(data.strfry.events.recent);
+            document.getElementById('profilesCount').textContent = formatNumber(data.strfry.events.byKind[0]);
+            document.getElementById('notesCount').textContent = formatNumber(data.strfry.events.byKind[1]);
+            document.getElementById('followsCount').textContent = formatNumber(data.strfry.events.byKind[3]);
+            document.getElementById('reactionsCount').textContent = formatNumber(data.strfry.events.byKind[7]);
+            document.getElementById('reportsCount').textContent = formatNumber(data.strfry.events.byKind[1984]);
+            document.getElementById('mutesCount').textContent = formatNumber(data.strfry.events.byKind[10000]);
+            document.getElementById('wikiCount').textContent = formatNumber(data.strfry.events.byKind[30818]);
+            document.getElementById('nip85Count').textContent = formatNumber(data.strfry.events.byKind[10040]);
+            
+            // Update Neo4j section
+            const neo4jStatus = data.neo4j.service.status;
+            const neo4jStatusIndicator = document.querySelector('#neo4jServiceStatus .status-indicator');
+            const neo4jStatusText = document.querySelector('#neo4jServiceStatus .service-state');
+            
+            neo4jStatusIndicator.className = `status-indicator status-${neo4jStatus === 'running' ? 'running' : 'stopped'}`;
+            neo4jStatusText.textContent = neo4jStatus;
+            
+            document.getElementById('neo4jConstraints').textContent = data.neo4j.constraints.status;
+            document.getElementById('neo4jIndexes').textContent = data.neo4j.indexes.status;
+            document.getElementById('totalUsers').textContent = formatNumber(data.neo4j.users.total);
+            document.getElementById('totalRelationships').textContent = formatNumber(data.neo4j.relationships.total);
+            document.getElementById('followsRelationships').textContent = formatNumber(data.neo4j.relationships.follows);
+            document.getElementById('reportsRelationships').textContent = formatNumber(data.neo4j.relationships.reports);
+            document.getElementById('mutesRelationships').textContent = formatNumber(data.neo4j.relationships.mutes);
+            document.getElementById('recentRelationships').textContent = formatNumber(data.neo4j.relationships.recent);
+            
+            // Update Whitelist & Blacklist section
+            document.getElementById('whitelistCount').textContent = formatNumber(data.whitelist.count);
+            document.getElementById('whitelistTimestamp').textContent = `Last updated: ${formatTimestamp(data.whitelist.lastUpdated)}`;
+            document.getElementById('blacklistCount').textContent = formatNumber(data.blacklist.count);
+            document.getElementById('blacklistTimestamp').textContent = `Last updated: ${formatTimestamp(data.blacklist.lastUpdated)}`;
+            
+            // Update Ranking Algorithms section
+            document.getElementById('verifiedUsers').textContent = formatNumber(data.grapeRank.verifiedUsers);
+            document.getElementById('grapeRankTimestamp').textContent = `Last updated: ${formatTimestamp(data.grapeRank.lastUpdated)}`;
+            document.getElementById('pageRankTimestamp').textContent = `Last updated: ${formatTimestamp(data.pageRank.lastUpdated)}`;
+            
+            // Update Follows Network section
+            document.getElementById('followsNetworkTimestamp').textContent = `Last calculated: ${formatTimestamp(data.followsNetwork.lastCalculated)}`;
+            document.getElementById('hops0Count').textContent = formatNumber(data.followsNetwork.byHops[0]);
+            document.getElementById('hops1Count').textContent = formatNumber(data.followsNetwork.byHops[1]);
+            document.getElementById('hops2Count').textContent = formatNumber(data.followsNetwork.byHops[2]);
+            document.getElementById('hops3Count').textContent = formatNumber(data.followsNetwork.byHops[3]);
+            document.getElementById('hops999Count').textContent = formatNumber(data.followsNetwork.byHops[999]);
+            document.getElementById('followsNetworkTotal').textContent = formatNumber(data.followsNetwork.total);
+            
+            // Initialize or update the hops chart
+            initializeHopsChart(data);
+        }
+        
+        // Function to fetch instance status data from the API
+        function fetchInstanceStatus() {
+            console.log('Fetching instance status data...');
+            
+            fetch('/api/instance-status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        updateUI(data);
+                    } else {
+                        console.error('Error in API response:', data.error);
+                        alert(`Failed to load instance status: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching instance status data:', error);
+                    alert(`Failed to load instance status: ${error.message}`);
+                });
+        }
+        
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load header
+            loadHeader();
+            
+            // Fetch initial data
+            fetchInstanceStatus();
+            
+            // Set up refresh button
+            document.getElementById('refreshButton').addEventListener('click', fetchInstanceStatus);
+            
+            // Set up auto-refresh every 5 minutes
+            setInterval(fetchInstanceStatus, 300000);
+        });
+    </script>
+</body>
+</html>

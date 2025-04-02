@@ -1,0 +1,82 @@
+<div class="overview-bar-container">
+    <div class="overview-bar" id="overviewBar">
+        <div class="toggle-button" id="toggleOverviewBar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+        
+        <div class="overview-bar-content">
+            <div class="overview-group">
+                <div class="overview-title">Strfry</div>
+                <div class="overview-item">
+                    <span class="status-indicator" id="strfryStatus"></span>
+                    <div class="overview-value">
+                        <span id="totalEvents">-</span> events
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overview-divider"></div>
+            
+            <div class="overview-group">
+                <div class="overview-title">Neo4j</div>
+                <div class="overview-item">
+                    <span class="status-indicator" id="neo4jStatus"></span>
+                    <div class="overview-value">
+                        <span id="totalUsers">-</span> users
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overview-divider"></div>
+            
+            <div class="overview-group">
+                <div class="overview-title">Whitelist</div>
+                <div class="overview-item">
+                    <div class="overview-value">
+                        <span id="whitelistCount">-</span> users
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overview-divider"></div>
+            
+            <div class="overview-group">
+                <div class="overview-title">Verified</div>
+                <div class="overview-item">
+                    <div class="overview-value">
+                        <span id="verifiedUsers">-</span> users
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overview-divider"></div>
+            
+            <div class="overview-group">
+                <div class="overview-title">Recent</div>
+                <div class="overview-item">
+                    <div class="overview-value">
+                        <span id="recentEvents">-</span> events (1h)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overview-divider"></div>
+            
+            <div class="overview-group">
+                <div class="overview-refresh-button" id="refreshOverviewBar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                    </svg>
+                </div>
+                <div class="overview-last-updated" id="lastUpdated">
+                    <span id="lastRefreshTime">Never</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
