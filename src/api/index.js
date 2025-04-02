@@ -9,6 +9,7 @@ const { getNeo4jStatus } = require('./neo4j/neo4jStatus');
 const { getListStatus } = require('./lists/listStatus');
 const { getRankingStatus } = require('./ranking/rankingStatus');
 const { getNetworkStatus } = require('./network/networkStatus');
+const { getDebugInfo } = require('./debug');
 
 /**
  * Register all API endpoints with the Express app
@@ -30,6 +31,10 @@ function register(app) {
     
     app.get('/api/network-status', getNetworkStatus);
     app.get('/control/api/network-status', getNetworkStatus);
+    
+    // Debug endpoint for troubleshooting server issues
+    app.get('/api/debug', getDebugInfo);
+    app.get('/control/api/debug', getDebugInfo);
     
     // Backward compatibility endpoint that calls all endpoints and combines results
     app.get('/api/instance-status', handleGetInstanceStatus);
