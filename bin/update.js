@@ -14,6 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { getConfigFromFile } = require('../src/utils/config');
 
 // Function to safely execute commands and handle errors
 function executeCommand(command, options = {}) {
@@ -31,33 +32,7 @@ function executeCommand(command, options = {}) {
 }
 
 // Function to get configuration from existing file
-function getConfigFromFile(varName, defaultValue = null) {
-  try {
-    const confFile = '/etc/hasenpfeffr.conf';
-    if (fs.existsSync(confFile)) {
-      const fileContent = fs.readFileSync(confFile, 'utf8');
-      const regex = new RegExp(`${varName}=[\"\\'](.*?)[\"\\'](\\s|$)`, 'gm');
-      const match = regex.exec(fileContent);
-      
-      if (match && match[1]) {
-        return match[1];
-      }
-      
-      // Try with source command as fallback
-      try {
-        const result = execSync(`source ${confFile} && echo $${varName}`, { shell: true }).toString().trim();
-        return result || defaultValue;
-      } catch (e) {
-        console.error(`Error running source command for ${varName}:`, e);
-        return defaultValue;
-      }
-    }
-    return defaultValue;
-  } catch (error) {
-    console.error(`Error getting config value for ${varName}:`, error);
-    return defaultValue;
-  }
-}
+// Removed this function as it's now centralized in getConfigFromFile
 
 // Backup important configuration values
 function backupConfiguration() {
