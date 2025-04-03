@@ -25,6 +25,12 @@ import WebSocket from 'ws';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import dns from 'dns';
+import { createRequire } from 'module';
+
+// Create require function for importing CommonJS modules
+const require = createRequire(import.meta.url);
+// Import the centralized getConfigFromFile function
+const { getConfigFromFile } = require('../utils/config.js');
 
 // Promisify exec for async/await usage
 const execAsync = promisify(exec);
@@ -723,39 +729,6 @@ function getRelayStatusName(status) {
     case 4: return 'DISCONNECTING';
     case 5: return 'RECONNECTING';
     default: return 'UNKNOWN';
-  }
-}
-
-// Function to get configuration values directly from /etc/hasenpfeffr.conf
-function getConfigFromFile(varName, defaultValue = null) {
-  try {
-    const confFile = '/etc/hasenpfeffr.conf';
-    if (fs.existsSync(confFile)) {
-      // Read the file content directly
-      const fileContent = fs.readFileSync(confFile, 'utf8');
-      console.log(`Reading config for ${varName} from ${confFile}`);
-      
-      // Look for the variable in the file content
-      const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']
-`, 'gm');
-      const match = regex.exec(fileContent);
-      
-      if (match && match[1]) {
-        console.log(`Found ${varName}=${match[1]}`);
-        return match[1];
-      }
-      
-      // If not found with regex, try the source command as fallback
-      console.log(`Trying source command for ${varName}`);
-      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
-      console.log(`Source command result for ${varName}: '${result}'`);
-      return result || defaultValue;
-    }
-    console.log(`Config file ${confFile} not found`);
-    return defaultValue;
-  } catch (error) {
-    console.error(`Error getting configuration value ${varName}:`, error.message);
-    return defaultValue;
   }
 }
 
