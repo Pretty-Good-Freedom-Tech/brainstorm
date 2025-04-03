@@ -36,6 +36,9 @@ else
     exit 1
 fi
 
+echo "$(date): Continuing exportBlacklist ... finished loading configuration; about to define cypher queries"
+echo "$(date): Continuing exportBlacklist ... finished loading configuration; about to define cypher queries" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+
 echo "Starting personalized blacklist calculation..."
 echo "Using parameters:"
 echo "  WEIGHT_FOLLOWED = $WEIGHT_FOLLOWED"
@@ -89,17 +92,23 @@ ORDER BY n.pubkey;
 EOF
 )
 
+echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation query"
+echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation query" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+
 # Run the calculation query
 echo "Calculating input values and blacklist status..."
 BLACKLISTED_COUNT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$CALCULATE_INPUTS_QUERY" | tail -n 1)
 echo "Blacklisted $BLACKLISTED_COUNT users."
 
+echo "$(date): Continuing exportBlacklist ... finished running calculation query; about to get blacklisted pubkeys"
+echo "$(date): Continuing exportBlacklist ... finished running calculation query; about to get blacklisted pubkeys" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+
 # Get the blacklisted pubkeys
 echo "Retrieving blacklisted pubkeys..."
 BLACKLISTED_PUBKEYS=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$GET_BLACKLISTED_QUERY" | grep -v "pubkey" | grep -v "^$")
 
-echo "$(date): Continuing exportBlacklist ... finished cypher queries; about to create blacklist.json"
-echo "$(date): Continuing exportBlacklist ... finished cypher queries; about to create blacklist.json" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Continuing exportBlacklist ... finished getting blacklisted pubkeys; about to create blacklist.json"
+echo "$(date): Continuing exportBlacklist ... finished getting blacklisted pubkeys; about to create blacklist.json" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
 
 # Create the blacklist JSON file
 echo "Creating blacklist JSON file..."
@@ -136,12 +145,6 @@ echo "Personalized blacklist calculation completed."
 echo "Blacklist file updated at $BLACKLIST_OUTPUT_FILE"
 echo "Total blacklisted pubkeys: $BLACKLISTED_COUNT"
 echo "Timestamp updated in $BLACKLIST_CONF"
-
-# Restart the strfry service to apply the new blacklist
-# echo "Restarting strfry service to apply the new blacklist..."
-# sudo systemctl restart strfry
-
-echo "Done!"
 
 echo "$(date): Finished exportBlacklist"
 echo "$(date): Finished exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
