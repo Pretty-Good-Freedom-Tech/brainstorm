@@ -46,6 +46,7 @@ echo "The user can now run sudo commands without being prompted for a password"
 
 # Set permissions for Hasenpfeffr scripts
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/negentropySync/*.sh
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/batchTransfer/*.sh
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/*.sh
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.sh
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.js
