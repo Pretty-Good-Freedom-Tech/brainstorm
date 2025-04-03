@@ -55,7 +55,11 @@ function handleAuthVerify(req, res) {
         
         if (!ownerPubkey) {
             console.error('HASENPFEFFR_OWNER_PUBKEY not set in configuration');
-            return res.status(500).json({ error: 'Server configuration error' });
+            return res.status(500).json({ 
+                error: 'Server configuration error', 
+                message: 'The HASENPFEFFR_OWNER_PUBKEY is not set in the server configuration.',
+                details: 'Config not found or empty'
+            });
         }
         
         // Check if the pubkey matches the owner pubkey
@@ -72,7 +76,12 @@ function handleAuthVerify(req, res) {
         } else {
             return res.json({ 
                 authorized: false, 
-                message: `Only the owner (${ownerPubkey.substring(0, 8)}...) can access the control panel` 
+                message: `Only the owner can access the control panel`, 
+                details: {
+                    providedKey: pubkey,
+                    expectedKey: ownerPubkey,
+                    keyComparison: `${pubkey.substring(0, 8)}... !== ${ownerPubkey.substring(0, 8)}...`
+                }
             });
         }
     } catch (error) {

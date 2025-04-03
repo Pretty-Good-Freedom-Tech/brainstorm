@@ -273,10 +273,25 @@
                         signInStatus.className = 'status error';
                         signInBtn.disabled = false;
                         
-                        // Display the user's pubkey for debugging
+                        // Display the user's pubkey and expected pubkey for debugging
                         const pubkeyInfo = document.createElement('div');
                         pubkeyInfo.className = 'pubkey-info';
-                        pubkeyInfo.innerHTML = `<strong>Your public key:</strong> <code>${pubkey}</code><br>This key does not match the authorized owner key in the server configuration.`;
+                        
+                        let infoHtml = `<strong>Your public key:</strong> <code>${pubkey}</code>`;
+                        
+                        // Add expected key details if available
+                        if (data.details) {
+                            if (data.details.expectedKey) {
+                                infoHtml += `<br><strong>Expected owner key:</strong> <code>${data.details.expectedKey}</code>`;
+                            }
+                            if (data.details.keyComparison) {
+                                infoHtml += `<br><strong>Comparison:</strong> ${data.details.keyComparison}`;
+                            }
+                        } else {
+                            infoHtml += `<br>This key does not match the authorized owner key in the server configuration.`;
+                        }
+                        
+                        pubkeyInfo.innerHTML = infoHtml;
                         signInStatus.appendChild(pubkeyInfo);
                     }
                 } catch (error) {
