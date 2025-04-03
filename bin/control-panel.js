@@ -711,7 +711,7 @@ function handleGenerateNip85(req, res) {
     
     // Get the NIP85 directory from environment or use default
     const nip85Dir = process.env.HASENPFEFFR_NIP85_DIR || '/usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85';
-    const scriptPath = path.join(nip85Dir, 'publishNip85_1.sh');
+    const scriptPath = path.join(nip85Dir, 'publishNip85.sh');
     
     // Set a longer timeout for the response (10 minutes)
     req.setTimeout(600000); // 10 minutes in milliseconds
