@@ -353,6 +353,30 @@
                     <div class="stat-value" id="hops4Count">-</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-title">5 Hops</div>
+                    <div class="stat-value" id="hops5Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">6 Hops</div>
+                    <div class="stat-value" id="hops6Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">7 Hops</div>
+                    <div class="stat-value" id="hops7Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">8 Hops</div>
+                    <div class="stat-value" id="hops8Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">9 Hops</div>
+                    <div class="stat-value" id="hops9Count">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">10 Hops</div>
+                    <div class="stat-value" id="hops10Count">-</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-title">Disconnected</div>
                     <div class="stat-value" id="hops999Count">-</div>
                 </div>
@@ -435,13 +459,19 @@
                     hopsChart.destroy();
                 }
                 
-                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', '4 Hops', 'Disconnected'];
+                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', '4 Hops', '5 Hops', '6 Hops', '7 Hops', '8 Hops', '9 Hops', '10 Hops', 'Disconnected'];
                 const hopData = [
                     data.followsNetwork.byHops[0],
                     data.followsNetwork.byHops[1],
                     data.followsNetwork.byHops[2],
                     data.followsNetwork.byHops[3],
                     data.followsNetwork.byHops[4],
+                    data.followsNetwork.byHops[5],
+                    data.followsNetwork.byHops[6],
+                    data.followsNetwork.byHops[7],
+                    data.followsNetwork.byHops[8],
+                    data.followsNetwork.byHops[9],
+                    data.followsNetwork.byHops[10],
                     data.followsNetwork.byHops[999]
                 ];
                 
@@ -458,7 +488,13 @@
                                 '#9b59b6',
                                 '#e67e22',
                                 '#e74c3c',
-                                '#95a5a6'
+                                '#95a5a6',
+                                '#4e5154',
+                                '#2f4f7f',
+                                '#66d9ef',
+                                '#8bc34a',
+                                '#f1c40f',
+                                '#e74c3c'
                             ],
                             borderWidth: 1
                         }]
@@ -556,6 +592,12 @@
             document.getElementById('hops2Count').textContent = formatNumber(networkByHops['2']);
             document.getElementById('hops3Count').textContent = formatNumber(networkByHops['3']);
             document.getElementById('hops4Count').textContent = formatNumber(networkByHops['4']);
+            document.getElementById('hops5Count').textContent = formatNumber(networkByHops['5']);
+            document.getElementById('hops6Count').textContent = formatNumber(networkByHops['6']);
+            document.getElementById('hops7Count').textContent = formatNumber(networkByHops['7']);
+            document.getElementById('hops8Count').textContent = formatNumber(networkByHops['8']);
+            document.getElementById('hops9Count').textContent = formatNumber(networkByHops['9']);
+            document.getElementById('hops10Count').textContent = formatNumber(networkByHops['10']);
             document.getElementById('hops999Count').textContent = formatNumber(networkByHops['999']);
             document.getElementById('followsNetworkTotal').textContent = formatNumber(data.followsNetwork.total);
             
@@ -767,6 +809,12 @@
             document.getElementById('hops2Count').textContent = formatNumber(networkByHops['2']);
             document.getElementById('hops3Count').textContent = formatNumber(networkByHops['3']);
             document.getElementById('hops4Count').textContent = formatNumber(networkByHops['4']);
+            document.getElementById('hops5Count').textContent = formatNumber(networkByHops['5']);
+            document.getElementById('hops6Count').textContent = formatNumber(networkByHops['6']);
+            document.getElementById('hops7Count').textContent = formatNumber(networkByHops['7']);
+            document.getElementById('hops8Count').textContent = formatNumber(networkByHops['8']);
+            document.getElementById('hops9Count').textContent = formatNumber(networkByHops['9']);
+            document.getElementById('hops10Count').textContent = formatNumber(networkByHops['10']);
             document.getElementById('hops999Count').textContent = formatNumber(networkByHops['999']);
             document.getElementById('followsNetworkTotal').textContent = formatNumber(data.total);
             
@@ -804,13 +852,19 @@
                 
                 const networkByHops = data.byHops;
                 
-                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', '4 Hops', 'Disconnected'];
+                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', '4 Hops', '5 Hops', '6 Hops', '7 Hops', '8 Hops', '9 Hops', '10 Hops', 'Disconnected'];
                 const hopData = [
                     networkByHops['0'] || 0,
                     networkByHops['1'] || 0,
                     networkByHops['2'] || 0,
                     networkByHops['3'] || 0,
                     networkByHops['4'] || 0,
+                    networkByHops['5'] || 0,
+                    networkByHops['6'] || 0,
+                    networkByHops['7'] || 0,
+                    networkByHops['8'] || 0,
+                    networkByHops['9'] || 0,
+                    networkByHops['10'] || 0,
                     networkByHops['999'] || 0
                 ];
                 
@@ -834,7 +888,13 @@
                                 '#9b59b6',  // Purple
                                 '#e67e22',  // Orange
                                 '#e74c3c',  // Red
-                                '#95a5a6'   // Gray
+                                '#95a5a6',  // Gray
+                                '#4e5154',  // Dark Gray
+                                '#2f4f7f',  // Dark Blue
+                                '#66d9ef',  // Light Blue
+                                '#8bc34a',  // Light Green
+                                '#f1c40f',  // Yellow
+                                '#e74c3c'   // Red
                             ],
                             borderWidth: 1
                         }]

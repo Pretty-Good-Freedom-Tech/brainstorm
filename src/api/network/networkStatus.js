@@ -34,6 +34,12 @@ function getNetworkStatus(req, res) {
             2: 0,
             3: 0,
             4: 0,
+            5: 0,
+            6: 0,
+            7: 0,
+            8: 0,
+            9: 0,
+            10: 0,
             999: 0 // Disconnected
         },
         total: 0
@@ -77,7 +83,7 @@ function getNetworkStatus(req, res) {
     
     if (neo4jUser && neo4jPassword) {
         // Count users by hops
-        [0, 1, 2, 3, 4, 999].forEach(hops => {
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 999].forEach(hops => {
             promises.push(
                 new Promise((resolve) => {
                     let query;
