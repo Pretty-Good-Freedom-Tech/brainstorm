@@ -10,34 +10,8 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-
-// Function to get configuration values directly from /etc/hasenpfeffr.conf
-function getConfigFromFile(varName, defaultValue = null) {
-  try {
-    const confFile = '/etc/hasenpfeffr.conf';
-    if (fs.existsSync(confFile)) {
-      // Read the file content directly
-      const fileContent = fs.readFileSync(confFile, 'utf8');
-      
-      // Look for the variable in the file content
-      const regex = new RegExp(`${varName}=[\"\\'](.*?)[\"\\'](\\s|$)`, 'gm');
-      const match = regex.exec(fileContent);
-      
-      if (match && match[1]) {
-        return match[1];
-      }
-      
-      // If not found with regex, try the source command as fallback
-      const { execSync } = require('child_process');
-      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
-      return result || defaultValue;
-    }
-    return defaultValue;
-  } catch (error) {
-    console.error(`Error getting config value for ${varName}:`, error);
-    return defaultValue;
-  }
-}
+const { execSync } = require('child_process');
+const { getConfigFromFile } = require('../src/utils/config');
 
 // Get relay configuration
 const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
