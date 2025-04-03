@@ -10,6 +10,13 @@ const { getListStatus } = require('./lists/listStatus');
 const { getRankingStatus } = require('./ranking/rankingStatus');
 const { getNetworkStatus } = require('./network/networkStatus');
 const { getDebugInfo } = require('./debug');
+const { 
+    handleAuthVerify, 
+    handleAuthLogin, 
+    handleAuthLogout, 
+    handleAuthStatus, 
+    authMiddleware 
+} = require('./auth/authHandler');
 
 /**
  * Register all API endpoints with the Express app
@@ -35,6 +42,19 @@ function register(app) {
     // Debug endpoint for troubleshooting server issues
     app.get('/api/debug', getDebugInfo);
     app.get('/control/api/debug', getDebugInfo);
+    
+    // Authentication endpoints
+    app.post('/api/auth/verify', handleAuthVerify);
+    app.post('/control/api/auth/verify', handleAuthVerify);
+    
+    app.post('/api/auth/login', handleAuthLogin);
+    app.post('/control/api/auth/login', handleAuthLogin);
+    
+    app.get('/api/auth/logout', handleAuthLogout);
+    app.get('/control/api/auth/logout', handleAuthLogout);
+    
+    app.get('/api/auth/status', handleAuthStatus);
+    app.get('/control/api/auth/status', handleAuthStatus);
     
     // Backward compatibility endpoint that calls all endpoints and combines results
     app.get('/api/instance-status', handleGetInstanceStatus);

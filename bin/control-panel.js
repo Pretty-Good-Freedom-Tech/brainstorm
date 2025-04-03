@@ -392,26 +392,6 @@ app.get('/control/api/blacklist-count', handleGetBlacklistCount);
 app.get('/api/whitelist-preview-count', handleGetWhitelistPreviewCount);
 app.get('/control/api/whitelist-preview-count', handleGetWhitelistPreviewCount);
 
-// Authentication endpoints
-app.post('/api/auth/verify', handleAuthVerify);
-app.post('/api/auth/login', handleAuthLogin);
-
-// API endpoint for checking authentication status
-app.get('/api/auth/status', (req, res) => {
-    if (req.session && req.session.authenticated) {
-        res.json({
-            authenticated: true,
-            pubkey: req.session.pubkey
-        });
-    } else {
-        res.json({
-            authenticated: false
-        });
-    }
-});
-app.get('/api/auth/logout', handleAuthLogout);
-app.get('/control/api/auth/logout', handleAuthLogout);
-
 // Add route handler for Hasenpfeffr control
 app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
 app.post('/control/api/hasenpfeffr-control', handleHasenpfeffrControl);
@@ -1206,7 +1186,7 @@ function handleBatchTransfer(req, res) {
             success: true,
             continueInBackground: true,
             message: 'Batch transfer initiated',
-            output: 'Batch transfer process started. This will continue in the background.\n'
+            output: 'Batch transfer process started. This process will continue in the background.\n'
         });
     }, 120000); // 2 minutes timeout
     
@@ -3244,7 +3224,7 @@ function handleGetInstanceStatus_deprecated(req, res) {
 }
 
 // Authentication handlers
-function handleAuthVerify(req, res) {
+function handleAuthVerify_deprecated(req, res) {
     try {
         const { pubkey } = req.body;
         
@@ -3287,7 +3267,7 @@ function handleAuthVerify(req, res) {
     }
 }
 
-function handleAuthLogin(req, res) {
+function handleAuthLogin_deprecated(req, res) {
     try {
         const { event, nsec } = req.body;
         
@@ -3357,7 +3337,7 @@ function handleAuthLogin(req, res) {
     }
 }
 
-function handleAuthLogout(req, res) {
+function handleAuthLogout_deprecated(req, res) {
     // Destroy the session
     req.session.destroy(err => {
         if (err) {
