@@ -19,11 +19,62 @@ const {
     authMiddleware 
 } = require('./auth/authHandler');
 
+// For configuration
+const fs = require('fs');
+
+/**
+ * Get configuration values directly from /etc/hasenpfeffr.conf
+ * @param {string} varName - Name of the configuration variable
+ * @param {*} defaultValue - Default value to return if variable is not found
+ * @returns {string} Value of the configuration variable or default value
+ */
+function getConfigFromFile(varName, defaultValue = null) {
+    try {
+        const confFile = '/etc/hasenpfeffr.conf';
+        if (fs.existsSync(confFile)) {
+            // Read the file content directly
+            const fileContent = fs.readFileSync(confFile, 'utf8');
+            
+            // Look for the variable in the file content
+            const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']`, 'gm');
+            const match = regex.exec(fileContent);
+            
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+    } catch (error) {
+        console.error(`Error reading config for ${varName}:`, error);
+    }
+    
+    return defaultValue;
+}
+
 /**
  * Register all API endpoints with the Express app
  * @param {Object} app - Express app instance
  */
 function register(app) {
+    // We need to make sure session middleware is applied to the app
+    // Check if it's already been applied
+    if (!app._hasenpfeffrSessionConfigured) {
+        console.log('Configuring session middleware for Hasenpfeffr API...');
+        
+        // Load express-session only if needed
+        const session = require('express-session');
+        
+        // Configure session middleware - this must match the main app's configuration
+        app.use(session({
+            secret: getConfigFromFile('SESSION_SECRET', 'hasenpfeffr-default-session-secret-please-change-in-production'),
+            resave: false,
+            saveUninitialized: true,
+            cookie: { secure: false } // Set secure:true if using HTTPS
+        }));
+        
+        // Mark session as configured
+        app._hasenpfeffrSessionConfigured = true;
+    }
+    
     // Register new modular endpoints for both paths
     app.get('/api/strfry-status', getStrfryStatus);
     app.get('/control/api/strfry-status', getStrfryStatus);
