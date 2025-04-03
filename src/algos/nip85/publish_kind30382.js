@@ -15,7 +15,7 @@ const crypto = require('crypto');
 const neo4j = require('neo4j-driver');
 const nostrTools = require('nostr-tools');
 const WebSocket = require('ws');
-const { getConfigFromFile } = require('../../../utils/config');
+const { getConfigFromFile } = require('../../utils/config');
 
 // Get relay configuration
 const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
