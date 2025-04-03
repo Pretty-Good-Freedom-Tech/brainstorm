@@ -12,10 +12,13 @@ const neo4j = require('neo4j-driver');
 const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
+const multer = require('multer');
 const crypto = require('crypto');
 const { exec, execSync } = require('child_process');
 const WebSocket = require('ws');
+const { spawn } = require('child_process');
+const { v4: uuidv4 } = require('uuid');
+const fetch = require('node-fetch');
 const { NDKEvent, NDK } = require('@nostr-dev-kit/ndk');
 // Set up WebSocket implementation for NDK in Node.js environment
 const { useWebSocketImplementation } = require('nostr-tools/pool');
@@ -25,47 +28,17 @@ useWebSocketImplementation(WebSocket);
 // Import API modules
 const api = require('../src/api');
 
-// Import configuration
-let config;
+// Import centralized configuration utility
+const { getConfigFromFile } = require('../src/utils/config');
+
+// Load configuration
+let config = {};
 try {
   const configModule = require('../lib/config');
   config = configModule.getAll();
 } catch (error) {
   console.warn('Could not load configuration:', error.message);
   config = {};
-}
-
-// Function to get configuration values directly from /etc/hasenpfeffr.conf
-function getConfigFromFile(varName, defaultValue = null) {
-  try {
-    const confFile = '/etc/hasenpfeffr.conf';
-    if (fs.existsSync(confFile)) {
-      // Read the file content directly
-      const fileContent = fs.readFileSync(confFile, 'utf8');
-      console.log(`Reading config for ${varName} from ${confFile}`);
-      
-      // Look for the variable in the file content
-      const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']
-`, 'gm');
-      const match = regex.exec(fileContent);
-      
-      if (match && match[1]) {
-        console.log(`Found ${varName}=${match[1]}`);
-        return match[1];
-      }
-      
-      // If not found with regex, try the source command as fallback
-      console.log(`Trying source command for ${varName}`);
-      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
-      console.log(`Source command result for ${varName}: '${result}'`);
-      return result || defaultValue;
-    }
-    console.log(`Config file ${confFile} not found`);
-    return defaultValue;
-  } catch (error) {
-    console.error(`Error getting configuration value ${varName}:`, error.message);
-    return defaultValue;
-  }
 }
 
 // Function to get Neo4j connection details
