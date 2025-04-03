@@ -78,10 +78,10 @@ sudo chmod +x *.js
 
 echo "=== /var/lib/hasenpfeffr files Installation ==="
 
-mkdir -p /var/lib/hasenpfeffr/pipeline/stream
-mkdir -p /var/lib/hasenpfeffr/pipeline/reconcile
-mkdir -p /var/lib/hasenpfeffr/data/published
-mkdir -p /var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp
+sudo mkdir -p /var/lib/hasenpfeffr/pipeline/stream
+sudo mkdir -p /var/lib/hasenpfeffr/pipeline/reconcile
+sudo mkdir -p /var/lib/hasenpfeffr/data/published
+sudo mkdir -p /var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp
 cd /var/lib
 sudo chown -R hasenpfeffr:hasenpfeffr hasenpfeffr
 sudo chmod -R 755 hasenpfeffr
