@@ -134,6 +134,24 @@
                 font-size: 1.2rem;
             }
         }
+        
+        /* Add loading and error styles */
+        .loading {
+            opacity: 0.5;
+        }
+        
+        .error {
+            opacity: 0.5;
+            background-color: #f2dede;
+            border-color: #ebccd1;
+            color: #a94442;
+        }
+        
+        .section-error {
+            font-size: 0.9rem;
+            color: #a94442;
+            margin-top: 10px;
+        }
     </style>
     <script>
         // Determine if we're in the /control/ path
@@ -174,7 +192,7 @@
         <div id="lastUpdated" class="last-updated">Last updated: Never</div>
         
         <!-- Strfry Section -->
-        <div class="overview-section">
+        <div class="overview-section" id="strfrySection">
             <h2 class="section-title">Strfry Status</h2>
             <div class="service-status" id="strfryServiceStatus">
                 <span class="status-indicator status-unknown"></span>
@@ -228,7 +246,7 @@
         </div>
         
         <!-- Neo4j Section -->
-        <div class="overview-section">
+        <div class="overview-section" id="neo4jSection">
             <h2 class="section-title">Neo4j Status</h2>
             <div class="service-status" id="neo4jServiceStatus">
                 <span class="status-indicator status-unknown"></span>
@@ -273,7 +291,7 @@
         </div>
         
         <!-- Whitelist & Blacklist Section -->
-        <div class="overview-section">
+        <div class="overview-section" id="listsSection">
             <h2 class="section-title">Whitelist & Blacklist</h2>
             <div class="grid-container">
                 <div class="stat-card">
@@ -290,7 +308,7 @@
         </div>
         
         <!-- Ranking Algorithms Section -->
-        <div class="overview-section">
+        <div class="overview-section" id="rankingSection">
             <h2 class="section-title">Ranking Algorithms</h2>
             <div class="grid-container">
                 <div class="stat-card">
@@ -307,7 +325,7 @@
         </div>
         
         <!-- Follows Network Section -->
-        <div class="overview-section">
+        <div class="overview-section" id="networkSection">
             <h2 class="section-title">Follows Network</h2>
             <div class="timestamp" id="followsNetworkTimestamp">Last calculated: -</div>
             
@@ -330,6 +348,11 @@
                     <div class="stat-title">3 Hops</div>
                     <div class="stat-value" id="hops3Count">-</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-title">4 Hops</div>
+                    <div class="stat-value" id="hops4Count">-</div>
+                </div>
+
                 <div class="stat-card">
                     <div class="stat-title">Disconnected</div>
                     <div class="stat-value" id="hops999Count">-</div>
@@ -413,12 +436,13 @@
                     hopsChart.destroy();
                 }
                 
-                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', 'Disconnected'];
+                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', '4 Hops', 'Disconnected'];
                 const hopData = [
                     data.followsNetwork.byHops[0],
                     data.followsNetwork.byHops[1],
                     data.followsNetwork.byHops[2],
                     data.followsNetwork.byHops[3],
+                    data.followsNetwork.byHops[4],
                     data.followsNetwork.byHops[999]
                 ];
                 
@@ -548,78 +572,274 @@
                 window.location.origin + '/control/api/' : 
                 window.location.origin + '/api/';
             
-            // Define all the endpoints to fetch
-            const endpoints = [
-                'strfry-status',
-                'neo4j-status',
-                'list-status',
-                'ranking-status',
-                'network-status'
+            // Update last updated timestamp
+            document.getElementById('lastUpdated').textContent = `Last updated: ${formatTimestamp(Math.floor(Date.now() / 1000))}`;
+            
+            // Define all the endpoints to fetch and their corresponding update functions
+            const endpointConfigs = [
+                {
+                    endpoint: 'strfry-status',
+                    updateFn: updateStrfrySection
+                },
+                {
+                    endpoint: 'neo4j-status',
+                    updateFn: updateNeo4jSection
+                },
+                {
+                    endpoint: 'list-status',
+                    updateFn: updateListsSection
+                },
+                {
+                    endpoint: 'ranking-status',
+                    updateFn: updateRankingSection
+                },
+                {
+                    endpoint: 'network-status',
+                    updateFn: updateNetworkSection
+                }
             ];
             
-            // Create an array of fetch promises
-            const fetchPromises = endpoints.map(endpoint => {
-                const url = apiBaseUrl + endpoint;
-                console.log('Fetching from:', url);
+            // Fetch and update each section independently
+            endpointConfigs.forEach(config => {
+                const url = apiBaseUrl + config.endpoint;
+                console.log(`Fetching from: ${url}`);
                 
-                return fetch(url)
+                // Set loading indicator for this section
+                setLoadingState(config.endpoint, true);
+                
+                fetch(url)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status} for ${endpoint}`);
+                            throw new Error(`HTTP error! Status: ${response.status} for ${config.endpoint}`);
                         }
                         return response.json();
                     })
+                    .then(data => {
+                        console.log(`Received data for ${config.endpoint}:`, data);
+                        // Update the corresponding section in the UI
+                        config.updateFn(data);
+                        // Clear loading indicator
+                        setLoadingState(config.endpoint, false);
+                    })
                     .catch(error => {
-                        console.error(`Error fetching ${endpoint}:`, error);
-                        // Return a minimal valid structure to prevent breaking the UI
-                        return { 
-                            success: false, 
-                            error: error.message,
-                            endpoint: endpoint
-                        };
+                        console.error(`Error fetching ${config.endpoint}:`, error);
+                        // Show error in the UI for this section
+                        showSectionError(config.endpoint, error.message);
+                        // Clear loading indicator
+                        setLoadingState(config.endpoint, false);
                     });
             });
+        }
+        
+        // Helper function to set loading state for a section
+        function setLoadingState(endpoint, isLoading) {
+            const sectionMap = {
+                'strfry-status': 'strfrySection',
+                'neo4j-status': 'neo4jSection',
+                'list-status': 'listsSection',
+                'ranking-status': 'rankingSection',
+                'network-status': 'networkSection'
+            };
             
-            // Execute all fetch requests in parallel
-            Promise.all(fetchPromises)
-                .then(results => {
-                    console.log('All API responses received:', results);
-                    
-                    // Check if all requests were successful
-                    const allSuccessful = results.every(result => result.success !== false);
-                    
-                    if (allSuccessful) {
-                        // Extract data from each endpoint
-                        const [strfryData, neo4jData, listData, rankingData, networkData] = results;
-                        
-                        // Combine into a format similar to the old instance-status endpoint
-                        const combinedData = {
-                            success: true,
-                            timestamp: Math.floor(Date.now() / 1000),
-                            strfry: strfryData,
-                            neo4j: neo4jData,
-                            whitelist: listData.whitelist,
-                            blacklist: listData.blacklist,
-                            grapeRank: rankingData.grapeRank,
-                            pageRank: rankingData.pageRank,
-                            followsNetwork: networkData
-                        };
-                        
-                        updateUI(combinedData);
-                    } else {
-                        // Find the first error
-                        const errorResult = results.find(result => result.success === false);
-                        const errorMessage = errorResult ? errorResult.error : 'Unknown error';
-                        const errorEndpoint = errorResult ? errorResult.endpoint : '';
-                        
-                        console.error(`Error in API response for ${errorEndpoint}:`, errorMessage);
-                        alert(`Failed to load instance status: ${errorMessage} (${errorEndpoint})`);
+            const sectionId = sectionMap[endpoint];
+            if (!sectionId) return;
+            
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+            
+            if (isLoading) {
+                section.classList.add('loading');
+            } else {
+                section.classList.remove('loading');
+            }
+        }
+        
+        // Helper function to show error in a section
+        function showSectionError(endpoint, errorMessage) {
+            const sectionMap = {
+                'strfry-status': 'strfrySection',
+                'neo4j-status': 'neo4jSection',
+                'list-status': 'listsSection',
+                'ranking-status': 'rankingSection',
+                'network-status': 'networkSection'
+            };
+            
+            const sectionId = sectionMap[endpoint];
+            if (!sectionId) return;
+            
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+            
+            section.classList.add('error');
+            
+            // Find or create an error message element
+            let errorElement = section.querySelector('.section-error');
+            if (!errorElement) {
+                errorElement = document.createElement('div');
+                errorElement.className = 'section-error';
+                section.appendChild(errorElement);
+            }
+            
+            errorElement.textContent = `Error: ${errorMessage}`;
+        }
+        
+        // Function to update the Strfry section
+        function updateStrfrySection(data) {
+            // Update Strfry service status
+            const strfryStatus = data.service.status;
+            const strfryStatusIndicator = document.querySelector('#strfryServiceStatus .status-indicator');
+            const strfryStatusText = document.querySelector('#strfryServiceStatus .service-state');
+            
+            strfryStatusIndicator.className = `status-indicator status-${strfryStatus === 'running' ? 'running' : 'stopped'}`;
+            strfryStatusText.textContent = strfryStatus;
+            
+            // Update event counts
+            const byKind = data.events.byKind;
+            document.getElementById('totalEvents').textContent = formatNumber(data.events.total);
+            document.getElementById('recentEvents').textContent = formatNumber(data.events.recent);
+            
+            // Determine if byKind is an array or object and access accordingly
+            if (Array.isArray(byKind)) {
+                document.getElementById('profilesCount').textContent = formatNumber(byKind[0]);
+                document.getElementById('notesCount').textContent = formatNumber(byKind[1]);
+                document.getElementById('followsCount').textContent = formatNumber(byKind[3]);
+                document.getElementById('reactionsCount').textContent = formatNumber(byKind[7]);
+                document.getElementById('reportsCount').textContent = formatNumber(byKind[1984]);
+                document.getElementById('mutesCount').textContent = formatNumber(byKind[10000]);
+                document.getElementById('wikiCount').textContent = formatNumber(byKind[30818]);
+                document.getElementById('nip85Count').textContent = formatNumber(byKind[10040]);
+            } else {
+                document.getElementById('profilesCount').textContent = formatNumber(byKind['0']);
+                document.getElementById('notesCount').textContent = formatNumber(byKind['1']);
+                document.getElementById('followsCount').textContent = formatNumber(byKind['3']);
+                document.getElementById('reactionsCount').textContent = formatNumber(byKind['7']);
+                document.getElementById('reportsCount').textContent = formatNumber(byKind['1984']);
+                document.getElementById('mutesCount').textContent = formatNumber(byKind['10000']);
+                document.getElementById('wikiCount').textContent = formatNumber(byKind['30818']);
+                document.getElementById('nip85Count').textContent = formatNumber(byKind['10040']);
+            }
+        }
+        
+        // Function to update the Neo4j section
+        function updateNeo4jSection(data) {
+            // Update Neo4j service status
+            const neo4jStatus = data.service.status;
+            const neo4jStatusIndicator = document.querySelector('#neo4jServiceStatus .status-indicator');
+            const neo4jStatusText = document.querySelector('#neo4jServiceStatus .service-state');
+            
+            neo4jStatusIndicator.className = `status-indicator status-${neo4jStatus === 'running' ? 'running' : 'stopped'}`;
+            neo4jStatusText.textContent = neo4jStatus;
+            
+            document.getElementById('neo4jConstraints').textContent = data.constraints.status;
+            document.getElementById('neo4jIndexes').textContent = data.indexes.status;
+            document.getElementById('totalUsers').textContent = formatNumber(data.users.total);
+            document.getElementById('totalRelationships').textContent = formatNumber(data.relationships.total);
+            document.getElementById('followsRelationships').textContent = formatNumber(data.relationships.follows);
+            document.getElementById('reportsRelationships').textContent = formatNumber(data.relationships.reports);
+            document.getElementById('mutesRelationships').textContent = formatNumber(data.relationships.mutes);
+            document.getElementById('recentRelationships').textContent = formatNumber(data.relationships.recent);
+        }
+        
+        // Function to update the Lists section (whitelist & blacklist)
+        function updateListsSection(data) {
+            document.getElementById('whitelistCount').textContent = formatNumber(data.whitelist.count);
+            document.getElementById('whitelistTimestamp').textContent = `Last updated: ${formatTimestamp(data.whitelist.lastUpdated)}`;
+            document.getElementById('blacklistCount').textContent = formatNumber(data.blacklist.count);
+            document.getElementById('blacklistTimestamp').textContent = `Last updated: ${formatTimestamp(data.blacklist.lastUpdated)}`;
+        }
+        
+        // Function to update the Ranking section
+        function updateRankingSection(data) {
+            document.getElementById('verifiedUsers').textContent = formatNumber(data.grapeRank.verifiedUsers);
+            document.getElementById('grapeRankTimestamp').textContent = `Last updated: ${formatTimestamp(data.grapeRank.lastUpdated)}`;
+            document.getElementById('pageRankTimestamp').textContent = `Last updated: ${formatTimestamp(data.pageRank.lastUpdated)}`;
+        }
+        
+        // Function to update the Network section
+        function updateNetworkSection(data) {
+            const lastCalculated = data.lastCalculated;
+            document.getElementById('followsNetworkTimestamp').textContent = `Last calculated: ${formatTimestamp(lastCalculated)}`;
+            
+            const networkByHops = data.byHops;
+            document.getElementById('hops0Count').textContent = formatNumber(networkByHops['0']);
+            document.getElementById('hops1Count').textContent = formatNumber(networkByHops['1']);
+            document.getElementById('hops2Count').textContent = formatNumber(networkByHops['2']);
+            document.getElementById('hops3Count').textContent = formatNumber(networkByHops['3']);
+            document.getElementById('hops999Count').textContent = formatNumber(networkByHops['999']);
+            document.getElementById('followsNetworkTotal').textContent = formatNumber(data.total);
+            
+            // Update the hops chart
+            updateHopsChart(data);
+        }
+        
+        // Function to update the hops chart
+        function updateHopsChart(data) {
+            try {
+                const chartElement = document.getElementById('hopsChart');
+                
+                if (!chartElement) {
+                    console.error('Chart element not found');
+                    return;
+                }
+                
+                // Check if it's a canvas element
+                if (!(chartElement instanceof HTMLCanvasElement)) {
+                    console.error('Element is not a canvas:', chartElement);
+                    return;
+                }
+                
+                const ctx = chartElement.getContext('2d');
+                
+                if (!ctx) {
+                    console.error('Failed to get 2d context');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                if (window.hopsChart) {
+                    window.hopsChart.destroy();
+                }
+                
+                const networkByHops = data.byHops;
+                
+                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', 'Disconnected'];
+                const hopData = [
+                    networkByHops['0'],
+                    networkByHops['1'],
+                    networkByHops['2'],
+                    networkByHops['3'],
+                    networkByHops['999']
+                ];
+                
+                window.hopsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: hopLabels,
+                        datasets: [{
+                            label: 'Users by Hops',
+                            data: hopData,
+                            backgroundColor: [
+                                '#3498db',
+                                '#2ecc71',
+                                '#9b59b6',
+                                '#e67e22',
+                                '#e74c3c'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching instance status data:', error);
-                    alert(`Failed to load instance status: ${error.message}`);
                 });
+            } catch (error) {
+                console.error('Error updating hops chart:', error);
+            }
         }
         
         // Set up event listeners

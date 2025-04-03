@@ -33,6 +33,7 @@ function getNetworkStatus(req, res) {
             1: 0,
             2: 0,
             3: 0,
+            4: 0,
             999: 0 // Disconnected
         },
         total: 0
