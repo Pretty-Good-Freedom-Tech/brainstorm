@@ -4,17 +4,35 @@
  */
 
 const crypto = require('crypto');
+const fs = require('fs');
 
 // Get configuration values directly from /etc/hasenpfeffr.conf
 function getConfigFromFile(varName, defaultValue = null) {
     try {
-        // Import the config util from the utils module
-        const getConfigFromFileUtil = require('../../utils/config').getConfigFromFile;
-        return getConfigFromFileUtil(varName, defaultValue);
+        const confFile = '/etc/hasenpfeffr.conf';
+        if (fs.existsSync(confFile)) {
+            // Read the file content directly
+            const fileContent = fs.readFileSync(confFile, 'utf8');
+            console.log(`Auth module: Reading config for ${varName} from ${confFile}`);
+            
+            // Look for the variable in the file content
+            const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']`, 'gm');
+            const match = regex.exec(fileContent);
+            
+            if (match && match[1]) {
+                console.log(`Auth module: Found ${varName}=${match[1]}`);
+                return match[1];
+            }
+        } else {
+            console.error(`Auth module: Config file not found at ${confFile}`);
+        }
     } catch (error) {
-        console.error(`Error getting configuration value ${varName}:`, error.message);
-        return defaultValue;
+        console.error(`Auth module: Error reading config for ${varName}:`, error);
     }
+    
+    // If we get here, we couldn't find the variable in the config file
+    console.log(`Auth module: Using default value for ${varName}: ${defaultValue}`);
+    return defaultValue;
 }
 
 /**
