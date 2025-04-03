@@ -30,7 +30,7 @@ import { createRequire } from 'module';
 // Create require function for importing CommonJS modules
 const require = createRequire(import.meta.url);
 // Import the centralized getConfigFromFile function
-const { getConfigFromFile } = require('../utils/config.js');
+const { getConfigFromFile } = require('../../utils/config.js');
 
 // Promisify exec for async/await usage
 const execAsync = promisify(exec);

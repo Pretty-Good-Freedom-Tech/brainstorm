@@ -80,9 +80,9 @@ echo "$(date): Continuing processAllTasks; exportWhitelist.sh completed" >> ${HA
 
 sleep 5
 
-sudo $HASENPFEFFR_MODULE_ALGOS_DIR/nip85/publishNip85.sh
-echo "$(date): Continuing processAllTasks; publishNip85.sh completed"
-echo "$(date): Continuing processAllTasks; publishNip85.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllTasks.log
+sudo $HASENPFEFFR_MODULE_ALGOS_DIR/nip85/publishNip85_1.sh
+echo "$(date): Continuing processAllTasks; publishNip85_1.sh completed"
+echo "$(date): Continuing processAllTasks; publishNip85_1.sh completed" >> ${HASENPFEFFR_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
