@@ -25,7 +25,6 @@ mkdir -p /var/log/hasenpfeffr
 touch /var/log/hasenpfeffr/calculateHops.log
 cd /usr/local/lib/node_modules/hasenpfeffr/src/algos
 sudo chmod +x *.sh
-sudo chmod +x *.js
 
 echo "=== GrapeRank Installation ==="
 
