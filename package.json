@@ -1,7 +1,7 @@
 {
   "name": "hasenpfeffr",
   "version": "0.0.1",
-  "description": "A Nostr identity data publication system implementing NIP-85 Trusted Assertions protocol",
+  "description": "A Personalized Webs of Trust Nostr relay implementing the Grapevine and making scores available to clients",
   "main": "index.js",
   "bin": {
     "hasenpfeffr-publish": "./bin/publish.js",
@@ -27,7 +27,14 @@
     "nip85",
     "trusted-assertions",
     "social-graph",
-    "pagerank"
+    "pagerank",
+    "graperank",
+    "grapevine",
+    "brainstorm",
+    "neo4j",
+    "strfry",
+    "web-of-trust",
+    "wot"
   ],
   "author": "Your Name",
   "license": "AGPL-3.0",
