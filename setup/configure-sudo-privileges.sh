@@ -52,6 +52,7 @@ sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrap
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.js
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.sh
 sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.js
+sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.mjs
 
 # set ownershiup for configuration files 
 sudo chown root:hasenpfeffr /etc/hasenpfeffr.conf
