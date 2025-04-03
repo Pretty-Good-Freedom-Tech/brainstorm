@@ -38,39 +38,6 @@ try {
   config = {};
 }
 
-// Function to get configuration values directly from /etc/hasenpfeffr.conf
-function getConfigFromFile_deprecating(varName, defaultValue = null) {
-  try {
-    const confFile = '/etc/hasenpfeffr.conf';
-    if (fs.existsSync(confFile)) {
-      // Read the file content directly
-      const fileContent = fs.readFileSync(confFile, 'utf8');
-      console.log(`Reading config for ${varName} from ${confFile}`);
-      
-      // Look for the variable in the file content
-      const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']
-`, 'gm');
-      const match = regex.exec(fileContent);
-      
-      if (match && match[1]) {
-        console.log(`Found ${varName}=${match[1]}`);
-        return match[1];
-      }
-      
-      // If not found with regex, try the source command as fallback
-      console.log(`Trying source command for ${varName}`);
-      const result = execSync(`source ${confFile} && echo $${varName}`).toString().trim();
-      console.log(`Source command result for ${varName}: '${result}'`);
-      return result || defaultValue;
-    }
-    console.log(`Config file ${confFile} not found`);
-    return defaultValue;
-  } catch (error) {
-    console.error(`Error getting configuration value ${varName}:`, error.message);
-    return defaultValue;
-  }
-}
-
 // Function to get Neo4j connection details
 function getNeo4jConnection() {
   // Try to get from config module first
