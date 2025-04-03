@@ -11,7 +11,7 @@ const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 const readline = require('readline');
-const { getConfigFromFile } = require('../src/utils/config');
+const { getConfigFromFile: utilsGetConfigFromFile } = require('../src/utils/config');
 
 // Check if running in update mode
 const isUpdateMode = process.env.UPDATE_MODE === 'true' || process.env.UPDATE_MODE === 'TRUE' || process.env.UPDATE_MODE === '1' || process.env.UPDATE_MODE === 'yes' || process.env.UPDATE_MODE === 'Y';
@@ -92,6 +92,21 @@ const configPaths = {
   calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer')
 };
 
+// Function to safely execute commands and log output
+function executeCommand(command, options = {}) {
+  try {
+    console.log(`Executing: ${command}`);
+    return execSync(command, { stdio: 'inherit', ...options });
+  } catch (error) {
+    console.error(`Command failed: ${command}`);
+    console.error(error.message);
+    if (options.exitOnError !== false) {
+      process.exit(1);
+    }
+    return null;
+  }
+}
+
 // Configure sudo privileges for hasenpfeffr user and control panel
 async function configureSudoPrivileges() {
   console.log('\x1b[36m=== Configuring Sudo Privileges ===\x1b[0m');
@@ -108,11 +123,11 @@ async function configureSudoPrivileges() {
   try {
     // Configure general sudo privileges for hasenpfeffr user
     console.log('Configuring sudo privileges for hasenpfeffr user...');
-    execSync(`sudo bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
+    executeCommand(`sudo bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
     
     // Configure specific sudo privileges for control panel
     console.log('Configuring sudo privileges for control panel...');
-    execSync(`sudo bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
+    executeCommand(`sudo bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
     
     console.log('\x1b[32mSudo privileges configured successfully.\x1b[0m');
   } catch (error) {
@@ -240,7 +255,7 @@ async function createStrfryRouterConfigFile() {
     // Write the modified content to the destination file
     fs.writeFileSync(configPaths.strfryRouterConfigDestination, configFileContent);
 
-    execSync(`sudo chmod 644 ${configPaths.strfryRouterConfigDestination}`);
+    executeCommand(`sudo chmod 644 ${configPaths.strfryRouterConfigDestination}`);
     console.log(`Configuration file created at ${configPaths.strfryRouterConfigDestination}`);
 
   } else {
@@ -280,10 +295,10 @@ async function createHasenpfeffrConfigFile() {
     }
     
     ownerPubkey = process.env.HASENPFEFFR_OWNER_PUBKEY || '';
-    relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY') || '';
-    relayPrivkey = getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY') || '';
-    relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC') || '';
-    relayNpub = getConfigFromFile('HASENPFEFFR_RELAY_NPUB') || '';
+    relayPubkey = process.env.HASENPFEFFR_RELAY_PUBKEY || '';
+    relayPrivkey = process.env.HASENPFEFFR_RELAY_PRIVKEY || '';
+    relayNsec = process.env.HASENPFEFFR_RELAY_NSEC || '';
+    relayNpub = process.env.HASENPFEFFR_RELAY_NPUB || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
     relayUrl = process.env.HASENPFEFFR_RELAY_URL || '';
     defaultFriendRelays = process.env.HASENPFEFFR_DEFAULT_FRIEND_RELAYS || '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
@@ -422,17 +437,17 @@ export NIP85_LAST_EXPORTED=0
   // Write hasenpfeffr configuration file
   if (isRoot) {
     fs.writeFileSync(configPaths.hasenpfeffrConfDestination, hasenpfeffrConfigContent);
-    execSync(`sudo chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
+    executeCommand(`sudo chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
     // move this to configure-sudo-privileges.sh
-    // execSync(`sudo chown root:hasenpfeffr ${configPaths.hasenpfeffrConfDestination}`);
+    // executeCommand(`sudo chown root:hasenpfeffr ${configPaths.hasenpfeffrConfDestination}`);
     console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
     
     // Generate Nostr identity if not in update mode or if keys are missing
     if (!isUpdateMode || !relayNsec || !relayPubkey) {
       console.log('\x1b[36m=== Generating Nostr Identity for Relay ===\x1b[0m');
       try {
-        execSync(`sudo chmod +x ${configPaths.createNostrIdentityScript}`);
-        execSync(configPaths.createNostrIdentityScript, { stdio: 'inherit' });
+        executeCommand(`sudo chmod +x ${configPaths.createNostrIdentityScript}`);
+        executeCommand(configPaths.createNostrIdentityScript, { stdio: 'inherit' });
         console.log('Nostr identity generated successfully.');
       } catch (error) {
         console.error('\x1b[31mError generating Nostr identity:\x1b[0m', error.message);
@@ -488,12 +503,12 @@ async function installNeo4j() {
   
   try {
     // Make scripts executable
-    execSync(`sudo chmod +x ${configPaths.neo4jInstallScript}`);
-    execSync(`sudo chmod +x ${configPaths.neo4jConstraintsAndIndexesScript}`);
+    executeCommand(`sudo chmod +x ${configPaths.neo4jInstallScript}`);
+    executeCommand(`sudo chmod +x ${configPaths.neo4jConstraintsAndIndexesScript}`);
     
     // Run Neo4j installation script - use script -c to avoid hanging on systemctl status
     console.log('Installing Neo4j (this may take a few minutes)...');
-    execSync(`script -q -c "${configPaths.neo4jInstallScript}" /dev/null`, { stdio: 'inherit' });
+    executeCommand(`script -q -c "${configPaths.neo4jInstallScript}" /dev/null`, { stdio: 'inherit' });
     
     console.log('Neo4j installation completed successfully.');
   } catch (error) {
@@ -522,11 +537,11 @@ async function installPipeline() {
   
   try {
     // Make script executable
-    execSync(`sudo chmod +x ${configPaths.pipelineInstallScript}`);
+    executeCommand(`sudo chmod +x ${configPaths.pipelineInstallScript}`);
     
     // Run pipeline installation script
     console.log('Installing pipeline (this may take a few minutes)...');
-    execSync(`script -q -c "${configPaths.pipelineInstallScript}" /dev/null`, { stdio: 'inherit' });
+    executeCommand(`script -q -c "${configPaths.pipelineInstallScript}" /dev/null`, { stdio: 'inherit' });
     
     console.log('Pipeline installation completed successfully.');
   } catch (error) {
@@ -556,11 +571,11 @@ async function installStrfry() {
   
   try {
     // Make script executable
-    execSync(`sudo chmod +x ${configPaths.strfryInstallScript}`);
+    executeCommand(`sudo chmod +x ${configPaths.strfryInstallScript}`);
     
     // Run Strfry installation script - use script -c to avoid hanging on systemctl status
     console.log('Installing Strfry (this may take a few minutes)...');
-    execSync(`script -q -c "${configPaths.strfryInstallScript}" /dev/null`, { stdio: 'inherit' });
+    executeCommand(`script -q -c "${configPaths.strfryInstallScript}" /dev/null`, { stdio: 'inherit' });
     
     console.log('Strfry installation completed successfully.');
   } catch (error) {
@@ -586,7 +601,7 @@ async function setupStrfryPlugins() {
     const pluginsDir = '/usr/local/lib/strfry/plugins';
     if (!fs.existsSync(pluginsDir)) {
       console.log(`Creating plugins directory at ${pluginsDir}...`);
-      execSync(`mkdir -p ${pluginsDir}`);
+      executeCommand(`mkdir -p ${pluginsDir}`);
     }
     
     // Copy plugin files
@@ -599,8 +614,8 @@ async function setupStrfryPlugins() {
       const destPluginFile = path.join(pluginsDir, 'hasenpfeffr.js');
       
       if (fs.existsSync(sourcePluginFile)) {
-        execSync(`cp ${sourcePluginFile} ${destPluginFile}`);
-        execSync(`sudo chmod +x ${destPluginFile}`);
+        executeCommand(`cp ${sourcePluginFile} ${destPluginFile}`);
+        executeCommand(`sudo chmod +x ${destPluginFile}`);
         console.log(`Plugin file copied to ${destPluginFile}`);
       } else {
         console.warn(`Plugin file not found at ${sourcePluginFile}`);
@@ -609,7 +624,7 @@ async function setupStrfryPlugins() {
       // Create plugin data directory for JSON files
       const pluginDataDir = path.join(pluginsDir, 'data');
       if (!fs.existsSync(pluginDataDir)) {
-        execSync(`mkdir -p ${pluginDataDir}`);
+        executeCommand(`mkdir -p ${pluginDataDir}`);
       }
       
       // Copy JSON data files if they exist
@@ -619,7 +634,7 @@ async function setupStrfryPlugins() {
         const destJsonFile = path.join(pluginDataDir, jsonFile);
         
         if (fs.existsSync(sourceJsonFile)) {
-          execSync(`cp ${sourceJsonFile} ${destJsonFile}`);
+          executeCommand(`cp ${sourceJsonFile} ${destJsonFile}`);
           console.log(`JSON file ${jsonFile} copied to ${destJsonFile}`);
         } else {
           // Create empty JSON files if they don't exist
@@ -712,7 +727,7 @@ async function setupStrfryRouterService() {
     console.log(`Strfry router service file created at ${configPaths.strfryRouterServiceFileDestination}`);
 
     // enable the service
-    execSync(`systemctl enable strfry-router.service`);
+    executeCommand(`systemctl enable strfry-router.service`);
     console.log('Strfry router service enabled');
 
     // starting the service will be performed at the control panel
@@ -749,7 +764,7 @@ async function setupProcessAllScoresService() {
     console.log(`process all scores service file created at ${configPaths.processAllTasksServiceFileDestination}`);
 
     // enable the service
-    execSync(`systemctl enable processAllTasks.service`);
+    executeCommand(`systemctl enable processAllTasks.service`);
     console.log('Process all scores service enabled');
 
     // starting the service will be performed at the control panel
@@ -805,7 +820,7 @@ async function setupCalculatePersonalizedPageRankService() {
     console.log(`calculate personalized PageRank service file created at ${configPaths.calculatePersonalizedPageRankServiceFileDestination}`);
 
     // enable the service
-    execSync(`systemctl enable calculatePersonalizedPageRank.service`);
+    executeCommand(`systemctl enable calculatePersonalizedPageRank.service`);
     console.log('calculate personalized PageRank service enabled');
 
     // starting the service will be performed at the control panel
@@ -882,7 +897,7 @@ async function setupCalculateHopsService() {
     console.log(`calculateHops timer file created at ${configPaths.calculateHopsTimerFileDestination}`);
 
     // enable the timer
-    execSync(`systemctl enable calculateHops.timer`);
+    executeCommand(`systemctl enable calculateHops.timer`);
     console.log('calculateHops timer enabled');
   } catch (error) {
     console.error(`Error setting up calculateHops timer file: ${error.message}`);
@@ -938,13 +953,12 @@ async function setupReconcileService() {
     console.log(`reconcile timer file created at ${configPaths.reconcileTimerFileDestination}`);
 
     // enable the timer
-    execSync(`systemctl enable reconcile.timer`);
+    executeCommand(`systemctl enable reconcile.timer`);
     console.log('reconcile timer enabled');
   } catch (error) {
     console.error(`Error setting up reconcile timer file: ${error.message}`);
     console.log(`Source file: ${configPaths.reconcileTimerFileSource}`);
     console.log(`Destination file: ${configPaths.reconcileTimerFileDestination}`);
-    return;
   }
 }
 
@@ -974,7 +988,7 @@ async function setupAddToQueueService() {
     console.log(`addToQueue service file created at ${configPaths.addToQueueServiceFileDestination}`);
 
     // enable the service
-    execSync(`systemctl enable addToQueue.service`);
+    executeCommand(`systemctl enable addToQueue.service`);
     console.log('addToQueue service enabled');
 
     // starting the service will be performed at the control panel
@@ -1011,7 +1025,7 @@ async function setupProcessQueueService() {
     console.log(`processQueue service file created at ${configPaths.processQueueServiceFileDestination}`);
 
     // enable the service
-    execSync(`systemctl enable processQueue.service`);
+    executeCommand(`systemctl enable processQueue.service`);
     console.log('processQueue service enabled');
 
     // starting the service will be performed at the control panel
@@ -1038,7 +1052,7 @@ async function setupControlPanelService() {
   try {
     // Run the control panel installation script
     console.log('Running control panel installation script...');
-    execSync(`bash ${configPaths.controlPanelInstallScript}`, { stdio: 'inherit' });
+    executeCommand(`bash ${configPaths.controlPanelInstallScript}`, { stdio: 'inherit' });
     
     console.log('Systemd service set up successfully.');
   } catch (error) {
@@ -1064,7 +1078,7 @@ async function setupPipelineDirectories() {
     const baseDir = '/var/lib/hasenpfeffr';
     if (!fs.existsSync(baseDir)) {
       console.log(`Creating base directory at ${baseDir}...`);
-      execSync(`mkdir -p ${baseDir}`);
+      executeCommand(`mkdir -p ${baseDir}`);
     }
     
     // Create pipeline directories
@@ -1078,15 +1092,15 @@ async function setupPipelineDirectories() {
     for (const dir of pipelineDirs) {
       if (!fs.existsSync(dir)) {
         console.log(`Creating directory: ${dir}`);
-        execSync(`mkdir -p ${dir}`);
+        executeCommand(`mkdir -p ${dir}`);
       }
     }
     
     // move this to install-pipeline.sh
     // Set appropriate permissions
     // console.log('Setting appropriate permissions...');
-    // execSync(`sudo chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
-    // execSync(`sudo chmod -R 755 ${baseDir}`);
+    // executeCommand(`sudo chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
+    // executeCommand(`sudo chmod -R 755 ${baseDir}`);
     
     console.log('Pipeline directories setup completed successfully.');
   } catch (error) {
@@ -1119,7 +1133,7 @@ async function setupCalculatePersonalizedGrapeRankService() {
       console.log(`calculate personalized GrapeRank service file created at ${configPaths.calculatePersonalizedGrapeRankServiceFileDestination}`);
       
       // Enable the service
-      execSync(`systemctl enable calculatePersonalizedGrapeRank.service`);
+      executeCommand(`systemctl enable calculatePersonalizedGrapeRank.service`);
       console.log('calculate personalized GrapeRank service enabled');
     }
   } catch (error) {
@@ -1143,7 +1157,7 @@ async function setupCalculatePersonalizedGrapeRankService() {
       console.log(`calculate personalized GrapeRank timer file created at ${configPaths.calculatePersonalizedGrapeRankTimerFileDestination}`);
       
       // Enable the timer
-      execSync(`systemctl enable calculatePersonalizedGrapeRank.timer`);
+      executeCommand(`systemctl enable calculatePersonalizedGrapeRank.timer`);
       console.log('calculate personalized GrapeRank timer enabled');
     }
   } catch (error) {
@@ -1231,6 +1245,43 @@ function askQuestion(question) {
       resolve(answer);
     });
   });
+}
+
+// Wrapper for the centralized getConfigFromFile that preserves additional
+// behavior specific to the install.js script
+function getConfigFromFile(varName, defaultValue = null) {
+  try {
+    // First try the centralized function
+    const configValue = utilsGetConfigFromFile(varName, null);
+    if (configValue !== null) {
+      return configValue;
+    }
+    
+    // Try to read from keys file if it exists (specific to install.js)
+    const keysFile = path.join(__dirname, '..', 'setup', 'nostr', 'keys', 'hasenpfeffr_relay_keys');
+    if (fs.existsSync(keysFile)) {
+      try {
+        const keysData = JSON.parse(fs.readFileSync(keysFile, 'utf8'));
+        if (varName === 'HASENPFEFFR_RELAY_PUBKEY' && keysData.pubkey) {
+          return keysData.pubkey;
+        } else if (varName === 'HASENPFEFFR_RELAY_PRIVKEY' && keysData.privkey) {
+          return keysData.privkey;
+        } else if (varName === 'HASENPFEFFR_RELAY_NSEC' && keysData.nsec) {
+          return keysData.nsec;
+        } else if (varName === 'HASENPFEFFR_RELAY_NPUB' && keysData.npub) {
+          return keysData.npub;
+        }
+      } catch (error) {
+        console.error(`Error reading keys file: ${error.message}`);
+      }
+    }
+
+    // Fallback to environment variable
+    return process.env[varName] || defaultValue;
+  } catch (error) {
+    console.error(`Error reading config for ${varName}: ${error.message}`);
+    return defaultValue;
+  }
 }
 
 // Start installation
