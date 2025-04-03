@@ -352,7 +352,6 @@
                     <div class="stat-title">4 Hops</div>
                     <div class="stat-value" id="hops4Count">-</div>
                 </div>
-
                 <div class="stat-card">
                     <div class="stat-title">Disconnected</div>
                     <div class="stat-value" id="hops999Count">-</div>
@@ -556,6 +555,7 @@
             document.getElementById('hops1Count').textContent = formatNumber(networkByHops['1']);
             document.getElementById('hops2Count').textContent = formatNumber(networkByHops['2']);
             document.getElementById('hops3Count').textContent = formatNumber(networkByHops['3']);
+            document.getElementById('hops4Count').textContent = formatNumber(networkByHops['4']);
             document.getElementById('hops999Count').textContent = formatNumber(networkByHops['999']);
             document.getElementById('followsNetworkTotal').textContent = formatNumber(data.followsNetwork.total);
             
@@ -766,6 +766,7 @@
             document.getElementById('hops1Count').textContent = formatNumber(networkByHops['1']);
             document.getElementById('hops2Count').textContent = formatNumber(networkByHops['2']);
             document.getElementById('hops3Count').textContent = formatNumber(networkByHops['3']);
+            document.getElementById('hops4Count').textContent = formatNumber(networkByHops['4']);
             document.getElementById('hops999Count').textContent = formatNumber(networkByHops['999']);
             document.getElementById('followsNetworkTotal').textContent = formatNumber(data.total);
             
@@ -809,6 +810,7 @@
                     networkByHops['1'],
                     networkByHops['2'],
                     networkByHops['3'],
+                    networkByHops['4'],
                     networkByHops['999']
                 ];
                 
