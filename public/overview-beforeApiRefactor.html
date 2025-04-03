@@ -468,31 +468,17 @@
             strfryStatusIndicator.className = `status-indicator status-${strfryStatus === 'running' ? 'running' : 'stopped'}`;
             strfryStatusText.textContent = strfryStatus;
             
-            // Update event counts - handle both array and object format for byKind
-            const byKind = data.strfry.events.byKind;
+            // Update event counts
             document.getElementById('totalEvents').textContent = formatNumber(data.strfry.events.total);
             document.getElementById('recentEvents').textContent = formatNumber(data.strfry.events.recent);
-            
-            // Determine if byKind is an array or object and access accordingly
-            if (Array.isArray(byKind)) {
-                document.getElementById('profilesCount').textContent = formatNumber(byKind[0]);
-                document.getElementById('notesCount').textContent = formatNumber(byKind[1]);
-                document.getElementById('followsCount').textContent = formatNumber(byKind[3]);
-                document.getElementById('reactionsCount').textContent = formatNumber(byKind[7]);
-                document.getElementById('reportsCount').textContent = formatNumber(byKind[1984]);
-                document.getElementById('mutesCount').textContent = formatNumber(byKind[10000]);
-                document.getElementById('wikiCount').textContent = formatNumber(byKind[30818]);
-                document.getElementById('nip85Count').textContent = formatNumber(byKind[10040]);
-            } else {
-                document.getElementById('profilesCount').textContent = formatNumber(byKind['0']);
-                document.getElementById('notesCount').textContent = formatNumber(byKind['1']);
-                document.getElementById('followsCount').textContent = formatNumber(byKind['3']);
-                document.getElementById('reactionsCount').textContent = formatNumber(byKind['7']);
-                document.getElementById('reportsCount').textContent = formatNumber(byKind['1984']);
-                document.getElementById('mutesCount').textContent = formatNumber(byKind['10000']);
-                document.getElementById('wikiCount').textContent = formatNumber(byKind['30818']);
-                document.getElementById('nip85Count').textContent = formatNumber(byKind['10040']);
-            }
+            document.getElementById('profilesCount').textContent = formatNumber(data.strfry.events.byKind[0]);
+            document.getElementById('notesCount').textContent = formatNumber(data.strfry.events.byKind[1]);
+            document.getElementById('followsCount').textContent = formatNumber(data.strfry.events.byKind[3]);
+            document.getElementById('reactionsCount').textContent = formatNumber(data.strfry.events.byKind[7]);
+            document.getElementById('reportsCount').textContent = formatNumber(data.strfry.events.byKind[1984]);
+            document.getElementById('mutesCount').textContent = formatNumber(data.strfry.events.byKind[10000]);
+            document.getElementById('wikiCount').textContent = formatNumber(data.strfry.events.byKind[30818]);
+            document.getElementById('nip85Count').textContent = formatNumber(data.strfry.events.byKind[10040]);
             
             // Update Neo4j section
             const neo4jStatus = data.neo4j.service.status;
@@ -522,16 +508,13 @@
             document.getElementById('grapeRankTimestamp').textContent = `Last updated: ${formatTimestamp(data.grapeRank.lastUpdated)}`;
             document.getElementById('pageRankTimestamp').textContent = `Last updated: ${formatTimestamp(data.pageRank.lastUpdated)}`;
             
-            // Update Follows Network section - handle different property names
-            const lastCalculated = data.followsNetwork.lastCalculated;
-            document.getElementById('followsNetworkTimestamp').textContent = `Last calculated: ${formatTimestamp(lastCalculated)}`;
-            
-            const networkByHops = data.followsNetwork.byHops;
-            document.getElementById('hops0Count').textContent = formatNumber(networkByHops['0']);
-            document.getElementById('hops1Count').textContent = formatNumber(networkByHops['1']);
-            document.getElementById('hops2Count').textContent = formatNumber(networkByHops['2']);
-            document.getElementById('hops3Count').textContent = formatNumber(networkByHops['3']);
-            document.getElementById('hops999Count').textContent = formatNumber(networkByHops['999']);
+            // Update Follows Network section
+            document.getElementById('followsNetworkTimestamp').textContent = `Last calculated: ${formatTimestamp(data.followsNetwork.lastCalculated)}`;
+            document.getElementById('hops0Count').textContent = formatNumber(data.followsNetwork.byHops[0]);
+            document.getElementById('hops1Count').textContent = formatNumber(data.followsNetwork.byHops[1]);
+            document.getElementById('hops2Count').textContent = formatNumber(data.followsNetwork.byHops[2]);
+            document.getElementById('hops3Count').textContent = formatNumber(data.followsNetwork.byHops[3]);
+            document.getElementById('hops999Count').textContent = formatNumber(data.followsNetwork.byHops[999]);
             document.getElementById('followsNetworkTotal').textContent = formatNumber(data.followsNetwork.total);
             
             // Initialize or update the hops chart
@@ -540,80 +523,29 @@
         
         // Function to fetch instance status data from the API
         function fetchInstanceStatus() {
-            console.log('Fetching instance status data from modular endpoints...');
+            console.log('Fetching instance status data...');
             
             // Determine if we're in the /control/ path
             const isControlPath = window.location.pathname.startsWith('/control/');
-            const apiBaseUrl = isControlPath ? 
-                window.location.origin + '/control/api/' : 
-                window.location.origin + '/api/';
+            const apiUrl = isControlPath ? 
+                window.location.origin + '/control/api/instance-status' : 
+                window.location.origin + '/api/instance-status';
             
-            // Define all the endpoints to fetch
-            const endpoints = [
-                'strfry-status',
-                'neo4j-status',
-                'list-status',
-                'ranking-status',
-                'network-status'
-            ];
+            console.log('Fetching from:', apiUrl);
             
-            // Create an array of fetch promises
-            const fetchPromises = endpoints.map(endpoint => {
-                const url = apiBaseUrl + endpoint;
-                console.log('Fetching from:', url);
-                
-                return fetch(url)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status} for ${endpoint}`);
-                        }
-                        return response.json();
-                    })
-                    .catch(error => {
-                        console.error(`Error fetching ${endpoint}:`, error);
-                        // Return a minimal valid structure to prevent breaking the UI
-                        return { 
-                            success: false, 
-                            error: error.message,
-                            endpoint: endpoint
-                        };
-                    });
-            });
-            
-            // Execute all fetch requests in parallel
-            Promise.all(fetchPromises)
-                .then(results => {
-                    console.log('All API responses received:', results);
-                    
-                    // Check if all requests were successful
-                    const allSuccessful = results.every(result => result.success !== false);
-                    
-                    if (allSuccessful) {
-                        // Extract data from each endpoint
-                        const [strfryData, neo4jData, listData, rankingData, networkData] = results;
-                        
-                        // Combine into a format similar to the old instance-status endpoint
-                        const combinedData = {
-                            success: true,
-                            timestamp: Math.floor(Date.now() / 1000),
-                            strfry: strfryData,
-                            neo4j: neo4jData,
-                            whitelist: listData.whitelist,
-                            blacklist: listData.blacklist,
-                            grapeRank: rankingData.grapeRank,
-                            pageRank: rankingData.pageRank,
-                            followsNetwork: networkData
-                        };
-                        
-                        updateUI(combinedData);
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        updateUI(data);
                     } else {
-                        // Find the first error
-                        const errorResult = results.find(result => result.success === false);
-                        const errorMessage = errorResult ? errorResult.error : 'Unknown error';
-                        const errorEndpoint = errorResult ? errorResult.endpoint : '';
-                        
-                        console.error(`Error in API response for ${errorEndpoint}:`, errorMessage);
-                        alert(`Failed to load instance status: ${errorMessage} (${errorEndpoint})`);
+                        console.error('Error in API response:', data.error);
+                        alert(`Failed to load instance status: ${data.error}`);
                     }
                 })
                 .catch(error => {
