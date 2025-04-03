@@ -14,7 +14,8 @@ const {
     handleAuthVerify, 
     handleAuthLogin, 
     handleAuthLogout, 
-    handleAuthStatus, 
+    handleAuthStatus,
+    handleAuthTest,
     authMiddleware 
 } = require('./auth/authHandler');
 
@@ -55,6 +56,10 @@ function register(app) {
     
     app.get('/api/auth/status', handleAuthStatus);
     app.get('/control/api/auth/status', handleAuthStatus);
+    
+    // Test endpoint for debugging authentication
+    app.get('/api/auth/test', handleAuthTest);
+    app.get('/control/api/auth/test', handleAuthTest);
     
     // Backward compatibility endpoint that calls all endpoints and combines results
     app.get('/api/instance-status', handleGetInstanceStatus);

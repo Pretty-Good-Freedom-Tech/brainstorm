@@ -48,17 +48,49 @@ function handleAuthVerify(req, res) {
         
         console.log(`Received authentication request from pubkey: ${pubkey}`);
         
+        // Debug: Inspect the config file directly
+        const confFile = '/etc/hasenpfeffr.conf';
+        let configContents = 'File not found';
+        let configExists = false;
+        
+        try {
+            if (fs.existsSync(confFile)) {
+                configExists = true;
+                configContents = fs.readFileSync(confFile, 'utf8');
+                console.log('Config file exists. First 100 chars:', configContents.substring(0, 100) + '...');
+            } else {
+                console.error(`Config file does not exist at path: ${confFile}`);
+            }
+        } catch (configError) {
+            console.error('Error accessing config file:', configError);
+        }
+        
         // Get owner pubkey from config
         const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
         
         console.log(`Owner pubkey from config: '${ownerPubkey}'`);
         
+        // Create detailed debug info
+        const debugInfo = {
+            configExists,
+            configPath: confFile,
+            providedKey: pubkey,
+            expectedKey: ownerPubkey || 'NOT_FOUND'
+        };
+        
+        console.log('Auth debug info:', JSON.stringify(debugInfo, null, 2));
+        
         if (!ownerPubkey) {
             console.error('HASENPFEFFR_OWNER_PUBKEY not set in configuration');
-            return res.status(500).json({ 
-                error: 'Server configuration error', 
-                message: 'The HASENPFEFFR_OWNER_PUBKEY is not set in the server configuration.',
-                details: 'Config not found or empty'
+            return res.json({ 
+                authorized: false,
+                message: 'The HASENPFEFFR_OWNER_PUBKEY is not set in the server configuration',
+                details: {
+                    providedKey: pubkey,
+                    expectedKey: 'NOT_CONFIGURED',
+                    configExists,
+                    configPath: confFile
+                }
             });
         }
         
@@ -74,7 +106,8 @@ function handleAuthVerify(req, res) {
             
             return res.json({ authorized, challenge });
         } else {
-            return res.json({ 
+            // Return detailed info about why auth failed
+            const responseData = { 
                 authorized: false, 
                 message: `Only the owner can access the control panel`, 
                 details: {
@@ -82,11 +115,17 @@ function handleAuthVerify(req, res) {
                     expectedKey: ownerPubkey,
                     keyComparison: `${pubkey.substring(0, 8)}... !== ${ownerPubkey.substring(0, 8)}...`
                 }
-            });
+            };
+            
+            console.log('Sending unauthorized response:', JSON.stringify(responseData, null, 2));
+            return res.json(responseData);
         }
     } catch (error) {
         console.error('Error verifying authentication:', error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ 
+            error: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -190,6 +229,47 @@ function handleAuthStatus(req, res) {
 }
 
 /**
+ * Simple test endpoint to debug configuration access
+ * Returns the owner public key directly
+ */
+function handleAuthTest(req, res) {
+    try {
+        // Direct config file inspection
+        const confFile = '/etc/hasenpfeffr.conf';
+        let fileExists = false;
+        let fileContents = '';
+        
+        try {
+            if (fs.existsSync(confFile)) {
+                fileExists = true;
+                fileContents = fs.readFileSync(confFile, 'utf8').substring(0, 100) + '...'; // Just the first 100 chars
+            }
+        } catch (e) {
+            console.error('Error reading config file directly:', e);
+        }
+        
+        // Try to get owner key using our function
+        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        
+        return res.json({
+            success: true,
+            timestamp: Math.floor(Date.now() / 1000),
+            ownerPubkey: ownerPubkey || 'NOT_FOUND',
+            configFileExists: fileExists,
+            configFilePath: confFile,
+            configFilePreview: fileContents
+        });
+    } catch (error) {
+        console.error('Error in auth test endpoint:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+}
+
+/**
  * Authentication middleware
  */
 function authMiddleware(req, res, next) {
@@ -240,5 +320,6 @@ module.exports = {
     handleAuthLogin,
     handleAuthLogout,
     handleAuthStatus,
+    handleAuthTest,
     authMiddleware
 };

@@ -225,6 +225,9 @@
                     
                     const data = await response.json();
                     
+                    // Debug: Log the complete response data
+                    console.log('Auth verify response:', JSON.stringify(data, null, 2));
+                    
                     if (data.authorized) {
                         signInStatus.textContent = `Authentication successful! Your public key (${pubkey.substring(0, 8)}...) matches the owner's key. Creating signed event...`;
                         
@@ -272,6 +275,9 @@
                         signInStatus.textContent = 'Unauthorized: ' + data.message;
                         signInStatus.className = 'status error';
                         signInBtn.disabled = false;
+                        
+                        // Debug: Log the details object specifically
+                        console.log('Auth details:', data.details);
                         
                         // Display the user's pubkey and expected pubkey for debugging
                         const pubkeyInfo = document.createElement('div');
