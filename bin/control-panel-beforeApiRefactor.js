@@ -254,10 +254,11 @@ app.post('/api/negentropy-sync', handleNegentropySync);
 
 app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
 
+app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
 
 app.get('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
-app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
+app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.get('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 

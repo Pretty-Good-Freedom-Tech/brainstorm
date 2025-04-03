@@ -240,9 +240,11 @@ app.use(authMiddleware);
 
 // API endpoint to check system status
 app.get('/api/status', handleStatus);
+app.get('/control/api/status', handleStatus);
 
 // API endpoint to get strfry event statistics
 app.get('/api/strfry-stats', handleStrfryStats);
+app.get('/control/api/strfry-stats', handleStrfryStats);
 
 // API endpoint to get Neo4j status information
 app.get('/api/neo4j-status', handleNeo4jStatus);
@@ -433,78 +435,102 @@ app.post('/api/service-status', handleServiceStatus);
 app.get('/control/api/service-status', handleServiceStatus);
 app.post('/control/api/service-status', handleServiceStatus);
 
-// Original handleGetInstanceStatus function has been moved to /src/api/index.js
-// This improves performance by splitting the endpoint into multiple smaller endpoints
-// that can be loaded in parallel
-/*
-function handleGetInstanceStatus(req, res) {
-    console.log('Getting comprehensive instance status');
+// Handler functions for API endpoints
+function handleStatus(req, res) {
+    console.log('Checking status (legacy endpoint)...');
     
-    // Result object
-    const result = {
-        success: true,
-        timestamp: Math.floor(Date.now() / 1000),
-        strfry: {
-            service: { status: 'checking...' },
-            events: {
-                total: 0,
-                recent: 0,
-                byKind: {
-                    0: 0,    // Profiles
-                    1: 0,    // Notes/Tweets
-                    3: 0,    // Follows
-                    7: 0,    // Reactions
-                    1984: 0, // Reports
-                    10000: 0, // Mutes
-                    30818: 0, // Wiki articles
-                    10040: 0  // NIP-85 subscribers
-                }
-            }
-        },
-        neo4j: {
-            service: { status: 'checking...' },
-            constraints: { status: 'checking...' },
-            indexes: { status: 'checking...' },
-            users: { total: 0 },
-            relationships: {
-                total: 0,
-                recent: 0,
-                follows: 0,
-                reports: 0,
-                mutes: 0
-            }
-        },
-        whitelist: {
-            count: 0,
-            lastUpdated: null
-        },
-        blacklist: {
-            count: 0,
-            lastUpdated: null
-        },
-        grapeRank: {
-            verifiedUsers: 0,
-            lastUpdated: null
-        },
-        pageRank: {
-            lastUpdated: null
-        },
-        followsNetwork: {
-            lastCalculated: null,
-            byHops: {
-                0: 0,
-                1: 0,
-                2: 0,
-                3: 0,
-                999: 0 // Disconnected
-            },
-            total: 0
+    // Get the STRFRY_DOMAIN from config
+    const strfryDomain = getConfigFromFile('STRFRY_DOMAIN', 'localhost');
+    
+    exec('systemctl status strfry', (error, stdout, stderr) => {
+        return res.json({
+            output: stdout || stderr,
+            strfryDomain: strfryDomain
+        });
+    });
+}
+
+function handleStrfryStats(req, res) {
+    console.log('Getting strfry event statistics (legacy endpoint)...');
+    
+    // Call the new modular API handler to maintain compatibility
+    const { getStrfryStatus } = require('../src/api/strfry/strfryStatus');
+    
+    // Create a mock request and response to capture the endpoint's output
+    const mockReq = { ...req };
+    const mockRes = {
+        json: (data) => {
+            // Transform the new format to match the old format expected by clients
+            const response = {
+                success: data.success,
+                stats: {
+                    total: data.events.total,
+                    kind0: data.events.byKind[0] || 0,
+                    kind1: data.events.byKind[1] || 0,
+                    kind3: data.events.byKind[3] || 0,
+                    kind7: data.events.byKind[7] || 0,
+                    kind1984: data.events.byKind[1984] || 0,
+                    kind10000: data.events.byKind[10000] || 0,
+                    kind30818: data.events.byKind[30818] || 0,
+                    kind10040: data.events.byKind[10040] || 0,
+                    error: null
+                },
+                error: null
+            };
+            
+            res.json(response);
         }
     };
     
-    // Function implementation...
+    // Call the new handler
+    getStrfryStatus(mockReq, mockRes);
 }
-*/
+
+function handleNeo4jStatus(req, res) {
+    console.log('Getting Neo4j status information (legacy endpoint)...');
+    
+    // Call the new modular API handler to maintain compatibility
+    const { getNeo4jStatus } = require('../src/api/neo4j/neo4jStatus');
+    
+    // Create a mock request and response to capture the endpoint's output
+    const mockReq = { ...req };
+    const mockRes = {
+        json: (data) => {
+            // Transform the new format to match the old format expected by clients
+            const response = {
+                success: data.success,
+                status: {
+                    running: data.service.status === 'running',
+                    userCount: data.users.total,
+                    relationships: {
+                        follow: data.relationships.follows,
+                        mute: data.relationships.mutes,
+                        report: data.relationships.reports
+                    },
+                    constraints: data.constraints.details,
+                    indexes: data.indexes.details,
+                    error: data.error
+                },
+                error: data.error
+            };
+            
+            res.json(response);
+        }
+    };
+    
+    // Call the new handler
+    getNeo4jStatus(mockReq, mockRes);
+}
+
+function handleGetInstanceStatus(req, res) {
+    console.log('Getting comprehensive instance status (delegating to new implementation)');
+    
+    // Delegate to the new modular implementation
+    const { handleGetInstanceStatus: newHandleGetInstanceStatus } = require('../src/api/index');
+    
+    // Call the new implementation
+    newHandleGetInstanceStatus(req, res);
+}
 
 // Authentication handlers
 function handleAuthVerify(req, res) {
