@@ -234,11 +234,27 @@ app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.get('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
-// API endpoint to generate NIP-85 data
-app.get('/api/generate-nip85', handleGenerateNip85);
-app.post('/api/generate-nip85', handleGenerateNip85);
-app.get('/control/api/generate-nip85', handleGenerateNip85);
-app.post('/control/api/generate-nip85', handleGenerateNip85);
+// API endpoint to generate NIP-85 data (DEPRECATED - redirected to new API structure)
+app.get('/api/generate-nip85', (req, res) => {
+    console.log('Redirecting deprecated endpoint /api/generate-nip85 to new structure');
+    req.url = '/api/nip85/generate-nip85';
+    app._router.handle(req, res);
+});
+app.post('/api/generate-nip85', (req, res) => {
+    console.log('Redirecting deprecated endpoint /api/generate-nip85 to new structure');
+    req.url = '/api/nip85/generate-nip85';
+    app._router.handle(req, res);
+});
+app.get('/control/api/generate-nip85', (req, res) => {
+    console.log('Redirecting deprecated endpoint /control/api/generate-nip85 to new structure');
+    req.url = '/control/api/nip85/generate-nip85';
+    app._router.handle(req, res);
+});
+app.post('/control/api/generate-nip85', (req, res) => {
+    console.log('Redirecting deprecated endpoint /control/api/generate-nip85 to new structure');
+    req.url = '/control/api/nip85/generate-nip85';
+    app._router.handle(req, res);
+});
 
 // API endpoint to generate PageRank data
 app.get('/api/generate-pagerank', handleGeneratePageRank);
@@ -288,32 +304,15 @@ app.post('/api/reconciliation', handleReconciliation);
 app.get('/control/api/reconciliation', handleReconciliation);
 app.post('/control/api/reconciliation', handleReconciliation);
 
-// API endpoint to create kind 10040 events
-app.post('/api/create-kind10040', handleCreateKind10040);
-
-// API endpoint to get unsigned kind 10040 event
-app.get('/api/get-kind10040-event', handleGetKind10040Event);
-
-// API endpoint to publish kind 30382 events
-app.get('/api/publish-kind30382', handlePublishKind30382);
-app.post('/api/publish-kind30382', handlePublishKind30382);
-app.get('/control/api/publish-kind30382', handlePublishKind30382);
-app.post('/control/api/publish-kind30382', handlePublishKind30382);
-
-// API endpoint to publish kind 10040 events
-app.get('/api/publish-kind10040', handlePublishKind10040);
-app.post('/api/publish-kind10040', handlePublishKind10040);
-app.get('/control/api/publish-kind10040', handlePublishKind10040);
-app.post('/control/api/publish-kind10040', handlePublishKind10040);
+// REMOVED: handleCreateKind10040 - Moved to src/api/export/nip85/commands/kind10040.js
+// REMOVED: handleGetKind10040Event - Moved to src/api/export/nip85/queries/info.js
+// REMOVED: handlePublishKind10040 - Moved to src/api/export/nip85/commands/kind10040.js
+// REMOVED: handlePublishKind30382 - Moved to src/api/export/nip85/commands/kind30382.js
+// REMOVED: handleKind30382Info - Moved to src/api/export/nip85/queries/info.js
+// REMOVED: handleKind10040Info - Moved to src/api/export/nip85/queries/info.js
 
 // API endpoint for getting relay configuration
 app.get('/api/relay-config', handleRelayConfig);
-
-// API endpoint for getting kind 30382 event information
-app.get('/api/kind30382-info', handleKind30382Info);
-
-// API endpoint for getting kind 10040 event information
-app.get('/api/kind10040-info', handleKind10040Info);
 
 // API endpoint for getting NostrUser profiles data from Neo4j
 app.get('/api/get-profiles', handleGetProfiles);
@@ -1224,249 +1223,6 @@ function handleBatchTransfer(req, res) {
     });
 }
 
-// Handler for creating kind 10040 events
-function handleCreateKind10040(req, res) {
-    console.log('Creating kind 10040 events...');
-    
-    // Set the response header to ensure it's always JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Get the full path to the script
-    const scriptPath = path.join(__dirname, 'hasenpfeffr-create-kind10040.js');
-    console.log('Using script path:', scriptPath);
-    
-    // Set a timeout to ensure the response doesn't hang
-    const timeoutId = setTimeout(() => {
-        console.log('Kind 10040 creation is taking longer than expected, sending initial response...');
-        res.json({
-            success: true,
-            output: 'Kind 10040 creation started. This process will continue in the background.\n',
-            error: null
-        });
-    }, 30000); // 30 seconds timeout
-    
-    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
-        // Clear the timeout if the command completes before the timeout
-        clearTimeout(timeoutId);
-        
-        // Check if the response has already been sent
-        if (res.headersSent) {
-            console.log('Response already sent, kind 10040 creation continuing in background');
-            return;
-        }
-        
-        return res.json({
-            success: !error,
-            output: stdout || stderr,
-            error: error ? error.message : null
-        });
-    });
-}
-
-// Handler for getting unsigned kind 10040 event
-function handleGetKind10040Event(req, res) {
-    // Check if user is authenticated
-    if (!req.session.authenticated) {
-        return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    try {
-        // Define data directories
-        const dataDir = '/var/lib/hasenpfeffr/data';
-        const eventFile = path.join(dataDir, 'kind10040_event.json');
-        
-        // Check if the event file exists
-        if (!fs.existsSync(eventFile)) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'No kind 10040 event file found. Please create an event first.' 
-            });
-        }
-        
-        // Read the event file
-        const eventData = fs.readFileSync(eventFile, 'utf8');
-        const event = JSON.parse(eventData);
-        
-        // Get the owner's pubkey from config
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
-        
-        // Set pubkey to the owner's pubkey
-        event.pubkey = ownerPubkey;
-        
-        // Remove any existing signature if present
-        delete event.sig;
-        delete event.id;
-        
-        // Return the event data along with the session challenge
-        return res.json({ 
-            success: true, 
-            event: event,
-            challenge: req.session.challenge
-        });
-    } catch (error) {
-        console.error('Error getting kind 10040 event:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-}
-
-// Handler for publishing kind 10040 events
-function handlePublishKind10040(req, res) {
-    // Check if user is authenticated
-    if (!req.session.authenticated) {
-        return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    try {
-        // Get the signed event from the request
-        const { signedEvent } = req.body;
-        
-        if (!signedEvent) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'No signed event provided' 
-            });
-        }
-        
-        // Verify that the event has a signature
-        // In a production environment, you would want to use a proper Nostr library for verification
-        // For this example, we'll just check that the pubkey matches and the challenge is included
-        
-        const sessionPubkey = req.session.pubkey;
-        const sessionChallenge = req.session.challenge;
-        
-        if (!sessionPubkey || !sessionChallenge) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'No active authentication session' 
-            });
-        }
-        
-        // Check pubkey matches
-        if (signedEvent.pubkey !== sessionPubkey) {
-            return res.json({ 
-                success: false, 
-                message: 'Public key mismatch' 
-            });
-        }
-        
-        // Check challenge is included in tags
-        let challengeFound = false;
-        if (signedEvent.tags && Array.isArray(signedEvent.tags)) {
-            for (const tag of signedEvent.tags) {
-                if (tag[0] === 'challenge' && tag[1] === sessionChallenge) {
-                    challengeFound = true;
-                    break;
-                }
-            }
-        }
-        
-        if (!challengeFound) {
-            return res.json({ 
-                success: false, 
-                message: 'Challenge verification failed' 
-            });
-        }
-        
-        // Set session as authenticated
-        req.session.authenticated = true;
-        
-        // Store nsec in session if provided
-        if (req.body.nsec) {
-            req.session.nsec = req.body.nsec;
-            console.log('Private key stored in session for signing events');
-        }
-        
-        // Define data directories
-        const dataDir = '/var/lib/hasenpfeffr/data';
-        const publishedDir = path.join(dataDir, 'published');
-        
-        // Create directories if they don't exist
-        if (!fs.existsSync(dataDir)) {
-            fs.mkdirSync(dataDir, { recursive: true });
-        }
-        
-        if (!fs.existsSync(publishedDir)) {
-            fs.mkdirSync(publishedDir, { recursive: true });
-        }
-        
-        // Save the signed event to a file
-        const signedEventFile = path.join(publishedDir, `kind10040_${signedEvent.id.substring(0, 8)}_${Date.now()}.json`);
-        fs.writeFileSync(signedEventFile, JSON.stringify(signedEvent, null, 2));
-        
-        // Execute the publish script with the signed event file
-        const scriptPath = path.join(__dirname, '..', 'src', 'algos', 'nip85', 'publish_nip85_10040.mjs');
-        
-        // Run the script as a child process
-        const child = spawn('node', [scriptPath], {
-            env: {
-                ...process.env,
-                SIGNED_EVENT_FILE: signedEventFile
-            }
-        });
-        
-        let output = '';
-        let errorOutput = '';
-        
-        child.stdout.on('data', (data) => {
-            const dataStr = data.toString();
-            console.log(`publish_nip85_10040.mjs stdout: ${dataStr}`);
-            output += dataStr;
-        });
-        
-        child.stderr.on('data', (data) => {
-            const dataStr = data.toString();
-            console.error(`publish_nip85_10040.mjs stderr: ${dataStr}`);
-            errorOutput += dataStr;
-        });
-        
-        child.on('close', (code) => {
-            console.log(`publish_nip85_10040.mjs exited with code ${code}`);
-            
-            // Save the output to a log file for debugging
-            const timestamp = new Date().toISOString().replace(/:/g, '-');
-            const logDir = path.join(__dirname, '../logs');
-            
-            // Create logs directory if it doesn't exist
-            if (!fs.existsSync(logDir)) {
-                fs.mkdirSync(logDir, { recursive: true });
-            }
-            
-            const logFile = path.join(logDir, `kind10040_${timestamp}.log`);
-            fs.writeFileSync(logFile, `STDOUT:\n${output}\n\nSTDERR:\n${errorOutput}\n\nExit code: ${code}`);
-            console.log(`Kind 10040 process log saved to ${logFile}`);
-            
-            // Try to parse the last JSON output if available
-            try {
-                // Look for the last JSON object in the output
-                const jsonMatch = output.match(/\{[\s\S]*\}/g);
-                if (jsonMatch) {
-                    const lastJson = jsonMatch[jsonMatch.length - 1];
-                    const result = JSON.parse(lastJson);
-                    
-                    // Store the result in a file that can be retrieved later
-                    const resultFile = path.join(logDir, `kind10040_result_${timestamp}.json`);
-                    fs.writeFileSync(resultFile, JSON.stringify(result, null, 2));
-                    console.log(`Kind 10040 result saved to ${resultFile}`);
-                }
-            } catch (error) {
-                console.error('Error parsing JSON output:', error);
-            }
-        });
-        
-        // Unref the child to allow the parent process to exit independently
-        child.unref();
-    } catch (error) {
-        console.error('Error publishing kind 10040 event:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-}
-
 // Handler for getting relay configuration
 function handleRelayConfig(req, res) {
     console.log('Getting relay configuration...');
@@ -1489,185 +1245,6 @@ function handleRelayConfig(req, res) {
             error: 'Failed to get relay configuration: ' + error.message
         });
     }
-}
-
-// Handler for publishing kind 30382 events
-function handlePublishKind30382(req, res) {
-    console.log('Publishing kind 30382 events...');
-    
-    // Set the response header to ensure it's always JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Get the full path to the script
-    const scriptPath = path.join(__dirname, '../src/algos/nip85/hasenpfeffr-publish-kind30382.js');
-    console.log('Using script path:', scriptPath);
-    
-    // Send an initial response that the process has started
-    res.json({
-        success: true,
-        message: 'Kind 30382 publishing started. This process will continue in the background.',
-        output: 'Kind 30382 publishing started. This process will continue in the background.\n',
-        error: null
-    });
-    
-    // Execute the command with a much larger buffer size and in the background
-    // after the response has been sent
-    const childProcess = spawn('node', [scriptPath], {
-        maxBuffer: 1024 * 1024 * 100, // 100MB buffer
-        detached: true,
-        stdio: ['ignore', 'pipe', 'pipe']
-    });
-    
-    let output = '';
-    let errorOutput = '';
-    
-    childProcess.stdout.on('data', (data) => {
-        const dataStr = data.toString();
-        console.log(`Kind 30382 background process output: ${dataStr}`);
-        output += dataStr;
-    });
-    
-    childProcess.stderr.on('data', (data) => {
-        const dataStr = data.toString();
-        console.error(`Kind 30382 background process error: ${dataStr}`);
-        errorOutput += dataStr;
-    });
-    
-    childProcess.on('close', (code) => {
-        console.log(`Kind 30382 background process exited with code ${code}`);
-        
-        // Save the output to a log file for debugging
-        const timestamp = new Date().toISOString().replace(/:/g, '-');
-        const logDir = path.join(__dirname, '../logs');
-        
-        // Create logs directory if it doesn't exist
-        if (!fs.existsSync(logDir)) {
-            fs.mkdirSync(logDir, { recursive: true });
-        }
-        
-        const logFile = path.join(logDir, `kind30382_${timestamp}.log`);
-        fs.writeFileSync(logFile, `STDOUT:\n${output}\n\nSTDERR:\n${errorOutput}\n\nExit code: ${code}`);
-        console.log(`Kind 30382 process log saved to ${logFile}`);
-        
-        // Try to parse the last JSON output if available
-        try {
-            // Look for the last JSON object in the output
-            const jsonMatch = output.match(/\{[\s\S]*\}/g);
-            if (jsonMatch) {
-                const lastJson = jsonMatch[jsonMatch.length - 1];
-                const result = JSON.parse(lastJson);
-                
-                // Store the result in a file that can be retrieved later
-                const resultFile = path.join(logDir, `kind30382_result_${timestamp}.json`);
-                fs.writeFileSync(resultFile, JSON.stringify(result, null, 2));
-                console.log(`Kind 30382 result saved to ${resultFile}`);
-            }
-        } catch (error) {
-            console.error('Error parsing JSON output:', error);
-        }
-    });
-    
-    // Unref the child to allow the parent process to exit independently
-    childProcess.unref();
-}
-
-// Handler for getting kind 30382 event information
-function handleKind30382Info(req, res) {
-  try {
-    // Get relay pubkey from config
-    const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
-    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-    
-    if (!relayPubkey) {
-      return res.json({
-        success: false,
-        message: 'Relay pubkey not found in configuration'
-      });
-    }
-    
-    // Get count of kind 30382 events
-    const countCmd = `sudo strfry scan --count '{"kinds":[30382], "authors":["${relayPubkey}"]}'`;
-    let count = 0;
-    try {
-      count = parseInt(execSync(countCmd).toString().trim(), 10);
-    } catch (error) {
-      console.error('Error getting event count:', error);
-    }
-    
-    // Get most recent kind 30382 event
-    const latestCmd = `sudo strfry scan '{"kinds":[30382], "authors":["${relayPubkey}"], "limit": 1}'`;
-    let latestEvent = null;
-    let timestamp = null;
-    
-    try {
-      const output = execSync(latestCmd).toString().trim();
-      if (output) {
-        latestEvent = JSON.parse(output);
-        timestamp = latestEvent.created_at;
-      }
-    } catch (error) {
-      console.error('Error getting latest event:', error);
-    }
-    
-    return res.json({
-      success: true,
-      count: count,
-      timestamp: timestamp,
-      latestEvent: latestEvent,
-      relayUrl: relayUrl
-    });
-  } catch (error) {
-    return res.json({
-      success: false,
-      message: `Error getting kind 30382 info: ${error.message}`
-    });
-  }
-}
-
-// Handler for getting kind 10040 event information
-function handleKind10040Info(req, res) {
-  try {
-    // Get owner pubkey from config
-    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
-    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-    
-    if (!ownerPubkey) {
-      return res.json({
-        success: false,
-        message: 'Owner pubkey not found in configuration'
-      });
-    }
-    
-    // Get most recent kind 10040 event
-    const latestCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${ownerPubkey}"], "limit": 1}'`;
-    let latestEvent = null;
-    let timestamp = null;
-    let eventId = null;
-    
-    try {
-      const output = execSync(latestCmd).toString().trim();
-      if (output) {
-        latestEvent = JSON.parse(output);
-        timestamp = latestEvent.created_at;
-        eventId = latestEvent.id;
-      }
-    } catch (error) {
-      console.error('Error getting latest event:', error);
-    }
-    
-    return res.json({
-      success: true,
-      timestamp: timestamp,
-      eventId: eventId,
-      latestEvent: latestEvent,
-      relayUrl: relayUrl
-    });
-  } catch (error) {
-    return res.json({
-      success: false,
-      message: `Error getting kind 10040 info: ${error.message}`
-    });
-  }
 }
 
 // Handler for getting NostrUser profiles data from Neo4j

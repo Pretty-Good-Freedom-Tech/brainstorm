@@ -15,9 +15,12 @@ const {
     handleAuthLogin, 
     handleAuthLogout, 
     handleAuthStatus,
-    handleAuthTest,
-    authMiddleware 
+    handleAuthTest
 } = require('./auth/authHandler');
+const { checkAuthentication } = require('./auth/middleware');
+
+// Import new API routers
+const nip85Router = require('./export/nip85');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -46,6 +49,10 @@ function register(app) {
         // Mark session as configured
         app._hasenpfeffrSessionConfigured = true;
     }
+    
+    // Apply authentication check middleware to all routes
+    // This doesn't block requests, just adds auth info to the request object
+    app.use(checkAuthentication);
     
     // Register new modular endpoints for both paths
     app.get('/api/strfry-status', getStrfryStatus);
@@ -83,6 +90,10 @@ function register(app) {
     // Test endpoint for debugging authentication
     app.get('/api/auth/test', handleAuthTest);
     app.get('/control/api/auth/test', handleAuthTest);
+    
+    // Register new NIP-85 endpoints (both paths)
+    app.use('/api/nip85', nip85Router);
+    app.use('/control/api/nip85', nip85Router);
     
     // Backward compatibility endpoint that calls all endpoints and combines results
     app.get('/api/instance-status', handleGetInstanceStatus);
