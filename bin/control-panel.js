@@ -433,8 +433,12 @@ app.get('/control/api/service-status', handleServiceStatus);
 app.post('/control/api/service-status', handleServiceStatus);
 
 // Add route handler for getting instance status
-app.get('/api/instance-status', handleGetInstanceStatus);
-app.get('/control/api/instance-status', handleGetInstanceStatus);
+app.get('/api/get-network-proximity', handleGetNetworkProximity);
+
+// Legacy instance-status endpoint is now registered in src/api/index.js
+// Commenting out these lines to avoid conflicts with the modular API implementation
+// app.get('/api/instance-status', handleGetInstanceStatus);
+// app.get('/control/api/instance-status', handleGetInstanceStatus);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {
