@@ -797,22 +797,29 @@
                     return;
                 }
                 
-                // Destroy existing chart if it exists
-                if (window.hopsChart) {
+                // Safely destroy existing chart if it exists
+                if (window.hopsChart && typeof window.hopsChart.destroy === 'function') {
                     window.hopsChart.destroy();
                 }
                 
                 const networkByHops = data.byHops;
                 
-                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', 'Disconnected'];
+                const hopLabels = ['0 Hops (Self)', '1 Hop', '2 Hops', '3 Hops', '4 Hops', 'Disconnected'];
                 const hopData = [
-                    networkByHops['0'],
-                    networkByHops['1'],
-                    networkByHops['2'],
-                    networkByHops['3'],
-                    networkByHops['4'],
-                    networkByHops['999']
+                    networkByHops['0'] || 0,
+                    networkByHops['1'] || 0,
+                    networkByHops['2'] || 0,
+                    networkByHops['3'] || 0,
+                    networkByHops['4'] || 0,
+                    networkByHops['999'] || 0
                 ];
+                
+                // Debugging log to help diagnose issues
+                console.log('Creating chart with data:', {
+                    labels: hopLabels,
+                    data: hopData,
+                    networkByHops: networkByHops
+                });
                 
                 window.hopsChart = new Chart(ctx, {
                     type: 'bar',
@@ -822,11 +829,12 @@
                             label: 'Users by Hops',
                             data: hopData,
                             backgroundColor: [
-                                '#3498db',
-                                '#2ecc71',
-                                '#9b59b6',
-                                '#e67e22',
-                                '#e74c3c'
+                                '#3498db',  // Blue
+                                '#2ecc71',  // Green
+                                '#9b59b6',  // Purple
+                                '#e67e22',  // Orange
+                                '#e74c3c',  // Red
+                                '#95a5a6'   // Gray
                             ],
                             borderWidth: 1
                         }]
