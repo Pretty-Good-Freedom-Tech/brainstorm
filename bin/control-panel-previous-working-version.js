@@ -25,9 +25,6 @@ useWebSocketImplementation(WebSocket);
 // Import API modules
 const api = require('../src/api');
 
-// Import centralized configuration utility
-const { getConfigFromFile } = require('../src/utils/config');
-
 // Import configuration
 let config;
 try {
@@ -39,7 +36,7 @@ try {
 }
 
 // Function to get configuration values directly from /etc/hasenpfeffr.conf
-function getConfigFromFile_deprecating(varName, defaultValue = null) {
+function getConfigFromFile(varName, defaultValue = null) {
   try {
     const confFile = '/etc/hasenpfeffr.conf';
     if (fs.existsSync(confFile)) {
