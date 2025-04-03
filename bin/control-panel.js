@@ -2653,7 +2653,7 @@ function handleCalculationStatus(req, res) {
 }
 
 // Handler for getting comprehensive instance status
-function handleGetInstanceStatus(req, res) {
+function handleGetInstanceStatus_deprecated(req, res) {
     console.log('Getting comprehensive instance status');
     
     // Result object
