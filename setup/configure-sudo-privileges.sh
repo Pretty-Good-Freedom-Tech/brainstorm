@@ -57,5 +57,4 @@ sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.mjs
 # set ownershiup for configuration files 
 sudo chown root:hasenpfeffr /etc/hasenpfeffr.conf
 sudo chown root:hasenpfeffr /etc/graperank.conf
-sudo chown root:hasenpfeffr /etc/blacklist.conf
 sudo chown root:hasenpfeffr /etc/strfry-router.config
