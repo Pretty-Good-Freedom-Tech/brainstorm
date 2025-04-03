@@ -409,47 +409,6 @@
                     });
             }
             
-            /*
-            // Check authentication status and update UI
-            const authStatus = document.getElementById('authStatus');
-            if (authStatus) {
-                fetch('/control/api/auth/status')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data && data.authenticated) {
-                            authStatus.textContent = `Authenticated as: ${data.pubkey.substring(0, 8)}...`;
-                            authStatus.classList.add('authenticated');
-                        } else {
-                            authStatus.textContent = 'Read-only mode';
-                            authStatus.classList.add('read-only');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error checking authentication status:', error);
-                        authStatus.textContent = 'Authentication status unknown';
-                    });
-            }
-            // Logout functionality
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    fetch('/control/api/auth/logout')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                window.location.href = '/control/sign-in.html';
-                            } else {
-                                console.error('Logout failed:', data.message);
-                                alert('Logout failed: ' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error during logout:', error);
-                            alert('Error during logout. Please try again.');
-                        });
-                });
-            }
-            */
             // Strfry Plugin Management
             const pluginStatusIndicator = document.getElementById('pluginStatusIndicator');
             const pluginStatusText = document.getElementById('pluginStatusText');
