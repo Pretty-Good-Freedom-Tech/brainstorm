@@ -286,6 +286,7 @@ app.post('/control/api/reconciliation', handleReconciliation);
 
 // API endpoint to get unsigned kind 10040 event
 app.get('/api/get-kind10040-event', handleGetKind10040Event);
+app.get('/control/api/get-kind10040-event', handleGetKind10040Event);
 
 // API endpoint to publish kind 30382 events
 app.get('/api/publish-kind30382', handlePublishKind30382);
@@ -294,10 +295,10 @@ app.get('/control/api/publish-kind30382', handlePublishKind30382);
 app.post('/control/api/publish-kind30382', handlePublishKind30382);
 
 // API endpoint to publish kind 10040 events
-app.get('/api/publish-kind10040', handlePublishKind10040);
-app.post('/api/publish-kind10040', handlePublishKind10040);
-app.get('/control/api/publish-kind10040', handlePublishKind10040);
-app.post('/control/api/publish-kind10040', handlePublishKind10040);
+// app.get('/api/publish-kind10040', handlePublishKind10040);
+// app.post('/api/publish-kind10040', handlePublishKind10040);
+// app.get('/control/api/publish-kind10040', handlePublishKind10040);
+// app.post('/control/api/publish-kind10040', handlePublishKind10040);
 
 // API endpoint for getting relay configuration
 app.get('/api/relay-config', handleRelayConfig);
@@ -1259,6 +1260,7 @@ function handleGetKind10040Event(req, res) {
 }
 
 // Handler for publishing kind 10040 events
+/*
 function handlePublishKind10040(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
@@ -1412,6 +1414,7 @@ function handlePublishKind10040(req, res) {
         });
     }
 }
+*/
 
 // Handler for getting relay configuration
 function handleRelayConfig(req, res) {
