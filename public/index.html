@@ -959,8 +959,6 @@
             })
             .catch(error => {
                 console.error(`Error turning Hasenpfeffr ${action}:`, error);
-                updateStatusUI('unknown');
-                statusDetails.innerHTML += `<p>Error: ${error.message}</p>`;
                 
                 // If it seems like an authentication issue, suggest logging in
                 if (error.message.includes('non-JSON') || error.message.includes('Unexpected token')) {
@@ -1432,33 +1430,23 @@
         // Run initial status check
         checkAllServices();
 
-        // Function to check status of a specific service and update toggle
-        function checkServiceStatus(serviceGroup, toggleId) {
-            // Map service groups to actual systemd services
-            const serviceMapping = {
-                'databases': ['neo4j'],
-                'streaming': ['strfry', 'strfry-router'],
-                'scores': [
-                    'calculateHops.timer', 
-                    'calculatePersonalizedPageRank.timer', 
-                    'calculatePersonalizedGrapeRank.timer'
-                ]
-            };
-
-            const services = serviceMapping[serviceGroup];
-            if (!services || !services.length) return;
+        // Function to check status of a specific service group and update toggle
+        function checkServiceStatus(groupName, toggleId) {
+            // Get service group configuration
+            const group = serviceGroups[groupName];
+            if (!group || !group.services) return;
 
             // Call API to get service status
             fetch('/control/api/service-status')
                 .then(response => response.json())
                 .then(data => {
                     const toggle = document.getElementById(toggleId);
-                    const statusEl = document.getElementById(serviceGroup + 'Status');
+                    const statusEl = document.getElementById(groupName + 'Status');
                     
                     if (!toggle || !statusEl) return;
                     
                     // Check if all services in the group are active
-                    const allActive = services.every(service => 
+                    const allActive = group.services.every(service => 
                         data.services && data.services[service] === 'active'
                     );
                     
@@ -1473,8 +1461,8 @@
                     }
                 })
                 .catch(error => {
-                    console.error(`Error checking ${serviceGroup} status:`, error);
-                    const statusEl = document.getElementById(serviceGroup + 'Status');
+                    console.error(`Error checking ${groupName} status:`, error);
+                    const statusEl = document.getElementById(groupName + 'Status');
                     if (statusEl) {
                         statusEl.textContent = 'Status check failed';
                         statusEl.className = 'mini-status error';
