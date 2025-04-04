@@ -10,7 +10,7 @@ const { getConfigFromFile } = require('../../../../utils/config');
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleRelayConfig(req, res) {
+function handleGetRelayConfig(req, res) {
     console.log('Getting relay configuration...');
     
     try {
@@ -34,5 +34,5 @@ function handleRelayConfig(req, res) {
 }
 
 module.exports = {
-    handleRelayConfig
+    handleGetRelayConfig
 };

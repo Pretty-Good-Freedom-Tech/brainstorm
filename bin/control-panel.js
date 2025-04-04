@@ -331,10 +331,6 @@ function handleGetKind10040Event(req, res) {
     }
 }
 
-// API endpoint for getting relay configuration (Commented out - now handled in /src/api/export/relay/queries/config.js)
-// app.get('/api/relay-config', handleRelayConfig_deprecated);
-// app.get('/control/api/relay-config', handleRelayConfig_deprecated);
-
 // API endpoint for getting NostrUser profiles data from Neo4j
 app.get('/api/get-profiles', handleGetProfiles);
 app.get('/control/api/get-profiles', handleGetProfiles);
@@ -1432,30 +1428,6 @@ function handlePublishKind10040(req, res) {
         return res.status(500).json({ 
             success: false, 
             error: error.message 
-        });
-    }
-}
-
-// Handler for getting relay configuration
-function handleRelayConfig_deprecated(req, res) {
-    console.log('Getting relay configuration...');
-    
-    try {
-        // Get relay configuration from hasenpfeffr.conf
-        const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-        const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
-        
-        // Return the configuration
-        res.json({
-            success: true,
-            relayUrl: relayUrl,
-            relayPubkey: relayPubkey
-        });
-    } catch (error) {
-        console.error('Error getting relay configuration:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get relay configuration: ' + error.message
         });
     }
 }
