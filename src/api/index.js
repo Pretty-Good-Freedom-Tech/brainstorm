@@ -94,9 +94,7 @@ function register(app) {
     // Register all domain-specific endpoints in the central router
     
     // NIP-85 endpoints - both GET and POST for backward compatibility
-    app.get('/api/generate-nip85', nip85.handleGenerateNip85);
     app.post('/api/generate-nip85', nip85.handleGenerateNip85);
-    app.get('/control/api/generate-nip85', nip85.handleGenerateNip85);
     app.post('/control/api/generate-nip85', nip85.handleGenerateNip85);
     
     console.log('Registered all Hasenpfeffr API endpoints');
