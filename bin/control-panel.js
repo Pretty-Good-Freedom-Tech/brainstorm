@@ -234,12 +234,6 @@ app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.get('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
-// API endpoint to generate NIP-85 data
-app.get('/api/generate-nip85', handleGenerateNip85);
-app.post('/api/generate-nip85', handleGenerateNip85);
-app.get('/control/api/generate-nip85', handleGenerateNip85);
-app.post('/control/api/generate-nip85', handleGenerateNip85);
-
 // API endpoint to generate PageRank data
 app.get('/api/generate-pagerank', handleGeneratePageRank);
 app.post('/api/generate-pagerank', handleGeneratePageRank);
@@ -266,7 +260,6 @@ app.post('/control/api/generate-blacklist', handleGenerateBlacklist);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
-app.post('/api/publish', handlePublish);
 
 // API endpoint for systemd services management
 app.get('/api/systemd-services', handleSystemdServices);
@@ -706,57 +699,6 @@ function handleNegentropySyncProfiles(req, res) {
   });
 }
 
-function handleGenerateNip85(req, res) {
-    console.log('Generating and publishing NIP-85 data...');
-    
-    // Get the NIP85 directory from environment or use default
-    const nip85Dir = process.env.HASENPFEFFR_NIP85_DIR || '/usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85';
-    const scriptPath = path.join(nip85Dir, 'publishNip85.sh');
-    
-    // Set a longer timeout for the response (10 minutes)
-    req.setTimeout(600000); // 10 minutes in milliseconds
-    res.setTimeout(600000);
-    
-    console.log(`Executing NIP-85 publishing script: ${scriptPath}`);
-    
-    // Use exec to run the script with sudo
-    const child = exec(`sudo ${scriptPath}`, {
-        timeout: 590000, // slightly less than the HTTP timeout
-        maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
-    }, (error, stdout, stderr) => {
-        console.log('NIP-85 publishing completed');
-        
-        if (error) {
-            console.error('Error publishing NIP-85 data:', error);
-            return res.json({
-                success: false,
-                output: stderr || stdout || error.message
-            });
-        }
-        
-        console.log('NIP-85 data published successfully');
-        return res.json({
-            success: true,
-            output: stdout
-        });
-    });
-    
-    // Handle data events to capture real-time output
-    child.stdout.on('data', (data) => {
-        const dataStr = data.toString();
-        console.log(`NIP-85 publishing stdout: ${dataStr}`);
-    });
-    
-    child.stderr.on('data', (data) => {
-        const dataStr = data.toString();
-        console.error(`NIP-85 publishing stderr: ${dataStr}`);
-    });
-    
-    child.on('close', (code) => {
-        console.log(`NIP-85 publishing process exited with code ${code}`);
-    });
-}
-
 function handleGeneratePageRank(req, res) {
   console.log('Generating PageRank data...');
   
@@ -940,9 +882,9 @@ async function handleStrfryPlugin(req, res) {
     }
 
     try {
+        // Define paths
         const strfryConfPath = '/etc/strfry.conf';
         const strfryRouterConfPath = '/etc/strfry-router.config';
-        let pluginStatus = 'unknown';
         
         // Check if strfry.conf exists
         if (!fs.existsSync(strfryConfPath)) {
@@ -962,6 +904,7 @@ async function handleStrfryPlugin(req, res) {
         const relayMatch = confContent.match(relayPluginRegex);
         
         // Determine plugin status from either match
+        let pluginStatus = 'unknown';
         if (writePolicyMatch) {
             pluginStatus = writePolicyMatch[1] ? 'enabled' : 'disabled';
         } else if (relayMatch) {
@@ -1039,6 +982,7 @@ async function handleStrfryPlugin(req, res) {
             
             // Update strfry-router.config based on action
             try {
+                // Set source config path
                 let sourceConfigPath;
                 if (action === 'enable') {
                     sourceConfigPath = '/usr/local/lib/node_modules/hasenpfeffr/setup/strfry-router-plugin.config';

@@ -19,6 +19,9 @@ const {
     authMiddleware 
 } = require('./auth/authHandler');
 
+// Import domain-specific handler modules
+const nip85 = require('./export/nip85');
+
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
 
@@ -87,6 +90,14 @@ function register(app) {
     // Backward compatibility endpoint that calls all endpoints and combines results
     app.get('/api/instance-status', handleGetInstanceStatus);
     app.get('/control/api/instance-status', handleGetInstanceStatus);
+    
+    // Register all domain-specific endpoints in the central router
+    
+    // NIP-85 endpoints - both GET and POST for backward compatibility
+    app.get('/api/generate-nip85', nip85.handleGenerateNip85);
+    app.post('/api/generate-nip85', nip85.handleGenerateNip85);
+    app.get('/control/api/generate-nip85', nip85.handleGenerateNip85);
+    app.post('/control/api/generate-nip85', nip85.handleGenerateNip85);
     
     console.log('Registered all Hasenpfeffr API endpoints');
 }
