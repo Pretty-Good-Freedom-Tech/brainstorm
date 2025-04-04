@@ -4,6 +4,7 @@
  */
 
 const { execSync } = require('child_process');
+const { getServiceStatus } = require('../queries/status');
 
 /**
  * Control a systemd service
@@ -27,7 +28,7 @@ function controlService(serviceName, action) {
  */
 function handleSystemdServices(req, res) {
   // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
-  // The middleware ensures that only the owner can access this endpoint
+  // The middleware ensures that only the owner can access this endpoint for actions
   
   const validServices = [
     'neo4j',
@@ -46,28 +47,30 @@ function handleSystemdServices(req, res) {
   const action = req.query.action;
   const service = req.query.service;
   
-  // Validate input parameters
-  if (!action) {
-    return res.status(400).json({ error: 'Missing action parameter' });
+  // If action and service are provided, perform the requested action
+  if (action && service) {
+    // Validate service name
+    if (!validServices.includes(service)) {
+      return res.status(400).json({ error: `Invalid service: ${service}` });
+    }
+    
+    // Validate action
+    if (!['start', 'stop', 'restart'].includes(action)) {
+      return res.status(400).json({ error: 'Invalid action. Use start, stop, or restart.' });
+    }
+    
+    // Perform the requested action
+    const result = controlService(service, action);
+    return res.json(result);
   }
   
-  if (!service) {
-    return res.status(400).json({ error: 'Missing service parameter' });
+  // Otherwise, return status of all services (for backward compatibility)
+  const statuses = {};
+  for (const service of validServices) {
+    statuses[service] = getServiceStatus(service);
   }
   
-  // Validate service name
-  if (!validServices.includes(service)) {
-    return res.status(400).json({ error: `Invalid service: ${service}` });
-  }
-  
-  // Validate action
-  if (!['start', 'stop', 'restart'].includes(action)) {
-    return res.status(400).json({ error: 'Invalid action. Use start, stop, or restart.' });
-  }
-  
-  // Perform the requested action
-  const result = controlService(service, action);
-  return res.json(result);
+  res.json({ services: statuses });
 }
 
 module.exports = {
