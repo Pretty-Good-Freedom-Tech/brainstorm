@@ -288,7 +288,8 @@ function authMiddleware(req, res, next) {
             '/export-whitelist',
             '/generate-graperank',
             '/generate-pagerank',
-            '/systemd-services'
+            '/systemd-services',
+            '/strfry-plugin'  // POST strfry-plugin for enabling/disabling
         ];
         
         // Check if this endpoint requires owner authentication

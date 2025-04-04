@@ -135,8 +135,9 @@ function register(app) {
     app.get('/api/service-status', services.handleServiceStatus);
     app.get('/api/systemd-services', services.handleSystemdServices);
 
-    // Strfry plugin endpoint
-    app.get('/api/strfry-plugin', strfry.handleStrfryPlugin);
+    // Strfry plugin endpoints - split into query and command
+    app.get('/api/strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
+    app.post('/api/strfry-plugin', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
