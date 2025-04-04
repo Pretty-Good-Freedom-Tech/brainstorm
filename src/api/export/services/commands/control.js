@@ -25,7 +25,7 @@ function controlService(serviceName, action) {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleSystemdServices(req, res) {
+function handleSystemdServices_broken(req, res) {
   // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
   // The middleware ensures that only the owner can access this endpoint
   
@@ -68,6 +68,43 @@ function handleSystemdServices(req, res) {
   // Perform the requested action
   const result = controlService(service, action);
   return res.json(result);
+}
+
+function handleSystemdServices(req, res) {
+  const services = [
+    'neo4j',
+    'strfry',
+    'hasenpfeffr-control-panel',
+    'strfry-router',
+    'addToQueue',
+    'processQueue',
+    'reconcile.timer',
+    'processAllTasks.timer',
+    'calculateHops.timer',
+    'calculatePersonalizedPageRank.timer',
+    'calculatePersonalizedGrapeRank.timer'
+  ];
+  
+  const action = req.query.action;
+  const service = req.query.service;
+  
+  // If action and service are provided, perform the requested action
+  if (action && service) {
+    if (['start', 'stop', 'restart'].includes(action)) {
+      const result = controlService(service, action);
+      return res.json(result);
+    } else {
+      return res.status(400).json({ error: 'Invalid action. Use start, stop, or restart.' });
+    }
+  }
+  
+  // Otherwise, return status of all services
+  const statuses = {};
+  for (const service of services) {
+    statuses[service] = getServiceStatus(service);
+  }
+  
+  res.json({ services: statuses });
 }
 
 module.exports = {
