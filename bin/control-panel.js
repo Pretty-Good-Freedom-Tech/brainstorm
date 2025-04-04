@@ -341,11 +341,11 @@ function handleGetKind10040Event(req, res) {
 // API endpoint for getting network proximity data (Refactored to src/api/export/users/queries/proximity.js)
 // app.get('/api/get-network-proximity', handleGetNetworkProximity);
 
-// GrapeRank configuration endpoints
-app.get('/api/graperank-config', handleGetGrapeRankConfig);
-app.post('/api/graperank-config', handleUpdateGrapeRankConfig);
-app.get('/control/api/graperank-config', handleGetGrapeRankConfig);
-app.post('/control/api/graperank-config', handleUpdateGrapeRankConfig);
+// GrapeRank configuration endpoints (Refactored to src/api/export/graperank)
+// app.get('/api/graperank-config', handleGetGrapeRankConfig);
+// app.post('/api/graperank-config', handleUpdateGrapeRankConfig);
+// app.get('/control/api/graperank-config', handleGetGrapeRankConfig);
+// app.post('/control/api/graperank-config', handleUpdateGrapeRankConfig);
 
 // Blacklist Configuration API Endpoints
 app.get('/api/blacklist-config', handleGetBlacklistConfig);
@@ -2165,7 +2165,8 @@ function controlService(serviceName, action) {
 }
 
 // Handler for getting GrapeRank configuration
-function handleGetGrapeRankConfig(req, res) {
+// DEPRECATED: Refactored to src/api/export/graperank/queries/config.js
+function handleGetGrapeRankConfig_deprecated(req, res) {
     console.log('Getting GrapeRank configuration...');
     
     const configPath = '/etc/graperank.conf';
@@ -2214,7 +2215,8 @@ function handleGetGrapeRankConfig(req, res) {
 }
 
 // Handler for updating GrapeRank configuration
-function handleUpdateGrapeRankConfig(req, res) {
+// DEPRECATED: Refactored to src/api/export/graperank/commands/update-config.js
+function handleUpdateGrapeRankConfig_deprecated(req, res) {
     console.log('Updating GrapeRank configuration...');
     
     const configPath = '/etc/graperank.conf';

@@ -24,6 +24,7 @@ const nip85 = require('./export/nip85');
 const profiles = require('./export/profiles');
 const relay = require('./export/relay');
 const users = require('./export/users');
+const graperank = require('./export/graperank');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -120,6 +121,12 @@ function register(app) {
     app.get('/control/api/get-profiles', users.handleGetProfiles);
     app.get('/api/get-user-data', users.handleGetUserData);
     app.get('/api/get-network-proximity', users.handleGetNetworkProximity);
+
+    // GrapeRank endpoints
+    app.get('/api/graperank-config', graperank.handleGetGrapeRankConfig);
+    app.post('/api/graperank-config', graperank.handleUpdateGrapeRankConfig);
+    app.get('/control/api/graperank-config', graperank.handleGetGrapeRankConfig);
+    app.post('/control/api/graperank-config', graperank.handleUpdateGrapeRankConfig);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
