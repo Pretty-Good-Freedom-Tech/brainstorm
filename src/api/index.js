@@ -95,7 +95,7 @@ function register(app) {
     
     // NIP-85 endpoints - both GET and POST for backward compatibility
     app.post('/api/generate-nip85', nip85.handleGenerateNip85);
-    app.post('/control/api/generate-nip85', nip85.handleGenerateNip85);
+    // app.post('/control/api/generate-nip85', nip85.handleGenerateNip85);
     
     console.log('Registered all Hasenpfeffr API endpoints');
 }
