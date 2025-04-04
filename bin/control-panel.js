@@ -331,15 +331,15 @@ function handleGetKind10040Event(req, res) {
     }
 }
 
-// API endpoint for getting NostrUser profiles data from Neo4j
-app.get('/api/get-profiles', handleGetProfiles);
-app.get('/control/api/get-profiles', handleGetProfiles);
+// API endpoint for getting NostrUser profiles data from Neo4j (Refactored to src/api/export/users/queries/profiles.js)
+// app.get('/api/get-profiles', handleGetProfiles);
+// app.get('/control/api/get-profiles', handleGetProfiles);
 
-// API endpoint for getting individual user data from Neo4j
-app.get('/api/get-user-data', handleGetUserData);
+// API endpoint for getting individual user data from Neo4j (Refactored to src/api/export/users/queries/userdata.js)
+// app.get('/api/get-user-data', handleGetUserData);
 
-// API endpoint for getting network proximity data
-app.get('/api/get-network-proximity', handleGetNetworkProximity);
+// API endpoint for getting network proximity data (Refactored to src/api/export/users/queries/proximity.js)
+// app.get('/api/get-network-proximity', handleGetNetworkProximity);
 
 // GrapeRank configuration endpoints
 app.get('/api/graperank-config', handleGetGrapeRankConfig);
@@ -397,7 +397,8 @@ app.get('/control/api/service-status', handleServiceStatus);
 app.post('/control/api/service-status', handleServiceStatus);
 
 // Add route handler for getting instance status
-app.get('/api/get-network-proximity', handleGetNetworkProximity);
+// Duplicate registration - Already refactored to src/api/export/users/queries/proximity.js
+// app.get('/api/get-network-proximity', handleGetNetworkProximity);
 
 // Legacy instance-status endpoint is now registered in src/api/index.js
 // Commenting out these lines to avoid conflicts with the modular API implementation
@@ -1433,7 +1434,8 @@ function handlePublishKind10040(req, res) {
 }
 
 // Handler for getting NostrUser profiles data from Neo4j
-function handleGetProfiles(req, res) {
+// DEPRECATED: Refactored to src/api/export/users/queries/profiles.js
+function handleGetProfiles_deprecated(req, res) {
   try {
     // Get query parameters for filtering and pagination
     const page = parseInt(req.query.page) || 1;
@@ -1607,7 +1609,8 @@ function handleGetProfiles(req, res) {
 }
 
 // Handler for getting individual user data from Neo4j
-function handleGetUserData(req, res) {
+// DEPRECATED: Refactored to src/api/export/users/queries/userdata.js
+function handleGetUserData_deprecated(req, res) {
   try {
     // Get query parameters for filtering
     const pubkey = req.query.pubkey;
@@ -1726,7 +1729,8 @@ function handleGetUserData(req, res) {
 }
 
 // Handler for getting network proximity data
-function handleGetNetworkProximity(req, res) {
+// DEPRECATED: Refactored to src/api/export/users/queries/proximity.js
+function handleGetNetworkProximity_deprecated(req, res) {
   try {
     // Get query parameters
     const pubkey = req.query.pubkey;
