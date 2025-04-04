@@ -22,6 +22,7 @@ const {
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
 const profiles = require('./export/profiles');
+const relay = require('./export/relay');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -108,6 +109,10 @@ function register(app) {
 
     // Profiles endpoint
     app.get('/api/get-kind0', profiles.handleGetKind0Event);
+
+    // Relay endpoint
+    app.get('/api/relay-config', relay.handleGetRelayConfig);
+    app.get('/control/api/relay-config', relay.handleGetRelayConfig);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

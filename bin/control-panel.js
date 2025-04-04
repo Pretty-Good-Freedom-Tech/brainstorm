@@ -331,9 +331,9 @@ function handleGetKind10040Event(req, res) {
     }
 }
 
-// API endpoint for getting relay configuration
-app.get('/api/relay-config', handleRelayConfig);
-app.get('/control/api/relay-config', handleRelayConfig);
+// API endpoint for getting relay configuration (Commented out - now handled in /src/api/export/relay/queries/config.js)
+// app.get('/api/relay-config', handleRelayConfig_deprecated);
+// app.get('/control/api/relay-config', handleRelayConfig_deprecated);
 
 // API endpoint for getting NostrUser profiles data from Neo4j
 app.get('/api/get-profiles', handleGetProfiles);
@@ -1437,7 +1437,7 @@ function handlePublishKind10040(req, res) {
 }
 
 // Handler for getting relay configuration
-function handleRelayConfig(req, res) {
+function handleRelayConfig_deprecated(req, res) {
     console.log('Getting relay configuration...');
     
     try {
