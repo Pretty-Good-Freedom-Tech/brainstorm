@@ -27,6 +27,7 @@ const users = require('./export/users');
 const graperank = require('./export/graperank');
 const blacklist = require('./export/blacklist');
 const whitelist = require('./export/whitelist');
+const pagerank = require('./export/pagerank');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -125,8 +126,11 @@ function register(app) {
     // Whitelist endpoints
     app.get('/api/get-whitelist-config', whitelist.handleGetWhitelistConfig);
     app.post('/api/post-whitelist-config', whitelist.handleUpdateWhitelistConfig);
-    app.get('/api/export-whitelist', whitelist.handleExportWhitelist);
     app.post('/api/export-whitelist', whitelist.handleExportWhitelist);
+
+    // PageRank endpoints
+    app.get('/api/generate-pagerank', pagerank.handleGeneratePageRank);
+    app.post('/api/generate-pagerank', pagerank.handleGeneratePageRank);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

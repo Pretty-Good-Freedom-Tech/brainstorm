@@ -227,11 +227,10 @@ app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
 
 app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
-app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
 
-// API endpoint to generate PageRank data
-app.get('/api/generate-pagerank', handleGeneratePageRank);
-app.post('/api/generate-pagerank', handleGeneratePageRank);
+// API endpoint to generate PageRank data (Refactored to src/api/export/pagerank/commands/generate.js)
+// app.get('/api/generate-pagerank', handleGeneratePageRank);
+// app.post('/api/generate-pagerank', handleGeneratePageRank);
 
 // API endpoint to generate GrapeRank data (Refactored to src/api/export/graperank/commands/generate.js)
 // app.get('/api/generate-graperank', handleGenerateGrapeRank);
@@ -615,7 +614,7 @@ function handleNegentropySyncPersonal(req, res) {
   });
 }
 
-function handleNegentropySyncProfiles(req, res) {
+function handleNegentropySyncProfiles_deprecated(req, res) {
   console.log('Syncing with Negentropy: Profiles ...');
   
   // Set a longer timeout for the response (10 minutes)
@@ -650,7 +649,7 @@ function handleNegentropySyncProfiles(req, res) {
   });
 }
 
-function handleGeneratePageRank(req, res) {
+function handleGeneratePageRank_deprecated(req, res) {
   console.log('Generating PageRank data...');
   
   // Set a longer timeout for the response (10 minutes)
@@ -685,7 +684,7 @@ function handleGeneratePageRank(req, res) {
   });
 }
 
-function handleExportWhitelist(req, res) {
+function handleExportWhitelist_deprecated(req, res) {
   console.log('Exporting Whitelist data...');
   
   // Set a longer timeout for the response (10 minutes)
@@ -720,7 +719,7 @@ function handleExportWhitelist(req, res) {
   });
 }
 
-function handleGenerateGrapeRank(req, res) {
+function handleGenerateGrapeRank_deprecated(req, res) {
     console.log('Generating GrapeRank data...');
     
     // Set a longer timeout for the response (10 minutes)
@@ -1159,7 +1158,7 @@ function handleCreateKind10040(req, res) {
 }
 
 // Handler for getting unsigned kind 10040 event 
-function handleGetKind10040Event(req, res) {
+function handleGetKind10040Event_deprecated(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
         return res.status(401).json({ error: 'Authentication required' });
@@ -1208,7 +1207,7 @@ function handleGetKind10040Event(req, res) {
 }
 
 // Handler for publishing kind 10040 events 
-function handlePublishKind10040(req, res) {
+function handlePublishKind10040_deprecated(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
         return res.status(401).json({ error: 'Authentication required' });
@@ -1544,7 +1543,7 @@ function controlService(serviceName, action) {
 }
 
 // Handler for generating blacklist
-function handleGenerateBlacklist(req, res) {
+function handleGenerateBlacklist_deprecated(req, res) {
     console.log('Generating blacklist data...');
     
     // Set a longer timeout for the response (10 minutes)
