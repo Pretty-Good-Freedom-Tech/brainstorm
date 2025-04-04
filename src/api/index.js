@@ -113,6 +113,8 @@ function register(app) {
     // GrapeRank endpoints
     app.get('/api/get-graperank-config', graperank.handleGetGrapeRankConfig);
     app.post('/api/post-graperank-config', graperank.handleUpdateGrapeRankConfig);
+    app.get('/api/generate-graperank', graperank.handleGenerateGrapeRank);
+    app.post('/api/generate-graperank', graperank.handleGenerateGrapeRank);
 
     // Blacklist endpoints
     app.get('/api/get-blacklist-config', blacklist.handleGetBlacklistConfig);

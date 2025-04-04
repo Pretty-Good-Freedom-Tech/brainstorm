@@ -285,7 +285,8 @@ function authMiddleware(req, res, next) {
             '/post-blacklist-config',
             '/post-whitelist-config',
             '/generate-blacklist',
-            '/export-whitelist'
+            '/export-whitelist',
+            '/generate-graperank'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -318,6 +319,7 @@ function authMiddleware(req, res, next) {
             '/post-whitelist-config',
             '/generate-blacklist',
             '/export-whitelist',
+            '/generate-graperank',
             '/hasenpfeffr-control'
         ];
         

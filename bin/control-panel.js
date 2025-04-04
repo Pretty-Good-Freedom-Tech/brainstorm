@@ -233,9 +233,9 @@ app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
 app.get('/api/generate-pagerank', handleGeneratePageRank);
 app.post('/api/generate-pagerank', handleGeneratePageRank);
 
-// API endpoint to generate GrapeRank data
-app.get('/api/generate-graperank', handleGenerateGrapeRank);
-app.post('/api/generate-graperank', handleGenerateGrapeRank);
+// API endpoint to generate GrapeRank data (Refactored to src/api/export/graperank/commands/generate.js)
+// app.get('/api/generate-graperank', handleGenerateGrapeRank);
+// app.post('/api/generate-graperank', handleGenerateGrapeRank);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
