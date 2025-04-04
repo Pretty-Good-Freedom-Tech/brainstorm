@@ -97,8 +97,7 @@ function register(app) {
     app.post('/api/generate-nip85', nip85.handleGenerateNip85);
     app.post('/api/create-kind10040', nip85.handleCreateKind10040);
     app.post('/api/publish-kind10040', nip85.handlePublishKind10040);
-    app.get('/api/publish-kind10040', nip85.handlePublishKind10040); // Support GET for backward compatibility
-    
+
     console.log('Registered all Hasenpfeffr API endpoints');
 }
 
