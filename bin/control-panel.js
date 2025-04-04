@@ -244,17 +244,17 @@ app.post('/api/generate-graperank', handleGenerateGrapeRank);
 app.get('/control/api/generate-graperank', handleGenerateGrapeRank);
 app.post('/control/api/generate-graperank', handleGenerateGrapeRank);
 
-// API endpoint to export Whitelist data
-app.get('/api/export-whitelist', handleExportWhitelist);
-app.post('/api/export-whitelist', handleExportWhitelist);
-app.get('/control/api/export-whitelist', handleExportWhitelist);
-app.post('/control/api/export-whitelist', handleExportWhitelist);
+// API endpoint to export Whitelist data (Refactored to src/api/export/whitelist/commands/export.js)
+// app.get('/api/export-whitelist', handleExportWhitelist);
+// app.post('/api/export-whitelist', handleExportWhitelist);
+// app.get('/control/api/export-whitelist', handleExportWhitelist);
+// app.post('/control/api/export-whitelist', handleExportWhitelist);
 
-// API endpoint to generate Blacklist data
-app.get('/api/generate-blacklist', handleGenerateBlacklist);
-app.post('/api/generate-blacklist', handleGenerateBlacklist);
-app.get('/control/api/generate-blacklist', handleGenerateBlacklist);
-app.post('/control/api/generate-blacklist', handleGenerateBlacklist);
+// API endpoint to generate Blacklist data (Refactored to src/api/export/blacklist/commands/generate.js)
+// app.get('/api/generate-blacklist', handleGenerateBlacklist);
+// app.post('/api/generate-blacklist', handleGenerateBlacklist);
+// app.get('/control/api/generate-blacklist', handleGenerateBlacklist);
+// app.post('/control/api/generate-blacklist', handleGenerateBlacklist);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);

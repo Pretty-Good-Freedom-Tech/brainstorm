@@ -5,6 +5,7 @@
 
 const { handleGetBlacklistConfig } = require('./queries/config');
 const { handleUpdateBlacklistConfig } = require('./commands/update-config');
+const { handleGenerateBlacklist } = require('./commands/generate');
 
 // Export handlers directly - this allows the central router 
 // to register endpoints without creating multiple routers
@@ -13,5 +14,6 @@ module.exports = {
     handleGetBlacklistConfig,
     
     // Commands (write operations)
-    handleUpdateBlacklistConfig
+    handleUpdateBlacklistConfig,
+    handleGenerateBlacklist
 };

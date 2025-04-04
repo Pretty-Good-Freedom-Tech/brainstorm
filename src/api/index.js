@@ -129,10 +129,18 @@ function register(app) {
     // Blacklist endpoints
     app.get('/api/get-blacklist-config', blacklist.handleGetBlacklistConfig);
     app.post('/api/post-blacklist-config', blacklist.handleUpdateBlacklistConfig);
+    app.get('/api/generate-blacklist', blacklist.handleGenerateBlacklist);
+    app.post('/api/generate-blacklist', blacklist.handleGenerateBlacklist);
+    app.get('/control/api/generate-blacklist', blacklist.handleGenerateBlacklist);
+    app.post('/control/api/generate-blacklist', blacklist.handleGenerateBlacklist);
 
     // Whitelist endpoints
     app.get('/api/get-whitelist-config', whitelist.handleGetWhitelistConfig);
     app.post('/api/post-whitelist-config', whitelist.handleUpdateWhitelistConfig);
+    app.get('/api/export-whitelist', whitelist.handleExportWhitelist);
+    app.post('/api/export-whitelist', whitelist.handleExportWhitelist);
+    app.get('/control/api/export-whitelist', whitelist.handleExportWhitelist);
+    app.post('/control/api/export-whitelist', whitelist.handleExportWhitelist);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
