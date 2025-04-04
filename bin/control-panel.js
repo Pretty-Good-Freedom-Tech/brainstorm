@@ -284,9 +284,56 @@ app.post('/control/api/reconciliation', handleReconciliation);
 // API endpoint to create kind 10040 events (Commented out - now handled in /src/api/export/nip85/commands/kind10040.js)
 // app.post('/api/create-kind10040', handleCreateKind10040);
 
-// API endpoint to get unsigned kind 10040 event
-app.get('/api/get-kind10040-event', handleGetKind10040Event);
-app.get('/control/api/get-kind10040-event', handleGetKind10040Event);
+// API endpoint to get unsigned kind 10040 event (Commented out - now handled in /src/api/export/nip85/queries/kind10040.js)
+/*
+function handleGetKind10040Event(req, res) {
+    // Check if user is authenticated
+    if (!req.session.authenticated) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    try {
+        // Define data directories
+        const dataDir = '/var/lib/hasenpfeffr/data';
+        const eventFile = path.join(dataDir, 'kind10040_event.json');
+        
+        // Check if the event file exists
+        if (!fs.existsSync(eventFile)) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'No kind 10040 event file found. Please create an event first.' 
+            });
+        }
+        
+        // Read the event file
+        const eventData = fs.readFileSync(eventFile, 'utf8');
+        const event = JSON.parse(eventData);
+        
+        // Get the owner's pubkey from config
+        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        
+        // Set pubkey to the owner's pubkey
+        event.pubkey = ownerPubkey;
+        
+        // Remove any existing signature if present
+        delete event.sig;
+        delete event.id;
+        
+        // Return the event data along with the session challenge
+        return res.json({ 
+            success: true, 
+            event: event,
+            challenge: req.session.challenge
+        });
+    } catch (error) {
+        console.error('Error getting kind 10040 event:', error);
+        return res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+}
+*/
 
 // API endpoint to publish kind 30382 events
 app.get('/api/publish-kind30382', handlePublishKind30382);
@@ -1211,6 +1258,7 @@ function handleCreateKind10040(req, res) {
 */
 
 // Handler for getting unsigned kind 10040 event
+/*
 function handleGetKind10040Event(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
@@ -1258,6 +1306,7 @@ function handleGetKind10040Event(req, res) {
         });
     }
 }
+*/
 
 // Handler for publishing kind 10040 events
 /*
