@@ -291,7 +291,8 @@ function authMiddleware(req, res, next) {
             '/systemd-services',
             '/strfry-plugin',  // POST strfry-plugin for enabling/disabling
             '/batch-transfer',
-            '/reconciliation'
+            '/reconciliation',
+            '/calculate-hops'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -321,7 +322,8 @@ function authMiddleware(req, res, next) {
             '/systemd-services',
             '/hasenpfeffr-control',
             '/batch-transfer',
-            '/reconciliation'
+            '/reconciliation',
+            '/calculate-hops'
         ];
         
         // Check if the current path is a write endpoint

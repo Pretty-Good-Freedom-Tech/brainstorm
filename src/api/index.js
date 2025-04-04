@@ -31,6 +31,7 @@ const pagerank = require('./export/pagerank');
 const services = require('./export/services');
 const strfry = require('./strfry');
 const pipeline = require('./pipeline');
+const algos = require('./algos');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -143,6 +144,9 @@ function register(app) {
     // Pipeline endpoints
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
     app.post('/api/reconciliation', pipeline.handleReconciliation);
+
+    // Algos endpoint
+    app.post('/api/calculate-hops', algos.handleCalculateHops);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
