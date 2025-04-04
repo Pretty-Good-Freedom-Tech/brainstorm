@@ -95,6 +95,7 @@ function register(app) {
     
     // NIP-85 endpoints 
     app.post('/api/generate-nip85', nip85.handleGenerateNip85);
+    app.post('/api/create-kind10040', nip85.handleCreateKind10040);
     
     console.log('Registered all Hasenpfeffr API endpoints');
 }

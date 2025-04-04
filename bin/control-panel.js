@@ -281,8 +281,8 @@ app.post('/api/reconciliation', handleReconciliation);
 app.get('/control/api/reconciliation', handleReconciliation);
 app.post('/control/api/reconciliation', handleReconciliation);
 
-// API endpoint to create kind 10040 events
-app.post('/api/create-kind10040', handleCreateKind10040);
+// API endpoint to create kind 10040 events (Commented out - now handled in /src/api/export/nip85/commands/kind10040.js)
+// app.post('/api/create-kind10040', handleCreateKind10040);
 
 // API endpoint to get unsigned kind 10040 event
 app.get('/api/get-kind10040-event', handleGetKind10040Event);
@@ -1168,7 +1168,8 @@ function handleBatchTransfer(req, res) {
     });
 }
 
-// Handler for creating kind 10040 events
+// Handler for creating kind 10040 events 
+/*
 function handleCreateKind10040(req, res) {
     console.log('Creating kind 10040 events...');
     
@@ -1206,6 +1207,7 @@ function handleCreateKind10040(req, res) {
         });
     });
 }
+*/
 
 // Handler for getting unsigned kind 10040 event
 function handleGetKind10040Event(req, res) {
@@ -2850,7 +2852,7 @@ function handleNeo4jSetupConstraints(req, res) {
     }
     
     // Execute the setup script
-    const setupScript = path.join(__dirname, '..', 'setup', 'neo4jConstraintsAndIndexes.sh');
+    const setupScript = path.join(__dirname, '../setup', 'neo4jConstraintsAndIndexes.sh');
     
     // Check if the script exists
     if (!fs.existsSync(setupScript)) {
