@@ -227,12 +227,10 @@ app.post('/api/negentropy-sync', handleNegentropySync);
 
 app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
 
-app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
-
-app.get('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
-app.get('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
+
+app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
 
 // API endpoint to generate PageRank data
 app.get('/api/generate-pagerank', handleGeneratePageRank);
@@ -281,11 +279,10 @@ app.post('/api/reconciliation', handleReconciliation);
 app.get('/control/api/reconciliation', handleReconciliation);
 app.post('/control/api/reconciliation', handleReconciliation);
 
-// API endpoint to create kind 10040 events (Commented out - now handled in /src/api/export/nip85/commands/kind10040.js)
-// app.post('/api/create-kind10040', handleCreateKind10040);
+// API endpoint to create kind 10040 events 
+app.post('/api/create-kind10040', handleCreateKind10040);
 
-// API endpoint to get unsigned kind 10040 event (Commented out - now handled in /src/api/export/nip85/queries/kind10040.js)
-/*
+// API endpoint to get unsigned kind 10040 event 
 function handleGetKind10040Event(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
@@ -333,28 +330,22 @@ function handleGetKind10040Event(req, res) {
         });
     }
 }
-*/
 
-// API endpoint to publish kind 30382 events
-app.get('/api/publish-kind30382', handlePublishKind30382);
-app.post('/api/publish-kind30382', handlePublishKind30382);
-app.get('/control/api/publish-kind30382', handlePublishKind30382);
-app.post('/control/api/publish-kind30382', handlePublishKind30382);
-
-// API endpoint to publish kind 10040 events
-// app.get('/api/publish-kind10040', handlePublishKind10040);
-// app.post('/api/publish-kind10040', handlePublishKind10040);
-// app.get('/control/api/publish-kind10040', handlePublishKind10040);
-// app.post('/control/api/publish-kind10040', handlePublishKind10040);
+// API endpoint to publish kind 30382 events (Commented out - now handled in /src/api/export/nip85/commands/kind30382.js)
+// app.get('/api/publish-kind30382', handlePublishKind30382);
+// app.post('/api/publish-kind30382', handlePublishKind30382);
+// app.get('/control/api/publish-kind30382', handlePublishKind30382);
+// app.post('/control/api/publish-kind30382', handlePublishKind30382);
 
 // API endpoint for getting relay configuration
 app.get('/api/relay-config', handleRelayConfig);
+app.get('/control/api/relay-config', handleRelayConfig);
 
-// API endpoint for getting kind 30382 event information
-app.get('/api/kind30382-info', handleKind30382Info);
+// API endpoint for getting kind 30382 event information (Commented out - now handled in /src/api/export/nip85/queries/info.js)
+// app.get('/api/kind30382-info', handleKind30382Info);
 
-// API endpoint for getting kind 10040 event information
-app.get('/api/kind10040-info', handleKind10040Info);
+// API endpoint for getting kind 10040 event information (Commented out - now handled in /src/api/export/nip85/queries/info.js)
+// app.get('/api/kind10040-info', handleKind10040Info);
 
 // API endpoint for getting NostrUser profiles data from Neo4j
 app.get('/api/get-profiles', handleGetProfiles);
@@ -883,7 +874,7 @@ function controlService(serviceName, action) {
   }
 }
 
-// Handler for systemd services
+// Handler functions for API endpoints
 function handleSystemdServices(req, res) {
   const services = [
     'neo4j',
@@ -1217,7 +1208,6 @@ function handleBatchTransfer(req, res) {
 }
 
 // Handler for creating kind 10040 events 
-/*
 function handleCreateKind10040(req, res) {
     console.log('Creating kind 10040 events...');
     
@@ -1255,10 +1245,8 @@ function handleCreateKind10040(req, res) {
         });
     });
 }
-*/
 
-// Handler for getting unsigned kind 10040 event
-/*
+// Handler for getting unsigned kind 10040 event 
 function handleGetKind10040Event(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
@@ -1306,10 +1294,8 @@ function handleGetKind10040Event(req, res) {
         });
     }
 }
-*/
 
-// Handler for publishing kind 10040 events
-/*
+// Handler for publishing kind 10040 events 
 function handlePublishKind10040(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
@@ -1394,7 +1380,7 @@ function handlePublishKind10040(req, res) {
         fs.writeFileSync(signedEventFile, JSON.stringify(signedEvent, null, 2));
         
         // Execute the publish script with the signed event file
-        const scriptPath = path.join(__dirname, '..', 'src', 'algos', 'nip85', 'publish_nip85_10040.mjs');
+        const scriptPath = path.join(__dirname, '../src/algos', 'nip85', 'publish_nip85_10040.mjs');
         
         // Run the script as a child process
         const child = spawn('node', [scriptPath], {
@@ -1463,34 +1449,9 @@ function handlePublishKind10040(req, res) {
         });
     }
 }
-*/
 
-// Handler for getting relay configuration
-function handleRelayConfig(req, res) {
-    console.log('Getting relay configuration...');
-    
-    try {
-        // Get relay configuration from hasenpfeffr.conf
-        const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-        const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
-        
-        // Return the configuration
-        res.json({
-            success: true,
-            relayUrl: relayUrl,
-            relayPubkey: relayPubkey
-        });
-    } catch (error) {
-        console.error('Error getting relay configuration:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get relay configuration: ' + error.message
-        });
-    }
-}
-
-// Handler for publishing kind 30382 events
-function handlePublishKind30382(req, res) {
+// Handler for publishing kind 30382 events 
+function handlePublishKind30382_deprecated(req, res) {
     console.log('Publishing kind 30382 events...');
     
     // Set the response header to ensure it's always JSON
@@ -1569,8 +1530,32 @@ function handlePublishKind30382(req, res) {
     childProcess.unref();
 }
 
-// Handler for getting kind 30382 event information
-function handleKind30382Info(req, res) {
+// Handler for getting relay configuration
+function handleRelayConfig(req, res) {
+    console.log('Getting relay configuration...');
+    
+    try {
+        // Get relay configuration from hasenpfeffr.conf
+        const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+        const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
+        
+        // Return the configuration
+        res.json({
+            success: true,
+            relayUrl: relayUrl,
+            relayPubkey: relayPubkey
+        });
+    } catch (error) {
+        console.error('Error getting relay configuration:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get relay configuration: ' + error.message
+        });
+    }
+}
+
+// Handler for getting kind 30382 event information 
+function handleKind30382Info_deprecated(req, res) {
   try {
     // Get relay pubkey from config
     const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
@@ -1622,8 +1607,8 @@ function handleKind30382Info(req, res) {
   }
 }
 
-// Handler for getting kind 10040 event information
-function handleKind10040Info(req, res) {
+// Handler for getting kind 10040 event information 
+function handleKind10040Info_deprecated(req, res) {
   try {
     // Get owner pubkey from config
     const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');

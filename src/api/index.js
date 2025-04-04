@@ -94,10 +94,16 @@ function register(app) {
     // Register all domain-specific endpoints in the central router
     
     // NIP-85 endpoints 
+    // Command endpoints (write operations requiring authentication)
     app.post('/api/generate-nip85', nip85.handleGenerateNip85);
     app.post('/api/create-kind10040', nip85.handleCreateKind10040);
     app.post('/api/publish-kind10040', nip85.handlePublishKind10040);
+    app.post('/api/publish-kind30382', nip85.handlePublishKind30382);
+    
+    // Query endpoints (read operations)
     app.get('/api/get-kind10040-event', nip85.handleGetKind10040Event);
+    app.get('/api/kind10040-info', nip85.handleKind10040Info);
+    app.get('/api/kind30382-info', nip85.handleKind30382Info);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
