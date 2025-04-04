@@ -26,6 +26,7 @@ const relay = require('./export/relay');
 const users = require('./export/users');
 const graperank = require('./export/graperank');
 const blacklist = require('./export/blacklist');
+const whitelist = require('./export/whitelist');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -128,6 +129,10 @@ function register(app) {
     // Blacklist endpoints
     app.get('/api/get-blacklist-config', blacklist.handleGetBlacklistConfig);
     app.post('/api/post-blacklist-config', blacklist.handleUpdateBlacklistConfig);
+
+    // Whitelist endpoints
+    app.get('/api/get-whitelist-config', whitelist.handleGetWhitelistConfig);
+    app.post('/api/post-whitelist-config', whitelist.handleUpdateWhitelistConfig);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

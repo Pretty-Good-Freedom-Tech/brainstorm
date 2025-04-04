@@ -335,11 +335,17 @@ function handleGetKind10040Event(req, res) {
 // app.get('/api/blacklist-config', handleGetBlacklistConfig);
 // app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
 
+// Whitelist Configuration API Endpoints (Refactored to src/api/export/whitelist)
+// app.get('/api/whitelist-config', handleGetWhitelistConfig);
+// app.post('/api/whitelist-config', handleUpdateWhitelistConfig);
+// app.get('/control/api/whitelist-config', handleGetWhitelistConfig);
+// app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
+
 // Whitelist management
-app.get('/api/whitelist-config', handleGetWhitelistConfig);
-app.post('/api/whitelist-config', handleUpdateWhitelistConfig);
-app.get('/control/api/whitelist-config', handleGetWhitelistConfig);
-app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
+// app.get('/api/whitelist-config', handleGetWhitelistConfig);
+// app.post('/api/whitelist-config', handleUpdateWhitelistConfig);
+// app.get('/control/api/whitelist-config', handleGetWhitelistConfig);
+// app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
 
 app.get('/api/whitelist-stats', handleGetWhitelistStats);
 app.get('/control/api/whitelist-stats', handleGetWhitelistStats);
@@ -1918,7 +1924,8 @@ function handleGetHopsCount(req, res) {
 }
 
 // Handler for getting whitelist configuration
-function handleGetWhitelistConfig(req, res) {
+// DEPRECATED: Refactored to src/api/export/whitelist/queries/config.js
+function handleGetWhitelistConfig_deprecated(req, res) {
   try {
     const configPath = '/etc/whitelist.conf';
     
@@ -1982,7 +1989,8 @@ function handleGetWhitelistConfig(req, res) {
 }
 
 // Handler for updating whitelist configuration
-function handleUpdateWhitelistConfig(req, res) {
+// DEPRECATED: Refactored to src/api/export/whitelist/queries/config.js
+function handleUpdateWhitelistConfig_deprecated(req, res) {
   try {
     const configPath = '/etc/whitelist.conf';
     const tempConfigPath = '/tmp/whitelist.conf.tmp';

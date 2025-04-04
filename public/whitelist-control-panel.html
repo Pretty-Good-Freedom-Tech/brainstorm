@@ -383,9 +383,9 @@
         document.getElementById('strictPreset').textContent = JSON.stringify(presets.strict, null, 2);
         
         // Load current configuration and whitelist stats
-        async function loadCurrentConfig() {
+        async function loadWhitelistConfig() {
             try {
-                const response = await fetch('/control/api/whitelist-config');
+                const response = await fetch('/control/api/get-whitelist-config');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -559,7 +559,7 @@
                 saveConfigBtn.disabled = true;
                 showStatus(configStatusEl, 'Saving configuration...', 'info');
                 
-                const response = await fetch('/control/api/whitelist-config', {
+                const response = await fetch('/control/api/post-whitelist-config', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -674,7 +674,7 @@
         }
         
         // Load configuration on page load
-        loadCurrentConfig();
+        loadWhitelistConfig();
         
         // Load initial influence count with default threshold
         loadInfluenceCount(0.5);
