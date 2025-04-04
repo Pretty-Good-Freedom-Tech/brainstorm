@@ -25,7 +25,7 @@ function controlService(serviceName, action) {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleSystemdServicesreq, res) {
+function handleSystemdServices(req, res) {
   // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
   // The middleware ensures that only the owner can access this endpoint
   
