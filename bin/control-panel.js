@@ -230,10 +230,6 @@ app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
 
-// API endpoint for reconciliation
-app.get('/api/reconciliation', handleReconciliation);
-app.post('/api/reconciliation', handleReconciliation);
-
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
 
@@ -573,49 +569,24 @@ function controlService(serviceName, action) {
   }
 }
 
-// Handler for reconciliation
-function handleReconciliation(req, res) {
-    console.log('Starting reconciliation of kinds 3, 1984, and 10000 data from strfry to Neo4j...');
-    
-    // Set the response header to ensure it's always JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Set a timeout to ensure the response doesn't hang
-    const timeoutId = setTimeout(() => {
-        console.log('Reconciliation is taking longer than expected, sending initial response...');
-        res.json({
-            success: true,
-            continueInBackground: true,
-            message: 'Reconciliation initiated',
-            output: 'Reconciliation process started. This will continue in the background.\n'
-        });
-    }, 120000); // 2 minutes timeout
-    
-    // Create a child process to run the reconciliation script
-    const reconciliationProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/runFullReconciliation.sh');
-    
-    let output = '';
-    let errorOutput = '';
-    
-    reconciliationProcess.stdout.on('data', (data) => {
-        console.log(`Reconciliation stdout: ${data}`);
-        output += data;
-    });
-    
-    reconciliationProcess.stderr.on('data', (data) => {
-        console.error(`Reconciliation stderr: ${data}`);
-        errorOutput += data;
-    });
-    
-    reconciliationProcess.on('close', (code) => {
-        console.log(`Reconciliation process exited with code ${code}`);
-        clearTimeout(timeoutId);
-        res.json({
-            success: true,
-            message: 'Reconciliation completed',
-            output: output
-        });
-    });
+// Function to check if a service is running
+function isServiceRunning(serviceName) {
+    try {
+        execSync(`systemctl is-active --quiet ${serviceName}`);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+// Function to start or stop a service
+function controlService(serviceName, action) {
+    try {
+        execSync(`sudo systemctl ${action} ${serviceName}`);
+        return { success: true, message: `Service ${serviceName} ${action} successful` };
+    } catch (error) {
+        return { success: false, message: `Failed to ${action} service ${serviceName}: ${error.message}` };
+    }
 }
 
 // Handler for creating kind 10040 events 

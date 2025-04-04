@@ -290,7 +290,8 @@ function authMiddleware(req, res, next) {
             '/generate-pagerank',
             '/systemd-services',
             '/strfry-plugin',  // POST strfry-plugin for enabling/disabling
-            '/batch-transfer'
+            '/batch-transfer',
+            '/reconciliation'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -310,14 +311,6 @@ function authMiddleware(req, res, next) {
     } else {
         // For API calls that modify data, return unauthorized status
         const writeEndpoints = [
-            '/batch-transfer',
-            '/generate',
-            '/publish',
-            '/negentropy-sync',
-            '/strfry-plugin',
-            '/create-kind10040',
-            '/publish-kind10040',
-            '/publish-kind30382',
             '/post-graperank-config',
             '/post-blacklist-config',
             '/post-whitelist-config',
@@ -327,7 +320,8 @@ function authMiddleware(req, res, next) {
             '/generate-pagerank',
             '/systemd-services',
             '/hasenpfeffr-control',
-            '/batch-transfer'
+            '/batch-transfer',
+            '/reconciliation'
         ];
         
         // Check if the current path is a write endpoint

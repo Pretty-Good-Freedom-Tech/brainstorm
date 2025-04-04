@@ -140,8 +140,9 @@ function register(app) {
     app.get('/api/strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
     app.post('/api/strfry-plugin', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
 
-    // Pipeline endpoint
+    // Pipeline endpoints
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
+    app.post('/api/reconciliation', pipeline.handleReconciliation);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
