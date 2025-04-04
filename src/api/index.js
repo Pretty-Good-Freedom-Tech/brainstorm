@@ -114,19 +114,15 @@ function register(app) {
 
     // Relay endpoint
     app.get('/api/relay-config', relay.handleGetRelayConfig);
-    app.get('/control/api/relay-config', relay.handleGetRelayConfig);
 
     // Users endpoints
     app.get('/api/get-profiles', users.handleGetProfiles);
-    app.get('/control/api/get-profiles', users.handleGetProfiles);
     app.get('/api/get-user-data', users.handleGetUserData);
     app.get('/api/get-network-proximity', users.handleGetNetworkProximity);
 
     // GrapeRank endpoints
-    app.get('/api/graperank-config', graperank.handleGetGrapeRankConfig);
-    app.post('/api/graperank-config', graperank.handleUpdateGrapeRankConfig);
-    app.get('/control/api/graperank-config', graperank.handleGetGrapeRankConfig);
-    app.post('/control/api/graperank-config', graperank.handleUpdateGrapeRankConfig);
+    app.get('/api/get-graperank-config', graperank.handleGetGrapeRankConfig);
+    app.post('/api/post-graperank-config', graperank.handleUpdateGrapeRankConfig);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
