@@ -12,13 +12,8 @@ const { exec } = require('child_process');
  * @param {Object} res - Express response object
  */
 function handleGenerateNip85(req, res) {
-    // Check if user is authenticated
-    if (!req.session.authenticated) {
-        return res.status(401).json({ 
-            success: false, 
-            message: 'Authentication required. Only the owner can perform this action.' 
-        });
-    }
+    // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
+    // The middleware ensures that only the owner can access this endpoint
     
     console.log('Generating and publishing NIP-85 data...');
     

@@ -242,7 +242,27 @@ function handleAuthTest(req, res) {
 }
 
 /**
+ * Check if a user is authenticated as the owner
+ * @param {Object} req - Express request object
+ * @returns {boolean} True if the user is the owner, false otherwise
+ */
+function isOwner(req) {
+    // Get owner pubkey from config
+    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+    
+    // Check if the user is authenticated and is the owner
+    return req.session && 
+           req.session.authenticated &&
+           req.session.pubkey &&
+           req.session.pubkey === ownerPubkey;
+}
+
+/**
  * Authentication middleware
+ * Handles three levels of access:
+ * 1. Public access - No authentication required (read-only endpoints)
+ * 2. User authentication - Any authenticated user (some write endpoints)
+ * 3. Owner authentication - Only the system owner (administrative endpoints)
  */
 function authMiddleware(req, res, next) {
     // Skip auth for static resources, sign-in page and auth-related endpoints
@@ -258,6 +278,27 @@ function authMiddleware(req, res, next) {
     
     // Check if user is authenticated for API calls
     if (req.session && req.session.authenticated) {
+        // Define owner-only endpoints (administrative actions)
+        const ownerOnlyEndpoints = [
+            '/hasenpfeffr-control',
+            '/graperank-config',
+            '/blacklist-config',
+            '/whitelist-config'
+        ];
+        
+        // Check if this endpoint requires owner authentication
+        const isOwnerEndpoint = ownerOnlyEndpoints.some(endpoint => 
+            req.path.includes(endpoint) && req.method === 'POST'
+        );
+        
+        // If this is an owner-only endpoint, verify owner status
+        if (isOwnerEndpoint && !isOwner(req)) {
+            return res.status(403).json({ 
+                error: 'Admin authentication required. Only the system owner can perform this action.'
+            });
+        }
+        
+        // User is authenticated and has appropriate permissions
         return next();
     } else {
         // For API calls that modify data, return unauthorized status
@@ -270,6 +311,9 @@ function authMiddleware(req, res, next) {
             '/create-kind10040',
             '/publish-kind10040',
             '/publish-kind30382',
+            '/graperank-config',
+            '/blacklist-config',
+            '/whitelist-config',
             '/hasenpfeffr-control'
         ];
         
@@ -293,5 +337,6 @@ module.exports = {
     handleAuthLogout,
     handleAuthStatus,
     handleAuthTest,
-    authMiddleware
+    authMiddleware,
+    isOwner
 };

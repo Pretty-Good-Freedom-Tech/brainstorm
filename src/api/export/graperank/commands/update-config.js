@@ -6,7 +6,6 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../../../../utils/config');
-const { authenticate } = require('../../../../utils/auth');
 
 /**
  * Update GrapeRank configuration
@@ -16,14 +15,8 @@ const { authenticate } = require('../../../../utils/auth');
 function handleUpdateGrapeRankConfig(req, res) {
     console.log('Updating GrapeRank configuration...');
     
-    // Authentication check - only allow owner to update config
-    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
-    if (!authenticate(req, ownerPubkey)) {
-        return res.status(401).json({ 
-            success: false, 
-            error: 'Authentication required' 
-        });
-    }
+    // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
+    // The middleware ensures that only the owner can access this endpoint
     
     const configPath = '/etc/graperank.conf';
     const tempConfigPath = '/tmp/graperank.conf.tmp';
