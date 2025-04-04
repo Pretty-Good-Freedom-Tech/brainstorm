@@ -924,7 +924,12 @@
                 generateStatus.textContent = 'Generating PageRank data...';
                 generateOutput.style.display = 'none';
                 
-                fetch('/control/api/generate-pagerank')
+                fetch('/control/api/generate-pagerank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
                     .then(response => response.json())
                     .then(data => {
                         generateBtn.disabled = false;
@@ -963,31 +968,36 @@
                 generateGrapeRankStatus.textContent = 'Generating GrapeRank data...';
                 generateGrapeRankOutput.style.display = 'none';
                 
-                fetch('/control/api/generate-graperank')
-                    .then(response => response.json())
-                    .then(data => {
-                        generateGrapeRankBtn.disabled = false;
-                        if (data.success) {
-                            generateGrapeRankStatus.className = 'status success';
-                            generateGrapeRankStatus.textContent = 'GrapeRank data generated successfully!';
-                            if (data.output) {
-                                generateGrapeRankOutput.style.display = 'block';
-                                generateGrapeRankOutput.textContent = data.output;
-                            }
-                        } else {
-                            generateGrapeRankStatus.className = 'status error';
-                            generateGrapeRankStatus.textContent = 'Error generating GrapeRank data';
-                            if (data.output) {
-                                generateGrapeRankOutput.style.display = 'block';
-                                generateGrapeRankOutput.textContent = data.output;
-                            }
+                fetch('/control/api/generate-graperank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    generateGrapeRankBtn.disabled = false;
+                    if (data.success) {
+                        generateGrapeRankStatus.className = 'status success';
+                        generateGrapeRankStatus.textContent = 'GrapeRank data generated successfully!';
+                        if (data.output) {
+                            generateGrapeRankOutput.style.display = 'block';
+                            generateGrapeRankOutput.textContent = data.output;
                         }
-                    })
-                    .catch(error => {
-                        generateGrapeRankBtn.disabled = false;
+                    } else {
                         generateGrapeRankStatus.className = 'status error';
-                        generateGrapeRankStatus.textContent = 'Error generating GrapeRank data: ' + error.message;
-                    });
+                        generateGrapeRankStatus.textContent = 'Error generating GrapeRank data';
+                        if (data.output) {
+                            generateGrapeRankOutput.style.display = 'block';
+                            generateGrapeRankOutput.textContent = data.output;
+                        }
+                    }
+                })
+                .catch(error => {
+                    generateGrapeRankBtn.disabled = false;
+                    generateGrapeRankStatus.className = 'status error';
+                    generateGrapeRankStatus.textContent = 'Error generating GrapeRank data: ' + error.message;
+                });
             });
             
             // Publish Events Button

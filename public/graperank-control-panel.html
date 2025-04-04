@@ -500,7 +500,12 @@
                 generateGrapeRankStatus.textContent = 'Generating GrapeRank data...';
                 generateGrapeRankOutput.style.display = 'none';
                 
-                fetch('/control/api/generate-graperank')
+                fetch('/control/api/generate-graperank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
                     .then(response => response.json())
                     .then(data => {
                         generateGrapeRankBtn.disabled = false;

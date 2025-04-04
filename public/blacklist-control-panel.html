@@ -494,34 +494,39 @@
                 generateBlacklistStatus.textContent = 'Generating blacklist...';
                 generateBlacklistOutput.style.display = 'none';
                 
-                fetch('/control/api/generate-blacklist')
-                    .then(response => response.json())
-                    .then(data => {
-                        generateBlacklistBtn.disabled = false;
-                        if (data.success) {
-                            generateBlacklistStatus.className = 'status success';
-                            generateBlacklistStatus.textContent = 'Blacklist generated successfully!';
-                            if (data.output) {
-                                generateBlacklistOutput.style.display = 'block';
-                                generateBlacklistOutput.textContent = data.output;
-                            }
-                            
-                            // Reload the configuration to update the stats
-                            loadCurrentConfig();
-                        } else {
-                            generateBlacklistStatus.className = 'status error';
-                            generateBlacklistStatus.textContent = 'Error generating blacklist';
-                            if (data.output) {
-                                generateBlacklistOutput.style.display = 'block';
-                                generateBlacklistOutput.textContent = data.output;
-                            }
+                fetch('/control/api/generate-blacklist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    generateBlacklistBtn.disabled = false;
+                    if (data.success) {
+                        generateBlacklistStatus.className = 'status success';
+                        generateBlacklistStatus.textContent = 'Blacklist generated successfully!';
+                        if (data.output) {
+                            generateBlacklistOutput.style.display = 'block';
+                            generateBlacklistOutput.textContent = data.output;
                         }
-                    })
-                    .catch(error => {
-                        generateBlacklistBtn.disabled = false;
+                        
+                        // Reload the configuration to update the stats
+                        loadCurrentConfig();
+                    } else {
                         generateBlacklistStatus.className = 'status error';
-                        generateBlacklistStatus.textContent = 'Error generating blacklist: ' + error.message;
-                    });
+                        generateBlacklistStatus.textContent = 'Error generating blacklist';
+                        if (data.output) {
+                            generateBlacklistOutput.style.display = 'block';
+                            generateBlacklistOutput.textContent = data.output;
+                        }
+                    }
+                })
+                .catch(error => {
+                    generateBlacklistBtn.disabled = false;
+                    generateBlacklistStatus.className = 'status error';
+                    generateBlacklistStatus.textContent = 'Error generating blacklist: ' + error.message;
+                });
             });
         });
         
