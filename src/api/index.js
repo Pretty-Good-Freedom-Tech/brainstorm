@@ -29,6 +29,7 @@ const blacklist = require('./export/blacklist');
 const whitelist = require('./export/whitelist');
 const pagerank = require('./export/pagerank');
 const services = require('./export/services');
+const strfry = require('./strfry');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -133,6 +134,9 @@ function register(app) {
     // Services endpoints
     app.get('/api/service-status', services.handleServiceStatus);
     app.get('/api/systemd-services', services.handleSystemdServices);
+
+    // Strfry plugin endpoint
+    app.get('/api/strfry-plugin', strfry.handleStrfryPlugin);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

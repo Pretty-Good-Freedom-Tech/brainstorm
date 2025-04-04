@@ -227,23 +227,11 @@ app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
 
 app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
-
-// API endpoint to generate PageRank data (Refactored to src/api/export/pagerank/commands/generate.js)
-// app.get('/api/generate-pagerank', handleGeneratePageRank);
-// app.post('/api/generate-pagerank', handleGeneratePageRank);
-
-// API endpoint to generate GrapeRank data (Refactored to src/api/export/graperank/commands/generate.js)
-// app.get('/api/generate-graperank', handleGenerateGrapeRank);
-// app.post('/api/generate-graperank', handleGenerateGrapeRank);
-
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
 
-// API endpoint for systemd services management (Refactored to src/api/export/services/commands/control.js)
-// app.get('/api/systemd-services', handleSystemdServices);
-
-// API endpoint for strfry plugin management
-app.get('/api/strfry-plugin', handleStrfryPlugin);
+// API endpoint for strfry plugin management (Refactored to src/api/strfry/queries/plugin.js)
+// app.get('/api/strfry-plugin', handleStrfryPlugin);
 
 // API endpoint for batch transfer
 app.get('/api/batch-transfer', handleBatchTransfer);
@@ -257,7 +245,7 @@ app.post('/api/reconciliation', handleReconciliation);
 app.post('/api/create-kind10040', handleCreateKind10040);
 
 // API endpoint to get unsigned kind 10040 event 
-function handleGetKind10040Event(req, res) {
+function handleGetKind10040Event_deprecated(req, res) {
     // Check if user is authenticated
     if (!req.session.authenticated) {
         return res.status(401).json({ error: 'Authentication required' });
@@ -614,146 +602,6 @@ function handleNegentropySyncPersonal(req, res) {
   });
 }
 
-function handleNegentropySyncProfiles_deprecated(req, res) {
-  console.log('Syncing with Negentropy: Profiles ...');
-  
-  // Set a longer timeout for the response (10 minutes)
-  req.setTimeout(600000); // 10 minutes in milliseconds
-  res.setTimeout(600000);
-  
-  // Use execFile instead of exec for better security and control
-  const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/manage/negentropySync/syncProfiles.sh', {
-      timeout: 590000, // slightly less than the HTTP timeout
-      maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
-  }, (error, stdout, stderr) => {
-      console.log('Negentropy Profiles sync completed');
-      
-      if (error) {
-          console.error('Error syncing with Negentropy: Profiles:', error);
-          return res.json({
-              success: false,
-              output: stderr || stdout || error.message
-          });
-      }
-      
-      console.log('Negentropy Profiles sync completed successfully');
-      return res.json({
-          success: true,
-          output: stdout || stderr
-      });
-  });
-  
-  // Log when the process starts
-  child.on('spawn', () => {
-      console.log('Negentropy Profiles sync process started');
-  });
-}
-
-function handleGeneratePageRank_deprecated(req, res) {
-  console.log('Generating PageRank data...');
-  
-  // Set a longer timeout for the response (10 minutes)
-  req.setTimeout(600000); // 10 minutes in milliseconds
-  res.setTimeout(600000);
-  
-  // Use execFile instead of exec for better security and control
-  const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculatePersonalizedPageRank.sh', {
-      timeout: 590000, // slightly less than the HTTP timeout
-      maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
-  }, (error, stdout, stderr) => {
-      console.log('PageRank calculation completed');
-      
-      if (error) {
-          console.error('Error generating PageRank data:', error);
-          return res.json({
-              success: false,
-              output: stderr || stdout || error.message
-          });
-      }
-      
-      console.log('PageRank data generated successfully');
-      return res.json({
-          success: true,
-          output: stdout || stderr
-      });
-  });
-  
-  // Log when the process starts
-  child.on('spawn', () => {
-      console.log('PageRank calculation process started');
-  });
-}
-
-function handleExportWhitelist_deprecated(req, res) {
-  console.log('Exporting Whitelist data...');
-  
-  // Set a longer timeout for the response (10 minutes)
-  req.setTimeout(600000); // 10 minutes in milliseconds
-  res.setTimeout(600000);
-  
-  // Use execFile instead of exec for better security and control
-  const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/exportWhitelist.sh', {
-      timeout: 590000, // slightly less than the HTTP timeout
-      maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
-  }, (error, stdout, stderr) => {
-      console.log('Whitelist export completed');
-      
-      if (error) {
-          console.error('Error exporting Whitelist data:', error);
-          return res.json({
-              success: false,
-              output: stderr || stdout || error.message
-          });
-      }
-      
-      console.log('Whitelist exported successfully');
-      return res.json({
-          success: true,
-          output: stdout || stderr
-      });
-  });
-  
-  // Log when the process starts
-  child.on('spawn', () => {
-      console.log('Whitelist export process started');
-  });
-}
-
-function handleGenerateGrapeRank_deprecated(req, res) {
-    console.log('Generating GrapeRank data...');
-    
-    // Set a longer timeout for the response (10 minutes)
-    req.setTimeout(600000); // 10 minutes in milliseconds
-    res.setTimeout(600000);
-    
-    // Use execFile instead of exec for better security and control
-    const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', {
-        timeout: 590000, // slightly less than the HTTP timeout
-        maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
-    }, (error, stdout, stderr) => {
-        console.log('GrapeRank calculation completed');
-        
-        if (error) {
-            console.error('Error generating GrapeRank data:', error);
-            return res.json({
-                success: false,
-                output: stderr || stdout || error.message
-            });
-        }
-        
-        console.log('GrapeRank data generated successfully');
-        return res.json({
-            success: true,
-            output: stdout || stderr
-        });
-    });
-    
-    // Log when the process starts
-    child.on('spawn', () => {
-        console.log('GrapeRank calculation process started');
-    });
-}
-
 function handlePublish(req, res) {
     console.log('Publishing NIP-85 events...');
     
@@ -783,44 +631,6 @@ function controlService(serviceName, action) {
   } catch (error) {
     return { success: false, message: `Failed to ${action} ${serviceName}: ${error.message}` };
   }
-}
-
-// Handler functions for API endpoints
-function handleSystemdServices_deprecated(req, res) {
-  const services = [
-    'neo4j',
-    'strfry',
-    'hasenpfeffr-control-panel',
-    'strfry-router',
-    'addToQueue',
-    'processQueue',
-    'reconcile.timer',
-    'processAllTasks.timer',
-    'calculateHops.timer',
-    'calculatePersonalizedPageRank.timer',
-    'calculatePersonalizedGrapeRank.timer'
-  ];
-  
-  const action = req.query.action;
-  const service = req.query.service;
-  
-  // If action and service are provided, perform the requested action
-  if (action && service) {
-    if (['start', 'stop', 'restart'].includes(action)) {
-      const result = controlService(service, action);
-      return res.json(result);
-    } else {
-      return res.status(400).json({ error: 'Invalid action. Use start, stop, or restart.' });
-    }
-  }
-  
-  // Otherwise, return status of all services
-  const statuses = {};
-  for (const service of services) {
-    statuses[service] = getServiceStatus(service);
-  }
-  
-  res.json({ services: statuses });
 }
 
 // Handler for strfry plugin toggle
@@ -1157,210 +967,6 @@ function handleCreateKind10040(req, res) {
     });
 }
 
-// Handler for getting unsigned kind 10040 event 
-function handleGetKind10040Event_deprecated(req, res) {
-    // Check if user is authenticated
-    if (!req.session.authenticated) {
-        return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    try {
-        // Define data directories
-        const dataDir = '/var/lib/hasenpfeffr/data';
-        const eventFile = path.join(dataDir, 'kind10040_event.json');
-        
-        // Check if the event file exists
-        if (!fs.existsSync(eventFile)) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'No kind 10040 event file found. Please create an event first.' 
-            });
-        }
-        
-        // Read the event file
-        const eventData = fs.readFileSync(eventFile, 'utf8');
-        const event = JSON.parse(eventData);
-        
-        // Get the owner's pubkey from config
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
-        
-        // Set pubkey to the owner's pubkey
-        event.pubkey = ownerPubkey;
-        
-        // Remove any existing signature if present
-        delete event.sig;
-        delete event.id;
-        
-        // Return the event data along with the session challenge
-        return res.json({ 
-            success: true, 
-            event: event,
-            challenge: req.session.challenge
-        });
-    } catch (error) {
-        console.error('Error getting kind 10040 event:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-}
-
-// Handler for publishing kind 10040 events 
-function handlePublishKind10040_deprecated(req, res) {
-    // Check if user is authenticated
-    if (!req.session.authenticated) {
-        return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    try {
-        // Get the signed event from the request
-        const { signedEvent } = req.body;
-        
-        if (!signedEvent) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'No signed event provided' 
-            });
-        }
-        
-        // Verify that the event has a signature
-        // In a production environment, you would want to use a proper Nostr library for verification
-        // For this example, we'll just check that the pubkey matches and the challenge is included
-        
-        const sessionPubkey = req.session.pubkey;
-        const sessionChallenge = req.session.challenge;
-        
-        if (!sessionPubkey || !sessionChallenge) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'No active authentication session' 
-            });
-        }
-        
-        // Check pubkey matches
-        if (signedEvent.pubkey !== sessionPubkey) {
-            return res.json({ 
-                success: false, 
-                message: 'Public key mismatch' 
-            });
-        }
-        
-        // Check challenge is included in tags
-        let challengeFound = false;
-        if (signedEvent.tags && Array.isArray(signedEvent.tags)) {
-            for (const tag of signedEvent.tags) {
-                if (tag[0] === 'challenge' && tag[1] === sessionChallenge) {
-                    challengeFound = true;
-                    break;
-                }
-            }
-        }
-        
-        if (!challengeFound) {
-            return res.json({ 
-                success: false, 
-                message: 'Challenge verification failed' 
-            });
-        }
-        
-        // Set session as authenticated
-        req.session.authenticated = true;
-        
-        // Store nsec in session if provided
-        if (req.body.nsec) {
-            req.session.nsec = req.body.nsec;
-            console.log('Private key stored in session for signing events');
-        }
-        
-        // Define data directories
-        const dataDir = '/var/lib/hasenpfeffr/data';
-        const publishedDir = path.join(dataDir, 'published');
-        
-        // Create directories if they don't exist
-        if (!fs.existsSync(dataDir)) {
-            fs.mkdirSync(dataDir, { recursive: true });
-        }
-        
-        if (!fs.existsSync(publishedDir)) {
-            fs.mkdirSync(publishedDir, { recursive: true });
-        }
-        
-        // Save the signed event to a file
-        const signedEventFile = path.join(publishedDir, `kind10040_${signedEvent.id.substring(0, 8)}_${Date.now()}.json`);
-        fs.writeFileSync(signedEventFile, JSON.stringify(signedEvent, null, 2));
-        
-        // Execute the publish script with the signed event file
-        const scriptPath = path.join(__dirname, '../src/algos', 'nip85', 'publish_nip85_10040.mjs');
-        
-        // Run the script as a child process
-        const child = spawn('node', [scriptPath], {
-            env: {
-                ...process.env,
-                SIGNED_EVENT_FILE: signedEventFile
-            }
-        });
-        
-        let output = '';
-        let errorOutput = '';
-        
-        child.stdout.on('data', (data) => {
-            const dataStr = data.toString();
-            console.log(`publish_nip85_10040.mjs stdout: ${dataStr}`);
-            output += dataStr;
-        });
-        
-        child.stderr.on('data', (data) => {
-            const dataStr = data.toString();
-            console.error(`publish_nip85_10040.mjs stderr: ${dataStr}`);
-            errorOutput += dataStr;
-        });
-        
-        child.on('close', (code) => {
-            console.log(`publish_nip85_10040.mjs exited with code ${code}`);
-            
-            // Save the output to a log file for debugging
-            const timestamp = new Date().toISOString().replace(/:/g, '-');
-            const logDir = path.join(__dirname, '../logs');
-            
-            // Create logs directory if it doesn't exist
-            if (!fs.existsSync(logDir)) {
-                fs.mkdirSync(logDir, { recursive: true });
-            }
-            
-            const logFile = path.join(logDir, `kind10040_${timestamp}.log`);
-            fs.writeFileSync(logFile, `STDOUT:\n${output}\n\nSTDERR:\n${errorOutput}\n\nExit code: ${code}`);
-            console.log(`Kind 10040 process log saved to ${logFile}`);
-            
-            // Try to parse the last JSON output if available
-            try {
-                // Look for the last JSON object in the output
-                const jsonMatch = output.match(/\{[\s\S]*\}/g);
-                if (jsonMatch) {
-                    const lastJson = jsonMatch[jsonMatch.length - 1];
-                    const result = JSON.parse(lastJson);
-                    
-                    // Store the result in a file that can be retrieved later
-                    const resultFile = path.join(logDir, `kind10040_result_${timestamp}.json`);
-                    fs.writeFileSync(resultFile, JSON.stringify(result, null, 2));
-                    console.log(`Kind 10040 result saved to ${resultFile}`);
-                }
-            } catch (error) {
-                console.error('Error parsing JSON output:', error);
-            }
-        });
-        
-        // Unref the child to allow the parent process to exit independently
-        child.unref();
-    } catch (error) {
-        console.error('Error publishing kind 10040 event:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-}
-
 // Handler for getting calculation status
 function handleCalculationStatus(req, res) {
     console.log('Getting calculation status...');
@@ -1542,42 +1148,6 @@ function controlService(serviceName, action) {
   }
 }
 
-// Handler for generating blacklist
-function handleGenerateBlacklist_deprecated(req, res) {
-    console.log('Generating blacklist data...');
-    
-    // Set a longer timeout for the response (10 minutes)
-    req.setTimeout(600000); // 10 minutes in milliseconds
-    res.setTimeout(600000);
-    
-    // Use exec with timeout options
-    const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedBlacklist/calculatePersonalizedBlacklist.sh', {
-        timeout: 590000, // slightly less than the HTTP timeout
-        maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
-    }, (error, stdout, stderr) => {
-        console.log('Blacklist calculation completed');
-        
-        if (error) {
-            console.error('Error generating blacklist data:', error);
-            return res.json({
-                success: false,
-                output: stderr || stdout || error.message
-            });
-        }
-        
-        console.log('Blacklist data generated successfully');
-        return res.json({
-            success: true,
-            output: stdout || stderr
-        });
-    });
-    
-    // Log when the process starts
-    child.on('spawn', () => {
-        console.log('Blacklist calculation process started');
-    });
-}
-
 // Handler for setting up Neo4j constraints and indexes
 function handleNeo4jSetupConstraints(req, res) {
     console.log('Setting up Neo4j constraints and indexes...');
@@ -1712,33 +1282,6 @@ function handleRunScript(req, res) {
         return res.status(500).json({ 
             success: false, 
             error: `Failed to execute script ${script}: ${error.message}` 
-        });
-    }
-}
-
-// Handler for getting service status
-function handleServiceStatus_deprecated(req, res) {
-    console.log('Getting service status...');
-    
-    const { service } = req.query;
-    
-    if (!service) {
-        return res.status(400).json({ error: 'Missing service parameter' });
-    }
-    
-    try {
-        // Check if service is running using systemctl
-        const serviceStatus = getServiceStatus(service);
-        
-        return res.json({
-            success: true,
-            active: serviceStatus === 'active'
-        });
-    } catch (error) {
-        console.error(`Error checking service status for ${service}:`, error);
-        return res.status(500).json({ 
-            success: false, 
-            error: `Failed to check service status: ${error.message}` 
         });
     }
 }
