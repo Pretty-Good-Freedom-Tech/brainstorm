@@ -330,8 +330,8 @@ app.get('/api/run-script', handleRunScript);
 app.post('/api/run-script', handleRunScript);
 
 // Add route handler for checking service status
-app.get('/api/service-status', handleServiceStatus);
-app.post('/api/service-status', handleServiceStatus);
+// app.get('/api/service-status', handleServiceStatus);
+// app.post('/api/service-status', handleServiceStatus);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {
@@ -1717,7 +1717,7 @@ function handleRunScript(req, res) {
 }
 
 // Handler for getting service status
-function handleServiceStatus(req, res) {
+function handleServiceStatus_deprecated(req, res) {
     console.log('Getting service status...');
     
     const { service } = req.query;
