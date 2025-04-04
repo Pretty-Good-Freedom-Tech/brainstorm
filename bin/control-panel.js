@@ -216,11 +216,9 @@ app.get('/api/strfry-stats', handleStrfryStats);
 
 // API endpoint to get Neo4j status information
 app.get('/api/neo4j-status', handleNeo4jStatus);
-app.get('/control/api/neo4j-status', handleNeo4jStatus);
 
 // API endpoint for setting up Neo4j constraints and indexes
 app.get('/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
-app.get('/control/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 
 // API endpoint for Negentropy sync
 app.post('/api/negentropy-sync', handleNegentropySync);
@@ -228,56 +226,33 @@ app.post('/api/negentropy-sync', handleNegentropySync);
 app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
 
 app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
-app.post('/control/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
 app.post('/api/negentropy-sync-profiles', handleNegentropySyncProfiles);
 
 // API endpoint to generate PageRank data
 app.get('/api/generate-pagerank', handleGeneratePageRank);
 app.post('/api/generate-pagerank', handleGeneratePageRank);
-app.get('/control/api/generate-pagerank', handleGeneratePageRank);
-app.post('/control/api/generate-pagerank', handleGeneratePageRank);
 
 // API endpoint to generate GrapeRank data
 app.get('/api/generate-graperank', handleGenerateGrapeRank);
 app.post('/api/generate-graperank', handleGenerateGrapeRank);
-app.get('/control/api/generate-graperank', handleGenerateGrapeRank);
-app.post('/control/api/generate-graperank', handleGenerateGrapeRank);
-
-// API endpoint to export Whitelist data (Refactored to src/api/export/whitelist/commands/export.js)
-// app.get('/api/export-whitelist', handleExportWhitelist);
-// app.post('/api/export-whitelist', handleExportWhitelist);
-// app.get('/control/api/export-whitelist', handleExportWhitelist);
-// app.post('/control/api/export-whitelist', handleExportWhitelist);
-
-// API endpoint to generate Blacklist data (Refactored to src/api/export/blacklist/commands/generate.js)
-// app.get('/api/generate-blacklist', handleGenerateBlacklist);
-// app.post('/api/generate-blacklist', handleGenerateBlacklist);
-// app.get('/control/api/generate-blacklist', handleGenerateBlacklist);
-// app.post('/control/api/generate-blacklist', handleGenerateBlacklist);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
 
 // API endpoint for systemd services management
 app.get('/api/systemd-services', handleSystemdServices);
-app.get('/control/api/systemd-services', handleSystemdServices);
 
 // API endpoint for strfry plugin management
 app.get('/api/strfry-plugin', handleStrfryPlugin);
-app.get('/control/api/strfry-plugin', handleStrfryPlugin);
 
 // API endpoint for batch transfer
 app.get('/api/batch-transfer', handleBatchTransfer);
 app.post('/api/batch-transfer', handleBatchTransfer);
-app.get('/control/api/batch-transfer', handleBatchTransfer);
-app.post('/control/api/batch-transfer', handleBatchTransfer);
 
 // API endpoint for reconciliation
 app.get('/api/reconciliation', handleReconciliation);
 app.post('/api/reconciliation', handleReconciliation);
-app.get('/control/api/reconciliation', handleReconciliation);
-app.post('/control/api/reconciliation', handleReconciliation);
 
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
@@ -331,69 +306,33 @@ function handleGetKind10040Event(req, res) {
     }
 }
 
-// Blacklist Configuration API Endpoints (Refactored to src/api/export/blacklist)
-// app.get('/api/blacklist-config', handleGetBlacklistConfig);
-// app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
-
-// Whitelist Configuration API Endpoints (Refactored to src/api/export/whitelist)
-// app.get('/api/whitelist-config', handleGetWhitelistConfig);
-// app.post('/api/whitelist-config', handleUpdateWhitelistConfig);
-// app.get('/control/api/whitelist-config', handleGetWhitelistConfig);
-// app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
-
-// Whitelist management
-// app.get('/api/whitelist-config', handleGetWhitelistConfig);
-// app.post('/api/whitelist-config', handleUpdateWhitelistConfig);
-// app.get('/control/api/whitelist-config', handleGetWhitelistConfig);
-// app.post('/control/api/whitelist-config', handleUpdateWhitelistConfig);
-
 app.get('/api/whitelist-stats', handleGetWhitelistStats);
-app.get('/control/api/whitelist-stats', handleGetWhitelistStats);
 
 // Endpoint to count users above influence threshold
 app.get('/api/influence-count', handleGetInfluenceCount);
-app.get('/control/api/influence-count', handleGetInfluenceCount);
 
 // Endpoint to count users with hops less than or equal to threshold
 app.get('/api/hops-count', handleGetHopsCount);
-app.get('/control/api/hops-count', handleGetHopsCount);
 
 // Endpoint to count blacklisted users
 app.get('/api/blacklist-count', handleGetBlacklistCount);
-app.get('/control/api/blacklist-count', handleGetBlacklistCount);
 
 // Endpoint to count users based on full whitelist criteria
 app.get('/api/whitelist-preview-count', handleGetWhitelistPreviewCount);
-app.get('/control/api/whitelist-preview-count', handleGetWhitelistPreviewCount);
 
 // Add route handler for Hasenpfeffr control
 app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
-app.post('/control/api/hasenpfeffr-control', handleHasenpfeffrControl);
 
 // Add route handler for getting calculation status
 app.get('/api/calculation-status', handleCalculationStatus);
-app.get('/control/api/calculation-status', handleCalculationStatus);
 
 // Add route handler for running service management scripts
 app.get('/api/run-script', handleRunScript);
 app.post('/api/run-script', handleRunScript);
-app.get('/control/api/run-script', handleRunScript);
-app.post('/control/api/run-script', handleRunScript);
 
 // Add route handler for checking service status
 app.get('/api/service-status', handleServiceStatus);
 app.post('/api/service-status', handleServiceStatus);
-app.get('/control/api/service-status', handleServiceStatus);
-app.post('/control/api/service-status', handleServiceStatus);
-
-// Add route handler for getting instance status
-// Duplicate registration - Already refactored to src/api/export/users/queries/proximity.js
-// app.get('/api/get-network-proximity', handleGetNetworkProximity);
-
-// Legacy instance-status endpoint is now registered in src/api/index.js
-// Commenting out these lines to avoid conflicts with the modular API implementation
-// app.get('/api/instance-status', handleGetInstanceStatus);
-// app.get('/control/api/instance-status', handleGetInstanceStatus);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {

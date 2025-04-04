@@ -58,44 +58,32 @@ function register(app) {
     
     // Register new modular endpoints for both paths
     app.get('/api/strfry-status', getStrfryStatus);
-    app.get('/control/api/strfry-status', getStrfryStatus);
     
     app.get('/api/neo4j-status', getNeo4jStatus);
-    app.get('/control/api/neo4j-status', getNeo4jStatus);
     
     app.get('/api/list-status', getListStatus);
-    app.get('/control/api/list-status', getListStatus);
     
     app.get('/api/ranking-status', getRankingStatus);
-    app.get('/control/api/ranking-status', getRankingStatus);
     
     app.get('/api/network-status', getNetworkStatus);
-    app.get('/control/api/network-status', getNetworkStatus);
     
     // Debug endpoint for troubleshooting server issues
     app.get('/api/debug', getDebugInfo);
-    app.get('/control/api/debug', getDebugInfo);
     
     // Authentication endpoints
     app.post('/api/auth/verify', handleAuthVerify);
-    app.post('/control/api/auth/verify', handleAuthVerify);
     
     app.post('/api/auth/login', handleAuthLogin);
-    app.post('/control/api/auth/login', handleAuthLogin);
     
     app.get('/api/auth/logout', handleAuthLogout);
-    app.get('/control/api/auth/logout', handleAuthLogout);
     
     app.get('/api/auth/status', handleAuthStatus);
-    app.get('/control/api/auth/status', handleAuthStatus);
     
     // Test endpoint for debugging authentication
     app.get('/api/auth/test', handleAuthTest);
-    app.get('/control/api/auth/test', handleAuthTest);
     
     // Backward compatibility endpoint that calls all endpoints and combines results
     app.get('/api/instance-status', handleGetInstanceStatus);
-    app.get('/control/api/instance-status', handleGetInstanceStatus);
     
     // Register all domain-specific endpoints in the central router
     
@@ -131,16 +119,12 @@ function register(app) {
     app.post('/api/post-blacklist-config', blacklist.handleUpdateBlacklistConfig);
     app.get('/api/generate-blacklist', blacklist.handleGenerateBlacklist);
     app.post('/api/generate-blacklist', blacklist.handleGenerateBlacklist);
-    app.get('/control/api/generate-blacklist', blacklist.handleGenerateBlacklist);
-    app.post('/control/api/generate-blacklist', blacklist.handleGenerateBlacklist);
 
     // Whitelist endpoints
     app.get('/api/get-whitelist-config', whitelist.handleGetWhitelistConfig);
     app.post('/api/post-whitelist-config', whitelist.handleUpdateWhitelistConfig);
     app.get('/api/export-whitelist', whitelist.handleExportWhitelist);
     app.post('/api/export-whitelist', whitelist.handleExportWhitelist);
-    app.get('/control/api/export-whitelist', whitelist.handleExportWhitelist);
-    app.post('/control/api/export-whitelist', whitelist.handleExportWhitelist);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
