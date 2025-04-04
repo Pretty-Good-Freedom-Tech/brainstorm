@@ -230,65 +230,12 @@ app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
 
-// API endpoint for batch transfer (Refactored to src/api/pipeline/batch/commands/transfer.js)
-// app.get('/api/batch-transfer', handleBatchTransfer);
-// app.post('/api/batch-transfer', handleBatchTransfer);
-
 // API endpoint for reconciliation
 app.get('/api/reconciliation', handleReconciliation);
 app.post('/api/reconciliation', handleReconciliation);
 
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
-
-// API endpoint to get unsigned kind 10040 event 
-function handleGetKind10040Event_deprecated(req, res) {
-    // Check if user is authenticated
-    if (!req.session.authenticated) {
-        return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    try {
-        // Define data directories
-        const dataDir = '/var/lib/hasenpfeffr/data';
-        const eventFile = path.join(dataDir, 'kind10040_event.json');
-        
-        // Check if the event file exists
-        if (!fs.existsSync(eventFile)) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'No kind 10040 event file found. Please create an event first.' 
-            });
-        }
-        
-        // Read the event file
-        const eventData = fs.readFileSync(eventFile, 'utf8');
-        const event = JSON.parse(eventData);
-        
-        // Get the owner's pubkey from config
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
-        
-        // Set pubkey to the owner's pubkey
-        event.pubkey = ownerPubkey;
-        
-        // Remove any existing signature if present
-        delete event.sig;
-        delete event.id;
-        
-        // Return the event data along with the session challenge
-        return res.json({ 
-            success: true, 
-            event: event,
-            challenge: req.session.challenge
-        });
-    } catch (error) {
-        console.error('Error getting kind 10040 event:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-}
 
 app.get('/api/whitelist-stats', handleGetWhitelistStats);
 
@@ -313,10 +260,6 @@ app.get('/api/calculation-status', handleCalculationStatus);
 // Add route handler for running service management scripts
 app.get('/api/run-script', handleRunScript);
 app.post('/api/run-script', handleRunScript);
-
-// Add route handler for checking service status
-// app.get('/api/service-status', handleServiceStatus);
-// app.post('/api/service-status', handleServiceStatus);
 
 // Handler functions for API endpoints
 function handleStatus(req, res) {
@@ -671,88 +614,6 @@ function handleReconciliation(req, res) {
             success: true,
             message: 'Reconciliation completed',
             output: output
-        });
-    });
-}
-
-// Handler for batch transfer
-function handleBatchTransfer(req, res) {
-    console.log('Starting batch transfer of kinds 3, 1984, and 10000 data from strfry to Neo4j...');
-    
-    // Set the response header to ensure it's always JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Set a timeout to ensure the response doesn't hang
-    const timeoutId = setTimeout(() => {
-        console.log('Batch transfer is taking longer than expected, sending initial response...');
-        res.json({
-            success: true,
-            continueInBackground: true,
-            message: 'Batch transfer initiated',
-            output: 'Batch transfer process started. This process will continue in the background.\n'
-        });
-    }, 120000); // 2 minutes timeout
-    
-    // Create a child process to run the transfer script
-    const transferProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/transfer.sh');
-    
-    let output = '';
-    let errorOutput = '';
-    
-    transferProcess.stdout.on('data', (data) => {
-        console.log(`Batch Transfer stdout: ${data}`);
-        output += data;
-    });
-    
-    transferProcess.stderr.on('data', (data) => {
-        console.error(`Batch Transfer stderr: ${data}`);
-        errorOutput += data;
-    });
-    
-    transferProcess.on('close', (code) => {
-        console.log(`Batch Transfer process exited with code ${code}`);
-        
-        // Clear the timeout if the command completes before the timeout
-        clearTimeout(timeoutId);
-        
-        // Check if the response has already been sent
-        if (res.headersSent) {
-            console.log('Response already sent, batch transfer continuing in background');
-            return;
-        }
-        
-        if (code === 0) {
-            console.log('Batch transfer completed successfully');
-            res.json({
-                success: true,
-                message: 'Batch transfer completed successfully',
-                output: output
-            });
-        } else {
-            console.error(`Batch transfer failed with exit code ${code}`);
-            res.json({
-                success: false,
-                message: `Batch transfer failed with exit code ${code}`,
-                output: output
-            });
-        }
-    });
-    
-    // Handle unexpected errors
-    transferProcess.on('error', (error) => {
-        // Clear the timeout if an error occurs
-        clearTimeout(timeoutId);
-        
-        // Check if the response has already been sent
-        if (res.headersSent) {
-            console.error(`Batch Transfer error: ${error.message}`);
-            return;
-        }
-        
-        console.error(`Batch Transfer error: ${error.message}`);
-        res.status(500).json({
-            success: false,
-            message: `Batch transfer error: ${error.message}`
         });
     });
 }
