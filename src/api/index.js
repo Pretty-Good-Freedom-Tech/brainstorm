@@ -132,7 +132,7 @@ function register(app) {
 
     // Services endpoints
     app.get('/api/service-status', services.handleServiceStatus);
-    app.post('/api/systemd-services', services.handleSystemdServices);
+    app.get('/api/systemd-services', services.handleSystemdServices);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
