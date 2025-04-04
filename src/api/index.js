@@ -21,6 +21,7 @@ const {
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
+const profiles = require('./export/profiles');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -104,6 +105,9 @@ function register(app) {
     app.get('/api/get-kind10040-event', nip85.handleGetKind10040Event);
     app.get('/api/kind10040-info', nip85.handleKind10040Info);
     app.get('/api/kind30382-info', nip85.handleKind30382Info);
+
+    // Profiles endpoint
+    app.get('/api/get-kind0', profiles.handleGetKind0Event);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
