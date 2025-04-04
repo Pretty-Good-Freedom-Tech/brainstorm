@@ -19,6 +19,9 @@ const {
     authMiddleware 
 } = require('./auth/authHandler');
 
+// Import domain-specific handler modules
+const nip85 = require('./export/nip85');
+
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
 
