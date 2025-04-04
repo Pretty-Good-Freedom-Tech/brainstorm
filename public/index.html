@@ -762,7 +762,7 @@
                         console.log(`Service ${service} status data:`, data);
                         return {
                             service: service,
-                            active: data.active === true
+                            active: data.services && data.services[service] === 'active'
                         };
                     })
                     .catch(error => {
