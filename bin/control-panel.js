@@ -549,46 +549,6 @@ function handlePublish(req, res) {
     });
 }
 
-// Function to get systemd service status
-function getServiceStatus(serviceName) {
-  try {
-    const result = execSync(`sudo systemctl is-active ${serviceName}`).toString().trim();
-    return result === 'active' ? 'active' : 'inactive';
-  } catch (error) {
-    return 'inactive';
-  }
-}
-
-// Function to control systemd service
-function controlService(serviceName, action) {
-  try {
-    execSync(`sudo systemctl ${action} ${serviceName}`);
-    return { success: true, message: `Service ${serviceName} ${action} successful` };
-  } catch (error) {
-    return { success: false, message: `Failed to ${action} service ${serviceName}: ${error.message}` };
-  }
-}
-
-// Function to check if a service is running
-function isServiceRunning(serviceName) {
-    try {
-        execSync(`systemctl is-active --quiet ${serviceName}`);
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
-
-// Function to start or stop a service
-function controlService(serviceName, action) {
-    try {
-        execSync(`sudo systemctl ${action} ${serviceName}`);
-        return { success: true, message: `Service ${serviceName} ${action} successful` };
-    } catch (error) {
-        return { success: false, message: `Failed to ${action} service ${serviceName}: ${error.message}` };
-    }
-}
-
 // Handler for creating kind 10040 events 
 function handleCreateKind10040(req, res) {
     console.log('Creating kind 10040 events...');
@@ -797,16 +757,6 @@ function handleCalculationStatus(req, res) {
             error: 'Failed to get calculation status'
         });
     }
-}
-
-// Function to control systemd service
-function controlService(serviceName, action) {
-  try {
-    execSync(`sudo systemctl ${action} ${serviceName}`);
-    return { success: true, message: `Service ${serviceName} ${action} successful` };
-  } catch (error) {
-    return { success: false, message: `Failed to ${action} service ${serviceName}: ${error.message}` };
-  }
 }
 
 // Handler for setting up Neo4j constraints and indexes
