@@ -331,9 +331,9 @@ function handleGetKind10040Event(req, res) {
     }
 }
 
-// Blacklist Configuration API Endpoints
-app.get('/api/blacklist-config', handleGetBlacklistConfig);
-app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
+// Blacklist Configuration API Endpoints (Refactored to src/api/export/blacklist)
+// app.get('/api/blacklist-config', handleGetBlacklistConfig);
+// app.post('/api/blacklist-config', handleUpdateBlacklistConfig);
 
 // Whitelist management
 app.get('/api/whitelist-config', handleGetWhitelistConfig);
@@ -1598,128 +1598,130 @@ function controlService(serviceName, action) {
   }
 }
 
-// Handler for getting blacklist configuration
-function handleGetBlacklistConfig(req, res) {
-  try {
-    const configPath = '/etc/blacklist.conf';
-    
-    // Check if the configuration file exists
-    if (!fs.existsSync(configPath)) {
-      return res.json({
-        success: false,
-        error: 'Blacklist configuration file not found'
-      });
-    }
-    
-    // Read the configuration file
-    const configContent = fs.readFileSync(configPath, 'utf8');
-    const config = {};
-    const lines = configContent.split('\n');
-    
-    // Parse the configuration file
-    for (const line of lines) {
-      if (line.startsWith('export ')) {
-        const parts = line.substring(7).split('=');
-        if (parts.length === 2) {
-          const key = parts[0].trim();
-          let value = parts[1].trim();
-          
-          // Remove any quotes from the value
-          if (value.startsWith('"') && value.endsWith('"')) {
-            value = value.substring(1, value.length - 1);
-          }
-          
-          config[key] = value;
+// Handler functions for API endpoints
+function handleGetBlacklistConfig_deprecated(req, res) {
+    // DEPRECATED: Refactored to src/api/export/blacklist/queries/config.js
+    try {
+        const configPath = '/etc/blacklist.conf';
+        
+        // Check if the configuration file exists
+        if (!fs.existsSync(configPath)) {
+            return res.json({
+                success: false,
+                error: 'Blacklist configuration file not found'
+            });
         }
-      }
-    }
+        
+        // Read the configuration file
+        const configContent = fs.readFileSync(configPath, 'utf8');
+        const config = {};
+        const lines = configContent.split('\n');
+        
+        // Parse the configuration file
+        for (const line of lines) {
+            if (line.startsWith('export ')) {
+                const parts = line.substring(7).split('=');
+                if (parts.length === 2) {
+                    const key = parts[0].trim();
+                    let value = parts[1].trim();
+                    
+                    // Remove any quotes from the value
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        value = value.substring(1, value.length - 1);
+                    }
+                    
+                    config[key] = value;
+                }
+            }
+        }
 
-    // Get the count of blacklisted pubkeys
-    let blacklistedCount = 0;
-    const blacklistPath = '/usr/local/lib/strfry/plugins/data/blacklist_pubkeys.json';
-    if (fs.existsSync(blacklistPath)) {
-      try {
-        const blacklistContent = fs.readFileSync(blacklistPath, 'utf8');
-        const blacklist = JSON.parse(blacklistContent);
-        blacklistedCount = Object.keys(blacklist).length;
-      } catch (error) {
-        console.error('Error reading blacklist file:', error);
-      }
+        // Get the count of blacklisted pubkeys
+        let blacklistedCount = 0;
+        const blacklistPath = '/usr/local/lib/strfry/plugins/data/blacklist_pubkeys.json';
+        if (fs.existsSync(blacklistPath)) {
+            try {
+                const blacklistContent = fs.readFileSync(blacklistPath, 'utf8');
+                const blacklist = JSON.parse(blacklistContent);
+                blacklistedCount = Object.keys(blacklist).length;
+            } catch (error) {
+                console.error('Error reading blacklist file:', error);
+            }
+        }
+        
+        return res.json({
+            success: true,
+            config: config,
+            blacklistedCount: blacklistedCount
+        });
+    } catch (error) {
+        console.error('Error getting blacklist configuration:', error);
+        return res.json({
+            success: false,
+            error: error.message
+        });
     }
-    
-    return res.json({
-      success: true,
-      config: config,
-      blacklistedCount: blacklistedCount
-    });
-  } catch (error) {
-    console.error('Error getting blacklist configuration:', error);
-    return res.json({
-      success: false,
-      error: error.message
-    });
-  }
 }
 
 // Handler for updating blacklist configuration
-function handleUpdateBlacklistConfig(req, res) {
-  try {
-    const configPath = '/etc/blacklist.conf';
-    const tempConfigPath = '/tmp/blacklist.conf.tmp';
-    
-    // Check if the configuration file exists
-    if (!fs.existsSync(configPath)) {
-      return res.json({
-        success: false,
-        error: 'Blacklist configuration file not found'
-      });
-    }
-    
-    // Read the configuration file
-    const configContent = fs.readFileSync(configPath, 'utf8');
-    const lines = configContent.split('\n');
-    const updatedLines = [];
-    
-    // Update the configuration file
-    for (const line of lines) {
-      let updatedLine = line;
-      
-      if (line.startsWith('export ')) {
-        const parts = line.substring(7).split('=');
-        if (parts.length === 2) {
-          const key = parts[0].trim();
-          
-          // Check if the key is in the request body
-          if (req.body[key] !== undefined) {
-            updatedLine = `export ${key}=${req.body[key]}`;
-          }
+// DEPRECATED: Refactored to src/api/export/blacklist/commands/update-config.js
+function handleUpdateBlacklistConfig_deprecated(req, res) {
+    try {
+        const configPath = '/etc/blacklist.conf';
+        const tempConfigPath = '/tmp/blacklist.conf.tmp';
+        
+        // Check if the configuration file exists
+        if (!fs.existsSync(configPath)) {
+            return res.json({
+                success: false,
+                error: 'Blacklist configuration file not found'
+            });
         }
-      }
-      
-      updatedLines.push(updatedLine);
+        
+        // Read the configuration file
+        const configContent = fs.readFileSync(configPath, 'utf8');
+        const lines = configContent.split('\n');
+        const updatedLines = [];
+        
+        // Update the configuration file
+        for (const line of lines) {
+            let updatedLine = line;
+            
+            if (line.startsWith('export ')) {
+                const parts = line.substring(7).split('=');
+                if (parts.length === 2) {
+                    const key = parts[0].trim();
+                    
+                    // Check if the key is in the request body
+                    if (req.body[key] !== undefined) {
+                        updatedLine = `export ${key}=${req.body[key]}`;
+                    }
+                }
+            }
+            
+            updatedLines.push(updatedLine);
+        }
+        
+        // Write the updated configuration to a temporary file
+        fs.writeFileSync(tempConfigPath, updatedLines.join('\n'));
+        
+        // Copy the temporary file to the actual configuration file with sudo
+        execSync(`sudo cp ${tempConfigPath} ${configPath}`);
+        execSync(`sudo chmod 644 ${configPath}`);
+        execSync(`sudo chown root:hasenpfeffr ${configPath}`);
+        
+        // Clean up the temporary file
+        fs.unlinkSync(tempConfigPath);
+        
+        return res.json({
+            success: true
+        });
+    } catch (error) {
+        console.error('Error updating blacklist configuration:', error);
+        return res.json({
+            success: false,
+            error: error.message
+        });
     }
-    
-    // Write the updated configuration to a temporary file
-    fs.writeFileSync(tempConfigPath, updatedLines.join('\n'));
-    
-    // Copy the temporary file to the actual configuration file with sudo
-    execSync(`sudo cp ${tempConfigPath} ${configPath}`);
-    execSync(`sudo chmod 644 ${configPath}`);
-    execSync(`sudo chown root:hasenpfeffr ${configPath}`);
-    
-    // Clean up the temporary file
-    fs.unlinkSync(tempConfigPath);
-    
-    return res.json({
-      success: true
-    });
-  } catch (error) {
-    console.error('Error updating blacklist configuration:', error);
-    return res.json({
-      success: false,
-      error: error.message
-    });
-  }
 }
 
 // Handler for generating blacklist

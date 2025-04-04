@@ -25,6 +25,7 @@ const profiles = require('./export/profiles');
 const relay = require('./export/relay');
 const users = require('./export/users');
 const graperank = require('./export/graperank');
+const blacklist = require('./export/blacklist');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -123,6 +124,10 @@ function register(app) {
     // GrapeRank endpoints
     app.get('/api/get-graperank-config', graperank.handleGetGrapeRankConfig);
     app.post('/api/post-graperank-config', graperank.handleUpdateGrapeRankConfig);
+
+    // Blacklist endpoints
+    app.get('/api/get-blacklist-config', blacklist.handleGetBlacklistConfig);
+    app.post('/api/post-blacklist-config', blacklist.handleUpdateBlacklistConfig);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
