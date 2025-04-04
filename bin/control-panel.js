@@ -239,8 +239,8 @@ app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
 
-// API endpoint for systemd services management
-app.get('/api/systemd-services', handleSystemdServices);
+// API endpoint for systemd services management (Refactored to src/api/export/services/commands/control.js)
+// app.get('/api/systemd-services', handleSystemdServices);
 
 // API endpoint for strfry plugin management
 app.get('/api/strfry-plugin', handleStrfryPlugin);
@@ -786,7 +786,7 @@ function controlService(serviceName, action) {
 }
 
 // Handler functions for API endpoints
-function handleSystemdServices(req, res) {
+function handleSystemdServices_deprecated(req, res) {
   const services = [
     'neo4j',
     'strfry',

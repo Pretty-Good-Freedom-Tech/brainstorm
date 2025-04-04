@@ -28,6 +28,7 @@ const graperank = require('./export/graperank');
 const blacklist = require('./export/blacklist');
 const whitelist = require('./export/whitelist');
 const pagerank = require('./export/pagerank');
+const services = require('./export/services');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -128,6 +129,10 @@ function register(app) {
 
     // PageRank endpoints
     app.post('/api/generate-pagerank', pagerank.handleGeneratePageRank);
+
+    // Services endpoints
+    app.get('/api/service-status', services.handleServiceStatus);
+    app.post('/api/systemd-services', services.handleSystemdServices);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

@@ -287,7 +287,8 @@ function authMiddleware(req, res, next) {
             '/generate-blacklist',
             '/export-whitelist',
             '/generate-graperank',
-            '/generate-pagerank'
+            '/generate-pagerank',
+            '/systemd-services'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -322,6 +323,7 @@ function authMiddleware(req, res, next) {
             '/export-whitelist',
             '/generate-graperank',
             '/generate-pagerank',
+            '/systemd-services',
             '/hasenpfeffr-control'
         ];
         
