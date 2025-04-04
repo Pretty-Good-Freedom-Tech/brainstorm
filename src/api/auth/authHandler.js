@@ -289,7 +289,8 @@ function authMiddleware(req, res, next) {
             '/generate-graperank',
             '/generate-pagerank',
             '/systemd-services',
-            '/strfry-plugin'  // POST strfry-plugin for enabling/disabling
+            '/strfry-plugin',  // POST strfry-plugin for enabling/disabling
+            '/batch-transfer'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -325,7 +326,8 @@ function authMiddleware(req, res, next) {
             '/generate-graperank',
             '/generate-pagerank',
             '/systemd-services',
-            '/hasenpfeffr-control'
+            '/hasenpfeffr-control',
+            '/batch-transfer'
         ];
         
         // Check if the current path is a write endpoint

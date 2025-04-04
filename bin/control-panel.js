@@ -230,9 +230,9 @@ app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
 
-// API endpoint for batch transfer
-app.get('/api/batch-transfer', handleBatchTransfer);
-app.post('/api/batch-transfer', handleBatchTransfer);
+// API endpoint for batch transfer (Refactored to src/api/pipeline/batch/commands/transfer.js)
+// app.get('/api/batch-transfer', handleBatchTransfer);
+// app.post('/api/batch-transfer', handleBatchTransfer);
 
 // API endpoint for reconciliation
 app.get('/api/reconciliation', handleReconciliation);
@@ -626,7 +626,7 @@ function controlService(serviceName, action) {
     execSync(`sudo systemctl ${action} ${serviceName}`);
     return { success: true, message: `Service ${serviceName} ${action} successful` };
   } catch (error) {
-    return { success: false, message: `Failed to ${action} ${serviceName}: ${error.message}` };
+    return { success: false, message: `Failed to ${action} service ${serviceName}: ${error.message}` };
   }
 }
 

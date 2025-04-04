@@ -30,6 +30,7 @@ const whitelist = require('./export/whitelist');
 const pagerank = require('./export/pagerank');
 const services = require('./export/services');
 const strfry = require('./strfry');
+const pipeline = require('./pipeline');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -138,6 +139,9 @@ function register(app) {
     // Strfry plugin endpoints - split into query and command
     app.get('/api/strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
     app.post('/api/strfry-plugin', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
+
+    // Pipeline endpoint
+    app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
