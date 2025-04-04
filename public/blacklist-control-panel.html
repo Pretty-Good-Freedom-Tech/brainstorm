@@ -375,7 +375,7 @@
             
             // Load current configuration
             function loadCurrentConfig() {
-                fetch('/control/api/blacklist-config')
+                fetch('/control/api/get-blacklist-config')
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -431,7 +431,7 @@
                 }
                 
                 // Send updated configuration to the server
-                fetch('/control/api/blacklist-config', {
+                fetch('/control/api/post-blacklist-config', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

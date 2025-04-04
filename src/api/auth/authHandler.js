@@ -281,8 +281,8 @@ function authMiddleware(req, res, next) {
         // Define owner-only endpoints (administrative actions)
         const ownerOnlyEndpoints = [
             '/hasenpfeffr-control',
-            '/graperank-config',
-            '/blacklist-config',
+            '/post-graperank-config',
+            '/post-blacklist-config',
             '/whitelist-config'
         ];
         
@@ -311,8 +311,8 @@ function authMiddleware(req, res, next) {
             '/create-kind10040',
             '/publish-kind10040',
             '/publish-kind30382',
-            '/graperank-config',
-            '/blacklist-config',
+            '/post-graperank-config',
+            '/post-blacklist-config',
             '/whitelist-config',
             '/hasenpfeffr-control'
         ];
