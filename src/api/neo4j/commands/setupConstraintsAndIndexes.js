@@ -13,12 +13,6 @@ const { exec } = require('child_process');
 function handleNeo4jSetupConstraintsAndIndexes(req, res) {
     console.log('Setting up Neo4j constraints and indexes...');
 
-    return res.status(404).json({ 
-        success: false, 
-        error: 'Setup script not found',
-        output: `foo`
-    });
-    /*
     // Define the setup script
     const setupScript = '/usr/local/lib/node_modules/hasenpfeffr/setup/neo4jConstraintsAndIndexes.sh';
     
@@ -56,7 +50,6 @@ function handleNeo4jSetupConstraintsAndIndexes(req, res) {
             output: stdout
         });
     });
-    */
 }
 
 module.exports = {

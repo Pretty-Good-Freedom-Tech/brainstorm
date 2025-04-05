@@ -35,7 +35,7 @@ const manage = require('./manage');
 const lists = require('./lists');
 const status = require('./status');
 
-const handleNeo4jSetupConstraintsAndIndexes = require('./neo4j/commands/setupConstraintsAndIndexes.js');
+const { handleNeo4jSetupConstraintsAndIndexes } = require('./neo4j/commands/setupConstraintsAndIndexes.js');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
