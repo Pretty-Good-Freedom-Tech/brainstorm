@@ -217,8 +217,8 @@ app.get('/api/publish', handlePublish);
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
 
-// Add route handler for Hasenpfeffr control
-app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
+// Add route handler for Hasenpfeffr control - Now handled in src/api/manage
+// app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
 
 // Add route handler for running service management scripts
 app.post('/api/run-script', handleRunScript);
@@ -273,104 +273,54 @@ function handleCreateKind10040(req, res) {
     });
 }
 
-// Handler for setting up Neo4j constraints and indexes
-function handleNeo4jSetupConstraintsAndIndexes(req, res) {
-    console.log('Setting up Neo4j constraints and indexes...');
-    
-    // Check authentication for write operations
-    if (req.method !== 'GET' && (!req.session || !req.session.authenticated)) {
-        return res.status(403).json({
-            success: false,
-            error: 'Authentication required for this operation'
-        });
-    }
-    
-    // Execute the setup script
-    const setupScript = path.join(__dirname, '../setup', 'neo4jConstraintsAndIndexes.sh');
-    
-    // Check if the script exists
-    if (!fs.existsSync(setupScript)) {
-        return res.status(404).json({ 
-            success: false, 
-            error: 'Setup script not found',
-            output: `Script not found at: ${setupScript}`
-        });
-    }
-    
-    // Make the script executable
-    try {
-        fs.chmodSync(setupScript, '755');
-    } catch (error) {
-        console.error('Error making script executable:', error);
-    }
-    
-    // Execute the script
-    exec(setupScript, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing Neo4j constraints setup: ${error.message}`);
-            return res.json({
-                success: false,
-                error: error.message,
-                output: stdout + '\n' + stderr
-            });
-        }
-        
-        console.log('Neo4j constraints and indexes set up successfully');
-        res.json({
-            success: true,
-            message: 'Neo4j constraints and indexes set up successfully',
-            output: stdout
-        });
-    });
-}
-
 // Handler for turning Hasenpfeffr on and off
 async function handleHasenpfeffrControl(req, res) {
-    const { action } = req.body;
+    // This function is now commented out and handled in src/api/manage
+    // const { action } = req.body;
     
-    if (!action || (action !== 'on' && action !== 'off')) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Invalid action. Must be "on" or "off".' 
-        });
-    }
+    // if (!action || (action !== 'on' && action !== 'off')) {
+    //     return res.status(400).json({ 
+    //         success: false, 
+    //         error: 'Invalid action. Must be "on" or "off".' 
+    //     });
+    // }
     
-    try {
-        let scriptPath;
-        if (action === 'on') {
-            scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOn.sh';
-        } else {
-            scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOff.sh';
-        }
+    // try {
+    //     let scriptPath;
+    //     if (action === 'on') {
+    //         scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOn.sh';
+    //     } else {
+    //         scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOff.sh';
+    //     }
         
-        // Check if script exists
-        if (!fs.existsSync(scriptPath)) {
-            return res.status(404).json({ 
-                success: false, 
-                error: `Script not found: ${scriptPath}` 
-            });
-        }
+    //     // Check if script exists
+    //     if (!fs.existsSync(scriptPath)) {
+    //         return res.status(404).json({ 
+    //             success: false, 
+    //             error: `Script not found: ${scriptPath}` 
+    //         });
+    //     }
         
-        // Make script executable if it's not already
-        execSync(`sudo chmod +x ${scriptPath}`);
+    //     // Make script executable if it's not already
+    //     execSync(`sudo chmod +x ${scriptPath}`);
         
-        // Execute the script
-        console.log(`Executing ${scriptPath}...`);
-        const output = execSync(`sudo ${scriptPath}`, { timeout: 60000 }).toString();
+    //     // Execute the script
+    //     console.log(`Executing ${scriptPath}...`);
+    //     const output = execSync(`sudo ${scriptPath}`, { timeout: 60000 }).toString();
         
-        return res.json({
-            success: true,
-            action,
-            message: `Hasenpfeffr turned ${action} successfully`,
-            output
-        });
-    } catch (error) {
-        console.error(`Error turning Hasenpfeffr ${action}:`, error);
-        return res.status(500).json({ 
-            success: false, 
-            error: `Failed to turn Hasenpfeffr ${action}: ${error.message}` 
-        });
-    }
+    //     return res.json({
+    //         success: true,
+    //         action,
+    //         message: `Hasenpfeffr turned ${action} successfully`,
+    //         output
+    //     });
+    // } catch (error) {
+    //     console.error(`Error turning Hasenpfeffr ${action}:`, error);
+    //     return res.status(500).json({ 
+    //         success: false, 
+    //         error: `Failed to turn Hasenpfeffr ${action}: ${error.message}` 
+    //     });
+    // }
 }
 
 // Handler for running service management scripts

@@ -173,6 +173,9 @@ function register(app) {
     app.post('/api/negentropy-sync-profiles', manage.handleNegentropySyncProfiles);
     app.post('/api/negentropy-sync-personal', manage.handleNegentropySyncPersonal);
 
+    // Add route handler for Hasenpfeffr control
+    app.post('/api/hasenpfeffr-control', manage.handleHasenpfeffrControl);
+
     // Neo4j endpoints
     /*
     console.log('Registering Neo4j constraints setup endpoint');
