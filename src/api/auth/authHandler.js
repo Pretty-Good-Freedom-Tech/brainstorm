@@ -289,14 +289,15 @@ function authMiddleware(req, res, next) {
             '/generate-graperank',
             '/generate-pagerank',
             '/systemd-services',
-            '/toggle-strfry-plugin',  // New endpoint for enabling/disabling
+            '/toggle-strfry-plugin',
             '/batch-transfer',
             '/reconciliation',
             '/calculate-hops',
             '/negentropy-sync-wot',
             '/negentropy-sync-profiles',
             '/negentropy-sync-personal',
-            '/negentropy-sync'
+            '/negentropy-sync',
+            '/neo4j-setup-constraints-and-indexes'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -332,7 +333,8 @@ function authMiddleware(req, res, next) {
             '/negentropy-sync-wot',
             '/negentropy-sync-profiles',
             '/negentropy-sync-personal',
-            '/negentropy-sync'
+            '/negentropy-sync',
+            '/neo4j-setup-constraints-and-indexes'
         ];
         
         // Check if the current path is a write endpoint

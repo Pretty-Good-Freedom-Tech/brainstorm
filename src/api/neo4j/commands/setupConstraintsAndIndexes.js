@@ -13,16 +13,8 @@ const { exec } = require('child_process');
 function handleNeo4jSetupConstraintsAndIndexes(req, res) {
     console.log('Setting up Neo4j constraints and indexes...');
     
-    // Check authentication for write operations
-    if (req.method !== 'GET' && (!req.session || !req.session.authenticated)) {
-        return res.status(403).json({
-            success: false,
-            error: 'Authentication required for this operation'
-        });
-    }
-    
-    // Execute the setup script
-    const setupScript = path.join(__dirname, '../setup', 'neo4jConstraintsAndIndexes.sh');
+    // Define the setup script
+    const setupScript = '/usr/local/lib/node_modules/hasenpfeffr/setup/neo4jConstraintsAndIndexes.sh';
     
     // Check if the script exists
     if (!fs.existsSync(setupScript)) {
