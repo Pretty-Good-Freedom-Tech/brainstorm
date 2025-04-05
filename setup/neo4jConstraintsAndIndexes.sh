@@ -87,7 +87,9 @@ if [ $SHOW_CONSTRAINTS_RESULT -ne 0 ]; then
 fi
 
 # Check if the primary constraint exists
-CONSTRAINT_COUNT=$(grep -c "nostrUser_pubkey" /tmp/neo4j_constraints.txt || echo "0")
+CONSTRAINT_COUNT_USER=$(grep -c "nostrUser_pubkey" /tmp/neo4j_constraints.txt || echo "0")
+CONSTRAINT_COUNT_EVENT=$(grep -c "nostrEvent_event_id" /tmp/neo4j_constraints.txt || echo "0")
+CONSTRAINT_COUNT=$(($CONSTRAINT_COUNT_USER + $CONSTRAINT_COUNT_EVENT))
 
 # Show the indexes
 if [ $SHOW_CONSTRAINTS_RESULT -eq 0 ]; then
@@ -95,7 +97,9 @@ if [ $SHOW_CONSTRAINTS_RESULT -eq 0 ]; then
     sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$SHOW_INDEXES" > /tmp/neo4j_indexes.txt 2>&1
     
     # Count indexes
-    INDEX_COUNT=$(grep -c "nostrUser_" /tmp/neo4j_indexes.txt || echo "0")
+    INDEX_COUNT_USER=$(grep -c "nostrUser_" /tmp/neo4j_indexes.txt || echo "0")
+    INDEX_COUNT_EVENT=$(grep -c "nostrEvent_" /tmp/neo4j_indexes.txt || echo "0")
+    INDEX_COUNT=$(($INDEX_COUNT_USER + $INDEX_COUNT_EVENT))
 else
     INDEX_COUNT=0
 fi
