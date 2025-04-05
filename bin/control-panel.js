@@ -214,9 +214,8 @@ app.use(authMiddleware);
 // API endpoint to create kind 10040 events 
 // app.post('/api/create-kind10040', handleCreateKind10040);
 
-// Add route handler for running service management scripts
-app.post('/api/run-script', handleRunScript);
-
+// Add route handler for running service management scripts - Now handled in src/api/manage
+// app.post('/api/run-script', handleRunScript);
 
 // Handler for publishing NIP-85 events - Now handled in src/api/export/nip85
 function handlePublish_deprecated(req, res) {
@@ -270,8 +269,8 @@ function handleCreateKind10040_deprecated(req, res) {
     });
 }
 
-// Handler for running service management scripts
-function handleRunScript(req, res) {
+// Handler for running service management scripts - Now handled in src/api/manage
+function handleRunScript_deprecated(req, res) {
     const { script } = req.body;
     
     if (!script) {
