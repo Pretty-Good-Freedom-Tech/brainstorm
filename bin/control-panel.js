@@ -209,7 +209,7 @@ app.use(authMiddleware);
 // Define API routes
 
 // API endpoint to publish NIP-85 events - Now handled in src/api/export/nip85
-app.get('/api/publish', handlePublish);
+app.post('/api/publish', handlePublish);
 
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
