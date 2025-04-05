@@ -35,6 +35,8 @@ const manage = require('./manage');
 const lists = require('./lists');
 const status = require('./status');
 
+const handleNeo4jSetupConstraintsAndIndexes = require('./neo4j/neo4jSetupConstraintsAndIndexes');
+
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
 
@@ -170,6 +172,9 @@ function register(app) {
     app.post('/api/negentropy-sync-wot', manage.handleNegentropySyncWoT);
     app.post('/api/negentropy-sync-profiles', manage.handleNegentropySyncProfiles);
     app.post('/api/negentropy-sync-personal', manage.handleNegentropySyncPersonal);
+
+    // Neo4j endpoints
+    app.post('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraintsAndIndexes);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

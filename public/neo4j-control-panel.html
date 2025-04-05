@@ -319,7 +319,12 @@
                 constraintsStatus.textContent = 'Setting up Neo4j constraints and indexes...';
                 constraintsSetupOutput.style.display = 'none';
                 
-                fetch('/control/api/neo4j-setup-constraints')
+                fetch('/control/api/neo4j-setup-constraints-and-indexes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
                     .then(response => response.json())
                     .then(data => {
                         setupConstraintsBtn.disabled = false;
