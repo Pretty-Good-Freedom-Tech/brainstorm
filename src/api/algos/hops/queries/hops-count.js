@@ -32,6 +32,11 @@ function handleGetHopsCount(req, res) {
     // Check if Neo4j is running
     exec('systemctl is-active neo4j', (serviceError, serviceStdout) => {
         const isRunning = serviceStdout.trim() === 'active';
+
+        // Get Neo4j credentials from the configuration system
+        const neo4jConnection = getNeo4jConnection();
+        const neo4jUser = neo4jConnection.user;
+        const neo4jPassword = neo4jConnection.password;
         
         if (!isRunning) {
             return res.json({
@@ -42,7 +47,7 @@ function handleGetHopsCount(req, res) {
         if (isRunning) {
             return res.json({
                 success: true,
-                error: 'Neo4j service is not running'
+                message: `neo4jUser: ${neo4jUser}, neo4jPassword: ${neo4jPassword}`
             });
         }
     })
