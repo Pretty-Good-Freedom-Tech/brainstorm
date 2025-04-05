@@ -220,201 +220,54 @@ app.get('/api/neo4j-status', handleNeo4jStatus);
 // API endpoint for setting up Neo4j constraints and indexes
 app.get('/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 
-// API endpoint to publish NIP-85 events
-app.get('/api/publish', handlePublish);
+// API endpoint for Negentropy sync (Refactored to src/api/manage/negentropySync)
+// app.post('/api/negentropy-sync', handleNegentropySync);
 
-// API endpoint to create kind 10040 events 
-app.post('/api/create-kind10040', handleCreateKind10040);
-
-app.get('/api/whitelist-stats', handleGetWhitelistStats);
-
-// Endpoint to count users above influence threshold
-app.get('/api/influence-count', handleGetInfluenceCount);
-
-// Endpoint to count users with hops less than or equal to threshold
-app.get('/api/hops-count', handleGetHopsCount);
-
-// Endpoint to count blacklisted users
-app.get('/api/blacklist-count', handleGetBlacklistCount);
-
-// Endpoint to count users based on full whitelist criteria
-app.get('/api/whitelist-preview-count', handleGetWhitelistPreviewCount);
-
-// Add route handler for Hasenpfeffr control
-app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
-
-// Add route handler for getting calculation status
-app.get('/api/calculation-status', handleCalculationStatus);
-
-// Add route handler for running service management scripts
-app.get('/api/run-script', handleRunScript);
-app.post('/api/run-script', handleRunScript);
-
-// Handler functions for API endpoints
-function handleStatus(req, res) {
-    console.log('Checking status...');
-    
-    // Get the STRFRY_DOMAIN from config
-    const strfryDomain = getConfigFromFile('STRFRY_DOMAIN', 'localhost');
-    
-    exec('systemctl status strfry', (error, stdout, stderr) => {
-        return res.json({
-            output: stdout || stderr,
-            strfryDomain: strfryDomain
-        });
-    });
-}
-
-function handleStrfryStats(req, res) {
-    console.log('Getting strfry event statistics...');
-    
-    // Set the response header to ensure it's always JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    exec('hasenpfeffr-strfry-stats', (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing strfry stats: ${stderr || error.message}`);
-            return res.json({
-                success: false,
-                stats: {
-                    total: 0,
-                    kind3: 0,
-                    kind1984: 0,
-                    kind10000: 0,
-                    error: `Error executing strfry stats: ${stderr || error.message}`
-                },
-                error: `Error executing strfry stats: ${stderr || error.message}`
-            });
-        }
-        
-        try {
-            // Parse the JSON output from the script
-            const stats = JSON.parse(stdout);
-            console.log('Strfry stats:', stats);
-            
-            return res.json({
-                success: true,
-                stats: {
-                    ...stats,
-                    error: null
-                },
-                error: null
-            });
-        } catch (parseError) {
-            console.error('Error parsing strfry stats output:', parseError, 'Output was:', stdout);
-            return res.json({
-                success: false,
-                stats: {
-                    total: 0,
-                    kind3: 0,
-                    kind1984: 0,
-                    kind10000: 0,
-                    error: `Error parsing strfry stats output: ${parseError.message}`
-                },
-                error: `Error parsing strfry stats output: ${parseError.message}`
-            });
-        }
-    });
-}
-
-function handleNeo4jStatus(req, res) {
-    console.log('Getting Neo4j status information...');
-    
-    const neo4jStatus = {
-        running: false,
-        userCount: 0,
-        relationships: {
-            follow: 0,
-            mute: 0,
-            report: 0
-        },
-        constraints: [],
-        indexes: [],
-        error: null
-    };
-
-    // Check if Neo4j service is running
-    exec('systemctl is-active neo4j', (serviceError, serviceStdout) => {
-        neo4jStatus.running = serviceStdout.trim() === 'active';
-        
-        // If not running, return early
-        if (!neo4jStatus.running) {
-            return res.json({
-                success: true,
-                status: neo4jStatus
-            });
-        }
-        
-        // Helper function to execute Cypher queries
-        const executeCypher = (query, handler) => {
-            // Get Neo4j credentials from the configuration system
-            const neo4jConnection = getNeo4jConnection();
-            const neo4jUser = neo4jConnection.user;
-            const neo4jPassword = neo4jConnection.password;
-            
-            if (!neo4jPassword) {
-                neo4jStatus.error = 'Neo4j password not configured. Please update /etc/hasenpfeffr.conf with NEO4J_PASSWORD.';
-                return handler('');
-            }
-            
-            const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    neo4jStatus.error = `Error executing Neo4j query: ${stderr || error.message}`;
-                } else {
-                    handler(stdout);
-                }
-            });
-        };
-
-        // Get user count
-        executeCypher('MATCH (u:NostrUser) RETURN count(u) as count;', (output) => {
-            const match = output.match(/(\d+)/);
-            if (match && match[1]) {
-                neo4jStatus.userCount = parseInt(match[1], 10);
-            }
-            
-            // Get relationship counts
-            executeCypher('MATCH ()-[r:FOLLOWS]->() RETURN count(r) as count;', (output) => {
-                const match = output.match(/(\d+)/);
-                if (match && match[1]) {
-                    neo4jStatus.relationships.follow = parseInt(match[1], 10);
-                }
-                
-                executeCypher('MATCH ()-[r:MUTES]->() RETURN count(r) as count;', (output) => {
-                    const match = output.match(/(\d+)/);
-                    if (match && match[1]) {
-                        neo4jStatus.relationships.mute = parseInt(match[1], 10);
-                    }
-                    
-                    executeCypher('MATCH ()-[r:REPORTS]->() RETURN count(r) as count;', (output) => {
-                        const match = output.match(/(\d+)/);
-                        if (match && match[1]) {
-                            neo4jStatus.relationships.report = parseInt(match[1], 10);
-                        }
-                        
-                        // Get constraints
-                        executeCypher('SHOW CONSTRAINTS;', (output) => {
-                            neo4jStatus.constraints = output
-                            
-                            // Get indexes
-                            executeCypher('SHOW INDEXES;', (output) => {
-                                neo4jStatus.indexes = output
-                                
-                                // Return the final result
-                                res.json({
-                                    success: !neo4jStatus.error,
-                                    status: neo4jStatus,
-                                    error: neo4jStatus.error
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    });
-}
+// 
+// function handleNegentropySync(req, res) {
+//     console.log('Syncing with Negentropy...');
+//     
+//     // Set the response header to ensure it's always JSON
+//     res.setHeader('Content-Type', 'application/json');
+//     
+//     // Get relay and filter parameters from request body
+//     const relay = req.body.relay || 'wss://relay.hasenpfeffr.com';
+//     const filter = req.body.filter || '{"kinds":[3, 1984, 10000]}';
+//     
+//     console.log(`Using relay: ${relay}, filter: ${filter}`);
+//     
+//     // Set a timeout to ensure the response doesn't hang
+//     const timeoutId = setTimeout(() => {
+//         console.log('Negentropy sync is taking longer than expected, sending initial response...');
+//         res.json({
+//             success: true,
+//             continueInBackground: true,
+//             output: `Negentropy sync with ${relay} started.\nThis process will continue in the background. You can check Strfry Event statistics to track progress.\n`,
+//             error: null
+//         });
+//     }, 120000); // 2 minutes timeout
+//     
+//     // Build the command with the provided relay and filter
+//     const command = `sudo strfry sync ${relay} --filter '${filter}' --dir down`;
+//     console.log(`Executing command: ${command}`);
+//     
+//     exec(command, (error, stdout, stderr) => {
+//         // Clear the timeout if the command completes before the timeout
+//         clearTimeout(timeoutId);
+//         
+//         // Check if the response has already been sent
+//         if (res.headersSent) {
+//             console.log('Response already sent, negentropy sync continuing in background');
+//             return;
+//         }
+//         
+//         return res.json({
+//             success: !error,
+//             output: stdout || stderr,
+//             error: error ? error.message : null
+//         });
+//     });
+// }
 
 function handlePublish(req, res) {
     console.log('Publishing NIP-85 events...');
