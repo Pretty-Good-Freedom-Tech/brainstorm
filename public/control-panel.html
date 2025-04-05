@@ -417,7 +417,7 @@
             const pluginStatus = document.getElementById('pluginStatus');
             
             function checkPluginStatus() {
-                fetch('/control/api/strfry-plugin?action=status')
+                fetch('/control/api/get-strfry-plugin')
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'enabled') {
@@ -451,7 +451,13 @@
                 enablePluginBtn.disabled = true;
                 disablePluginBtn.disabled = true;
                 
-                fetch('/control/api/strfry-plugin?action=enable')
+                fetch('/control/api/toggle-strfry-plugin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'enable' })
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'enabled') {
@@ -481,7 +487,13 @@
                 enablePluginBtn.disabled = true;
                 disablePluginBtn.disabled = true;
                 
-                fetch('/control/api/strfry-plugin?action=disable')
+                fetch('/control/api/toggle-strfry-plugin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'disable' })
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'disabled') {

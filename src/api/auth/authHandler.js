@@ -289,7 +289,7 @@ function authMiddleware(req, res, next) {
             '/generate-graperank',
             '/generate-pagerank',
             '/systemd-services',
-            '/strfry-plugin',  // POST strfry-plugin for enabling/disabling
+            '/toggle-strfry-plugin',  // New endpoint for enabling/disabling
             '/batch-transfer',
             '/reconciliation',
             '/calculate-hops',
@@ -325,6 +325,7 @@ function authMiddleware(req, res, next) {
             '/generate-pagerank',
             '/systemd-services',
             '/hasenpfeffr-control',
+            '/toggle-strfry-plugin',  // New endpoint for enabling/disabling
             '/batch-transfer',
             '/reconciliation',
             '/calculate-hops',

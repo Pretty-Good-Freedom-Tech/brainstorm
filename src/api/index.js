@@ -137,9 +137,9 @@ function register(app) {
     app.get('/api/service-status', services.handleServiceStatus);
     app.get('/api/systemd-services', services.handleSystemdServices);
 
-    // Strfry plugin endpoints - split into query and command
-    app.get('/api/strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
-    app.post('/api/strfry-plugin', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
+    // Strfry plugin endpoints - with clearer separation of concerns
+    app.get('/api/get-strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
+    app.post('/api/toggle-strfry-plugin', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
 
     // Pipeline endpoints
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
