@@ -773,14 +773,14 @@
             neo4jStatusIndicator.className = `status-indicator status-${neo4jStatus === 'running' ? 'running' : 'stopped'}`;
             neo4jStatusText.textContent = neo4jStatus;
             
-            document.getElementById('neo4jConstraints').textContent = data.constraints.status;
-            document.getElementById('neo4jIndexes').textContent = data.indexes.status;
-            document.getElementById('totalUsers').textContent = formatNumber(data.users.total);
-            document.getElementById('totalRelationships').textContent = formatNumber(data.relationships.total);
-            document.getElementById('followsRelationships').textContent = formatNumber(data.relationships.follows);
-            document.getElementById('reportsRelationships').textContent = formatNumber(data.relationships.reports);
-            document.getElementById('mutesRelationships').textContent = formatNumber(data.relationships.mutes);
-            document.getElementById('recentRelationships').textContent = formatNumber(data.relationships.recent);
+            document.getElementById('neo4jConstraints').textContent = data.neo4j.constraints.status;
+            document.getElementById('neo4jIndexes').textContent = data.neo4j.indexes.status;
+            document.getElementById('totalUsers').textContent = formatNumber(data.neo4j.users.total);
+            document.getElementById('totalRelationships').textContent = formatNumber(data.neo4j.relationships.total);
+            document.getElementById('followsRelationships').textContent = formatNumber(data.neo4j.relationships.follows);
+            document.getElementById('reportsRelationships').textContent = formatNumber(data.neo4j.relationships.reports);
+            document.getElementById('mutesRelationships').textContent = formatNumber(data.neo4j.relationships.mutes);
+            document.getElementById('recentRelationships').textContent = formatNumber(data.neo4j.relationships.recent);
         }
         
         // Function to update the Lists section (whitelist & blacklist)
