@@ -174,7 +174,7 @@ function register(app) {
     app.post('/api/negentropy-sync-personal', manage.handleNegentropySyncPersonal);
 
     // Neo4j endpoints
-    app.post('/api/neo4j-setup-constraints-and-indexes-foo', handleNeo4jSetupConstraintsAndIndexes);
+    // app.post('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraintsAndIndexes);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
