@@ -28,7 +28,7 @@ function getNeo4jConnection() {
  * @param {Object} res - Express response object
  */
 
-function handleGetHopsCount(req, res) {
+function handleGetHopsCount_foo(req, res) {
     const threshold = parseInt(req.query.threshold || 1, 10);
     // Check if Neo4j is running
     exec('systemctl is-active neo4j', (serviceError, serviceStdout) => {
@@ -118,7 +118,7 @@ function handleGetHopsCount_fromControlPanel(req, res) {
     });
 }
 
-function handleGetHopsCount_notWorking(req, res) {
+function handleGetHopsCount(req, res) {
     const threshold = parseInt(req.query.threshold || 1, 10);
     
     // Check if Neo4j is running
