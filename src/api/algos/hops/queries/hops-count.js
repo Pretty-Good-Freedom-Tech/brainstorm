@@ -5,6 +5,7 @@
 
 const { exec } = require('child_process');
 const { getConfigFromFile } = require('../../../../utils/config');
+const { config } = require('../../../../lib/config');
 
 // Function to get Neo4j connection details
 function getNeo4jConnection() {
