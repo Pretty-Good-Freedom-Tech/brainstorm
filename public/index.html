@@ -995,13 +995,16 @@
                 .then(data => {
                     if (data.success) {
                         // Update each calculation item with its status
-                        console.log('Calculation status data:', data);
+                        console.log('qwerty Calculation status data:', data);
                         calculationItems.forEach(item => {
+                            console.log(`qwerty item: ${item}`)
                             const element = document.getElementById(`${item}-last-calculation-time`);
                             const durationElement = document.getElementById(`${item}-last-calculation-duration`);
                             if (element && data[item]) {
                                 const status = data[item].status;
                                 let statusClass = '';
+
+                                console.log(`qwerty status: ${status}`);
                                 
                                 switch (status) {
                                     case 'Never':
