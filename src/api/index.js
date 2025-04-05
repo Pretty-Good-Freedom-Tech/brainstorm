@@ -66,6 +66,7 @@ function register(app) {
     }
     
     // Register new modular endpoints for both paths
+    // TODO: might move these to status module 
     app.get('/api/strfry-status', getStrfryStatus);
     
     app.get('/api/neo4j-status', getNeo4jStatus);
@@ -144,7 +145,7 @@ function register(app) {
     // Status endpoints - read-only operations
     app.get('/api/status', status.handleStatus);
     app.get('/api/strfry-stats', status.handleStrfryStats);
-    app.get('/api/neo4j-status', status.handleNeo4jStatus);
+    // app.get('/api/neo4j-status', status.handleNeo4jStatus); // deprecated bc of mangled output
     app.get('/api/calculation-status', status.handleCalculationStatus);
 
     // Strfry plugin endpoints - with clearer separation of concerns
