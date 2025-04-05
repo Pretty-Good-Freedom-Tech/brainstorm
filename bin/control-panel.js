@@ -209,7 +209,7 @@ app.use(authMiddleware);
 // Define API routes
 
 // API endpoint for setting up Neo4j constraints and indexes
-app.post('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraintsAndIndexes);
+// app.post('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraintsAndIndexes);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
