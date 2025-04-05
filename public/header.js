@@ -8,6 +8,9 @@
  * Check if Neo4j constraints and indexes are set up, and trigger setup if not
  */
 function checkNeo4jConstraints() {
+}
+/*
+function checkNeo4jConstraints() {
     console.log('Checking Neo4j constraints and indexes status...');
     
     // First check if constraints have been created
@@ -31,10 +34,12 @@ function checkNeo4jConstraints() {
             console.error('Error checking Neo4j constraints status:', error);
         });
 }
+*/
 
 /**
  * Set up Neo4j constraints and indexes
  */
+/*
 function setupNeo4jConstraints() {
     console.log('Setting up Neo4j constraints and indexes...');
     
@@ -59,6 +64,7 @@ function setupNeo4jConstraints() {
         alert('Error setting up Neo4j constraints and indexes: ' + error.message);
     });
 }
+*/
 
 function initializeHeader() {
     const userInfo = document.getElementById('userInfo');
