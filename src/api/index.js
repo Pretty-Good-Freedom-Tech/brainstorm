@@ -33,6 +33,7 @@ const algos = require('./algos');
 const graperank = require('./export/graperank');
 const manage = require('./manage');
 const lists = require('./lists');
+const status = require('./status');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -137,6 +138,12 @@ function register(app) {
     // Services endpoints
     app.get('/api/service-status', services.handleServiceStatus);
     app.get('/api/systemd-services', services.handleSystemdServices);
+
+    // Status endpoints - read-only operations
+    app.get('/api/status', status.handleStatus);
+    app.get('/api/strfry-stats', status.handleStrfryStats);
+    app.get('/api/neo4j-status', status.handleNeo4jStatus);
+    app.get('/api/calculation-status', status.handleCalculationStatus);
 
     // Strfry plugin endpoints - with clearer separation of concerns
     app.get('/api/get-strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)

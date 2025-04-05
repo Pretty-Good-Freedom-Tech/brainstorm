@@ -209,13 +209,13 @@ app.use(authMiddleware);
 // Define API routes
 
 // API endpoint to check system status
-app.get('/api/status', handleStatus);
+// app.get('/api/status', handleStatus);
 
 // API endpoint to get strfry event statistics
-app.get('/api/strfry-stats', handleStrfryStats);
+// app.get('/api/strfry-stats', handleStrfryStats);
 
 // API endpoint to get Neo4j status information
-app.get('/api/neo4j-status', handleNeo4jStatus);
+// app.get('/api/neo4j-status', handleNeo4jStatus);
 
 // API endpoint for setting up Neo4j constraints and indexes
 app.get('/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
@@ -236,14 +236,14 @@ app.post('/api/create-kind10040', handleCreateKind10040);
 app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
 
 // Add route handler for getting calculation status
-app.get('/api/calculation-status', handleCalculationStatus);
+// app.get('/api/calculation-status', handleCalculationStatus);
 
 // Add route handler for running service management scripts
 // app.get('/api/run-script', handleRunScript);
 app.post('/api/run-script', handleRunScript);
 
 // Handler functions for API endpoints
-function handleStatus(req, res) {
+function handleStatus_deprecated(req, res) {
     console.log('Checking status...');
     
     // Get the STRFRY_DOMAIN from config
@@ -257,7 +257,7 @@ function handleStatus(req, res) {
     });
 }
 
-function handleStrfryStats(req, res) {
+function handleStrfryStats_deprecated(req, res) {
     console.log('Getting strfry event statistics...');
     
     // Set the response header to ensure it's always JSON
@@ -309,7 +309,7 @@ function handleStrfryStats(req, res) {
     });
 }
 
-function handleNeo4jStatus(req, res) {
+function handleNeo4jStatus_deprecated(req, res) {
     console.log('Getting Neo4j status information...');
     
     const neo4jStatus = {
@@ -459,7 +459,7 @@ function handleCreateKind10040(req, res) {
 }
 
 // Handler for getting calculation status
-function handleCalculationStatus(req, res) {
+function handleCalculationStatus_deprecated(req, res) {
     console.log('Getting calculation status...');
     
     try {
