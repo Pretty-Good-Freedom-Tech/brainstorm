@@ -35,3 +35,6 @@ Currently two sets of scripts. Need to decide which one to keep and where to put
 - src/algos/publishNip85.sh
 - src/algos/publish_nip85_30382.js
 - src/algos/publish_nip85_10040.mjs
+
+## INSTANCE TYPE
+4 April 2025: Currently using t2.large. CPU spikes causing crashes; AWS Compute Optimizer suggests m7g.large for better CPU provisioning, with slight cost savings. 
