@@ -29,11 +29,11 @@ function checkNeo4jConstraints() {
             
             if (data && data.constraintsTimestamp === 0) {
                 console.log('Neo4j constraints and indexes have not been set up, initiating setup...');
-                
-                if (confirm('Neo4j constraints and indexes have not been set up. Would you like to set them up now?\n\n NOTE: Make sure you have setup the neo4j password at the neo4j browser!! Otherwise the setup will fail. Do this at http://yourCoolSite.com:7474 and log in with neo4j / neo4j.')) {
-                    // Trigger setup if user confirms
-                    setupNeo4jConstraints();
-                }
+                setupNeo4jConstraints();
+                // if (confirm('Neo4j constraints and indexes have not been set up. Would you like to set them up now?\n\n NOTE: Make sure you have setup the neo4j password at the neo4j browser!! Otherwise the setup will fail. Do this at http://yourCoolSite.com:7474 and log in with neo4j / neo4j.')) {
+                //     // Trigger setup if user confirms
+                //     setupNeo4jConstraints();
+                // }
             } else {
                 console.log('Neo4j constraints and indexes are already set up.');
             }
@@ -61,9 +61,9 @@ function setupNeo4jConstraints() {
     .then(data => {
         console.log('Neo4j constraints setup response:', data);
         if (data.success) {
-            alert('Neo4j constraints and indexes have been set up successfully!');
+            console.log('Neo4j constraints and indexes have been set up successfully!');
         } else {
-            alert('Error setting up Neo4j constraints and indexes: ' + (data.error || 'Unknown error'));
+            console.error('Error setting up Neo4j constraints and indexes: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
