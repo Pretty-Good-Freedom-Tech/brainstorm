@@ -22,11 +22,21 @@ function getConfigFromFile(varName, defaultValue = null) {
             console.log(`Reading config for ${varName} from ${confFile}`);
             
             // Look for the variable in the file content
-            const regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']`, 'gm');
-            const match = regex.exec(fileContent);
+            // First try to match with quotes (either single or double)
+            let regex = new RegExp(`${varName}=[\"\'](.*?)[\"\']`, 'gm');
+            let match = regex.exec(fileContent);
             
             if (match && match[1]) {
-                console.log(`Found ${varName}=${match[1]}`);
+                console.log(`Found ${varName}=${match[1]} (quoted)`);
+                return match[1];
+            }
+            
+            // If not found with quotes, try without quotes
+            regex = new RegExp(`${varName}=([^\\s]+)`, 'gm');
+            match = regex.exec(fileContent);
+            
+            if (match && match[1]) {
+                console.log(`Found ${varName}=${match[1]} (unquoted)`);
                 return match[1];
             }
             
