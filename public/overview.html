@@ -768,16 +768,17 @@
             console.log(`data: ${JSON.stringify(data, null, 2)}`)
 
             // Update Neo4j service status
-            const neo4jStatus = data.status;
+            const neo4jStatus = data.status.running;
             const neo4jStatusIndicator = document.querySelector('#neo4jServiceStatus .status-indicator');
             const neo4jStatusText = document.querySelector('#neo4jServiceStatus .service-state');
             
             // neo4jStatusIndicator.className = `status-indicator status-${neo4jStatus === 'running' ? 'running' : 'stopped'}`;
             neo4jStatusText.textContent = neo4jStatus;
+            document.getElementById('totalUsers').textContent = formatNumber(data.status.userCount);
             /*
             document.getElementById('neo4jConstraints').textContent = data.neo4j.constraints.status;
             document.getElementById('neo4jIndexes').textContent = data.neo4j.indexes.status;
-            document.getElementById('totalUsers').textContent = formatNumber(data.neo4j.users.total);
+            
             document.getElementById('totalRelationships').textContent = formatNumber(data.neo4j.relationships.total);
             document.getElementById('followsRelationships').textContent = formatNumber(data.neo4j.relationships.follows);
             document.getElementById('reportsRelationships').textContent = formatNumber(data.neo4j.relationships.reports);
