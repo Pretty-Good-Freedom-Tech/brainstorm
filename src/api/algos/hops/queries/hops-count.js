@@ -4,7 +4,22 @@
  */
 
 const { exec } = require('child_process');
-const { getNeo4jConnection } = require('../../../../utils/config');
+const { getConfigFromFile } = require('../../../../utils/config');
+
+// Function to get Neo4j connection details
+function getNeo4jConnection() {
+    // Try to get from config module first
+    if (config && config.neo4j) {
+      return config.neo4j;
+    }
+    
+    // Fall back to direct file access
+    return {
+      uri: getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687'),
+      user: getConfigFromFile('NEO4J_USER', 'neo4j'),
+      password: getConfigFromFile('NEO4J_PASSWORD')
+    };
+}
 
 /**
  * Handler for getting count of users with hops less than or equal to threshold
