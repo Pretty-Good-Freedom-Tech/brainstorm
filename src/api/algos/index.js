@@ -5,6 +5,7 @@
 
 const hops = require('./hops');
 const pagerank = require('./pagerank');
+const graperank = require('./graperank');
 
 // Export handlers directly - this allows the central router to register endpoints
 module.exports = {
@@ -12,5 +13,8 @@ module.exports = {
     ...hops,
 
     // Re-export pagerank module handlers
-    ...pagerank
+    ...pagerank,
+    
+    // Re-export graperank module handlers
+    ...graperank
 };

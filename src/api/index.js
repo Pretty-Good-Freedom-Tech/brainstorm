@@ -24,13 +24,13 @@ const nip85 = require('./export/nip85');
 const profiles = require('./export/profiles');
 const relay = require('./export/relay');
 const users = require('./export/users');
-const graperank = require('./export/graperank');
 const blacklist = require('./export/blacklist');
 const whitelist = require('./export/whitelist');
 const services = require('./export/services');
 const strfry = require('./strfry');
 const pipeline = require('./pipeline');
 const algos = require('./algos');
+const graperank = require('./export/graperank');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -117,7 +117,7 @@ function register(app) {
     // GrapeRank endpoints
     app.get('/api/get-graperank-config', graperank.handleGetGrapeRankConfig);
     app.post('/api/post-graperank-config', graperank.handleUpdateGrapeRankConfig);
-    app.post('/api/generate-graperank', graperank.handleGenerateGrapeRank);
+    app.post('/api/generate-graperank', algos.handleGenerateGrapeRank);
 
     // Blacklist endpoints
     app.get('/api/get-blacklist-config', blacklist.handleGetBlacklistConfig);
