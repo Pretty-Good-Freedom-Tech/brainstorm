@@ -220,12 +220,11 @@ app.get('/api/neo4j-status', handleNeo4jStatus);
 // API endpoint for setting up Neo4j constraints and indexes
 app.get('/api/neo4j-setup-constraints', handleNeo4jSetupConstraints);
 
-// API endpoint for Negentropy sync
-app.post('/api/negentropy-sync', handleNegentropySync);
+// API endpoint for Negentropy sync (Refactored to src/api/manage/negentropySync)
+// app.post('/api/negentropy-sync', handleNegentropySync);
 
-app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
-
-app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
+// app.post('/api/negentropy-sync-wot', handleNegentropySyncWoT);
+// app.post('/api/negentropy-sync-personal', handleNegentropySyncPersonal);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
@@ -776,8 +775,8 @@ function handleNeo4jSetupConstraints(req, res) {
     
     // Check if the script exists
     if (!fs.existsSync(setupScript)) {
-        return res.status(404).json({
-            success: false,
+        return res.status(404).json({ 
+            success: false, 
             error: 'Setup script not found',
             output: `Script not found at: ${setupScript}`
         });

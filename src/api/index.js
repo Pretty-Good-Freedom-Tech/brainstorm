@@ -31,6 +31,7 @@ const strfry = require('./strfry');
 const pipeline = require('./pipeline');
 const algos = require('./algos');
 const graperank = require('./export/graperank');
+const manage = require('./manage');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -146,6 +147,11 @@ function register(app) {
 
     // Algos endpoint
     app.post('/api/calculate-hops', algos.handleCalculateHops);
+
+    // Negentropy sync endpoints
+    app.post('/api/negentropy-sync-wot', manage.handleNegentropySyncWoT);
+    app.post('/api/negentropy-sync-profiles', manage.handleNegentropySyncProfiles);
+    app.post('/api/negentropy-sync-personal', manage.handleNegentropySyncPersonal);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

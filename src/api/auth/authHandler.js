@@ -292,7 +292,10 @@ function authMiddleware(req, res, next) {
             '/strfry-plugin',  // POST strfry-plugin for enabling/disabling
             '/batch-transfer',
             '/reconciliation',
-            '/calculate-hops'
+            '/calculate-hops',
+            '/negentropy-sync-wot',
+            '/negentropy-sync-profiles',
+            '/negentropy-sync-personal'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -323,7 +326,10 @@ function authMiddleware(req, res, next) {
             '/hasenpfeffr-control',
             '/batch-transfer',
             '/reconciliation',
-            '/calculate-hops'
+            '/calculate-hops',
+            '/negentropy-sync-wot',
+            '/negentropy-sync-profiles',
+            '/negentropy-sync-personal'
         ];
         
         // Check if the current path is a write endpoint
