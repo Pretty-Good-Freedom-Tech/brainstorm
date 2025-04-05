@@ -775,14 +775,13 @@
             // neo4jStatusIndicator.className = `status-indicator status-${neo4jStatus === 'running' ? 'running' : 'stopped'}`;
             neo4jStatusText.textContent = neo4jStatus;
             document.getElementById('totalUsers').textContent = formatNumber(data.status.userCount);
+            document.getElementById('followsRelationships').textContent = formatNumber(data.status.relationships.follow);
+            document.getElementById('reportsRelationships').textContent = formatNumber(data.status.relationships.report);
+            document.getElementById('mutesRelationships').textContent = formatNumber(data.status.relationships.mute);
             /*
             document.getElementById('neo4jConstraints').textContent = data.neo4j.constraints.status;
             document.getElementById('neo4jIndexes').textContent = data.neo4j.indexes.status;
-            
             document.getElementById('totalRelationships').textContent = formatNumber(data.neo4j.relationships.total);
-            document.getElementById('followsRelationships').textContent = formatNumber(data.neo4j.relationships.follows);
-            document.getElementById('reportsRelationships').textContent = formatNumber(data.neo4j.relationships.reports);
-            document.getElementById('mutesRelationships').textContent = formatNumber(data.neo4j.relationships.mutes);
             document.getElementById('recentRelationships').textContent = formatNumber(data.neo4j.relationships.recent);
             */
         }
