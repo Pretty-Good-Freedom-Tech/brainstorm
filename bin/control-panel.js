@@ -209,7 +209,7 @@ app.use(authMiddleware);
 // Define API routes
 
 // API endpoint for setting up Neo4j constraints and indexes
-// app.get('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraints);
+app.post('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraintsAndIndexes);
 
 // API endpoint to publish NIP-85 events
 app.get('/api/publish', handlePublish);
@@ -274,7 +274,7 @@ function handleCreateKind10040(req, res) {
 }
 
 // Handler for setting up Neo4j constraints and indexes
-function handleNeo4jSetupConstraints_deprecated(req, res) {
+function handleNeo4jSetupConstraintsAndIndexes(req, res) {
     console.log('Setting up Neo4j constraints and indexes...');
     
     // Check authentication for write operations
