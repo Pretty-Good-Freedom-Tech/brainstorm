@@ -4,12 +4,71 @@
  * for the Hasenpfeffr header component.
  */
 
+/**
+ * Check if Neo4j constraints and indexes are set up, and trigger setup if not
+ */
+function checkNeo4jConstraints() {
+    console.log('Checking Neo4j constraints and indexes status...');
+    
+    // First check if constraints have been created
+    fetch('/control/api/status/neo4j-constraints')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Neo4j constraints status:', data);
+            
+            if (data && data.constraintsTimestamp === 0) {
+                console.log('Neo4j constraints and indexes have not been set up, initiating setup...');
+                
+                if (confirm('Neo4j constraints and indexes have not been set up. Would you like to set them up now?')) {
+                    // Trigger setup if user confirms
+                    setupNeo4jConstraints();
+                }
+            } else {
+                console.log('Neo4j constraints and indexes are already set up.');
+            }
+        })
+        .catch(error => {
+            console.error('Error checking Neo4j constraints status:', error);
+        });
+}
+
+/**
+ * Set up Neo4j constraints and indexes
+ */
+function setupNeo4jConstraints() {
+    console.log('Setting up Neo4j constraints and indexes...');
+    
+    fetch('/control/api/neo4j-setup-constraints-and-indexes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Neo4j constraints setup response:', data);
+        if (data.success) {
+            alert('Neo4j constraints and indexes have been set up successfully!');
+        } else {
+            alert('Error setting up Neo4j constraints and indexes: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error setting up Neo4j constraints:', error);
+        alert('Error setting up Neo4j constraints and indexes: ' + error.message);
+    });
+}
+
 function initializeHeader() {
     const userInfo = document.getElementById('userInfo');
     const userAvatar = document.getElementById('userAvatar');
     const userName = document.getElementById('userName');
     const signInLink = document.getElementById('signInLink');
     const relayLink = document.getElementById('relayLink');
+
+    // Check Neo4j constraints and indexes
+    checkNeo4jConstraints();
 
     // Check authentication status
     fetch('/control/api/auth/status')

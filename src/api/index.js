@@ -147,6 +147,7 @@ function register(app) {
     app.get('/api/strfry-stats', status.handleStrfryStats);
     app.get('/api/neo4j-status', status.handleNeo4jStatus);
     app.get('/api/calculation-status', status.handleCalculationStatus);
+    app.get('/api/status/neo4j-constraints', status.handleGetNeo4jConstraintsStatus);
 
     // Strfry plugin endpoints - with clearer separation of concerns
     app.get('/api/get-strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
