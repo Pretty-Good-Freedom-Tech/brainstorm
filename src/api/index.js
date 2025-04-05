@@ -174,6 +174,7 @@ function register(app) {
     app.post('/api/negentropy-sync-personal', manage.handleNegentropySyncPersonal);
 
     // Neo4j endpoints
+    /*
     console.log('Registering Neo4j constraints setup endpoint');
     // Register for both direct API path and control panel path
     const neo4jSetupHandler = (req, res) => {
@@ -183,6 +184,9 @@ function register(app) {
     
     app.post('/api/neo4j-setup-constraints-and-indexes', neo4jSetupHandler);
     app.post('/control/api/neo4j-setup-constraints-and-indexes', neo4jSetupHandler);
+    */
+
+    app.post('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraintsAndIndexes);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }
