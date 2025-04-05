@@ -147,6 +147,10 @@ function register(app) {
     app.get('/api/blacklist-count', lists.handleGetBlacklistCount);
     app.get('/api/whitelist-preview-count', lists.handleGetWhitelistPreviewCount);
     
+    // Algorithm query endpoints - read-only operations
+    app.get('/api/influence-count', algos.graperank.handleGetInfluenceCount);
+    app.get('/api/hops-count', algos.hops.handleGetHopsCount);
+    
     // Pipeline endpoints
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
     app.post('/api/reconciliation', pipeline.handleReconciliation);

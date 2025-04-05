@@ -4,9 +4,13 @@
  */
 
 const { handleCalculateHops } = require('./commands/calculate');
+const { handleGetHopsCount } = require('./queries');
 
 // Export handlers directly - this allows the central router to register endpoints
 module.exports = {
     // Commands (write operations)
-    handleCalculateHops
+    handleCalculateHops,
+    
+    // Queries (read operations)
+    handleGetHopsCount
 };

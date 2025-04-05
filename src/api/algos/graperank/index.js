@@ -4,9 +4,13 @@
  */
 
 const { handleGenerateGrapeRank } = require('./commands/generate');
+const { handleGetInfluenceCount } = require('./queries');
 
 // Export handlers directly - this allows the central router to register endpoints
 module.exports = {
     // Commands (write operations)
-    handleGenerateGrapeRank
+    handleGenerateGrapeRank,
+    
+    // Queries (read operations)
+    handleGetInfluenceCount
 };

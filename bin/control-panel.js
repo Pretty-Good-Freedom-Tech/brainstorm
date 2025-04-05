@@ -226,11 +226,11 @@ app.get('/api/publish', handlePublish);
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
 
-// API endpoint to count users above influence threshold
-app.get('/api/influence-count', handleGetInfluenceCount);
+// API endpoint to count users above influence threshold - Now handled in src/api/algos/graperank
+// app.get('/api/influence-count', handleGetInfluenceCount);
 
-// API endpoint to count users with hops less than or equal to threshold
-app.get('/api/hops-count', handleGetHopsCount);
+// API endpoint to count users with hops less than or equal to threshold - Now handled in src/api/algos/hops
+// app.get('/api/hops-count', handleGetHopsCount);
 
 // Add route handler for Hasenpfeffr control
 app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
@@ -767,7 +767,8 @@ function handleRunScript(req, res) {
     }
 }
 
-// Handler for getting influence count
+// API endpoint to get the count of users above an influence threshold
+/*
 function handleGetInfluenceCount(req, res) {
     const threshold = parseFloat(req.query.threshold || 0.5);
     
@@ -825,8 +826,10 @@ function handleGetInfluenceCount(req, res) {
         });
     });
 }
+*/
 
-// Handler for getting count of users with hops less than or equal to threshold
+// API endpoint to get the count of users with hops less than or equal to a threshold
+/*
 function handleGetHopsCount(req, res) {
     const threshold = parseInt(req.query.threshold || 1, 10);
     
@@ -884,6 +887,7 @@ function handleGetHopsCount(req, res) {
         });
     });
 }
+*/
 
 // Start the server
 app.listen(port, () => {
