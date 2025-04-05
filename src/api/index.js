@@ -32,6 +32,7 @@ const pipeline = require('./pipeline');
 const algos = require('./algos');
 const graperank = require('./export/graperank');
 const manage = require('./manage');
+const lists = require('./lists');
 
 // Import utilities
 const { getConfigFromFile } = require('../utils/config');
@@ -141,6 +142,11 @@ function register(app) {
     app.get('/api/get-strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
     app.post('/api/toggle-strfry-plugin', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
 
+    // List statistics endpoints - read-only operations
+    app.get('/api/whitelist-stats', lists.handleGetWhitelistStats);
+    app.get('/api/blacklist-count', lists.handleGetBlacklistCount);
+    app.get('/api/whitelist-preview-count', lists.handleGetWhitelistPreviewCount);
+    
     // Pipeline endpoints
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
     app.post('/api/reconciliation', pipeline.handleReconciliation);

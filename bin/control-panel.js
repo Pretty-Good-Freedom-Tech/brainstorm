@@ -226,19 +226,20 @@ app.get('/api/publish', handlePublish);
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
 
-app.get('/api/whitelist-stats', handleGetWhitelistStats);
-
-// Endpoint to count users above influence threshold
+// API endpoint to count users above influence threshold
 app.get('/api/influence-count', handleGetInfluenceCount);
 
-// Endpoint to count users with hops less than or equal to threshold
+// API endpoint to count users with hops less than or equal to threshold
 app.get('/api/hops-count', handleGetHopsCount);
 
-// Endpoint to count blacklisted users
-app.get('/api/blacklist-count', handleGetBlacklistCount);
+// Endpoint to count blacklisted users - Now handled in src/api/lists
+// app.get('/api/blacklist-count', handleGetBlacklistCount);
 
-// Endpoint to count users based on full whitelist criteria
-app.get('/api/whitelist-preview-count', handleGetWhitelistPreviewCount);
+// Endpoint to count users based on full whitelist criteria - Now handled in src/api/lists
+// app.get('/api/whitelist-preview-count', handleGetWhitelistPreviewCount);
+
+// Endpoint to get whitelist stats - Now handled in src/api/lists
+// app.get('/api/whitelist-stats', handleGetWhitelistStats);
 
 // Add route handler for Hasenpfeffr control
 app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
@@ -894,6 +895,7 @@ function handleGetHopsCount(req, res) {
 }
 
 // Handler for getting whitelist statistics
+/*
 function handleGetWhitelistStats(req, res) {
   try {
     let whitelistCount = 0;
@@ -930,8 +932,10 @@ function handleGetWhitelistStats(req, res) {
     });
   }
 }
+*/
 
-// Handler for getting preview count of users that would be whitelisted with current parameters
+// Handler for getting preview count of whitelist
+/*
 function handleGetWhitelistPreviewCount(req, res) {
     // Get all parameters from request
     const influenceThreshold = parseFloat(req.query.influence || 0.5);
@@ -1007,8 +1011,10 @@ function handleGetWhitelistPreviewCount(req, res) {
         });
     });
 }
+*/
 
 // Handler for getting count of blacklisted users
+/*
 function handleGetBlacklistCount(req, res) {
     // Check if Neo4j is running
     exec('systemctl is-active neo4j', (serviceError, serviceStdout) => {
@@ -1064,6 +1070,7 @@ function handleGetBlacklistCount(req, res) {
         });
     });
 }
+*/
 
 // Start the server
 app.listen(port, () => {
