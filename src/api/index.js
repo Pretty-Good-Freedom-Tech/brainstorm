@@ -5,7 +5,7 @@
 
 // Import API modules
 const { getStrfryStatus } = require('./strfry/strfryStatus');
-// const { getNeo4jStatus } = require('./neo4j/neo4jStatus'); // deprecating
+const { getNeo4jStatus } = require('./neo4j/neo4jStatus');
 const { getListStatus } = require('./lists/listStatus');
 const { getRankingStatus } = require('./ranking/rankingStatus');
 const { getNetworkStatus } = require('./network/networkStatus');
@@ -68,8 +68,7 @@ function register(app) {
     // Register new modular endpoints for both paths
     // TODO: might move these to status module 
     app.get('/api/strfry-status', getStrfryStatus);
-    
-    // app.get('/api/neo4j-status-deprecated', getNeo4jStatus);
+
     
     app.get('/api/list-status', getListStatus);
     
@@ -211,7 +210,7 @@ async function handleGetInstanceStatus(req, res) {
         // Fetch data from all endpoints in parallel
         const [strfryData, neo4jData, listData, rankingData, networkData] = await Promise.all([
             fetchEndpoint(getStrfryStatus),
-            fetchEndpoint(status.handleNeo4jStatus),
+            fetchEndpoint(getNeo4jStatus),
             fetchEndpoint(getListStatus),
             fetchEndpoint(getRankingStatus),
             fetchEndpoint(getNetworkStatus)
