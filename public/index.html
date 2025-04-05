@@ -644,7 +644,7 @@
             <div class="card">
                 <h3>Service Status and Control</h3>
                 <p>Manage and monitor Hasenpfeffr systemd services.</p>
-                <button id="refreshServicesBtn" class="button">Refresh Status</button>
+                <button id="refreshServicesBtn" class="refresh-btn">Refresh Status</button>
                 <div id="servicesStatus" class="status" style="display: none;"></div>
                 <div id="servicesContainer" style="margin-top: 15px;">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -1060,7 +1060,11 @@
         }
 
         function loadServicesStatus() {
+            const refreshServicesBtn = document.getElementById('refreshServicesBtn');
             const servicesStatus = document.getElementById('servicesStatus');
+            
+            // Disable the button and show loading status
+            refreshServicesBtn.disabled = true;
             servicesStatus.style.display = 'block';
             servicesStatus.className = 'status info';
             servicesStatus.textContent = 'Loading service statuses...';
@@ -1068,6 +1072,8 @@
             fetch('/control/api/systemd-services')
                 .then(response => response.json())
                 .then(data => {
+                    // Re-enable the button and hide status
+                    refreshServicesBtn.disabled = false;
                     servicesStatus.style.display = 'none';
                     
                     // Clear the table
@@ -1241,8 +1247,11 @@
                     }
                 })
                 .catch(error => {
+                    // Re-enable the button and show error message
+                    refreshServicesBtn.disabled = false;
                     servicesStatus.className = 'status error';
                     servicesStatus.textContent = 'Error loading services: ' + error.message;
+                    console.error('Error loading services:', error);
                 });
         }
         
@@ -1540,6 +1549,10 @@
                     statusEl.className = 'mini-status error';
                 });
         }
+        
+        document.getElementById('refreshServicesBtn').addEventListener('click', function() {
+            loadServicesStatus();
+        });
     </script>
 </body>
 </html>
