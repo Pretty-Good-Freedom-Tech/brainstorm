@@ -1025,7 +1025,13 @@
                 publishOutput.style.display = 'block';
                 publishOutput.textContent = 'Starting event publication...\n';
                 
-                fetch('/control/api/publish')
+                fetch('/control/api/publish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -1036,7 +1042,9 @@
                         publishStatus.textContent = 'Error publishing events: ' + data.error;
                     }
                     
-                    publishOutput.textContent += data.output;
+                    if (data.output) {
+                        publishOutput.textContent += data.output;
+                    }
                     publishBtn.disabled = false;
                 })
                 .catch(error => {
