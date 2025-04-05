@@ -239,7 +239,7 @@ app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
 app.get('/api/calculation-status', handleCalculationStatus);
 
 // Add route handler for running service management scripts
-app.get('/api/run-script', handleRunScript);
+// app.get('/api/run-script', handleRunScript);
 app.post('/api/run-script', handleRunScript);
 
 // Handler functions for API endpoints
