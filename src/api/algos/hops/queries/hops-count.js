@@ -29,10 +29,29 @@ function getNeo4jConnection() {
 
 function handleGetHopsCount(req, res) {
     const threshold = parseInt(req.query.threshold || 1, 10);
+    // Check if Neo4j is running
+    exec('systemctl is-active neo4j', (serviceError, serviceStdout) => {
+        const isRunning = serviceStdout.trim() === 'active';
+        
+        if (!isRunning) {
+            return res.json({
+                success: false,
+                error: 'Neo4j service is not running'
+            });
+        }
+        if (isRunning) {
+            return res.json({
+                success: true,
+                error: 'Neo4j service is not running'
+            });
+        }
+    })
+    /*
     return res.json({
         success: true,
         count: 42
     });
+    */
 }
 
 function handleGetHopsCount_fromControlPanel(req, res) {
