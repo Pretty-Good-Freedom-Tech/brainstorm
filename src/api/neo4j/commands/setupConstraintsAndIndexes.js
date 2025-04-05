@@ -14,7 +14,7 @@ function handleNeo4jSetupConstraintsAndIndexes(req, res) {
     console.log('Setting up Neo4j constraints and indexes...');
 
     // Define the setup script
-    const setupScript = '/usr/local/lib/node_modules/hasenpfeffr/setup/neo4jConstraintsAndIndexes.sh';
+    const setupScript = path.join(__dirname, '../setup', 'neo4jConstraintsAndIndexes.sh');
     
     // Check if the script exists
     if (!fs.existsSync(setupScript)) {

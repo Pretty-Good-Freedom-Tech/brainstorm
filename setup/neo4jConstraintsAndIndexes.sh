@@ -3,6 +3,15 @@
 # Hasenpfeffr Neo4j Constraints and Indexes Setup
 # This script sets up the necessary constraints and indexes for the Hasenpfeffr project
 
+
+source /etc/hasenpfeffr.conf
+touch ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+
+echo "$(date): Starting neo4jConstraintsAndIndexes"
+echo "$(date): Starting neo4jConstraintsAndIndexes" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+
+
 NEO4J_URI="bolt://localhost:7687"
 NEO4J_USER="neo4j"
 # Get the Neo4j password from the Hasenpfeffr configuration
@@ -50,6 +59,9 @@ sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER
 
 # Run Cypher commands with default password
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$CYPHER_COMMAND"
+
+echo "$(date): Finished neo4jConstraintsAndIndexes"
+echo "$(date): Finished neo4jConstraintsAndIndexes" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 echo "Neo4j constraints and indexes have been set up successfully."
 echo "You can verify by running 'SHOW CONSTRAINTS;' and 'SHOW INDEXES;' in the Neo4j Browser."
