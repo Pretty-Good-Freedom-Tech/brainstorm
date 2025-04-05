@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const { execSync } = require('child_process');
+const { config } = require('../lib/config');
 
 /**
  * Get configuration values from /etc/hasenpfeffr.conf
@@ -51,6 +52,22 @@ function getConfigFromFile(varName, defaultValue = null) {
     return defaultValue;
 }
 
+// Function to get Neo4j connection details
+function getNeo4jConnection() {
+    // Try to get from config module first
+    if (config && config.neo4j) {
+      return config.neo4j;
+    }
+    
+    // Fall back to direct file access
+    return {
+      uri: getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687'),
+      user: getConfigFromFile('NEO4J_USER', 'neo4j'),
+      password: getConfigFromFile('NEO4J_PASSWORD')
+    };
+}
+
 module.exports = {
-    getConfigFromFile
+    getConfigFromFile,
+    getNeo4jConnection
 };
