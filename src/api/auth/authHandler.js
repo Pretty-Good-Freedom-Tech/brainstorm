@@ -295,7 +295,8 @@ function authMiddleware(req, res, next) {
             '/calculate-hops',
             '/negentropy-sync-wot',
             '/negentropy-sync-profiles',
-            '/negentropy-sync-personal'
+            '/negentropy-sync-personal',
+            '/negentropy-sync'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -329,7 +330,8 @@ function authMiddleware(req, res, next) {
             '/calculate-hops',
             '/negentropy-sync-wot',
             '/negentropy-sync-profiles',
-            '/negentropy-sync-personal'
+            '/negentropy-sync-personal',
+            '/negentropy-sync'
         ];
         
         // Check if the current path is a write endpoint

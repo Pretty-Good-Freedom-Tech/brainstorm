@@ -144,6 +144,7 @@ function register(app) {
     // Pipeline endpoints
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
     app.post('/api/reconciliation', pipeline.handleReconciliation);
+    app.post('/api/negentropy-sync', pipeline.handleNegentropySync);
 
     // Algos endpoint
     app.post('/api/calculate-hops', algos.handleCalculateHops);
