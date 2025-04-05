@@ -8,16 +8,10 @@
  */
 
 const express = require('express');
-const neo4j = require('neo4j-driver');
 const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
-const crypto = require('crypto');
-const { exec, execSync } = require('child_process');
 const WebSocket = require('ws');
-const { NDKEvent, NDK } = require('@nostr-dev-kit/ndk');
-// Set up WebSocket implementation for NDK in Node.js environment
 const { useWebSocketImplementation } = require('nostr-tools/pool');
 require('websocket-polyfill');
 useWebSocketImplementation(WebSocket);
@@ -205,107 +199,6 @@ const authMiddleware = (req, res, next) => {
 
 // Apply auth middleware
 app.use(authMiddleware);
-
-// Define API routes
-
-// API endpoint to publish NIP-85 events - Now handled in src/api/export/nip85
-// app.post('/api/publish', handlePublish);
-
-// API endpoint to create kind 10040 events 
-// app.post('/api/create-kind10040', handleCreateKind10040);
-
-// Add route handler for running service management scripts - Now handled in src/api/manage
-// app.post('/api/run-script', handleRunScript);
-
-// Handler for publishing NIP-85 events - Now handled in src/api/export/nip85
-function handlePublish_deprecated(req, res) {
-    console.log('Publishing NIP-85 events...');
-    
-    exec('hasenpfeffr-publish', (error, stdout, stderr) => {
-        return res.json({
-            success: !error,
-            output: stdout || stderr
-        });
-    });
-}
-
-
-// Handler for creating kind 10040 events 
-function handleCreateKind10040_deprecated(req, res) {
-    console.log('Creating kind 10040 events...');
-    
-    // Set the response header to ensure it's always JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Get the full path to the script
-    const scriptPath = path.join(__dirname, 'hasenpfeffr-create-kind10040.js');
-    console.log('Using script path:', scriptPath);
-    
-    // Set a timeout to ensure the response doesn't hang
-    const timeoutId = setTimeout(() => {
-        console.log('Kind 10040 creation is taking longer than expected, sending initial response...');
-        res.json({
-            success: true,
-            output: 'Kind 10040 creation started. This process will continue in the background.\n',
-            error: null
-        });
-    }, 30000); // 30 seconds timeout
-    
-    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
-        // Clear the timeout if the command completes before the timeout
-        clearTimeout(timeoutId);
-        
-        // Check if the response has already been sent
-        if (res.headersSent) {
-            console.log('Response already sent, kind 10040 creation continuing in background');
-            return;
-        }
-        
-        return res.json({
-            success: !error,
-            output: stdout || stderr,
-            error: error ? error.message : null
-        });
-    });
-}
-
-// Handler for running service management scripts - Now handled in src/api/manage
-function handleRunScript_deprecated(req, res) {
-    const { script } = req.body;
-    
-    if (!script) {
-        return res.status(400).json({ error: 'Missing script parameter' });
-    }
-    
-    try {
-        // Check if script exists
-        if (!fs.existsSync(script)) {
-            return res.status(404).json({ 
-                success: false, 
-                error: `Script not found: ${script}` 
-            });
-        }
-        
-        // Make script executable if it's not already
-        execSync(`sudo chmod +x ${script}`);
-        
-        // Execute the script
-        console.log(`Executing ${script}...`);
-        const output = execSync(`sudo ${script}`, { timeout: 60000 }).toString();
-        
-        return res.json({
-            success: true,
-            message: `Script ${script} executed successfully`,
-            output
-        });
-    } catch (error) {
-        console.error(`Error executing script ${script}:`, error);
-        return res.status(500).json({ 
-            success: false, 
-            error: `Failed to execute script ${script}: ${error.message}` 
-        });
-    }
-}
 
 // Start the server
 app.listen(port, () => {
