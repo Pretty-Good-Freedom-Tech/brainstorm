@@ -4,12 +4,22 @@
  * for the Hasenpfeffr header component.
  */
 
+// Flag to track if constraints have been checked already
+let constraintsChecked = false;
+
 /**
  * Check if Neo4j constraints and indexes are set up, and trigger setup if not
  */
 
 function checkNeo4jConstraints() {
+    // Prevent multiple checks
+    if (constraintsChecked) {
+        console.log('Neo4j constraints check already performed, skipping...');
+        return;
+    }
+    
     console.log('Checking Neo4j constraints and indexes status...');
+    constraintsChecked = true;
     
     // First check if constraints have been created
     fetch('/control/api/status/neo4j-constraints')
