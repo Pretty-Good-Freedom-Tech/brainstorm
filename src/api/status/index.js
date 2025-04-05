@@ -7,7 +7,8 @@ const {
     handleStatus,
     handleStrfryStats,
     handleNeo4jStatus,
-    handleCalculationStatus
+    handleCalculationStatus,
+    handleGetNeo4jConstraintsStatus
 } = require('./queries');
 
 module.exports = {
@@ -15,5 +16,6 @@ module.exports = {
     handleStatus,
     handleStrfryStats,
     handleNeo4jStatus,
-    handleCalculationStatus
+    handleCalculationStatus,
+    handleGetNeo4jConstraintsStatus
 };
