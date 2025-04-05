@@ -60,6 +60,13 @@ sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER
 # Run Cypher commands with default password
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$CYPHER_COMMAND"
 
+# Update HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES in hasenpfeffr.conf with current timestamp
+CURRENT_TIMESTAMP=$(date +%s)
+echo "Setting HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP in /etc/hasenpfeffr.conf"
+
+# Use sed to replace the line in hasenpfeffr.conf
+sudo sed -i "s/^export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=.*$/export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP/" /etc/hasenpfeffr.conf
+
 echo "$(date): Finished neo4jConstraintsAndIndexes"
 echo "$(date): Finished neo4jConstraintsAndIndexes" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
