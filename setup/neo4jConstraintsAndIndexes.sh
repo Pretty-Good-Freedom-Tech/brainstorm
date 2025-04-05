@@ -55,10 +55,10 @@ CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);
 "
 
 # Run Cypher commands with stored password
-sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_COMMAND"
+sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_COMMAND" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 # Run Cypher commands with default password
-sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$CYPHER_COMMAND"
+sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$CYPHER_COMMAND" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 # Update HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES in hasenpfeffr.conf with current timestamp
 CURRENT_TIMESTAMP=$(date +%s)
