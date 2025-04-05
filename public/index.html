@@ -1000,8 +1000,8 @@
                             console.log(`qwerty item: ${item}`)
                             const element = document.getElementById(`${item}-last-calculation-time`);
                             const durationElement = document.getElementById(`${item}-last-calculation-duration`);
-                            if (element && data[item]) {
-                                const status = data[item].status;
+                            if (element && data.status[item]) {
+                                const status = data.status[item].status;
                                 let statusClass = '';
 
                                 console.log(`qwerty status: ${status}`);
@@ -1023,10 +1023,10 @@
                                         statusClass = 'status-never';
                                 }
                                 
-                                element.innerHTML = `<span class="status-indicator ${statusClass}"></span>${data[item].formattedTime}`;
-                                if (data[item].duration) {
-                                    durationElement.innerHTML = `Duration: ${data[item].duration}`;
-                                    console.log(`qwerty duration: ${data[item].duration}`);
+                                element.innerHTML = `<span class="status-indicator ${statusClass}"></span>${data.status[item].formattedTime}`;
+                                if (data.status[item].duration) {
+                                    durationElement.innerHTML = `Duration: ${data.status[item].duration}`;
+                                    console.log(`qwerty duration: ${data.status[item].duration}`);
                                 }
                             }
                         });
