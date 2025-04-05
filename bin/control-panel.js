@@ -209,7 +209,7 @@ app.use(authMiddleware);
 // Define API routes
 
 // API endpoint to publish NIP-85 events - Now handled in src/api/export/nip85
-// app.get('/api/publish', handlePublish);
+app.get('/api/publish', handlePublish);
 
 // API endpoint to create kind 10040 events 
 app.post('/api/create-kind10040', handleCreateKind10040);
@@ -217,7 +217,7 @@ app.post('/api/create-kind10040', handleCreateKind10040);
 // Add route handler for running service management scripts
 app.post('/api/run-script', handleRunScript);
 
-/*
+
 // Handler for publishing NIP-85 events - Now handled in src/api/export/nip85
 function handlePublish(req, res) {
     console.log('Publishing NIP-85 events...');
@@ -229,7 +229,7 @@ function handlePublish(req, res) {
         });
     });
 }
-*/
+
 
 // Handler for creating kind 10040 events 
 function handleCreateKind10040(req, res) {
