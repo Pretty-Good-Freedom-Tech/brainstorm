@@ -27,7 +27,6 @@ const users = require('./export/users');
 const graperank = require('./export/graperank');
 const blacklist = require('./export/blacklist');
 const whitelist = require('./export/whitelist');
-const pagerank = require('./export/pagerank');
 const services = require('./export/services');
 const strfry = require('./strfry');
 const pipeline = require('./pipeline');
@@ -131,7 +130,7 @@ function register(app) {
     app.post('/api/export-whitelist', whitelist.handleExportWhitelist);
 
     // PageRank endpoints
-    app.post('/api/generate-pagerank', pagerank.handleGeneratePageRank);
+    app.post('/api/generate-pagerank', algos.handleGeneratePageRank);
 
     // Services endpoints
     app.get('/api/service-status', services.handleServiceStatus);
