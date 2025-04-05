@@ -132,7 +132,7 @@ function register(app) {
     app.post('/api/export-whitelist', whitelist.handleExportWhitelist);
 
     // PageRank endpoints
-    app.post('/api/generate-pagerank', algos.handleGeneratePageRank);
+    app.post('/api/generate-pagerank', algos.pagerank.handleGeneratePageRank);
 
     // Services endpoints
     app.get('/api/service-status', services.handleServiceStatus);
