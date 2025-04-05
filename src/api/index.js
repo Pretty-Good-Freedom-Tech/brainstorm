@@ -149,7 +149,7 @@ function register(app) {
     
     // Algorithm query endpoints - read-only operations
     app.get('/api/influence-count', algos.graperank.handleGetInfluenceCount);
-    // app.get('/api/hops-count', algos.hops.handleGetHopsCount);
+    app.get('/api/hops-count', algos.hops.handleGetHopsCount);
     
     // Pipeline endpoints
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);

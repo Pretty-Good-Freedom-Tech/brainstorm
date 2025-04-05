@@ -5,7 +5,7 @@
 
 const fs = require('fs');
 const { execSync } = require('child_process');
-const { config } = require('../lib/config');
+const { config } = require('../../lib/config');
 
 /**
  * Get configuration values from /etc/hasenpfeffr.conf
