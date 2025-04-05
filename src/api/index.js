@@ -119,7 +119,7 @@ function register(app) {
     // GrapeRank endpoints
     app.get('/api/get-graperank-config', graperank.handleGetGrapeRankConfig);
     app.post('/api/post-graperank-config', graperank.handleUpdateGrapeRankConfig);
-    app.post('/api/generate-graperank', algos.handleGenerateGrapeRank);
+    app.post('/api/generate-graperank', algos.graperank.handleGenerateGrapeRank);
 
     // Blacklist endpoints
     app.get('/api/get-blacklist-config', blacklist.handleGetBlacklistConfig);
@@ -157,7 +157,7 @@ function register(app) {
     app.post('/api/negentropy-sync', pipeline.handleNegentropySync);
 
     // Algos endpoint
-    app.post('/api/calculate-hops', algos.handleCalculateHops);
+    app.post('/api/calculate-hops', algos.hops.handleCalculateHops);
 
     // Negentropy sync endpoints
     app.post('/api/negentropy-sync-wot', manage.handleNegentropySyncWoT);
