@@ -230,7 +230,7 @@ app.post('/api/create-kind10040', handleCreateKind10040);
 // app.get('/api/influence-count', handleGetInfluenceCount);
 
 // API endpoint to count users with hops less than or equal to threshold - Now handled in src/api/algos/hops
-// app.get('/api/hops-count', handleGetHopsCount);
+app.get('/api/hops-count', handleGetHopsCount);
 
 // Add route handler for Hasenpfeffr control
 app.post('/api/hasenpfeffr-control', handleHasenpfeffrControl);
@@ -829,7 +829,7 @@ function handleGetInfluenceCount(req, res) {
 */
 
 // API endpoint to get the count of users with hops less than or equal to a threshold
-/*
+
 function handleGetHopsCount(req, res) {
     const threshold = parseInt(req.query.threshold || 1, 10);
     
@@ -887,7 +887,6 @@ function handleGetHopsCount(req, res) {
         });
     });
 }
-*/
 
 // Start the server
 app.listen(port, () => {
