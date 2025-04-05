@@ -26,15 +26,16 @@ function getNeo4jConnection() {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-/*
+
 function handleGetHopsCount(req, res) {
+    const threshold = parseInt(req.query.threshold || 1, 10);
     return res.json({
         success: true,
         count: 42
     });
 }
-*/
-function handleGetHopsCount(req, res) {
+
+function handleGetHopsCount_fromControlPanel(req, res) {
     const threshold = parseInt(req.query.threshold || 1, 10);
     
     // Check if Neo4j is running
