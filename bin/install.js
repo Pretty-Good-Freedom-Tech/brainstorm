@@ -313,7 +313,7 @@ async function createHasenpfeffrConfigFile() {
   }
   
   if (!isUpdateMode || !neo4jPassword) {
-    neo4jPassword = await askQuestion('Enter the password that you intend to use for Neo4j (or press Enter to use "neo4j"): ') || 'neo4j';
+    neo4jPassword = await askQuestion('Enter the password that you intend to use for Neo4j: ') || 'neo4j';
   }
   
   if (!relayUrl) {
