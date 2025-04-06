@@ -397,6 +397,75 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        
+        /* Enhanced calculation item status styling */
+        .calculation-item {
+            background-color: white;
+            padding: 16px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        /* Status-specific calculation item styling */
+        .calculation-item.status-never {
+            border-left-color: #95a5a6;
+            background-color: #f9f9f9;
+        }
+        
+        .calculation-item.status-in-progress {
+            border-left-color: #f39c12;
+            background-color: #fef9e7;
+        }
+        
+        .calculation-item.status-completed {
+            border-left-color: #2ecc71;
+            background-color: #f0fff5;
+        }
+        
+        .calculation-item.status-error {
+            border-left-color: #e74c3c;
+            background-color: #fdedec;
+        }
+        
+        /* Status label styling */
+        .status-label {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+            color: white;
+        }
+        
+        .status-label.status-never {
+            background-color: #95a5a6;
+        }
+        
+        .status-label.status-in-progress {
+            background-color: #f39c12;
+        }
+        
+        .status-label.status-completed {
+            background-color: #2ecc71;
+        }
+        
+        .status-label.status-error {
+            background-color: #e74c3c;
+        }
+        
+        /* Pulse animation for in-progress items */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
     <script src="./header.js"></script>
 </head>
@@ -850,33 +919,33 @@
                     script: group.scripts[action]
                 })
             })
-                .then(response => response.json())
-                .then(data => {
-                    // Re-enable button
-                    toggleButton.disabled = false;
-                    
-                    if (data.success) {
-                        console.log(`Successfully toggled ${groupName} ${action}`);
-                        // Wait a moment for services to fully start/stop
-                        setTimeout(() => {
-                            checkServiceGroupStatus(groupName);
-                        }, 2000);
-                    } else {
-                        console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, data.error);
-                        alert(`Failed to ${action === 'on' ? 'start' : 'stop'} ${groupName} services. Check the console for details.`);
-                        // Set toggle back to previous state
-                        toggleButton.checked = !checked;
+            .then(response => response.json())
+            .then(data => {
+                // Re-enable button
+                toggleButton.disabled = false;
+                
+                if (data.success) {
+                    console.log(`Successfully toggled ${groupName} ${action}`);
+                    // Wait a moment for services to fully start/stop
+                    setTimeout(() => {
                         checkServiceGroupStatus(groupName);
-                    }
-                })
-                .catch(error => {
-                    console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, error);
+                    }, 2000);
+                } else {
+                    console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, data.error);
                     alert(`Failed to ${action === 'on' ? 'start' : 'stop'} ${groupName} services. Check the console for details.`);
-                    toggleButton.disabled = false;
                     // Set toggle back to previous state
                     toggleButton.checked = !checked;
                     checkServiceGroupStatus(groupName);
-                });
+                }
+            })
+            .catch(error => {
+                console.error(`Error ${action === 'on' ? 'starting' : 'stopping'} ${groupName}:`, error);
+                alert(`Failed to ${action === 'on' ? 'start' : 'stop'} ${groupName} services. Check the console for details.`);
+                toggleButton.disabled = false;
+                // Set toggle back to previous state
+                toggleButton.checked = !checked;
+                checkServiceGroupStatus(groupName);
+            });
         }
 
         // Check services status on page load
@@ -994,17 +1063,20 @@
                 .then(data => {
                     if (data.success) {
                         // Update each calculation item with its status
-                        console.log('qwerty Calculation status data:', data);
+                        console.log('Calculation status data:', data);
                         calculationItems.forEach(item => {
-                            console.log(`qwerty item: ${item}`)
                             const element = document.getElementById(`${item}-last-calculation-time`);
                             const durationElement = document.getElementById(`${item}-last-calculation-duration`);
-                            if (element && data.status[item]) {
+                            
+                            // Get the parent calculation-item element
+                            const calculationItem = element ? element.closest('.calculation-item') : null;
+                            
+                            if (element && calculationItem && data.status[item]) {
                                 const status = data.status[item].status;
                                 let statusClass = '';
-
-                                console.log(`qwerty status: ${status}`);
+                                let statusText = status;
                                 
+                                // Determine status class
                                 switch (status) {
                                     case 'Never':
                                         statusClass = 'status-never';
@@ -1020,12 +1092,37 @@
                                         break;
                                     default:
                                         statusClass = 'status-never';
+                                        statusText = 'Never';
                                 }
                                 
+                                // Clear any existing status classes from the calculation item
+                                calculationItem.classList.remove('status-never', 'status-in-progress', 'status-completed', 'status-error');
+                                
+                                // Add the new status class to the calculation item
+                                calculationItem.classList.add(statusClass);
+                                
+                                // Update the time element with status indicator and formatted time
                                 element.innerHTML = `<span class="status-indicator ${statusClass}"></span>${data.status[item].formattedTime}`;
+                                
+                                // Find the title element (h4) to add status label
+                                const titleElement = calculationItem.querySelector('h4');
+                                if (titleElement) {
+                                    // Remove any existing status label
+                                    const existingLabel = titleElement.querySelector('.status-label');
+                                    if (existingLabel) {
+                                        existingLabel.remove();
+                                    }
+                                    
+                                    // Add status label
+                                    const statusLabel = document.createElement('span');
+                                    statusLabel.className = `status-label ${statusClass}`;
+                                    statusLabel.textContent = statusText;
+                                    titleElement.appendChild(statusLabel);
+                                }
+                                
+                                // Update duration if available
                                 if (data.status[item].duration) {
                                     durationElement.innerHTML = `Duration: ${data.status[item].duration}`;
-                                    console.log(`qwerty duration: ${data.status[item].duration}`);
                                 }
                             }
                         });
