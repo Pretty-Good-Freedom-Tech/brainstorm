@@ -58,32 +58,6 @@ app.use(express.urlencoded({ extended: true }));
 // Register API modules
 api.register(app);
 
-// Serve static files from the public directory with proper MIME types
-app.use(express.static(path.join(__dirname, '../public'), {
-    setHeaders: (res, path, stat) => {
-        if (path.endsWith('.css')) {
-            console.log('Setting CSS MIME type for:', path);
-            res.set('Content-Type', 'text/css');
-        } else if (path.endsWith('.js')) {
-            console.log('Setting JS MIME type for:', path);
-            res.set('Content-Type', 'text/javascript');
-        }
-    }
-}));
-
-// Also serve /control/ as static files (mirror of public)
-app.use('/control', express.static(path.join(__dirname, '../public'), {
-    setHeaders: (res, path, stat) => {
-        if (path.endsWith('.css')) {
-            console.log('Setting CSS MIME type for /control path:', path);
-            res.set('Content-Type', 'text/css');
-        } else if (path.endsWith('.js')) {
-            console.log('Setting JS MIME type for /control path:', path);
-            res.set('Content-Type', 'text/javascript');
-        }
-    }
-}));
-
 // Session middleware
 app.use(session({
     secret: getConfigFromFile('SESSION_SECRET', 'hasenpfeffr-default-session-secret-please-change-in-production'),
@@ -99,14 +73,15 @@ function serveHtmlFile(filename, res) {
         if (fs.existsSync(filePath)) {
             res.sendFile(filePath);
         } else {
-            res.status(404).send('File not found');
+            res.status(404).send('File not found: ' + filename);
         }
-    } catch (error) {
-        console.error('Error serving HTML file:', error);
-        res.status(500).send('Internal server error');
+    } catch (err) {
+        console.error('Error serving HTML file:', err);
+        res.status(500).send('Server error');
     }
 }
 
+// Define HTML routes BEFORE static middleware to prevent conflicts
 // Serve the HTML files
 app.get('/', (req, res) => {
     serveHtmlFile('index.html', res);
@@ -169,11 +144,6 @@ app.get('/control/home.html', (req, res) => {
     serveHtmlFile('home.html', res);
 });
 
-// Handle /pages/ URLs without redirecting (just serve the file)
-app.get('/control/pages/:file', (req, res) => {
-    serveHtmlFile(req.params.file, res);
-});
-
 // For backward compatibility, redirect old URLs without /control prefix
 app.get('/control-panel.html', (req, res) => {
     res.redirect('/control/control-panel.html');
@@ -202,6 +172,38 @@ app.get('/index.html', (req, res) => {
 app.get('/control/profiles', (req, res) => {
     res.redirect('/control/profiles-control-panel.html');
 });
+
+// Handle /pages/ URLs - don't redirect, just serve the file
+app.get('/control/pages/:file', (req, res) => {
+    serveHtmlFile(req.params.file, res);
+});
+
+// Serve static files from the public directory with proper MIME types
+// IMPORTANT: Static middleware comes AFTER route definitions to prevent conflicts
+app.use(express.static(path.join(__dirname, '../public'), {
+    setHeaders: (res, path, stat) => {
+        if (path.endsWith('.css')) {
+            console.log('Setting CSS MIME type for:', path);
+            res.set('Content-Type', 'text/css');
+        } else if (path.endsWith('.js')) {
+            console.log('Setting JS MIME type for:', path);
+            res.set('Content-Type', 'text/javascript');
+        }
+    }
+}));
+
+// Also serve /control/ static files but EXCLUDE the HTML files we're serving via routes
+app.use('/control', express.static(path.join(__dirname, '../public'), {
+    setHeaders: (res, path, stat) => {
+        if (path.endsWith('.css')) {
+            console.log('Setting CSS MIME type for /control path:', path);
+            res.set('Content-Type', 'text/css');
+        } else if (path.endsWith('.js')) {
+            console.log('Setting JS MIME type for /control path:', path);
+            res.set('Content-Type', 'text/javascript');
+        }
+    }
+}));
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
