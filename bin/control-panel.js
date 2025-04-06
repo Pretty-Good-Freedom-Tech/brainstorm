@@ -109,19 +109,19 @@ function serveHtmlFile(filename, res) {
 
 // Serve the HTML files
 app.get('/', (req, res) => {
-    serveHtmlFile('index.html', res);
+    serveHtmlFile('pages/index.html', res);
 });
 
 app.get('/overview.html', (req, res) => {
-    serveHtmlFile('overview.html', res);
+    serveHtmlFile('pages/overview.html', res);
 });
 
 app.get('/control/overview.html', (req, res) => {
-    serveHtmlFile('overview.html', res);
+    serveHtmlFile('pages/overview.html', res);
 });
 
 app.get('/control', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
+    serveHtmlFile('pages/index.html', res);
 });
 
 app.get('/control/profiles', (req, res) => {
