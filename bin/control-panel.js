@@ -109,103 +109,108 @@ function serveHtmlFile(filename, res) {
 
 // Serve the HTML files
 app.get('/', (req, res) => {
-    res.redirect('/control/pages/index.html');
-});
-
-app.get('/control', (req, res) => {
-    res.redirect('/control/pages/index.html');
-});
-
-// Main pages in the new structure
-app.get('/control/pages/index.html', (req, res) => {
     serveHtmlFile('index.html', res);
 });
 
-app.get('/control/pages/overview.html', (req, res) => {
+app.get('/control', (req, res) => {
+    serveHtmlFile('index.html', res);
+});
+
+// Main pages with original URLs
+app.get('/control/index.html', (req, res) => {
+    serveHtmlFile('index.html', res);
+});
+
+app.get('/control/overview.html', (req, res) => {
     serveHtmlFile('overview.html', res);
 });
 
-app.get('/control/pages/control-panel.html', (req, res) => {
+app.get('/control/control-panel.html', (req, res) => {
     serveHtmlFile('control-panel.html', res);
 });
 
-app.get('/control/pages/neo4j-control-panel.html', (req, res) => {
+app.get('/control/neo4j-control-panel.html', (req, res) => {
     serveHtmlFile('neo4j-control-panel.html', res);
 });
 
-app.get('/control/pages/nip85-control-panel.html', (req, res) => {
+app.get('/control/nip85-control-panel.html', (req, res) => {
     serveHtmlFile('nip85-control-panel.html', res);
 });
 
-app.get('/control/pages/graperank-control-panel.html', (req, res) => {
+app.get('/control/graperank-control-panel.html', (req, res) => {
     serveHtmlFile('graperank-control-panel.html', res);
 });
 
-app.get('/control/pages/blacklist-control-panel.html', (req, res) => {
+app.get('/control/blacklist-control-panel.html', (req, res) => {
     serveHtmlFile('blacklist-control-panel.html', res);
 });
 
-app.get('/control/pages/whitelist-control-panel.html', (req, res) => {
+app.get('/control/whitelist-control-panel.html', (req, res) => {
     serveHtmlFile('whitelist-control-panel.html', res);
 });
 
-app.get('/control/pages/profiles-control-panel.html', (req, res) => {
+app.get('/control/profiles-control-panel.html', (req, res) => {
     serveHtmlFile('profiles-control-panel.html', res);
 });
 
-app.get('/control/pages/network-visualization-lite.html', (req, res) => {
+app.get('/control/network-visualization-lite.html', (req, res) => {
     serveHtmlFile('network-visualization-lite.html', res);
 });
 
-app.get('/control/pages/profile.html', (req, res) => {
+app.get('/control/profile.html', (req, res) => {
     serveHtmlFile('profile.html', res);
 });
 
-app.get('/control/pages/sign-in.html', (req, res) => {
+app.get('/control/sign-in.html', (req, res) => {
     serveHtmlFile('sign-in.html', res);
 });
 
-app.get('/control/pages/home.html', (req, res) => {
+app.get('/control/home.html', (req, res) => {
     serveHtmlFile('home.html', res);
 });
 
-// For backward compatibility, redirect old URLs to new ones
+// Handle /pages/ URLs without redirecting (just serve the file)
+app.get('/control/pages/:file', (req, res) => {
+    serveHtmlFile(req.params.file, res);
+});
+
+// For backward compatibility, redirect old URLs without /control prefix
 app.get('/control-panel.html', (req, res) => {
-    res.redirect('/control/pages/control-panel.html');
+    res.redirect('/control/control-panel.html');
 });
 
 app.get('/nip85-control-panel.html', (req, res) => {
-    res.redirect('/control/pages/nip85-control-panel.html');
+    res.redirect('/control/nip85-control-panel.html');
 });
 
 app.get('/sign-in.html', (req, res) => {
-    res.redirect('/control/pages/sign-in.html');
+    res.redirect('/control/sign-in.html');
 });
 
 app.get('/overview.html', (req, res) => {
-    res.redirect('/control/pages/overview.html');
+    res.redirect('/control/overview.html');
 });
 
 app.get('/home.html', (req, res) => {
-    res.redirect('/control/pages/home.html');
+    res.redirect('/control/home.html');
 });
 
 app.get('/index.html', (req, res) => {
-    res.redirect('/control/pages/index.html');
+    res.redirect('/control/index.html');
 });
 
 app.get('/control/profiles', (req, res) => {
-    res.redirect('/control/pages/profiles-control-panel.html');
+    res.redirect('/control/profiles-control-panel.html');
 });
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
     // Skip auth for static resources, sign-in page and auth-related endpoints
-    if (req.path === '/pages/sign-in.html' || 
-        req.path === '/pages/index.html' ||
+    if (req.path === '/sign-in.html' || 
+        req.path === '/index.html' ||
         req.path.startsWith('/api/auth/') ||
         req.path === '/' || 
-        req.path.startsWith('/control/pages/') ||
+        req.path.startsWith('/control/') ||
         !req.path.startsWith('/api/')) {
         return next();
     }
