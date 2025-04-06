@@ -70,9 +70,12 @@ app.use(session({
 function serveHtmlFile(filename, res) {
     try {
         const filePath = path.join(__dirname, '../public/pages', filename);
+        console.log(`Attempting to serve HTML file: ${filename} from path: ${filePath}`);
         if (fs.existsSync(filePath)) {
+            console.log(`File exists, sending: ${filePath}`);
             res.sendFile(filePath);
         } else {
+            console.log(`File not found: ${filePath}`);
             res.status(404).send('File not found: ' + filename);
         }
     } catch (err) {
@@ -81,18 +84,27 @@ function serveHtmlFile(filename, res) {
     }
 }
 
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+    console.log(`Request received: ${req.method} ${req.url}`);
+    next();
+});
+
 // Define HTML routes BEFORE static middleware to prevent conflicts
 // Serve the HTML files
 app.get('/', (req, res) => {
+    console.log('Root route handler');
     serveHtmlFile('index.html', res);
 });
 
 app.get('/control', (req, res) => {
+    console.log('/control route handler');
     serveHtmlFile('index.html', res);
 });
 
 // Main pages with original URLs
 app.get('/control/index.html', (req, res) => {
+    console.log('/control/index.html route handler');
     serveHtmlFile('index.html', res);
 });
 
