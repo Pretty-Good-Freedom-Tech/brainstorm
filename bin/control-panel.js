@@ -109,7 +109,7 @@ function serveHtmlFile(filename, res) {
 
 // Serve the HTML files
 app.get('/', (req, res) => {
-    serveHtmlFile('index.html', res);
+    serveHtmlFile('/index.html', res);
 });
 
 app.get('/overview.html', (req, res) => {
