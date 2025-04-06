@@ -477,13 +477,17 @@
         <div class="master-control">
             <h2>Hasenpfeffr Setup Page</h2>
             <h3>Setup your relay</h3>
-            <ul>1. Change Neo4j password in the neo4j browser to the one you provided during installation.</ul>
-            <ul>2. Turn on Daabases, Streaming, and Routine Tasks toggle buttons.</ul>
-            <ul>3. Wait for all Routine Tasks (below) to complete at least once.</ul>
-            <ul>4. Turn on the Stream Filtered Content toggle button.</ul>
+            <div style="text-align: left;">
+                <ul>1. Change Neo4j password in the neo4j browser to the one you provided during installation.</ul>
+                <ul>2. Turn on Daabases, Streaming, and Routine Tasks toggle buttons.</ul>
+                <ul>3. Wait for all Routine Tasks (below) to complete at least once.</ul>
+                <ul>4. Turn on the Stream Filtered Content toggle button.</ul>
+            </div>
             <h3>Some ways to use your new relay</h3>
-            <ul>1. Stream filtered content.</ul>
-            <ul>2. Find new follows.</ul>
+            <div style="text-align: left;">
+                <ul>1. Stream filtered content.</ul>
+                <ul>2. Find new follows.</ul>
+            </div>
         </div>
         <!-- New Service Toggle Section -->
         <div class="service-toggles-container">
@@ -533,7 +537,7 @@
             </div>
         </div>
 
-        <h3>Routine tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically every 6 hours when the processAllTasks systemd service timer is turned on. Alternatively, you can run them one at a time using the buttons below.</span></span></h3>
+        <h3>Routine tasks <span style="position: relative; display: inline-block; text-align: left;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically every 6 hours when the processAllTasks systemd service timer is turned on. Alternatively, you can run them one at a time using the buttons below.</span></span></h3>
         <div class="calculation-status">
             <h3>Negentropy: download events in batch to strfry</h3>
             <div class="calculation-grid">
@@ -585,7 +589,7 @@
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This does not erase obsolete follows!</span></h4>
+                        <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This is typically performed ONLY ONCE when setting up your relay for the first time. Thereafter, the Reconciliation task takes over routine transfers.</span></h4>
                         <p id="batchTransfer-last-calculation-time" class="timestamp"></p>
                         <p id="batchTransfer-last-calculation-duration" class="duration"></p>
                     </div>

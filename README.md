@@ -54,7 +54,7 @@ See the [update instructions](docs/UPDATE_INSTRUCTIONS.md) for detailed instruct
 
 ## Setup
 
-Once installed, go to https://relay.myCoolDomain.com/control/index.html to access the main page where you can flip all the switches to activate your WoT relay. It should take several hours to download follows, mutes and reports data from the network, calculate personalized webs of trust scores, create blacklists and whitelists, and begin to curate filtered content.
+Once installed, go to https://myCoolDomain.com/control/index.html to setup your relay. Detailed instructions are on the page. In brief: you will need to flip a few buttons and wait for a few hours, during which time hasenpfeffr will download follows, mutes and reports data from the network, calculate personalized webs of trust scores, and create blacklists and whitelists. Then, your WoT relay will be ready to curate filtered content (kind 1 notes, reactions, etc)!
 
 ## Customization
 
