@@ -95,11 +95,20 @@ app.use(session({
 // Helper function to serve HTML files
 function serveHtmlFile(filename, res) {
     try {
-        const filePath = path.join(__dirname, '../public', filename);
-        if (fs.existsSync(filePath)) {
-            res.sendFile(filePath);
+        // First check if the file exists in the pages directory
+        const pagesPath = path.join(__dirname, '../public/pages', filename);
+        const originalPath = path.join(__dirname, '../public', filename);
+        
+        // Check pages directory first, then fall back to original location
+        if (fs.existsSync(pagesPath)) {
+            console.log(`Serving ${filename} from pages directory`);
+            res.sendFile(pagesPath);
+        } else if (fs.existsSync(originalPath)) {
+            console.log(`Serving ${filename} from original directory`);
+            res.sendFile(originalPath);
         } else {
-            res.status(404).send('File not found');
+            console.log(`File not found: ${filename}`);
+            res.status(404).send('File not found: ' + filename);
         }
     } catch (error) {
         console.error('Error serving HTML file:', error);
@@ -118,6 +127,10 @@ app.get('/overview.html', (req, res) => {
 
 app.get('/control/overview.html', (req, res) => {
     serveHtmlFile('overview.html', res);
+});
+
+app.get('/control/home.html', (req, res) => {
+    serveHtmlFile('home.html', res);
 });
 
 app.get('/control', (req, res) => {
