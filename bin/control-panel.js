@@ -94,10 +94,14 @@ app.use(session({
 
 // Helper function to serve HTML files
 function serveHtmlFile(filename, res) {
+    console.log(`Serving ${filename} A`);
     try {
+        console.log(`Serving ${filename} B`);
         // First check if the file exists in the pages directory
         const pagesPath = path.join(__dirname, '../public/pages', filename);
         const originalPath = path.join(__dirname, '../public', filename);
+
+        console.log(`Serving ${filename} C`);
         
         // Check pages directory first, then fall back to original location
         if (fs.existsSync(pagesPath)) {
@@ -142,7 +146,7 @@ app.get('/control/profiles', (req, res) => {
 });
 
 app.get('/control/profile.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/pages/profile.html'));
+    res.sendFile(path.join(__dirname, '../public/profile.html'));
 });
 
 app.get('/control/nip85-control-panel.html', (req, res) => {
