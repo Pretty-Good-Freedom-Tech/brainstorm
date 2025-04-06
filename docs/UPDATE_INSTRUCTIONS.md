@@ -1,3 +1,14 @@
+To update: 
+
+```bash
+cd ~/hasenpfeffr
+sudo npm run update
+```
+
+NOTE: the update script preserves your owner pubkey, your relay nsec, your URL, and your Neo4j password, but erases your blacklist and whitelist files.
+
+If the update script doesn't work, you can try the following. NOTE: this will remove your pubkey, relay nsec, URL, Neo4j password, as well as your blacklist and whitelist.
+
 ```bash
 #!/bin/bash
 

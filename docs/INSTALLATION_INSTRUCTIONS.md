@@ -6,7 +6,7 @@ The following instructions are for setting up a new Amazon AWS EC2 instance to t
 
 ### Recommended specifications:
 
-- t2.medium or larger
+- t2.large (working on making it run on t2.medium)
 - 20GB at least; 50GB recommended
 
 ### Instructions
@@ -15,7 +15,7 @@ The following instructions are for setting up a new Amazon AWS EC2 instance to t
 2. Click "Launch Instance"
 3. Choose a name for your instance (e.g., "hasenpfeffr-test")
 4. Select "Ubuntu Server 22.04 LTS" as the AMI
-5. Choose an instance type (t2.medium or larger recommended for Neo4j and Strfry)
+5. Choose an instance type (t2.large or larger recommended for Neo4j and Strfry)
 6. Configure instance details:
    - Network: Default VPC
    - Subnet: Any availability zone
@@ -31,6 +31,7 @@ The following instructions are for setting up a new Amazon AWS EC2 instance to t
 9. Review and launch
 10. Select or create a key pair for SSH access
 11. Launch the instance
+12. Associate an Elastic IP (optional but recommended) and point your domain to it
 
 ## 2. Connect to the Instance
 
@@ -38,19 +39,19 @@ The following instructions are for setting up a new Amazon AWS EC2 instance to t
 ssh -i /path/to/your-key.pem ubuntu@your-ec2-public-dns
 ```
 
+Your instance console has a "Connect" button that will provide you with the connection command.
+
 ## 3. Install Hasenpfeffr
 
-During installation, you will be prompted to enter the following 3 pieces of information:
+Have the following 3 pieces of information ready:
 
 1. Your domain name (e.g., "relay.myCoolDomain.com"). This will be used for:
    - relay websocket:`wss://relay.myCoolDomain.com`
    - Strfry information: `https://relay.myCoolDomain.com`
    - Neo4j browser: `http://relay.myCoolDomain.com:7474` (note: not https!!)
    - Hasenpfeffr control panel: `https://relay.myCoolDomain.com/control`
-2. Your pubkey, e.g. `e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f`, i.e. the "owner" of the personal Webs of Trust relay.
-3. The Neo4j password that you will later be asked to enter when you access the Neo4j browser for the first time.
-
-After entering those 3 pieces of information, the installation takes quite a long time; about 8 minutes in total for me using an AWS EC2 t2.large instance.
+2. Your pubkey, e.g. `e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f`, i.e. the "owner" of the personal Webs of Trust relay. (TODO: give option of entering npub instead)
+3. A Neo4j password. Important! After installation, the first thing you will do is change the Neo4j password in the Neo4j browser (initial login: neo4j / neo4j). Hasenpfeffr will need to know what this is. (TODO: ability to change password in the control panel.)
 
 ```bash
 # Update system packages
@@ -78,6 +79,9 @@ npm install
 # Run the installation script
 sudo npm run install-hasenpfeffr
 ```
+
+After you enter your pieces of information, get some coffee. This takes a while! (About 8 minutes in total for me using an AWS EC2 t2.large instance.)
+
 
 ## 4. Verify successful installation
 
@@ -164,6 +168,7 @@ If you encounter any issues:
    sudo cat /etc/hasenpfeffr.conf
    sudo cat /etc/graperank.conf
    sudo cat /etc/blacklist.conf
+   sudo cat /etc/whitelist.conf
 
    sudo cat /etc/strfry.conf
    sudo cat /etc/neo4j/neo4j.conf
@@ -174,6 +179,6 @@ If you encounter any issues:
 
 ## 6. Update
 
-To update Hasenpfeffr, see `docs/UPDATE_INSTRUCTIONS.md`.
+To update Hasenpfeffr, see the [update instructions](docs/UPDATE_INSTRUCTIONS.md).
 
 

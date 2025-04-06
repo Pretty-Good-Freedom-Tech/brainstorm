@@ -7,50 +7,33 @@ Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced tec
 - You and your friends can use your hasenpfeffr relay as a normal Nostr content relay, with spam and other unwanted content removed using state of the art WoT technology
 - Export personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events), ready for usage by all NIP-85-compliant clients
 
-## What do I need?
-
-- A Linux server (e.g., Ubuntu 22.04 LTS)
-- A domain name (e.g., `relay.myCoolDomain.com`)
-
 ## Features
 
-- ✅ strfry and Neo4j integration
-- ✅ personalized GrapeRank
-- ✅ personalized PageRank
-- ✅ personalized hops (degrees of separation by follows)
-- ✅ page to modify GrapeRank parameters
-- ✅ Publish personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events)
-- ✅ Web-based control panels
+- ✅ stream content filtered by your customizable and auto-generated whitelist
+- ✅ personalized WoT scores calculated every 6 hours, including:
+  - ✅ personalized GrapeRank
+  - ✅ personalized PageRank
+  - ✅ personalized hops (degrees of separation by follows)
+- ✅ customizable GrapeRank parameters
+- ✅ publish personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events)
 - ✅ table of all profiles with WoT scores
 - ✅ individual profile pages
-- ✅ Performance monitoring and logging
+- ✅ browser-based interface
+- ✅ strfry and Neo4j integration
+- ✅ performance monitoring and logging
 
 I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) at the [NIP-85 PR discussion](https://github.com/nostr-protocol/nips/pull/1534), and discussion of the WoT DVM at the relevant [PR discussion](https://github.com/nostr-protocol/data-vending-machines/pull/38).
 
+## What do I need?
+
+- A Linux server (e.g., Ubuntu 22.04 LTS). This has been developed using an AWS EC2 t2.large instance.
+- A domain name (e.g., `relay.myCoolDomain.com`)
+
 ## Installation
 
-```bash
-# Clone the Hasenpfeffr repository
-git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
-cd hasenpfeffr
+See the [installation instructions](docs/INSTALLATION_INSTRUCTIONS.md) for detailed instructions.
 
-# Install dependencies
-npm install
-
-# Run the installation script
-sudo npm run install-hasenpfeffr
-```
-
-If the above doesn't work, follow the instructions in docs/INSTALLATION_INSTRUCTIONS.md.
-
-To update:
-
-```bash
-cd ~/hasenpfeffr
-sudo npm run update
-```
-
-If the above doesn't work, follow the instructions in docs/UPDATE_INSTRUCTIONS.md.
+At installation, hasenpfeffr will generate a new nsec for your relay, and will store it in the configuration file. This nsec will be used to sign NIP-85 kind 30382 events, and you will publish kind 10040 event which effectively points clients to your new relay pubkey. In case your relay nsec is compromised or lost, not a big deal! You will simply need to republish your NIP-85 10040 event which will point to your new relay pubkey, and all 30382 events will need to be republished.
 
 The installation script will:
 
@@ -59,6 +42,15 @@ The installation script will:
 3. Install and configure Strfry Nostr relay
 4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
 5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`
+
+## Update
+
+```bash
+cd ~/hasenpfeffr
+sudo npm run update
+```
+
+See the [update instructions](docs/UPDATE_INSTRUCTIONS.md) for detailed instructions.
 
 ## Setup
 
@@ -82,7 +74,7 @@ Once your WoT relay is active, you can use it as a normal Nostr relay, filtered 
 
 NIP-85 Trusted Assertions is a new feature of the Nostr protocol that allows you to publish your WoT scores to the network. This is a way to share your WoT scores with other relays and clients, and to make your WoT scores more accessible to the public.
 
-To export NIP-85 Trusted Assertions, go to https://relay.myCoolDomain.com/control/nip85-control-panel.html and publish a kind 10040 event. This is how nostr clients know how to access your WoT scores.
+To export NIP-85 Trusted Assertions, go to https://relay.myCoolDomain.com/control/nip85-control-panel.html and publish a kind 10040 event. Your hasenpfeffr relay will automatically publish kind 30382 events, signed by your relay nsec, every 6 hours to your WoT relay. The kind 10040 event is how nostr clients know how to access your WoT scores (authored by your relay nsec, with a d-tag corresponding to the pubkey whose trust scores are sought).
 
 As of April 2025, NIP-85 is not yet supported by any nostr clients. Hopefully it will be soon!
 
