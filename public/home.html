@@ -406,8 +406,17 @@
 
     <div class="container">
         <div class="master-control">
-            <h2>Hasenpfeffr Setup Page</h2>
+            <h2>Hasenpfeffr Master Switch</h2>
+            <div class="status-text">
+                <span id="statusText">Checking...</span>
+            </div>
+            <div class="control-buttons">
+                <button id="turnOnButton" class="control-button on-button" onclick="controlHasenpfeffr('on')">Turn On</button>
+                <button id="turnOffButton" class="control-button off-button" onclick="controlHasenpfeffr('off')">Turn Off</button>
+            </div>
+            <div id="statusDetails" class="status-details" style="display: none;"></div>
         </div>
+
         <!-- New Service Toggle Section -->
         <div class="service-toggles-container">
             <h3>Service Controls <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
