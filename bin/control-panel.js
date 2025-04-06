@@ -142,7 +142,7 @@ app.get('/control/profiles', (req, res) => {
 });
 
 app.get('/control/profile.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/profile.html'));
+    res.sendFile(path.join(__dirname, '../public/pages/profile.html'));
 });
 
 app.get('/control/nip85-control-panel.html', (req, res) => {
