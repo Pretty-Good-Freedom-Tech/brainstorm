@@ -95,7 +95,7 @@ app.use(session({
 // Helper function to serve HTML files
 function serveHtmlFile(filename, res) {
     try {
-        const filePath = path.join(__dirname, '../public', filename);
+        const filePath = path.join(__dirname, '../public/pages', filename);
         if (fs.existsSync(filePath)) {
             res.sendFile(filePath);
         } else {
@@ -109,19 +109,19 @@ function serveHtmlFile(filename, res) {
 
 // Serve the HTML files
 app.get('/', (req, res) => {
-    serveHtmlFile('pages/index.html', res);
+    serveHtmlFile('index.html', res);
 });
 
 app.get('/overview.html', (req, res) => {
-    serveHtmlFile('pages/overview.html', res);
+    serveHtmlFile('overview.html', res);
 });
 
 app.get('/control/overview.html', (req, res) => {
-    serveHtmlFile('pages/overview.html', res);
+    serveHtmlFile('overview.html', res);
 });
 
 app.get('/control', (req, res) => {
-    serveHtmlFile('pages/index.html', res);
+    serveHtmlFile('index.html', res);
 });
 
 app.get('/control/profiles', (req, res) => {
