@@ -291,8 +291,34 @@ function fetchUserProfile(pubkey) {
         });
 }
 
+/**
+ * Dynamically load the header CSS file
+ * This helps avoid MIME type issues when the CSS is included in a component
+ */
+function loadHeaderCSS() {
+    // Check if the CSS is already loaded
+    const cssId = 'header-component-css';
+    if (!document.getElementById(cssId)) {
+        // Create a new link element
+        const link = document.createElement('link');
+        link.id = cssId;
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = '/control/components/header/header.css';
+        link.media = 'all';
+        
+        // Append the link element to the head
+        document.head.appendChild(link);
+        
+        console.log('Header CSS loaded successfully');
+    }
+}
+
 // Wait for DOM to be fully loaded before initializing
 document.addEventListener('DOMContentLoaded', function() {
+    // Load the header CSS
+    loadHeaderCSS();
+    
     // Small delay to ensure all elements are properly loaded
     setTimeout(initializeHeader, 50);
 });
