@@ -109,59 +109,103 @@ function serveHtmlFile(filename, res) {
 
 // Serve the HTML files
 app.get('/', (req, res) => {
-    serveHtmlFile('/index.html', res);
-});
-
-app.get('/overview.html', (req, res) => {
-    serveHtmlFile('overview.html', res);
-});
-
-app.get('/control/overview.html', (req, res) => {
-    serveHtmlFile('overview.html', res);
+    res.redirect('/control/pages/index.html');
 });
 
 app.get('/control', (req, res) => {
+    res.redirect('/control/pages/index.html');
+});
+
+// Main pages in the new structure
+app.get('/control/pages/index.html', (req, res) => {
     serveHtmlFile('index.html', res);
 });
 
-app.get('/control/profiles', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/profiles-control-panel.html'));
+app.get('/control/pages/overview.html', (req, res) => {
+    serveHtmlFile('overview.html', res);
 });
 
-app.get('/control/profile.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/profile.html'));
+app.get('/control/pages/control-panel.html', (req, res) => {
+    serveHtmlFile('control-panel.html', res);
 });
 
-app.get('/control/nip85-control-panel.html', (req, res) => {
-    serveHtmlFile('control/nip85-control-panel.html', res);
+app.get('/control/pages/neo4j-control-panel.html', (req, res) => {
+    serveHtmlFile('neo4j-control-panel.html', res);
 });
 
-app.get('/control/sign-in.html', (req, res) => {
-    serveHtmlFile('control/sign-in.html', res);
+app.get('/control/pages/nip85-control-panel.html', (req, res) => {
+    serveHtmlFile('nip85-control-panel.html', res);
+});
+
+app.get('/control/pages/graperank-control-panel.html', (req, res) => {
+    serveHtmlFile('graperank-control-panel.html', res);
+});
+
+app.get('/control/pages/blacklist-control-panel.html', (req, res) => {
+    serveHtmlFile('blacklist-control-panel.html', res);
+});
+
+app.get('/control/pages/whitelist-control-panel.html', (req, res) => {
+    serveHtmlFile('whitelist-control-panel.html', res);
+});
+
+app.get('/control/pages/profiles-control-panel.html', (req, res) => {
+    serveHtmlFile('profiles-control-panel.html', res);
+});
+
+app.get('/control/pages/network-visualization-lite.html', (req, res) => {
+    serveHtmlFile('network-visualization-lite.html', res);
+});
+
+app.get('/control/pages/profile.html', (req, res) => {
+    serveHtmlFile('profile.html', res);
+});
+
+app.get('/control/pages/sign-in.html', (req, res) => {
+    serveHtmlFile('sign-in.html', res);
+});
+
+app.get('/control/pages/home.html', (req, res) => {
+    serveHtmlFile('home.html', res);
 });
 
 // For backward compatibility, redirect old URLs to new ones
 app.get('/control-panel.html', (req, res) => {
-    res.redirect('/control/nip85-control-panel.html');
+    res.redirect('/control/pages/control-panel.html');
 });
 
 app.get('/nip85-control-panel.html', (req, res) => {
-    res.redirect('/control/nip85-control-panel.html');
+    res.redirect('/control/pages/nip85-control-panel.html');
 });
 
 app.get('/sign-in.html', (req, res) => {
-    res.redirect('/control/sign-in.html');
+    res.redirect('/control/pages/sign-in.html');
+});
+
+app.get('/overview.html', (req, res) => {
+    res.redirect('/control/pages/overview.html');
+});
+
+app.get('/home.html', (req, res) => {
+    res.redirect('/control/pages/home.html');
+});
+
+app.get('/index.html', (req, res) => {
+    res.redirect('/control/pages/index.html');
+});
+
+app.get('/control/profiles', (req, res) => {
+    res.redirect('/control/pages/profiles-control-panel.html');
 });
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
     // Skip auth for static resources, sign-in page and auth-related endpoints
-    if (req.path === '/sign-in.html' || 
-        req.path === '/index.html' ||
+    if (req.path === '/pages/sign-in.html' || 
+        req.path === '/pages/index.html' ||
         req.path.startsWith('/api/auth/') ||
         req.path === '/' || 
-        req.path === '/control-panel.html' ||
-        req.path === '/nip85-control-panel.html' ||
+        req.path.startsWith('/control/pages/') ||
         !req.path.startsWith('/api/')) {
         return next();
     }
@@ -190,11 +234,11 @@ const authMiddleware = (req, res, next) => {
         
         if (isWriteEndpoint) {
             return res.status(401).json({ error: 'Authentication required for this action' });
-    }
-    
+        }
+        
         // Allow read-only API access
         return next();
-}
+    }
 };
 
 // Apply auth middleware
