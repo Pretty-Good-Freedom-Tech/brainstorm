@@ -123,7 +123,7 @@
             background-color: #27ae60;
         }
     </style>
-    <script src="./header.js"></script>
+    <script src="./components/header/header.js"></script>
 </head>
 <body>
     <!-- Include the header component -->
@@ -211,7 +211,7 @@
 
     <script>
         // Load the header component
-        fetch('./header.html')
+        fetch('./components/header/header.html')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('headerContainer').innerHTML = html;

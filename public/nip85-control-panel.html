@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIP-85 Control Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/nostr-tools/lib/nostr.bundle.min.js"></script>
-    <script src="./header.js"></script>
+    <script src="./components/header/header.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -270,7 +270,7 @@
 
     <script>
         // Load the header component
-        fetch('./header.html')
+        fetch('./components/header/header.html')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('headerContainer').innerHTML = html;

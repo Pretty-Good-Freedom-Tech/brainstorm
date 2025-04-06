@@ -115,10 +115,10 @@
     
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <!-- Import header.js for authentication handling -->
-    <script src="./header.js"></script>
+    <script src="./components/header/header.js"></script>
     <script>
         // Load the header component
-        fetch('./header.html')
+        fetch('./components/header/header.html')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('headerContainer').innerHTML = html;
