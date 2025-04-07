@@ -7,6 +7,7 @@
 - make sure neo4j constraints and indexes are set up seamlessly in the background
 - make routine tasks refresh more frequently when in the middle of processing tasks
 - refactor installation scripts
+- review GrapeRank calculations on the profile page
 
 ## FEATURES TO ADD
 - ☐ user can select whether to use recommended friends relays or personal relays list

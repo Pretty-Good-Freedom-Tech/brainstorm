@@ -35,15 +35,15 @@ I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/
 
 See the [installation instructions](docs/INSTALLATION_INSTRUCTIONS.md) for detailed instructions.
 
-At installation, hasenpfeffr will generate a new nsec for your relay, and will store it in the configuration file. This nsec will be used to sign NIP-85 kind 30382 events, and you will publish kind 10040 event which effectively points clients to your new relay pubkey. In case your relay nsec is compromised or lost, not a big deal! You will simply need to republish your NIP-85 10040 event which will point to your new relay pubkey, and all 30382 events will need to be republished.
+At installation, hasenpfeffr will generate a new nsec for your relay, and will store it in the configuration file. This nsec will be used to sign NIP-85 kind 30382 events, and you will publish kind 10040 event which effectively points clients to your new relay pubkey. In case your relay nsec is compromised or lost, not a big deal! You will simply need to republish your NIP-85 10040 event which will point to your new relay pubkey, and all 30382 events will need to be republished (which happens automatically every 6 hours)
 
 The installation script will:
 
 1. Install and configure Neo4j Community Edition, the Neo4j Graph Data Science plugin, and the Neo4j APOC plugin
 2. Set up Neo4j constraints and indexes
-3. Install and configure Strfry Nostr relay
+3. Install and configure a strfry nostr relay
 4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
-5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`
+5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`, `/etc/whitelist.conf`
 
 ## Update
 
@@ -56,7 +56,7 @@ See the [update instructions](docs/UPDATE_INSTRUCTIONS.md) for detailed instruct
 
 ## Setup
 
-Once installed, go to https://myCoolDomain.com/control/index.html to setup your relay. Detailed instructions are on the page. In brief: you will need to flip a few buttons and wait for a few hours, during which time hasenpfeffr will download follows, mutes and reports data from the network, calculate personalized webs of trust scores, and create blacklists and whitelists. Then, your WoT relay will be ready to curate filtered content (kind 1 notes, reactions, etc)!
+Once installed, go to the home page at: https://myCoolDomain.com/control/index.html to setup your relay. Detailed instructions are on the home page. In brief: you will need to flip a few buttons and wait for about an hour, during which time hasenpfeffr will download follows, mutes and reports data from the network, calculate personalized webs of trust scores, and create your personalized blacklist and whitelist. Then, your WoT relay will be ready to curate filtered content (kind 1 notes, reactions, etc)!
 
 ## Customization
 
@@ -65,12 +65,21 @@ There are several ways to customize your WoT relay. Each of the following has it
 - Blacklist
 - Whitelist
 - GrapeRank parameters
+- more customizations coming soon
 
 ## Usage
 
 ### As a normal Nostr relay
 
 Once your WoT relay is active, you can use it as a normal Nostr relay, filtered by your WoT to remove spam and other unwanted content. A good way to test whether your WoT relay is working: Create a new npub; use your WoT relay as your sole relay; and set the feed to global. Not every client can do this. Try nosdrudel.ninja if your favorite client can't.
+
+### Personalized recommendations
+
+Work in progress: 
+- recommended follows
+- trending content
+- other lists curated by your Grapevine
+and more!
 
 ### Use your personalized WoT scores with other nostr clients
 
@@ -86,10 +95,4 @@ GNU Affero General Public License v3.0
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Troubleshooting
-
-If you encounter issues during installation or operation, please refer to the [Troubleshooting Guide](TROUBLESHOOTING.md) for common problems and solutions.
-
-For issues not covered in the troubleshooting guide, please create a new issue on GitHub with detailed information about your problem.
+Contributions are welcome! Please feel free to submit comments, bug reports and issues. If you would like to submit a pull request, please create a new issue first and describe the changes you would like to make.
