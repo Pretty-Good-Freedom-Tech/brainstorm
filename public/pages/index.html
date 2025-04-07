@@ -97,7 +97,7 @@
                 </div>
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>Profiles <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kind 0 events from wss://profiles.nostr1.com</span></h4>
+                        <h4>Profiles <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kind 0 events from wss://profiles.nostr1.com. May take 25-30 min the first time.</span></h4>
                         <p id="syncProfiles-last-calculation-time" class="timestamp"></p>
                         <p id="syncProfiles-last-calculation-duration" class="duration"></p>
                     </div>
@@ -129,7 +129,7 @@
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This is typically performed ONLY ONCE when setting up your relay for the first time. Thereafter, the Reconciliation task takes over routine transfers.</span></h4>
+                        <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This is typically performed ONLY ONCE when setting up your relay for the first time. Thereafter, the Reconciliation task takes over routine transfers. May take 15-20 minutes when running this for the first time.</span></h4>
                         <p id="batchTransfer-last-calculation-time" class="timestamp"></p>
                         <p id="batchTransfer-last-calculation-duration" class="duration"></p>
                     </div>
@@ -143,7 +143,7 @@
                 </div>
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>Reconciliation <span class="info-icon">i</span><span class="tooltip">Reconciles Neo4j database with strfry. This erases obsolete follows!</span></h4>
+                        <h4>Reconciliation <span class="info-icon">i</span><span class="tooltip">Reconciles Neo4j database with strfry.</span></h4>
                         <p id="reconciliation-last-calculation-time" class="timestamp"></p>
                         <p id="reconciliation-last-calculation-duration" class="duration"></p>
                     </div>
@@ -161,7 +161,7 @@
             <div class="calculation-grid">
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>Hops <span class="info-icon">i</span><span class="tooltip">Calculates network distance (hops) between users in the Web of Trust based on FOLLOWS relationships in Neo4j</span></h4>
+                        <h4>Hops <span class="info-icon">i</span><span class="tooltip">Calculates network distance (hops) between users in the Web of Trust based on FOLLOWS relationships in Neo4j. Takes approximately 2 minutes to compute.</span></h4>
                         <p id="hops-last-calculation-time" class="timestamp"></p>
                         <p id="hops-last-calculation-duration" class="duration"></p>
                     </div>
@@ -175,7 +175,7 @@
                 </div>
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>PageRank <span class="info-icon">i</span><span class="tooltip">Calculates importance scores using the personalized PageRank algorithm on the FOLLOWS relationships in Neo4j</span></h4>
+                        <h4>PageRank <span class="info-icon">i</span><span class="tooltip">Calculates importance scores using the personalized PageRank algorithm on the FOLLOWS relationships in Neo4j. Completes in about half a minute.</span></h4>
                         <p id="pageRank-last-calculation-time" class="timestamp"></p>
                         <p id="pageRank-last-calculation-duration" class="duration"></p>
                     </div>
@@ -189,7 +189,7 @@
                 </div>
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>GrapeRank <span class="info-icon">i</span><span class="tooltip">Personalized ranking algorithm that considers FOLLOWS (positive), MUTES (negative), and REPORTS (negative) relationships with configurable weights</span></h4>
+                        <h4>GrapeRank <span class="info-icon">i</span><span class="tooltip">Personalized ranking algorithm that considers FOLLOWS (positive), MUTES (negative), and REPORTS (negative) relationships with configurable weights. Should take 4 or 5 minutes to complete.</span></h4>
                         <p id="grapeRank-last-calculation-time" class="timestamp"></p>
                         <p id="grapeRank-last-calculation-duration" class="duration"></p>
                     </div>

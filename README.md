@@ -7,6 +7,8 @@ Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced tec
 - You and your friends can use your hasenpfeffr relay as a normal Nostr content relay, with spam and other unwanted content removed using state of the art WoT technology
 - Export personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events), ready for usage by all NIP-85-compliant clients
 
+<img src="docs/img/hasenpfeffr.png" width="100%" />
+
 ## Features
 
 - ✅ stream content filtered by your customizable and auto-generated whitelist

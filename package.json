@@ -1,7 +1,7 @@
 {
   "name": "hasenpfeffr",
   "version": "0.0.1",
-  "description": "A Personalized Webs of Trust Nostr relay implementing the Grapevine and making scores available to clients",
+  "description": "A Personalized Webs of Trust Nostr relay featuring the Grapevine",
   "main": "index.js",
   "bin": {
     "hasenpfeffr-publish": "./bin/publish.js",
