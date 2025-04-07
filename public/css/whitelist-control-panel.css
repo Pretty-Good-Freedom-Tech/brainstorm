@@ -1,11 +1,4 @@
 @import "./common.css";
-
-.section {
-    margin-bottom: 30px;
-}
-.section h2 {
-    color: #3498db;
-}
 .card {
     background-color: #f9f9f9;
     border-left: 4px solid #3498db;

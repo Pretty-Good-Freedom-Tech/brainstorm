@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasenpfeffr</title>
+    <link rel="stylesheet" href="/control/css/about.css">
+    <script src="./components/header/header.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <div class="container">
+        <h1>About Hasenpfeffr</h1>
+        <div class="section">
+            <h2>Uses</h2>
+            <li>Stream filtered content.</li>
+            <li>Find new follows (follows recs page: work in progress).</li>
+            <li>Encourage your favorite client devs to incorporate your personalized WoT scores using NIP-85!</li>
+            <li>DCoSL: Decentralized Curation of Simple Lists (in progress)</li>
+            <li>personalized Trending Content - to replace Primal's trending content (in progress)</li>
+        </div>
+        <div class="section">
+            <h2>Customize</h2>
+            <div>1. Modify whitelist parameters.</div>
+            <div>2. Modify blacklist parameters.</div>
+            <div>3. Modify GrapeRank parameters.</div>
+            <div>4. More customization options coming soon!</div>
+        </div>
+    </div>
+    <script>
+        // Load the header component
+        fetch('./components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+    </script>
+</body>
+</html>
