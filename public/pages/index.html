@@ -19,22 +19,23 @@
                 <div>1. Change Neo4j password in the neo4j browser to the one you provided during installation.</div>
                 <div>2. Turn on Databases, Streaming, and Routine Tasks toggle buttons.</div>
                 <div>3. Wait for all Routine Tasks (below) to complete at least once.</div>
-                <div>4. Turn on the Stream Filtered Content toggle button. This will start streaming filtered content to your relay!</div>
+                <div>4. While you're waiting, enable NIP-85 by publishing your kind 10040 event (NIP-85 Control Panel)</div>
+                <div>5. Once Routine Tasks have completed their first cycle, turn on the Stream Filtered Content toggle button. This will start streaming filtered content to your relay!</div>
             </div>
             <h3>Use</h3>
             <div style="text-align: left;">
-                <div>Stream filtered content.</div>
-                <div>Find new follows (follows recs page: work in progress).</div>
-                <div>Encourage your favorite client devs to incorporate your personalized WoT scores using NIP-85!</div>
-                <div>DCoSL: Decentralized Curation of Simple Lists (in progress)</div>
-                <div>personalized Trending Content - to replace Primal's trending content (in progress)</div>
+                <li>Stream filtered content.</li>
+                <li>Find new follows (follows recs page: work in progress).</li>
+                <li>Encourage your favorite client devs to incorporate your personalized WoT scores using NIP-85!</li>
+                <li>DCoSL: Decentralized Curation of Simple Lists (in progress)</li>
+                <li>personalized Trending Content - to replace Primal's trending content (in progress)</li>
             </div>
             <h3>Customize</h3>
             <div style="text-align: left;">
-                <p>1. Modify whitelist parameters.</p>
-                <p>2. Modify blacklist parameters.</p>
-                <p>3. Modify GrapeRank parameters.</p>
-                <p>4. More customization options coming soon!</p>
+                <div>1. Modify whitelist parameters.</div>
+                <div>2. Modify blacklist parameters.</div>
+                <div>3. Modify GrapeRank parameters.</div>
+                <div>4. More customization options coming soon!</div>
             </div>
         </div>
         <!-- New Service Toggle Section -->
@@ -64,7 +65,7 @@
                 <div class="service-toggle-item">
                     <h4>Routine Tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly: <li>negentropy sync</li><li>calculate scores</li><li>update blacklist, whitelist, and NIP-85</li></span></span></h4>
                     <div class="toggle-container">
-                        <span class="toggle-label">Routine recalculation of GrapeRank and other scores.</span>
+                        <span class="toggle-label">Routine (every 6 hours) data synchronization, recalculation and export of GrapeRank and other scores, and redetermination/export ofblacklist, whitelist, and NIP-85.</span>
                         <label class="switch">
                             <input type="checkbox" id="scoresToggle" onchange="toggleService('scores', this.checked)">
                             <span class="slider round"></span>
