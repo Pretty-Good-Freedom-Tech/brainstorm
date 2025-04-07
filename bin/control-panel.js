@@ -152,32 +152,11 @@ app.get('/home.html', (req, res) => {
     serveHtmlFile('home.html', res);
 });
 
-/*
-app.get('/control/overview.html', (req, res) => {
-    serveHtmlFile('overview.html', res);
-});
-*/
 app.get('/control', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
 });
+
 /*
-app.get('/control/profiles', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/profiles-control-panel.html'));
-});
-
-app.get('/control/profile.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/profile.html'));
-});
-
-app.get('/control/nip85-control-panel.html', (req, res) => {
-    serveHtmlFile('control/nip85-control-panel.html', res);
-});
-
-app.get('/control/sign-in.html', (req, res) => {
-    serveHtmlFile('control/sign-in.html', res);
-});
-*/
-
 // For backward compatibility, redirect old URLs to new ones
 app.get('/control-panel.html', (req, res) => {
     res.redirect('/control/nip85-control-panel.html');
@@ -190,7 +169,7 @@ app.get('/nip85-control-panel.html', (req, res) => {
 app.get('/sign-in.html', (req, res) => {
     res.redirect('/control/sign-in.html');
 });
-
+*/
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
     // Skip auth for static resources, sign-in page and auth-related endpoints
