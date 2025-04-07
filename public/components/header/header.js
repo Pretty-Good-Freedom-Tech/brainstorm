@@ -72,12 +72,69 @@ function setupNeo4jConstraints() {
     });
 }
 
+/**
+ * Load the appropriate navbar based on the current page
+ * nav1.html is the default for all pages and nav2.html is for home.html
+ */
+function loadNavbar() {
+    const navbarContainer = document.getElementById('navbar-container');
+    if (!navbarContainer) {
+        console.error('Navbar container not found');
+        return;
+    }
+    
+    // Get the current page path
+    const currentPath = window.location.pathname;
+    console.log('Loading navbar for path:', currentPath);
+    
+    // Choose which navbar to load - nav2.html for home.html and nav1.html for everything else
+    let navbarPath = '/control/components/header/navbars/nav1.html';
+    if (currentPath === '/control/home.html') {
+        navbarPath = '/control/components/header/navbars/nav2.html';
+    }
+    
+    // Fetch the appropriate navbar content
+    fetch(navbarPath)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to load navbar: ${response.status} ${response.statusText}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            // Insert the navbar HTML into the container
+            navbarContainer.innerHTML = html;
+            
+            // After loading the navbar, highlight the current page
+            setTimeout(highlightCurrentPage, 0);
+        })
+        .catch(error => {
+            console.error('Error loading navbar:', error);
+            // Fallback to default nav1.html if there's an error
+            if (navbarPath !== '/control/components/header/navbars/nav1.html') {
+                console.log('Attempting to load default navbar instead...');
+                fetch('/control/components/header/navbars/nav1.html')
+                    .then(response => response.text())
+                    .then(html => {
+                        navbarContainer.innerHTML = html;
+                        setTimeout(highlightCurrentPage, 0);
+                    })
+                    .catch(fallbackError => {
+                        console.error('Error loading default navbar:', fallbackError);
+                    });
+            }
+        });
+}
+
 function initializeHeader() {
     const userInfo = document.getElementById('userInfo');
     const userAvatar = document.getElementById('userAvatar');
     const userName = document.getElementById('userName');
     const signInLink = document.getElementById('signInLink');
     const relayLink = document.getElementById('relayLink');
+
+    // Load the appropriate navbar
+    loadNavbar();
 
     // Check Neo4j constraints and indexes
     checkNeo4jConstraints();
