@@ -50,6 +50,9 @@
 }
 
 /* Navbar Styles */
+.navbar-container {
+    text-align: center;
+}
 .navbar {
     margin-top: 20px;
     padding: 10px 0;
