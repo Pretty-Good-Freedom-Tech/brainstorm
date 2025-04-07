@@ -1,3 +1,13 @@
+## TODO 7 April 2025
+- fix Friends relays list in hasenpfeffr.conf; set different relays for subcategories
+- move export files from algos to export directory
+- refactor auth scripts
+- refactor nip-85 publishing scripts
+- set up default localhost if hosting locally
+- make sure neo4j constraints and indexes are set up seamlessly in the background
+- make routine tasks refresh more frequently when in the middle of processing tasks
+- refactor installation scripts
+
 ## FEATURES TO ADD
 - ☐ user can select whether to use recommended friends relays or personal relays list
 - ☐ verify calculation of GrapeRank scores on profile page
@@ -11,19 +21,6 @@
 - ☐ access neo4j password from neo4j.conf rather than hasenpfeffr.conf
 - ☐ view / change relay nsec 
 - ☐ data navigation pages: table of all pubkeys, my followers, recommended follows, etc
-
-## TO DO
-- make sure whitelist and blacklist are handled properly; check that paths are correct
-- make big script with systemd service to calculate, in order: hops, pagerank, graperank, update whitelist and blacklist, update NIP-85 events
-- bar across top showing number of events in strfry and summary of data in Neo4j
-- make big startup script to go down Big Checklist of all the things that need to be done on startup; have page to monitor all of this; one big button to start everything; different control panel page for each function; status: green check if OK; spinning wheel if in progress; red cross if failed; 
-    - add Neo4j constraints and indexes
-    - negentropy sync: kinds 3, 1984, 10000 (hasenpfeffr)
-    - negentropy sync: kind 0 (nostr1)
-    - negentropy sync: personal content (primal)
-    - turn on streaming pipeline
-    - turn on periodic recalculation of WoT scores
-- make sure strfry-router streams all the right things, including my personal content (all events authored by me))
 
 ## TODO: FIX NIP-85 PUBLISHING
 Currently two sets of scripts. Need to decide which one to keep and where to put them.
