@@ -1,0 +1,287 @@
+/* index.css - Specific styles for the index page */
+
+/* Master control section */
+.master-control {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.master-control h2, .master-control h3 {
+    color: #3498db;
+}
+
+.master-control ul {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+/* Control button styles */
+.control-button {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.on-button, .start {
+    background-color: #2ecc71;
+}
+
+.on-button:hover, .start:hover {
+    background-color: #27ae60;
+}
+
+.off-button, .stop {
+    background-color: #e74c3c;
+}
+
+.off-button:hover, .stop:hover {
+    background-color: #c0392b;
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-on, .status-running, .status-completed {
+    background-color: #2ecc71;
+}
+
+.status-off, .status-stopped, .status-error {
+    background-color: #e74c3c;
+}
+
+.status-unknown, .status-in-progress {
+    background-color: #f39c12;
+}
+
+.status-never {
+    background-color: #95a5a6;
+}
+
+/* Status text */
+.status-text {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* Service toggles */
+.service-toggles-container {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border-left: 5px solid #9b59b6;
+}
+
+.service-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.service-toggle-item {
+    background-color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.service-toggle-item h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toggle-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #555;
+}
+
+/* Toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2ecc71;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2ecc71;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Calculation status section */
+.calculation-status {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border-left: 5px solid #2ecc71;
+}
+
+.calculation-status h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.calculation-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.calculation-item {
+    background-color: white;
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.calculation-item-content {
+    flex: 1;
+}
+
+.calculation-item h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #3498db;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+/* Status-specific calculation item styling */
+.calculation-item.status-never {
+    border-left-color: #95a5a6;
+    background-color: #f9f9f9;
+}
+
+.calculation-item.status-in-progress {
+    border-left-color: #f39c12;
+    background-color: #fef9e7;
+}
+
+.calculation-item.status-completed {
+    border-left-color: #2ecc71;
+    background-color: #f0fff5;
+}
+
+.calculation-item.status-error {
+    border-left-color: #e74c3c;
+    background-color: #fdedec;
+}
+
+/* Info icons and tooltips */
+.info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    margin-left: 8px;
+    font-size: 12px;
+    cursor: help;
+}
+
+.tooltip {
+    visibility: hidden;
+    width: 200px;
+    background-color: #34495e;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.info-icon:hover + .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Animation for in-progress tasks */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.status-in-progress {
+    animation: pulse 1.5s infinite;
+}

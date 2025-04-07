@@ -4,469 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hasenpfeffr</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .card {
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .card h2 {
-            color: #3498db;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .master-control {
-            text-align: center;
-            margin: 30px 0;
-        }
-        .control-button {
-            display: inline-block;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            margin: 0 10px;
-        }
-        .on-button {
-            background-color: #2ecc71;
-            color: white;
-        }
-        .on-button:hover {
-            background-color: #27ae60;
-        }
-        .off-button {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .off-button:hover {
-            background-color: #c0392b;
-        }
-        .status-indicator {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-        .status-on {
-            background-color: #2ecc71;
-        }
-        .status-off {
-            background-color: #e74c3c;
-        }
-        .status-unknown {
-            background-color: #f39c12;
-        }
-        .status-text {
-            font-size: 16px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        .status-details {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border-left: 5px solid #3498db;
-        }
-        .calculation-status {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border-left: 5px solid #2ecc71;
-        }
-        .calculation-status h3 {
-            margin-top: 0;
-            color: #2c3e50;
-            font-size: 18px;
-        }
-        .calculation-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .calculation-item {
-            background-color: white;
-            padding: 16px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .calculation-item-content {
-            flex: 1;
-        }
-        .calculation-item h4 {
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: #3498db;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-        }
-        .calculation-item p {
-            margin: 0;
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-        .calculation-item .timestamp {
-            font-weight: bold;
-            color: #34495e;
-            margin-bottom: 4px;
-        }
-        .calculation-item .duration {
-            font-size: 12px;
-            color: #7f8c8d;
-            font-style: italic;
-        }
-        .calculation-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .action-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-        .action-btn:hover {
-            background-color: #2980b9;
-        }
-        .action-btn:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        .progress-container {
-            display: none;
-            width: 100%;
-            max-width: 200px;
-            height: 8px;
-            background-color: #ecf0f1;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-right: 10px;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: #3498db;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        .progress-text {
-            font-size: 12px;
-            color: #7f8c8d;
-            white-space: nowrap;
-        }
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        .status-never {
-            background-color: #95a5a6;
-        }
-        .status-in-progress {
-            background-color: #f39c12;
-            animation: pulse 1.5s infinite;
-        }
-        .status-completed {
-            background-color: #2ecc71;
-        }
-        .status-error {
-            background-color: #e74c3c;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-        .info-icon {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            background-color: #3498db;
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 16px;
-            font-size: 12px;
-            margin-left: 5px;
-            cursor: help;
-        }
-        .tooltip {
-            visibility: hidden;
-            width: 200px;
-            background-color: #34495e;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 12px;
-            pointer-events: none;
-        }
-        .tooltip::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #34495e transparent transparent transparent;
-        }
-        .info-icon:hover + .tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
-        .refresh-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        .refresh-btn:hover {
-            background-color: #2980b9;
-        }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0,0,0,0.1);
-            border-radius: 50%;
-            border-top-color: #3498db;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Service Toggle Styles */
-        .service-toggles-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border-left: 5px solid #9b59b6;
-        }
-        .service-toggles {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .service-toggle-item {
-            background-color: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .service-toggle-item h4 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #2c3e50;
-        }
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .toggle-label {
-            font-size: 16px;
-            font-weight: 500;
-            color: #555;
-        }
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-        input:checked + .slider {
-            background-color: #2ecc71;
-        }
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2ecc71;
-        }
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-        .slider.round {
-            border-radius: 34px;
-        }
-        .slider.round:before {
-            border-radius: 50%;
-        }
-        
-        /* Mini-status indicator styles */
-        .mini-status {
-            font-size: 12px;
-            margin-top: 5px;
-            padding: 2px 5px;
-            border-radius: 3px;
-            display: inline-block;
-        }
-        
-        .mini-status.active {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .mini-status.inactive {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        .mini-status.pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        
-        .mini-status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        /* Enhanced calculation item status styling */
-        .calculation-item {
-            background-color: white;
-            padding: 16px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #ddd;
-            transition: all 0.3s ease;
-        }
-        
-        /* Status-specific calculation item styling */
-        .calculation-item.status-never {
-            border-left-color: #95a5a6;
-            background-color: #f9f9f9;
-        }
-        
-        .calculation-item.status-in-progress {
-            border-left-color: #f39c12;
-            background-color: #fef9e7;
-        }
-        
-        .calculation-item.status-completed {
-            border-left-color: #2ecc71;
-            background-color: #f0fff5;
-        }
-        
-        .calculation-item.status-error {
-            border-left-color: #e74c3c;
-            background-color: #fdedec;
-        }
-        
-        /* Status label styling */
-        .status-label {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
-            color: white;
-        }
-        
-        .status-label.status-never {
-            background-color: #95a5a6;
-        }
-        
-        .status-label.status-in-progress {
-            background-color: #f39c12;
-        }
-        
-        .status-label.status-completed {
-            background-color: #2ecc71;
-        }
-        
-        .status-label.status-error {
-            background-color: #e74c3c;
-        }
-        
-        /* Pulse animation for in-progress items */
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-    </style>
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/control/css/common.css">
+    <link rel="stylesheet" href="/control/css/index.css">
     <script src="./components/header/header.js"></script>
 </head>
 <body>
@@ -477,20 +17,20 @@
         <div class="master-control">
             <h2>Hasenpfeffr Relay Setup Page</h2>
             <h3>Setup</h3>
-            <div style="text-align: left;">
+            <div>
                 <ul>1. Change Neo4j password in the neo4j browser to the one you provided during installation.</ul>
                 <ul>2. Turn on Daabases, Streaming, and Routine Tasks toggle buttons.</ul>
                 <ul>3. Wait for all Routine Tasks (below) to complete at least once.</ul>
                 <ul>4. Turn on the Stream Filtered Content toggle button. This will start streaming filtered content to your relay!</ul>
             </div>
             <h3>Use</h3>
-            <div style="text-align: left;">
+            <div>
                 <ul>1. Stream filtered content.</ul>
                 <ul>2. Find new follows (follows recs page: work in progress).</ul>
                 <ul>3. Encourage your favorite client devs to incorporate your personalized WoT scores using NIP-85!</ul>
             </div>
             <h3>Customize</h3>
-            <div style="text-align: left;">
+            <div>
                 <ul>1. Modify whitelist parameters.</ul>
                 <ul>2. Modify blacklist parameters.</ul>
                 <ul>3. Modify GrapeRank parameters.</ul>
@@ -499,10 +39,10 @@
         </div>
         <!-- New Service Toggle Section -->
         <div class="service-toggles-container">
-            <h3>Service Controls <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
+            <h3>Service Controls <span><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
             <div class="service-toggles">
                 <div class="service-toggle-item">
-                    <h4>Databases <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
+                    <h4>Databases <span><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
                     <div class="toggle-container">
                         <span class="toggle-label">Toggle strfry and neo4j on/off.</span>
                         <label class="switch">
@@ -512,7 +52,7 @@
                     </div>
                 </div>
                 <div class="service-toggle-item">
-                    <h4>Streaming <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the ETL pipeline streaming services that process FOLLOWS, MUTES, and REPORTS relationships in real-time.</span></span></h4>
+                    <h4>Streaming <span><span class="info-icon">i</span><span class="tooltip">Controls the ETL pipeline streaming services that process FOLLOWS, MUTES, and REPORTS relationships in real-time.</span></span></h4>
                     <div class="toggle-container">
                         <span class="toggle-label">Stream follows, mutes, and reports in real time.</span>
                         <label class="switch">
@@ -522,7 +62,7 @@
                     </div>
                 </div>
                 <div class="service-toggle-item">
-                    <h4>Routine Tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly: <li>negentropy sync</li><li>calculate scores</li><li>update blacklist, whitelist, and NIP-85</li></span></span></h4>
+                    <h4>Routine Tasks <span><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly: <li>negentropy sync</li><li>calculate scores</li><li>update blacklist, whitelist, and NIP-85</li></span></span></h4>
                     <div class="toggle-container">
                         <span class="toggle-label">Routine recalculation of GrapeRank and other scores.</span>
                         <label class="switch">
@@ -532,7 +72,7 @@
                     </div>
                 </div>
                 <div class="service-toggle-item">
-                    <h4>Stream Filtered Content <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls whether content events (kinds 1, 7, 30818, etc.) from whitelisted users are streamed through the relay.</span></span></h4>
+                    <h4>Stream Filtered Content <span><span class="info-icon">i</span><span class="tooltip">Controls whether content events (kinds 1, 7, 30818, etc.) from whitelisted users are streamed through the relay.</span></span></h4>
                     <div class="toggle-container">
                         <span class="toggle-label">Stream content from whitelisted users only.</span>
                         <label class="switch">
@@ -545,7 +85,7 @@
             </div>
         </div>
 
-        <h3>Routine tasks <span style="position: relative; display: inline-block; text-align: left;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically every 6 hours when the processAllTasks systemd service timer is turned on. Alternatively, you can run them one at a time using the buttons below.</span></span></h3>
+        <h3>Routine tasks <span><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically every 6 hours when the processAllTasks systemd service timer is turned on. Alternatively, you can run them one at a time using the buttons below.</span></span></h3>
         <div class="calculation-status">
             <h3>Negentropy: download events in batch to strfry</h3>
             <div class="calculation-grid">
