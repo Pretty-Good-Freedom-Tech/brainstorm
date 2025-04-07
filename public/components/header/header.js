@@ -89,7 +89,7 @@ function loadNavbar() {
     
     // Choose which navbar to load - nav1.html for index and about, nav2.html for everything else
     let navbarPath = '/control/components/header/navbars/nav2.html';
-    if (currentPath === '/control/index.html' || currentPath === '/control/about.html') {
+    if (currentPath === '/control/index.html' || currentPath === '/control/nip85.html' || currentPath === '/control/about.html') {
         navbarPath = '/control/components/header/navbars/nav1.html';
     }
     

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIP-85 Control Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/nostr-tools/lib/nostr.bundle.min.js"></script>
+    <script src="./components/header/header.js"></script>
+    <link rel="stylesheet" href="/control/css/nip85-control-panel.css">
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <div class="container">
+        <div class="nav">
+            <h1>NIP-85 Control Panel</h1>
+        </div>
+        
+        <div class="section">
+            <h2>Kind 10040 Event Management</h2>
+            <div class="card">
+                <h3>Kind 10040 Event Management</h3>
+                <p>Create and publish Kind 10040 events for NIP-85 trusted assertions.</p>
+                
+                <div class="button-group">
+                    <button id="createKind10040Btn" class="button primary-btn">Create Kind 10040 Event</button>
+                    <button id="publishKind10040Btn" class="button secondary-btn" disabled>Publish Kind 10040 Event</button>
+                </div>
+                
+                <div id="kind10040Output" class="output-container" style="display: none;">
+                    <h4>Event Preview:</h4>
+                    <pre id="kind10040EventPreview" class="code-preview"></pre>
+                </div>
+                
+                <div id="kind10040Status" class="status-message"></div>
+            </div>
+            
+            <!-- Kind 10040 Event Status Card -->
+            <div class="card">
+                <h3>Kind 10040 Event Status</h3>
+                <p>View information about the most recent Kind 10040 event published by the owner.</p>
+                
+                <div class="info-panel">
+                    <div class="info-row">
+                        <span class="info-label">Last Published:</span>
+                        <span id="kind10040Timestamp" class="info-value">Loading...</span>
+                    </div>
+                    <div class="info-row" id="kind10040EventIdRow" style="display: none;">
+                        <span class="info-label">Event ID:</span>
+                        <span id="kind10040EventId" class="info-value">Loading...</span>
+                        <a id="kind10040NjumpLink" href="#" target="_blank" class="button small-btn">View on njump.me</a>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="refreshKind10040InfoBtn" class="button secondary-btn">Refresh Event Info</button>
+                </div>
+                
+                <div id="kind10040EventContainer" class="output-container" style="display: none;">
+                    <h4>Latest Event:</h4>
+                    <pre id="kind10040LatestEvent" class="code-preview"></pre>
+                </div>
+                
+                <div id="kind10040InfoStatus" class="status-message"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Kind 30382 Event Management</h2>
+            
+            <div class="card">
+                <h3>Kind 30382 Event Status</h3>
+                <p>View information about existing Kind 30382 events in the local strfry relay.</p>
+                
+                <div class="button-group">
+                    <button id="refreshKind30382InfoBtn" class="button">Refresh Event Info</button>
+                </div>
+                
+                <div id="kind30382InfoContainer" class="info-container">
+                    <div class="info-row">
+                        <span class="info-label">Total Events:</span>
+                        <span id="kind30382Count" class="info-value">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Published:</span>
+                        <span id="kind30382Timestamp" class="info-value">Loading...</span>
+                    </div>
+                </div>
+                
+                <div id="kind30382EventContainer" style="display: none;">
+                    <h4>Latest Event:</h4>
+                    <pre id="kind30382LatestEvent" class="code-preview"></pre>
+                </div>
+                
+                <div id="kind30382InfoStatus" class="status-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load the header component
+        fetch('./components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+            
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kind 30382 Event Management
+            const publishKind30382Btn = document.getElementById('publishKind30382Btn');
+            const kind30382Output = document.getElementById('kind30382Output');
+            const kind30382EventPreview = document.getElementById('kind30382EventPreview');
+            const kind30382Status = document.getElementById('kind30382Status');
+            
+            // Kind 30382 Event Status
+            const refreshKind30382InfoBtn = document.getElementById('refreshKind30382InfoBtn');
+            const kind30382Count = document.getElementById('kind30382Count');
+            const kind30382Timestamp = document.getElementById('kind30382Timestamp');
+            const kind30382EventContainer = document.getElementById('kind30382EventContainer');
+            const kind30382LatestEvent = document.getElementById('kind30382LatestEvent');
+            const kind30382InfoStatus = document.getElementById('kind30382InfoStatus');
+            
+            // Set up the relay link with the correct domain from the server
+            const relayLink = document.getElementById('relayLink');
+            if (relayLink) {
+                fetch('/control/api/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.strfryDomain) {
+                            // Check if the domain already has a protocol
+                            let domain = data.strfryDomain;
+                            if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
+                                domain = 'https://' + domain;
+                            }
+                            relayLink.href = `${domain}`;
+                            console.log('Set relay link to:', `${domain}`);
+                        } else {
+                            relayLink.href = '#';
+                            console.error('STRFRY_DOMAIN not found in server response');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching STRFRY_DOMAIN:', error);
+                        relayLink.href = '#';
+                    });
+            }
+            
+            // Kind 10040 Event Management
+            const createKind10040Btn = document.getElementById('createKind10040Btn');
+            const publishKind10040Btn = document.getElementById('publishKind10040Btn');
+            const kind10040Output = document.getElementById('kind10040Output');
+            const kind10040EventPreview = document.getElementById('kind10040EventPreview');
+            const kind10040Status = document.getElementById('kind10040Status');
+            
+            // Kind 10040 Event Status
+            const refreshKind10040InfoBtn = document.getElementById('refreshKind10040InfoBtn');
+            const kind10040Timestamp = document.getElementById('kind10040Timestamp');
+            const kind10040EventId = document.getElementById('kind10040EventId');
+            const kind10040EventIdRow = document.getElementById('kind10040EventIdRow');
+            const kind10040NjumpLink = document.getElementById('kind10040NjumpLink');
+            const kind10040EventContainer = document.getElementById('kind10040EventContainer');
+            const kind10040LatestEvent = document.getElementById('kind10040LatestEvent');
+            const kind10040InfoStatus = document.getElementById('kind10040InfoStatus');
+            
+            // Create Kind 10040 Event
+            if (createKind10040Btn) {
+                createKind10040Btn.addEventListener('click', function() {
+                    // Disable button during processing
+                    createKind10040Btn.disabled = true;
+                    publishKind10040Btn.disabled = true;
+                    
+                    // Update status
+                    kind10040Status.textContent = 'Creating Kind 10040 event...';
+                    kind10040Status.className = 'status-message status-info';
+                    
+                    // Make API request to create the event
+                    fetch('/control/api/create-kind10040', {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show the event preview
+                            kind10040Output.style.display = 'block';
+                            kind10040EventPreview.textContent = data.output;
+                            
+                            // Update status
+                            kind10040Status.textContent = 'Kind 10040 event created successfully. Review the event and click "Publish" to publish it.';
+                            kind10040Status.className = 'status-message status-success';
+                            
+                            // Enable publish button
+                            publishKind10040Btn.disabled = false;
+                        } else {
+                            // Show error
+                            kind10040Status.textContent = 'Error creating Kind 10040 event: ' + (data.error || 'Unknown error');
+                            kind10040Status.className = 'status-message status-error';
+                        }
+                        
+                        // Re-enable create button
+                        createKind10040Btn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error creating Kind 10040 event:', error);
+                        kind10040Status.textContent = 'Error creating Kind 10040 event: ' + error.message;
+                        kind10040Status.className = 'status-message status-error';
+                        createKind10040Btn.disabled = false;
+                    });
+                });
+            }
+            
+            // Publish Kind 30382 Events
+            if (publishKind30382Btn) {
+                publishKind30382Btn.addEventListener('click', function() {
+                    // Check authentication status first
+                    fetch('/control/api/auth/status')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.authenticated) {
+                                // User is authenticated, proceed with publishing
+                                publishKind30382Events();
+                            } else {
+                                // User is not authenticated, show error with sign-in link
+                                kind30382Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
+                                kind30382Status.className = 'status-message status-error';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking authentication status:', error);
+                            kind30382Status.textContent = 'Error checking authentication: ' + error.message;
+                            kind30382Status.className = 'status-message status-error';
+                        });
+                });
+            }
+            
+            // Publish Kind 10040 Event
+            if (publishKind10040Btn) {
+                publishKind10040Btn.addEventListener('click', function() {
+                    // Check authentication status first
+                    fetch('/control/api/auth/status')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.authenticated) {
+                                // User is authenticated, proceed with publishing
+                                publishEvent();
+                            } else {
+                                // User is not authenticated, show error with sign-in link
+                                kind10040Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
+                                kind10040Status.className = 'status-message status-error';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking authentication status:', error);
+                            kind10040Status.textContent = 'Error checking authentication: ' + error.message;
+                            kind10040Status.className = 'status-message status-error';
+                        });
+                });
+            }
+            
+            // Publish Kind 30382 Events
+            if (publishKind30382Btn) {
+                publishKind30382Btn.addEventListener('click', function() {
+                    // Check authentication status first
+                    fetch('/control/api/auth/status')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.authenticated) {
+                                // User is authenticated, proceed with publishing
+                                publishKind30382Events();
+                            } else {
+                                // User is not authenticated, show error with sign-in link
+                                kind30382Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
+                                kind30382Status.className = 'status-message status-error';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking authentication status:', error);
+                            kind30382Status.textContent = 'Error checking authentication: ' + error.message;
+                            kind30382Status.className = 'status-message status-error';
+                        });
+                });
+            }
+            
+            // Function to publish kind 30382 events
+            function publishKind30382Events() {
+                // Disable button during processing
+                publishKind30382Btn.disabled = true;
+                kind30382Status.className = 'status-message info';
+                kind30382Status.textContent = 'Publishing Kind 30382 events...';
+                
+                fetch('/control/api/publish-kind30382', {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            kind30382Status.className = 'status-message success';
+                            kind30382Status.textContent = data.message || 'Kind 30382 events published successfully!';
+                            
+                            // Display the events preview
+                            kind30382Output.style.display = 'block';
+                            
+                            // For background processes, show that it's running
+                            if (data.message && data.message.includes('background')) {
+                                kind30382Output.innerHTML = `
+                                    <div class="alert alert-info">
+                                        <p><strong>Publishing in progress:</strong> The events are being published in the background.</p>
+                                        <p>This may take several minutes for large batches. You can check the status by refreshing the page later.</p>
+                                        <p>Check the server logs for detailed progress information.</p>
+                                    </div>
+                                `;
+                                
+                                // Start polling for updates
+                                setTimeout(checkKind30382Status, 10000); // Check after 10 seconds
+                            } else {
+                                // Create a more concise summary from the response data
+                                let summary = '';
+                                
+                                try {
+                                    // Try to parse the output if it's JSON
+                                    let parsedData = data;
+                                    if (typeof data.output === 'string' && data.output.trim().startsWith('{')) {
+                                        parsedData = JSON.parse(data.output);
+                                    }
+                                    
+                                    // Extract the summary information
+                                    if (parsedData.publishSummary) {
+                                        const summary = parsedData.publishSummary;
+                                        kind30382Output.innerHTML = `
+                                            <div class="alert alert-success">
+                                                <h4>Publishing Summary:</h4>
+                                                <p>Total events: ${summary.total}</p>
+                                                <p>Successfully published: ${summary.successful}</p>
+                                                <p>Failed: ${summary.failed}</p>
+                                            </div>
+                                        `;
+                                        
+                                        // If we have relay-specific stats, show them
+                                        if (summary.byRelay) {
+                                            let relayHtml = '<h4>Results by Relay:</h4><ul>';
+                                            for (const [relayUrl, stats] of Object.entries(summary.byRelay)) {
+                                                relayHtml += `<li>${relayUrl}: ${stats.successful} successful, ${stats.failed} failed</li>`;
+                                            }
+                                            relayHtml += '</ul>';
+                                            
+                                            kind30382Output.innerHTML += relayHtml;
+                                        }
+                                    } else if (parsedData.publishResults && Array.isArray(parsedData.publishResults)) {
+                                        // Group results by relay and success status
+                                        const relayStats = {};
+                                        
+                                        parsedData.publishResults.forEach(result => {
+                                            const relayUrl = result.relayUrl || 'unknown';
+                                            if (!relayStats[relayUrl]) {
+                                                relayStats[relayUrl] = { success: 0, failed: 0 };
+                                            }
+                                            
+                                            if (result.success) {
+                                                relayStats[relayUrl].success++;
+                                            } else {
+                                                relayStats[relayUrl].failed++;
+                                            }
+                                        });
+                                        
+                                        // Create summary text
+                                        let summaryHtml = '<h4>Publishing Results:</h4><ul>';
+                                        for (const [relayUrl, stats] of Object.entries(relayStats)) {
+                                            summaryHtml += `<li>${relayUrl}: ${stats.success} successful, ${stats.failed} failed</li>`;
+                                        }
+                                        summaryHtml += '</ul>';
+                                        
+                                        kind30382Output.innerHTML = summaryHtml;
+                                    } else {
+                                        // Fallback to raw output if no structured data
+                                        kind30382Output.innerHTML = `<pre>${data.output || JSON.stringify(data, null, 2)}</pre>`;
+                                    }
+                                } catch (error) {
+                                    console.error('Error parsing output:', error);
+                                    kind30382Output.innerHTML = `<pre>${data.output || JSON.stringify(data, null, 2)}</pre>`;
+                                }
+                            }
+                        } else {
+                            kind30382Status.className = 'status-message error';
+                            kind30382Status.textContent = data.message || 'Error publishing Kind 30382 events';
+                            kind30382Output.style.display = 'block';
+                            kind30382Output.innerHTML = `<pre class="error">${data.error || data.output || 'Unknown error'}</pre>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        kind30382Status.className = 'status-message error';
+                        kind30382Status.textContent = 'Error publishing Kind 30382 events';
+                        kind30382Output.style.display = 'block';
+                        kind30382Output.innerHTML = `<pre class="error">${error.message}</pre>`;
+                    })
+                    .finally(() => {
+                        // Re-enable button
+                        publishKind30382Btn.disabled = false;
+                    });
+            }
+            
+            // Function to check the status of Kind 30382 publishing
+            function checkKind30382Status() {
+                fetch('/control/api/kind30382-info')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the status display with the latest info
+                            fetchKind30382Info();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking Kind 30382 status:', error);
+                    });
+            }
+            
+            // Publish Event
+            function publishEvent() {
+                // Disable buttons during processing
+                createKind10040Btn.disabled = true;
+                publishKind10040Btn.disabled = true;
+                
+                // Check if NIP-07 extension is available
+                if (typeof window.nostr === 'undefined') {
+                    kind10040Status.textContent = 'Error: No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.';
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                    return;
+                }
+                
+                // Update status
+                kind10040Status.textContent = 'Getting event data for signing...';
+                kind10040Status.className = 'status-message status-info';
+                
+                // First, get the unsigned event
+                fetch('/control/api/get-kind10040-event', {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(async data => {
+                    if (data.success && data.event) {
+                        try {
+                            // Update status
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Get the event data
+                            const event = data.event;
+                            
+                            // Make sure the pubkey matches the user's pubkey
+                            const userPubkey = await window.nostr.getPublicKey();
+                            event.pubkey = userPubkey;
+                            
+                            // Get the challenge from the server response
+                            const challenge = data.challenge;
+                            
+                            // Store the challenge to be sent in the publish request header
+                            // instead of embedding it in the event tags
+                            const sessionChallenge = challenge;
+                            
+                            // Update status
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Sign the event
+                            const signedEvent = await window.nostr.signEvent(event);
+                            
+                            // Now publish the signed event
+                            kind10040Status.textContent = 'Publishing signed event...';
+                            
+                            // Send the signed event to the server
+                            fetch('/control/api/publish-kind10040-event', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Challenge': sessionChallenge  // Pass challenge in a header instead
+                                },
+                                body: JSON.stringify({ event: signedEvent })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update status
+                                    kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
+                                    kind10040Status.className = 'status-message status-success';
+                                    
+                                    // Show the output container
+                                    kind10040Output.style.display = 'block';
+                                    
+                                    // Update event preview with the published event
+                                    kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
+                                    
+                                    // Refresh the event info after publishing
+                                    fetchKind10040Info();
+                                } else {
+                                    // Show error
+                                    let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
+                                    
+                                    // Add details if available
+                                    if (data.details) {
+                                        console.error('Error details:', data.details);
+                                        errorMessage += '\n\nDetails: ' + data.details;
+                                    }
+                                    
+                                    kind10040Status.textContent = errorMessage;
+                                    kind10040Status.className = 'status-message status-error';
+                                    
+                                    // Re-enable publish button
+                                    publishKind10040Btn.disabled = false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error in kind 10040 event process:', error);
+                                kind10040Status.textContent = 'Error: ' + error.message;
+                                kind10040Status.className = 'status-message status-error';
+                                createKind10040Btn.disabled = false;
+                                publishKind10040Btn.disabled = false;
+                            });
+                        } catch (error) {
+                            console.error('Error signing event:', error);
+                            throw new Error(`Error signing event: ${error.message}`);
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to get event data');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error in kind 10040 event process:', error);
+                    kind10040Status.textContent = 'Error: ' + error.message;
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                });
+            }
+            
+            // Function to fetch kind 30382 event information
+            function fetchKind30382Info() {
+                kind30382Count.textContent = 'Loading...';
+                kind30382Timestamp.textContent = 'Loading...';
+                kind30382InfoStatus.className = 'status-message info';
+                kind30382InfoStatus.textContent = 'Fetching event information...';
+                
+                fetch('/control/api/kind30382-info')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update count
+                            kind30382Count.textContent = data.count || '0';
+                            
+                            // Update timestamp
+                            if (data.timestamp) {
+                                const date = new Date(data.timestamp * 1000);
+                                kind30382Timestamp.textContent = date.toLocaleString();
+                            } else {
+                                kind30382Timestamp.textContent = 'No events found';
+                            }
+                            
+                            // Update latest event
+                            if (data.latestEvent) {
+                                kind30382EventContainer.style.display = 'block';
+                                kind30382LatestEvent.textContent = JSON.stringify(data.latestEvent, null, 2);
+                            } else {
+                                kind30382EventContainer.style.display = 'none';
+                            }
+                            
+                            kind30382InfoStatus.className = 'status-message success';
+                            kind30382InfoStatus.textContent = 'Event information updated successfully!';
+                            
+                            // Clear status message after a delay
+                            setTimeout(() => {
+                                kind30382InfoStatus.textContent = '';
+                            }, 3000);
+                        } else {
+                            kind30382InfoStatus.className = 'status-message error';
+                            kind30382InfoStatus.textContent = `Error: ${data.message}`;
+                        }
+                    })
+                    .catch(error => {
+                        kind30382InfoStatus.className = 'status-message error';
+                        kind30382InfoStatus.textContent = `Error: ${error.message}`;
+                    });
+            }
+            
+            // Event listeners
+            refreshKind30382InfoBtn.addEventListener('click', fetchKind30382Info);
+            publishKind30382Btn.addEventListener('click', publishKind30382Events);
+            
+            // Fetch kind 30382 event information on page load
+            fetchKind30382Info();
+            
+            // Publish Event
+            function publishEvent() {
+                // Disable buttons during processing
+                createKind10040Btn.disabled = true;
+                publishKind10040Btn.disabled = true;
+                
+                // Check if NIP-07 extension is available
+                if (typeof window.nostr === 'undefined') {
+                    kind10040Status.textContent = 'Error: No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.';
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                    return;
+                }
+                
+                // Update status
+                kind10040Status.textContent = 'Getting event data for signing...';
+                kind10040Status.className = 'status-message status-info';
+                
+                // First, get the unsigned event
+                fetch('/control/api/get-kind10040-event', {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(async data => {
+                    if (data.success && data.event) {
+                        try {
+                            // Update status
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Get the event data
+                            const event = data.event;
+                            
+                            // Make sure the pubkey matches the user's pubkey
+                            const userPubkey = await window.nostr.getPublicKey();
+                            event.pubkey = userPubkey;
+                            
+                            // Get the challenge from the server response
+                            const challenge = data.challenge;
+                            
+                            // Store the challenge to be sent in the publish request header
+                            // instead of embedding it in the event tags
+                            const sessionChallenge = challenge;
+                            
+                            // Update status
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Sign the event
+                            const signedEvent = await window.nostr.signEvent(event);
+                            
+                            // Now publish the signed event
+                            kind10040Status.textContent = 'Publishing signed event...';
+                            
+                            // Send the signed event to the server
+                            fetch('/control/api/publish-kind10040-event', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Challenge': sessionChallenge  // Pass challenge in a header instead
+                                },
+                                body: JSON.stringify({ event: signedEvent })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update status
+                                    kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
+                                    kind10040Status.className = 'status-message status-success';
+                                    
+                                    // Show the output container
+                                    kind10040Output.style.display = 'block';
+                                    
+                                    // Update event preview with the published event
+                                    kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
+                                    
+                                    // Refresh the event info after publishing
+                                    fetchKind10040Info();
+                                } else {
+                                    // Show error
+                                    let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
+                                    
+                                    // Add details if available
+                                    if (data.details) {
+                                        console.error('Error details:', data.details);
+                                        errorMessage += '\n\nDetails: ' + data.details;
+                                    }
+                                    
+                                    kind10040Status.textContent = errorMessage;
+                                    kind10040Status.className = 'status-message status-error';
+                                    
+                                    // Re-enable publish button
+                                    publishKind10040Btn.disabled = false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error in kind 10040 event process:', error);
+                                kind10040Status.textContent = 'Error: ' + error.message;
+                                kind10040Status.className = 'status-message status-error';
+                                createKind10040Btn.disabled = false;
+                                publishKind10040Btn.disabled = false;
+                            });
+                        } catch (error) {
+                            console.error('Error signing event:', error);
+                            throw new Error(`Error signing event: ${error.message}`);
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to get event data');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error in kind 10040 event process:', error);
+                    kind10040Status.textContent = 'Error: ' + error.message;
+                    kind10040Status.className = 'status-message status-error';
+                    createKind10040Btn.disabled = false;
+                    publishKind10040Btn.disabled = false;
+                });
+            }
+            
+            // Function to fetch kind 10040 event information
+            function fetchKind10040Info() {
+                kind10040Timestamp.textContent = 'Loading...';
+                kind10040InfoStatus.className = 'status-message info';
+                kind10040InfoStatus.textContent = 'Fetching event information...';
+                
+                fetch('/control/api/kind10040-info')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update timestamp
+                            if (data.timestamp) {
+                                const date = new Date(data.timestamp * 1000);
+                                kind10040Timestamp.textContent = date.toLocaleString();
+                            } else {
+                                kind10040Timestamp.textContent = 'No events found';
+                            }
+                            
+                            // Update event ID and njump link
+                            if (data.eventId) {
+                                kind10040EventIdRow.style.display = 'flex';
+                                kind10040EventId.textContent = data.eventId;
+                                kind10040NjumpLink.href = `https://njump.me/${data.eventId}`;
+                            } else {
+                                kind10040EventIdRow.style.display = 'none';
+                            }
+                            
+                            // Update latest event
+                            if (data.latestEvent) {
+                                kind10040EventContainer.style.display = 'block';
+                                kind10040LatestEvent.textContent = JSON.stringify(data.latestEvent, null, 2);
+                            } else {
+                                kind10040EventContainer.style.display = 'none';
+                            }
+                            
+                            kind10040InfoStatus.className = 'status-message success';
+                            kind10040InfoStatus.textContent = 'Event information updated successfully!';
+                            
+                            // Clear status message after a delay
+                            setTimeout(() => {
+                                kind10040InfoStatus.textContent = '';
+                            }, 3000);
+                        } else {
+                            kind10040InfoStatus.className = 'status-message error';
+                            kind10040InfoStatus.textContent = `Error: ${data.message}`;
+                        }
+                    })
+                    .catch(error => {
+                        kind10040InfoStatus.className = 'status-message error';
+                        kind10040InfoStatus.textContent = `Error: ${error.message}`;
+                    });
+            }
+            
+            // Event listener for refresh button
+            refreshKind10040InfoBtn.addEventListener('click', fetchKind10040Info);
+            
+            // Fetch kind 10040 event information on page load
+            fetchKind10040Info();
+            
+            // Fetch kind 30382 event information on page load
+            fetchKind30382Info();
+        });
+    </script>
+</body>
+</html>
