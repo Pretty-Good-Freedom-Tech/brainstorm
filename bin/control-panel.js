@@ -189,11 +189,11 @@ app.get('/whitelist-control-panel.html', (req, res) => {
     serveHtmlFile('whitelist-control-panel.html', res);
 });
 
-
-
+/*
 app.get('/control', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
 });
+*/
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
