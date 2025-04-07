@@ -56,6 +56,7 @@
     border-radius: 5px 5px 0 0;
     max-width: 1200px;
     border: 1px solid #1dc50e;
+    align-items: center;
 }
 .navbar-content {
     display: flex;
