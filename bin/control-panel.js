@@ -145,7 +145,7 @@ app.get('/control', (req, res) => {
     console.log(`[SERVER] Control root route hit`);
     serveHtmlFile('nip85-control-panel.html', res);
 });
-*/.
+*/
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
