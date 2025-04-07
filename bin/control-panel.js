@@ -71,6 +71,7 @@ app.use(express.static(path.join(__dirname, '../public'), {
     }
 }));
 
+/*
 // Also serve /control/ as static files (mirror of public)
 app.use('/control', express.static(path.join(__dirname, '../public'), {
     setHeaders: (res, path, stat) => {
@@ -83,6 +84,7 @@ app.use('/control', express.static(path.join(__dirname, '../public'), {
         }
     }
 }));
+*/
 
 // Session middleware
 app.use(session({
@@ -188,12 +190,6 @@ app.get('/sign-in.html', (req, res) => {
 app.get('/whitelist-control-panel.html', (req, res) => {
     serveHtmlFile('whitelist-control-panel.html', res);
 });
-
-/*
-app.get('/control', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
-});
-*/
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
