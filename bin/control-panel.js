@@ -134,6 +134,17 @@ function serveHtmlFile(filename, res) {
 
 // Serve the HTML files
 app.get('/', (req, res) => {
+    console.log('[SERVER] Route hit: / (root)');
+    serveHtmlFile('index.html', res);
+});
+
+app.get('/index.html', (req, res) => {
+    console.log('[SERVER] Route hit: /index.html');
+    serveHtmlFile('index.html', res);
+});
+
+app.get('/control/index.html', (req, res) => {
+    console.log('[SERVER] Route hit: /control/index.html');
     serveHtmlFile('index.html', res);
 });
 
