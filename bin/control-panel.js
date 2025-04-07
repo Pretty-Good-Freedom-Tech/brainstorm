@@ -132,21 +132,6 @@ app.get('/:filename.html', (req, res) => {
     serveHtmlFile(filename, res);
 });
 
-/*
-// Handle any /control/ prefixed routes - maintain backward compatibility
-app.get('/control/:filename.html', (req, res) => {
-    const filename = req.params.filename + '.html';
-    console.log(`[SERVER] Control route hit: /control/${filename}`);
-    serveHtmlFile(filename, res);
-});
-
-// Handle special case for /control
-app.get('/control', (req, res) => {
-    console.log(`[SERVER] Control root route hit`);
-    serveHtmlFile('nip85-control-panel.html', res);
-});
-*/
-
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
     // Skip auth for static resources, sign-in page and auth-related endpoints
