@@ -74,7 +74,7 @@ function setupNeo4jConstraints() {
 
 /**
  * Load the appropriate navbar based on the current page
- * nav1.html is the default for all pages and nav2.html is for home.html
+ * nav1.html is the default for specific pages and nav2.html for everything else
  */
 function loadNavbar() {
     const navbarContainer = document.getElementById('navbar-container');
@@ -87,33 +87,45 @@ function loadNavbar() {
     const currentPath = window.location.pathname;
     console.log('Loading navbar for path:', currentPath);
     
-    // Choose which navbar to load - nav2.html for home.html and nav1.html for everything else
+    // Choose which navbar to load - nav1.html for index and about, nav2.html for everything else
     let navbarPath = '/control/components/header/navbars/nav2.html';
     if (currentPath === '/control/index.html' || currentPath === '/control/about.html') {
         navbarPath = '/control/components/header/navbars/nav1.html';
     }
     
-    // Fetch the appropriate navbar content
-    fetch(navbarPath)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to load navbar: ${response.status} ${response.statusText}`);
-            }
-            return response.text();
-        })
-        .then(html => {
-            // Insert the navbar HTML into the container
-            navbarContainer.innerHTML = html;
+    // First fetch the Neo4j Browser URL
+    fetch('/control/api/status')
+        .then(response => response.json())
+        .catch(() => fetch('/control/api/status').then(response => response.json()))
+        .then(data => {
+            let neo4jBrowserUrl = data && data.neo4jBrowserUrl ? data.neo4jBrowserUrl : 'http://localhost:7474';
+            console.log('Neo4j Browser URL:', neo4jBrowserUrl);
             
-            // After loading the navbar, highlight the current page
-            setTimeout(highlightCurrentPage, 0);
+            // Now fetch the navbar with the Neo4j Browser URL
+            return fetch(navbarPath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to load navbar: ${response.status} ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // Replace placeholder with actual Neo4j Browser URL
+                    html = html.replace('${HASENPFEFFR_NEO4J_BROWSER_URL}', neo4jBrowserUrl);
+                    
+                    // Insert the navbar HTML into the container
+                    navbarContainer.innerHTML = html;
+                    
+                    // After loading the navbar, highlight the current page
+                    setTimeout(highlightCurrentPage, 0);
+                });
         })
         .catch(error => {
             console.error('Error loading navbar:', error);
-            // Fallback to default nav1.html if there's an error
-            if (navbarPath !== '/control/components/header/navbars/nav1.html') {
+            // Fallback to default nav2.html if there's an error
+            if (navbarPath !== '/control/components/header/navbars/nav2.html') {
                 console.log('Attempting to load default navbar instead...');
-                fetch('/control/components/header/navbars/nav1.html')
+                fetch('/control/components/header/navbars/nav2.html')
                     .then(response => response.text())
                     .then(html => {
                         navbarContainer.innerHTML = html;
@@ -125,6 +137,60 @@ function loadNavbar() {
             }
         });
 }
+
+/**
+ * Load the appropriate navbar based on the current page
+ * nav1.html is the default for all pages and nav2.html is for home.html
+ */
+// function loadNavbar() {
+//     const navbarContainer = document.getElementById('navbar-container');
+//     if (!navbarContainer) {
+//         console.error('Navbar container not found');
+//         return;
+//     }
+//     
+//     // Get the current page path
+//     const currentPath = window.location.pathname;
+//     console.log('Loading navbar for path:', currentPath);
+//     
+//     // Choose which navbar to load - nav2.html for home.html and nav1.html for everything else
+//     let navbarPath = '/control/components/header/navbars/nav2.html';
+//     if (currentPath === '/control/index.html' || currentPath === '/control/about.html') {
+//         navbarPath = '/control/components/header/navbars/nav1.html';
+//     }
+//     
+//     // Fetch the appropriate navbar content
+//     fetch(navbarPath)
+//         .then(response => {
+//             if (!response.ok) {
+//                 throw new Error(`Failed to load navbar: ${response.status} ${response.statusText}`);
+//             }
+//             return response.text();
+//         })
+//         .then(html => {
+//             // Insert the navbar HTML into the container
+//             navbarContainer.innerHTML = html;
+//             
+//             // After loading the navbar, highlight the current page
+//             setTimeout(highlightCurrentPage, 0);
+//         })
+//         .catch(error => {
+//             console.error('Error loading navbar:', error);
+//             // Fallback to default nav1.html if there's an error
+//             if (navbarPath !== '/control/components/header/navbars/nav1.html') {
+//                 console.log('Attempting to load default navbar instead...');
+//                 fetch('/control/components/header/navbars/nav1.html')
+//                     .then(response => response.text())
+//                     .then(html => {
+//                         navbarContainer.innerHTML = html;
+//                         setTimeout(highlightCurrentPage, 0);
+//                     })
+//                     .catch(fallbackError => {
+//                         console.error('Error loading default navbar:', fallbackError);
+//                     });
+//             }
+//         });
+// }
 
 function initializeHeader() {
     const userInfo = document.getElementById('userInfo');
