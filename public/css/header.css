@@ -3,7 +3,6 @@
     color: #fff;
     padding: 20px 20px 0 20px;
     text-align: center;
-    border: 1px solid #ea4d09;
 }
 .header-content {
     display: flex;
@@ -11,12 +10,10 @@
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
-    border: 1px solid #3213e1;
 }
 .navbar-container {
     text-align: center;
     width: 100%;
-    border: 1px solid #f8f8f4;
 }
 .header-title {
     color: #fff;
@@ -63,7 +60,6 @@
     padding: 10px 0;
     border-radius: 5px 5px 0 0;
     max-width: 1200px;
-    border: 1px solid #1dc50e;
     text-align: center;
 }
 .navbar-content {
@@ -73,7 +69,6 @@
     margin: 0 auto;
     padding: 0 10px;
     justify-content: center;
-    border: 1px solid #ce1212;
 }
 .nav-btn {
     background-color: #2196F3;
