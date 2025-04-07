@@ -23,3 +23,16 @@ h1, h2, h3, h4 {
 .section h2 {
     color: #3498db;
 }
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.nav a {
+    color: #3498db;
+    text-decoration: none;
+}
+.nav a:hover {
+    text-decoration: underline;
+}

@@ -52,12 +52,6 @@ pre {
     max-height: 300px;
     margin-top: 10px;
 }
-.nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
 .nav-links {
     display: flex;
     gap: 10px;

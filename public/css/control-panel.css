@@ -71,20 +71,6 @@ pre {
     white-space: pre-wrap;
     word-wrap: break-word;
 }
-.nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.nav a {
-    color: #3498db;
-    text-decoration: none;
-}
-.nav a:hover {
-    text-decoration: underline;
-}
-
 .nav-links {
     display: flex;
     gap: 10px;

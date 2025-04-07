@@ -21,12 +21,6 @@
 .button:hover {
     background-color: #2980b9;
 }
-.nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
 .nav-links {
     display: flex;
     gap: 10px;
