@@ -1,5 +1,7 @@
 # Installation of Hasenpfeffr
 
+We assume you have a registered domain that you will point to a remote server running hasenpfeffr. Alternatively, you can run hasenpfeffr locally for testing purposes.
+
 The following instructions are for setting up a new Amazon AWS EC2 instance to test the Hasenpfeffr installation process. They can be adapted for other Linux distributions.
 
 ## 1. Launch a New EC2 Instance
