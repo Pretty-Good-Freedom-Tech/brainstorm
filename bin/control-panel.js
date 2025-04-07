@@ -94,29 +94,41 @@ app.use(session({
 
 // Helper function to serve HTML files
 function serveHtmlFile(filename, res) {
-    console.log(`Serving ${filename} A`);
+    console.log(`[SERVER] Attempting to serve file: ${filename}`);
+    
     try {
-        console.log(`Serving ${filename} B`);
-        // First check if the file exists in the pages directory
+        // Build all possible file paths to check
         const pagesPath = path.join(__dirname, '../public/pages', filename);
         const originalPath = path.join(__dirname, '../public', filename);
-
-        console.log(`Serving ${filename} C`);
         
-        // Check pages directory first, then fall back to original location
-        if (fs.existsSync(pagesPath)) {
-            console.log(`Serving ${filename} from pages directory`);
+        console.log(`[SERVER] Checking paths:
+            Pages path: ${pagesPath}
+            Original path: ${originalPath}`);
+        
+        // Check if files exist
+        const pagesExists = fs.existsSync(pagesPath);
+        const originalExists = fs.existsSync(originalPath);
+        
+        console.log(`[SERVER] File existence:
+            In pages directory: ${pagesExists}
+            In original directory: ${originalExists}`);
+        
+        // Determine which file to serve
+        if (pagesExists) {
+            console.log(`[SERVER] Serving from pages directory: ${pagesPath}`);
             res.sendFile(pagesPath);
-        } else if (fs.existsSync(originalPath)) {
-            console.log(`Serving ${filename} from original directory`);
+        } else if (originalExists) {
+            console.log(`[SERVER] Serving from original directory: ${originalPath}`);
             res.sendFile(originalPath);
         } else {
-            console.log(`File not found: ${filename}`);
-            res.status(404).send('File not found: ' + filename);
+            console.log(`[SERVER] File not found in either location: ${filename}`);
+            res.status(404).send(`File not found: ${filename}<br>
+                Checked pages path: ${pagesPath}<br>
+                Checked original path: ${originalPath}`);
         }
     } catch (error) {
-        console.error('Error serving HTML file:', error);
-        res.status(500).send('Internal server error');
+        console.error(`[SERVER] Error serving HTML file: ${error.message}`);
+        res.status(500).send(`Internal server error: ${error.message}`);
     }
 }
 
@@ -129,11 +141,17 @@ app.get('/overview.html', (req, res) => {
     serveHtmlFile('overview.html', res);
 });
 
+app.get('/home.html', (req, res) => {
+    console.log('[SERVER] Route hit: /home.html');
+    serveHtmlFile('home.html', res);
+});
+
 app.get('/control/overview.html', (req, res) => {
     serveHtmlFile('overview.html', res);
 });
 
 app.get('/control/home.html', (req, res) => {
+    console.log('[SERVER] Route hit: /control/home.html');
     serveHtmlFile('home.html', res);
 });
 
