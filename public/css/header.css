@@ -10,6 +10,7 @@
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    border: 1px solid #555;
 }
 .header-title {
     color: #fff;
@@ -54,6 +55,7 @@
     margin-top: 20px;
     padding: 10px 0;
     border-radius: 5px 5px 0 0;
+    border: 1px solid #555;
 }
 .navbar-content {
     display: flex;
