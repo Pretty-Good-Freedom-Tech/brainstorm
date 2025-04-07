@@ -143,10 +143,12 @@ app.get('/index.html', (req, res) => {
     serveHtmlFile('index.html', res);
 });
 
+/*
 app.get('/control/index.html', (req, res) => {
     console.log('[SERVER] Route hit: /control/index.html');
     serveHtmlFile('index.html', res);
 });
+*/
 
 app.get('/overview.html', (req, res) => {
     serveHtmlFile('overview.html', res);
