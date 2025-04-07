@@ -105,3 +105,53 @@ pre {
 .nav a:hover {
     text-decoration: underline;
 }
+
+.nav-links {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.logout-btn {
+    background-color: #e74c3c;
+}
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+.secondary-btn {
+    background-color: #95a5a6;
+}
+.secondary-btn:hover {
+    background-color: #7f8c8d;
+}
+.home-btn {
+    background-color: #2ecc71;
+}
+.home-btn:hover {
+    background-color: #27ae60;
+}
+.profiles-btn {
+    background-color: #9b59b6;
+}
+.profiles-btn:hover {
+    background-color: #8e44ad;
+}
+.nip85-btn {
+    background-color: #3498db;
+}
+.nip85-btn:hover {
+    background-color: #2980b9;
+}
+.auth-status {
+    margin-left: 15px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.authenticated {
+    background-color: #2ecc71;
+    color: white;
+}
+.read-only {
+    background-color: #f39c12;
+    color: white;
+}

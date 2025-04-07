@@ -4,85 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hasenpfeffr - Sign In</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background-color: #333;
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-        }
-        .sign-in-box {
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-top: 30px;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #333;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            margin: 10px 0;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .btn:hover {
-            background-color: #555;
-        }
-        .btn:disabled {
-            background-color: #999;
-            cursor: not-allowed;
-        }
-        .status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-        .info {
-            background-color: #d9edf7;
-            color: #31708f;
-        }
-        .success {
-            background-color: #dff0d8;
-            color: #3c763d;
-        }
-        .error {
-            background-color: #f2dede;
-            color: #a94442;
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #333;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 2s linear infinite;
-            display: inline-block;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    <link rel="stylesheet" href="/control/css/sign-in.css">
 </head>
 <body>
     <div class="header">
@@ -114,57 +36,6 @@
                 <a href="/control/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
             </div>
         </div>
-        
-        <style>
-            .divider {
-                display: flex;
-                align-items: center;
-                text-align: center;
-                margin: 20px 0;
-                color: #777;
-            }
-            
-            .divider::before,
-            .divider::after {
-                content: '';
-                flex: 1;
-                border-bottom: 1px solid #ddd;
-            }
-            
-            .divider::before {
-                margin-right: 10px;
-            }
-            
-            .divider::after {
-                margin-left: 10px;
-            }
-            
-            .secondary-btn {
-                background-color: #95a5a6;
-                text-decoration: none;
-                text-align: center;
-            }
-            
-            .secondary-btn:hover {
-                background-color: #7f8c8d;
-            }
-            
-            .home-btn {
-                background-color: #2ecc71;
-                text-decoration: none;
-                text-align: center;
-            }
-            
-            .home-btn:hover {
-                background-color: #27ae60;
-            }
-            
-            .button-group {
-                display: flex;
-                gap: 10px;
-                margin-top: 10px;
-            }
-        </style>
     </div>
 
     <script>
