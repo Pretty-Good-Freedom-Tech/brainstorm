@@ -160,7 +160,7 @@ app.get('/control/overview.html', (req, res) => {
 app.get('/control', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
 });
-
+/*
 app.get('/control/profiles', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/profiles-control-panel.html'));
 });
@@ -176,6 +176,7 @@ app.get('/control/nip85-control-panel.html', (req, res) => {
 app.get('/control/sign-in.html', (req, res) => {
     serveHtmlFile('control/sign-in.html', res);
 });
+*/
 
 // For backward compatibility, redirect old URLs to new ones
 app.get('/control-panel.html', (req, res) => {
