@@ -1,10 +1,4 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
-}
+@import "./common.css";
 .container {
     max-width: 1200px;
     margin: 0 auto;
