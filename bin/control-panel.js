@@ -71,21 +71,6 @@ app.use(express.static(path.join(__dirname, '../public'), {
     }
 }));
 
-/*
-// Also serve /control/ as static files (mirror of public)
-app.use('/control', express.static(path.join(__dirname, '../public'), {
-    setHeaders: (res, path, stat) => {
-        if (path.endsWith('.css')) {
-            console.log('Setting CSS MIME type for /control path:', path);
-            res.set('Content-Type', 'text/css');
-        } else if (path.endsWith('.js')) {
-            console.log('Setting JS MIME type for /control path:', path);
-            res.set('Content-Type', 'text/javascript');
-        }
-    }
-}));
-*/
-
 // Session middleware
 app.use(session({
     secret: getConfigFromFile('SESSION_SECRET', 'hasenpfeffr-default-session-secret-please-change-in-production'),
@@ -134,62 +119,33 @@ function serveHtmlFile(filename, res) {
     }
 }
 
-// Serve the HTML files
+// Serve the HTML files - consolidated approach
+// Root path serves index.html
 app.get('/', (req, res) => {
     serveHtmlFile('index.html', res);
 });
 
-app.get('/blacklist-control-panel.html', (req, res) => {
-    serveHtmlFile('blacklist-control-panel.html', res);
+// Generic handler for all HTML files
+app.get('/:filename.html', (req, res) => {
+    const filename = req.params.filename + '.html';
+    console.log(`[SERVER] Route hit: /${filename}`);
+    serveHtmlFile(filename, res);
 });
 
-app.get('/control-panel.html', (req, res) => {
-    serveHtmlFile('control-panel.html', res);
+/*
+// Handle any /control/ prefixed routes - maintain backward compatibility
+app.get('/control/:filename.html', (req, res) => {
+    const filename = req.params.filename + '.html';
+    console.log(`[SERVER] Control route hit: /control/${filename}`);
+    serveHtmlFile(filename, res);
 });
 
-app.get('/graperank-control-panel.html', (req, res) => {
-    serveHtmlFile('graperank-control-panel.html', res);
-});
-
-app.get('/home.html', (req, res) => {
-    serveHtmlFile('home.html', res);
-});
-
-app.get('/index.html', (req, res) => {
-    serveHtmlFile('index.html', res);
-});
-
-app.get('/neo4j-control-panel.html', (req, res) => {
-    serveHtmlFile('neo4j-control-panel.html', res);
-});
-
-app.get('/network-visualization-lite.html', (req, res) => {
-    serveHtmlFile('network-visualization-lite.html', res);
-});
-
-app.get('/nip85-control-panel.html', (req, res) => {
+// Handle special case for /control
+app.get('/control', (req, res) => {
+    console.log(`[SERVER] Control root route hit`);
     serveHtmlFile('nip85-control-panel.html', res);
 });
-
-app.get('/overview.html', (req, res) => {
-    serveHtmlFile('overview.html', res);
-});
-
-app.get('/profile.html', (req, res) => {
-    serveHtmlFile('profile.html', res);
-});
-
-app.get('/profiles-control-panel.html', (req, res) => {
-    serveHtmlFile('profiles-control-panel.html', res);
-});
-
-app.get('/sign-in.html', (req, res) => {
-    serveHtmlFile('sign-in.html', res);
-});
-
-app.get('/whitelist-control-panel.html', (req, res) => {
-    serveHtmlFile('whitelist-control-panel.html', res);
-});
+*/.
 
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
