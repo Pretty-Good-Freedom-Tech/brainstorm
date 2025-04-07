@@ -542,7 +542,7 @@
                 .then(data => {
                     if (data.success) {
                         // Update status
-                        kind10040Status.textContent = 'Kind 10040 event published successfully!';
+                        kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
                         kind10040Status.className = 'status-message status-success';
                         
                         // Show the output container
@@ -674,6 +674,7 @@
                             const userPubkey = await window.nostr.getPublicKey();
                             event.pubkey = userPubkey;
                             
+                            /*
                             // Add challenge tag if not already present
                             // Get the challenge from the server response
                             const challenge = data.challenge;
@@ -701,6 +702,7 @@
                             } else {
                                 console.warn('No challenge provided by the server. Authentication may fail.');
                             }
+                            */
                             
                             // Make sure created_at is set
                             if (!event.created_at) {
@@ -742,7 +744,7 @@
                 .then(data => {
                     if (data.success) {
                         // Update status
-                        kind10040Status.textContent = 'Kind 10040 event published successfully!';
+                        kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
                         kind10040Status.className = 'status-message status-success';
                         
                         // Show the output container
