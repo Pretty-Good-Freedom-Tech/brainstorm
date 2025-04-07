@@ -471,61 +471,69 @@
                             const userPubkey = await window.nostr.getPublicKey();
                             event.pubkey = userPubkey;
                             
-                            // Add challenge tag if not already present
                             // Get the challenge from the server response
                             const challenge = data.challenge;
                             
-                            // If we have a challenge, add it to the tags
-                            if (challenge) {
-                                if (!event.tags) {
-                                    event.tags = [];
-                                }
-                                
-                                // Check if challenge tag already exists
-                                let challengeTagExists = false;
-                                for (const tag of event.tags) {
-                                    if (tag[0] === 'challenge') {
-                                        tag[1] = challenge; // Update existing tag
-                                        challengeTagExists = true;
-                                        break;
-                                    }
-                                }
-                                
-                                // Add challenge tag if it doesn't exist
-                                if (!challengeTagExists) {
-                                    event.tags.push(['challenge', challenge]);
-                                }
-                            } else {
-                                console.warn('No challenge provided by the server. Authentication may fail.');
-                            }
-                            
-                            // Make sure created_at is set
-                            if (!event.created_at) {
-                                event.created_at = Math.floor(Date.now() / 1000);
-                            }
-                            
-                            // Calculate the event ID before signing
-                            // This is important because the ID is a hash of the event data
-                            const eventId = NostrTools.getEventHash(event);
-                            event.id = eventId;
-                            
-                            console.log('Event to be signed:', event);
-                            
-                            // Sign the event using NIP-07
-                            const signedEvent = await window.nostr.signEvent(event);
-                            
-                            console.log('Signed event:', signedEvent);
+                            // Store the challenge to be sent in the publish request header
+                            // instead of embedding it in the event tags
+                            const sessionChallenge = challenge;
                             
                             // Update status
-                            kind10040Status.textContent = 'Event signed successfully. Publishing...';
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Sign the event
+                            const signedEvent = await window.nostr.signEvent(event);
                             
                             // Now publish the signed event
-                            return fetch('/control/api/publish-kind10040', {
+                            kind10040Status.textContent = 'Publishing signed event...';
+                            
+                            // Send the signed event to the server
+                            fetch('/control/api/publish-kind10040-event', {
                                 method: 'POST',
                                 headers: {
-                                    'Content-Type': 'application/json'
+                                    'Content-Type': 'application/json',
+                                    'X-Challenge': sessionChallenge  // Pass challenge in a header instead
                                 },
-                                body: JSON.stringify({ signedEvent })
+                                body: JSON.stringify({ event: signedEvent })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update status
+                                    kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
+                                    kind10040Status.className = 'status-message status-success';
+                                    
+                                    // Show the output container
+                                    kind10040Output.style.display = 'block';
+                                    
+                                    // Update event preview with the published event
+                                    kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
+                                    
+                                    // Refresh the event info after publishing
+                                    fetchKind10040Info();
+                                } else {
+                                    // Show error
+                                    let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
+                                    
+                                    // Add details if available
+                                    if (data.details) {
+                                        console.error('Error details:', data.details);
+                                        errorMessage += '\n\nDetails: ' + data.details;
+                                    }
+                                    
+                                    kind10040Status.textContent = errorMessage;
+                                    kind10040Status.className = 'status-message status-error';
+                                    
+                                    // Re-enable publish button
+                                    publishKind10040Btn.disabled = false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error in kind 10040 event process:', error);
+                                kind10040Status.textContent = 'Error: ' + error.message;
+                                kind10040Status.className = 'status-message status-error';
+                                createKind10040Btn.disabled = false;
+                                publishKind10040Btn.disabled = false;
                             });
                         } catch (error) {
                             console.error('Error signing event:', error);
@@ -534,41 +542,6 @@
                     } else {
                         throw new Error(data.error || 'Failed to get event data');
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update status
-                        kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
-                        kind10040Status.className = 'status-message status-success';
-                        
-                        // Show the output container
-                        kind10040Output.style.display = 'block';
-                        
-                        // Update event preview with the published event
-                        kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
-                        
-                        // Refresh the event info after publishing
-                        fetchKind10040Info();
-                    } else {
-                        // Show error
-                        let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
-                        
-                        // Add details if available
-                        if (data.details) {
-                            console.error('Error details:', data.details);
-                            errorMessage += '\n\nDetails: ' + data.details;
-                        }
-                        
-                        kind10040Status.textContent = errorMessage;
-                        kind10040Status.className = 'status-message status-error';
-                        
-                        // Re-enable publish button
-                        publishKind10040Btn.disabled = false;
-                    }
-                    
-                    // Re-enable create button
-                    createKind10040Btn.disabled = false;
                 })
                 .catch(error => {
                     console.error('Error in kind 10040 event process:', error);
@@ -671,61 +644,69 @@
                             const userPubkey = await window.nostr.getPublicKey();
                             event.pubkey = userPubkey;
                             
-                            // Add challenge tag if not already present
                             // Get the challenge from the server response
                             const challenge = data.challenge;
                             
-                            // If we have a challenge, add it to the tags
-                            if (challenge) {
-                                if (!event.tags) {
-                                    event.tags = [];
-                                }
-                                
-                                // Check if challenge tag already exists
-                                let challengeTagExists = false;
-                                for (const tag of event.tags) {
-                                    if (tag[0] === 'challenge') {
-                                        tag[1] = challenge; // Update existing tag
-                                        challengeTagExists = true;
-                                        break;
-                                    }
-                                }
-                                
-                                // Add challenge tag if it doesn't exist
-                                if (!challengeTagExists) {
-                                    event.tags.push(['challenge', challenge]);
-                                }
-                            } else {
-                                console.warn('No challenge provided by the server. Authentication may fail.');
-                            }
-                            
-                            // Make sure created_at is set
-                            if (!event.created_at) {
-                                event.created_at = Math.floor(Date.now() / 1000);
-                            }
-                            
-                            // Calculate the event ID before signing
-                            // This is important because the ID is a hash of the event data
-                            const eventId = NostrTools.getEventHash(event);
-                            event.id = eventId;
-                            
-                            console.log('Event to be signed:', event);
-                            
-                            // Sign the event using NIP-07
-                            const signedEvent = await window.nostr.signEvent(event);
-                            
-                            console.log('Signed event:', signedEvent);
+                            // Store the challenge to be sent in the publish request header
+                            // instead of embedding it in the event tags
+                            const sessionChallenge = challenge;
                             
                             // Update status
-                            kind10040Status.textContent = 'Event signed successfully. Publishing...';
+                            kind10040Status.textContent = 'Signing event with NIP-07...';
+                            
+                            // Sign the event
+                            const signedEvent = await window.nostr.signEvent(event);
                             
                             // Now publish the signed event
-                            return fetch('/control/api/publish-kind10040', {
+                            kind10040Status.textContent = 'Publishing signed event...';
+                            
+                            // Send the signed event to the server
+                            fetch('/control/api/publish-kind10040-event', {
                                 method: 'POST',
                                 headers: {
-                                    'Content-Type': 'application/json'
+                                    'Content-Type': 'application/json',
+                                    'X-Challenge': sessionChallenge  // Pass challenge in a header instead
                                 },
-                                body: JSON.stringify({ signedEvent })
+                                body: JSON.stringify({ event: signedEvent })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update status
+                                    kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
+                                    kind10040Status.className = 'status-message status-success';
+                                    
+                                    // Show the output container
+                                    kind10040Output.style.display = 'block';
+                                    
+                                    // Update event preview with the published event
+                                    kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
+                                    
+                                    // Refresh the event info after publishing
+                                    fetchKind10040Info();
+                                } else {
+                                    // Show error
+                                    let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
+                                    
+                                    // Add details if available
+                                    if (data.details) {
+                                        console.error('Error details:', data.details);
+                                        errorMessage += '\n\nDetails: ' + data.details;
+                                    }
+                                    
+                                    kind10040Status.textContent = errorMessage;
+                                    kind10040Status.className = 'status-message status-error';
+                                    
+                                    // Re-enable publish button
+                                    publishKind10040Btn.disabled = false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error in kind 10040 event process:', error);
+                                kind10040Status.textContent = 'Error: ' + error.message;
+                                kind10040Status.className = 'status-message status-error';
+                                createKind10040Btn.disabled = false;
+                                publishKind10040Btn.disabled = false;
                             });
                         } catch (error) {
                             console.error('Error signing event:', error);
@@ -734,41 +715,6 @@
                     } else {
                         throw new Error(data.error || 'Failed to get event data');
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update status
-                        kind10040Status.textContent = 'Kind 10040 event published successfully! (May take a minute or so to be viewable in below panel.)';
-                        kind10040Status.className = 'status-message status-success';
-                        
-                        // Show the output container
-                        kind10040Output.style.display = 'block';
-                        
-                        // Update event preview with the published event
-                        kind10040EventPreview.textContent = data.output || JSON.stringify(data.event, null, 2);
-                        
-                        // Refresh the event info after publishing
-                        fetchKind10040Info();
-                    } else {
-                        // Show error
-                        let errorMessage = 'Error publishing Kind 10040 event: ' + (data.error || data.message || 'Unknown error');
-                        
-                        // Add details if available
-                        if (data.details) {
-                            console.error('Error details:', data.details);
-                            errorMessage += '\n\nDetails: ' + data.details;
-                        }
-                        
-                        kind10040Status.textContent = errorMessage;
-                        kind10040Status.className = 'status-message status-error';
-                        
-                        // Re-enable publish button
-                        publishKind10040Btn.disabled = false;
-                    }
-                    
-                    // Re-enable create button
-                    createKind10040Btn.disabled = false;
                 })
                 .catch(error => {
                     console.error('Error in kind 10040 event process:', error);

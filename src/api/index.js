@@ -100,7 +100,7 @@ function register(app) {
     // Command endpoints (write operations requiring authentication)
     app.post('/api/generate-nip85', nip85.handleGenerateNip85);
     app.post('/api/create-kind10040', nip85.handleCreateKind10040);
-    app.post('/api/publish-kind10040', nip85.handlePublishKind10040);
+    app.post('/api/publish-kind10040-event', nip85.handlePublishKind10040);
     app.post('/api/publish-kind30382', nip85.handlePublishKind30382);
     // app.post('/api/publish', nip85.handlePublish);
     

@@ -72,7 +72,7 @@ function handlePublishKind10040(req, res) {
 
     try {
         // Get the signed event from the request
-        const { signedEvent } = req.body;
+        const { event: signedEvent } = req.body;
         
         if (!signedEvent) {
             return res.status(400).json({ 
@@ -83,7 +83,7 @@ function handlePublishKind10040(req, res) {
         
         // Verify that the event has a signature
         // In a production environment, you would want to use a proper Nostr library for verification
-        // For this example, we'll just check that the pubkey matches and the challenge is included
+        // Now we'll check that the pubkey matches and the challenge is in the header
         
         const sessionPubkey = req.session.pubkey;
         const sessionChallenge = req.session.challenge;
@@ -103,18 +103,10 @@ function handlePublishKind10040(req, res) {
             });
         }
         
-        // Check challenge is included in tags
-        let challengeFound = false;
-        if (signedEvent.tags && Array.isArray(signedEvent.tags)) {
-            for (const tag of signedEvent.tags) {
-                if (tag[0] === 'challenge' && tag[1] === sessionChallenge) {
-                    challengeFound = true;
-                    break;
-                }
-            }
-        }
+        // Check challenge is included in the header instead of tags
+        const headerChallenge = req.headers['x-challenge'];
         
-        if (!challengeFound) {
+        if (!headerChallenge || headerChallenge !== sessionChallenge) {
             return res.json({ 
                 success: false, 
                 message: 'Challenge verification failed' 
