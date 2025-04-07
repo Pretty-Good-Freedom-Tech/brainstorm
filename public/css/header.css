@@ -13,6 +13,12 @@
     margin: 0 auto;
     border: 1px solid #3213e1;
 }
+.navbar-container {
+    margin:20px;
+    text-align: center;
+    width: 100%;
+    border: 1px solid #f8f8f4;
+}
 .header-title {
     color: #fff;
     border: 0px;
@@ -52,11 +58,7 @@
 }
 
 /* Navbar Styles */
-.navbar-container {
-    text-align: center;
-    width: 100%;
-    border: 1px solid #f8f8f4;
-}
+
 .navbar {
     margin-top: 20px;
     padding: 10px 0;
