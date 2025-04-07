@@ -156,20 +156,6 @@ app.get('/control', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
 });
 
-/*
-// For backward compatibility, redirect old URLs to new ones
-app.get('/control-panel.html', (req, res) => {
-    res.redirect('/control/nip85-control-panel.html');
-});
-
-app.get('/nip85-control-panel.html', (req, res) => {
-    res.redirect('/control/nip85-control-panel.html');
-});
-
-app.get('/sign-in.html', (req, res) => {
-    res.redirect('/control/sign-in.html');
-});
-*/
 // Authentication middleware
 const authMiddleware = (req, res, next) => {
     // Skip auth for static resources, sign-in page and auth-related endpoints
