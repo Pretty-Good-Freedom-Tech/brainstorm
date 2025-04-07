@@ -168,6 +168,7 @@
         document.head.appendChild(cssLink);
     </script>
     <script>
+        /*
         // Determine if we're in the /control/ path for header.js
         const headerJsPath = window.location.pathname.startsWith('/control/') ? 
             window.location.origin + '/control/header.js' : 
@@ -178,7 +179,9 @@
         headerScript.src = headerJsPath;
         headerScript.type = 'text/javascript';
         document.head.appendChild(headerScript);
+        */
     </script>
+    <script src="./components/header/header.js"></script>
     <!-- Load Chart.js before any scripts that use it -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -389,7 +392,18 @@
     </div>
     
     <script>
-        // Function to load header
+        // Load the header component
+        fetch('./components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+            /*
         function loadHeader() {
             const headerPlaceholder = document.getElementById('header-placeholder');
             
@@ -414,6 +428,7 @@
                     console.error('Error loading header component:', error);
                 });
         }
+        */
         
         // Function to format timestamp
         function formatTimestamp(timestamp) {
