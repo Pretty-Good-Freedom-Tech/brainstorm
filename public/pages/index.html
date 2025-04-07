@@ -21,19 +21,19 @@
                 <div style="text-align: left;">
                     <div>1. Sign in using NIP-07 compatible extension (e.g. Alby or nos2x).</div>
                     <div>2. Change Neo4j password in the Neo4j Browser (see link above) to the one you provided during installation.</div>
-                    <div>3. Turn on Databases, Streaming, and Routine Tasks toggle buttons (below).</div>
-                    <div>4. Wait for all Routine Tasks (below) to complete at least once. May take an hour or two the first time.</div>
+                    <div>3. Turn on Databases, Streaming, and Calculate toggle buttons (below).</div>
+                    <div>4. Wait for all Calculations (below) to complete at least once. May take an hour or two the first time.</div>
                     <div>5. While you're waiting, enable NIP-85 by publishing your kind 10040 event (see NIP-85 button in the navbar above). Learn more about making your personalized WoT scores available to clients in the About section.</div>
-                    <div>6. Once Routine Tasks have completed their first cycle, turn on the Stream Filtered Content toggle button. This will start streaming filtered content to your relay!</div>
+                    <div>6. Once Calculations have completed their first cycle, turn on the Stream Filtered Content toggle button. This will start streaming filtered content to your relay!</div>
                 </div>
             </div>
         </div>
         <!-- New Service Toggle Section -->
         <div class="service-toggles-container">
-            <h3>Service Controls <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
+            <h3>Activate Hasenpfeffr <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
             <div class="service-toggles">
                 <div class="service-toggle-item">
-                    <h4>Databases <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
+                    <h4>Turn on Databases <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
                     <div class="toggle-container">
                         <span class="toggle-label">Toggle strfry and neo4j on/off.</span>
                         <label class="switch">
@@ -43,7 +43,7 @@
                     </div>
                 </div>
                 <div class="service-toggle-item">
-                    <h4>Streaming <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the ETL pipeline streaming services that process FOLLOWS, MUTES, and REPORTS relationships in real-time.</span></span></h4>
+                    <h4>Stream Events <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the ETL pipeline streaming services that process FOLLOWS, MUTES, and REPORTS relationships in real-time.</span></span></h4>
                     <div class="toggle-container">
                         <span class="toggle-label">Stream follows, mutes, and reports in real time.</span>
                         <label class="switch">
@@ -53,7 +53,7 @@
                     </div>
                 </div>
                 <div class="service-toggle-item">
-                    <h4>Routine Tasks <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly: <li>negentropy sync</li><li>calculate scores</li><li>update blacklist, whitelist, and NIP-85</li></span></span></h4>
+                    <h4>Calculate <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly: <li>negentropy sync</li><li>calculate scores</li><li>update blacklist, whitelist, and NIP-85</li></span></span></h4>
                     <div class="toggle-container">
                         <span class="toggle-label">Routine (every 6 hours) data synchronization, recalculation and export of GrapeRank and other scores, and redetermination/export ofblacklist, whitelist, and NIP-85.</span>
                         <label class="switch">
