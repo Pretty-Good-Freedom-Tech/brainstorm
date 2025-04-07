@@ -152,6 +152,11 @@ app.get('/home.html', (req, res) => {
     serveHtmlFile('home.html', res);
 });
 
+app.get('/blacklist-control-panel.html', (req, res) => {
+    console.log('[SERVER] Route hit: /blacklist-control-panel.html');
+    serveHtmlFile('blacklist-control-panel.html', res);
+});
+
 app.get('/control', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
 });
