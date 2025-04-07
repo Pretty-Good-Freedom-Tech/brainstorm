@@ -113,7 +113,6 @@
             
         document.addEventListener('DOMContentLoaded', function() {
             // Kind 30382 Event Management
-            const publishKind30382Btn = document.getElementById('publishKind30382Btn');
             const kind30382Output = document.getElementById('kind30382Output');
             const kind30382EventPreview = document.getElementById('kind30382EventPreview');
             const kind30382Status = document.getElementById('kind30382Status');
@@ -214,30 +213,6 @@
                 });
             }
             
-            // Publish Kind 30382 Events
-            if (publishKind30382Btn) {
-                publishKind30382Btn.addEventListener('click', function() {
-                    // Check authentication status first
-                    fetch('/control/api/auth/status')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data && data.authenticated) {
-                                // User is authenticated, proceed with publishing
-                                publishKind30382Events();
-                            } else {
-                                // User is not authenticated, show error with sign-in link
-                                kind30382Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
-                                kind30382Status.className = 'status-message status-error';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error checking authentication status:', error);
-                            kind30382Status.textContent = 'Error checking authentication: ' + error.message;
-                            kind30382Status.className = 'status-message status-error';
-                        });
-                });
-            }
-            
             // Publish Kind 10040 Event
             if (publishKind10040Btn) {
                 publishKind10040Btn.addEventListener('click', function() {
@@ -260,148 +235,6 @@
                             kind10040Status.className = 'status-message status-error';
                         });
                 });
-            }
-            
-            // Publish Kind 30382 Events
-            if (publishKind30382Btn) {
-                publishKind30382Btn.addEventListener('click', function() {
-                    // Check authentication status first
-                    fetch('/control/api/auth/status')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data && data.authenticated) {
-                                // User is authenticated, proceed with publishing
-                                publishKind30382Events();
-                            } else {
-                                // User is not authenticated, show error with sign-in link
-                                kind30382Status.innerHTML = 'Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events. This is an administrative action that requires authentication.';
-                                kind30382Status.className = 'status-message status-error';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error checking authentication status:', error);
-                            kind30382Status.textContent = 'Error checking authentication: ' + error.message;
-                            kind30382Status.className = 'status-message status-error';
-                        });
-                });
-            }
-            
-            // Function to publish kind 30382 events
-            function publishKind30382Events() {
-                // Disable button during processing
-                publishKind30382Btn.disabled = true;
-                kind30382Status.className = 'status-message info';
-                kind30382Status.textContent = 'Publishing Kind 30382 events...';
-                
-                fetch('/control/api/publish-kind30382', {
-                    method: 'POST'
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            kind30382Status.className = 'status-message success';
-                            kind30382Status.textContent = data.message || 'Kind 30382 events published successfully!';
-                            
-                            // Display the events preview
-                            kind30382Output.style.display = 'block';
-                            
-                            // For background processes, show that it's running
-                            if (data.message && data.message.includes('background')) {
-                                kind30382Output.innerHTML = `
-                                    <div class="alert alert-info">
-                                        <p><strong>Publishing in progress:</strong> The events are being published in the background.</p>
-                                        <p>This may take several minutes for large batches. You can check the status by refreshing the page later.</p>
-                                        <p>Check the server logs for detailed progress information.</p>
-                                    </div>
-                                `;
-                                
-                                // Start polling for updates
-                                setTimeout(checkKind30382Status, 10000); // Check after 10 seconds
-                            } else {
-                                // Create a more concise summary from the response data
-                                let summary = '';
-                                
-                                try {
-                                    // Try to parse the output if it's JSON
-                                    let parsedData = data;
-                                    if (typeof data.output === 'string' && data.output.trim().startsWith('{')) {
-                                        parsedData = JSON.parse(data.output);
-                                    }
-                                    
-                                    // Extract the summary information
-                                    if (parsedData.publishSummary) {
-                                        const summary = parsedData.publishSummary;
-                                        kind30382Output.innerHTML = `
-                                            <div class="alert alert-success">
-                                                <h4>Publishing Summary:</h4>
-                                                <p>Total events: ${summary.total}</p>
-                                                <p>Successfully published: ${summary.successful}</p>
-                                                <p>Failed: ${summary.failed}</p>
-                                            </div>
-                                        `;
-                                        
-                                        // If we have relay-specific stats, show them
-                                        if (summary.byRelay) {
-                                            let relayHtml = '<h4>Results by Relay:</h4><ul>';
-                                            for (const [relayUrl, stats] of Object.entries(summary.byRelay)) {
-                                                relayHtml += `<li>${relayUrl}: ${stats.successful} successful, ${stats.failed} failed</li>`;
-                                            }
-                                            relayHtml += '</ul>';
-                                            
-                                            kind30382Output.innerHTML += relayHtml;
-                                        }
-                                    } else if (parsedData.publishResults && Array.isArray(parsedData.publishResults)) {
-                                        // Group results by relay and success status
-                                        const relayStats = {};
-                                        
-                                        parsedData.publishResults.forEach(result => {
-                                            const relayUrl = result.relayUrl || 'unknown';
-                                            if (!relayStats[relayUrl]) {
-                                                relayStats[relayUrl] = { success: 0, failed: 0 };
-                                            }
-                                            
-                                            if (result.success) {
-                                                relayStats[relayUrl].success++;
-                                            } else {
-                                                relayStats[relayUrl].failed++;
-                                            }
-                                        });
-                                        
-                                        // Create summary text
-                                        let summaryHtml = '<h4>Publishing Results:</h4><ul>';
-                                        for (const [relayUrl, stats] of Object.entries(relayStats)) {
-                                            summaryHtml += `<li>${relayUrl}: ${stats.success} successful, ${stats.failed} failed</li>`;
-                                        }
-                                        summaryHtml += '</ul>';
-                                        
-                                        kind30382Output.innerHTML = summaryHtml;
-                                    } else {
-                                        // Fallback to raw output if no structured data
-                                        kind30382Output.innerHTML = `<pre>${data.output || JSON.stringify(data, null, 2)}</pre>`;
-                                    }
-                                } catch (error) {
-                                    console.error('Error parsing output:', error);
-                                    kind30382Output.innerHTML = `<pre>${data.output || JSON.stringify(data, null, 2)}</pre>`;
-                                }
-                            }
-                        } else {
-                            kind30382Status.className = 'status-message error';
-                            kind30382Status.textContent = data.message || 'Error publishing Kind 30382 events';
-                            kind30382Output.style.display = 'block';
-                            kind30382Output.innerHTML = `<pre class="error">${data.error || data.output || 'Unknown error'}</pre>`;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        kind30382Status.className = 'status-message error';
-                        kind30382Status.textContent = 'Error publishing Kind 30382 events';
-                        kind30382Output.style.display = 'block';
-                        kind30382Output.innerHTML = `<pre class="error">${error.message}</pre>`;
-                    })
-                    .finally(() => {
-                        // Re-enable button
-                        publishKind30382Btn.disabled = false;
-                    });
             }
             
             // Function to check the status of Kind 30382 publishing
@@ -587,7 +420,6 @@
             
             // Event listeners
             refreshKind30382InfoBtn.addEventListener('click', fetchKind30382Info);
-            publishKind30382Btn.addEventListener('click', publishKind30382Events);
             
             // Fetch kind 30382 event information on page load
             fetchKind30382Info();
