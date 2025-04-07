@@ -55,6 +55,7 @@
     padding: 10px 0;
     border-radius: 5px 5px 0 0;
     max-width: 1200px;
+    border: 1px solid #1dc50e;
 }
 .navbar-content {
     display: flex;
@@ -63,6 +64,7 @@
     margin: 0 auto;
     padding: 0 10px;
     justify-content: center;
+    border: 1px solid #ce1212;
 }
 .nav-btn {
     background-color: #2196F3;
