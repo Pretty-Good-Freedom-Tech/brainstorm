@@ -88,9 +88,9 @@ function loadNavbar() {
     console.log('Loading navbar for path:', currentPath);
     
     // Choose which navbar to load - nav2.html for home.html and nav1.html for everything else
-    let navbarPath = '/control/components/header/navbars/nav1.html';
-    if (currentPath === '/control/home.html') {
-        navbarPath = '/control/components/header/navbars/nav2.html';
+    let navbarPath = '/control/components/header/navbars/nav2.html';
+    if (currentPath === '/control/index.html' || currentPath === '/control/about.html') {
+        navbarPath = '/control/components/header/navbars/nav1.html';
     }
     
     // Fetch the appropriate navbar content
