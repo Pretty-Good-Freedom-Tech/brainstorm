@@ -140,6 +140,7 @@ const authMiddleware = (req, res, next) => {
         req.path.startsWith('/api/auth/') ||
         req.path === '/' || 
         req.path === '/control-panel.html' ||
+        req.path === '/nip85.html' ||
         req.path === '/nip85-control-panel.html' ||
         !req.path.startsWith('/api/')) {
         return next();
