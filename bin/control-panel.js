@@ -138,6 +138,26 @@ app.get('/', (req, res) => {
     serveHtmlFile('index.html', res);
 });
 
+app.get('/blacklist-control-panel.html', (req, res) => {
+    console.log('[SERVER] Route hit: /blacklist-control-panel.html');
+    serveHtmlFile('blacklist-control-panel.html', res);
+});
+
+app.get('/control-panel.html', (req, res) => {
+    console.log('[SERVER] Route hit: /control-panel.html');
+    serveHtmlFile('control-panel.html', res);
+});
+
+app.get('/graperank-control-panel.html', (req, res) => {
+    console.log('[SERVER] Route hit: /graperank-control-panel.html');
+    serveHtmlFile('graperank-control-panel.html', res);
+});
+
+app.get('/home.html', (req, res) => {
+    console.log('[SERVER] Route hit: /home.html');
+    serveHtmlFile('home.html', res);
+});
+
 app.get('/index.html', (req, res) => {
     console.log('[SERVER] Route hit: /index.html');
     serveHtmlFile('index.html', res);
@@ -147,15 +167,12 @@ app.get('/overview.html', (req, res) => {
     serveHtmlFile('overview.html', res);
 });
 
-app.get('/home.html', (req, res) => {
-    console.log('[SERVER] Route hit: /home.html');
-    serveHtmlFile('home.html', res);
+app.get('/whitelist-control-panel.html', (req, res) => {
+    console.log('[SERVER] Route hit: /whitelist-control-panel.html');
+    serveHtmlFile('whitelist-control-panel.html', res);
 });
 
-app.get('/blacklist-control-panel.html', (req, res) => {
-    console.log('[SERVER] Route hit: /blacklist-control-panel.html');
-    serveHtmlFile('blacklist-control-panel.html', res);
-});
+
 
 app.get('/control', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/nip85-control-panel.html'));
