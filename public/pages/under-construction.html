@@ -14,5 +14,18 @@
         <h1>Under Construction</h1>
         <p>See Navbar for pages that are under construction. Thank you for your patience while we work on improving Hasenpfeffr.</p>
     </div>
+    <script>
+        // Load the header component
+        fetch('./components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+    </script>
 </body>
 </html>
