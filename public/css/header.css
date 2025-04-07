@@ -52,6 +52,8 @@
 /* Navbar Styles */
 .navbar-container {
     text-align: center;
+    width: 100%;
+    border: 1px solid #d6e621;
 }
 .navbar {
     margin-top: 20px;
