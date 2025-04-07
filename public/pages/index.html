@@ -12,15 +12,16 @@
     <div id="headerContainer"></div>
 
     <div class="container">
-        <div class="master-control">
-            <h2>Hasenpfeffr Relay Setup Page</h2>
-            <h3>Setup</h3>
+        <div class="section">
+            <h2>Hasenpfeffr Relay Home Page</h2>
+            <h3>Setup Instructions</h3>
             <div style="text-align: left;">
-                <div>1. Change Neo4j password in the Neo4j Browser (see link above) to the one you provided during installation.</div>
-                <div>2. Turn on Databases, Streaming, and Routine Tasks toggle buttons (below).</div>
-                <div>3. Wait for all Routine Tasks (below) to complete at least once. May take an hour or two the first time.</div>
-                <div>4. While you're waiting, enable NIP-85 by publishing your kind 10040 event (see NIP-85 button in the navbar above).</div>
-                <div>5. Once Routine Tasks have completed their first cycle, turn on the Stream Filtered Content toggle button. This will start streaming filtered content to your relay!</div>
+                <div>1. Sign in using NIP-07 compatible extension (e.g. Alby or nos2x).</div>
+                <div>2. Change Neo4j password in the Neo4j Browser (see link above) to the one you provided during installation.</div>
+                <div>3. Turn on Databases, Streaming, and Routine Tasks toggle buttons (below).</div>
+                <div>4. Wait for all Routine Tasks (below) to complete at least once. May take an hour or two the first time.</div>
+                <div>5. While you're waiting, enable NIP-85 by publishing your kind 10040 event (see NIP-85 button in the navbar above).</div>
+                <div>6. Once Routine Tasks have completed their first cycle, turn on the Stream Filtered Content toggle button. This will start streaming filtered content to your relay!</div>
             </div>
         </div>
         <!-- New Service Toggle Section -->
@@ -229,7 +230,7 @@
                 </div>
                 <div class="calculation-item">
                     <div class="calculation-item-content">
-                        <h4>NIP-85 Export <span class="info-icon">i</span><span class="tooltip">Exports Web of Trust scores as Trusted Assertions following NIP-85 kind 30382 events that can be shared with other relays and clients. TODO: ALSO PUBLISH KIND 10040 EVENT.</span></h4>
+                        <h4>NIP-85 Export <span class="info-icon">i</span><span class="tooltip">Exports Web of Trust scores as Trusted Assertions following NIP-85 kind 30382 events that can be shared with other relays and clients.</span></h4>
                         <p id="nip85-last-calculation-time" class="timestamp"></p>
                         <p id="nip85-last-calculation-duration" class="duration"></p>
                     </div>
