@@ -60,23 +60,27 @@ Have the following 3 pieces of information ready:
 sudo apt update
 sudo apt upgrade -y
 
-# Install Node.js and npm
+# Install curl, Node.js and npm if not already present
 sudo apt install -y curl
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 
-# Install Git
+# Install Git if not already present
 sudo apt install -y git
 
-# Install pv
+# Install pv if not already present
 sudo apt install pv
+```
 
+Then install hasenpfeffr: 
+
+```bash
 # Clone the Hasenpfeffr repository
 git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
 cd hasenpfeffr
 
 # Install dependencies
-npm install
+sudo npm install
 
 # Run the installation script
 sudo npm run install-hasenpfeffr
@@ -182,5 +186,4 @@ If you encounter any issues:
 ## 6. Update
 
 To update Hasenpfeffr, see the [update instructions](docs/UPDATE_INSTRUCTIONS.md).
-
 
