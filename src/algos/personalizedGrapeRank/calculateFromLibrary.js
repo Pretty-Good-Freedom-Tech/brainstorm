@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const graperank_calculator_1 = require("graperank-calculator");
+const calculator_1 = require("@graperank/calculator");
 const child_process_1 = require("child_process");
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const fs = require('fs');
@@ -28,7 +28,7 @@ const CONFIG_FILES = {
 const observer = getPubkey();
 const ratings = parseRatings();
 const params = getCalculatorParams();
-const calculator = new graperank_calculator_1.Calculator(observer, ratings, params);
+const calculator = new calculator_1.Calculator(observer, ratings, params);
 calculator.calculate().then((scorecards) => {
     console.log(`scorecards.length: ${scorecards.length}`);
     updateNeo4j(scorecards);

@@ -1,6 +1,6 @@
-import { Calculator } from 'graperank-calculator';
+import { Calculator } from '@graperank/calculator';
 import { execSync } from 'child_process';
-import { CalculatorParams, protocol, ProtocolParams, ProtocolRequest, Rating, RatingsList, ScorecardsEntry } from 'graperank-nodejs/src/types';
+import { CalculatorParams, protocol, ProtocolParams, ProtocolRequest, Rating, RatingsList, ScorecardsEntry } from '@graperank/util/types';
 import neo4j from 'neo4j-driver';
 
 const fs = require('fs');
