@@ -2,3 +2,4 @@
 hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/strfry
 hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-strfry-stats
 hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-negentropy-sync
+hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-control-panel

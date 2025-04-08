@@ -99,7 +99,14 @@ function removeFiles() {
     '/etc/graperank.conf',
     '/etc/strfry-router.config'
   ];
-  
+
+  const executableFiles = [
+    '/usr/local/bin/hasenpfeffr-control-panel',
+    '/usr/local/bin/hasenpfeffr-strfry-stats',
+    '/usr/local/bin/hasenpfeffr-negentropy-sync',
+    '/usr/local/bin/hasenpfeffr-update-config'
+  ];
+
   const serviceFiles = [
     '/etc/systemd/system/hasenpfeffr-control-panel.service',
     '/etc/systemd/system/addToQueue.service',
@@ -126,6 +133,13 @@ function removeFiles() {
   
   // Remove config files
   for (const file of configFiles) {
+    if (fs.existsSync(file)) {
+      executeCommand(`sudo rm ${file}`, { exitOnError: false });
+    }
+  }
+  
+  // Remove executable files
+  for (const file of executableFiles) {
     if (fs.existsSync(file)) {
       executeCommand(`sudo rm ${file}`, { exitOnError: false });
     }

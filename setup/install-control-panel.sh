@@ -48,7 +48,7 @@ exec node "$SCRIPT_PATH" "$@"
 EOF
 
 chmod +x "$CONTROL_PANEL_SCRIPT"
-sudo chown hasenpfeffr:hasenpfeffr "$CONTROL_PANEL_SCRIPT"
+chown hasenpfeffr:hasenpfeffr "$CONTROL_PANEL_SCRIPT"
 echo "Created wrapper script at $CONTROL_PANEL_SCRIPT"
 
 # Step 3: Set up the installation directory if it doesn't exist
@@ -165,6 +165,7 @@ fi
 echo "Installing configuration update script..."
 cp $SCRIPT_DIR/../bin/update-config.sh /usr/local/bin/hasenpfeffr-update-config
 chmod +x /usr/local/bin/hasenpfeffr-update-config
+chown hasenpfeffr:hasenpfeffr /usr/local/bin/hasenpfeffr-update-config
 echo "Configuration update script installed at /usr/local/bin/hasenpfeffr-update-config"
 
 # Step 6: Copy and enable the systemd service
