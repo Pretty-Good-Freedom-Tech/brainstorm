@@ -99,6 +99,13 @@ function removeFiles() {
     '/etc/graperank.conf',
     '/etc/strfry-router.config'
   ];
+
+  const executableFiles = [
+    '/usr/local/bin/hasenpfeffr-control-panel',
+    '/usr/local/bin/hasenpfeffr-strfry-stats',
+    '/usr/local/bin/hasenpfeffr-negentropy-sync',
+    '/usr/local/bin/hasenpfeffr-update-config'
+  ];
   
   const serviceFiles = [
     '/etc/systemd/system/hasenpfeffr-control-panel.service',
@@ -120,12 +127,21 @@ function removeFiles() {
   const directories = [
     // '/usr/local/lib/strfry',
     '/var/lib/hasenpfeffr',
-    '/home/ubuntu/hasenpfeffr',
+    '~/hasenpfeffr',
     '/usr/local/lib/node_modules/hasenpfeffr'
   ];
+
+  executeCommand('cd ~', { exitOnError: false });
   
   // Remove config files
   for (const file of configFiles) {
+    if (fs.existsSync(file)) {
+      executeCommand(`sudo rm ${file}`, { exitOnError: false });
+    }
+  }
+
+  // Remove executable files
+  for (const file of executableFiles) {
     if (fs.existsSync(file)) {
       executeCommand(`sudo rm ${file}`, { exitOnError: false });
     }
@@ -164,6 +180,8 @@ function installNewVersion() {
   // Set update mode environment variable
   process.env.UPDATE_MODE = 'true';
   
+  const homeDir = '~'
+  /*
   // Determine home directory - same logic as in cloneRepository
   let homeDir;
   if (process.env.SUDO_USER) {
@@ -174,6 +192,7 @@ function installNewVersion() {
   } else {
     homeDir = process.env.HOME || '/home/ubuntu';
   }
+  */
   
   const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
   console.log(`Using project directory: ${hasenpfeffrDir}`);
@@ -222,11 +241,11 @@ function cloneRepository() {
     const originalUser = process.env.SUDO_USER;
     homeDir = `/home/${originalUser}`;
   } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
-    // Default to /home/ubuntu for AWS EC2 if running as root and the directory exists
-    homeDir = '/home/ubuntu';
+    // Default to ~
+    homeDir = '~';
   } else {
     // Fall back to the current HOME environment variable
-    homeDir = process.env.HOME || '/home/ubuntu';
+    homeDir = process.env.HOME || '~';
   }
   
   console.log(`Using home directory: ${homeDir}`);
