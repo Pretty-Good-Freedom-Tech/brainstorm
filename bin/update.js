@@ -199,14 +199,14 @@ function installNewVersion() {
   
   // Install dependencies first
   console.log('Installing dependencies...');
-  executeCommand('sudo -E npm install', {
+  executeCommand('sudo npm install', {
     cwd: hasenpfeffrDir,
     exitOnError: true
   });
   
   // Run the installation script from the correct directory
   console.log('Running installation script...');
-  executeCommand('sudo -E npm run install-hasenpfeffr', { 
+  executeCommand('sudo npm run install-hasenpfeffr', { 
     cwd: hasenpfeffrDir,
     env: { ...process.env }
   });
