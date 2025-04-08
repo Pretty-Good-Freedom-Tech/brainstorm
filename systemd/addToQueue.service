@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=hasenpfeffr
 EnvironmentFile=/etc/hasenpfeffr.conf
-ExecStart=/usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
+ExecStart=sudo /usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
 Restart=on-failure
 RestartSec=1
 

@@ -38,7 +38,7 @@ function getNostrKeys() {
     }
     
     // Check the key file at the known location
-    const keyFilePath = '/home/ubuntu/hasenpfeffr/nostr/keys/hasenpfeffr_relay_keys';
+    const keyFilePath = '~/hasenpfeffr/nostr/keys/hasenpfeffr_relay_keys';
     
     if (fs.existsSync(keyFilePath)) {
       console.log(`Reading keys from file: ${keyFilePath}`);

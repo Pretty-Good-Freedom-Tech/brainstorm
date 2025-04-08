@@ -127,7 +127,7 @@ function removeFiles() {
   const directories = [
     // '/usr/local/lib/strfry',
     '/var/lib/hasenpfeffr',
-    '/home/ubuntu/hasenpfeffr',
+    'hasenpfeffr',
     '/usr/local/lib/node_modules/hasenpfeffr'
   ];
   
@@ -151,6 +151,8 @@ function removeFiles() {
       executeCommand(`sudo rm ${file}`, { exitOnError: false });
     }
   }
+
+  executeCommand('cd ~', { exitOnError: false });
   
   // Remove directories
   for (const dir of directories) {
@@ -179,6 +181,8 @@ function installNewVersion() {
   process.env.UPDATE_MODE = 'true';
   
   // Determine home directory - same logic as in cloneRepository
+  const homeDir = '~'
+  /*
   let homeDir;
   if (process.env.SUDO_USER) {
     const originalUser = process.env.SUDO_USER;
@@ -188,6 +192,7 @@ function installNewVersion() {
   } else {
     homeDir = process.env.HOME || '/home/ubuntu';
   }
+    */
   
   const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
   console.log(`Using project directory: ${hasenpfeffrDir}`);
@@ -235,12 +240,12 @@ function cloneRepository() {
     // If running under sudo, use the original user's home directory
     const originalUser = process.env.SUDO_USER;
     homeDir = `/home/${originalUser}`;
-  } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
-    // Default to /home/ubuntu for AWS EC2 if running as root and the directory exists
-    homeDir = '/home/ubuntu';
+  } else if (process.env.USER === 'root' && fs.existsSync('~')) {
+    // Default to ~ for AWS EC2 if running as root and the directory exists
+    homeDir = '~';
   } else {
     // Fall back to the current HOME environment variable
-    homeDir = process.env.HOME || '/home/ubuntu';
+    homeDir = process.env.HOME || '~';
   }
   
   console.log(`Using home directory: ${homeDir}`);

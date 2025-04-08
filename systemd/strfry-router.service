@@ -5,7 +5,7 @@ Description=strfry router for continuous streaming of kinds 3, 1984, and 10000 e
 Type=simple
 User=hasenpfeffr
 EnvironmentFile=/etc/hasenpfeffr.conf
-ExecStart=/usr/bin/strfry router /etc/strfry-router.config
+ExecStart=sudo strfry router /etc/strfry-router.config
 Restart=always
 
 [Install]
