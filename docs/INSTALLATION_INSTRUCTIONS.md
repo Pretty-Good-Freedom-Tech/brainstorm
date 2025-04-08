@@ -80,7 +80,7 @@ git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
 cd hasenpfeffr
 
 # Install dependencies
-npm install
+sudo npm install
 
 # Run the installation script
 sudo npm run install-hasenpfeffr

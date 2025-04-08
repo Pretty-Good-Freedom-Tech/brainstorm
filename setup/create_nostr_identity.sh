@@ -36,7 +36,7 @@ if [ ! -f "package.json" ]; then
 fi
 
 echo "Installing nostr-tools locally..."
-npm install --save nostr-tools
+sudo npm install --save nostr-tools
 
 # Generate Nostr keys using Node.js
 echo "Generating new Nostr identity..."

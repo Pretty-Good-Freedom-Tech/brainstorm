@@ -199,7 +199,7 @@ function installNewVersion() {
   
   // Install dependencies first
   console.log('Installing dependencies...');
-  executeCommand('npm install', {
+  executeCommand('sudo npm install', {
     cwd: hasenpfeffrDir,
     exitOnError: true
   });

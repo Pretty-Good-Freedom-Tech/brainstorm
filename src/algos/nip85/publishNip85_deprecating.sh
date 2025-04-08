@@ -34,17 +34,17 @@ fi
 echo "Checking for required dependencies..."
 if ! npm list | grep -q "neo4j-driver"; then
     echo "Installing neo4j-driver..."
-    npm install --save neo4j-driver
+    sudo npm install --save neo4j-driver
 fi
 
 if ! npm list | grep -q "nostr-tools"; then
     echo "Installing nostr-tools..."
-    npm install --save nostr-tools@^2.10.4
+    sudo npm install --save nostr-tools@^2.10.4
 fi
 
 if ! npm list | grep -q "websocket"; then
     echo "Installing websocket..."
-    npm install --save websocket
+    sudo npm install --save websocket
 fi
 
 # Check if nip85.json exists

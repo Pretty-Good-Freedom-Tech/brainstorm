@@ -21,7 +21,7 @@ chmod -R 755 "$TEMP_DIR"
 # Check if neo4j-driver is installed
 if ! npm list -g neo4j-driver > /dev/null 2>&1; then
   echo "Installing neo4j-driver..."
-  npm install -g neo4j-driver
+  sudo npm install -g neo4j-driver
 fi
 
 # Run the JavaScript script
