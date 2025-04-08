@@ -180,8 +180,6 @@ function installNewVersion() {
   // Set update mode environment variable
   process.env.UPDATE_MODE = 'true';
   
-  const homeDir = '~'
-  /*
   // Determine home directory - same logic as in cloneRepository
   let homeDir;
   if (process.env.SUDO_USER) {
@@ -192,7 +190,6 @@ function installNewVersion() {
   } else {
     homeDir = process.env.HOME || '/home/ubuntu';
   }
-  */
   
   const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
   console.log(`Using project directory: ${hasenpfeffrDir}`);
