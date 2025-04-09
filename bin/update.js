@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Hasenpfeffr Update Script
  * 
