@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Hasenpfeffr Update Script
  * 
@@ -116,6 +114,16 @@ function removeFiles() {
     '/etc/systemd/system/calculatePersonalizedGrapeRank.service',
     '/etc/systemd/system/calculatePersonalizedGrapeRank.timer'
   ];
+
+  const executableFiles = [
+    '/usr/local/bin/hasenpfeffr-control-panel',
+    '/usr/local/bin/hasenpfeffr-strfry-stats',
+    '/usr/local/bin/hasenpfeffr-negentropy-sync',
+    '/usr/local/bin/hasenpfeffr-update-config',
+    '/usr/local/bin/hasenpfeffr-generate',
+    '/usr/local/bin/hasenpfeffr-publish',
+    '/usr/local/bin/hasenpfeffr-install'
+  ];
   
   const directories = [
     // '/usr/local/lib/strfry',
@@ -126,6 +134,13 @@ function removeFiles() {
   
   // Remove config files
   for (const file of configFiles) {
+    if (fs.existsSync(file)) {
+      executeCommand(`sudo rm ${file}`, { exitOnError: false });
+    }
+  }
+  
+  // Remove executable files
+  for (const file of executableFiles) {
     if (fs.existsSync(file)) {
       executeCommand(`sudo rm ${file}`, { exitOnError: false });
     }
@@ -168,12 +183,14 @@ function installNewVersion() {
   let homeDir;
   if (process.env.SUDO_USER) {
     const originalUser = process.env.SUDO_USER;
+    executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! A originalUser: ${originalUser}"`, { exitOnError: false });
     homeDir = `/home/${originalUser}`;
   } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
     homeDir = '/home/ubuntu';
   } else {
     homeDir = process.env.HOME || '/home/ubuntu';
   }
+  executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! A homeDir: ${homeDir}"`, { exitOnError: false });
   
   const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
   console.log(`Using project directory: ${hasenpfeffrDir}`);
@@ -254,7 +271,7 @@ function cloneRepository() {
 // Clean up temporary files
 function cleanup() {
   console.log('Cleaning up...');
-  executeCommand('sudo rm -r /tmp/hasenpfeffr-update', { exitOnError: false });
+  // executeCommand('sudo rm -r /tmp/hasenpfeffr-update', { exitOnError: false });
 }
 
 // Update system packages and ensure dependencies are installed
