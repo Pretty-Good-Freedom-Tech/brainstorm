@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Hasenpfeffr Control Panel
  * 
