@@ -48,6 +48,7 @@ exec node "$SCRIPT_PATH" "$@"
 EOF
 
 chmod +x "$CONTROL_PANEL_SCRIPT"
+chown hasenpfeffr:hasenpfeffr "$CONTROL_PANEL_SCRIPT"
 echo "Created wrapper script at $CONTROL_PANEL_SCRIPT"
 
 # Step 3: Set up the installation directory if it doesn't exist
