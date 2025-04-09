@@ -99,6 +99,14 @@ function stopServices() {
 // Remove configuration and service files
 function removeFiles() {
   console.log('Removing old configuration and service files...');
+
+  let originalUser = 'ubuntu';
+  if (process.env.SUDO_USER) {
+    originalUser = process.env.SUDO_USER;
+    executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! in remove files A; originalUser: ${originalUser}"`, { exitOnError: false });
+  }
+  executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! in remove files B; originalUser: ${originalUser}"`, { exitOnError: false });
+
   const configFiles = [
     '/etc/hasenpfeffr.conf',
     '/etc/blacklist.conf',
@@ -134,11 +142,13 @@ function removeFiles() {
   ];
   
   const directories = [
-    // '/usr/local/lib/strfry',
-    '/var/lib/hasenpfeffr',
-    '/home/ubuntu/hasenpfeffr',
-    '/usr/local/lib/node_modules/hasenpfeffr'
+    // `/usr/local/lib/strfry`,
+    `/var/lib/hasenpfeffr`,
+    `/home/${originalUser}/hasenpfeffr`,
+    `/usr/local/lib/node_modules/hasenpfeffr`
   ];
+
+  executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! in remove files C; directories: ${JSON.stringify(directories)}"`, { exitOnError: false });
   
   // Remove config files
   for (const file of configFiles) {
