@@ -1,3 +1,16 @@
+## NOTES 9 Apr 2025:
+To get hasenpfeffr-control-panel, addToQueue, and processQueueservices to run on local laptop with user=wds4, I needed to:
+1. run service commands as sudo
+2. ran sudo visudo to add:
+- wds4 ALL=(ALL) NOPASSWD: ALL
+- hasenpfeffr ALL=(ALL) NOPASSWD: ALL
+I don't know why wds4 worked but hasenpfeffr did not work. 
+Not sure whether configure-sudo-privileges.sh is working properly or not. Need to make sure it is being run at installation. 
+next to do, on laptop:
+uninstall
+reinstall
+check if configure-sudo-privileges.sh is run
+
 ## TODO 7 April 2025
 - fix Friends relays list in hasenpfeffr.conf; set different relays for subcategories
 - move export files from algos to export directory

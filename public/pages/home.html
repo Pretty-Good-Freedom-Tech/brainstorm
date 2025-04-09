@@ -602,16 +602,12 @@
                 .then(data => {
                     if (data.success) {
                         // Update each calculation item with its status
-                        console.log('qwerty Calculation status data:', data);
                         calculationItems.forEach(item => {
-                            console.log(`qwerty item: ${item}`)
                             const element = document.getElementById(`${item}-last-calculation-time`);
                             const durationElement = document.getElementById(`${item}-last-calculation-duration`);
                             if (element && data.status[item]) {
                                 const status = data.status[item].status;
                                 let statusClass = '';
-
-                                console.log(`qwerty status: ${status}`);
                                 
                                 switch (status) {
                                     case 'Never':
@@ -633,7 +629,6 @@
                                 element.innerHTML = `<span class="status-indicator ${statusClass}"></span>${data.status[item].formattedTime}`;
                                 if (data.status[item].duration) {
                                     durationElement.innerHTML = `Duration: ${data.status[item].duration}`;
-                                    console.log(`qwerty duration: ${data.status[item].duration}`);
                                 }
                             }
                         });

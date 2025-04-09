@@ -103,9 +103,7 @@ function removeFiles() {
   let originalUser = 'ubuntu';
   if (process.env.SUDO_USER) {
     originalUser = process.env.SUDO_USER;
-    executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! in remove files A; originalUser: ${originalUser}"`, { exitOnError: false });
   }
-  executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! in remove files B; originalUser: ${originalUser}"`, { exitOnError: false });
 
   const configFiles = [
     '/etc/hasenpfeffr.conf',
@@ -148,8 +146,6 @@ function removeFiles() {
     `/usr/local/lib/node_modules/hasenpfeffr`
   ];
 
-  executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! in remove files C; directories: ${JSON.stringify(directories)}"`, { exitOnError: false });
-  
   // Remove config files
   for (const file of configFiles) {
     if (fs.existsSync(file)) {
@@ -201,14 +197,12 @@ function installNewVersion() {
   let homeDir;
   if (process.env.SUDO_USER) {
     const originalUser = process.env.SUDO_USER;
-    executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! A originalUser: ${originalUser}"`, { exitOnError: false });
     homeDir = `/home/${originalUser}`;
   } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
     homeDir = '/home/ubuntu';
   } else {
     homeDir = process.env.HOME || '/home/ubuntu';
   }
-  executeCommand(`echo "!!!!!!!!!!!!!!!!!!!!! A homeDir: ${homeDir}"`, { exitOnError: false });
   
   const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
   console.log(`Using project directory: ${hasenpfeffrDir}`);
