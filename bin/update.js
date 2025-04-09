@@ -175,6 +175,75 @@ function removeFiles() {
   }
 }
 
+// Function to check if hasenpfeffr user has proper sudo privileges
+function checkSudoPrivileges() {
+  console.log('Checking sudo privileges for hasenpfeffr user...');
+  
+  try {
+    // Try to check if the hasenpfeffr user exists
+    const hasUserOutput = execSync('id -u hasenpfeffr 2>/dev/null || echo "not_exists"', { 
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore']
+    }).trim();
+    
+    if (hasUserOutput === 'not_exists') {
+      console.log('User hasenpfeffr does not exist yet. Sudo privileges will be configured during installation.');
+      return false;
+    }
+    
+    // Check if the hasenpfeffr user has sudo privileges with NOPASSWD
+    const sudoersContent = execSync('sudo cat /etc/sudoers.d/hasenpfeffr 2>/dev/null || echo "not_exists"', { 
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore']
+    }).trim();
+    
+    if (sudoersContent === 'not_exists' || !sudoersContent.includes('hasenpfeffr ALL=(ALL) NOPASSWD: ALL')) {
+      console.log('Hasenpfeffr user does not have proper sudo privileges. Configuring...');
+      return false;
+    }
+    
+    // Check if hasenpfeffr can actually run sudo commands without password
+    try {
+      execSync('sudo -u hasenpfeffr sudo -n true', { 
+        stdio: ['ignore', 'ignore', 'ignore']
+      });
+      console.log('Hasenpfeffr user has proper sudo privileges.');
+      return true;
+    } catch (error) {
+      console.log('Hasenpfeffr user cannot run sudo commands without password. Configuring...');
+      return false;
+    }
+  } catch (error) {
+    console.log('Error checking sudo privileges:', error.message);
+    return false;
+  }
+}
+
+// Function to configure sudo privileges
+function configureSudoPrivileges() {
+  console.log('Configuring sudo privileges for hasenpfeffr user...');
+  
+  let homeDir;
+  if (process.env.SUDO_USER) {
+    const originalUser = process.env.SUDO_USER;
+    homeDir = `/home/${originalUser}`;
+  } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
+    homeDir = '/home/ubuntu';
+  } else {
+    homeDir = process.env.HOME || '/home/ubuntu';
+  }
+  
+  const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
+  const configureSudoScript = `${hasenpfeffrDir}/setup/configure-sudo-privileges.sh`;
+  
+  if (fs.existsSync(configureSudoScript)) {
+    console.log('Running sudo privileges configuration script...');
+    executeCommand(`sudo ${configureSudoScript}`, { exitOnError: false });
+  } else {
+    console.log('Sudo privileges configuration script not found at:', configureSudoScript);
+  }
+}
+
 // Install the new version
 function installNewVersion() {
   console.log('Installing new version...');
@@ -206,6 +275,11 @@ function installNewVersion() {
   
   const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
   console.log(`Using project directory: ${hasenpfeffrDir}`);
+  
+  // Check and configure sudo privileges if needed
+  if (!checkSudoPrivileges()) {
+    configureSudoPrivileges();
+  }
   
   // Install dependencies first
   console.log('Installing dependencies...');
@@ -384,6 +458,11 @@ async function update() {
   if (!isUninstall) {
     // Clone the latest repository from GitHub
     cloneRepository();
+    
+    // Check and configure sudo privileges if needed (also check here in case installation fails)
+    if (!checkSudoPrivileges()) {
+      configureSudoPrivileges();
+    }
     
     // Install new version
     installNewVersion();

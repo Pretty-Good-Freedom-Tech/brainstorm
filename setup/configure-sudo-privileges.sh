@@ -5,6 +5,8 @@
 # with NOPASSWD option to allow sudo without password
 #
 
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! starting configure-sudo-privileges.sh"
+
 set -e  # Exit on error
 
 # Check if running as root
@@ -24,6 +26,8 @@ fi
 
 # Create a temporary file for the sudoers entry
 SUDOERS_TMP=$(mktemp)
+
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SUDOERS_TMP: ${SUDOERS_TMP}"
 
 # Create the sudoers entry
 echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > "$SUDOERS_TMP"
