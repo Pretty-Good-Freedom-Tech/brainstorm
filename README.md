@@ -28,8 +28,9 @@ I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/
 
 ## What do I need?
 
-- A Linux server (e.g., Ubuntu 22.04 LTS). (You can run it locally for testing but we presume you're using a hosted server.) This has been tested using an AWS EC2 t2.large instance.
+- A Linux server (e.g., Ubuntu 22.04 LTS). (You can run it locally for testing but we presume you're using a hosted server.) This has been tested using an AWS EC2 t2.large instance. It's not yet tested in different environments and may not work. Coming soon: I'll probably containerize this to enable running in different environments.
 - A domain name (e.g., `relay.myCoolDomain.com`) which you will point to your hosted server.
+
 
 ## Installation
 

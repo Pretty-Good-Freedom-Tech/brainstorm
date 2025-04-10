@@ -48,6 +48,26 @@ chmod 440 "$SUDOERS_FILE"
 echo "Successfully configured sudo privileges for $USERNAME without password"
 echo "The user can now run sudo commands without being prompted for a password"
 
+# Configure sudo to not change directory or reset environment
+echo "Configuring sudo behavior..."
+SUDO_DEFAULTS="/etc/sudoers.d/hasenpfeffr-defaults"
+
+# Create the defaults file
+cat << EOF > /tmp/sudo_defaults
+Defaults    !reset_env,!chdir
+EOF
+
+# Check syntax
+visudo -c -f /tmp/sudo_defaults
+if [ $? -ne 0 ]; then
+  echo "Error: Invalid sudoers syntax for defaults" >&2
+  rm -f /tmp/sudo_defaults
+else
+  sudo mv /tmp/sudo_defaults "$SUDO_DEFAULTS"
+  sudo chmod 440 "$SUDO_DEFAULTS"
+  echo "Configured sudo to preserve environment and working directory"
+fi
+
 # Set permissions for all Hasenpfeffr scripts recursively
 echo "Setting executable permissions for all scripts..."
 INSTALL_DIR="/usr/local/lib/node_modules/hasenpfeffr"

@@ -42,8 +42,12 @@ sudo rm /etc/systemd/system/calculatePersonalizedPageRank.timer
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.timer
 sudo rm -r /var/lib/hasenpfeffr
-sudo rm -r /home/ubuntu/hasenpfeffr
+sudo rm -r ~/hasenpfeffr
 sudo rm -r /usr/local/lib/node_modules/hasenpfeffr
+sudo rm /usr/local/bin/hasenpfeffr-control-panel
+sudo rm /usr/local/bin/hasenpfeffr-strfry-stats
+sudo rm /usr/local/bin/hasenpfeffr-negentropy-sync
+sudo rm /usr/local/bin/hasenpfeffr-update-config
 
 ######## START HERE WHEN INSTALLING FROM SCRATCH ########
 # Update system packages
@@ -63,7 +67,7 @@ cd ~
 git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
 cd hasenpfeffr
 # Install dependencies
-npm install
+sudo npm install
 # Run the installation script
 sudo npm run install-hasenpfeffr
 ```
