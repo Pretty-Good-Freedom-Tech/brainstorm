@@ -9,12 +9,17 @@
  * 3. Removes old configuration and service files
  * 4. Installs the new version
  * 5. Cleans up temporary files
+ * 
+ * When run with --uninstall flag, it will remove Hasenpfeffr without installing a new version.
  */
 
 const fs = require('fs');
-const path = require('path');
 const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../src/utils/config');
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const isUninstall = args.includes('--uninstall');
 
 // Function to safely execute commands and handle errors
 function executeCommand(command, options = {}) {
@@ -237,7 +242,7 @@ function cloneRepository() {
   }
   
   // Clone the repository directly to the home directory
-  executeCommand('git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git', {
+  executeCommand('git clone --single-branch --branch address-environment https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git', {
     cwd: homeDir,
     exitOnError: true
   });
@@ -308,24 +313,34 @@ function prepareSystem() {
 
 // Main update function
 async function update() {
-  console.log('Starting Hasenpfeffr update...');
+  if (isUninstall) {
+    console.log('Starting Hasenpfeffr uninstallation...');
+  } else {
+    console.log('Starting Hasenpfeffr update...');
+  }
   
-  // Ask if user wants to update system packages
-  const readline = require('readline');
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
+  // Ask if user wants to update system packages (skip this question in uninstall mode)
+  let updateSystemPackages = false;
   
-  const answer = await new Promise(resolve => {
-    rl.question('\x1b[33mDo you want to update system packages and check dependencies? (y/n): \x1b[0m', answer => {
-      resolve(answer.trim().toLowerCase());
+  if (!isUninstall) {
+    const readline = require('readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
     });
-  });
-  
-  rl.close();
-  
-  if (answer === 'y' || answer === 'yes') {
+      
+    const answer = await new Promise(resolve => {
+      rl.question('\x1b[33mDo you want to update system packages and check dependencies? (y/n): \x1b[0m', answer => {
+        resolve(answer.trim().toLowerCase());
+      });
+    });
+      
+    rl.close();
+      
+    updateSystemPackages = (answer === 'y' || answer === 'yes');
+  }
+
+  if (updateSystemPackages) {
     // Prepare system (update packages and check dependencies)
     prepareSystem();
   } else {
@@ -341,16 +356,31 @@ async function update() {
   // Remove old files
   removeFiles();
   
-  // Clone the latest repository from GitHub
-  cloneRepository();
-  
-  // Install new version
-  installNewVersion();
+  // Only clone and install if not in uninstall mode
+  if (!isUninstall) {
+    // Clone the latest repository from GitHub
+    cloneRepository();
+    
+    // Check and configure sudo privileges if needed (also check here in case installation fails)
+    if (!checkSudoPrivileges()) {
+      configureSudoPrivileges();
+    }
+    
+    // Install new version
+    installNewVersion();
+  } else {
+    console.log('\x1b[33mSkipping installation as we are in uninstall mode\x1b[0m');
+    console.log('\x1b[33mHasenpfeffr has been removed from your system\x1b[0m');
+  }
   
   // Clean up
   cleanup();
   
-  console.log('Hasenpfeffr update completed successfully');
+  if (isUninstall) {
+    console.log('Hasenpfeffr uninstallation completed successfully');
+  } else {
+    console.log('Hasenpfeffr update completed successfully');
+  }
 }
 
 // Run the update
