@@ -17,7 +17,8 @@
     "publish": "node --expose-gc --max-old-space-size=4096 bin/publish.js",
     "control-panel": "node bin/control-panel.js",
     "install-hasenpfeffr": "node bin/install.js",
-    "update": "node bin/update.js"
+    "update": "node bin/update.js",
+    "uninstall": "node bin/update.js --uninstall"
   },
   "repository": {
     "type": "git",
