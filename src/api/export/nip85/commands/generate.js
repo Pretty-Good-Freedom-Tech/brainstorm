@@ -12,7 +12,7 @@ const { exec } = require('child_process');
  * @param {Object} res - Express response object
  */
 function handleGenerateNip85(req, res) {
-    // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
+    // Note: Authentication is now handled by the authMiddleware in src/middleware/auth.js
     // The middleware ensures that only the owner can access this endpoint
     
     console.log('Generating and publishing NIP-85 data...');

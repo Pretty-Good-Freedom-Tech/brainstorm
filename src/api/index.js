@@ -15,9 +15,8 @@ const {
     handleAuthLogin, 
     handleAuthLogout, 
     handleAuthStatus,
-    handleAuthTest,
-    authMiddleware 
-} = require('./auth/authHandler');
+    handleAuthTest 
+} = require('../middleware/auth');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');

@@ -13,6 +13,7 @@ const path = require('path');
 const fs = require('fs');
 const WebSocket = require('ws');
 const { useWebSocketImplementation } = require('nostr-tools/pool');
+const { authMiddleware } = require('../src/middleware/auth');
 require('websocket-polyfill');
 useWebSocketImplementation(WebSocket);
 
@@ -133,7 +134,7 @@ app.get('/:filename.html', (req, res) => {
 });
 
 // Authentication middleware
-const authMiddleware = (req, res, next) => {
+const authMiddleware_deprecated = (req, res, next) => {
     // Skip auth for static resources, sign-in page and auth-related endpoints
     if (req.path === '/sign-in.html' || 
         req.path === '/index.html' ||

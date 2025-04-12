@@ -13,7 +13,7 @@ const { execSync } = require('child_process');
  */
 function handleUpdateBlacklistConfig(req, res) {
   try {
-    // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
+    // Note: Authentication is now handled by the authMiddleware in src/middleware/auth.js
     // The middleware ensures that only the owner can access this endpoint
     
     const configPath = '/etc/blacklist.conf';

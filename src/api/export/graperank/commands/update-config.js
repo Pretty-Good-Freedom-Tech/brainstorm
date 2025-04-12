@@ -15,7 +15,7 @@ const { getConfigFromFile } = require('../../../../utils/config');
 function handleUpdateGrapeRankConfig(req, res) {
     console.log('Updating GrapeRank configuration...');
     
-    // Note: Authentication is now handled by the authMiddleware in src/api/auth/authHandler.js
+    // Note: Authentication is now handled by the authMiddleware in src/middleware/auth.js
     // The middleware ensures that only the owner can access this endpoint
     
     const configPath = '/etc/graperank.conf';
