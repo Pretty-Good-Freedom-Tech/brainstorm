@@ -101,6 +101,7 @@ function removeFiles() {
   const configFiles = [
     '/etc/hasenpfeffr.conf',
     '/etc/blacklist.conf',
+    '/etc/whitelist.conf',
     '/etc/graperank.conf',
     '/etc/strfry-router.config'
   ];

@@ -34,6 +34,7 @@ sudo systemctl stop calculatePersonalizedGrapeRank.timer
 # Remove configuration files
 sudo rm /etc/hasenpfeffr.conf
 sudo rm /etc/blacklist.conf
+sudo rm /etc/whitelist.conf
 sudo rm /etc/graperank.conf
 sudo rm /etc/strfry-router.config
 
