@@ -323,7 +323,8 @@ async function createHasenpfeffrConfigFile() {
   
   // Get configuration values from user if not in environment or incomplete
   if (!isUpdateMode || !domainName) {
-    domainName = await askQuestion('Enter your domain name for the Strfry relay (e.g., relay.example.com; do not include the wss://): ');
+    domainName = await askQuestion('Enter your domain name (e.g., relay.example.com; if running locally, leave blank for localhost): ');
+    if (!domainName) { domainName = 'localhost'; };
   }
   
   if (!isUpdateMode || !ownerPubkey) {
