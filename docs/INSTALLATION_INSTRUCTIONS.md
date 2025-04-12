@@ -55,35 +55,36 @@ Have the following 3 pieces of information ready:
 2. Your pubkey, e.g. `e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f`, i.e. the "owner" of the personal Webs of Trust relay. (TODO: give option of entering npub instead)
 3. A Neo4j password. Important! After installation, the first thing you will do is change the Neo4j password in the Neo4j browser (initial login: neo4j / neo4j). Hasenpfeffr will need to know what this is. (TODO: ability to change password in the control panel.)
 
+### Step 1: System Preparation
+
 ```bash
 # Update system packages
 sudo apt update
 sudo apt upgrade -y
 
-# Install Node.js and npm
-sudo apt install -y curl
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
+# Install necessary dependencies
+sudo apt install -y curl git pv
 
-# Install Git
-sudo apt install -y git
+# Install a minimal Node.js/npm to bootstrap our installation
+# This will be replaced by the NVM installation
+sudo apt install -y nodejs npm
+```
 
-# Install pv
-sudo apt install pv
+### Step 2: Install Hasenpfeffr
 
+```bash
 # Clone the Hasenpfeffr repository
 git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
 cd hasenpfeffr
 
-# Install dependencies
+# Install dependencies and set up NVM for your user
 npm install
 
-# Run the installation script
+# Run the installation script WITH sudo (system installation components require root privileges)
 sudo npm run install-hasenpfeffr
 ```
 
 After you enter your pieces of information, get some coffee. This takes a while! (About 8 minutes in total for me using an AWS EC2 t2.large instance.)
-
 
 ## 4. Verify successful installation
 
