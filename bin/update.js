@@ -122,6 +122,17 @@ function removeFiles() {
     '/etc/systemd/system/calculatePersonalizedGrapeRank.service',
     '/etc/systemd/system/calculatePersonalizedGrapeRank.timer'
   ];
+
+  const dataAndApplicationFiles = [
+    '/var/lib/hasenpfeffr',
+    '/usr/local/lib/node_modules/hasenpfeffr',
+    '/usr/local/lib/strfry',
+    '/usr/local/bin/hasenpfeffr-control-panel',
+    '/usr/local/bin/hasenpfeffr-strfry-stats',
+    '/usr/local/bin/hasenpfeffr-negentropy-sync',
+    '/usr/local/bin/hasenpfeffr-update-config',
+    '/var/lock/processQueue.lock'
+  ];
   
   const directories = [
     // '/usr/local/lib/strfry',
@@ -141,6 +152,13 @@ function removeFiles() {
   for (const file of serviceFiles) {
     if (fs.existsSync(file)) {
       executeCommand(`sudo rm ${file}`, { exitOnError: false });
+    }
+  }
+
+  // Remove data and application files
+  for (const file of dataAndApplicationFiles) {
+    if (fs.existsSync(file)) {
+      executeCommand(`sudo rm -r ${file}`, { exitOnError: false });
     }
   }
   
