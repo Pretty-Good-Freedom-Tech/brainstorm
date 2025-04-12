@@ -5,8 +5,7 @@ After=network.target neo4j.service
 [Service]
 Type=simple
 User=hasenpfeffr
-EnvironmentFile=/etc/hasenpfeffr.conf
-ExecStart=/bin/bash -c '${HASENPFEFFR_NODE_BIN} /usr/local/lib/node_modules/hasenpfeffr/bin/control-panel.js'
+ExecStart=/usr/local/bin/hasenpfeffr-node /usr/local/lib/node_modules/hasenpfeffr/bin/control-panel.js
 Restart=always
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
