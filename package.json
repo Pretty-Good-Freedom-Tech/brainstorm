@@ -11,6 +11,7 @@
     "hasenpfeffr-init-db": "./bin/init-db.sh"
   },
   "scripts": {
+    "preinstall": "bash ./setup/setup-nvm.sh",
     "test": "node test/test.js",
     "generate": "node bin/generate.js",
     "publish": "node --expose-gc --max-old-space-size=4096 bin/publish.js",

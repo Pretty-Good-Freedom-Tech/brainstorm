@@ -4,7 +4,7 @@ After=network.target neo4j.service
 
 [Service]
 Type=oneshot
-User=ubuntu
+User=hasenpfeffr
 EnvironmentFile=/etc/hasenpfeffr.conf
 ExecStart=/usr/local/lib/node_modules/hasenpfeffr/src/algos/calculateHops.sh
 # Set resource limits to prevent excessive resource usage
