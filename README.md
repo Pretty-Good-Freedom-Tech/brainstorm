@@ -56,7 +56,7 @@ See the [update instructions](docs/UPDATE_INSTRUCTIONS.md) for detailed instruct
 
 ## Setup
 
-Once installed, go to the home page at: https://myCoolDomain.com/control/index.html to setup your relay. Detailed instructions are on the home page. In brief: you will need to flip a few buttons and wait for about an hour, during which time hasenpfeffr will download follows, mutes and reports data from the network, calculate personalized webs of trust scores, and create your personalized blacklist and whitelist. Then, your WoT relay will be ready to curate filtered content (kind 1 notes, reactions, etc)!
+Once installed, go to the home page at: https://[relay.myCoolDomain.com]/control/index.html to setup your relay. Detailed instructions are on the home page. In brief: you will need to flip a few buttons and wait for about an hour, during which time hasenpfeffr will download follows, mutes and reports data from the network, calculate personalized webs of trust scores, and create your personalized blacklist and whitelist. Then, your WoT relay will be ready to curate filtered content (kind 1 notes, reactions, etc)!
 
 ## Customization
 
@@ -88,6 +88,13 @@ NIP-85 Trusted Assertions is a new feature of the Nostr protocol that allows you
 To export NIP-85 Trusted Assertions, go to https://myCoolDomain.com/control/nip85.html and publish a kind 10040 event. Your hasenpfeffr relay will automatically publish kind 30382 events, signed by your relay nsec, every 6 hours to your WoT relay. The kind 10040 event is how nostr clients know how to access your WoT scores (authored by your relay nsec, with a d-tag corresponding to the pubkey whose trust scores are sought).
 
 As of April 2025, NIP-85 is not yet supported by any nostr clients. Hopefully it will be soon!
+
+## Coming Soon
+
+- calculate graperank via imported library
+- make scores available by WoT DVM
+- more personalized recommendation lists: trending notes, etc
+- personalized, contextual GrapeRank scores via interpreted data
 
 ## License
 
