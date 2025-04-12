@@ -362,9 +362,9 @@ async function update() {
     cloneRepository();
     
     // Check and configure sudo privileges if needed (also check here in case installation fails)
-    if (!checkSudoPrivileges()) {
-      configureSudoPrivileges();
-    }
+    // if (!checkSudoPrivileges()) {
+    //   configureSudoPrivileges();
+    // }
     
     // Install new version
     installNewVersion();
