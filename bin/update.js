@@ -242,7 +242,7 @@ function cloneRepository() {
   }
   
   // Clone the repository directly to the home directory
-  executeCommand('git clone --single-branch --branch address-environment https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git', {
+  executeCommand('git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git', {
     cwd: homeDir,
     exitOnError: true
   });
