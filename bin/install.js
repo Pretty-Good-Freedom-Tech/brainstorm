@@ -108,11 +108,35 @@ async function configureSudoPrivileges() {
   try {
     // Configure general sudo privileges for hasenpfeffr user
     console.log('Configuring sudo privileges for hasenpfeffr user...');
+    execSync(`sudo chmod +x ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
     execSync(`sudo bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
-    
+
     // Configure specific sudo privileges for control panel
     console.log('Configuring sudo privileges for control panel...');
     execSync(`sudo bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
+
+    // After configuring sudo privileges, set up NVM for hasenpfeffr user
+    console.log('\x1b[36m=== Setting Up NVM for hasenpfeffr user ===\x1b[0m');
+    const setupNvmScript = path.join(packageRoot, 'setup/setup-hasenpfeffr-nvm.sh');
+    if (fs.existsSync(setupNvmScript)) {
+      console.log('Setting up NVM for hasenpfeffr user...');
+      execSync(`sudo chmod +x ${setupNvmScript}`, { stdio: 'inherit' });
+      execSync(`sudo ${setupNvmScript}`, { stdio: 'inherit' });
+      
+      // Install node wrapper script
+      console.log('Installing Node.js wrapper script...');
+      const nodeWrapperScript = path.join(packageRoot, 'setup/hasenpfeffr-node-wrapper.sh');
+      if (fs.existsSync(nodeWrapperScript)) {
+        execSync(`sudo cp ${nodeWrapperScript} /usr/local/bin/hasenpfeffr-node`, { stdio: 'inherit' });
+        execSync('sudo chmod +x /usr/local/bin/hasenpfeffr-node', { stdio: 'inherit' });
+        execSync('sudo chown hasenpfeffr:hasenpfeffr /usr/local/bin/hasenpfeffr-node', { stdio: 'inherit' });
+        console.log('Node.js wrapper script installed successfully.');
+      } else {
+        console.error('Node.js wrapper script not found.');
+      }
+    } else {
+      console.error('NVM setup script not found.');
+    }
     
     console.log('\x1b[32mSudo privileges configured successfully.\x1b[0m');
   } catch (error) {
