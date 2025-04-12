@@ -327,6 +327,10 @@ async function createHasenpfeffrConfigFile() {
 # with proper permissions: chmod 640 /etc/hasenpfeffr.conf
 # and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
 
+# Node.js configuration via NVM
+HASENPFEFFR_NODE_BIN="/usr/local/bin/hasenpfeffr-node"
+export HASENPFEFFR_NODE_BIN
+
 # File paths
 HASENPFEFFR_MODULE_BASE_DIR="/usr/local/lib/node_modules/hasenpfeffr/"
 HASENPFEFFR_MODULE_SRC_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/"
