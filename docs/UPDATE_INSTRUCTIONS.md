@@ -62,6 +62,7 @@ sudo rm /usr/local/bin/hasenpfeffr-control-panel
 sudo rm /usr/local/bin/hasenpfeffr-strfry-stats
 sudo rm /usr/local/bin/hasenpfeffr-negentropy-sync
 sudo rm /usr/local/bin/hasenpfeffr-update-config
+sudo rm /var/lock/processQueue.lock
 
 # Remove home directory files
 sudo rm -r ~/hasenpfeffr
