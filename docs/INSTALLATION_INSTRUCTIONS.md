@@ -61,7 +61,7 @@ The following software must be installed:
 
 - Ubuntu 22.04 LTS or compatible Linux distribution
 - Git
-- Node.js (will be managed via NVM)
+- Initial Node.js/npm installation (will be replaced by NVM)
 - Strfry relay
 
 ## Step 1: System Preparation
@@ -73,6 +73,10 @@ sudo apt upgrade -y
 
 # Install necessary dependencies
 sudo apt install -y curl git pv
+
+# Install a minimal Node.js/npm to bootstrap our installation
+# This will be replaced by the NVM installation
+sudo apt install -y nodejs npm
 ```
 
 ## Step 2: Install Hasenpfeffr
@@ -82,12 +86,17 @@ sudo apt install -y curl git pv
 git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
 cd hasenpfeffr
 
-# The preinstall script will automatically set up NVM and install Node.js 18.x
+# Install dependencies and set up NVM for your user
 npm install
 
-# Run the installation script (no sudo required)
-npm run install-hasenpfeffr
+# Run the installation script WITH sudo (system installation components require root privileges)
+sudo npm run install-hasenpfeffr
 ```
+
+This hybrid installation approach:
+1. Uses NVM to manage Node.js in user space (no sudo required for Node.js)
+2. Uses sudo only for system installation components (services, configuration files)
+3. Configures the hasenpfeffr user with its own NVM installation for running services
 
 After you enter your pieces of information, get some coffee. This takes a while! (About 8 minutes in total for me using an AWS EC2 t2.large instance.)
 

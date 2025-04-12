@@ -52,11 +52,15 @@ sudo rm /usr/local/bin/hasenpfeffr-update-config
 #### Step 3: Install New Version
 
 ```bash
+# Ensure you have a minimal Node.js/npm to bootstrap the installation
+sudo apt install -y nodejs npm
+
 # Clone the repository
 git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
 cd hasenpfeffr
 
 # The preinstall script will automatically set up NVM and install Node.js 18.x
+# This will replace the system Node.js with a user-level installation
 npm install
 
 # Run the installation script (no sudo required with NVM)

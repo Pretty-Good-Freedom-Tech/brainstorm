@@ -94,32 +94,50 @@ const configPaths = {
 
 // Configure sudo privileges for hasenpfeffr user and control panel
 async function configureSudoPrivileges() {
-  console.log('\x1b[36m=== Configuring Sudo Privileges ===\x1b[0m');
-  
-  // Check if running as root
-  if (!isRoot) {
-    console.log('\x1b[33mWarning: Not running as root. Sudo privileges configuration will be skipped.\x1b[0m');
-    console.log('To configure sudo privileges later, run:');
-    console.log(`sudo bash ${configPaths.sudoPrivilegesScript}`);
-    console.log(`sudo bash ${configPaths.controlPanelSudoScript}`);
-    return;
-  }
+  console.log('\x1b[36m=== Setting Up Sudo Privileges ===\x1b[0m');
   
   try {
-    // Configure general sudo privileges for hasenpfeffr user
-    console.log('Configuring sudo privileges for hasenpfeffr user...');
-    execSync(`sudo bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
-    
-    // Configure specific sudo privileges for control panel
-    console.log('Configuring sudo privileges for control panel...');
-    execSync(`sudo bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
-    
-    console.log('\x1b[32mSudo privileges configured successfully.\x1b[0m');
+    if (isRoot) {
+      const sudoPrivilegesScript = path.join(packageRoot, 'setup/configure-sudo-privileges.sh');
+      if (fs.existsSync(sudoPrivilegesScript)) {
+        console.log('Configuring sudo privileges...');
+        execSync(`sudo chmod +x ${sudoPrivilegesScript}`, { stdio: 'inherit' });
+        execSync(`sudo ${sudoPrivilegesScript}`, { stdio: 'inherit' });
+        
+        // After configuring sudo privileges, set up NVM for hasenpfeffr user
+        console.log('\x1b[36m=== Setting Up NVM for hasenpfeffr user ===\x1b[0m');
+        const setupNvmScript = path.join(packageRoot, 'setup/setup-hasenpfeffr-nvm.sh');
+        if (fs.existsSync(setupNvmScript)) {
+          console.log('Setting up NVM for hasenpfeffr user...');
+          execSync(`sudo chmod +x ${setupNvmScript}`, { stdio: 'inherit' });
+          execSync(`sudo ${setupNvmScript}`, { stdio: 'inherit' });
+          
+          // Install node wrapper script
+          console.log('Installing Node.js wrapper script...');
+          const nodeWrapperScript = path.join(packageRoot, 'setup/hasenpfeffr-node-wrapper.sh');
+          if (fs.existsSync(nodeWrapperScript)) {
+            execSync(`sudo cp ${nodeWrapperScript} /usr/local/bin/hasenpfeffr-node`, { stdio: 'inherit' });
+            execSync('sudo chmod +x /usr/local/bin/hasenpfeffr-node', { stdio: 'inherit' });
+            execSync('sudo chown hasenpfeffr:hasenpfeffr /usr/local/bin/hasenpfeffr-node', { stdio: 'inherit' });
+            console.log('Node.js wrapper script installed successfully.');
+          } else {
+            console.error('Node.js wrapper script not found.');
+          }
+        } else {
+          console.error('NVM setup script not found.');
+        }
+      } else {
+        console.error('Sudo privileges configuration script not found.');
+      }
+    } else {
+      console.warn('Cannot configure sudo privileges without root access.');
+      console.log('Please manually run the sudo privileges script: sudo ' + path.join(packageRoot, 'setup/configure-sudo-privileges.sh'));
+      console.log('Then set up NVM: sudo ' + path.join(packageRoot, 'setup/setup-hasenpfeffr-nvm.sh'));
+    }
   } catch (error) {
     console.error('\x1b[31mError configuring sudo privileges:\x1b[0m', error.message);
-    console.log('You can configure sudo privileges manually later by running:');
-    console.log(`sudo bash ${configPaths.sudoPrivilegesScript}`);
-    console.log(`sudo bash ${configPaths.controlPanelSudoScript}`);
+    console.log('Please manually run the sudo privileges script: sudo ' + path.join(packageRoot, 'setup/configure-sudo-privileges.sh'));
+    console.log('Then set up NVM: sudo ' + path.join(packageRoot, 'setup/setup-hasenpfeffr-nvm.sh'));
   }
 }
 
@@ -326,6 +344,10 @@ async function createHasenpfeffrConfigFile() {
 # This file should be installed at /etc/hasenpfeffr.conf
 # with proper permissions: chmod 640 /etc/hasenpfeffr.conf
 # and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
+
+# Node.js configuration via NVM
+HASENPFEFFR_NODE_BIN="/usr/local/bin/hasenpfeffr-node"
+export HASENPFEFFR_NODE_BIN
 
 # File paths
 HASENPFEFFR_MODULE_BASE_DIR="/usr/local/lib/node_modules/hasenpfeffr/"
