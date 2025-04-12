@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=hasenpfeffr
-ExecStart=/usr/bin/node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
+ExecStart=/usr/local/bin/hasenpfeffr-node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
 Restart=on-failure
 
 [Install]
