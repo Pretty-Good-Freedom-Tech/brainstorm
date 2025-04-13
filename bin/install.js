@@ -410,20 +410,16 @@ export STRFRY_DOMAIN="${domainName}"
 # Owner pubkey for PageRank calculations
 export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
 
-# Status of Hasenpfeffr service
-# 0 = disabled, 1 = enabled, 2 = starting, 3 = running negentropy sync, 4 = batch transfer to neo4j, 5 = stopping, 6 = error
-export HASENPFEFFR_STATUS=0
-
 # Security settings
 export SESSION_SECRET="${sessionSecret}"
 
 ######################### actions #########################
 
-# whether to send email updates to owner
+# whether to send email updates to owner (feature not yet implemented)
 export HASENPFEFFR_SEND_EMAIL_UPDATES=0
 
-# whether neo4j password has been reset
-export HASENPFEFFR_RESET_PASSWORD=0
+# whether to make site accessible publicly (feature not yet implemented)
+export HASENPFEFFR_ACCESS=0
 
 # whether neo4j constraints and indexes has been created
 export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=0
