@@ -133,51 +133,6 @@ app.get('/:filename.html', (req, res) => {
     serveHtmlFile(filename, res);
 });
 
-// Authentication middleware
-const authMiddleware_deprecated = (req, res, next) => {
-    // Skip auth for static resources, sign-in page and auth-related endpoints
-    if (req.path === '/sign-in.html' || 
-        req.path === '/index.html' ||
-        req.path.startsWith('/api/auth/') ||
-        req.path === '/' || 
-        req.path === '/control-panel.html' ||
-        req.path === '/nip85.html' ||
-        req.path === '/nip85-control-panel.html' ||
-        !req.path.startsWith('/api/')) {
-        return next();
-    }
-    
-    // Check if user is authenticated for API calls
-    if (req.session && req.session.authenticated) {
-        return next();
-    } else {
-        // For API calls that modify data, return unauthorized status
-        const writeEndpoints = [
-            '/batch-transfer',
-            '/generate',
-            '/publish',
-            '/negentropy-sync',
-            '/strfry-plugin',
-            '/create-kind10040',
-            '/publish-kind10040',
-            '/publish-kind30382',
-            '/hasenpfeffr-control'
-        ];
-        
-        // Check if the current path is a write endpoint
-        const isWriteEndpoint = writeEndpoints.some(endpoint => 
-            req.path.includes(endpoint) && (req.method === 'POST' || req.path.includes('?action=enable') || req.path.includes('?action=disable'))
-        );
-        
-        if (isWriteEndpoint) {
-            return res.status(401).json({ error: 'Authentication required for this action' });
-    }
-    
-        // Allow read-only API access
-        return next();
-}
-};
-
 // Apply auth middleware
 app.use(authMiddleware);
 
