@@ -9,11 +9,11 @@ cd ~/hasenpfeffr
 sudo npm run update
 ```
 
-NOTE: the update script preserves your owner pubkey, your relay nsec, your URL, and your Neo4j password, but erases your blacklist and whitelist files.
+NOTE: The update script preserves your owner pubkey, your relay nsec, your URL, and your Neo4j password, but erases your blacklist and whitelist files. However, strfry or Neo4j databases are not affected.
 
 ### Option 2: Manual Update Process
 
-If you prefer to do a manual update, follow these steps below. NOTE: this overwrites your initial configuration, including your pubkey, relay nsec, URL, Neo4j password, as well as your blacklist and whitelist.
+If you prefer to do a manual update, follow these steps below. NOTE: this overwrites your initial configuration, including your pubkey, relay nsec, URL, Neo4j password, as well as your blacklist and whitelist. However, strfry or Neo4j databases are not affected.
 
 #### Step 1: Uninstall Current Version
 
