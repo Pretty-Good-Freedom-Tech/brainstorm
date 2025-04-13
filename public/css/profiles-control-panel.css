@@ -9,14 +9,42 @@
     border-bottom: 1px solid #eee;
 }
 
-.filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+.filters-container {
     margin-bottom: 20px;
-    padding: 15px;
     background-color: #f9f9f9;
     border-radius: 5px;
+    padding: 15px;
+}
+
+.filter-header {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+}
+
+.filter-cell {
+    flex: 1;
+    min-width: 110px;
+}
+
+.filter-cell input {
+    width: 100%;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
 }
 
 .filter-group {
@@ -36,10 +64,14 @@
     border-radius: 4px;
 }
 
-.filter-actions {
+.filters {
     display: flex;
-    align-items: flex-end;
+    flex-wrap: wrap;
     gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
 }
 
 button {

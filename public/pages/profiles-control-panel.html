@@ -22,71 +22,80 @@
         
         <div id="statusMessage" style="display: none;"></div>
         
-        <div class="filters">
-            <div class="filter-group">
-                <label for="filterPubkey">Pubkey Contains</label>
-                <input type="text" id="filterPubkey" placeholder="Enter pubkey...">
+        <div class="filters-container">
+            <div class="filter-header">
+                <div class="filter-cell">
+                    <div class="filter-group">
+                        <label for="filterPubkey">Pubkey Contains</label>
+                        <input type="text" id="filterPubkey" placeholder="Enter pubkey...">
+                    </div>
+                </div>
+                <div class="filter-cell">
+                    <div class="filter-group">
+                        <label for="filterMinHops">Min Hops</label>
+                        <input type="number" id="filterMinHops" placeholder="Min hops" min="0" max="20">
+                        <label for="filterMaxHops">Max Hops</label>
+                        <input type="number" id="filterMaxHops" placeholder="Max hops" min="1" max="20">
+                    </div>
+                </div>
+                <div class="filter-cell">
+                    <div class="filter-group">
+                        <label for="filterMinRank">Min PageRank</label>
+                        <input type="number" id="filterMinRank" placeholder="Min rank" min="0" step="0.000001">
+                        <label for="filterMaxRank">Max PageRank</label>
+                        <input type="number" id="filterMaxRank" placeholder="Max rank" min="0" step="0.000001">
+                    </div>
+                </div>
+                <div class="filter-cell">
+                    <div class="filter-group">
+                        <label for="filterMinInfluence">Min Influence</label>
+                        <input type="number" id="filterMinInfluence" placeholder="Min influence" min="0" step="0.000001">
+                        <label for="filterMaxInfluence">Max Influence</label>
+                        <input type="number" id="filterMaxInfluence" placeholder="Max influence" min="0" step="0.000001">
+                    </div>
+                </div>
+                <div class="filter-cell">
+                    <div class="filter-group">
+                        <label for="filterMinAverage">Min Average</label>
+                        <input type="number" id="filterMinAverage" placeholder="Min average" min="-1" max="1" step="0.01">
+                        <label for="filterMaxAverage">Max Average</label>
+                        <input type="number" id="filterMaxAverage" placeholder="Max average" min="-1" max="1" step="0.01">
+                    </div>
+                </div>
+                <div class="filter-cell">
+                    <div class="filter-group">
+                        <label for="filterMinConfidence">Min Confidence</label>
+                        <input type="number" id="filterMinConfidence" placeholder="Min confidence" min="0" max="1" step="0.01">
+                        <label for="filterMaxConfidence">Max Confidence</label>
+                        <input type="number" id="filterMaxConfidence" placeholder="Max confidence" min="0" max="1" step="0.01">
+                    </div>
+                </div>
+                <div class="filter-cell">
+                    <div class="filter-group">
+                        <label for="filterMinInput">Min Input</label>
+                        <input type="number" id="filterMinInput" placeholder="Min input" min="0" step="0.01">
+                        <label for="filterMaxInput">Max Input</label>
+                        <input type="number" id="filterMaxInput" placeholder="Max input" min="0" step="0.01">
+                    </div>
+                </div>
             </div>
-            <div class="filter-group">
-                <label for="filterMinHops">Min Hops</label>
-                <input type="number" id="filterMinHops" placeholder="Min hops" min="0" max="20">
-            </div>
-            <div class="filter-group">
-                <label for="filterMaxHops">Max Hops</label>
-                <input type="number" id="filterMaxHops" placeholder="Max hops" min="1" max="20">
-            </div>
-            <div class="filter-group">
-                <label for="filterMinRank">Min PageRank</label>
-                <input type="number" id="filterMinRank" placeholder="Min rank" min="0" step="0.000001">
-            </div>
-            <div class="filter-group">
-                <label for="filterMaxRank">Max PageRank</label>
-                <input type="number" id="filterMaxRank" placeholder="Max rank" min="0" step="0.000001">
-            </div>
-            <div class="filter-group">
-                <label for="filterMinInfluence">Min Influence</label>
-                <input type="number" id="filterMinInfluence" placeholder="Min influence" min="0" step="0.000001">
-            </div>
-            <div class="filter-group">
-                <label for="filterMaxInfluence">Max Influence</label>
-                <input type="number" id="filterMaxInfluence" placeholder="Max influence" min="0" step="0.000001">
-            </div>
-            <div class="filter-group">
-                <label for="filterMinAverage">Min Average</label>
-                <input type="number" id="filterMinAverage" placeholder="Min average" min="-1" max="1" step="0.01">
-            </div>
-            <div class="filter-group">
-                <label for="filterMaxAverage">Max Average</label>
-                <input type="number" id="filterMaxAverage" placeholder="Max average" min="-1" max="1" step="0.01">
-            </div>
-            <div class="filter-group">
-                <label for="filterMinConfidence">Min Confidence</label>
-                <input type="number" id="filterMinConfidence" placeholder="Min confidence" min="0" max="1" step="0.01">
-            </div>
-            <div class="filter-group">
-                <label for="filterMaxConfidence">Max Confidence</label>
-                <input type="number" id="filterMaxConfidence" placeholder="Max confidence" min="0" max="1" step="0.01">
-            </div>
-            <div class="filter-group">
-                <label for="filterMinInput">Min Input</label>
-                <input type="number" id="filterMinInput" placeholder="Min input" min="0" step="0.01">
-            </div>
-            <div class="filter-group">
-                <label for="filterMaxInput">Max Input</label>
-                <input type="number" id="filterMaxInput" placeholder="Max input" min="0" step="0.01">
-            </div>
-            <div class="filter-group">
-                <label for="limitSelect">Results Per Page</label>
-                <select id="limitSelect">
-                    <option value="50">50</option>
-                    <option value="100" selected>100</option>
-                    <option value="250">250</option>
-                    <option value="500">500</option>
-                </select>
-            </div>
-            <div class="filter-actions">
-                <button id="applyFiltersBtn">Apply Filters</button>
-                <button id="resetFiltersBtn" class="secondary">Reset</button>
+            
+            <div class="filter-footer">
+                <div class="filter-actions">
+                    <div class="filter-group">
+                        <label for="limitSelect">Results Per Page</label>
+                        <select id="limitSelect">
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="250">250</option>
+                            <option value="500">500</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="applyFiltersBtn">Apply Filters</button>
+                        <button id="resetFiltersBtn" class="secondary">Reset</button>
+                    </div>
+                </div>
             </div>
         </div>
         
