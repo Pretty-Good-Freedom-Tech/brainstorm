@@ -11,6 +11,7 @@ const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 const readline = require('readline');
+const crypto = require('crypto'); // Add crypto module for generating secure random values
 const { getConfigFromFile } = require('../src/utils/config');
 
 // Check if running in update mode
@@ -345,6 +346,9 @@ async function createHasenpfeffrConfigFile() {
     relayUrl = `wss://${domainName}`;
   }
   
+  // Generate a secure random session secret
+  const sessionSecret = crypto.randomBytes(32).toString('hex');
+  
   // Create hasenpfeffr configuration content
   const hasenpfeffrConfigContent = `# Hasenpfeffr Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
@@ -409,6 +413,9 @@ export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
 # Status of Hasenpfeffr service
 # 0 = disabled, 1 = enabled, 2 = starting, 3 = running negentropy sync, 4 = batch transfer to neo4j, 5 = stopping, 6 = error
 export HASENPFEFFR_STATUS=0
+
+# Security settings
+export SESSION_SECRET="${sessionSecret}"
 
 ######################### actions #########################
 
