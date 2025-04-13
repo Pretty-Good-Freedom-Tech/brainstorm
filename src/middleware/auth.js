@@ -283,7 +283,7 @@ function authMiddleware(req, res, next) {
         const ownerOnlyEndpoints = [
             '/hasenpfeffr-control',
             '/post-graperank-config',
-            '/post-blacklist-config',
+            '/api/post-blacklist-config',
             '/post-whitelist-config',
             '/generate-blacklist',
             '/export-whitelist',
@@ -319,7 +319,7 @@ function authMiddleware(req, res, next) {
         // For API calls that modify data, return unauthorized status
         const writeEndpoints = [
             '/post-graperank-config',
-            '/post-blacklist-config',
+            '/api/post-blacklist-config',
             '/post-whitelist-config',
             '/generate-blacklist',
             '/export-whitelist',
