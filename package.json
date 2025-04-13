@@ -50,11 +50,16 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
+    "@graperank/calculator": "^0.2.0",
+    "@graperank/util": "^0.2.0",
     "neo4j-driver": "^5.28.1",
     "nostr-tools": "^2.10.4",
     "websocket": "^1.0.35",
     "websocket-polyfill": "^0.0.3",
     "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
   },
   "engines": {
     "node": ">=18.0.0"
