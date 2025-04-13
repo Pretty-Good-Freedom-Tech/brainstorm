@@ -1,7 +1,7 @@
 ## TODO 7 April 2025
+- import graperank calculation engine
 - fix Friends relays list in hasenpfeffr.conf; set different relays for subcategories
 - move export files from algos to export directory
-- refactor auth scripts
 - refactor nip-85 publishing scripts
 - set up default localhost if hosting locally
 - make sure neo4j constraints and indexes are set up seamlessly in the background

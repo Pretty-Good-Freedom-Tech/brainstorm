@@ -58,3 +58,13 @@ sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.mjs
 sudo chown root:hasenpfeffr /etc/hasenpfeffr.conf
 sudo chown root:hasenpfeffr /etc/graperank.conf
 sudo chown root:hasenpfeffr /etc/strfry-router.config
+
+# Set permissions for all Hasenpfeffr scripts recursively
+echo "Setting executable permissions for all scripts..."
+INSTALL_DIR="/usr/local/lib/node_modules/hasenpfeffr"
+
+# Make all .sh files executable
+sudo find "$INSTALL_DIR" -type f -name "*.sh" -exec chmod +x {} \;
+
+# Make all .js and .mjs files executable that have a shebang line
+# sudo find "$INSTALL_DIR" -type f \( -name "*.js" -o -name "*.mjs" \) -exec grep -l "^#!/" {} \; | xargs -r sudo chmod +x
