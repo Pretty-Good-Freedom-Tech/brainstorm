@@ -8,7 +8,7 @@ const path = require('path');
 const readline = require('readline');
 // const { Calculator } = require('/usr/local/lib/node_modules/graperank/src/Calculator/index.js');
 
-const TEMP_DIR = '/var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp';
+const TEMP_DIR = '/var/lib/hasenpfeffr/algos/importedGrapeRankEngine/tmp';
 const CONTEXT = 'verifiedUsers';
 const CONFIG_FILES = {
   graperank: '/etc/graperank.conf',
@@ -23,10 +23,6 @@ calculator.calculate().then((scorecards) => {
   console.log(`scorecards.length: ${scorecards.length}`)
   updateNeo4j(scorecards);
 })
-
-
-
-
 
 function getCalculatorParams() : Partial<CalculatorParams> {
   const params = execSync(`source ${CONFIG_FILES.graperank} && echo $RIGOR,$ATTENUATION_FACTOR`, { 
@@ -183,10 +179,10 @@ async function updateNeo4j(scorecards : ScorecardsEntry[]) {
       const result = await session.run(`
         UNWIND $updates AS update
         MATCH (u:NostrUser {pubkey: update.pubkey})
-        SET u.influence = update.influence,
-            u.average = update.average,
-            u.confidence = update.confidence,
-            u.input = update.input
+        SET u.influence_imported = update.influence,
+            u.average_imported = update.average,
+            u.confidence_imported = update.confidence,
+            u.input_imported = update.input
         RETURN count(u) AS updatedCount
       `, params);
       

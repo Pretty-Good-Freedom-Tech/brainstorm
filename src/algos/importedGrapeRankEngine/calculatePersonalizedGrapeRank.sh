@@ -71,10 +71,10 @@ node $THIS_DIR/calculateFromLibrary.js
 
 # clean up tmp files
 
-# Update the WHEN_LAST_CALCULATED timestamp in the configuration file
+# Update the WHEN_IMPORTED_LAST_CALCULATED timestamp in the configuration file
 TIMESTAMP=$(date +%s)
 TMP_CONF=$(mktemp)
-cat /etc/graperank.conf | sed "s/^export WHEN_LAST_CALCULATED=.*$/export WHEN_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
+cat /etc/graperank.conf | sed "s/^export WHEN_IMPORTED_LAST_CALCULATED=.*$/export WHEN_IMPORTED_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
 sudo cp "$TMP_CONF" /etc/graperank.conf
 sudo chmod 644 /etc/graperank.conf
 sudo chown root:hasenpfeffr /etc/graperank.conf

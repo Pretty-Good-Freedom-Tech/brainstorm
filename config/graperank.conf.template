@@ -67,3 +67,6 @@ export FOLLOW_CONFIDENCE_OF_OBSERVER=0.5
 
 # WHEN LAST CALCULATED: unix timestamp; 0 indicates not yet calculated
 export WHEN_LAST_CALCULATED=0
+
+# imported GrapeRank engine
+export WHEN_IMPORTED_LAST_CALCULATED=0
