@@ -265,6 +265,8 @@ function isOwner(req) {
  * 3. Owner authentication - Only the system owner (administrative endpoints)
  */
 function authMiddleware(req, res, next) {
+    // return 401 for all endpoints for testing purposes
+    return res.status(401).json({ error: 'Authentication required for this action' });
     // Skip auth for static resources, sign-in page and auth-related endpoints
     if (req.path === '/sign-in.html' || 
         req.path === '/index.html' ||
