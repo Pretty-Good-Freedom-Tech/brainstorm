@@ -56,9 +56,6 @@ const port = process.env.CONTROL_PANEL_PORT || 7778;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Register API modules
-api.register(app);
-
 // Serve static files from the public directory with proper MIME types
 app.use(express.static(path.join(__dirname, '../public'), {
     setHeaders: (res, path, stat) => {
@@ -136,6 +133,8 @@ app.get('/:filename.html', (req, res) => {
 // Apply auth middleware
 app.use(authMiddleware);
 
+// Register API modules
+api.register(app);
 // Start the server
 app.listen(port, () => {
     console.log(`Hasenpfeffr Control Panel running on port ${port}`);
