@@ -17,6 +17,7 @@ const {
     handleAuthStatus,
     handleAuthTest 
 } = require('../middleware/auth');
+const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
@@ -183,6 +184,9 @@ function register(app) {
 
     // Neo4j endpoints
     app.post('/api/neo4j-setup-constraints-and-indexes', handleNeo4jSetupConstraintsAndIndexes);
+
+    // Owner info endpoint
+    app.get('/api/owner-info', handleGetOwnerInfo);
 
     console.log('Registered all Hasenpfeffr API endpoints');
 }

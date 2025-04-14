@@ -14,11 +14,30 @@
     <div class="container-landing">
         <h1>Personalized Webs of Trust Nostr relay</h1>
         <h2>anchored to the Grapevine of:</h2>
-        <div id="ownerNpub"></div>
+        <div id="ownerNpub" class="owner-npub-display">Loading owner information...</div>
     </div>
     <script>
-        const ownerNpub = process.env.HASENPFEFFR_OWNER_NPUB;
-        document.getElementById('ownerNpub').textContent = ownerNpub;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch owner information from the server
+            fetch('/control/api/owner-info')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.ownerNpub) {
+                        document.getElementById('ownerNpub').textContent = data.ownerNpub;
+                    } else {
+                        document.getElementById('ownerNpub').textContent = 'Owner information not available';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching owner information:', error);
+                    document.getElementById('ownerNpub').textContent = 'Error loading owner information';
+                });
+        });
     </script>
 </body>
 </html>
