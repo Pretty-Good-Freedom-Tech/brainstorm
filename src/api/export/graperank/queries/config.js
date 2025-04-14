@@ -4,6 +4,7 @@
  */
 
 const fs = require('fs');
+const { getConfigFromFile } = require('../../../../utils/config');
 
 /**
  * Get GrapeRank configuration
@@ -45,15 +46,21 @@ function handleGetGrapeRankConfig(req, res) {
             }
         });
         
+        // Get the owner pubkey from hasenpfeffr.conf
+        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+        
+        // Add the owner pubkey to the config object
+        config.HASENPFEFFR_OWNER_PUBKEY = ownerPubkey;
+        
         return res.json({
             success: true,
             config: config
         });
     } catch (error) {
-        console.error('Error reading GrapeRank configuration:', error);
+        console.error(`Error getting GrapeRank configuration: ${error.message}`);
         return res.status(500).json({
             success: false,
-            error: `Error reading GrapeRank configuration: ${error.message}`
+            error: error.message
         });
     }
 }
