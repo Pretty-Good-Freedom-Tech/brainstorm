@@ -88,7 +88,9 @@ function loadNavbar() {
     if (currentPath === '/control/index.html' || currentPath === '/control/nip85.html' || currentPath === '/control/about.html') {
         navbarPath = '/control/components/header/navbars/nav1.html';
     }
-    
+    if (currentPath === '/control/landing-page.html') {
+        navbarPath = '/control/components/header/navbars/nav3.html';
+    }    
     // First fetch the Neo4j Browser URL
     fetch('/control/api/status')
         .then(response => response.json())
