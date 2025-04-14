@@ -130,7 +130,26 @@ th {
 }
 
 .owner-row {
-    background-color: #f0f7ff;
+    background-color: #e6f3ff; /* Light blue background */
+    border-left: 4px solid #3498db; /* Bold left border */
+    position: relative;
+}
+
+.owner-row td:first-child::before {
+    content: "★"; /* Star icon */
+    color: #3498db;
+    position: absolute;
+    left: 3px;
+    font-size: 10px;
+}
+
+.owner-row td {
+    font-weight: 500; /* Slightly bolder text */
+}
+
+.owner-row .pubkey-link {
+    color: #1c638b; /* Darker blue for links in owner rows */
+    font-weight: 600;
 }
 
 .results-section {
