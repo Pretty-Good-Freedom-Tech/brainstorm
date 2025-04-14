@@ -19,6 +19,13 @@ body {
     margin: 20px 0;
 }
 
+.container-landing h3 {
+    text-align: center;
+    font-size: 24px;
+    color: #b234bd;
+    margin: 20px 0;
+}
+
 .container-landing {
     text-align: center;
     margin: 0 auto;
