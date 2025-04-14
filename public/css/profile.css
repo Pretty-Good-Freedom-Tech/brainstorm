@@ -1,6 +1,6 @@
 @import "./common.css";
 
-.header {
+.header-profile {
     display: flex;
     justify-content: space-between;
     align-items: center;
