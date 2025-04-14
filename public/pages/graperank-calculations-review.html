@@ -22,48 +22,6 @@
         
         <div id="statusMessage" style="display: none;"></div>
         
-        <div class="parameters-section">
-            <h2>GrapeRank Parameters</h2>
-            <div class="parameters-grid">
-                <div class="parameter">
-                    <span class="parameter-label">Attenuation Factor:</span>
-                    <span id="attenuationFactor" class="parameter-value">Loading...</span>
-                </div>
-                <div class="parameter">
-                    <span class="parameter-label">Rigor:</span>
-                    <span id="rigor" class="parameter-value">Loading...</span>
-                </div>
-                <div class="parameter">
-                    <span class="parameter-label">Owner Pubkey:</span>
-                    <span id="ownerPubkey" class="parameter-value truncate">Loading...</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="ratings-section">
-            <h2>Ratings Table</h2>
-            <div id="ratingsTableContainer" class="table-container">
-                <div id="loadingIndicator" class="loading"></div>
-                <table id="ratingsTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Rater Pubkey</th>
-                            <th>Type</th>
-                            <th>Product</th>
-                            <th>Rating</th>
-                            <th>Weight</th>
-                            <th>Confidence</th>
-                            <th>Rater Influence</th>
-                            <th>Attenuation</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ratingsTableBody">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
         <div class="results-section">
             <h2>Calculation Results</h2>
             <div class="results-grid">
@@ -122,6 +80,48 @@
                         <span id="influenceMatch" class="match-indicator"></span>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <div class="parameters-section">
+            <h2>GrapeRank Parameters</h2>
+            <div class="parameters-grid">
+                <div class="parameter">
+                    <span class="parameter-label">Attenuation Factor:</span>
+                    <span id="attenuationFactor" class="parameter-value">Loading...</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-label">Rigor:</span>
+                    <span id="rigor" class="parameter-value">Loading...</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-label">Owner Pubkey:</span>
+                    <span id="ownerPubkey" class="parameter-value truncate">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ratings-section">
+            <h2>Ratings Table</h2>
+            <div id="ratingsTableContainer" class="table-container">
+                <div id="loadingIndicator" class="loading"></div>
+                <table id="ratingsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Rater Pubkey</th>
+                            <th>Type</th>
+                            <th>Product</th>
+                            <th>Rating</th>
+                            <th>Weight</th>
+                            <th>Confidence</th>
+                            <th>Rater Influence</th>
+                            <th>Attenuation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ratingsTableBody">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
