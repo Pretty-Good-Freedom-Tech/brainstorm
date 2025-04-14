@@ -17,6 +17,7 @@
         <h2>Nostr relay</h2>
         <h3>anchored to the Grapevine of:</h3>
         <div id="ownerNpub" class="owner-npub-display">Loading owner information...</div>
+        <div id="relayLink" class="relay-link">Loading relay information...</div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -34,6 +35,11 @@
                         document.getElementById('ownerNpub').innerHTML = `<a href="https://njump.me/${data.ownerNpub}" target="_blank">${ownerStringIdentifier}</a>`;
                     } else {
                         document.getElementById('ownerNpub').textContent = 'Owner information not available';
+                    }
+                    if (data && data.domainName) {
+                        document.getElementById('relayLink').innerHTML = `wss://${data.domainName}`;
+                    } else {
+                        document.getElementById('relayLink').textContent = 'Relay information not available';
                     }
                 })
                 .catch(error => {

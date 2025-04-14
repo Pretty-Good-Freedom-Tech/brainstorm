@@ -30,3 +30,9 @@ body {
     text-align: center;
     margin: 0 auto;
 }
+
+.relay-link {
+    text-align: center;
+    color: rgb(146, 121, 107);
+    margin: 10px 0;
+}
