@@ -365,9 +365,21 @@
         function addRatingRow(tableBody, rating) {
             const row = document.createElement('tr');
             
-            // Create cells for each column
+            // Create pubkey cell with link to profile
+            const pubkeyCell = document.createElement('td');
+            pubkeyCell.className = 'truncate';
+            
+            const pubkeyLink = document.createElement('a');
+            pubkeyLink.href = `profile.html?pubkey=${rating.raterPubkey}`;
+            pubkeyLink.textContent = rating.raterPubkey;
+            pubkeyLink.title = rating.raterPubkey; // Show full pubkey on hover
+            pubkeyLink.className = 'pubkey-link';
+            
+            pubkeyCell.appendChild(pubkeyLink);
+            row.appendChild(pubkeyCell);
+            
+            // Create cells for other columns
             const cells = [
-                createCell(rating.raterPubkey, 'truncate'),
                 createCell(rating.type),
                 createCell(rating.product.toFixed(6), 'numeric'),
                 createCell(rating.rating.toFixed(1), 'numeric'),

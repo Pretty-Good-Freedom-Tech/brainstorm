@@ -66,6 +66,21 @@
     display: inline-block;
 }
 
+.pubkey-link {
+    color: #2980b9;
+    text-decoration: none;
+    transition: color 0.2s;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pubkey-link:hover {
+    color: #3498db;
+    text-decoration: underline;
+}
+
 .ratings-section {
     margin-bottom: 30px;
 }

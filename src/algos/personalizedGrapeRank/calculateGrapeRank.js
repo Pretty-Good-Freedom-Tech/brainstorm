@@ -303,6 +303,10 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
       // Add to sums
       products_sum += rating * rating_weight;
       weights_sum += rating_weight;
+
+      if (pk_ratee === "0b9e8ebda2508ea3972d81aa0fad559cea1f70719520c1a80dfc9847de71fced") {
+        console.log(`rater: ${pk_rater}, rating: ${rating}, rating_confidence: ${rating_confidence}, rater_influence: ${rater_influence}, rating_weight: ${rating_weight}`);
+      }
     }
     
     // Calculate GRAPERANK_INPUT
@@ -322,6 +326,13 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
 
   if (graperank_influence < 0) {
     graperank_influence = 0;
+  }
+
+  if (pk_ratee === "0b9e8ebda2508ea3972d81aa0fad559cea1f70719520c1a80dfc9847de71fced") {
+    console.log('GRAPERANK_INFLUENCE:', graperank_influence);
+    console.log('GRAPERANK_AVERAGE:', graperank_average);
+    console.log('GRAPERANK_CONFIDENCE:', graperank_confidence);
+    console.log('GRAPERANK_INPUT:', graperank_input);
   }
   
   return [graperank_influence, graperank_average, graperank_confidence, graperank_input];
@@ -452,6 +463,10 @@ async function main() {
           // Skip recalculation for HASENPFEFFR_OWNER_PUBKEY as it has fixed values
           if (pk_ratee === config.HASENPFEFFR_OWNER_PUBKEY) {
             continue;
+          }
+
+          if (pk_ratee === "0b9e8ebda2508ea3972d81aa0fad559cea1f70719520c1a80dfc9847de71fced") {
+            console.log(`============================================ iterations: ${iterations}`)
           }
           
           const graperank_params = calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config);
