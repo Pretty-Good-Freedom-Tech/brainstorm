@@ -46,7 +46,7 @@
                             .then(profileData => {
                                 if (profileData && profileData.success) {
                                     // Extract profile content
-                                    const content = profileData.content ? JSON.parse(profileData.content) : {};
+                                    const content = profileData.data.content ? JSON.parse(profileData.data.content) : {};
                                     
                                     // Extract profile details
                                     const picture = content.picture || '/control/img/default-avatar.svg';

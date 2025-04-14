@@ -1,10 +1,8 @@
 @import "./common.css";
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f8;
-    margin: 0;
-    padding: 0;
+    background-color: #333;
+    color: #b234bd;
 }
 
 .container-landing h1 {
@@ -29,7 +27,7 @@ body {
 }
 
 .container-landing {
-    max-width: 800px;
+    text-align: center;
     margin: 0 auto;
 }
 
