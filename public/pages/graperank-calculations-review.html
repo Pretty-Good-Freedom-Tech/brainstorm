@@ -198,7 +198,7 @@
         // Load GrapeRank parameters from the server
         async function loadGrapeRankParameters() {
             try {
-                const response = await fetch('/api/get-graperank-config');
+                const response = await fetch('/control/api/get-graperank-config');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -236,7 +236,7 @@
                 document.getElementById('ratingsTable').style.display = 'none';
                 
                 // Fetch user ratings and GrapeRank values
-                const response = await fetch(`/api/get-graperank-review?pubkey=${state.userPubkey}`);
+                const response = await fetch(`/control/api/get-graperank-review?pubkey=${state.userPubkey}`);
                 const data = await response.json();
                 
                 if (data.success) {
