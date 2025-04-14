@@ -28,7 +28,8 @@
                 })
                 .then(data => {
                     if (data && data.ownerNpub) {
-                        document.getElementById('ownerNpub').textContent = data.ownerNpub;
+                        let ownerStringIdentifier = data.ownerNpub;
+                        document.getElementById('ownerNpub').textContent = `<a href="https://njump.me/${data.ownerNpub}" target="_blank">${ownerStringIdentifier}</a>`;
                     } else {
                         document.getElementById('ownerNpub').textContent = 'Owner information not available';
                     }
