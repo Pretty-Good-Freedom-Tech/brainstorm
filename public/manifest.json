@@ -1,0 +1,14 @@
+{
+    "short_name": "brainSToRm",
+    "name": "Pretty Good Freedom Tech: BrainSToRm",
+    "icons": [
+      {
+        "src": "/control/img/brainstorm010_white.svg",
+        "type": "image/svg"
+      }
+    ],
+    "start_url": "/control/landing-page.html",
+    "display": "standalone",
+    "theme_color": "#000000",
+    "background_color": "#ffffff"
+}
