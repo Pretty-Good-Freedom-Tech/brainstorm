@@ -5,17 +5,14 @@ body {
     color: #b234bd;
 }
 
-h1, p {
+h1 {
     text-align: center;
     font-size: 2.0rem;
     line-height: 1.8;
     margin: 20px 0;
 }
 
-.container {
+.container-landing {
     text-align: center;
     margin: 0 auto;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
