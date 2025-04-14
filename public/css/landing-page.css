@@ -1,8 +1,10 @@
 @import "./common.css";
 
 body {
-    background-color: #333;
-    color: #b234bd;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f8;
+    margin: 0;
+    padding: 0;
 }
 
 .container-landing h1 {
@@ -27,7 +29,7 @@ body {
 }
 
 .container-landing {
-    text-align: center;
+    max-width: 800px;
     margin: 0 auto;
 }
 
@@ -35,4 +37,82 @@ body {
     text-align: center;
     color: rgb(146, 121, 107);
     margin: 10px 0;
+}
+
+/* Owner Profile Styling */
+.owner-profile {
+    margin: 30px auto;
+    max-width: 500px;
+}
+
+.profile-loading, .error-message {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.error-message {
+    color: #d9534f;
+}
+
+.profile-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.profile-link {
+    display: flex;
+    padding: 20px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.profile-image {
+    flex: 0 0 80px;
+    margin-right: 20px;
+}
+
+.profile-image img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #b234bd;
+}
+
+.profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profile-name {
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.profile-handle {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-size: 16px;
+}
+
+.profile-npub {
+    margin: 0;
+    color: #999;
+    font-size: 14px;
+    font-family: monospace;
 }

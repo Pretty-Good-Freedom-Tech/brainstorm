@@ -16,7 +16,12 @@
         <h1>🍇 Webs of Trust 🍇</h1>
         <h2>Nostr relay</h2>
         <h3>anchored to the Grapevine of:</h3>
-        <div id="ownerNpub" class="owner-npub-display">Loading owner information...</div>
+        
+        <!-- Enhanced owner profile section -->
+        <div id="ownerProfile" class="owner-profile">
+            <div class="profile-loading">Loading owner information...</div>
+        </div>
+        
         <div id="relayLink" class="relay-link">Loading relay information...</div>
     </div>
     <script>
@@ -30,12 +35,68 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data && data.ownerNpub) {
-                        let ownerStringIdentifier = data.ownerNpub;
-                        document.getElementById('ownerNpub').innerHTML = `<a href="https://njump.me/${data.ownerNpub}" target="_blank">${ownerStringIdentifier}</a>`;
+                    if (data && data.ownerPubkey) {
+                        // Store the owner pubkey and npub for reference
+                        const ownerPubkey = data.ownerPubkey;
+                        const ownerNpub = data.ownerNpub;
+                        
+                        // Fetch owner's profile information (kind0)
+                        fetch(`/control/api/get-kind0?pubkey=${ownerPubkey}`)
+                            .then(response => response.json())
+                            .then(profileData => {
+                                if (profileData && profileData.success) {
+                                    // Extract profile content
+                                    const content = profileData.content ? JSON.parse(profileData.content) : {};
+                                    
+                                    // Extract profile details
+                                    const picture = content.picture || '/control/img/default-avatar.svg';
+                                    const name = content.name || 'Unknown';
+                                    const displayName = content.display_name || content.displayName || name;
+                                    
+                                    // Create profile HTML
+                                    const profileHTML = `
+                                        <div class="profile-card">
+                                            <a href="https://njump.me/${ownerNpub}" target="_blank" class="profile-link">
+                                                <div class="profile-image">
+                                                    <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
+                                                </div>
+                                                <div class="profile-info">
+                                                    <h3 class="profile-name">${displayName}</h3>
+                                                    <p class="profile-handle">@${name}</p>
+                                                    <p class="profile-npub">${ownerNpub.substring(0, 8)}...${ownerNpub.substring(ownerNpub.length - 4)}</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    `;
+                                    
+                                    // Update the profile section
+                                    document.getElementById('ownerProfile').innerHTML = profileHTML;
+                                } else {
+                                    // Fallback if profile fetch fails
+                                    const fallbackHTML = `
+                                        <div class="profile-card">
+                                            <a href="https://njump.me/${ownerNpub}" target="_blank" class="profile-link">
+                                                <div class="profile-image">
+                                                    <img src="/control/img/default-avatar.svg" alt="Owner">
+                                                </div>
+                                                <div class="profile-info">
+                                                    <h3 class="profile-name">Relay Owner</h3>
+                                                    <p class="profile-npub">${ownerNpub}</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    `;
+                                    document.getElementById('ownerProfile').innerHTML = fallbackHTML;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching profile:', error);
+                                document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading profile</div>`;
+                            });
                     } else {
-                        document.getElementById('ownerNpub').textContent = 'Owner information not available';
+                        document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Owner information not available</div>`;
                     }
+                    
                     if (data && data.domainName) {
                         document.getElementById('relayLink').innerHTML = `wss://${data.domainName}`;
                     } else {
@@ -44,7 +105,7 @@
                 })
                 .catch(error => {
                     console.error('Error fetching owner information:', error);
-                    document.getElementById('ownerNpub').textContent = 'Error loading owner information';
+                    document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading owner information</div>`;
                 });
         });
     </script>
