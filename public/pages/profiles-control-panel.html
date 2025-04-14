@@ -190,18 +190,6 @@
             refreshBtn = document.getElementById('refreshBtn');
             exportCsvBtn = document.getElementById('exportCsvBtn');
             
-            // Load the header component
-            fetch('./components/header/header.html')
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('headerContainer').innerHTML = html;
-                    // Re-initialize the header after loading
-                    initializeHeader();
-                })
-                .catch(error => {
-                    console.error('Error loading header component:', error);
-                });
-            
             // Initialize the page
             // Set up event listeners
             setupEventListeners();
