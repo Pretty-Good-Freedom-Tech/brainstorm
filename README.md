@@ -1,6 +1,8 @@
 # Hasenpfeffr
 
-Hasenpfeffr is a _Personalized Webs of Trust Nostr relay_ that uses advanced techniques to calculate personalized webs of trust, resulting in high-quality, spam-free nostr content, curated by _your_ Nostr community.
+Hasenpfeffr is the precursor and most up-to-date iteration of Brainstorm: a _Personalized Webs of Trust Nostr relay_ that uses advanced techniques to calculate personalized webs of trust, resulting in high-quality, spam-free nostr content, curated by _your_ Nostr community. It is currently in alpha and is not yet ready for production use. Once a stable version is ready, it will be renamed Brainstorm.
+
+Thoughts on branding: for now, the hasenpfeffr repo (this repo) is a prototype for Brainstorm. Eventually, I may containerize Brainstorm, at which point I will reuse "hasenpfeffr" to refer strictly to the ETL pipeline between the strfry nostr relay and the Neo4j database (and may include WoT calculations?). At that point Strfry, Neo4j, and Hasenpfeffr may each have their own containers.
 
 ## Why use Hasenpfeffr?
 
