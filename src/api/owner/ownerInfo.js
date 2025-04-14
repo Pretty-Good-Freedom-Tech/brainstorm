@@ -15,12 +15,14 @@ function handleGetOwnerInfo(req, res) {
         // Get owner pubkey and npub from configuration
         const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
         const ownerNpub = getConfigFromFile('HASENPFEFFR_OWNER_NPUB');
+        const domainName = getConfigFromFile('STRFRY_DOMAIN');
         
         // Return owner information
         res.json({
             success: true,
             ownerPubkey,
-            ownerNpub
+            ownerNpub,
+            domainName
         });
     } catch (error) {
         console.error('Error getting owner information:', error);
