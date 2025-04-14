@@ -7,6 +7,13 @@ body {
 
 h1 {
     text-align: center;
+    font-size: 48px;
+    color: #b234bd;
+    margin: 20px 0;
+}
+
+h2 {
+    text-align: center;
     font-size: 36px;
     color: #b234bd;
     margin: 20px 0;
