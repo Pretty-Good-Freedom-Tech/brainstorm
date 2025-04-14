@@ -47,6 +47,7 @@
                     <div class="stat-box">
                         <h3>Influence</h3>
                         <p id="influenceValue">-</p>
+                        <p class="stat-link"><a href="#" id="grapeRankReviewLink">Review Calculations</a></p>
                     </div>
                     <div class="stat-box">
                         <h3>Confidence</h3>
@@ -153,6 +154,19 @@
         // Get pubkey from URL
         const urlParams = new URLSearchParams(window.location.search);
         const pubkey = urlParams.get('pubkey');
+        
+        if (!pubkey) {
+            showError('No pubkey specified. Please provide a valid pubkey parameter.');
+        } else {
+            // Configure GrapeRank Review link
+            document.getElementById('grapeRankReviewLink').href = `graperank-calculations-review.html?pubkey=${pubkey}`;
+            
+            // Base URL for API calls
+            const baseUrl = '/api';
+            
+            // Load data
+            loadProfileDataSequentially(pubkey, baseUrl);
+        }
         
         // Get DOM elements
         const profileContainer = document.getElementById('profileContainer');
