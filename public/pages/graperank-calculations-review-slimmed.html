@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasenpfeffr - GrapeRank Calculations Review</title>
+    <link rel="stylesheet" href="/css/graperank-calculations-review.css">
+    <script src="./components/header/header.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <div class="container">
+        <div class="header-section">
+            <h1>GrapeRank Calculations Review</h1>
+            <div class="user-info">
+                <div id="userPubkey" class="pubkey-display">Loading...</div>
+                <button id="refreshBtn">Refresh Data</button>
+            </div>
+        </div>
+        
+        <div id="statusMessage" style="display: none;"></div>
+        
+        <div class="parameters-section">
+            <h2>GrapeRank Parameters</h2>
+            <div class="parameters-grid">
+                <div class="parameter">
+                    <span class="parameter-label">Attenuation Factor:</span>
+                    <span id="attenuationFactor" class="parameter-value">Loading...</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-label">Rigor:</span>
+                    <span id="rigor" class="parameter-value">Loading...</span>
+                </div>
+                <div class="parameter">
+                    <span class="parameter-label">Owner Pubkey:</span>
+                    <span id="ownerPubkey" class="parameter-value truncate">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ratings-section">
+            <h2>Ratings Table</h2>
+            <div id="ratingsTableContainer" class="table-container">
+                <div id="loadingIndicator" class="loading"></div>
+                <table id="ratingsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Rater Pubkey</th>
+                            <th>Type</th>
+                            <th>Product</th>
+                            <th>Rating</th>
+                            <th>Weight</th>
+                            <th>Confidence</th>
+                            <th>Rater Influence</th>
+                            <th>Attenuation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ratingsTableBody">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <h2>Calculation Results</h2>
+            <div class="results-grid">
+                <div class="results-column">
+                    <h3>Totals</h3>
+                    <div class="result-item">
+                        <span class="result-label">Sum of Weights:</span>
+                        <span id="sumWeights" class="result-value">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Sum of Products:</span>
+                        <span id="sumProducts" class="result-value">0</span>
+                    </div>
+                </div>
+                
+                <div class="results-column">
+                    <h3>Calculated Values</h3>
+                    <div class="result-item">
+                        <span class="result-label">Average:</span>
+                        <span id="calculatedAverage" class="result-value">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Input:</span>
+                        <span id="calculatedInput" class="result-value">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Confidence:</span>
+                        <span id="calculatedConfidence" class="result-value">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Influence:</span>
+                        <span id="calculatedInfluence" class="result-value">0</span>
+                    </div>
+                </div>
+                
+                <div class="results-column">
+                    <h3>Neo4j Values</h3>
+                    <div class="result-item">
+                        <span class="result-label">Average:</span>
+                        <span id="neo4jAverage" class="result-value">0</span>
+                        <span id="averageMatch" class="match-indicator"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Input:</span>
+                        <span id="neo4jInput" class="result-value">0</span>
+                        <span id="inputMatch" class="match-indicator"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Confidence:</span>
+                        <span id="neo4jConfidence" class="result-value">0</span>
+                        <span id="confidenceMatch" class="match-indicator"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Influence:</span>
+                        <span id="neo4jInfluence" class="result-value">0</span>
+                        <span id="influenceMatch" class="match-indicator"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load the header component
+        fetch('./components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+            
+    </script>
+</body>
+</html>
