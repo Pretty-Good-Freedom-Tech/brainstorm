@@ -13,6 +13,7 @@ const { execSync } = require('child_process');
 const readline = require('readline');
 const crypto = require('crypto'); // Add crypto module for generating secure random values
 const { getConfigFromFile } = require('../src/utils/config');
+const { nip19 } = require('nostr-tools');
 
 // Check if running in update mode
 const isUpdateMode = process.env.UPDATE_MODE === 'true' || process.env.UPDATE_MODE === 'TRUE' || process.env.UPDATE_MODE === '1' || process.env.UPDATE_MODE === 'yes' || process.env.UPDATE_MODE === 'Y';
@@ -349,6 +350,9 @@ async function createHasenpfeffrConfigFile() {
   // Generate a secure random session secret
   const sessionSecret = crypto.randomBytes(32).toString('hex');
   
+  // Calculate owner's npub from hex pubkey
+  const ownerNpub = nip19.npubEncode(ownerPubkey);
+  
   // Create hasenpfeffr configuration content
   const hasenpfeffrConfigContent = `# Hasenpfeffr Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
@@ -409,6 +413,7 @@ export STRFRY_DOMAIN="${domainName}"
 
 # Owner pubkey for PageRank calculations
 export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
+export HASENPFEFFR_OWNER_NPUB="${ownerNpub}"
 
 # Security settings
 export SESSION_SECRET="${sessionSecret}"
