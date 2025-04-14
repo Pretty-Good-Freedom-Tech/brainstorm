@@ -273,10 +273,10 @@ function fetchUserProfile(pubkey) {
     fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
         .then(response => response.json())
         .then(data => {
-            if (data && data.success && data.event && data.event.content) {
+            if (data && data.success && data.event && data.data.content) {
                 let profile;
                 try {
-                    profile = JSON.parse(data.event.content);
+                    profile = JSON.parse(data.data.content);
                 } catch (e) {
                     console.error('Error parsing profile JSON:', e);
                     return;

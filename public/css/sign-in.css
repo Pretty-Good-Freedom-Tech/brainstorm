@@ -5,6 +5,9 @@
     padding: 20px;
     text-align: center;
 }
+.header h1 {
+    color: #fff;
+}
 .sign-in-box {
     background-color: #fff;
     border-radius: 5px;
