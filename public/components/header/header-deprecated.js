@@ -1,9 +1,7 @@
 /**
- * Hasenpfeffr Header Bundle
- * This script combines both the header component functionality and the auto-loading feature.
- * Simply include this single script in your page, and everything will be handled automatically.
- * 
- * Usage: <script src="/control/components/header/header-bundle.js"></script>
+ * Hasenpfeffr Header Component JavaScript
+ * This script handles the authentication status and relay link functionality
+ * for the Hasenpfeffr header component.
  */
 
 // Flag to track if constraints have been checked already
@@ -12,6 +10,7 @@ let constraintsChecked = false;
 /**
  * Check if Neo4j constraints and indexes are set up, and trigger setup if not
  */
+
 function checkNeo4jConstraints() {
     // Prevent multiple checks
     if (constraintsChecked) {
@@ -31,6 +30,10 @@ function checkNeo4jConstraints() {
             if (data && data.constraintsTimestamp === 0) {
                 console.log('Neo4j constraints and indexes have not been set up, initiating setup...');
                 setupNeo4jConstraints();
+                // if (confirm('Neo4j constraints and indexes have not been set up. Would you like to set them up now?\n\n NOTE: Make sure you have setup the neo4j password at the neo4j browser!! Otherwise the setup will fail. Do this at http://yourCoolSite.com:7474 and log in with neo4j / neo4j.')) {
+                //     // Trigger setup if user confirms
+                //     setupNeo4jConstraints();
+                // }
             } else {
                 console.log('Neo4j constraints and indexes are already set up.');
             }
@@ -43,6 +46,7 @@ function checkNeo4jConstraints() {
 /**
  * Set up Neo4j constraints and indexes
  */
+
 function setupNeo4jConstraints() {
     console.log('Setting up Neo4j constraints and indexes...');
     
@@ -134,9 +138,6 @@ function loadNavbar() {
         });
 }
 
-/**
- * Initialize the header component once it's loaded
- */
 function initializeHeader() {
     const userInfo = document.getElementById('userInfo');
     const userAvatar = document.getElementById('userAvatar');
@@ -197,65 +198,90 @@ function initializeHeader() {
                 console.error('Error fetching STRFRY_DOMAIN:', error);
             });
     }
+    
+    // Highlight the current page in the navbar
+    highlightCurrentPage();
 }
 
 /**
- * Highlight the current page in the navigation bar
+ * Highlights the current page in the navigation bar
  */
 function highlightCurrentPage() {
-    // Get the current path
+    // Get all navigation buttons
+    const navButtons = document.querySelectorAll('.nav-btn');
+    if (!navButtons || navButtons.length === 0) return;
+    
+    // Get the current page path
     const currentPath = window.location.pathname;
-    console.log('Highlighting current page for path:', currentPath);
+    console.log('Current path:', currentPath);
     
-    // All navbar items - the "components-header-*" classes are dynamically added
-    // We need to find all anchor tags in the navbar
-    const navItems = document.querySelectorAll('.navbar a');
+    // Clear any existing highlights first
+    navButtons.forEach(button => {
+        button.classList.remove('active-page');
+    });
     
-    // Map of path prefixes to highlight for specific pages
-    const pathMappings = {
-        '/control/overview.html': '/control/overview',
-        '/control/index.html': '/control/index',
-        '/control/nip85.html': '/control/nip85',
-        '/control/nip85-control-panel.html': '/control/nip85',
-        '/control/about.html': '/control/about',
-        '/control/reconciliation.html': '/control/reconciliation',
-        '/control/profiles.html': '/control/profiles',
-        '/control/profile.html': '/control/profiles',
-        '/control/graperank-control-panel.html': '/control/graperank',
-        '/control/network-visualization.html': '/control/network-visualization',
-        '/control/neo4j-control-panel.html': '/control/neo4j-control-panel'
-    };
+    // Flag to track if any button was highlighted
+    let buttonHighlighted = false;
     
-    // Get the matching prefix for the current path
-    let matchingPrefix = null;
-    for (const [path, prefix] of Object.entries(pathMappings)) {
-        if (currentPath === path || currentPath.startsWith(prefix)) {
-            matchingPrefix = prefix;
-            break;
-        }
-    }
-    
-    if (!matchingPrefix) {
-        // Try to extract a base prefix for other pages
-        const parts = currentPath.split('/');
-        if (parts.length >= 3) {
-            const lastPart = parts[parts.length - 1];
-            matchingPrefix = lastPart.split('.')[0]; // Remove file extension
-        }
-    }
-    
-    if (matchingPrefix) {
-        console.log('Matching prefix for highlighting:', matchingPrefix);
+    // Check each button to see if its href matches the current path
+    navButtons.forEach(button => {
+        // Get the path from the button's href
+        const buttonPath = new URL(button.href).pathname;
+        console.log('Button path:', buttonPath, 'for button:', button.textContent);
         
-        // Check each navbar item and highlight if it matches
-        navItems.forEach(item => {
-            if (item.href.includes(matchingPrefix)) {
-                item.classList.add('active');
-                console.log('Highlighted item:', item.textContent.trim());
-            } else {
-                item.classList.remove('active');
+        // Special case for home page
+        if (buttonPath === '/control/' || buttonPath === '/control/index.html') {
+            if (currentPath === '/control/' || currentPath === '/control/index.html') {
+                button.classList.add('active-page');
+                buttonHighlighted = true;
             }
-        });
+        } 
+        // Special case for Strfry Relay (root path)
+        else if (buttonPath === '/') {
+            if (currentPath === '/' || currentPath === '/index.html') {
+                button.classList.add('active-page');
+                buttonHighlighted = true;
+            }
+        }
+        // For other pages, check for exact match or matching filename
+        else if (currentPath === buttonPath || 
+                (currentPath.split('/').pop() === buttonPath.split('/').pop() && 
+                 buttonPath !== '/' && buttonPath !== '/control/')) {
+            button.classList.add('active-page');
+            buttonHighlighted = true;
+        }
+    });
+    
+    // If no button was highlighted and we're on a subpage, highlight the parent section
+    if (!buttonHighlighted) {
+        // Extract the first part of the path after /control/
+        const pathParts = currentPath.split('/');
+        if (pathParts.length >= 3 && pathParts[1] === 'control') {
+            // Get the base name without extension and split by hyphen
+            const pageName = pathParts[2].split('.')[0];
+            const mainSection = pageName.split('-')[0];
+            
+            console.log('Looking for section match for:', mainSection);
+            
+            // Try to find a button that contains this section
+            navButtons.forEach(button => {
+                const buttonText = button.textContent.toLowerCase();
+                const buttonPath = new URL(button.href).pathname;
+                const buttonPageName = buttonPath.split('/').pop().split('.')[0];
+                
+                // Skip the home and root buttons for this matching
+                if (buttonPath === '/control/' || buttonPath === '/control/index.html' || buttonPath === '/') {
+                    return;
+                }
+                
+                // Check if button text or button filename contains the section name
+                if (buttonText.includes(mainSection.toLowerCase()) || 
+                    buttonPageName.includes(mainSection.toLowerCase())) {
+                    console.log('Found section match:', buttonText);
+                    button.classList.add('active-page');
+                }
+            });
+        }
     }
 }
 
@@ -264,44 +290,68 @@ function highlightCurrentPage() {
  * @param {string} pubkey - User's public key
  */
 function fetchUserProfile(pubkey) {
-    if (!pubkey) return;
+    // Get DOM elements again in case they've changed
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
     
-    console.log('Fetching profile for pubkey:', pubkey);
+    // Ensure elements exist before proceeding
+    if (!userAvatar || !userName) {
+        console.error('User avatar or name elements not found');
+        return;
+    }
     
-    fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
+    // Fetch user profile from kind 0 event
+    fetch(`/control/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`)
         .then(response => response.json())
-        .then(data => {
-            if (data && data.success && data.event && data.event.content) {
-                let profile;
+        .then(result => {
+            if (result.success && result.data) {
                 try {
-                    profile = JSON.parse(data.event.content);
-                } catch (e) {
-                    console.error('Error parsing profile JSON:', e);
-                    return;
-                }
-                
-                const userAvatar = document.getElementById('userAvatar');
-                const userName = document.getElementById('userName');
-                
-                // Update display name if available
-                if (profile.display_name || profile.name) {
-                    if (userName) {
-                        userName.textContent = profile.display_name || profile.name;
+                    // Parse the kind 0 event content
+                    const event = result.data;
+                    const content = JSON.parse(event.content);
+                    
+                    // Update user name if available
+                    if (content.name || content.display_name) {
+                        userName.textContent = content.display_name || content.name;
+                        userName.title = pubkey; // Set the full pubkey as title for hover
                     }
-                }
-                
-                // Update avatar if available
-                if (profile.picture && userAvatar) {
-                    // Replace text with image
-                    userAvatar.textContent = '';
-                    const img = document.createElement('img');
-                    img.src = profile.picture;
-                    img.alt = 'Avatar';
-                    img.onerror = () => {
-                        // Fallback if image fails to load
-                        userAvatar.textContent = pubkey.substring(0, 1).toUpperCase();
-                    };
-                    userAvatar.appendChild(img);
+                    
+                    // Update user avatar if picture is available
+                    if (content.picture) {
+                        // Clear the text content
+                        userAvatar.textContent = '';
+                        
+                        // Create an image element
+                        const img = document.createElement('img');
+                        img.src = content.picture;
+                        img.alt = content.name || pubkey.substring(0, 8);
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.borderRadius = '50%';
+                        img.style.objectFit = 'cover';
+                        
+                        // Handle image loading errors
+                        img.onerror = () => {
+                            // Revert to first letter of name or pubkey
+                            userAvatar.textContent = (content.name ? content.name.substring(0, 1) : pubkey.substring(0, 1)).toUpperCase();
+                        };
+                        
+                        // Add the image to the avatar container
+                        userAvatar.appendChild(img);
+                    } else if (content.name) {
+                        // If no picture but name is available, use first letter of name
+                        userAvatar.textContent = content.name.substring(0, 1).toUpperCase();
+                    }
+                    
+                    // Add tooltip with additional information if available
+                    let tooltipContent = pubkey;
+                    if (content.about) {
+                        tooltipContent = `${content.about}\n\n${pubkey}`;
+                    }
+                    userAvatar.title = tooltipContent;
+                    
+                } catch (error) {
+                    console.error('Error parsing profile data:', error);
                 }
             }
         })
@@ -309,43 +359,3 @@ function fetchUserProfile(pubkey) {
             console.error('Error fetching user profile:', error);
         });
 }
-
-/**
- * Load the header component HTML
- */
-function loadHeaderComponent() {
-    const headerContainer = document.getElementById('headerContainer');
-    
-    if (!headerContainer) {
-        console.error('Header container element with ID "headerContainer" not found!');
-        return;
-    }
-    
-    // Load the header component HTML
-    fetch('/control/components/header/header.html')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to load header component (${response.status} ${response.statusText})`);
-            }
-            return response.text();
-        })
-        .then(html => {
-            // Insert the header HTML
-            headerContainer.innerHTML = html;
-            
-            // Initialize the header
-            initializeHeader();
-        })
-        .catch(error => {
-            console.error('Error loading header component:', error);
-            headerContainer.innerHTML = `
-                <div class="header-error">
-                    <strong>Error loading header</strong><br>
-                    ${error.message}
-                </div>
-            `;
-        });
-}
-
-// Auto-load the header component when the document is ready
-document.addEventListener('DOMContentLoaded', loadHeaderComponent);
