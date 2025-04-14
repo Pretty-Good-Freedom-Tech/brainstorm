@@ -101,8 +101,8 @@ sed -i "s|^    maxEventSize = 65536|    maxEventSize = 1048576|" "$STRFRY_CONF"
 
 # Update relay info if pubkey is available
 if [ ! -z "$RELAY_PUBKEY" ]; then
-  sed -i "s|^        name = .*|        name = \"Hasenpfeffr Relay\"|" "$STRFRY_CONF"
-  sed -i "s|^        description = .*|        description = \"Hasenpfeffr Nostr relay for NIP-85 Trusted Assertions\"|" "$STRFRY_CONF"
+  sed -i "s|^        name = .*|        name = \"Brainstorm Relay\"|" "$STRFRY_CONF"
+  sed -i "s|^        description = .*|        description = \"Brainstorm: personalized WoT relay featuring the Grapevine\"|" "$STRFRY_CONF"
   sed -i "s|^        contact = .*|        contact = \"admin@${DOMAIN_NAME}\"|" "$STRFRY_CONF"
   sed -i "s|^        pubkey = .*|        pubkey = \"${RELAY_PUBKEY}\"|" "$STRFRY_CONF"
 fi
@@ -142,9 +142,9 @@ if ! grep -q "db = \"$STRFRY_DATA_DIR\"" "$STRFRY_CONF"; then
   if [ ! -z "$RELAY_PUBKEY" ]; then
     awk -v pubkey="$RELAY_PUBKEY" -v domain="$DOMAIN_NAME" '{
       if ($0 ~ /^        name =/) {
-        print "        name = \"Hasenpfeffr Relay\""
+        print "        name = \"Brainstorm Relay\""
       } else if ($0 ~ /^        description =/) {
-        print "        description = \"Hasenpfeffr Nostr relay for NIP-85 Trusted Assertions\""
+        print "        description = \"Brainstorm: personalized WoT relay featuring the Grapevine\""
       } else if ($0 ~ /^        pubkey =/) {
         print "        pubkey = \"" pubkey "\""
       } else if ($0 ~ /^        contact =/) {
