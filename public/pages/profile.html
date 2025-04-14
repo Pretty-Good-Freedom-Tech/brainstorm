@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="/control/css/profile.css">
 </head>
 <body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+    
     <div class="container">
         <div class="header">
             <h1>Nostr User Profile</h1>
@@ -146,6 +149,20 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Load the header component
+        fetch('./components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Re-initialize the header after loading
+                initializeHeader();
+            })
+            .catch(error => {
+                console.error('Error loading header component:', error);
+            });
+    </script>
     
     <!-- Include D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
