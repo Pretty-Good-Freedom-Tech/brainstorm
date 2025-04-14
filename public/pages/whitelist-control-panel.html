@@ -136,16 +136,6 @@
     </div>
 
     <script>
-        // Load the header component
-        fetch('./components/header/header.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('headerContainer').innerHTML = data;
-                // Initialize the header to check authentication status
-                initializeHeader();
-            });
-    </script>
-    <script>
         // Elements
         const whitelistedCountEl = document.getElementById('whitelistedCount');
         const lastCalculatedEl = document.getElementById('lastCalculated');

@@ -38,18 +38,5 @@
             <li>WoT DVM (add link and discussion), not yet implemented by Hasenpfeffr.</li>
         </div>
     </div>
-    <script>
-        // Load the header component
-        fetch('./components/header/header.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('headerContainer').innerHTML = html;
-                // Re-initialize the header after loading
-                initializeHeader();
-            })
-            .catch(error => {
-                console.error('Error loading header component:', error);
-            });
-    </script>
 </body>
 </html>
