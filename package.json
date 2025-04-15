@@ -1,6 +1,6 @@
 {
   "name": "hasenpfeffr",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha",
   "description": "A Personalized Webs of Trust Nostr relay featuring the Grapevine",
   "main": "index.js",
   "bin": {

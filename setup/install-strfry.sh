@@ -102,8 +102,8 @@ sed -i "s|^    maxEventSize = 65536|    maxEventSize = 1048576|" "$STRFRY_CONF"
 # Update relay info if pubkey is available
 if [ ! -z "$RELAY_PUBKEY" ]; then
   sed -i "s|^        name = .*|        name = \"Brainstorm Relay\"|" "$STRFRY_CONF"
-  sed -i "s|^        description = .*|        description = \"Brainstorm: personalized WoT relay featuring the Grapevine\"|" "$STRFRY_CONF"
-  sed -i "s|^        contact = .*|        contact = \"admin@${DOMAIN_NAME}\"|" "$STRFRY_CONF"
+  sed -i "s|^        description = .*|        description = \"Brainstorm: a personalized WoT relay featuring the Grapevine\"|" "$STRFRY_CONF"
+  sed -i "s|^        contact = .*|        contact = \"nostr: npub1u5njm6g5h5cpw4wy8xugu62e5s7f6fnysv0sj0z3a8rengt2zqhsxrldq3\"|" "$STRFRY_CONF"
   sed -i "s|^        pubkey = .*|        pubkey = \"${RELAY_PUBKEY}\"|" "$STRFRY_CONF"
 fi
 

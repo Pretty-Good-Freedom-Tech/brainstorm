@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr Control Panel
+ * Brainstorm Control Panel
  * 
- * This script starts the Hasenpfeffr Control Panel web interface
+ * This script starts the Brainstorm Control Panel web interface
  * and API server for managing NIP-85 data generation and publication.
  */
 
@@ -71,7 +71,7 @@ app.use(express.static(path.join(__dirname, '../public'), {
 
 // Session middleware
 app.use(session({
-    secret: getConfigFromFile('SESSION_SECRET', 'hasenpfeffr-default-session-secret-please-change-in-production'),
+    secret: getConfigFromFile('SESSION_SECRET', 'brainstorm-default-session-secret-please-change-in-production'),
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
@@ -137,7 +137,7 @@ app.use(authMiddleware);
 api.register(app);
 // Start the server
 app.listen(port, () => {
-    console.log(`Hasenpfeffr Control Panel running on port ${port}`);
+    console.log(`Brainstorm Control Panel running on port ${port}`);
 });
 
 // Export utility functions for testing and reuse
