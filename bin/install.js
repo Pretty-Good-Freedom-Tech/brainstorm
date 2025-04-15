@@ -196,6 +196,9 @@ async function install() {
     
     // Step 8: Configure sudo privileges
     await configureSudoPrivileges();
+
+    // make sure hasenpfeffr-control-panel is running
+    execSync('sudo systemctl restart hasenpfeffr-control-panel');
     
     // Step 9: Final setup and instructions
     await finalSetup();
