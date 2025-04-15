@@ -161,6 +161,7 @@ function initializeHeader() {
     const userName = document.getElementById('userName');
     const signInLink = document.getElementById('signInLink');
     const relayLink = document.getElementById('relayLink');
+    const logoutLink = document.getElementById('logoutLink');
 
     // Load the appropriate navbar
     loadNavbar();
@@ -176,6 +177,7 @@ function initializeHeader() {
                 // User is authenticated
                 if (userInfo) { userInfo.style.display = 'flex' }
                 if (signInLink) { signInLink.style.display = 'none' }
+                if (logoutLink) { logoutLink.style.display = 'inline-block' }
                 
                 // Set default user avatar with first letter of pubkey
                 if (data.pubkey) {
@@ -189,6 +191,7 @@ function initializeHeader() {
                 // User is not authenticated
                 if (userInfo) { userInfo.style.display = 'none' }
                 if (signInLink) { signInLink.style.display = 'inline-block' }
+                if (logoutLink) { logoutLink.style.display = 'none' }
             }
         })
         .catch(error => {
@@ -215,6 +218,42 @@ function initializeHeader() {
                 console.error('Error fetching STRFRY_DOMAIN:', error);
             });
     }
+
+    // Set up the logout link
+    if (logoutLink) {
+        logoutLink.addEventListener('click', logout);
+    }
+}
+
+/**
+ * Handle user logout 
+ * This function sends a request to the server to clear the user's session,
+ * then redirects to the landing page
+ */
+function logout() {
+    fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Logout failed');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Logout successful:', data);
+        // Redirect to landing page after successful logout
+        window.location.href = '/index.html';
+    })
+    .catch(error => {
+        console.error('Error during logout:', error);
+        // Even if there's an error, redirect to the landing page
+        window.location.href = '/index.html';
+    });
 }
 
 /**
