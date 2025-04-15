@@ -13,6 +13,15 @@ body {
 h1, h2, h3, h4 {
     color: #2c3e50;
 }
+/* CSS for sticky footer layout */
+.page-content {
+    flex: 1 0 auto; /* This makes this div take up all available space */
+}
+
+#footerContainer {
+    flex-shrink: 0; /* Prevent the footer from shrinking */
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
