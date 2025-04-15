@@ -116,7 +116,7 @@
                         document.getElementById('relayLink').innerHTML = relayUrl;
                         
                         // Create verification URL for legacy.nostr.watch
-                        const verifyUrl = `https://legacy.nostr.watch/relay/${encodeURIComponent(relayUrl)}`;
+                        const verifyUrl = `https://legacy.nostr.watch/relay/${data.domainName}/relay`;
                         const verifyButton = document.getElementById('verifyButton');
                         verifyButton.href = verifyUrl;
                         
