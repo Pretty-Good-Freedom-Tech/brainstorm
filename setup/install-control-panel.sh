@@ -177,14 +177,14 @@ else
 fi
 
 # Reload systemd daemon
-systemctl daemon-reload
+sudo systemctl daemon-reload
 
 # Enable and start the service
-systemctl enable $SYSTEMD_SERVICE_FILE
-systemctl restart $SYSTEMD_SERVICE_FILE
+sudo systemctl enable $SYSTEMD_SERVICE_FILE
+sudo systemctl restart $SYSTEMD_SERVICE_FILE
 
 # Check if service is running
-if systemctl is-active --quiet $SYSTEMD_SERVICE_FILE; then
+if sudo systemctl is-active --quiet $SYSTEMD_SERVICE_FILE; then
   echo "Hasenpfeffr Control Panel service is running"
 else
   echo "Warning: Hasenpfeffr Control Panel service failed to start"
