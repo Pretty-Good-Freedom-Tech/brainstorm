@@ -74,15 +74,17 @@ sudo rm /var/lock/processQueue.lock
 sudo rm -r ~/hasenpfeffr
 ```
 
-#### Step 2: Install New Version
+#### Step 2 (optional): Update System Packages
 
 ```bash
-#!/bin/bash
-
 # Update system packages
 sudo apt update
 sudo apt upgrade -y
+```
 
+#### Step 3: Install New Version
+
+```bash
 # Clone the Hasenpfeffr repository
 cd ~
 # git clone --single-branch --branch graperank-library https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
