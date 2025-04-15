@@ -118,7 +118,7 @@ async function getTopUsers() {
                u.confidence AS confidence,
                u.input AS input
         ORDER BY u.personalizedPageRank DESC
-        LIMIT 100
+        LIMIT 1000
       `);
       
       console.log(`Fallback query found ${fallbackResult.records.length} users`);
