@@ -1,0 +1,55 @@
+server {
+    server_name relay36.hasenpfeffr.com;
+
+    # Hasenpfeffr Control Panel as main application
+    location /control/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_pass http://127.0.0.1:7778/;
+        proxy_http_version 1.1;
+
+        # Add this to ensure proper MIME types for all static files
+        include /etc/nginx/mime.types;
+    }
+
+    # Main location block with dynamic backend selection
+    location / {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_http_version 1.1;
+
+        # Use the backend selected by the map directive
+        proxy_pass http://$backend;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/relay36.hasenpfeffr.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/relay36.hasenpfeffr.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+# WebSocket connection handling
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# Select backend based on the Upgrade header
+map $http_upgrade $backend {
+    default        127.0.0.1:7779;  # HTTP requests
+    websocket      127.0.0.1:7777;  # WebSocket requests
+}
+
+server {
+    if ($host = relay36.hasenpfeffr.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name relay36.hasenpfeffr.com;
+    listen 80;
+    return 404; # managed by Certbot
+}
