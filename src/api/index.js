@@ -83,7 +83,7 @@ function register(app) {
     
     app.post('/api/auth/login', handleAuthLogin);
     
-    app.get('/api/auth/logout', handleAuthLogout);
+    app.post('/api/auth/logout', handleAuthLogout);
     
     app.get('/api/auth/status', handleAuthStatus);
     
