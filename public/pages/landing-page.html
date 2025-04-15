@@ -106,7 +106,7 @@
                     }
                     
                     if (data && data.domainName) {
-                        const relayUrl = `wss://${data.domainName}`;
+                        const relayUrl = `wss://${data.domainName}/relay`;
                         document.getElementById('relayLink').innerHTML = relayUrl;
                         
                         // Set up clipboard functionality
