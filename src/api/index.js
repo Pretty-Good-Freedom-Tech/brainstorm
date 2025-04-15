@@ -69,7 +69,6 @@ function register(app) {
     // TODO: might move these to status module 
     app.get('/api/strfry-status', getStrfryStatus);
 
-    
     app.get('/api/list-status', getListStatus);
     
     app.get('/api/ranking-status', getRankingStatus);
