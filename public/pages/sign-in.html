@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainstorm</title>
-    <link rel="stylesheet" href="/control/css/sign-in.css">
+    <link rel="stylesheet" href="/css/sign-in.css">
 </head>
 <body>
     <div class="header">
@@ -32,8 +32,8 @@
             
             <p>You can access the control panel in read-only mode without signing in:</p>
             <div class="button-group">
-                <a href="/control/index.html" class="btn home-btn">Home</a>
-                <a href="/control/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
+                <a href="/home.html" class="btn home-btn">Home</a>
+                <a href="/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@
             
             // Update control panel link
             if (controlPanelLink) {
-                controlPanelLink.href = '/control/control-panel.html';
+                controlPanelLink.href = '/control-panel.html';
             }
             
             // Check if NIP-07 extension is available
@@ -86,7 +86,7 @@
                     const nsec = nsecInput ? nsecInput.value.trim() : '';
                     
                     // Verify with server
-                    const response = await fetch('/control/api/auth/verify', {
+                    const response = await fetch('/api/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -116,7 +116,7 @@
                         const signedEvent = await window.nostr.signEvent(event);
                         
                         // Send the signed event and nsec to the server
-                        const authResponse = await fetch('/control/api/auth/login', {
+                        const authResponse = await fetch('/api/auth/login', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -135,7 +135,7 @@
                             
                             // Redirect to home page
                             setTimeout(() => {
-                                window.location.href = '/control/index.html';
+                                window.location.href = '/home.html';
                             }, 1500);
                         } else {
                             signInStatus.textContent = 'Authentication failed: ' + authData.message;
