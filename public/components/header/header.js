@@ -23,7 +23,7 @@ function checkNeo4jConstraints() {
     constraintsChecked = true;
     
     // First check if constraints have been created
-    fetch('/control/api/status/neo4j-constraints')
+    fetch('/api/status/neo4j-constraints')
         .then(response => response.json())
         .then(data => {
             console.log('Neo4j constraints status:', data);
@@ -46,7 +46,7 @@ function checkNeo4jConstraints() {
 function setupNeo4jConstraints() {
     console.log('Setting up Neo4j constraints and indexes...');
     
-    fetch('/control/api/neo4j-setup-constraints-and-indexes', {
+    fetch('/api/neo4j-setup-constraints-and-indexes', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -84,17 +84,27 @@ function loadNavbar() {
     console.log('Loading navbar for path:', currentPath);
     
     // Choose which navbar to load - nav1.html for index and about, nav2.html for everything else
-    let navbarPath = '/control/components/header/navbars/nav2.html';
-    if (currentPath === '/control/index.html' || currentPath === '/control/nip85.html' || currentPath === '/control/about.html') {
-        navbarPath = '/control/components/header/navbars/nav1.html';
+    let navbarPath = '/components/header/navbars/nav2.html';
+    if (
+        currentPath === '/index.html' 
+        || currentPath === '/nip85.html' 
+        || currentPath === '/about.html'
+        || currentPath === '/control/index.html' 
+        || currentPath === '/control/nip85.html' 
+        || currentPath === '/control/about.html'
+    ) {
+        navbarPath = '/components/header/navbars/nav1.html';
     }
-    if (currentPath === '/control/landing-page.html') {
-        navbarPath = '/control/components/header/navbars/nav3.html';
+    if (
+        currentPath === '/landing-page.html'
+        || currentPath === '/control/landing-page.html'
+    ) {
+        navbarPath = '/components/header/navbars/nav3.html';
     }    
     // First fetch the Neo4j Browser URL
-    fetch('/control/api/status')
+    fetch('/api/status')
         .then(response => response.json())
-        .catch(() => fetch('/control/api/status').then(response => response.json()))
+        .catch(() => fetch('/api/status').then(response => response.json()))
         .then(data => {
             let neo4jBrowserUrl = data && data.neo4jBrowserUrl ? data.neo4jBrowserUrl : 'http://localhost:7474';
             console.log('Neo4j Browser URL:', neo4jBrowserUrl);
@@ -153,7 +163,7 @@ function initializeHeader() {
     checkNeo4jConstraints();
 
     // Check authentication status
-    fetch('/control/api/auth/status')
+    fetch('/api/auth/status')
         .then(response => response.json())
         .then(data => {
             if (data && data.authenticated) {
@@ -181,9 +191,9 @@ function initializeHeader() {
 
     // Set up the relay link with the correct domain if it exists
     if (relayLink) {
-        fetch('/control/api/status')
+        fetch('/api/status')
             .then(response => response.json())
-            .catch(() => fetch('/control/api/status').then(response => response.json()))
+            .catch(() => fetch('/api/status').then(response => response.json()))
             .then(data => {
                 if (data && data.strfryDomain) {
                     // Set the relay link to the /strfry/ path
@@ -270,7 +280,7 @@ function fetchUserProfile_deprecated(pubkey) {
     
     console.log('Fetching profile for pubkey:', pubkey);
     
-    fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
+    fetch(`/api/get-kind0?pubkey=${pubkey}`)
         .then(response => response.json())
         .then(data => {
             if (data && data.success && data.data && data.data.content) {
@@ -323,7 +333,7 @@ function fetchUserProfile(pubkey) {
     }
     
     // Fetch user profile from kind 0 event
-    fetch(`/control/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`)
+    fetch(`/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`)
         .then(response => response.json())
         .then(result => {
             if (result.success && result.data) {
