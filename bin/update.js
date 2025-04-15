@@ -131,6 +131,10 @@ function removeFiles() {
     '/usr/local/bin/hasenpfeffr-strfry-stats',
     '/usr/local/bin/hasenpfeffr-negentropy-sync',
     '/usr/local/bin/hasenpfeffr-update-config',
+    '/usr/local/bin/hasenpfeffr-generate',
+    '/usr/local/bin/hasenpfeffr-install',
+    '/usr/local/bin/hasenpfeffr-node',
+    '/usr/local/bin/hasenpfeffr-publish',
     '/var/lock/processQueue.lock'
   ];
   

@@ -58,10 +58,16 @@ sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.timer
 sudo rm -r /var/lib/hasenpfeffr
 sudo rm -r /usr/local/lib/node_modules/hasenpfeffr
 sudo rm -r /usr/local/lib/strfry
+
 sudo rm /usr/local/bin/hasenpfeffr-control-panel
 sudo rm /usr/local/bin/hasenpfeffr-strfry-stats
 sudo rm /usr/local/bin/hasenpfeffr-negentropy-sync
 sudo rm /usr/local/bin/hasenpfeffr-update-config
+sudo rm /usr/local/bin/hasenpfeffr-generate
+sudo rm /usr/local/bin/hasenpfeffr-install
+sudo rm /usr/local/bin/hasenpfeffr-node
+sudo rm /usr/local/bin/hasenpfeffr-publish
+
 sudo rm /var/lock/processQueue.lock
 
 # Remove home directory files
