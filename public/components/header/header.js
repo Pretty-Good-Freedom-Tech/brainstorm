@@ -85,19 +85,21 @@ function loadNavbar() {
     
     // Choose which navbar to load - nav1.html for index and about, nav2.html for everything else
     let navbarPath = '/components/header/navbars/nav2.html';
+
     if (
-        currentPath === '/index.html' 
+        currentPath === '/home.html' 
         || currentPath === '/nip85.html' 
         || currentPath === '/about.html'
-        || currentPath === '/control/index.html' 
+        || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/about.html'
     ) {
         navbarPath = '/components/header/navbars/nav1.html';
     }
+
     if (
-        currentPath === '/landing-page.html'
-        || currentPath === '/control/landing-page.html'
+        currentPath === '/index.html'
+        || currentPath === '/control/index.html'
     ) {
         navbarPath = '/components/header/navbars/nav3.html';
     }    
