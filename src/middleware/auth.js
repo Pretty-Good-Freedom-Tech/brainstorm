@@ -289,6 +289,7 @@ function authMiddleware(req, res, next) {
             '/export-whitelist',
             '/generate-graperank',
             '/generate-pagerank',
+            '/generate-nip85',
             '/systemd-services',
             '/toggle-strfry-plugin',
             '/batch-transfer',
@@ -298,7 +299,8 @@ function authMiddleware(req, res, next) {
             '/negentropy-sync-profiles',
             '/negentropy-sync-personal',
             '/negentropy-sync',
-            '/neo4j-setup-constraints-and-indexes'
+            '/neo4j-setup-constraints-and-indexes',
+            '/run-script'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -325,6 +327,7 @@ function authMiddleware(req, res, next) {
             '/export-whitelist',
             '/generate-graperank',
             '/generate-pagerank',
+            '/generate-nip85',
             '/systemd-services',
             '/hasenpfeffr-control',
             '/toggle-strfry-plugin',  // New endpoint for enabling/disabling
@@ -335,7 +338,8 @@ function authMiddleware(req, res, next) {
             '/negentropy-sync-profiles',
             '/negentropy-sync-personal',
             '/negentropy-sync',
-            '/neo4j-setup-constraints-and-indexes'
+            '/neo4j-setup-constraints-and-indexes',
+            '/run-script'
         ];
         
         // Check if the current path is a write endpoint
