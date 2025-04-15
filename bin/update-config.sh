@@ -129,12 +129,12 @@ if [ "$restart_services" = "y" ] || [ "$restart_services" = "Y" ]; then
     
     # Check if services exist before attempting to restart
     if systemctl list-unit-files | grep -q hasenpfeffr-control-panel; then
-        systemctl restart hasenpfeffr-control-panel
+        sudo systemctl restart hasenpfeffr-control-panel
         echo "- hasenpfeffr-control-panel restarted"
     fi
     
     if systemctl list-unit-files | grep -q neo4j; then
-        systemctl restart neo4j
+        sudo systemctl restart neo4j
         echo "- neo4j restarted"
     fi
     
