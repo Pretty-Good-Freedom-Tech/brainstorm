@@ -46,50 +46,48 @@ const configPaths = {
   hasenpfeffrConfDestination: '/etc/hasenpfeffr.conf',
   strfryRouterConfigDestination: `/etc/strfry-router.config`,
   setupDir: path.join(packageRoot, 'setup'),
-  strfryRouterConfigSource: path.join(packageRoot, 'setup', 'strfry-router-install.config'),
-  neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
-  neo4jConstraintsAndIndexesScript: path.join(packageRoot, 'setup', 'neo4jConstraintsAndIndexes.sh'),
-
+  controlPanelServiceScript: path.join(packageRoot, 'setup', 'setup-control-panel-service.sh'),
+  reconcileServiceScript: path.join(packageRoot, 'setup', 'setup-reconcile-service.sh'),
+  sudoPrivilegesScript: path.join(packageRoot, 'setup', 'configure-sudo-privileges.sh'),
+  controlPanelSudoScript: path.join(packageRoot, 'setup', 'setup-control-panel-sudo.sh'),
+  checkNeo4jScript: path.join(packageRoot, 'setup', 'check-neo4j.sh'),
+  createNostrIdentityScript: path.join(packageRoot, 'setup', 'create_nostr_identity.sh'),
+  reconfigureNginxScript: path.join(packageRoot, 'setup', 'reconfigure-nginx.sh'),
   strfryInstallScript: path.join(packageRoot, 'setup', 'install-strfry.sh'),
   controlPanelInstallScript: path.join(packageRoot, 'setup', 'install-control-panel.sh'),
-  createNostrIdentityScript: path.join(packageRoot, 'setup','create_nostr_identity.sh'),
+  pipelineInstallScript: path.join(packageRoot, 'setup', 'install-pipeline.sh'),
+  neo4jInstallScript: path.join(packageRoot, 'setup', 'install-neo4j.sh'),
+  neo4jConstraintsAndIndexesScript: path.join(packageRoot, 'setup', 'neo4jConstraintsAndIndexes.sh'),
+  strfryRouterConfigSource: path.join(packageRoot, 'setup', 'strfry-router-install.config'),
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
 
-  pipelineInstallScript: path.join(packageRoot, 'setup', 'install-pipeline.sh'),
-  sudoPrivilegesScript: path.join(packageRoot, 'setup', 'configure-sudo-privileges.sh'),
-  controlPanelSudoScript: path.join(packageRoot, 'setup', 'configure-control-panel-sudo.sh'),
-
-  controlPanelServiceFileSource: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
   strfryRouterServiceFileSource: path.join(packageRoot, 'systemd', 'strfry-router.service'),
+  controlPanelServiceFileSource: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
   addToQueueServiceFileSource: path.join(packageRoot, 'systemd', 'addToQueue.service'),
   processQueueServiceFileSource: path.join(packageRoot, 'systemd', 'processQueue.service'),
-
-  controlPanelServiceFileDestination: path.join(systemdServiceDir, 'hasenpfeffr-control-panel.service'),
-  strfryRouterServiceFileDestination: path.join(systemdServiceDir, 'strfry-router.service'),
-  addToQueueServiceFileDestination: path.join(systemdServiceDir, 'addToQueue.service'),
-  processQueueServiceFileDestination: path.join(systemdServiceDir, 'processQueue.service'),
-
   reconcileServiceFileSource: path.join(packageRoot, 'systemd', 'reconcile.service'),
   reconcileTimerFileSource: path.join(packageRoot, 'systemd', 'reconcile.timer'),
-  reconcileServiceFileDestination: path.join(systemdServiceDir, 'reconcile.service'),
-  reconcileTimerFileDestination: path.join(systemdServiceDir, 'reconcile.timer'),
-
   processAllTasksServiceFileSource: path.join(packageRoot, 'systemd', 'processAllTasks.service'),
   processAllTasksTimerFileSource: path.join(packageRoot, 'systemd', 'processAllTasks.timer'),
-  processAllTasksServiceFileDestination: path.join(systemdServiceDir, 'processAllTasks.service'),
-  processAllTasksTimerFileDestination: path.join(systemdServiceDir, 'processAllTasks.timer'),
-
-  calculateHopsServiceFileSource: path.join(packageRoot, 'systemd', 'calculateHops.service'),
-  calculateHopsTimerFileSource: path.join(packageRoot, 'systemd', 'calculateHops.timer'),
-  calculateHopsServiceFileDestination: path.join(systemdServiceDir, 'calculateHops.service'),
-  calculateHopsTimerFileDestination: path.join(systemdServiceDir, 'calculateHops.timer'),
-
   calculatePersonalizedPageRankServiceFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedPageRank.service'),
   calculatePersonalizedPageRankTimerFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedPageRank.timer'),
-  calculatePersonalizedPageRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.service'),
-  calculatePersonalizedPageRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.timer'),
+  calculateHopsServiceFileSource: path.join(packageRoot, 'systemd', 'calculateHops.service'),
+  calculateHopsTimerFileSource: path.join(packageRoot, 'systemd', 'calculateHops.timer'),
   calculatePersonalizedGrapeRankServiceFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.service'),
   calculatePersonalizedGrapeRankTimerFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.timer'),
+
+  strfryRouterServiceFileDestination: path.join(systemdServiceDir, 'strfry-router.service'),
+  controlPanelServiceFileDestination: path.join(systemdServiceDir, 'hasenpfeffr-control-panel.service'),
+  addToQueueServiceFileDestination: path.join(systemdServiceDir, 'addToQueue.service'),
+  processQueueServiceFileDestination: path.join(systemdServiceDir, 'processQueue.service'),
+  reconcileServiceFileDestination: path.join(systemdServiceDir, 'reconcile.service'),
+  reconcileTimerFileDestination: path.join(systemdServiceDir, 'reconcile.timer'),
+  processAllTasksServiceFileDestination: path.join(systemdServiceDir, 'processAllTasks.service'),
+  processAllTasksTimerFileDestination: path.join(systemdServiceDir, 'processAllTasks.timer'),
+  calculatePersonalizedPageRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.service'),
+  calculatePersonalizedPageRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedPageRank.timer'),
+  calculateHopsServiceFileDestination: path.join(systemdServiceDir, 'calculateHops.service'),
+  calculateHopsTimerFileDestination: path.join(systemdServiceDir, 'calculateHops.timer'),
   calculatePersonalizedGrapeRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.service'),
   calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer')
 };
@@ -197,7 +195,10 @@ async function install() {
     // Step 8: Configure sudo privileges
     await configureSudoPrivileges();
     
-    // Step 9: Final setup and instructions
+    // Step 9: Reconfigure Nginx
+    await reconfigureNginx();
+    
+    // Step 10: Final setup and instructions
     await finalSetup();
     
     console.log('\x1b[32m=== ' + (isUpdateMode ? 'Update' : 'Installation') + ' Complete ===\x1b[0m');
@@ -1162,6 +1163,33 @@ async function setupCalculatePersonalizedGrapeRankService() {
     console.error(`Error setting up calculate personalized GrapeRank timer: ${error.message}`);
     console.log(`Source file: ${configPaths.calculatePersonalizedGrapeRankTimerFileSource}`);
     console.log(`Destination file: ${configPaths.calculatePersonalizedGrapeRankTimerFileDestination}`);
+  }
+}
+
+// Reconfigure Nginx
+async function reconfigureNginx() {
+  console.log('\x1b[36m=== Reconfiguring Nginx ===\x1b[0m');
+  
+  if (!isRoot) {
+    console.log('\x1b[33mCannot reconfigure Nginx without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+  
+  try {
+    // Make script executable
+    execSync(`sudo chmod +x ${configPaths.reconfigureNginxScript}`);
+    
+    // Run Nginx reconfiguration script
+    console.log('Reconfiguring Nginx...');
+    execSync(`sudo bash ${configPaths.reconfigureNginxScript}`, { stdio: 'inherit' });
+    
+    console.log('Nginx reconfiguration completed successfully.');
+  } catch (error) {
+    console.error('\x1b[31mError reconfiguring Nginx:\x1b[0m', error.message);
+    console.log('You can reconfigure Nginx manually later.');
   }
 }
 
