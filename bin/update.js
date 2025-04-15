@@ -98,6 +98,17 @@ function stopServices() {
 // Remove configuration and service files
 function removeFiles() {
   console.log('Removing old configuration and service files...');
+
+  let homeDir;
+  if (process.env.SUDO_USER) {
+    const originalUser = process.env.SUDO_USER;
+    homeDir = `/home/${originalUser}`;
+  } else if (process.env.USER === 'root' && fs.existsSync('/home/ubuntu')) {
+    homeDir = '/home/ubuntu';
+  } else {
+    homeDir = process.env.HOME || '/home/ubuntu';
+  }
+
   const configFiles = [
     '/etc/hasenpfeffr.conf',
     '/etc/blacklist.conf',
@@ -139,7 +150,7 @@ function removeFiles() {
     // '/usr/local/lib/strfry',
     '/var/lib/hasenpfeffr',
     '/usr/local/lib/node_modules/hasenpfeffr',
-    '/home/ubuntu/hasenpfeffr'
+    `${homeDir}/hasenpfeffr`
   ];
   
   // Remove config files
