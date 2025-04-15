@@ -44,7 +44,7 @@ body {
 }
 
 /* Copy button styling */
-.copy-button {
+.copy-button, .verify-button {
     background: none;
     border: none;
     cursor: pointer;
@@ -57,18 +57,26 @@ body {
     transition: all 0.2s ease;
 }
 
-.copy-button:hover {
+.copy-button:hover, .verify-button:hover {
     background-color: rgba(178, 52, 189, 0.1);
     transform: scale(1.1);
 }
 
-.copy-button:active {
+.copy-button:active, .verify-button:active {
     transform: scale(0.95);
 }
 
 .copy-button.copied {
     color: #4BB543; /* Green color for success */
     animation: pulse 0.5s;
+}
+
+.verify-button {
+    color: #007bff; /* Blue color for the verify button */
+}
+
+.verify-button:hover {
+    background-color: rgba(0, 123, 255, 0.1);
 }
 
 @keyframes pulse {
