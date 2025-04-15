@@ -319,10 +319,10 @@ function highlightCurrentPage() {
         // Check each navbar item and highlight if it matches
         navItems.forEach(item => {
             if (item.href.includes(matchingPrefix)) {
-                item.classList.add('active');
+                item.classList.add('active-page');
                 console.log('Highlighted item:', item.textContent.trim());
             } else {
-                item.classList.remove('active');
+                item.classList.remove('active-page');
             }
         });
     }
