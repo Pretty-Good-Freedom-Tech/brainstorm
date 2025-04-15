@@ -11,34 +11,36 @@
     <div class="header">
         <h1>Sign In</h1>
     </div>
-    <div class="container">
-        <div class="sign-in-box">
-            <h2>Sign In with Nostr</h2>
-            <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can perform administrative actions.</p>
-            
-            <button id="signInBtn" class="btn">Sign In with Nostr</button>
-            
-            <div class="nsec-input-container" style="margin-top: 20px;">
-                <p><strong>Optional:</strong> Provide your nsec (private key) for signing events. This is required for publishing kind 10040 events.</p>
-                <p><small>Note: Your private key will only be stored in your browser session and used for signing events. It will not be stored on the server permanently.</small></p>
-                <input type="password" id="nsecInput" placeholder="nsec1..." style="width: 100%; padding: 10px; margin-bottom: 10px;" />
-                <label style="display: flex; align-items: center; margin-bottom: 20px;">
-                    <input type="checkbox" id="showNsec" style="margin-right: 5px;"> Show private key
-                </label>
-            </div>
-            
-            <div id="signInStatus" class="status"></div>
-            
-            <div class="divider">OR</div>
-            
-            <p>You can access the control panel in read-only mode without signing in:</p>
-            <div class="button-group">
-                <a href="/home.html" class="btn home-btn">Home</a>
-                <a href="/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="sign-in-box">
+                <h2>Sign In with Nostr</h2>
+                <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can perform administrative actions.</p>
+                
+                <button id="signInBtn" class="btn">Sign In with Nostr</button>
+                
+                <div class="nsec-input-container" style="margin-top: 20px;">
+                    <p><strong>Optional:</strong> Provide your nsec (private key) for signing events. This is required for publishing kind 10040 events.</p>
+                    <p><small>Note: Your private key will only be stored in your browser session and used for signing events. It will not be stored on the server permanently.</small></p>
+                    <input type="password" id="nsecInput" placeholder="nsec1..." style="width: 100%; padding: 10px; margin-bottom: 10px;" />
+                    <label style="display: flex; align-items: center; margin-bottom: 20px;">
+                        <input type="checkbox" id="showNsec" style="margin-right: 5px;"> Show private key
+                    </label>
+                </div>
+                
+                <div id="signInStatus" class="status"></div>
+                
+                <div class="divider">OR</div>
+                
+                <p>You can access the control panel in read-only mode without signing in:</p>
+                <div class="button-group">
+                    <a href="/home.html" class="btn home-btn">Home</a>
+                    <a href="/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
+                </div>
             </div>
         </div>
     </div>
-
     <!-- Footer container -->
     <div id="footerContainer"></div>
 
