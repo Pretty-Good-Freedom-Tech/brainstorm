@@ -231,6 +231,18 @@ function highlightCurrentPage() {
     
     // Map of path prefixes to highlight for specific pages
     const pathMappings = {
+        '/overview.html': '/overview',
+        '/index.html': '/index',
+        '/nip85.html': '/nip85',
+        '/nip85-control-panel.html': '/nip85',
+        '/about.html': '/about',
+        '/reconciliation.html': '/reconciliation',
+        '/profiles.html': '/profiles',
+        '/profile.html': '/profiles',
+        '/graperank-control-panel.html': '/graperank',
+        '/network-visualization.html': '/network-visualization',
+        '/neo4j-control-panel.html': '/neo4j-control-panel',
+
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
         '/control/nip85.html': '/control/nip85',
