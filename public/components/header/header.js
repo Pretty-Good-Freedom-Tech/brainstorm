@@ -98,7 +98,11 @@ function loadNavbar() {
     }
 
     if (
-        currentPath === '/index.html'
+        currentPath === ''
+        || currentPath === '/'
+        || currentPath === '/index.html'
+        || currentPath === '/control'
+        || currentPath === '/control/'
         || currentPath === '/control/index.html'
     ) {
         navbarPath = '/components/header/navbars/nav3.html';
