@@ -124,9 +124,6 @@ function removeFiles() {
   ];
 
   const dataAndApplicationFiles = [
-    '/var/lib/hasenpfeffr',
-    '/usr/local/lib/node_modules/hasenpfeffr',
-    '/usr/local/lib/strfry',
     '/usr/local/bin/hasenpfeffr-control-panel',
     '/usr/local/bin/hasenpfeffr-strfry-stats',
     '/usr/local/bin/hasenpfeffr-negentropy-sync',
@@ -162,7 +159,7 @@ function removeFiles() {
   // Remove data and application files
   for (const file of dataAndApplicationFiles) {
     if (fs.existsSync(file)) {
-      executeCommand(`sudo rm -r ${file}`, { exitOnError: false });
+      executeCommand(`sudo rm ${file}`, { exitOnError: false });
     }
   }
   
