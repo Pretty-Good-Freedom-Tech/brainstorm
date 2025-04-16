@@ -1,12 +1,10 @@
-# Hasenpfeffr
+# Brainstorm (rebranding from Hasenpfeffr)
 
-Hasenpfeffr is the precursor and most up-to-date iteration of Brainstorm: a _Personalized Webs of Trust Nostr relay_ that uses advanced techniques to calculate personalized webs of trust, resulting in high-quality, spam-free nostr content, curated by _your_ Nostr community. It is currently in alpha and is not yet ready for production use. Once a stable version is ready, it will be renamed Brainstorm.
+Brainstorm is a _Personalized Webs of Trust Nostr relay_ that uses advanced techniques to calculate personalized webs of trust, resulting in high-quality, spam-free nostr content, curated by _your_ Nostr community. It is currently in alpha and is not yet ready for production use.
 
-Thoughts on branding: for now, the hasenpfeffr repo (this repo) is a prototype for Brainstorm. Eventually, I may containerize Brainstorm, at which point I will reuse "hasenpfeffr" to refer strictly to the ETL pipeline between the strfry nostr relay and the Neo4j database (and may include WoT calculations?). At that point Strfry, Neo4j, and Hasenpfeffr may each have their own containers.
+## Why use Brainstorm?
 
-## Why use Hasenpfeffr?
-
-- You and your friends can use your hasenpfeffr relay as a normal Nostr content relay, with spam and other unwanted content removed using state of the art WoT technology
+- You and your friends can use your Brainstorm relay as a normal Nostr content relay, with spam and other unwanted content removed using state of the art WoT technology
 - Export personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events), ready for usage by all NIP-85-compliant clients
 
 <img src="docs/img/hasenpfeffr.png" width="100%" />
@@ -37,15 +35,15 @@ I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/
 
 See the [installation instructions](docs/INSTALLATION_INSTRUCTIONS.md) for detailed instructions.
 
-At installation, hasenpfeffr will generate a new nsec for your relay, and will store it in the configuration file. This nsec will be used to sign NIP-85 kind 30382 events, and you will publish kind 10040 event which effectively points clients to your new relay pubkey. In case your relay nsec is compromised or lost, not a big deal! You will simply need to republish your NIP-85 10040 event which will point to your new relay pubkey, and all 30382 events will need to be republished (which happens automatically every 6 hours)
+At installation, Brainstorm will generate a new nsec for your relay, and will store it in the configuration file. This nsec will be used to sign NIP-85 kind 30382 events, and you will publish kind 10040 event which effectively points clients to your new relay pubkey. In case your relay nsec is compromised or lost, not a big deal! You will simply need to republish your NIP-85 10040 event which will point to your new relay pubkey, and all 30382 events will need to be republished (which happens automatically every 6 hours)
 
 The installation script will:
 
 1. Install and configure Neo4j Community Edition, the Neo4j Graph Data Science plugin, and the Neo4j APOC plugin
 2. Set up Neo4j constraints and indexes
 3. Install and configure a strfry nostr relay
-4. Configure the Hasenpfeffr systemd services; see `systemd/README.md` for details.
-5. Create hasenpfeffr configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`, `/etc/whitelist.conf`
+4. Configure systemd services; see `systemd/README.md` for details.
+5. Create configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`, `/etc/whitelist.conf`
 
 ## Update
 
@@ -58,7 +56,7 @@ See the [update instructions](docs/UPDATE_INSTRUCTIONS.md) for detailed instruct
 
 ## Setup
 
-Once installed, go to the home page at: https://[relay.myCoolDomain.com]/control/index.html to setup your relay. Detailed instructions are on the home page. In brief: you will need to flip a few buttons and wait for about an hour, during which time hasenpfeffr will download follows, mutes and reports data from the network, calculate personalized webs of trust scores, and create your personalized blacklist and whitelist. Then, your WoT relay will be ready to curate filtered content (kind 1 notes, reactions, etc)!
+Once installed, go to the home page at: https://[relay.myCoolDomain.com] to setup your relay. Detailed instructions are on the home page.
 
 ## Customization
 
@@ -87,7 +85,7 @@ and more!
 
 NIP-85 Trusted Assertions is a new feature of the Nostr protocol that allows you to publish your WoT scores to the network. This is a way to share your WoT scores with other relays and clients, and to make your WoT scores more accessible to the public.
 
-To export NIP-85 Trusted Assertions, go to https://myCoolDomain.com/control/nip85.html and publish a kind 10040 event. Your hasenpfeffr relay will automatically publish kind 30382 events, signed by your relay nsec, every 6 hours to your WoT relay. The kind 10040 event is how nostr clients know how to access your WoT scores (authored by your relay nsec, with a d-tag corresponding to the pubkey whose trust scores are sought).
+To export NIP-85 Trusted Assertions, go to https://myCoolDomain.com/nip85.html and publish a kind 10040 event. Your Brainstorm relay will automatically publish kind 30382 events, signed by your relay nsec, every 6 hours to your WoT relay. The kind 10040 event is how nostr clients know how to access your WoT scores (authored by your relay nsec, with a d-tag corresponding to the pubkey whose trust scores are sought).
 
 As of April 2025, NIP-85 is not yet supported by any nostr clients. Hopefully it will be soon!
 
