@@ -365,14 +365,21 @@
                     profilePicCell.className = 'profile-pic-cell';
                     profilePicCell.dataset.pubkey = profile.pubkey;
                     
+                    // Create link element that will contain the profile picture
+                    const profileLink = document.createElement('a');
+                    profileLink.href = `/profile.html?pubkey=${encodeURIComponent(profile.pubkey)}`;
+                    profileLink.target = '_blank';
+                    profileLink.className = 'profile-pic-link';
+                    profilePicCell.appendChild(profileLink);
+                    
                     // Create a placeholder (default profile pic or initial)
                     const placeholder = document.createElement('div');
                     placeholder.className = 'default-profile-pic';
                     placeholder.textContent = profile.pubkey.substring(0, 2).toUpperCase();
-                    profilePicCell.appendChild(placeholder);
+                    profileLink.appendChild(placeholder);
                     
                     // Lazy load the actual profile picture
-                    loadProfilePicture(profile.pubkey, profilePicCell);
+                    loadProfilePicture(profile.pubkey, profilePicCell, profileLink);
                     
                     row.appendChild(profilePicCell);
                     
@@ -418,11 +425,12 @@
              * Load profile picture for a pubkey
              * @param {string} pubkey - User's public key
              * @param {HTMLElement} cell - The cell to update with the profile picture
+             * @param {HTMLElement} link - The link element containing the profile picture
              */
-            function loadProfilePicture(pubkey, cell) {
+            function loadProfilePicture(pubkey, cell, link) {
                 // Check if we already have this profile in the cache
                 if (state.profileCache[pubkey]) {
-                    updateProfilePictureCell(cell, state.profileCache[pubkey]);
+                    updateProfilePictureWithData(link, state.profileCache[pubkey]);
                     return;
                 }
                 
@@ -440,8 +448,8 @@
                                 // Cache the profile data
                                 state.profileCache[pubkey] = profileData;
                                 
-                                // Update the cell with the profile data
-                                updateProfilePictureCell(cell, profileData);
+                                // Update the picture with the profile data
+                                updateProfilePictureWithData(link, profileData);
                             } catch (error) {
                                 console.error('Error parsing profile data:', error);
                             }
@@ -453,22 +461,17 @@
             }
             
             /**
-             * Update a table cell with profile picture
-             * @param {HTMLElement} cell - The cell to update
+             * Update a profile picture with profile data
+             * @param {HTMLElement} link - The link element containing the profile picture
              * @param {Object} profileData - The profile data object
              */
-            function updateProfilePictureCell(cell, profileData) {
-                // Clear the cell
-                cell.innerHTML = '';
-                
-                // Create link element that will contain the profile picture
-                const profileLink = document.createElement('a');
-                profileLink.href = `/profile.html?pubkey=${encodeURIComponent(cell.dataset.pubkey)}`;
-                profileLink.target = '_blank';
-                profileLink.className = 'profile-pic-link';
-                cell.appendChild(profileLink);
+            function updateProfilePictureWithData(link, profileData) {
+                // Don't clear the link entirely - just replace its contents if needed
                 
                 if (profileData && profileData.picture) {
+                    // Remove existing placeholder
+                    link.innerHTML = '';
+                    
                     // Create image element for the profile picture
                     const img = document.createElement('img');
                     img.src = profileData.picture;
@@ -479,21 +482,21 @@
                         const placeholder = document.createElement('div');
                         placeholder.className = 'default-profile-pic';
                         placeholder.textContent = profileData.name ? profileData.name.substring(0, 2).toUpperCase() : '??';
-                        profileLink.appendChild(placeholder);
+                        link.appendChild(placeholder);
                     };
-                    profileLink.appendChild(img);
-                } else {
-                    // Use placeholder for profiles without pictures
+                    link.appendChild(img);
+                } else if (profileData && profileData.name) {
+                    // If we have a name but no picture, update the placeholder to use the name
+                    link.innerHTML = '';
                     const placeholder = document.createElement('div');
                     placeholder.className = 'default-profile-pic';
-                    placeholder.textContent = profileData && profileData.name ? 
-                        profileData.name.substring(0, 2).toUpperCase() : '??';
-                    profileLink.appendChild(placeholder);
+                    placeholder.textContent = profileData.name.substring(0, 2).toUpperCase();
+                    link.appendChild(placeholder);
                 }
                 
                 // Add title/tooltip with user's name if available
                 if (profileData && (profileData.display_name || profileData.name)) {
-                    profileLink.title = profileData.display_name || profileData.name;
+                    link.title = profileData.display_name || profileData.name;
                 }
             }
             
