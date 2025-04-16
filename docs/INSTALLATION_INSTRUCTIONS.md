@@ -77,14 +77,15 @@ sudo apt install -y nodejs npm
 git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 cd brainstorm
 
-# Install dependencies and set up NVM for your user
+# Install dependencies and set up NVM for your user (WITHOUT sudo)
 npm install
 
-# Run the installation script WITH sudo (system installation components require root privileges)
+# Run the installation script (WITH sudo; system installation components require root privileges)
+# You will need to enter your domain name, owner pubkey, and a Neo4j password
 sudo npm run install-brainstorm
 ```
 
-After you enter your pieces of information, get some coffee. This takes a while! (About 8 minutes in total for me using an AWS EC2 t2.large instance.)
+After you enter the above-mentioned 3 pieces of information, get some coffee. This takes a while! (About 8 minutes in total for me using an AWS EC2 t2.large instance.)
 
 ## 4. Verify successful installation
 

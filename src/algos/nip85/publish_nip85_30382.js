@@ -399,7 +399,7 @@ async function publishNip85() {
   
   // Fallback relay URLs if the main one is not configured
   const fallbackRelays = [
-    'wss://relay.brainstorm.com',
+    'wss://relay.hasenpfeffr.com',
     'wss://relay.damus.io',
     'wss://relay.nostr.band',
     'wss://relay.primal.net',

@@ -251,7 +251,7 @@ async function createStrfryRouterConfigFile() {
 
         urls = [
             "wss://relay.primal.net",
-            "wss://relay.brainstorm.com",
+            "wss://relay.hasenpfeffr.com",
             "wss://profiles.nostr1.com",
             "wss://relay.damus.io",
             "wss://relay.nostr.band"
@@ -315,7 +315,7 @@ async function createBrainstormConfigFile() {
     relayNpub = getConfigFromFile('BRAINSTORM_RELAY_NPUB') || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
     relayUrl = process.env.BRAINSTORM_RELAY_URL || '';
-    defaultFriendRelays = process.env.BRAINSTORM_DEFAULT_FRIEND_RELAYS || '["wss://relay.brainstorm.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    defaultFriendRelays = process.env.BRAINSTORM_DEFAULT_FRIEND_RELAYS || '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
     
     // Log what we found
     console.log(`Found domain name: ${domainName || 'Not found'}`);
@@ -329,7 +329,7 @@ async function createBrainstormConfigFile() {
     }
   } else {
     // Fresh installation, ask for values
-    defaultFriendRelays = '["wss://relay.brainstorm.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    defaultFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
   }
   
   // Get configuration values from user if not in environment or incomplete

@@ -344,7 +344,7 @@ async function waitForRelayConnections(ndk, timeout = 10000) {
 
 // Define relay URLs to publish to
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL') || process.env.BRAINSTORM_RELAY_URL;
-const explicitRelayUrls = ['wss://relay.primal.net', 'wss://relay.brainstorm.com', 'wss://relay.damus.io'];
+const explicitRelayUrls = ['wss://relay.primal.net', 'wss://relay.hasenpfeffr.com', 'wss://relay.damus.io'];
 
 // Add the local relay URL if it exists and isn't already in the list
 if (relayUrl && !explicitRelayUrls.includes(relayUrl)) {

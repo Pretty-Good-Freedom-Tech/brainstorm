@@ -35,7 +35,7 @@ execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${logDir}/publishNip85.log`)
 
 // Fallback relay URL if the main one is not configured
 const fallbackRelays = [
-  'wss://relay.brainstorm.com',
+  'wss://relay.hasenpfeffr.com',
   'wss://profiles.nostr1.com',
   'wss://relay.nostr.band'
 ];

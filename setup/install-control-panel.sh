@@ -78,7 +78,7 @@ cat > /usr/local/bin/brainstorm-negentropy-sync << 'EOF'
 echo "Starting Negentropy sync with relay.brainstorm.com..."
 
 # Run strfry sync with negentropy
-sudo strfry sync wss://relay.brainstorm.com --filter '{"kinds":[3, 1984, 10000]}' --dir down
+sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[3, 1984, 10000]}' --dir down
 
 echo "Negentropy sync completed!"
 EOF

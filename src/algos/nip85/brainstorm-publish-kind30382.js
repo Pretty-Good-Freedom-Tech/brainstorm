@@ -31,7 +31,7 @@ console.log(`Neo4j URI: ${neo4jUri}`);
 
 // Fallback relay URLs if the main one is not configured
 const fallbackRelays = [
-  'wss://relay.brainstorm.com',
+  'wss://relay.hasenpfeffr.com',
   'wss://profiles.nostr1.com',
   'wss://relay.nostr.band'
 ];
