@@ -375,8 +375,8 @@ tr:hover {
 
 /* Profile picture styling */
 .profile-pic-cell img {
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     object-fit: cover;
     background-color: #f0f0f0;

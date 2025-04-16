@@ -5,20 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainstorm</title>
     <link rel="stylesheet" href="/control/css/overview.css">
-    <script>
-        // Determine if we're in the /control/ path
-        const isControlPath = window.location.pathname.startsWith('/control/');
-        const cssUrl = isControlPath ? 
-            window.location.origin + '/control/overviewBar/overviewBar.css' : 
-            window.location.origin + '/overviewBar/overviewBar.css';
-            
-        // Create link element for CSS
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = cssUrl;
-        cssLink.type = 'text/css';
-        document.head.appendChild(cssLink);
-    </script>
     <script src="./components/header/header.js"></script>
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <!-- Load Chart.js before any scripts that use it -->
@@ -735,9 +721,6 @@
         
         // Set up event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Load header
-            loadHeader();
-            
             // Fetch initial data
             fetchInstanceStatus();
             
