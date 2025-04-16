@@ -246,3 +246,20 @@ tr:hover {
 .pubkey-link:hover {
     color: #23527c;
 }
+
+/* Profile count information */
+.profile-counts {
+    background-color: #f9f9f9;
+    padding: 10px 15px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border-left: 4px solid #b234bd;
+    font-size: 14px;
+    color: #666;
+}
+
+.profile-counts #filteredCount,
+.profile-counts #totalCount {
+    font-weight: bold;
+    color: #b234bd;
+}

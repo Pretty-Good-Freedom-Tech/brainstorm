@@ -150,6 +150,10 @@ function handleGetProfiles(req, res) {
               };
             });
             
+            // Calculate pagination metadata
+            const pages = Math.ceil(total / limit);
+            
+            // Send the response
             res.json({
               success: true,
               data: {
@@ -158,7 +162,7 @@ function handleGetProfiles(req, res) {
                   total,
                   page,
                   limit,
-                  pages: Math.ceil(total / limit)
+                  pages
                 }
               }
             });
@@ -168,7 +172,7 @@ function handleGetProfiles(req, res) {
         console.error('Error fetching profiles:', error);
         res.status(500).json({
           success: false,
-          message: `Error fetching profiles: ${error.message}`
+          message: 'Error fetching profiles from database'
         });
       })
       .finally(() => {
@@ -179,11 +183,67 @@ function handleGetProfiles(req, res) {
     console.error('Error in handleGetProfiles:', error);
     res.status(500).json({
       success: false,
-      message: `Server error: ${error.message}`
+      message: 'Internal server error'
+    });
+  }
+}
+
+/**
+ * Get the total count of profiles in the system
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+function handleGetProfilesCount(req, res) {
+  try {
+    // Create Neo4j driver
+    const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
+    const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
+    const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+    
+    const driver = neo4j.driver(
+      neo4jUri,
+      neo4j.auth.basic(neo4jUser, neo4jPassword)
+    );
+    
+    const session = driver.session();
+    
+    // Simple query to count all NostrUser nodes
+    const query = `
+      MATCH (u:NostrUser)
+      WHERE u.pubkey IS NOT NULL
+      RETURN count(u) as total
+    `;
+    
+    session.run(query)
+      .then(result => {
+        const total = parseInt(result.records[0].get('total').toString());
+        
+        res.json({
+          success: true,
+          count: total
+        });
+      })
+      .catch(error => {
+        console.error('Error counting profiles:', error);
+        res.status(500).json({
+          success: false,
+          message: 'Error counting profiles from database'
+        });
+      })
+      .finally(() => {
+        session.close();
+        driver.close();
+      });
+  } catch (error) {
+    console.error('Error in handleGetProfilesCount:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
     });
   }
 }
 
 module.exports = {
-  handleGetProfiles
+  handleGetProfiles,
+  handleGetProfilesCount
 };
