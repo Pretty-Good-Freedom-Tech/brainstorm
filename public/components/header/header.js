@@ -328,56 +328,6 @@ function highlightCurrentPage() {
     }
 }
 
-/**
- * Fetch user profile information from kind 0 event
- * @param {string} pubkey - User's public key
- */
-function fetchUserProfile_deprecated(pubkey) {
-    if (!pubkey) return;
-    
-    console.log('Fetching profile for pubkey:', pubkey);
-    
-    fetch(`/api/get-kind0?pubkey=${pubkey}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.success && data.data && data.data.content) {
-                let profile;
-                try {
-                    profile = JSON.parse(data.data.content);
-                } catch (e) {
-                    console.error('Error parsing profile JSON:', e);
-                    return;
-                }
-                
-                const userAvatar = document.getElementById('userAvatar');
-                const userName = document.getElementById('userName');
-                
-                // Update display name if available
-                if (profile.display_name || profile.name) {
-                    if (userName) {
-                        userName.textContent = profile.display_name || profile.name;
-                    }
-                }
-                
-                // Update avatar if available
-                if (profile.picture && userAvatar) {
-                    // Replace text with image
-                    userAvatar.textContent = '';
-                    const img = document.createElement('img');
-                    img.src = profile.picture;
-                    img.alt = 'Avatar';
-                    img.onerror = () => {
-                        // Fallback if image fails to load
-                        userAvatar.textContent = pubkey.substring(0, 1).toUpperCase();
-                    };
-                    userAvatar.appendChild(img);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching user profile:', error);
-        });
-}
 function fetchUserProfile(pubkey) {
     // Get DOM elements again in case they've changed
     const userAvatar = document.getElementById('userAvatar');
