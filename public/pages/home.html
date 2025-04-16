@@ -115,7 +115,7 @@
                     </div>
                     <div class="calculation-item">
                         <div class="calculation-item-content">
-                            <h4>Personal <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available personal events from wss://relay.primal.net</span></h4>
+                            <h4>Personal <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available Brainstorm owner events from wss://relay.primal.net</span></h4>
                             <p id="syncPersonal-last-calculation-time" class="timestamp"></p>
                             <p id="syncPersonal-last-calculation-duration" class="duration"></p>
                         </div>
@@ -133,7 +133,7 @@
                 <div class="calculation-grid">
                     <div class="calculation-item">
                         <div class="calculation-item-content">
-                            <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and related pubkeys from strfry to Neo4j. This is typically performed ONLY ONCE when setting up your relay for the first time. Thereafter, the Reconciliation task takes over routine transfers. May take 15-20 minutes when running this for the first time.</span></h4>
+                            <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and associated pubkeys from strfry to Neo4j. This is typically performed ONLY ONCE when setting up your relay for the first time. Thereafter, the Reconciliation task takes over routine transfers. May take 15-20 minutes when running this for the first time.</span></h4>
                             <p id="batchTransfer-last-calculation-time" class="timestamp"></p>
                             <p id="batchTransfer-last-calculation-duration" class="duration"></p>
                         </div>
@@ -147,7 +147,7 @@
                     </div>
                     <div class="calculation-item">
                         <div class="calculation-item-content">
-                            <h4>Reconciliation <span class="info-icon">i</span><span class="tooltip">Reconciles Neo4j database with strfry.</span></h4>
+                            <h4>Reconciliation <span class="info-icon">i</span><span class="tooltip">Reconciles Neo4j database with strfry to capture any missed events since last reconciliation. This removes old relationships in addition to adding new ones.</span></h4>
                             <p id="reconciliation-last-calculation-time" class="timestamp"></p>
                             <p id="reconciliation-last-calculation-duration" class="duration"></p>
                         </div>
