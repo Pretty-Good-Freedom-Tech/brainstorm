@@ -249,22 +249,10 @@
                             state.profiles = data.data.users;
                             state.pagination = data.data.pagination;
                             state.counts.filtered = data.data.pagination.total;
+                            state.counts.total = data.data.totalProfiles || state.counts.filtered;
                             
-                            // Get the total count of profiles
-                            fetch('/control/api/get-profiles-count')
-                                .then(response => response.json())
-                                .then(countData => {
-                                    if (countData.success) {
-                                        state.counts.total = countData.count;
-                                    }
-                                    updateProfileCounts();
-                                })
-                                .catch(error => {
-                                    console.error('Error fetching total profile count:', error);
-                                    // Fall back to using filtered count
-                                    state.counts.total = state.counts.filtered;
-                                    updateProfileCounts();
-                                });
+                            // Update the count display
+                            updateProfileCounts();
                             
                             // Render table and pagination
                             renderTable();

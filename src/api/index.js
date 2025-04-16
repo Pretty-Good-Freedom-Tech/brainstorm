@@ -116,7 +116,6 @@ function register(app) {
 
     // Users endpoints
     app.get('/api/get-profiles', users.handleGetProfiles);
-    app.get('/api/get-profiles-count', users.handleGetProfilesCount);
     app.get('/api/get-user-data', users.handleGetUserData);
     app.get('/api/get-network-proximity', users.handleGetNetworkProximity);
 
