@@ -96,17 +96,22 @@ body {
 
 /* Owner Profile Styling */
 .owner-profile {
-    margin: 30px auto;
+    margin: 20px auto;
     max-width: 500px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .profile-loading, .error-message {
     text-align: center;
     color: #666;
-    padding: 20px;
+    padding: 15px;
     background-color: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin: 0 auto;
+    max-width: 100%;
 }
 
 .error-message {
@@ -119,6 +124,7 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
 }
 
 .profile-card:hover {
@@ -128,14 +134,16 @@ body {
 
 .profile-link {
     display: flex;
-    padding: 20px;
+    padding: 15px;
     text-decoration: none;
     color: inherit;
+    flex-wrap: wrap;
 }
 
 .profile-image {
     flex: 0 0 80px;
-    margin-right: 20px;
+    margin-right: 15px;
+    margin-bottom: 10px;
 }
 
 .profile-image img {
@@ -148,6 +156,7 @@ body {
 
 .profile-info {
     flex: 1;
+    min-width: 180px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -157,12 +166,15 @@ body {
     margin: 0 0 5px 0;
     color: #333;
     font-size: 20px;
+    word-break: break-word;
+    line-height: 1.3;
 }
 
 .profile-handle {
     margin: 0 0 5px 0;
     color: #666;
     font-size: 16px;
+    word-break: break-word;
 }
 
 .profile-npub {
@@ -170,7 +182,60 @@ body {
     color: #999;
     font-size: 14px;
     font-family: monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
+
+/* Media queries for responsive design */
+@media (max-width: 480px) {
+    .profile-link {
+        padding: 12px;
+    }
+    
+    .profile-image {
+        flex: 0 0 60px;
+        margin-right: 12px;
+    }
+    
+    .profile-image img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .profile-name {
+        font-size: 18px;
+    }
+    
+    .profile-handle {
+        font-size: 14px;
+    }
+    
+    .profile-npub {
+        font-size: 12px;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 350px) {
+    .profile-link {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profile-image {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .profile-info {
+        width: 100%;
+        align-items: center;
+    }
+}
+
 .btn {
     display: inline-block;
     background-color: #333;
