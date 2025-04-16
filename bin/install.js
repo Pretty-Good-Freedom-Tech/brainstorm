@@ -347,7 +347,7 @@ async function createHasenpfeffrConfigFile() {
   }
   
   if (!relayUrl) {
-    relayUrl = `wss://${domainName}`;
+    relayUrl = `wss://${domainName}/relay`;
   }
   
   // Generate a secure random session secret
