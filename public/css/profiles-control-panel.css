@@ -263,3 +263,77 @@ tr:hover {
     font-weight: bold;
     color: #b234bd;
 }
+
+/* Table styles */
+#profilesTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Table header styles */
+#profilesTable thead th {
+    position: relative;
+    padding: 10px;
+    background-color: #f7f7f7;
+    border-bottom: 2px solid #ddd;
+    text-align: left;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#profilesTable thead th:hover {
+    background-color: #f0f0f0;
+}
+
+/* Table filter row styles */
+#profilesTable .filter-row th {
+    padding: 5px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    cursor: default;
+}
+
+#profilesTable .filter-row th:hover {
+    background-color: #f0f0f0;
+}
+
+/* Table filter input styles */
+.table-filter {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.filter-inputs {
+    display: flex;
+    gap: 4px;
+}
+
+.small-input {
+    width: calc(50% - 2px);
+    min-width: 40px;
+}
+
+/* Actions container */
+.actions-container {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Sort indicator styles */

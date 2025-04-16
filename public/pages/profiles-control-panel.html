@@ -25,82 +25,24 @@
         
         <!-- Profile count information -->
         <div class="profile-counts">
-            Showing <span id="filteredCount">0</span> filtered profiles out of <span id="totalCount">0</span> total profiles in the system
+            Showing <span id="filteredCount">0</span> filtered profiles out of <span id="totalCount">0</span> total
         </div>
         
-        <div class="filters-container">
-            <div class="filter-header">
-                <div class="filter-cell">
-                    <div class="filter-group">
-                        <label for="filterPubkey">Pubkey Contains</label>
-                        <input type="text" id="filterPubkey" placeholder="Enter pubkey...">
-                    </div>
+        <!-- Limit selection and action buttons -->
+        <div class="actions-container">
+            <div class="filter-actions">
+                <div class="filter-group">
+                    <label for="limitSelect">Results Per Page</label>
+                    <select id="limitSelect">
+                        <option value="50">50</option>
+                        <option value="100" selected>100</option>
+                        <option value="250">250</option>
+                        <option value="500">500</option>
+                    </select>
                 </div>
-                <div class="filter-cell">
-                    <div class="filter-group">
-                        <label for="filterMinHops">Min Hops</label>
-                        <input type="number" id="filterMinHops" placeholder="Min hops" min="0" max="20">
-                        <label for="filterMaxHops">Max Hops</label>
-                        <input type="number" id="filterMaxHops" placeholder="Max hops" min="1" max="20">
-                    </div>
-                </div>
-                <div class="filter-cell">
-                    <div class="filter-group">
-                        <label for="filterMinRank">Min PageRank</label>
-                        <input type="number" id="filterMinRank" placeholder="Min rank" min="0" step="0.000001">
-                        <label for="filterMaxRank">Max PageRank</label>
-                        <input type="number" id="filterMaxRank" placeholder="Max rank" min="0" step="0.000001">
-                    </div>
-                </div>
-                <div class="filter-cell">
-                    <div class="filter-group">
-                        <label for="filterMinInfluence">Min Influence</label>
-                        <input type="number" id="filterMinInfluence" placeholder="Min influence" min="0" step="0.000001">
-                        <label for="filterMaxInfluence">Max Influence</label>
-                        <input type="number" id="filterMaxInfluence" placeholder="Max influence" min="0" step="0.000001">
-                    </div>
-                </div>
-                <div class="filter-cell">
-                    <div class="filter-group">
-                        <label for="filterMinAverage">Min Average</label>
-                        <input type="number" id="filterMinAverage" placeholder="Min average" min="-1" max="1" step="0.01">
-                        <label for="filterMaxAverage">Max Average</label>
-                        <input type="number" id="filterMaxAverage" placeholder="Max average" min="-1" max="1" step="0.01">
-                    </div>
-                </div>
-                <div class="filter-cell">
-                    <div class="filter-group">
-                        <label for="filterMinConfidence">Min Confidence</label>
-                        <input type="number" id="filterMinConfidence" placeholder="Min confidence" min="0" max="1" step="0.01">
-                        <label for="filterMaxConfidence">Max Confidence</label>
-                        <input type="number" id="filterMaxConfidence" placeholder="Max confidence" min="0" max="1" step="0.01">
-                    </div>
-                </div>
-                <div class="filter-cell">
-                    <div class="filter-group">
-                        <label for="filterMinInput">Min Input</label>
-                        <input type="number" id="filterMinInput" placeholder="Min input" min="0" step="0.01">
-                        <label for="filterMaxInput">Max Input</label>
-                        <input type="number" id="filterMaxInput" placeholder="Max input" min="0" step="0.01">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="filter-footer">
-                <div class="filter-actions">
-                    <div class="filter-group">
-                        <label for="limitSelect">Results Per Page</label>
-                        <select id="limitSelect">
-                            <option value="50">50</option>
-                            <option value="100" selected>100</option>
-                            <option value="250">250</option>
-                            <option value="500">500</option>
-                        </select>
-                    </div>
-                    <div>
-                        <button id="applyFiltersBtn">Apply Filters</button>
-                        <button id="resetFiltersBtn" class="secondary">Reset</button>
-                    </div>
+                <div>
+                    <button id="applyFiltersBtn">Apply Filters</button>
+                    <button id="resetFiltersBtn" class="secondary">Reset</button>
                 </div>
             </div>
         </div>
@@ -109,7 +51,7 @@
             <div id="loadingIndicator" class="loading"></div>
             <table id="profilesTable" style="display: none;">
                 <thead>
-                    <tr>
+                    <tr class="header-row">
                         <th data-sort="pubkey">Pubkey</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
@@ -117,6 +59,47 @@
                         <th data-sort="average">Average</th>
                         <th data-sort="confidence">Confidence</th>
                         <th data-sort="input">Input</th>
+                    </tr>
+                    <tr class="filter-row">
+                        <th>
+                            <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinHops" placeholder="Min" min="0" max="20" class="table-filter small-input">
+                                <input type="number" id="filterMaxHops" placeholder="Max" min="1" max="20" class="table-filter small-input">
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinRank" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
+                                <input type="number" id="filterMaxRank" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinInfluence" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
+                                <input type="number" id="filterMaxInfluence" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinAverage" placeholder="Min" min="-1" max="1" step="0.01" class="table-filter small-input">
+                                <input type="number" id="filterMaxAverage" placeholder="Max" min="-1" max="1" step="0.01" class="table-filter small-input">
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinConfidence" placeholder="Min" min="0" max="1" step="0.01" class="table-filter small-input">
+                                <input type="number" id="filterMaxConfidence" placeholder="Max" min="0" max="1" step="0.01" class="table-filter small-input">
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinInput" placeholder="Min" min="0" step="0.01" class="table-filter small-input">
+                                <input type="number" id="filterMaxInput" placeholder="Max" min="0" step="0.01" class="table-filter small-input">
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="profilesTableBody">
