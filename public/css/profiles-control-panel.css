@@ -337,3 +337,51 @@ tr:hover {
 }
 
 /* Sort indicator styles */
+
+/* Table body cells */
+#profilesTable tbody td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+/* Profile picture column */
+.profile-pic-col {
+    width: 40px;
+    text-align: center;
+}
+
+.profile-pic-cell {
+    text-align: center;
+}
+
+.profile-pic-cell img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+}
+
+/* Default profile picture placeholder */
+.default-profile-pic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #b234bd;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Pubkey cell */
+.pubkey-cell {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

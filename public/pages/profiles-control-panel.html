@@ -52,6 +52,7 @@
             <table id="profilesTable" style="display: none;">
                 <thead>
                     <tr class="header-row">
+                        <th class="profile-pic-col">Pic</th>
                         <th data-sort="pubkey">Pubkey</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
@@ -61,6 +62,7 @@
                         <th data-sort="input">Input</th>
                     </tr>
                     <tr class="filter-row">
+                        <th></th>
                         <th>
                             <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
                         </th>
@@ -145,7 +147,8 @@
             sorting: {
                 column: 'influence',
                 order: 'desc'
-            }
+            },
+            profileCache: {} // Cache for profile data to avoid duplicate API calls
         };
         
         // Global DOM element references
@@ -350,47 +353,143 @@
             }
             
             function renderTable() {
-                // Clear existing table rows
+                // Clear the table body
                 tableBody.innerHTML = '';
                 
-                // Create rows for each profile
+                // Render profiles
                 state.profiles.forEach(profile => {
                     const row = document.createElement('tr');
+                    
+                    // Profile picture cell
+                    const profilePicCell = document.createElement('td');
+                    profilePicCell.className = 'profile-pic-cell';
+                    
+                    // Create a placeholder (default profile pic or initial)
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'default-profile-pic';
+                    placeholder.textContent = profile.pubkey.substring(0, 2).toUpperCase();
+                    profilePicCell.appendChild(placeholder);
+                    
+                    // Lazy load the actual profile picture
+                    loadProfilePicture(profile.pubkey, profilePicCell);
+                    
+                    row.appendChild(profilePicCell);
                     
                     // Pubkey cell with truncation and hyperlink
                     const pubkeyCell = document.createElement('td');
                     pubkeyCell.className = 'pubkey-cell';
-                    
                     const pubkeyLink = document.createElement('a');
-                    pubkeyLink.href = `/control/profile.html?pubkey=${encodeURIComponent(profile.pubkey)}`;
-                    pubkeyLink.title = profile.pubkey;
-                    pubkeyLink.textContent = profile.pubkey;
+                    pubkeyLink.href = `https://njump.me/${profile.pubkey}`;
+                    pubkeyLink.target = '_blank';
                     pubkeyLink.className = 'pubkey-link';
-                    
+                    pubkeyLink.textContent = profile.pubkey.substring(0, 12) + '...';
+                    pubkeyLink.title = profile.pubkey;
                     pubkeyCell.appendChild(pubkeyLink);
                     row.appendChild(pubkeyCell);
                     
-                    // Other cells
+                    // Numeric data cells
                     addNumericCell(row, profile.hops);
-                    addNumericCell(row, profile.personalizedPageRank, 4);
-                    addNumericCell(row, profile.influence, 4);
-                    addNumericCell(row, profile.average, 4);
-                    addNumericCell(row, profile.confidence, 4);
-                    addNumericCell(row, profile.input, 4);
+                    addNumericCell(row, profile.personalizedPageRank, 6);
+                    addNumericCell(row, profile.influence, 6);
+                    addNumericCell(row, profile.average, 2);
+                    addNumericCell(row, profile.confidence, 2);
+                    addNumericCell(row, profile.input, 2);
                     
                     tableBody.appendChild(row);
                 });
                 
-                // If no data, show a message
                 if (state.profiles.length === 0) {
                     const row = document.createElement('tr');
                     const cell = document.createElement('td');
-                    cell.colSpan = 7;
+                    cell.colSpan = 8;
                     cell.textContent = 'No profiles found matching the current filters';
                     cell.style.textAlign = 'center';
                     cell.style.padding = '20px';
                     row.appendChild(cell);
                     tableBody.appendChild(row);
+                }
+                
+                // Update sorting indicators in the table header
+                updateSortIndicators(state.sorting.column, state.sorting.order);
+            }
+            
+            /**
+             * Load profile picture for a pubkey
+             * @param {string} pubkey - User's public key
+             * @param {HTMLElement} cell - The cell to update with the profile picture
+             */
+            function loadProfilePicture(pubkey, cell) {
+                // Check if we already have this profile in the cache
+                if (state.profileCache[pubkey]) {
+                    updateProfilePictureCell(cell, state.profileCache[pubkey]);
+                    return;
+                }
+                
+                // Fetch profile data
+                fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let profileData = null;
+                        
+                        // Process the profile data if available
+                        if (data && data.success && data.profile) {
+                            try {
+                                profileData = {
+                                    name: data.profile.name || null,
+                                    picture: data.profile.picture || null,
+                                    display_name: data.profile.display_name || null
+                                };
+                                
+                                // Cache the profile data
+                                state.profileCache[pubkey] = profileData;
+                                
+                                // Update the cell with the profile data
+                                updateProfilePictureCell(cell, profileData);
+                            } catch (error) {
+                                console.error('Error parsing profile data:', error);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching profile data:', error);
+                    });
+            }
+            
+            /**
+             * Update a table cell with profile picture
+             * @param {HTMLElement} cell - The cell to update
+             * @param {Object} profileData - The profile data object
+             */
+            function updateProfilePictureCell(cell, profileData) {
+                // Clear the cell
+                cell.innerHTML = '';
+                
+                if (profileData && profileData.picture) {
+                    // Create image element for the profile picture
+                    const img = document.createElement('img');
+                    img.src = profileData.picture;
+                    img.alt = profileData.name || 'Profile Picture';
+                    img.onerror = function() {
+                        // If image fails to load, use the placeholder
+                        this.style.display = 'none';
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'default-profile-pic';
+                        placeholder.textContent = profileData.name ? profileData.name.substring(0, 2).toUpperCase() : '??';
+                        cell.appendChild(placeholder);
+                    };
+                    cell.appendChild(img);
+                } else {
+                    // Use placeholder for profiles without pictures
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'default-profile-pic';
+                    placeholder.textContent = profileData && profileData.name ? 
+                        profileData.name.substring(0, 2).toUpperCase() : '??';
+                    cell.appendChild(placeholder);
+                }
+                
+                // Add title/tooltip with user's name if available
+                if (profileData && (profileData.display_name || profileData.name)) {
+                    cell.title = profileData.display_name || profileData.name;
                 }
             }
             
