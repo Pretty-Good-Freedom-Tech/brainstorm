@@ -5,6 +5,14 @@ body {
     color: #b234bd;
 }
 
+.landing-page-title {
+    color: #fff;
+    border: 0px;
+    margin: 0;
+    text-align: center;
+    
+}
+
 .container-landing h1 {
     text-align: center;
     font-size: 42px;
