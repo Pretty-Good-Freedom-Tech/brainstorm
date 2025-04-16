@@ -1,4 +1,4 @@
-# Brainstorm (rebranding from Hasenpfeffr)
+# Brainstorm (rebranded from Hasenpfeffr)
 
 Brainstorm is a _Personalized Webs of Trust Nostr relay_ that uses advanced techniques to calculate personalized webs of trust, resulting in high-quality, spam-free nostr content, curated by _your_ Nostr community. It is currently in alpha and is not yet ready for production use.
 
