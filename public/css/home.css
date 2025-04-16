@@ -294,17 +294,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 20px;
 }
 .toggle-label {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     color: #555;
+    flex: 1;
+    max-width: calc(100% - 80px);
 }
 .switch {
     position: relative;
     display: inline-block;
     width: 60px;
     height: 34px;
+    flex-shrink: 0;
+    min-width: 60px;
 }
 .switch input {
     opacity: 0;

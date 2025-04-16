@@ -35,7 +35,8 @@ body {
     text-align: center;
     color: rgb(146, 121, 107);
     margin: 50px 0 50px 0;
-    font-size: 24px;
+    font-size: 18px;
+    overflow: scroll;
     font-weight: 500;
     display: flex;
     align-items: center;
