@@ -432,13 +432,14 @@
                         let profileData = null;
                         
                         // Process the profile data if available
-                        if (data && data.success && data.profile) {
+                        if (data && data.success && data.data && data.data.content) {
                             try {
-                                profileData = {
-                                    name: data.profile.name || null,
-                                    picture: data.profile.picture || null,
-                                    display_name: data.profile.display_name || null
-                                };
+                                // profileData = {
+                                //    name: foo.name || null,
+                                //    picture: foo.picture || null,
+                                //    display_name: foo.display_name || null
+                                // };
+                                profileData = JSON.parse(data.data.content);
                                 
                                 // Cache the profile data
                                 state.profileCache[pubkey] = profileData;
