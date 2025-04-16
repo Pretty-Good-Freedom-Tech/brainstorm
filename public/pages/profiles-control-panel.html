@@ -363,6 +363,7 @@
                     // Profile picture cell
                     const profilePicCell = document.createElement('td');
                     profilePicCell.className = 'profile-pic-cell';
+                    profilePicCell.dataset.pubkey = profile.pubkey;
                     
                     // Create a placeholder (default profile pic or initial)
                     const placeholder = document.createElement('div');
@@ -434,11 +435,6 @@
                         // Process the profile data if available
                         if (data && data.success && data.data && data.data.content) {
                             try {
-                                // profileData = {
-                                //    name: foo.name || null,
-                                //    picture: foo.picture || null,
-                                //    display_name: foo.display_name || null
-                                // };
                                 profileData = JSON.parse(data.data.content);
                                 
                                 // Cache the profile data
@@ -465,6 +461,13 @@
                 // Clear the cell
                 cell.innerHTML = '';
                 
+                // Create link element that will contain the profile picture
+                const profileLink = document.createElement('a');
+                profileLink.href = `/profile.html?pubkey=${encodeURIComponent(cell.dataset.pubkey)}`;
+                profileLink.target = '_blank';
+                profileLink.className = 'profile-pic-link';
+                cell.appendChild(profileLink);
+                
                 if (profileData && profileData.picture) {
                     // Create image element for the profile picture
                     const img = document.createElement('img');
@@ -476,21 +479,21 @@
                         const placeholder = document.createElement('div');
                         placeholder.className = 'default-profile-pic';
                         placeholder.textContent = profileData.name ? profileData.name.substring(0, 2).toUpperCase() : '??';
-                        cell.appendChild(placeholder);
+                        profileLink.appendChild(placeholder);
                     };
-                    cell.appendChild(img);
+                    profileLink.appendChild(img);
                 } else {
                     // Use placeholder for profiles without pictures
                     const placeholder = document.createElement('div');
                     placeholder.className = 'default-profile-pic';
                     placeholder.textContent = profileData && profileData.name ? 
                         profileData.name.substring(0, 2).toUpperCase() : '??';
-                    cell.appendChild(placeholder);
+                    profileLink.appendChild(placeholder);
                 }
                 
                 // Add title/tooltip with user's name if available
                 if (profileData && (profileData.display_name || profileData.name)) {
-                    cell.title = profileData.display_name || profileData.name;
+                    profileLink.title = profileData.display_name || profileData.name;
                 }
             }
             

@@ -355,6 +355,25 @@ tr:hover {
     text-align: center;
 }
 
+/* Profile picture link */
+.profile-pic-link {
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-pic-link:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(178, 52, 189, 0.5);
+}
+
+.profile-pic-link:active {
+    transform: scale(0.95);
+}
+
+/* Profile picture styling */
 .profile-pic-cell img {
     width: 30px;
     height: 30px;
