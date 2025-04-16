@@ -17,8 +17,8 @@ const writeFile = promisify(fs.writeFile);
 
 // Configuration
 const config = {
-  queueDir: '/var/lib/hasenpfeffr/pipeline/reconcile/queue',
-  tempDir: '/var/lib/hasenpfeffr/pipeline/reconcile/temp',
+  queueDir: '/var/lib/brainstorm/pipeline/reconcile/queue',
+  tempDir: '/var/lib/brainstorm/pipeline/reconcile/temp',
   batchSize: 1000, // Number of pubkeys to process in each batch
   neo4jUri: process.env.NEO4J_URI || "bolt://localhost:7687",
   neo4jUser: process.env.NEO4J_USER || "neo4j",

@@ -2,7 +2,7 @@
 Description=calculate personalizedPageRank and store scores in Neo4j
 
 [Service]
-ExecStart=sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/calculatePersonalizedPageRank.sh
+ExecStart=sudo /usr/local/lib/node_modules/brainstorm/src/algos/calculatePersonalizedPageRank.sh
 
 [Install]
 WantedBy=multi-user.target

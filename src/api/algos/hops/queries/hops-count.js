@@ -34,7 +34,7 @@ function handleGetHopsCount(req, res) {
         if (!neo4jPassword) {
             return res.json({
                 success: false,
-                error: 'Neo4j password not configured. Please update /etc/hasenpfeffr.conf with NEO4J_PASSWORD.'
+                error: 'Neo4j password not configured. Please update /etc/brainstorm.conf with NEO4J_PASSWORD.'
             });
         }
         

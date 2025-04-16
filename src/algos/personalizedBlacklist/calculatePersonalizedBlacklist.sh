@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Hasenpfeffr Personalized Blacklist Calculator
+# Brainstorm Personalized Blacklist Calculator
 # This script calculates personalized blacklists based on follows, mutes, and reports data in Neo4j
 # It updates the blacklist_pubkeys.json file used by the strfry plugin
 
-source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR
+source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
-touch ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log
-sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log
+touch ${BRAINSTORM_LOG_DIR}/exportBlacklist.log
+sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/exportBlacklist.log
 
 echo "$(date): Starting exportBlacklist"
-echo "$(date): Starting exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Starting exportBlacklist" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
 set -e  # Exit on error
 
@@ -20,12 +20,12 @@ BLACKLIST_OUTPUT_DIR=${STRFRY_PLUGINS_DATA}
 BLACKLIST_OUTPUT_FILE="$BLACKLIST_OUTPUT_DIR/blacklist_pubkeys.json"
 NEO4J_USERNAME="neo4j"
 NEO4J_PASSWORD="neo4j"
-if [ -f "/etc/hasenpfeffr.conf" ]; then
-  source /etc/hasenpfeffr.conf
+if [ -f "/etc/brainstorm.conf" ]; then
+  source /etc/brainstorm.conf
   NEO4J_PASSWORD=${NEO4J_PASSWORD:-neo4j}
 else
   NEO4J_PASSWORD="neo4j"
-  echo "Warning: /etc/hasenpfeffr.conf not found, using default Neo4j password"
+  echo "Warning: /etc/brainstorm.conf not found, using default Neo4j password"
 fi
 
 # Load blacklist configuration
@@ -37,7 +37,7 @@ else
 fi
 
 echo "$(date): Continuing exportBlacklist ... finished loading configuration; about to define cypher queries"
-echo "$(date): Continuing exportBlacklist ... finished loading configuration; about to define cypher queries" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Continuing exportBlacklist ... finished loading configuration; about to define cypher queries" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
 echo "Starting personalized blacklist calculation..."
 echo "Using parameters:"
@@ -93,7 +93,7 @@ EOF
 )
 
 echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation query"
-echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation query" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation query" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
 # Run the calculation query
 echo "Calculating input values and blacklist status..."
@@ -101,14 +101,14 @@ BLACKLISTED_COUNT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --for
 echo "Blacklisted $BLACKLISTED_COUNT users."
 
 echo "$(date): Continuing exportBlacklist ... finished running calculation query; about to get blacklisted pubkeys"
-echo "$(date): Continuing exportBlacklist ... finished running calculation query; about to get blacklisted pubkeys" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Continuing exportBlacklist ... finished running calculation query; about to get blacklisted pubkeys" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
 # Get the blacklisted pubkeys
 echo "Retrieving blacklisted pubkeys..."
 BLACKLISTED_PUBKEYS=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$GET_BLACKLISTED_QUERY" | grep -v "pubkey" | grep -v "^$")
 
 echo "$(date): Continuing exportBlacklist ... finished getting blacklisted pubkeys; about to create blacklist.json"
-echo "$(date): Continuing exportBlacklist ... finished getting blacklisted pubkeys; about to create blacklist.json" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Continuing exportBlacklist ... finished getting blacklisted pubkeys; about to create blacklist.json" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
 # Create the blacklist JSON file
 echo "Creating blacklist JSON file..."
@@ -127,10 +127,10 @@ echo "}" >> "$BLACKLIST_OUTPUT_FILE.tmp"
 # Move the temporary file to the final location
 mv "$BLACKLIST_OUTPUT_FILE.tmp" "$BLACKLIST_OUTPUT_FILE"
 sudo chmod 644 "$BLACKLIST_OUTPUT_FILE"
-sudo chown hasenpfeffr:hasenpfeffr "$BLACKLIST_OUTPUT_FILE"
+sudo chown brainstorm:brainstorm "$BLACKLIST_OUTPUT_FILE"
 
 echo "$(date): Continuing exportBlacklist ... about to update blacklist.conf"
-echo "$(date): Continuing exportBlacklist ... about to update blacklist.conf" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Continuing exportBlacklist ... about to update blacklist.conf" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
 # Update the WHEN_LAST_CALCULATED timestamp in the configuration file
 TIMESTAMP=$(date +%s)
@@ -138,7 +138,7 @@ TMP_CONF=$(mktemp)
 cat "$BLACKLIST_CONF" | sed "s/^export WHEN_LAST_CALCULATED=.*$/export WHEN_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
 sudo cp "$TMP_CONF" "$BLACKLIST_CONF"
 sudo chmod 644 "$BLACKLIST_CONF"
-sudo chown root:hasenpfeffr "$BLACKLIST_CONF"
+sudo chown root:brainstorm "$BLACKLIST_CONF"
 rm "$TMP_CONF"
 
 echo "Personalized blacklist calculation completed."
@@ -147,4 +147,4 @@ echo "Total blacklisted pubkeys: $BLACKLISTED_COUNT"
 echo "Timestamp updated in $BLACKLIST_CONF"
 
 echo "$(date): Finished exportBlacklist"
-echo "$(date): Finished exportBlacklist" >> ${HASENPFEFFR_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Finished exportBlacklist" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  

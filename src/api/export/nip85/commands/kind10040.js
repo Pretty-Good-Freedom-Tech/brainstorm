@@ -28,7 +28,7 @@ function handleCreateKind10040(req, res) {
     res.setHeader('Content-Type', 'application/json');
     
     // Get the full path to the script
-    const scriptPath = path.join(process.cwd(), 'bin', 'hasenpfeffr-create-kind10040.js');
+    const scriptPath = path.join(process.cwd(), 'bin', 'brainstorm-create-kind10040.js');
     console.log('Using script path:', scriptPath);
     
     // Set a timeout to ensure the response doesn't hang
@@ -123,7 +123,7 @@ function handlePublishKind10040(req, res) {
         }
         
         // Define data directories
-        const dataDir = '/var/lib/hasenpfeffr/data';
+        const dataDir = '/var/lib/brainstorm/data';
         const publishedDir = path.join(dataDir, 'published');
         
         // Create directories if they don't exist

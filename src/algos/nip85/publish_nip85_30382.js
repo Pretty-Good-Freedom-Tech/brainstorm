@@ -14,10 +14,10 @@ const { finalizeEvent, getEventHash } = require('nostr-tools');
 const readline = require('readline');
 const os = require('os');
 
-// Get environment variables from hasenpfeffr.conf using source command
+// Get environment variables from brainstorm.conf using source command
 function getEnvVar(varName) {
   try {
-    const value = execSync(`bash -c 'source /etc/hasenpfeffr.conf && echo $${varName}'`).toString().trim();
+    const value = execSync(`bash -c 'source /etc/brainstorm.conf && echo $${varName}'`).toString().trim();
     return value;
   } catch (error) {
     console.error(`Error getting environment variable ${varName}:`, error.message);
@@ -29,8 +29,8 @@ function getEnvVar(varName) {
 function getNostrKeys() {
   try {
     // Try environment variables first
-    const privateKey = getEnvVar('HASENPFEFFR_RELAY_PRIVKEY');
-    const publicKey = getEnvVar('HASENPFEFFR_RELAY_PUBKEY');
+    const privateKey = getEnvVar('BRAINSTORM_RELAY_PRIVKEY');
+    const publicKey = getEnvVar('BRAINSTORM_RELAY_PUBKEY');
     
     if (privateKey && publicKey) {
       console.log(`Got keys from environment: PUBKEY=${publicKey.substring(0, 8)}...`);
@@ -38,14 +38,14 @@ function getNostrKeys() {
     }
     
     // Check the key file at the known location
-    const keyFilePath = '/home/ubuntu/hasenpfeffr/nostr/keys/hasenpfeffr_relay_keys';
+    const keyFilePath = '/home/ubuntu/brainstorm/nostr/keys/brainstorm_relay_keys';
     
     if (fs.existsSync(keyFilePath)) {
       console.log(`Reading keys from file: ${keyFilePath}`);
       try {
         const keysData = JSON.parse(fs.readFileSync(keyFilePath, 'utf8'));
         
-        // The file has fields "nsec" and "pubkey" instead of HASENPFEFFR_RELAY_PRIVKEY and HASENPFEFFR_RELAY_PUBKEY
+        // The file has fields "nsec" and "pubkey" instead of BRAINSTORM_RELAY_PRIVKEY and BRAINSTORM_RELAY_PUBKEY
         if (keysData.nsec && keysData.pubkey) {
           console.log(`Successfully read keys from ${keyFilePath}`);
           return {
@@ -383,7 +383,7 @@ async function publishEventToRelay(relayUrl, event, pool) {
 // Main function
 async function publishNip85() {
   console.log('Starting Nip85 data publishing...');
-  execSync(`echo "$(date): Starting publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
+  execSync(`echo "$(date): Starting publish_nip85_30382.js" >> /var/log/brainstorm/publishNip85.log`)
   
   // Get Nostr keys
   const keys = getNostrKeys();
@@ -395,11 +395,11 @@ async function publishNip85() {
   console.log(`Using pubkey: ${keys.publicKey}`);
   
   // Get relay URL from configuration
-  let relayUrl = getEnvVar('HASENPFEFFR_RELAY_URL');
+  let relayUrl = getEnvVar('BRAINSTORM_RELAY_URL');
   
   // Fallback relay URLs if the main one is not configured
   const fallbackRelays = [
-    'wss://relay.hasenpfeffr.com',
+    'wss://relay.brainstorm.com',
     'wss://relay.damus.io',
     'wss://relay.nostr.band',
     'wss://relay.primal.net',
@@ -407,7 +407,7 @@ async function publishNip85() {
   ];
   
   if (!relayUrl) {
-    console.log('No relay URL configured in HASENPFEFFR_RELAY_URL, using fallback relay');
+    console.log('No relay URL configured in BRAINSTORM_RELAY_URL, using fallback relay');
     relayUrl = fallbackRelays[0];
   }
   
@@ -429,7 +429,7 @@ async function publishNip85() {
   }
   
   // Input file path
-  const inputFile = '/usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85.json';
+  const inputFile = '/usr/local/lib/node_modules/brainstorm/src/algos/nip85.json';
   if (!fs.existsSync(inputFile)) {
     console.error(`Input file not found: ${inputFile}`);
     process.exit(1);
@@ -440,7 +440,7 @@ async function publishNip85() {
   const totalToProcess = await countLines(inputFile);
   console.log(`Total records to process: ${totalToProcess}`);
 
-  execSync(`echo "$(date): Total records to process: ${totalToProcess}" >> /var/log/hasenpfeffr/publishNip85.log`)
+  execSync(`echo "$(date): Total records to process: ${totalToProcess}" >> /var/log/brainstorm/publishNip85.log`)
   
   // Initialize the monitor
   monitor = new PublishingMonitor(totalToProcess);
@@ -484,7 +484,7 @@ async function publishNip85() {
     }
   }
 
-  execSync(`echo "$(date): about to process any remaining records; publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
+  execSync(`echo "$(date): about to process any remaining records; publish_nip85_30382.js" >> /var/log/brainstorm/publishNip85.log`)
   
   // Process any remaining records
   if (currentBatch.length > 0) {
@@ -493,7 +493,7 @@ async function publishNip85() {
     await processBatch(currentBatch, primaryPool, relayUrl, keys, additionalPools);
   }
 
-  execSync(`echo "$(date): about to close connection pools; publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
+  execSync(`echo "$(date): about to close connection pools; publish_nip85_30382.js" >> /var/log/brainstorm/publishNip85.log`)
   
   // Close all connection pools
   await primaryPool.closeAll();
@@ -501,7 +501,7 @@ async function publishNip85() {
     await additionalPools[additionalRelay].closeAll();
   }
 
-  execSync(`echo "$(date): Completed publish_nip85_30382.js" >> /var/log/hasenpfeffr/publishNip85.log`)
+  execSync(`echo "$(date): Completed publish_nip85_30382.js" >> /var/log/brainstorm/publishNip85.log`)
   
   monitor.stop();
 }

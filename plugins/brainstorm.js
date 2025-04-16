@@ -41,7 +41,7 @@ rl.on('line', (line) => {
     }
 
     if (res.action == 'reject') {
-        res.msg = 'blocked by the hasenpfeffr plugin';
+        res.msg = 'blocked by the brainstorm plugin';
     }
 
     console.log(JSON.stringify(res));

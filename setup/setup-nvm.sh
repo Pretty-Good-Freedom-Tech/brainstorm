@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Hasenpfeffr NVM Setup Script
+# Brainstorm NVM Setup Script
 # This script installs and configures NVM (Node Version Manager) for user-level Node.js
 # It installs Node.js 18.x without requiring sudo privileges
 #

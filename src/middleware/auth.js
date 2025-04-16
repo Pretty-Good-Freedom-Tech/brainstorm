@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr authentication API endpoints
+ * Brainstorm authentication API endpoints
  * Provides handlers for user authentication and session management
  */
 
@@ -21,7 +21,7 @@ function handleAuthVerify(req, res) {
         console.log(`Received authentication request from pubkey: ${pubkey}`);
         
         // Debug: Inspect the config file directly
-        const confFile = '/etc/hasenpfeffr.conf';
+        const confFile = '/etc/brainstorm.conf';
         let configContents = 'File not found';
         let configExists = false;
         
@@ -38,7 +38,7 @@ function handleAuthVerify(req, res) {
         }
         
         // Get owner pubkey from config
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
         
         console.log(`Owner pubkey from config: '${ownerPubkey}'`);
         
@@ -53,10 +53,10 @@ function handleAuthVerify(req, res) {
         console.log('Auth debug info:', JSON.stringify(debugInfo, null, 2));
         
         if (!ownerPubkey) {
-            console.error('HASENPFEFFR_OWNER_PUBKEY not set in configuration');
+            console.error('BRAINSTORM_OWNER_PUBKEY not set in configuration');
             return res.json({ 
                 authorized: false,
-                message: 'The HASENPFEFFR_OWNER_PUBKEY is not set in the server configuration',
+                message: 'The BRAINSTORM_OWNER_PUBKEY is not set in the server configuration',
                 details: {
                     providedKey: pubkey,
                     expectedKey: 'NOT_CONFIGURED',
@@ -207,7 +207,7 @@ function handleAuthStatus(req, res) {
 function handleAuthTest(req, res) {
     try {
         // Direct config file inspection
-        const confFile = '/etc/hasenpfeffr.conf';
+        const confFile = '/etc/brainstorm.conf';
         let fileExists = false;
         let fileContents = '';
         
@@ -221,7 +221,7 @@ function handleAuthTest(req, res) {
         }
         
         // Try to get owner key using our function
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
         
         return res.json({
             success: true,
@@ -248,7 +248,7 @@ function handleAuthTest(req, res) {
  */
 function isOwner(req) {
     // Get owner pubkey from config
-    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+    const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
     
     // Check if the user is authenticated and is the owner
     return req.session && 
@@ -281,7 +281,7 @@ function authMiddleware(req, res, next) {
     if (req.session && req.session.authenticated) {
         // Define owner-only endpoints (administrative actions)
         const ownerOnlyEndpoints = [
-            '/hasenpfeffr-control',
+            '/brainstorm-control',
             '/post-graperank-config',
             '/api/post-blacklist-config',
             '/post-whitelist-config',
@@ -329,7 +329,7 @@ function authMiddleware(req, res, next) {
             '/generate-pagerank',
             '/generate-nip85',
             '/systemd-services',
-            '/hasenpfeffr-control',
+            '/brainstorm-control',
             '/toggle-strfry-plugin',  // New endpoint for enabling/disabling
             '/batch-transfer',
             '/reconciliation',

@@ -1,0 +1,9 @@
+# Allow brainstorm user to run strfry commands without a password
+brainstorm ALL=(ALL) NOPASSWD: /usr/local/bin/strfry
+brainstorm ALL=(ALL) NOPASSWD: /usr/local/bin/brainstorm-strfry-stats
+brainstorm ALL=(ALL) NOPASSWD: /usr/local/bin/brainstorm-negentropy-sync
+
+brainstorm ALL=(ALL) NOPASSWD: /usr/local/bin/brainstorm-control-panel
+brainstorm ALL=(ALL) NOPASSWD: /usr/local/bin/brainstorm-node
+
+brainstorm ALL=(ALL) NOPASSWD: /usr/local/bin/brainstorm-update-config

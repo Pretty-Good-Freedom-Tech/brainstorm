@@ -15,10 +15,10 @@ dotenv.config();
 function getConfigValue(varName, defaultValue = null) {
   try {
     // First try to read from the config file directly
-    if (fs.existsSync('/etc/hasenpfeffr.conf')) {
+    if (fs.existsSync('/etc/brainstorm.conf')) {
       try {
         // Use bash explicitly with the -c option
-        const result = child_process.execSync(`bash -c "source /etc/hasenpfeffr.conf && echo \\$${varName}"`, {
+        const result = child_process.execSync(`bash -c "source /etc/brainstorm.conf && echo \\$${varName}"`, {
           encoding: 'utf8'
         }).trim();
         
@@ -52,13 +52,13 @@ function getConfigValue(varName, defaultValue = null) {
 }
 
 // Get relay URL from config with development fallback
-const myRelay = getConfigValue('HASENPFEFFR_RELAY_URL', 'wss://relay.damus.io');
+const myRelay = getConfigValue('BRAINSTORM_RELAY_URL', 'wss://relay.damus.io');
 
 const myRelay_slashStrfry = myRelay + '/strfry'
 
 // Log warning if using default relay
 if (myRelay === 'wss://relay.damus.io') {
-  console.warn('WARNING: Using default relay (wss://relay.damus.io) because HASENPFEFFR_RELAY_URL is not set');
+  console.warn('WARNING: Using default relay (wss://relay.damus.io) because BRAINSTORM_RELAY_URL is not set');
   console.warn('This is fine for development but should be configured in production');
 }
 
@@ -66,7 +66,7 @@ console.log(`Using relay: ${myRelay_slashStrfry}`);
 
 const explicitRelayUrls = [ myRelay_slashStrfry ]
 
-const pathToQueue = '/var/lib/hasenpfeffr/pipeline/stream/queue/'
+const pathToQueue = '/var/lib/brainstorm/pipeline/stream/queue/'
 
 const ndk = new NDK({explicitRelayUrls})
 

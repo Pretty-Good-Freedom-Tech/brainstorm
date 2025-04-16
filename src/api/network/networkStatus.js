@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr network status API endpoint
+ * Brainstorm network status API endpoint
  * Provides information about follows network status
  */
 
@@ -46,7 +46,7 @@ function getNetworkStatus(req, res) {
     };
     
     // Log directory
-    const hasenpfeffrLogDir = process.env.HASENPFEFFR_LOG_DIR || '/var/log/hasenpfeffr';
+    const brainstormLogDir = process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm';
     
     // Array to collect promises for parallel execution
     const promises = [];
@@ -54,7 +54,7 @@ function getNetworkStatus(req, res) {
     // Check Follows Network last calculated
     promises.push(
         new Promise((resolve) => {
-            const hopsLogPath = `${hasenpfeffrLogDir}/calculateHops.log`;
+            const hopsLogPath = `${brainstormLogDir}/calculateHops.log`;
             fs.access(hopsLogPath, fs.constants.F_OK, (err) => {
                 if (err) {
                     console.error('Hops log file not found:', err);

@@ -35,7 +35,7 @@ function handleGetKind0Event(req, res) {
     
     // Define the relays to query
     const relays = [
-      'wss://relay.hasenpfeffr.com',
+      'wss://relay.brainstorm.com',
       'wss://profiles.nostr1.com',
       'wss://relay.nostr.band',
       'wss://relay.damus.io',

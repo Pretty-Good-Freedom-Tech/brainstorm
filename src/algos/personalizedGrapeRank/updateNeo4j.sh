@@ -4,13 +4,13 @@
 # This script updates Neo4j with GrapeRank scores from scorecards.json
 
 # Source configuration
-source /etc/hasenpfeffr.conf # HASENPFEFFR_LOG_DIR
+source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
-echo "$(date): Continuing calculatePersonalizedGrapeRank ... starting updateNeo4j" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... starting updateNeo4j" >> ${BRAINSTORM_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 # Create the base directory structure if it doesn't exist
-USERNAME="hasenpfeffr"
-BASE_DIR="/var/lib/hasenpfeffr"
+USERNAME="brainstorm"
+BASE_DIR="/var/lib/brainstorm"
 TEMP_DIR="$BASE_DIR/algos/personalizedGrapeRank/tmp"
 mkdir -p $TEMP_DIR
 
@@ -25,6 +25,6 @@ if ! npm list -g neo4j-driver > /dev/null 2>&1; then
 fi
 
 # Run the JavaScript script
-node /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/updateNeo4j.js
+node /usr/local/lib/node_modules/brainstorm/src/algos/personalizedGrapeRank/updateNeo4j.js
 
-echo "$(date): Continuing calculatePersonalizedGrapeRank ... finished updateNeo4j" >> ${HASENPFEFFR_LOG_DIR}/calculatePersonalizedGrapeRank.log
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... finished updateNeo4j" >> ${BRAINSTORM_LOG_DIR}/calculatePersonalizedGrapeRank.log

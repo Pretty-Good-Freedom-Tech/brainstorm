@@ -15,8 +15,8 @@ function handleCalculationStatus(req, res) {
     console.log('Getting calculation status...');
     
     try {
-        // Get HASENPFEFFR_LOG_DIR from hasenpfeffr.conf
-        const logDir = getConfigFromFile('HASENPFEFFR_LOG_DIR', '/var/log/hasenpfeffr');
+        // Get BRAINSTORM_LOG_DIR from brainstorm.conf
+        const logDir = getConfigFromFile('BRAINSTORM_LOG_DIR', '/var/log/brainstorm');
         
         // Define log files to check
         const logFiles = {

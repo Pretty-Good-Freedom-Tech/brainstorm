@@ -13,8 +13,8 @@ const { getConfigFromFile } = require('../../utils/config');
 function handleGetOwnerInfo(req, res) {
     try {
         // Get owner pubkey and npub from configuration
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
-        const ownerNpub = getConfigFromFile('HASENPFEFFR_OWNER_NPUB');
+        const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
+        const ownerNpub = getConfigFromFile('BRAINSTORM_OWNER_NPUB');
         const domainName = getConfigFromFile('STRFRY_DOMAIN');
         
         // Return owner information

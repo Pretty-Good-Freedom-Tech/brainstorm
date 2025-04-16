@@ -28,7 +28,7 @@ function handleCalculateHops(req, res) {
     }, 60000); // 1 minute timeout
     
     // Create a child process to run the calculation script
-    const calculateProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/algos/calculateHops.sh');
+    const calculateProcess = exec('/usr/local/lib/node_modules/brainstorm/src/algos/calculateHops.sh');
     
     let output = '';
     let errorOutput = '';

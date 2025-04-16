@@ -1,19 +1,19 @@
 /**
- * Hasenpfeffr Control Command Handler
+ * Brainstorm Control Command Handler
  * 
- * This module provides an endpoint to turn Hasenpfeffr on and off
+ * This module provides an endpoint to turn Brainstorm on and off
  */
 
 const fs = require('fs');
 const { execSync } = require('child_process');
 
 /**
- * Handles turning Hasenpfeffr on and off
+ * Handles turning Brainstorm on and off
  * 
  * @param {object} req - Express request object
  * @param {object} res - Express response object
  */
-async function handleHasenpfeffrControl(req, res) {
+async function handleBrainstormControl(req, res) {
     const { action } = req.body;
     
     if (!action || (action !== 'on' && action !== 'off')) {
@@ -26,9 +26,9 @@ async function handleHasenpfeffrControl(req, res) {
     try {
         let scriptPath;
         if (action === 'on') {
-            scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOn.sh';
+            scriptPath = '/usr/local/lib/node_modules/brainstorm/src/manage/turnBrainstormOn.sh';
         } else {
-            scriptPath = '/usr/local/lib/node_modules/hasenpfeffr/src/manage/turnHasenpfeffrOff.sh';
+            scriptPath = '/usr/local/lib/node_modules/brainstorm/src/manage/turnBrainstormOff.sh';
         }
         
         // Check if script exists
@@ -49,18 +49,18 @@ async function handleHasenpfeffrControl(req, res) {
         return res.json({
             success: true,
             action,
-            message: `Hasenpfeffr turned ${action} successfully`,
+            message: `Brainstorm turned ${action} successfully`,
             output
         });
     } catch (error) {
-        console.error(`Error turning Hasenpfeffr ${action}:`, error);
+        console.error(`Error turning Brainstorm ${action}:`, error);
         return res.status(500).json({ 
             success: false, 
-            error: `Failed to turn Hasenpfeffr ${action}: ${error.message}` 
+            error: `Failed to turn Brainstorm ${action}: ${error.message}` 
         });
     }
 }
 
 module.exports = {
-    handleHasenpfeffrControl
+    handleBrainstormControl
 };

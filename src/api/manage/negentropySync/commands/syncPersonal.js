@@ -18,7 +18,7 @@ function handleNegentropySyncPersonal(req, res) {
   res.setTimeout(600000);
   
   // Use exec with timeout options
-  const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/manage/negentropySync/syncPersonal.sh', {
+  const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/manage/negentropySync/syncPersonal.sh', {
     timeout: 590000, // slightly less than the HTTP timeout
     maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
   }, (error, stdout, stderr) => {

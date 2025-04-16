@@ -46,7 +46,7 @@ async function handleToggleStrfryPlugin(req, res) {
         const relayMatch = confContent.match(relayPluginRegex);
         
         // Set plugin path
-        const pluginPath = '/usr/local/lib/strfry/plugins/hasenpfeffr.js';
+        const pluginPath = '/usr/local/lib/strfry/plugins/brainstorm.js';
         
         // Ensure plugin directory exists
         if (!fs.existsSync('/usr/local/lib/strfry/plugins')) {
@@ -55,7 +55,7 @@ async function handleToggleStrfryPlugin(req, res) {
         
         // Copy plugin file if it doesn't exist at destination
         if (!fs.existsSync(pluginPath)) {
-            execSync(`sudo cp /usr/local/lib/node_modules/hasenpfeffr/plugins/hasenpfeffr.js ${pluginPath}`);
+            execSync(`sudo cp /usr/local/lib/node_modules/brainstorm/plugins/brainstorm.js ${pluginPath}`);
             execSync(`sudo chmod +x ${pluginPath}`);
         }
         
@@ -114,9 +114,9 @@ async function handleToggleStrfryPlugin(req, res) {
             // Set source config path
             let sourceConfigPath;
             if (action === 'enable') {
-                sourceConfigPath = '/usr/local/lib/node_modules/hasenpfeffr/setup/strfry-router-plugin.config';
+                sourceConfigPath = '/usr/local/lib/node_modules/brainstorm/setup/strfry-router-plugin.config';
             } else { // action === 'disable'
-                sourceConfigPath = '/usr/local/lib/node_modules/hasenpfeffr/setup/strfry-router.config';
+                sourceConfigPath = '/usr/local/lib/node_modules/brainstorm/setup/strfry-router.config';
             }
             
             // Check if source config exists
@@ -125,11 +125,11 @@ async function handleToggleStrfryPlugin(req, res) {
                 return res.status(404).json({ error: `Source config file not found: ${sourceConfigPath}` });
             }
             
-            // Get owner pubkey from hasenpfeffr.conf
-            const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+            // Get owner pubkey from brainstorm.conf
+            const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
             
             if (!ownerPubkey) {
-                console.warn('HASENPFEFFR_OWNER_PUBKEY not found in configuration');
+                console.warn('BRAINSTORM_OWNER_PUBKEY not found in configuration');
             }
             
             // Read the config file content

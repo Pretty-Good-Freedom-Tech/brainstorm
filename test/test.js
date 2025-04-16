@@ -1,5 +1,5 @@
 /**
- * Basic test for Hasenpfeffr
+ * Basic test for Brainstorm
  * 
  * This is a simple test to verify that the package is working correctly.
  * In a real-world scenario, you would use a testing framework like Jest or Mocha.
@@ -8,8 +8,8 @@
 const { loadConfig } = require('../lib/config');
 
 // Mock environment variables for testing
-process.env.HASENPFEFFR_RELAY_URL = 'wss://test-relay.com';
-process.env.HASENPFEFFR_RELAY_PUBKEY = 'test-pubkey';
+process.env.BRAINSTORM_RELAY_URL = 'wss://test-relay.com';
+process.env.BRAINSTORM_RELAY_PUBKEY = 'test-pubkey';
 
 // Test configuration loading
 function testConfigLoading() {
@@ -24,7 +24,7 @@ function testConfigLoading() {
 }
 
 // Run tests
-console.log('Running Hasenpfeffr tests...');
+console.log('Running Brainstorm tests...');
 const configTest = testConfigLoading();
 
 console.log('\nTest Results:');

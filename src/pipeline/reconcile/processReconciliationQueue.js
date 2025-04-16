@@ -22,8 +22,8 @@ const mkdir = promisify(fs.mkdir);
 
 // Configuration
 const config = {
-  queueDir: '/var/lib/hasenpfeffr/pipeline/reconcile/queue',
-  tempDir: '/var/lib/hasenpfeffr/pipeline/reconcile/temp',
+  queueDir: '/var/lib/brainstorm/pipeline/reconcile/queue',
+  tempDir: '/var/lib/brainstorm/pipeline/reconcile/temp',
   maxConcurrent: 5, // Maximum number of pubkeys to process concurrently
   neo4jUri: process.env.NEO4J_URI || "bolt://localhost:7687",
   neo4jUser: process.env.NEO4J_USER || "neo4j",

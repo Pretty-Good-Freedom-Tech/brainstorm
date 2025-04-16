@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr configuration utilities
+ * Brainstorm configuration utilities
  * Provides functions for reading configuration values
  */
 
@@ -8,14 +8,14 @@ const { execSync } = require('child_process');
 const { config } = require('../../lib/config');
 
 /**
- * Get configuration values from /etc/hasenpfeffr.conf
+ * Get configuration values from /etc/brainstorm.conf
  * @param {string} varName - Name of the configuration variable
  * @param {*} defaultValue - Default value to return if variable is not found
  * @returns {string} Value of the configuration variable or default value
  */
 function getConfigFromFile(varName, defaultValue = null) {
     try {
-        const confFile = '/etc/hasenpfeffr.conf';
+        const confFile = '/etc/brainstorm.conf';
         if (fs.existsSync(confFile)) {
             // Read the file content directly
             const fileContent = fs.readFileSync(confFile, 'utf8');

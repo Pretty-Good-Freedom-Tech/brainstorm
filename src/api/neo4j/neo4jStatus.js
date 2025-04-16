@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr Neo4j status API endpoint
+ * Brainstorm Neo4j status API endpoint
  * Provides information about Neo4j service status, constraints, indexes, and node counts
  */
 

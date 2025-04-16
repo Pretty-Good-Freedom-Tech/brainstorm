@@ -1,6 +1,6 @@
 /**
- * Hasenpfeffr API module index
- * Registers all API endpoints for the Hasenpfeffr control panel
+ * Brainstorm API module index
+ * Registers all API endpoints for the Brainstorm control panel
  */
 
 // Import API modules
@@ -47,22 +47,22 @@ const { getConfigFromFile } = require('../utils/config');
 function register(app) {
     // We need to make sure session middleware is applied to the app
     // Check if it's already been applied
-    if (!app._hasenpfeffrSessionConfigured) {
-        console.log('Configuring session middleware for Hasenpfeffr API...');
+    if (!app._brainstormSessionConfigured) {
+        console.log('Configuring session middleware for Brainstorm API...');
         
         // Load express-session only if needed
         const session = require('express-session');
         
         // Configure session middleware - this must match the main app's configuration
         app.use(session({
-            secret: getConfigFromFile('SESSION_SECRET', 'hasenpfeffr-default-session-secret-please-change-in-production'),
+            secret: getConfigFromFile('SESSION_SECRET', 'brainstorm-default-session-secret-please-change-in-production'),
             resave: false,
             saveUninitialized: true,
             cookie: { secure: false } // Set secure:true if using HTTPS
         }));
         
         // Mark session as configured
-        app._hasenpfeffrSessionConfigured = true;
+        app._brainstormSessionConfigured = true;
     }
     
     // Register new modular endpoints for both paths
@@ -175,8 +175,8 @@ function register(app) {
     app.post('/api/negentropy-sync-profiles', manage.handleNegentropySyncProfiles);
     app.post('/api/negentropy-sync-personal', manage.handleNegentropySyncPersonal);
 
-    // Add route handler for Hasenpfeffr control
-    app.post('/api/hasenpfeffr-control', manage.handleHasenpfeffrControl);
+    // Add route handler for Brainstorm control
+    app.post('/api/brainstorm-control', manage.handleBrainstormControl);
 
     // Add route handler for running service management scripts
     app.post('/api/run-script', manage.handleRunScript);
@@ -187,7 +187,7 @@ function register(app) {
     // Owner info endpoint
     app.get('/api/owner-info', handleGetOwnerInfo);
 
-    console.log('Registered all Hasenpfeffr API endpoints');
+    console.log('Registered all Brainstorm API endpoints');
 }
 
 /**

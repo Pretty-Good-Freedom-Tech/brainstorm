@@ -74,8 +74,8 @@ temp/
 
 # Relay keys and sensitive data
 **/keys/
-**/hasenpfeffr_relay_keys
-**/hasenpfeffr.conf
+**/brainstorm_relay_keys
+**/brainstorm.conf
 
 # Large data files
 *.csv

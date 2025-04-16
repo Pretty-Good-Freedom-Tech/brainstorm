@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr Header Bundle
+ * Brainstorm Header Bundle
  * This script combines both the header component functionality and the auto-loading feature.
  * Simply include this single script in your page, and everything will be handled automatically.
  * 
@@ -125,7 +125,7 @@ function loadNavbar() {
                 })
                 .then(html => {
                     // Replace placeholder with actual Neo4j Browser URL
-                    html = html.replace('${HASENPFEFFR_NEO4J_BROWSER_URL}', neo4jBrowserUrl);
+                    html = html.replace('${BRAINSTORM_NEO4J_BROWSER_URL}', neo4jBrowserUrl);
                     
                     // Insert the navbar HTML into the container
                     navbarContainer.innerHTML = html;

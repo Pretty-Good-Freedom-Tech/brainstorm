@@ -18,7 +18,7 @@ function handleGenerateNip85(req, res) {
     console.log('Generating and publishing NIP-85 data...');
     
     // Get the NIP85 directory from environment or use default
-    const nip85Dir = process.env.HASENPFEFFR_NIP85_DIR || '/usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85';
+    const nip85Dir = process.env.BRAINSTORM_NIP85_DIR || '/usr/local/lib/node_modules/brainstorm/src/algos/nip85';
     const scriptPath = path.join(nip85Dir, 'publishNip85.sh');
     
     // Set a longer timeout for the response (10 minutes)

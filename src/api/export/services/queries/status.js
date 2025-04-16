@@ -28,7 +28,7 @@ function handleServiceStatus(req, res) {
   const services = [
     'neo4j',
     'strfry',
-    'hasenpfeffr-control-panel',
+    'brainstorm-control-panel',
     'strfry-router',
     'addToQueue',
     'processQueue',

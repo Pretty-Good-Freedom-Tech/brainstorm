@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Hasenpfeffr Strfry Stats Script
+# Brainstorm Strfry Stats Script
 # This script retrieves event statistics from the strfry database
 
 # Function to get event count for a specific filter

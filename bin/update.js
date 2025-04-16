@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr Update Script
+ * Brainstorm Update Script
  * 
- * This script manages the update process for Hasenpfeffr. It:
+ * This script manages the update process for Brainstorm. It:
  * 1. Backs up important configuration values
  * 2. Stops running services
  * 3. Removes old configuration and service files
  * 4. Installs the new version
  * 5. Cleans up temporary files
  * 
- * When run with --uninstall flag, it will remove Hasenpfeffr without installing a new version.
+ * When run with --uninstall flag, it will remove Brainstorm without installing a new version.
  */
 
 const fs = require('fs');
@@ -44,13 +44,13 @@ function backupConfiguration() {
   console.log('Backing up critical configuration...');
   
   const backupData = {
-    HASENPFEFFR_RELAY_URL: getConfigFromFile('HASENPFEFFR_RELAY_URL', ''),
-    HASENPFEFFR_OWNER_PUBKEY: getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', ''),
-    HASENPFEFFR_RELAY_PUBKEY: getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', ''),
-    HASENPFEFFR_RELAY_NPUB: getConfigFromFile('HASENPFEFFR_RELAY_NPUB', ''),
-    HASENPFEFFR_RELAY_PRIVKEY: getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY', ''),
+    BRAINSTORM_RELAY_URL: getConfigFromFile('BRAINSTORM_RELAY_URL', ''),
+    BRAINSTORM_OWNER_PUBKEY: getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', ''),
+    BRAINSTORM_RELAY_PUBKEY: getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', ''),
+    BRAINSTORM_RELAY_NPUB: getConfigFromFile('BRAINSTORM_RELAY_NPUB', ''),
+    BRAINSTORM_RELAY_PRIVKEY: getConfigFromFile('BRAINSTORM_RELAY_PRIVKEY', ''),
     NEO4J_PASSWORD: getConfigFromFile('NEO4J_PASSWORD', 'neo4j'),
-    HASENPFEFFR_DEFAULT_FRIEND_RELAYS: getConfigFromFile('HASENPFEFFR_DEFAULT_FRIEND_RELAYS', '[]')
+    BRAINSTORM_DEFAULT_FRIEND_RELAYS: getConfigFromFile('BRAINSTORM_DEFAULT_FRIEND_RELAYS', '[]')
   };
   
   // Also backup GrapeRank configuration if it exists
@@ -64,20 +64,20 @@ function backupConfiguration() {
   }
   
   // Create temp directory if it doesn't exist
-  if (!fs.existsSync('/tmp/hasenpfeffr-update')) {
-    fs.mkdirSync('/tmp/hasenpfeffr-update', { recursive: true });
+  if (!fs.existsSync('/tmp/brainstorm-update')) {
+    fs.mkdirSync('/tmp/brainstorm-update', { recursive: true });
   }
   
   // Write backup data to temporary file
-  fs.writeFileSync('/tmp/hasenpfeffr-update/config-backup.json', JSON.stringify(backupData, null, 2));
-  console.log('Configuration backed up to /tmp/hasenpfeffr-update/config-backup.json');
+  fs.writeFileSync('/tmp/brainstorm-update/config-backup.json', JSON.stringify(backupData, null, 2));
+  console.log('Configuration backed up to /tmp/brainstorm-update/config-backup.json');
 }
 
 // Stop all services
 function stopServices() {
-  console.log('Stopping Hasenpfeffr services...');
+  console.log('Stopping Brainstorm services...');
   const services = [
-    'hasenpfeffr-control-panel',
+    'brainstorm-control-panel',
     'addToQueue',
     'processQueue',
     'strfry-router',
@@ -110,7 +110,7 @@ function removeFiles() {
   }
 
   const configFiles = [
-    '/etc/hasenpfeffr.conf',
+    '/etc/brainstorm.conf',
     '/etc/blacklist.conf',
     '/etc/whitelist.conf',
     '/etc/graperank.conf',
@@ -118,7 +118,7 @@ function removeFiles() {
   ];
   
   const serviceFiles = [
-    '/etc/systemd/system/hasenpfeffr-control-panel.service',
+    '/etc/systemd/system/brainstorm-control-panel.service',
     '/etc/systemd/system/addToQueue.service',
     '/etc/systemd/system/processQueue.service',
     '/etc/systemd/system/strfry-router.service',
@@ -135,22 +135,22 @@ function removeFiles() {
   ];
 
   const dataAndApplicationFiles = [
-    '/usr/local/bin/hasenpfeffr-control-panel',
-    '/usr/local/bin/hasenpfeffr-strfry-stats',
-    '/usr/local/bin/hasenpfeffr-negentropy-sync',
-    '/usr/local/bin/hasenpfeffr-update-config',
-    '/usr/local/bin/hasenpfeffr-generate',
-    '/usr/local/bin/hasenpfeffr-install',
-    '/usr/local/bin/hasenpfeffr-node',
-    '/usr/local/bin/hasenpfeffr-publish',
+    '/usr/local/bin/brainstorm-control-panel',
+    '/usr/local/bin/brainstorm-strfry-stats',
+    '/usr/local/bin/brainstorm-negentropy-sync',
+    '/usr/local/bin/brainstorm-update-config',
+    '/usr/local/bin/brainstorm-generate',
+    '/usr/local/bin/brainstorm-install',
+    '/usr/local/bin/brainstorm-node',
+    '/usr/local/bin/brainstorm-publish',
     '/var/lock/processQueue.lock'
   ];
   
   const directories = [
     // '/usr/local/lib/strfry',
-    '/var/lib/hasenpfeffr',
-    '/usr/local/lib/node_modules/hasenpfeffr',
-    `${homeDir}/hasenpfeffr`
+    '/var/lib/brainstorm',
+    '/usr/local/lib/node_modules/brainstorm',
+    `${homeDir}/brainstorm`
   ];
   
   // Remove config files
@@ -187,7 +187,7 @@ function installNewVersion() {
   console.log('Installing new version...');
   
   // Get backup data
-  const backupData = JSON.parse(fs.readFileSync('/tmp/hasenpfeffr-update/config-backup.json', 'utf8'));
+  const backupData = JSON.parse(fs.readFileSync('/tmp/brainstorm-update/config-backup.json', 'utf8'));
   
   // Set environment variables from backup
   Object.keys(backupData).forEach(key => {
@@ -211,45 +211,45 @@ function installNewVersion() {
     homeDir = process.env.HOME || '/home/ubuntu';
   }
   
-  const hasenpfeffrDir = `${homeDir}/hasenpfeffr`;
-  console.log(`Using project directory: ${hasenpfeffrDir}`);
+  const brainstormDir = `${homeDir}/brainstorm`;
+  console.log(`Using project directory: ${brainstormDir}`);
   
   // Install dependencies first
   console.log('Installing dependencies...');
   executeCommand('npm install', {
-    cwd: hasenpfeffrDir,
+    cwd: brainstormDir,
     exitOnError: true
   });
   
   // Run the installation script from the correct directory
   console.log('Running installation script...');
-  executeCommand('sudo -E npm run install-hasenpfeffr', { 
-    cwd: hasenpfeffrDir,
+  executeCommand('sudo -E npm run install-brainstorm', { 
+    cwd: brainstormDir,
     env: { ...process.env }
   });
   
   // Restore GrapeRank configuration if it was backed up
   if (backupData.GRAPERANK_CONFIG) {
     console.log('Restoring GrapeRank configuration...');
-    fs.writeFileSync('/tmp/hasenpfeffr-update/graperank.conf', backupData.GRAPERANK_CONFIG);
-    executeCommand('sudo cp /tmp/hasenpfeffr-update/graperank.conf /etc/graperank.conf');
-    executeCommand('sudo chown root:hasenpfeffr /etc/graperank.conf');
+    fs.writeFileSync('/tmp/brainstorm-update/graperank.conf', backupData.GRAPERANK_CONFIG);
+    executeCommand('sudo cp /tmp/brainstorm-update/graperank.conf /etc/graperank.conf');
+    executeCommand('sudo chown root:brainstorm /etc/graperank.conf');
     executeCommand('sudo chmod 644 /etc/graperank.conf');
   }
   
   // Restore blacklist configuration if it was backed up
   if (backupData.BLACKLIST_CONFIG) {
     console.log('Restoring blacklist configuration...');
-    fs.writeFileSync('/tmp/hasenpfeffr-update/blacklist.conf', backupData.BLACKLIST_CONFIG);
-    executeCommand('sudo cp /tmp/hasenpfeffr-update/blacklist.conf /etc/blacklist.conf');
-    executeCommand('sudo chown root:hasenpfeffr /etc/blacklist.conf');
+    fs.writeFileSync('/tmp/brainstorm-update/blacklist.conf', backupData.BLACKLIST_CONFIG);
+    executeCommand('sudo cp /tmp/brainstorm-update/blacklist.conf /etc/blacklist.conf');
+    executeCommand('sudo chown root:brainstorm /etc/blacklist.conf');
     executeCommand('sudo chmod 644 /etc/blacklist.conf');
   }
 }
 
 // Clone the latest repository from GitHub
 function cloneRepository() {
-  console.log('Cloning the latest Hasenpfeffr repository from GitHub...');
+  console.log('Cloning the latest Brainstorm repository from GitHub...');
   
   // Determine home directory - handle sudo execution correctly
   let homeDir;
@@ -268,19 +268,19 @@ function cloneRepository() {
   console.log(`Using home directory: ${homeDir}`);
   
   // Remove old repository directory if it exists
-  if (fs.existsSync(`${homeDir}/hasenpfeffr`)) {
-    executeCommand(`rm -rf ${homeDir}/hasenpfeffr`, { exitOnError: false });
+  if (fs.existsSync(`${homeDir}/brainstorm`)) {
+    executeCommand(`rm -rf ${homeDir}/brainstorm`, { exitOnError: false });
   }
   
   // Clone the repository directly to the home directory
-  executeCommand('git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git', {
+  executeCommand('git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git', {
     cwd: homeDir,
     exitOnError: true
   });
   
   // Create the npm link to the new version
   executeCommand('npm link', {
-    cwd: `${homeDir}/hasenpfeffr`,
+    cwd: `${homeDir}/brainstorm`,
     exitOnError: true
   });
   
@@ -290,7 +290,7 @@ function cloneRepository() {
 // Clean up temporary files
 function cleanup() {
   console.log('Cleaning up...');
-  executeCommand('sudo rm -r /tmp/hasenpfeffr-update', { exitOnError: false });
+  executeCommand('sudo rm -r /tmp/brainstorm-update', { exitOnError: false });
 }
 
 // Update system packages and ensure dependencies are installed
@@ -345,9 +345,9 @@ function prepareSystem() {
 // Main update function
 async function update() {
   if (isUninstall) {
-    console.log('Starting Hasenpfeffr uninstallation...');
+    console.log('Starting Brainstorm uninstallation...');
   } else {
-    console.log('Starting Hasenpfeffr update...');
+    console.log('Starting Brainstorm update...');
   }
   
   // Ask if user wants to update system packages (skip this question in uninstall mode)
@@ -401,16 +401,16 @@ async function update() {
     installNewVersion();
   } else {
     console.log('\x1b[33mSkipping installation as we are in uninstall mode\x1b[0m');
-    console.log('\x1b[33mHasenpfeffr has been removed from your system\x1b[0m');
+    console.log('\x1b[33mBrainstorm has been removed from your system\x1b[0m');
   }
   
   // Clean up
   cleanup();
   
   if (isUninstall) {
-    console.log('Hasenpfeffr uninstallation completed successfully');
+    console.log('Brainstorm uninstallation completed successfully');
   } else {
-    console.log('Hasenpfeffr update completed successfully');
+    console.log('Brainstorm update completed successfully');
   }
 }
 

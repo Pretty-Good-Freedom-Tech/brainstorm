@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Hasenpfeffr Personalized Whitelist Configuration
+# Brainstorm Personalized Whitelist Configuration
 # This file contains parameters for determination of which profiles should be included in the whitelist.
 #
 # IMPORTANT: This file should be owned by root with restricted permissions:
 # permissions: chmod 640 /etc/whitelist.conf
-# and ownership: chown root:hasenpfeffr /etc/whitelist.conf
+# and ownership: chown root:brainstorm /etc/whitelist.conf
 
 # ==========================================
 # PARAMETER DESCRIPTIONS AND RANGES

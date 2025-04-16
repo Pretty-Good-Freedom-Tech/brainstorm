@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr NIP-85 Event Publisher
+ * Brainstorm NIP-85 Event Publisher
  * 
  * This script publishes NIP-85 data as kind 30382 events to Nostr relays.
  * It is optimized for large-scale publishing with connection pooling,

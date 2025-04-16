@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=hasenpfeffr
-ExecStart=/usr/local/bin/hasenpfeffr-node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
+User=brainstorm
+ExecStart=/usr/local/bin/brainstorm-node /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/addToQueue.mjs
 Restart=on-failure
 
 [Install]

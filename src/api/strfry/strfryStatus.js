@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr strfry status API endpoint
+ * Brainstorm strfry status API endpoint
  * Provides information about strfry service status and event statistics
  */
 

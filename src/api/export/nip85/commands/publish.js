@@ -15,7 +15,7 @@ const { exec } = require('child_process');
 function handlePublish(req, res) {
     console.log('Publishing NIP-85 events...');
     
-    exec('hasenpfeffr-publish', (error, stdout, stderr) => {
+    exec('brainstorm-publish', (error, stdout, stderr) => {
         return res.json({
             success: !error,
             output: stdout || stderr,

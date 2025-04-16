@@ -6,7 +6,7 @@
  * This script creates a scorecards_init.json file in the temporary directory by:
  * 1. Reading ratees.csv from the temporary directory
  * 2. For each ratee_pubkey, adding a property with key equal to the ratee_pubkey and value [0,0,0,0]
- * 3. Setting the value for HASENPFEFFR_OWNER_PUBKEY to [1,1,1,9999]
+ * 3. Setting the value for BRAINSTORM_OWNER_PUBKEY to [1,1,1,9999]
  */
 
 const fs = require('fs');
@@ -14,11 +14,11 @@ const path = require('path');
 const readline = require('readline');
 const { execSync } = require('child_process');
 
-// Get HASENPFEFFR_OWNER_PUBKEY from environment or config file
+// Get BRAINSTORM_OWNER_PUBKEY from environment or config file
 function getOwnerPubkey() {
   try {
     // Try to read from config file
-    const configOutput = execSync('source /etc/hasenpfeffr.conf && echo $HASENPFEFFR_OWNER_PUBKEY', { 
+    const configOutput = execSync('source /etc/brainstorm.conf && echo $BRAINSTORM_OWNER_PUBKEY', { 
       shell: '/bin/bash',
       encoding: 'utf8' 
     }).trim();
@@ -28,14 +28,14 @@ function getOwnerPubkey() {
     }
     
     // Fall back to environment variable
-    if (process.env.HASENPFEFFR_OWNER_PUBKEY) {
-      return process.env.HASENPFEFFR_OWNER_PUBKEY;
+    if (process.env.BRAINSTORM_OWNER_PUBKEY) {
+      return process.env.BRAINSTORM_OWNER_PUBKEY;
     }
     
-    console.error('HASENPFEFFR_OWNER_PUBKEY not found in config or environment');
+    console.error('BRAINSTORM_OWNER_PUBKEY not found in config or environment');
     process.exit(1);
   } catch (error) {
-    console.error(`Error getting HASENPFEFFR_OWNER_PUBKEY: ${error.message}`);
+    console.error(`Error getting BRAINSTORM_OWNER_PUBKEY: ${error.message}`);
     process.exit(1);
   }
 }
@@ -46,13 +46,13 @@ async function main() {
     console.log('Initializing scorecards...');
     
     // Define paths
-    const tempDir = '/var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp';
+    const tempDir = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
     const rateesFile = path.join(tempDir, 'ratees.csv');
     const scorecardsFile = path.join(tempDir, 'scorecards_init.json');
     
     // Get owner pubkey
     const ownerPubkey = getOwnerPubkey();
-    console.log(`HASENPFEFFR_OWNER_PUBKEY: ${ownerPubkey}`);
+    console.log(`BRAINSTORM_OWNER_PUBKEY: ${ownerPubkey}`);
     
     // Initialize scorecards object
     const scorecards = {};

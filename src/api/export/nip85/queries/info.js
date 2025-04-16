@@ -14,8 +14,8 @@ const { getConfigFromFile } = require('../../../../utils/config');
 function handleKind10040Info(req, res) {
   try {
     // Get owner pubkey from config
-    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
-    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+    const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
+    const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
     
     if (!ownerPubkey) {
       return res.json({
@@ -64,8 +64,8 @@ function handleKind10040Info(req, res) {
 function handleKind30382Info(req, res) {
   try {
     // Get relay pubkey from config
-    const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
-    const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+    const relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
+    const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
     
     if (!relayPubkey) {
       return res.json({

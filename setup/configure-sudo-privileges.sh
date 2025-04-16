@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Configure sudo privileges for hasenpfeffr user
-# This script adds the hasenpfeffr user to the sudoers file
+# Configure sudo privileges for brainstorm user
+# This script adds the brainstorm user to the sudoers file
 # with NOPASSWD option to allow sudo without password
 #
 
@@ -14,7 +14,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Define the username
-USERNAME="hasenpfeffr"
+USERNAME="brainstorm"
 
 # Check if user exists
 if ! id "$USERNAME" &>/dev/null; then
@@ -44,25 +44,25 @@ chmod 440 "$SUDOERS_FILE"
 echo "Successfully configured sudo privileges for $USERNAME without password"
 echo "The user can now run sudo commands without being prompted for a password"
 
-# Set permissions for Hasenpfeffr scripts
+# Set permissions for Brainstorm scripts
 # deprecating this block; now doing all executables recursively
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/negentropySync/*.sh
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/batchTransfer/*.sh
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/manage/*.sh
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.sh
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/*.js
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.sh
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.js
-# sudo chmod +x /usr/local/lib/node_modules/hasenpfeffr/src/algos/nip85/*.mjs
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/manage/negentropySync/*.sh
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/manage/batchTransfer/*.sh
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/manage/*.sh
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/algos/personalizedGrapeRank/*.sh
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/algos/personalizedGrapeRank/*.js
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/algos/nip85/*.sh
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/algos/nip85/*.js
+# sudo chmod +x /usr/local/lib/node_modules/brainstorm/src/algos/nip85/*.mjs
 
 # set ownershiup for configuration files 
-sudo chown root:hasenpfeffr /etc/hasenpfeffr.conf
-sudo chown root:hasenpfeffr /etc/graperank.conf
-sudo chown root:hasenpfeffr /etc/strfry-router.config
+sudo chown root:brainstorm /etc/brainstorm.conf
+sudo chown root:brainstorm /etc/graperank.conf
+sudo chown root:brainstorm /etc/strfry-router.config
 
-# Set permissions for all Hasenpfeffr scripts recursively
+# Set permissions for all Brainstorm scripts recursively
 echo "Setting executable permissions for all scripts..."
-INSTALL_DIR="/usr/local/lib/node_modules/hasenpfeffr"
+INSTALL_DIR="/usr/local/lib/node_modules/brainstorm"
 
 # Make all .sh files executable
 sudo find "$INSTALL_DIR" -type f -name "*.sh" -exec chmod +x {} \;

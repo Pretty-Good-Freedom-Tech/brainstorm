@@ -8,7 +8,7 @@
  * 2. Creating a nested structure [context][pk_ratee][pk_rater] = [rating, confidence]
  * 3. Using constants from /etc/graperank.conf for ratings and confidence values
  * 4. Handling precedence: reports > mutes > follows
- * 5. Special handling for HASENPFEFFR_OWNER_PUBKEY ratings
+ * 5. Special handling for BRAINSTORM_OWNER_PUBKEY ratings
  * 6. Excluding self-ratings (where pk_ratee equals pk_rater)
  */
 
@@ -18,11 +18,11 @@ const readline = require('readline');
 const { execSync } = require('child_process');
 
 // Configuration
-const TEMP_DIR = '/var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp';
+const TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
 const CONTEXT = 'verifiedUsers';
 const CONFIG_FILES = {
   graperank: '/etc/graperank.conf',
-  hasenpfeffr: '/etc/hasenpfeffr.conf'
+  brainstorm: '/etc/brainstorm.conf'
 };
 
 // Get configuration values
@@ -34,8 +34,8 @@ function getConfig() {
       encoding: 'utf8' 
     }).trim().split(',');
     
-    // Load Hasenpfeffr config
-    const ownerPubkey = execSync(`source ${CONFIG_FILES.hasenpfeffr} && echo $HASENPFEFFR_OWNER_PUBKEY`, { 
+    // Load Brainstorm config
+    const ownerPubkey = execSync(`source ${CONFIG_FILES.brainstorm} && echo $BRAINSTORM_OWNER_PUBKEY`, { 
       shell: '/bin/bash',
       encoding: 'utf8' 
     }).trim();
@@ -48,7 +48,7 @@ function getConfig() {
       REPORT_RATING: parseFloat(graperankConfig[4]),
       REPORT_CONFIDENCE: parseFloat(graperankConfig[5]),
       FOLLOW_CONFIDENCE_OF_OBSERVER: parseFloat(graperankConfig[6]),
-      HASENPFEFFR_OWNER_PUBKEY: ownerPubkey
+      BRAINSTORM_OWNER_PUBKEY: ownerPubkey
     };
   } catch (error) {
     console.error(`Error loading configuration: ${error.message}`);
@@ -114,8 +114,8 @@ async function processCSVFile(filePath, ratings, config, ratingType) {
         switch (ratingType) {
           case 'follow':
             rating = config.FOLLOW_RATING;
-            // Special case for HASENPFEFFR_OWNER_PUBKEY
-            confidence = (pk_rater === config.HASENPFEFFR_OWNER_PUBKEY) 
+            // Special case for BRAINSTORM_OWNER_PUBKEY
+            confidence = (pk_rater === config.BRAINSTORM_OWNER_PUBKEY) 
               ? config.FOLLOW_CONFIDENCE_OF_OBSERVER 
               : config.FOLLOW_CONFIDENCE;
             break;
@@ -296,7 +296,7 @@ async function main() {
     
     // Get configuration
     const config = getConfig();
-    console.log(`HASENPFEFFR_OWNER_PUBKEY: ${config.HASENPFEFFR_OWNER_PUBKEY}`);
+    console.log(`BRAINSTORM_OWNER_PUBKEY: ${config.BRAINSTORM_OWNER_PUBKEY}`);
     
     // Define file paths
     const followsFile = path.join(TEMP_DIR, 'follows.csv');

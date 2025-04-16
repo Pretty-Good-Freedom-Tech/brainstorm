@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr Create Kind 10040 Event
+ * Brainstorm Create Kind 10040 Event
  * 
  * This script creates a kind 10040 event for NIP-85 trusted assertions
  * and saves it to a temporary file for later publishing.
@@ -14,8 +14,8 @@ const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../src/utils/config');
 
 // Get relay configuration
-const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
+const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
+const relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
 
 if (!relayUrl || !relayPubkey) {
   console.error('Error: Relay URL or pubkey not found in configuration');
@@ -67,7 +67,7 @@ const event = {
 };
 
 // Save the event to a temporary file
-const dataDir = '/var/lib/hasenpfeffr/data';
+const dataDir = '/var/lib/brainstorm/data';
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }

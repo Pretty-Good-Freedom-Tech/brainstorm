@@ -3,25 +3,25 @@
  */
 
 // Set up environment variables for testing
-process.env.HASENPFEFFR_RELAY_URL = 'wss://env-test-relay.com';
-process.env.HASENPFEFFR_RELAY_PUBKEY = 'env-test-pubkey';
-process.env.HASENPFEFFR_RELAY_PRIVKEY = 'env-test-privkey';
+process.env.BRAINSTORM_RELAY_URL = 'wss://env-test-relay.com';
+process.env.BRAINSTORM_RELAY_PUBKEY = 'env-test-pubkey';
+process.env.BRAINSTORM_RELAY_PRIVKEY = 'env-test-privkey';
 
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-// Create a temporary test config file that we'll use instead of /etc/hasenpfeffr.conf
-const testConfigPath = path.join(os.tmpdir(), 'test-hasenpfeffr.conf');
+// Create a temporary test config file that we'll use instead of /etc/brainstorm.conf
+const testConfigPath = path.join(os.tmpdir(), 'test-brainstorm.conf');
 fs.writeFileSync(testConfigPath, `#!/bin/bash
 # Test Configuration
-export HASENPFEFFR_RELAY_URL="wss://file-test-relay.com"
-export HASENPFEFFR_RELAY_PUBKEY="file-test-pubkey"
-export HASENPFEFFR_RELAY_PRIVKEY="file-test-privkey"
+export BRAINSTORM_RELAY_URL="wss://file-test-relay.com"
+export BRAINSTORM_RELAY_PUBKEY="file-test-pubkey"
+export BRAINSTORM_RELAY_PRIVKEY="file-test-privkey"
 export NEO4J_URI="bolt://localhost:7687"
 export NEO4J_USER="neo4j"
 export NEO4J_PASSWORD="test-password"
-export HASENPFEFFR_BATCH_SIZE="200"
+export BRAINSTORM_BATCH_SIZE="200"
 `);
 
 // Mock the fs module
@@ -29,14 +29,14 @@ const originalExistsSync = fs.existsSync;
 const originalReadFileSync = fs.readFileSync;
 
 fs.existsSync = (path) => {
-  if (path === '/etc/hasenpfeffr.conf') {
+  if (path === '/etc/brainstorm.conf') {
     return true;
   }
   return originalExistsSync(path);
 };
 
 fs.readFileSync = (path, options) => {
-  if (path === '/etc/hasenpfeffr.conf') {
+  if (path === '/etc/brainstorm.conf') {
     return fs.readFileSync(testConfigPath, options);
   }
   return originalReadFileSync(path, options);
@@ -46,17 +46,17 @@ fs.readFileSync = (path, options) => {
 const originalExecSync = require('child_process').execSync;
 
 require('child_process').execSync = (cmd) => {
-  if (cmd.includes('source /etc/hasenpfeffr.conf')) {
+  if (cmd.includes('source /etc/brainstorm.conf')) {
     // Extract the variable name from the command
     const varName = cmd.split('$')[1];
     
     // Return mock values based on the variable name
     switch (varName) {
-      case 'HASENPFEFFR_RELAY_URL':
+      case 'BRAINSTORM_RELAY_URL':
         return 'wss://file-test-relay.com\n';
-      case 'HASENPFEFFR_RELAY_PUBKEY':
+      case 'BRAINSTORM_RELAY_PUBKEY':
         return 'file-test-pubkey\n';
-      case 'HASENPFEFFR_RELAY_PRIVKEY':
+      case 'BRAINSTORM_RELAY_PRIVKEY':
         return 'file-test-privkey\n';
       case 'NEO4J_URI':
         return 'bolt://localhost:7687\n';
@@ -64,7 +64,7 @@ require('child_process').execSync = (cmd) => {
         return 'neo4j\n';
       case 'NEO4J_PASSWORD':
         return 'test-password\n';
-      case 'HASENPFEFFR_BATCH_SIZE':
+      case 'BRAINSTORM_BATCH_SIZE':
         return '200\n';
       default:
         return '\n';
@@ -85,8 +85,8 @@ try {
   // Test getConfigValue
   console.log('1. Testing getConfigValue:');
   console.log('NEO4J_PASSWORD:', config.getConfigValue('NEO4J_PASSWORD'));
-  console.log('HASENPFEFFR_RELAY_URL:', config.getConfigValue('HASENPFEFFR_RELAY_URL'));
-  console.log('HASENPFEFFR_BATCH_SIZE:', config.getConfigValue('HASENPFEFFR_BATCH_SIZE'));
+  console.log('BRAINSTORM_RELAY_URL:', config.getConfigValue('BRAINSTORM_RELAY_URL'));
+  console.log('BRAINSTORM_BATCH_SIZE:', config.getConfigValue('BRAINSTORM_BATCH_SIZE'));
   console.log();
   
   // Test loadConfig
@@ -114,8 +114,8 @@ try {
   
   // Test priority order (env vars should override file config)
   console.log('5. Testing priority order:');
-  console.log('Environment variable HASENPFEFFR_RELAY_URL:', process.env.HASENPFEFFR_RELAY_URL);
-  console.log('Config file HASENPFEFFR_RELAY_URL:', config.getConfigValue('HASENPFEFFR_RELAY_URL'));
+  console.log('Environment variable BRAINSTORM_RELAY_URL:', process.env.BRAINSTORM_RELAY_URL);
+  console.log('Config file BRAINSTORM_RELAY_URL:', config.getConfigValue('BRAINSTORM_RELAY_URL'));
   console.log('Final config value relay.url:', config.get('relay.url'));
   console.log();
   

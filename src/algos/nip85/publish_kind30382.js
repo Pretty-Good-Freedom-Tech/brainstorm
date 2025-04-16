@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr Publish Kind 30382 Events
+ * Brainstorm Publish Kind 30382 Events
  * 
  * This script publishes kind 30382 events for users in the Web of Trust
- * Each event is signed with the relay's private key (HASENPFEFFR_RELAY_PRIVKEY)
+ * Each event is signed with the relay's private key (BRAINSTORM_RELAY_PRIVKEY)
  * and published to the relay via WebSocket
  */
 
@@ -18,12 +18,12 @@ const WebSocket = require('ws');
 const { getConfigFromFile } = require('../../utils/config');
 
 // Get relay configuration
-const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY', '');
+const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
+const relayNsec = getConfigFromFile('BRAINSTORM_RELAY_PRIVKEY', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
-const logDir = getConfigFromFile('HASENPFEFFR_LOG_DIR', '/var/log/hasenpfeffr');
+const logDir = getConfigFromFile('BRAINSTORM_LOG_DIR', '/var/log/brainstorm');
 
 // Log relay configuration for debugging
 console.log(`Using relay URL: ${relayUrl}`);
@@ -35,7 +35,7 @@ execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${logDir}/publishNip85.log`)
 
 // Fallback relay URL if the main one is not configured
 const fallbackRelays = [
-  'wss://relay.hasenpfeffr.com',
+  'wss://relay.brainstorm.com',
   'wss://profiles.nostr1.com',
   'wss://relay.nostr.band'
 ];
@@ -45,8 +45,8 @@ let primaryRelayUrl = relayUrl;
 /*
 // not going to use fallback relays for now
 if (!primaryRelayUrl) {
-  console.log('No relay URL configured in HASENPFEFFR_RELAY_URL, using fallback relay');
-  execSync(`echo "$(date): No relay URL configured in HASENPFEFFR_RELAY_URL, using fallback relay" >> ${logDir}/publishNip85.log`);
+  console.log('No relay URL configured in BRAINSTORM_RELAY_URL, using fallback relay');
+  execSync(`echo "$(date): No relay URL configured in BRAINSTORM_RELAY_URL, using fallback relay" >> ${logDir}/publishNip85.log`);
   primaryRelayUrl = fallbackRelays[0];
 }
 */
@@ -336,7 +336,7 @@ async function main() {
     execSync(`echo "$(date): Found ${users.length} users" >> ${logDir}/publishNip85.log`);
     
     // Create data directory if it doesn't exist
-    const dataDir = '/var/lib/hasenpfeffr/data';
+    const dataDir = '/var/lib/brainstorm/data';
     const publishedDir = path.join(dataDir, 'published');
     
     if (!fs.existsSync(dataDir)) {

@@ -14,9 +14,9 @@ function handleGetRelayConfig(req, res) {
     console.log('Getting relay configuration...');
     
     try {
-        // Get relay configuration from hasenpfeffr.conf
-        const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-        const relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY', '');
+        // Get relay configuration from brainstorm.conf
+        const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
+        const relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
         
         // Return the configuration
         res.json({

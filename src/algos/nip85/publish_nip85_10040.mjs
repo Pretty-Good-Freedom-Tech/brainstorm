@@ -8,9 +8,9 @@ I suspect NDK is failing.
 
 /*
 This script creates a kind 10040 event according to NIP-85: Trusted Assertions. It must be signed by the owner of the relay. 
-Effectively, it gives the hasenpfeffr relay permission to create and sign kind 30382 events using hasenpfeffr_relay_keys, 
+Effectively, it gives the brainstorm relay permission to create and sign kind 30382 events using brainstorm_relay_keys, 
 which it will do in the background on a regular basis. Clients (Amethyst, etc) fetch a user's kind 10040 note which will 
-point to kind 30382 notes authored by the hasenpfeffr relay.
+point to kind 30382 notes authored by the brainstorm relay.
 
 We will need a front end to do this, which is not yet set up.
 */
@@ -343,8 +343,8 @@ async function waitForRelayConnections(ndk, timeout = 10000) {
 }
 
 // Define relay URLs to publish to
-const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL') || process.env.HASENPFEFFR_RELAY_URL;
-const explicitRelayUrls = ['wss://relay.primal.net', 'wss://relay.hasenpfeffr.com', 'wss://relay.damus.io'];
+const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL') || process.env.BRAINSTORM_RELAY_URL;
+const explicitRelayUrls = ['wss://relay.primal.net', 'wss://relay.brainstorm.com', 'wss://relay.damus.io'];
 
 // Add the local relay URL if it exists and isn't already in the list
 if (relayUrl && !explicitRelayUrls.includes(relayUrl)) {
@@ -353,7 +353,7 @@ if (relayUrl && !explicitRelayUrls.includes(relayUrl)) {
 }
 
 // Get the owner public key from configuration or environment
-const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY') || process.env.HASENPFEFFR_OWNER_PUBKEY;
+const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY') || process.env.BRAINSTORM_OWNER_PUBKEY;
 
 // Check if running in production or development
 const isProduction = process.env.NODE_ENV === 'production';
@@ -474,7 +474,7 @@ async function main() {
     }
     
     // Define data directories
-    const dataDir = process.env.DATA_DIR || (process.env.NODE_ENV === 'production' ? '/var/lib/hasenpfeffr/data' : './data');
+    const dataDir = process.env.DATA_DIR || (process.env.NODE_ENV === 'production' ? '/var/lib/brainstorm/data' : './data');
     const publishedDir = path.join(dataDir, 'published');
     
     // Create directories if they don't exist

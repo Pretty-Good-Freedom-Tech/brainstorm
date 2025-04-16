@@ -47,7 +47,7 @@ function handleNeo4jStatus(req, res) {
             const neo4jPassword = neo4jConnection.password;
             
             if (!neo4jPassword) {
-                neo4jStatus.error = 'Neo4j password not configured. Please update /etc/hasenpfeffr.conf with NEO4J_PASSWORD.';
+                neo4jStatus.error = 'Neo4j password not configured. Please update /etc/brainstorm.conf with NEO4J_PASSWORD.';
                 return handler('');
             }
             

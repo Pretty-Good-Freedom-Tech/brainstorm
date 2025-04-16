@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr Installation Script
+ * Brainstorm Installation Script
  * 
- * This script handles the installation and setup of Hasenpfeffr,
+ * This script handles the installation and setup of Brainstorm,
  * including Neo4j, Strfry, and associated tools.
  */
 
@@ -30,7 +30,7 @@ const rl = readline.createInterface({
 const isRoot = process.getuid && process.getuid() === 0;
 if (!isRoot) {
   console.log('\x1b[33mWarning: This script should be run as root for full functionality.\x1b[0m');
-  console.log('You can run it with: sudo hasenpfeffr-install');
+  console.log('You can run it with: sudo brainstorm-install');
   console.log('Continuing with limited functionality...\n');
 }
 
@@ -43,7 +43,7 @@ const systemdServiceDir = '/etc/systemd/system';
 // Configuration paths
 const configPaths = {
   systemdServiceDir: systemdServiceDir,
-  hasenpfeffrConfDestination: '/etc/hasenpfeffr.conf',
+  brainstormConfDestination: '/etc/brainstorm.conf',
   strfryRouterConfigDestination: `/etc/strfry-router.config`,
   setupDir: path.join(packageRoot, 'setup'),
   strfryRouterConfigSource: path.join(packageRoot, 'setup', 'strfry-router-install.config'),
@@ -59,12 +59,12 @@ const configPaths = {
   sudoPrivilegesScript: path.join(packageRoot, 'setup', 'configure-sudo-privileges.sh'),
   controlPanelSudoScript: path.join(packageRoot, 'setup', 'configure-control-panel-sudo.sh'),
 
-  controlPanelServiceFileSource: path.join(packageRoot, 'systemd', 'hasenpfeffr-control-panel.service'),
+  controlPanelServiceFileSource: path.join(packageRoot, 'systemd', 'brainstorm-control-panel.service'),
   strfryRouterServiceFileSource: path.join(packageRoot, 'systemd', 'strfry-router.service'),
   addToQueueServiceFileSource: path.join(packageRoot, 'systemd', 'addToQueue.service'),
   processQueueServiceFileSource: path.join(packageRoot, 'systemd', 'processQueue.service'),
 
-  controlPanelServiceFileDestination: path.join(systemdServiceDir, 'hasenpfeffr-control-panel.service'),
+  controlPanelServiceFileDestination: path.join(systemdServiceDir, 'brainstorm-control-panel.service'),
   strfryRouterServiceFileDestination: path.join(systemdServiceDir, 'strfry-router.service'),
   addToQueueServiceFileDestination: path.join(systemdServiceDir, 'addToQueue.service'),
   processQueueServiceFileDestination: path.join(systemdServiceDir, 'processQueue.service'),
@@ -94,7 +94,7 @@ const configPaths = {
   calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer')
 };
 
-// Configure sudo privileges for hasenpfeffr user and control panel
+// Configure sudo privileges for brainstorm user and control panel
 async function configureSudoPrivileges() {
   console.log('\x1b[36m=== Configuring Sudo Privileges ===\x1b[0m');
   
@@ -108,8 +108,8 @@ async function configureSudoPrivileges() {
   }
   
   try {
-    // Configure general sudo privileges for hasenpfeffr user
-    console.log('Configuring sudo privileges for hasenpfeffr user...');
+    // Configure general sudo privileges for brainstorm user
+    console.log('Configuring sudo privileges for brainstorm user...');
     execSync(`sudo chmod +x ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
     execSync(`sudo bash ${configPaths.sudoPrivilegesScript}`, { stdio: 'inherit' });
 
@@ -117,21 +117,21 @@ async function configureSudoPrivileges() {
     console.log('Configuring sudo privileges for control panel...');
     execSync(`sudo bash ${configPaths.controlPanelSudoScript}`, { stdio: 'inherit' });
 
-    // After configuring sudo privileges, set up NVM for hasenpfeffr user
-    console.log('\x1b[36m=== Setting Up NVM for hasenpfeffr user ===\x1b[0m');
-    const setupNvmScript = path.join(packageRoot, 'setup/setup-hasenpfeffr-nvm.sh');
+    // After configuring sudo privileges, set up NVM for brainstorm user
+    console.log('\x1b[36m=== Setting Up NVM for brainstorm user ===\x1b[0m');
+    const setupNvmScript = path.join(packageRoot, 'setup/setup-brainstorm-nvm.sh');
     if (fs.existsSync(setupNvmScript)) {
-      console.log('Setting up NVM for hasenpfeffr user...');
+      console.log('Setting up NVM for brainstorm user...');
       execSync(`sudo chmod +x ${setupNvmScript}`, { stdio: 'inherit' });
       execSync(`sudo ${setupNvmScript}`, { stdio: 'inherit' });
       
       // Install node wrapper script
       console.log('Installing Node.js wrapper script...');
-      const nodeWrapperScript = path.join(packageRoot, 'setup/hasenpfeffr-node-wrapper.sh');
+      const nodeWrapperScript = path.join(packageRoot, 'setup/brainstorm-node-wrapper.sh');
       if (fs.existsSync(nodeWrapperScript)) {
-        execSync(`sudo cp ${nodeWrapperScript} /usr/local/bin/hasenpfeffr-node`, { stdio: 'inherit' });
-        execSync('sudo chmod +x /usr/local/bin/hasenpfeffr-node', { stdio: 'inherit' });
-        execSync('sudo chown hasenpfeffr:hasenpfeffr /usr/local/bin/hasenpfeffr-node', { stdio: 'inherit' });
+        execSync(`sudo cp ${nodeWrapperScript} /usr/local/bin/brainstorm-node`, { stdio: 'inherit' });
+        execSync('sudo chmod +x /usr/local/bin/brainstorm-node', { stdio: 'inherit' });
+        execSync('sudo chown brainstorm:brainstorm /usr/local/bin/brainstorm-node', { stdio: 'inherit' });
         console.log('Node.js wrapper script installed successfully.');
       } else {
         console.error('Node.js wrapper script not found.');
@@ -151,11 +151,11 @@ async function configureSudoPrivileges() {
 
 // Main installation function
 async function install() {
-  console.log('\x1b[32m=== Hasenpfeffr ' + (isUpdateMode ? 'Update' : 'Installation') + ' ===\x1b[0m');
+  console.log('\x1b[32m=== Brainstorm ' + (isUpdateMode ? 'Update' : 'Installation') + ' ===\x1b[0m');
   
   try {
-    // Step 1: Create hasenpfeffr and strfry-router configuration files
-    await createHasenpfeffrConfigFile();
+    // Step 1: Create brainstorm and strfry-router configuration files
+    await createBrainstormConfigFile();
     await createStrfryRouterConfigFile();
     
     // Step 2: Install Neo4j and plugins
@@ -197,14 +197,14 @@ async function install() {
     // Step 8: Configure sudo privileges
     await configureSudoPrivileges();
 
-    // make sure hasenpfeffr-control-panel is running
-    execSync('sudo systemctl restart hasenpfeffr-control-panel');
+    // make sure brainstorm-control-panel is running
+    execSync('sudo systemctl restart brainstorm-control-panel');
     
     // Step 9: Final setup and instructions
     await finalSetup();
     
     console.log('\x1b[32m=== ' + (isUpdateMode ? 'Update' : 'Installation') + ' Complete ===\x1b[0m');
-    console.log('Hasenpfeffr has been successfully ' + (isUpdateMode ? 'updated' : 'installed and configured') + '.');
+    console.log('Brainstorm has been successfully ' + (isUpdateMode ? 'updated' : 'installed and configured') + '.');
     
     if (!isUpdateMode) {
       console.log('You can access the control panel at: http://your-server-ip:7778');
@@ -236,9 +236,9 @@ async function createStrfryRouterConfigFile() {
     // Read the content of the source file
     let configFileContent = fs.readFileSync(configPaths.strfryRouterConfigSource, 'utf8');
     
-    // Get owner pubkey from hasenpfeffr.conf
-    const hasenpfeffrConfContent = fs.readFileSync(configPaths.hasenpfeffrConfDestination, 'utf8');
-    const ownerPubkeyMatch = hasenpfeffrConfContent.match(/HASENPFEFFR_OWNER_PUBKEY="([^"]+)"/);
+    // Get owner pubkey from brainstorm.conf
+    const brainstormConfContent = fs.readFileSync(configPaths.brainstormConfDestination, 'utf8');
+    const ownerPubkeyMatch = brainstormConfContent.match(/BRAINSTORM_OWNER_PUBKEY="([^"]+)"/);
     const ownerPubkey = ownerPubkeyMatch ? ownerPubkeyMatch[1] : '';
     
     if (ownerPubkey) {
@@ -251,7 +251,7 @@ async function createStrfryRouterConfigFile() {
 
         urls = [
             "wss://relay.primal.net",
-            "wss://relay.hasenpfeffr.com",
+            "wss://relay.brainstorm.com",
             "wss://profiles.nostr1.com",
             "wss://relay.damus.io",
             "wss://relay.nostr.band"
@@ -263,7 +263,7 @@ async function createStrfryRouterConfigFile() {
       
       console.log(`Added personalContent section with owner pubkey: ${ownerPubkey}`);
     } else {
-      console.log('\x1b[33mWarning: Could not find HASENPFEFFR_OWNER_PUBKEY in configuration. Personal content stream not added.\x1b[0m');
+      console.log('\x1b[33mWarning: Could not find BRAINSTORM_OWNER_PUBKEY in configuration. Personal content stream not added.\x1b[0m');
     }
 
     // Write the modified content to the destination file
@@ -283,15 +283,15 @@ async function createStrfryRouterConfigFile() {
   }
 }
 
-// Create hasenpfeffr configuration file
-async function createHasenpfeffrConfigFile() {
-  console.log('\x1b[36m=== Creating Hasenpfeffr Configuration File ===\x1b[0m');
+// Create brainstorm configuration file
+async function createBrainstormConfigFile() {
+  console.log('\x1b[36m=== Creating Brainstorm Configuration File ===\x1b[0m');
 
   console.log('\x1b[36m= isUpdateMode: ' + isUpdateMode + '\x1b[0m');
   
   // Check if config file already exists and we're not in update mode
-  if (fs.existsSync(configPaths.hasenpfeffrConfDestination) && !isUpdateMode) {
-    console.log(`Hasenpfeffr configuration file ${configPaths.hasenpfeffrConfDestination} already exists.`);
+  if (fs.existsSync(configPaths.brainstormConfDestination) && !isUpdateMode) {
+    console.log(`Brainstorm configuration file ${configPaths.brainstormConfDestination} already exists.`);
     return;
   }
   
@@ -304,18 +304,18 @@ async function createHasenpfeffrConfigFile() {
     
     // Extract values from environment variables
     domainName = process.env.STRFRY_DOMAIN || '';
-    if (!domainName && process.env.HASENPFEFFR_RELAY_URL) {
-      domainName = process.env.HASENPFEFFR_RELAY_URL.replace(/^wss:\/\//, '');
+    if (!domainName && process.env.BRAINSTORM_RELAY_URL) {
+      domainName = process.env.BRAINSTORM_RELAY_URL.replace(/^wss:\/\//, '');
     }
     
-    ownerPubkey = process.env.HASENPFEFFR_OWNER_PUBKEY || '';
-    relayPubkey = getConfigFromFile('HASENPFEFFR_RELAY_PUBKEY') || '';
-    relayPrivkey = getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY') || '';
-    relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_NSEC') || '';
-    relayNpub = getConfigFromFile('HASENPFEFFR_RELAY_NPUB') || '';
+    ownerPubkey = process.env.BRAINSTORM_OWNER_PUBKEY || '';
+    relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY') || '';
+    relayPrivkey = getConfigFromFile('BRAINSTORM_RELAY_PRIVKEY') || '';
+    relayNsec = getConfigFromFile('BRAINSTORM_RELAY_NSEC') || '';
+    relayNpub = getConfigFromFile('BRAINSTORM_RELAY_NPUB') || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
-    relayUrl = process.env.HASENPFEFFR_RELAY_URL || '';
-    defaultFriendRelays = process.env.HASENPFEFFR_DEFAULT_FRIEND_RELAYS || '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    relayUrl = process.env.BRAINSTORM_RELAY_URL || '';
+    defaultFriendRelays = process.env.BRAINSTORM_DEFAULT_FRIEND_RELAYS || '["wss://relay.brainstorm.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
     
     // Log what we found
     console.log(`Found domain name: ${domainName || 'Not found'}`);
@@ -329,7 +329,7 @@ async function createHasenpfeffrConfigFile() {
     }
   } else {
     // Fresh installation, ask for values
-    defaultFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    defaultFriendRelays = '["wss://relay.brainstorm.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
   }
   
   // Get configuration values from user if not in environment or incomplete
@@ -339,7 +339,7 @@ async function createHasenpfeffrConfigFile() {
   }
   
   if (!isUpdateMode || !ownerPubkey) {
-    ownerPubkey = await askQuestion('Enter your Hasenpfeffr owner pubkey: ');
+    ownerPubkey = await askQuestion('Enter your Brainstorm owner pubkey: ');
   }
   
   if (!isUpdateMode || !neo4jPassword) {
@@ -356,57 +356,57 @@ async function createHasenpfeffrConfigFile() {
   // Calculate owner's npub from hex pubkey
   const ownerNpub = nip19.npubEncode(ownerPubkey);
   
-  // Create hasenpfeffr configuration content
-  const hasenpfeffrConfigContent = `# Hasenpfeffr Configuration
+  // Create brainstorm configuration content
+  const brainstormConfigContent = `# Brainstorm Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
-# This file should be installed at /etc/hasenpfeffr.conf
-# with proper permissions: chmod 640 /etc/hasenpfeffr.conf
-# and ownership: chown root:hasenpfeffr /etc/hasenpfeffr.conf
+# This file should be installed at /etc/brainstorm.conf
+# with proper permissions: chmod 640 /etc/brainstorm.conf
+# and ownership: chown root:brainstorm /etc/brainstorm.conf
 
 # Node.js configuration via NVM
-HASENPFEFFR_NODE_BIN="/usr/local/bin/hasenpfeffr-node"
-export HASENPFEFFR_NODE_BIN
+BRAINSTORM_NODE_BIN="/usr/local/bin/brainstorm-node"
+export BRAINSTORM_NODE_BIN
 
 # File paths
-HASENPFEFFR_MODULE_BASE_DIR="/usr/local/lib/node_modules/hasenpfeffr/"
-HASENPFEFFR_MODULE_SRC_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/"
-HASENPFEFFR_MODULE_ALGOS_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/algos"
-HASENPFEFFR_EXPORT_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/export"
-HASENPFEFFR_MODULE_MANAGE_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/manage"
-HASENPFEFFR_NIP85_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/algos/nip85"
-HASENPFEFFR_MODULE_PIPELINE_DIR="\${HASENPFEFFR_MODULE_BASE_DIR}src/pipeline"
+BRAINSTORM_MODULE_BASE_DIR="/usr/local/lib/node_modules/brainstorm/"
+BRAINSTORM_MODULE_SRC_DIR="\${BRAINSTORM_MODULE_BASE_DIR}src/"
+BRAINSTORM_MODULE_ALGOS_DIR="\${BRAINSTORM_MODULE_BASE_DIR}src/algos"
+BRAINSTORM_EXPORT_DIR="\${BRAINSTORM_MODULE_BASE_DIR}src/export"
+BRAINSTORM_MODULE_MANAGE_DIR="\${BRAINSTORM_MODULE_BASE_DIR}src/manage"
+BRAINSTORM_NIP85_DIR="\${BRAINSTORM_MODULE_BASE_DIR}src/algos/nip85"
+BRAINSTORM_MODULE_PIPELINE_DIR="\${BRAINSTORM_MODULE_BASE_DIR}src/pipeline"
 STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins/"
 STRFRY_PLUGINS_DATA="\${STRFRY_PLUGINS_BASE}/data/"
-HASENPFEFFR_LOG_DIR="/var/log/hasenpfeffr"
-HASENPFEFFR_BASE_DIR="/var/lib/hasenpfeffr"
+BRAINSTORM_LOG_DIR="/var/log/brainstorm"
+BRAINSTORM_BASE_DIR="/var/lib/brainstorm"
 
-export HASENPFEFFR_MODULE_BASE_DIR
-export HASENPFEFFR_MODULE_SRC_DIR
-export HASENPFEFFR_MODULE_ALGOS_DIR
-export HASENPFEFFR_EXPORT_DIR
-export HASENPFEFFR_MODULE_MANAGE_DIR
-export HASENPFEFFR_NIP85_DIR
+export BRAINSTORM_MODULE_BASE_DIR
+export BRAINSTORM_MODULE_SRC_DIR
+export BRAINSTORM_MODULE_ALGOS_DIR
+export BRAINSTORM_EXPORT_DIR
+export BRAINSTORM_MODULE_MANAGE_DIR
+export BRAINSTORM_NIP85_DIR
 export STRFRY_PLUGINS_BASE
 export STRFRY_PLUGINS_DATA
-export HASENPFEFFR_LOG_DIR
-export HASENPFEFFR_BASE_DIR
+export BRAINSTORM_LOG_DIR
+export BRAINSTORM_BASE_DIR
 
 # default friend relays
-export HASENPFEFFR_DEFAULT_FRIEND_RELAYS='${defaultFriendRelays}'
+export BRAINSTORM_DEFAULT_FRIEND_RELAYS='${defaultFriendRelays}'
 
 # Performance tuning
-export HASENPFEFFR_BATCH_SIZE="100"
-export HASENPFEFFR_DELAY_BETWEEN_BATCHES="1000"
-export HASENPFEFFR_DELAY_BETWEEN_EVENTS="50"
-export HASENPFEFFR_MAX_RETRIES="3"
-export HASENPFEFFR_MAX_CONCURRENT_CONNECTIONS="5"
+export BRAINSTORM_BATCH_SIZE="100"
+export BRAINSTORM_DELAY_BETWEEN_BATCHES="1000"
+export BRAINSTORM_DELAY_BETWEEN_EVENTS="50"
+export BRAINSTORM_MAX_RETRIES="3"
+export BRAINSTORM_MAX_CONCURRENT_CONNECTIONS="5"
 
 # Relay configuration
-export HASENPFEFFR_RELAY_URL="${relayUrl}"
+export BRAINSTORM_RELAY_URL="${relayUrl}"
 # Relay pubkey and nsec will be generated by create_nostr_identity.sh
 
 # Neo4j configuration
-export HASENPFEFFR_NEO4J_BROWSER_URL="http://${domainName}:7474"
+export BRAINSTORM_NEO4J_BROWSER_URL="http://${domainName}:7474"
 export NEO4J_URI="bolt://localhost:7687"
 export NEO4J_USER="neo4j"
 export NEO4J_PASSWORD="${neo4jPassword}"
@@ -415,8 +415,8 @@ export NEO4J_PASSWORD="${neo4jPassword}"
 export STRFRY_DOMAIN="${domainName}"
 
 # Owner pubkey for PageRank calculations
-export HASENPFEFFR_OWNER_PUBKEY="${ownerPubkey}"
-export HASENPFEFFR_OWNER_NPUB="${ownerNpub}"
+export BRAINSTORM_OWNER_PUBKEY="${ownerPubkey}"
+export BRAINSTORM_OWNER_NPUB="${ownerNpub}"
 
 # Security settings
 export SESSION_SECRET="${sessionSecret}"
@@ -424,23 +424,23 @@ export SESSION_SECRET="${sessionSecret}"
 ######################### actions #########################
 
 # whether to send email updates to owner (feature not yet implemented)
-export HASENPFEFFR_SEND_EMAIL_UPDATES=0
+export BRAINSTORM_SEND_EMAIL_UPDATES=0
 
 # whether to make site accessible publicly (feature not yet implemented)
-export HASENPFEFFR_ACCESS=0
+export BRAINSTORM_ACCESS=0
 
 # whether neo4j constraints and indexes has been created
-export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=0
+export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=0
 
 `;
   
-  // Write hasenpfeffr configuration file
+  // Write brainstorm configuration file
   if (isRoot) {
-    fs.writeFileSync(configPaths.hasenpfeffrConfDestination, hasenpfeffrConfigContent);
-    execSync(`sudo chmod 644 ${configPaths.hasenpfeffrConfDestination}`);
+    fs.writeFileSync(configPaths.brainstormConfDestination, brainstormConfigContent);
+    execSync(`sudo chmod 644 ${configPaths.brainstormConfDestination}`);
     // move this to configure-sudo-privileges.sh
-    // execSync(`sudo chown root:hasenpfeffr ${configPaths.hasenpfeffrConfDestination}`);
-    console.log(`Configuration file created at ${configPaths.hasenpfeffrConfDestination}`);
+    // execSync(`sudo chown root:brainstorm ${configPaths.brainstormConfDestination}`);
+    console.log(`Configuration file created at ${configPaths.brainstormConfDestination}`);
     
     // Generate Nostr identity if not in update mode or if keys are missing
     if (!isUpdateMode || !relayNsec || !relayPubkey) {
@@ -456,17 +456,17 @@ export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=0
     } else {
       console.log('\x1b[36m=== Using Existing Nostr Identity for Relay ===\x1b[0m');
       // Add the relay keys to the config file
-      if (fs.existsSync(configPaths.hasenpfeffrConfDestination)) {
-        console.log(`${configPaths.hasenpfeffrConfDestination} already exists, appending relay config...`);
+      if (fs.existsSync(configPaths.brainstormConfDestination)) {
+        console.log(`${configPaths.brainstormConfDestination} already exists, appending relay config...`);
         try {
           const appendContent = `
 # Relay pubkey and private keys (from previous installation)
-export HASENPFEFFR_RELAY_PUBKEY="${relayPubkey}"
-export HASENPFEFFR_RELAY_PRIVKEY="${relayPrivkey}"
-export HASENPFEFFR_RELAY_NSEC="${relayNsec}"
-export HASENPFEFFR_RELAY_NPUB="${relayNpub || ''}"
+export BRAINSTORM_RELAY_PUBKEY="${relayPubkey}"
+export BRAINSTORM_RELAY_PRIVKEY="${relayPrivkey}"
+export BRAINSTORM_RELAY_NSEC="${relayNsec}"
+export BRAINSTORM_RELAY_NPUB="${relayNpub || ''}"
 `;
-          fs.appendFileSync(configPaths.hasenpfeffrConfDestination, appendContent);
+          fs.appendFileSync(configPaths.brainstormConfDestination, appendContent);
           console.log('Existing Nostr identity configured successfully.');
         } catch (error) {
           console.error('\x1b[31mError appending relay config to existing configuration file:\x1b[0m', error.message);
@@ -477,10 +477,10 @@ export HASENPFEFFR_RELAY_NPUB="${relayNpub || ''}"
     console.log('\x1b[33mCannot create configuration file without root privileges.\x1b[0m');
     console.log('Please manually create the file with the following content:');
     console.log('---');
-    console.log(hasenpfeffrConfigContent);
+    console.log(brainstormConfigContent);
     console.log('---');
-    console.log(`Save it to: ${configPaths.hasenpfeffrConfDestination}`);
-    console.log('And set permissions: chmod 644 ' + configPaths.hasenpfeffrConfDestination);
+    console.log(`Save it to: ${configPaths.brainstormConfDestination}`);
+    console.log('And set permissions: chmod 644 ' + configPaths.brainstormConfDestination);
     console.log('Then run: sudo ' + configPaths.createNostrIdentityScript);
     
     // Wait for user acknowledgment
@@ -610,8 +610,8 @@ async function setupStrfryPlugins() {
       console.log('Copying plugin files...');
       
       // Copy the main plugin file
-      const sourcePluginFile = path.join(sourcePluginDir, 'hasenpfeffr.js');
-      const destPluginFile = path.join(pluginsDir, 'hasenpfeffr.js');
+      const sourcePluginFile = path.join(sourcePluginDir, 'brainstorm.js');
+      const destPluginFile = path.join(pluginsDir, 'brainstorm.js');
       
       if (fs.existsSync(sourcePluginFile)) {
         execSync(`cp ${sourcePluginFile} ${destPluginFile}`);
@@ -681,7 +681,7 @@ async function setupStrfryPlugins() {
         const pluginRegex = /relay\.writePolicy\.plugin\s*=\s*"([^"]*)"/;
         if (!pluginRegex.test(confContent)) {
           // Add the plugin setting but leave it disabled by default
-          confContent += '\n# Hasenpfeffr plugin (disabled by default, enable via control panel)\nrelay.writePolicy.plugin = ""\n';
+          confContent += '\n# Brainstorm plugin (disabled by default, enable via control panel)\nrelay.writePolicy.plugin = ""\n';
           fs.writeFileSync(strfryConfPath, confContent);
           console.log('Updated strfry.conf with plugin configuration (disabled by default)');
         }
@@ -1076,7 +1076,7 @@ async function setupPipelineDirectories() {
   
   try {
     // Create the base directory structure
-    const baseDir = '/var/lib/hasenpfeffr';
+    const baseDir = '/var/lib/brainstorm';
     if (!fs.existsSync(baseDir)) {
       console.log(`Creating base directory at ${baseDir}...`);
       execSync(`mkdir -p ${baseDir}`);
@@ -1084,10 +1084,10 @@ async function setupPipelineDirectories() {
     
     // Create pipeline directories
     const pipelineDirs = [
-      '/var/lib/hasenpfeffr/pipeline/stream/queue',
-      '/var/lib/hasenpfeffr/pipeline/stream/queue_tmp',
-      '/var/lib/hasenpfeffr/pipeline/reconcile/queue',
-      '/var/lib/hasenpfeffr/pipeline/reconcile/queue_tmp'
+      '/var/lib/brainstorm/pipeline/stream/queue',
+      '/var/lib/brainstorm/pipeline/stream/queue_tmp',
+      '/var/lib/brainstorm/pipeline/reconcile/queue',
+      '/var/lib/brainstorm/pipeline/reconcile/queue_tmp'
     ];
     
     for (const dir of pipelineDirs) {
@@ -1100,7 +1100,7 @@ async function setupPipelineDirectories() {
     // move this to install-pipeline.sh
     // Set appropriate permissions
     // console.log('Setting appropriate permissions...');
-    // execSync(`sudo chown -R hasenpfeffr:hasenpfeffr ${baseDir}`);
+    // execSync(`sudo chown -R brainstorm:brainstorm ${baseDir}`);
     // execSync(`sudo chmod -R 755 ${baseDir}`);
     
     console.log('Pipeline directories setup completed successfully.');
@@ -1172,15 +1172,15 @@ async function setupCalculatePersonalizedGrapeRankService() {
 async function finalSetup() {
   console.log('\x1b[36m=== Final Setup ===\x1b[0m');
   
-  console.log('Hasenpfeffr is now installed and configured.');
+  console.log('Brainstorm is now installed and configured.');
   
   // Neo4j password update instructions
   console.log('\nNeo4j Configuration:');
   console.log('1. Access the Neo4j Browser at http://your-server-ip:7474');
   console.log('2. Log in with username "neo4j" and password "neo4j"');
   console.log('3. You will be prompted to change the default password');
-  console.log('4. After changing the password, update it in your Hasenpfeffr configuration:');
-  console.log('   Edit /etc/hasenpfeffr.conf and update the NEO4J_PASSWORD value');
+  console.log('4. After changing the password, update it in your Brainstorm configuration:');
+  console.log('   Edit /etc/brainstorm.conf and update the NEO4J_PASSWORD value');
   console.log('5. set up Neo4j constraints and indexes at the Neo4j Control Panel or by running the following commands in the Neo4j Browser:');
 
   console.log('   CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;');
@@ -1213,7 +1213,7 @@ async function finalSetup() {
   // Nginx configuration instructions
   console.log('\nNginx Configuration:');
   console.log('If you installed Strfry, Nginx has been configured to serve:');
-  console.log('- The Hasenpfeffr control panel as the main application at https://your-domain/control');
+  console.log('- The Brainstorm control panel as the main application at https://your-domain/control');
   console.log('- The Strfry relay at https://your-domain/');
   console.log('\nIf you did not install Strfry and want to access the control panel through Nginx,');
   console.log('add the following to your server block:');

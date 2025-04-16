@@ -67,7 +67,7 @@ function handleUpdateGrapeRankConfig(req, res) {
         
         // Use sudo to copy the temporary file to the actual configuration file
         execSync(`sudo cp ${tempConfigPath} ${configPath}`);
-        execSync(`sudo chown root:hasenpfeffr ${configPath}`);
+        execSync(`sudo chown root:brainstorm ${configPath}`);
         execSync(`sudo chmod 644 ${configPath}`);
         
         // Clean up the temporary file

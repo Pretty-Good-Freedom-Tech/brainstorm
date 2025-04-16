@@ -1,14 +1,14 @@
 #!/bin/bash
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, STRFRY_PLUGINS_DATA
+source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, STRFRY_PLUGINS_DATA
 source /etc/whitelist.conf
 
 WHITELIST_OUTPUT_DIR=${STRFRY_PLUGINS_DATA}
 
-touch ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
-sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
+touch ${BRAINSTORM_LOG_DIR}/exportWhitelist.log
+sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/exportWhitelist.log
 
-echo "$(date): Starting exportWhitelist" >> ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
+echo "$(date): Starting exportWhitelist" >> ${BRAINSTORM_LOG_DIR}/exportWhitelist.log
 
 echo "Running exportWhiteList. This script updates ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json based on personalizedPageRank scores stored in neo4j."
 
@@ -37,7 +37,7 @@ RETURN n.influence, n.pubkey
 ORDER BY n.influence DESC
 "
 
-echo "$CYPHER2" >> ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
+echo "$CYPHER2" >> ${BRAINSTORM_LOG_DIR}/exportWhitelist.log
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2" | tail -n +2 > ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt
 
@@ -68,9 +68,9 @@ done < ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt
 
 echo "}" >> ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
-sudo chown hasenpfeffr:hasenpfeffr ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
+sudo chown brainstorm:brainstorm ${WHITELIST_OUTPUT_DIR}/whitelist_pubkeys.json
 
 # clean up
 sudo rm ${WHITELIST_OUTPUT_DIR}/whitelistQueryOutput.txt
 
-echo "$(date): Finished exportWhitelist" >> ${HASENPFEFFR_LOG_DIR}/exportWhitelist.log
+echo "$(date): Finished exportWhitelist" >> ${BRAINSTORM_LOG_DIR}/exportWhitelist.log

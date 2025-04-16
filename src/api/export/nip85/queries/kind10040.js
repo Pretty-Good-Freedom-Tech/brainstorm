@@ -20,7 +20,7 @@ function handleGetKind10040Event(req, res) {
 
     try {
         // Define data directories
-        const dataDir = '/var/lib/hasenpfeffr/data';
+        const dataDir = '/var/lib/brainstorm/data';
         const eventFile = path.join(dataDir, 'kind10040_event.json');
         
         // Check if the event file exists
@@ -36,7 +36,7 @@ function handleGetKind10040Event(req, res) {
         const event = JSON.parse(eventData);
         
         // Get the owner's pubkey from config
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+        const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
         
         // Set pubkey to the owner's pubkey
         event.pubkey = ownerPubkey;

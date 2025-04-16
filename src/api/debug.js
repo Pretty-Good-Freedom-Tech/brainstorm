@@ -16,7 +16,7 @@ function getDebugInfo(req, res) {
         success: true,
         timestamp: Math.floor(Date.now() / 1000),
         filesystem: {
-            hasenpfeffrConfExists: false,
+            brainstormConfExists: false,
             permissions: {}
         },
         commands: {
@@ -32,10 +32,10 @@ function getDebugInfo(req, res) {
     
     // Check if config file exists
     try {
-        const confFile = '/etc/hasenpfeffr.conf';
-        result.filesystem.hasenpfeffrConfExists = fs.existsSync(confFile);
+        const confFile = '/etc/brainstorm.conf';
+        result.filesystem.brainstormConfExists = fs.existsSync(confFile);
         
-        if (result.filesystem.hasenpfeffrConfExists) {
+        if (result.filesystem.brainstormConfExists) {
             try {
                 // Check file permissions
                 const stats = fs.statSync(confFile);

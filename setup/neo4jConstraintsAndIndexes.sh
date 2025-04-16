@@ -1,26 +1,26 @@
 #!/bin/bash
 
-# Hasenpfeffr Neo4j Constraints and Indexes Setup
-# This script sets up the necessary constraints and indexes for the Hasenpfeffr project
+# Brainstorm Neo4j Constraints and Indexes Setup
+# This script sets up the necessary constraints and indexes for the Brainstorm project
 
 
-source /etc/hasenpfeffr.conf
-touch ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
-sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+source /etc/brainstorm.conf
+touch ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 echo "$(date): Starting neo4jConstraintsAndIndexes"
-echo "$(date): Starting neo4jConstraintsAndIndexes" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+echo "$(date): Starting neo4jConstraintsAndIndexes" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 
 NEO4J_URI="bolt://localhost:7687"
 NEO4J_USER="neo4j"
-# Get the Neo4j password from the Hasenpfeffr configuration
-if [ -f "/etc/hasenpfeffr.conf" ]; then
-  source /etc/hasenpfeffr.conf
+# Get the Neo4j password from the Brainstorm configuration
+if [ -f "/etc/brainstorm.conf" ]; then
+  source /etc/brainstorm.conf
   NEO4J_PASSWORD=${NEO4J_PASSWORD:-neo4j}
 else
   NEO4J_PASSWORD="neo4j"
-  echo "Warning: /etc/hasenpfeffr.conf not found, using default Neo4j password"
+  echo "Warning: /etc/brainstorm.conf not found, using default Neo4j password"
 fi
 
 # Cypher command to set up constraints and indexes
@@ -55,21 +55,21 @@ CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);
 "
 
 # Run Cypher commands with stored password
-echo "$(date): Attempting to create constraints and indexes with stored password..." >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
-sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_COMMAND" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log 2>&1
+echo "$(date): Attempting to create constraints and indexes with stored password..." >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_COMMAND" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log 2>&1
 STORED_PASSWORD_RESULT=$?
 
 # If stored password failed, try with default password
 if [ $STORED_PASSWORD_RESULT -ne 0 ]; then
-    echo "$(date): First attempt failed, trying with default password..." >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
-    sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$CYPHER_COMMAND" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log 2>&1
+    echo "$(date): First attempt failed, trying with default password..." >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+    sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$CYPHER_COMMAND" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log 2>&1
     DEFAULT_PASSWORD_RESULT=$?
 else
     DEFAULT_PASSWORD_RESULT=0
 fi
 
 # Verify that constraints and indexes were created successfully
-echo "$(date): Verifying constraints and indexes were created successfully..." >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+echo "$(date): Verifying constraints and indexes were created successfully..." >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 # Check for the primary constraint that should exist
 # VERIFY_COMMAND="MATCH (n:NostrUser) WHERE n.pubkey = 'verification_check' RETURN n LIMIT 1;"
@@ -108,23 +108,23 @@ fi
 rm -f /tmp/neo4j_constraints.txt /tmp/neo4j_indexes.txt
 
 # Log results
-echo "$(date): Constraint check result: $CONSTRAINT_COUNT constraints found" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
-echo "$(date): Index check result: $INDEX_COUNT indexes found" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+echo "$(date): Constraint check result: $CONSTRAINT_COUNT constraints found" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+echo "$(date): Index check result: $INDEX_COUNT indexes found" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 # Update timestamp only if the commands were successful and the constraints/indexes exist
 if [ $STORED_PASSWORD_RESULT -eq 0 -o $DEFAULT_PASSWORD_RESULT -eq 0 ] && [ $CONSTRAINT_COUNT -gt 0 ] && [ $INDEX_COUNT -gt 0 ]; then
-    # Update HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES in hasenpfeffr.conf with current timestamp
+    # Update BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES in brainstorm.conf with current timestamp
     CURRENT_TIMESTAMP=$(date +%s)
-    echo "$(date): Setting HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP in /etc/hasenpfeffr.conf" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+    echo "$(date): Setting BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP in /etc/brainstorm.conf" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
-    # Use sed to replace the line in hasenpfeffr.conf
-    sudo sed -i "s/^export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=.*$/export HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP/" /etc/hasenpfeffr.conf
+    # Use sed to replace the line in brainstorm.conf
+    sudo sed -i "s/^export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=.*$/export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP/" /etc/brainstorm.conf
     
     echo "Neo4j constraints and indexes have been set up successfully."
-    echo "$(date): Finished neo4jConstraintsAndIndexes - SUCCESS" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+    echo "$(date): Finished neo4jConstraintsAndIndexes - SUCCESS" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 else
-    echo "Failed to set up Neo4j constraints and indexes. Check the log at ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log"
-    echo "$(date): Finished neo4jConstraintsAndIndexes - FAILED" >> ${HASENPFEFFR_LOG_DIR}/neo4jConstraintsAndIndexes.log
+    echo "Failed to set up Neo4j constraints and indexes. Check the log at ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log"
+    echo "$(date): Finished neo4jConstraintsAndIndexes - FAILED" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
     exit 1
 fi
 

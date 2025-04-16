@@ -34,7 +34,7 @@
             </div>
             <!-- New Service Toggle Section -->
             <div class="service-toggles-container">
-                <h3>Activate Hasenpfeffr <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
+                <h3>Activate Brainstorm <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Toggle individual components of the system. Each button controls multiple services.</span></span></h3>
                 <div class="service-toggles">
                     <div class="service-toggle-item">
                         <h4>Turn on Databases <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls Neo4j and strfry database services.</span></span></h4>
@@ -87,7 +87,7 @@
                 <div class="calculation-grid">
                     <div class="calculation-item">
                         <div class="calculation-item-content">
-                            <h4>FOLLOWS, MUTES, & REPORTS <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kinds 3, 1984, and 1000 events from wss://relay.hasenpfeffr.com. Should take 10-15 min the first time.</span></h4>
+                            <h4>FOLLOWS, MUTES, & REPORTS <span class="info-icon">i</span><span class="tooltip">Use negentropy to download all available kinds 3, 1984, and 1000 events from wss://relay.brainstorm.com. Should take 10-15 min the first time.</span></h4>
                             <p id="syncWoT-last-calculation-time" class="timestamp"></p>
                             <p id="syncWoT-last-calculation-duration" class="duration"></p>
                         </div>
@@ -255,10 +255,10 @@
             </div>
 
             <div class="section">
-                <h2>Hasenpfeffr Systemd Services</h2>
+                <h2>Brainstorm Systemd Services</h2>
                 <div class="card">
                     <h3>Service Status and Control</h3>
-                    <p>Manage and monitor Hasenpfeffr systemd services.</p>
+                    <p>Manage and monitor Brainstorm systemd services.</p>
                     <button id="refreshServicesBtn" class="refresh-btn">Refresh Status</button>
                     <div id="servicesStatus" class="status" style="display: none;"></div>
                     <div id="servicesContainer" style="margin-top: 15px;">
@@ -319,22 +319,22 @@
             databases: {
                 services: ['neo4j', 'strfry'],
                 scripts: {
-                    on: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/databases/turnOn.sh',
-                    off: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/databases/turnOff.sh'
+                    on: '/usr/local/lib/node_modules/brainstorm/src/manage/databases/turnOn.sh',
+                    off: '/usr/local/lib/node_modules/brainstorm/src/manage/databases/turnOff.sh'
                 }
             },
             streaming: {
                 services: ['addToQueue', 'processQueue', 'strfry-router'],
                 scripts: {
-                    on: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/streamingServices/turnOn.sh',
-                    off: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/streamingServices/turnOff.sh'
+                    on: '/usr/local/lib/node_modules/brainstorm/src/manage/streamingServices/turnOn.sh',
+                    off: '/usr/local/lib/node_modules/brainstorm/src/manage/streamingServices/turnOff.sh'
                 }
             },
             scores: {
                 services: ['processAllTasks.timer'],
                 scripts: {
-                    on: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/routineTasks/turnOn.sh',
-                    off: '/usr/local/lib/node_modules/hasenpfeffr/src/manage/routineTasks/turnOff.sh'
+                    on: '/usr/local/lib/node_modules/brainstorm/src/manage/routineTasks/turnOn.sh',
+                    off: '/usr/local/lib/node_modules/brainstorm/src/manage/routineTasks/turnOff.sh'
                 }
             },
             content: {
@@ -519,7 +519,7 @@
             }
         }
 
-        function controlHasenpfeffr(action) {
+        function controlBrainstorm(action) {
             // Show loading state
             const statusText = document.getElementById('statusText');
             statusText.textContent = action === 'on' ? 'Starting...' : 'Stopping...';
@@ -534,7 +534,7 @@
             statusDetails.innerHTML = `<p>Executing ${action === 'on' ? 'startup' : 'shutdown'} script...</p>`;
             
             // Call the API - use the /control/api path to ensure proper routing
-            fetch('/control/api/hasenpfeffr-control', {
+            fetch('/control/api/brainstorm-control', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -565,7 +565,7 @@
                 }
             })
             .catch(error => {
-                console.error(`Error turning Hasenpfeffr ${action}:`, error);
+                console.error(`Error turning Brainstorm ${action}:`, error);
                 
                 // If it seems like an authentication issue, suggest logging in
                 if (error.message.includes('non-JSON') || error.message.includes('Unexpected token')) {
@@ -719,7 +719,7 @@
                     const serviceDescriptions = {
                         'neo4j': 'Graph database for storing Nostr relationships',
                         'strfry': 'Nostr relay for receiving and serving events',
-                        // 'hasenpfeffr-control-panel': 'Web interface for system management',
+                        // 'brainstorm-control-panel': 'Web interface for system management',
                         'strfry-router': 'Live stream events from the nostr network, including: baselineWoT (kinds 3, 1984, and 10000), profile info (kind 0), and all personal events',
                         'addToQueue': 'Add to queue whenever strfry receives new follows, mutes, or reports',
                         'processQueue': 'Process queue to update Neo4j with new data',
@@ -729,7 +729,7 @@
                     
                     // List of services to exclude
                     const excludedServices = [
-                        'hasenpfeffr-control-panel',
+                        'brainstorm-control-panel',
                         'calculateHops.timer',
                         'calculatePersonalizedPageRank.timer',
                         'calculatePersonalizedGrapeRank.timer',
@@ -921,7 +921,7 @@
             const actionConfig = {
                 'syncWoT': {
                     endpoint: '/control/api/negentropy-sync-wot',
-                    // params: { relay: 'wss://relay.hasenpfeffr.com', filter: '{"kinds":[3,1984,10000]}' },
+                    // params: { relay: 'wss://relay.brainstorm.com', filter: '{"kinds":[3,1984,10000]}' },
                     method: 'POST',
                     buttonText: 'Sync WoT'
                 },
@@ -933,7 +933,7 @@
                 },
                 'syncPersonal': {
                     endpoint: '/control/api/negentropy-sync-personal',
-                    // params: { relay: 'wss://relay.primal.net', filter: '{"authors":["HASENPFEFFR_OWNER_PUBKEY"]}' },
+                    // params: { relay: 'wss://relay.primal.net', filter: '{"authors":["BRAINSTORM_OWNER_PUBKEY"]}' },
                     method: 'POST',
                     buttonText: 'Sync Personal'
                 },

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr NIP-85 Data Generator
+ * Brainstorm NIP-85 Data Generator
  * 
  * This script generates NIP-85 data including personalized PageRank scores
  * and network hops (degrees of separation) for Nostr users.

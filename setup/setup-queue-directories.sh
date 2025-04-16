@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Setup Queue Directories for Hasenpfeffr
-# This script creates queue directories in /var/lib/hasenpfeffr
+# Setup Queue Directories for Brainstorm
+# This script creates queue directories in /var/lib/brainstorm
 # which is a standard location for variable data that won't be
 # affected by systemd's ProtectSystem directive
 #
@@ -15,7 +15,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Define the username
-USERNAME="hasenpfeffr"
+USERNAME="brainstorm"
 
 # Check if user exists
 if ! id "$USERNAME" &>/dev/null; then
@@ -24,7 +24,7 @@ if ! id "$USERNAME" &>/dev/null; then
 fi
 
 # Create the base directory structure
-BASE_DIR="/var/lib/hasenpfeffr"
+BASE_DIR="/var/lib/brainstorm"
 STREAM_DIR="$BASE_DIR/pipeline/stream"
 RECONCILE_DIR="$BASE_DIR/pipeline/reconcile"
 

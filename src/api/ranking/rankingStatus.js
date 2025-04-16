@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr ranking status API endpoint
+ * Brainstorm ranking status API endpoint
  * Provides information about GrapeRank and PageRank status
  */
 
@@ -37,7 +37,7 @@ function getRankingStatus(req, res) {
     };
     
     // Log directory
-    const hasenpfeffrLogDir = process.env.HASENPFEFFR_LOG_DIR || '/var/log/hasenpfeffr';
+    const brainstormLogDir = process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm';
     
     // Array to collect promises for parallel execution
     const promises = [];
@@ -77,7 +77,7 @@ function getRankingStatus(req, res) {
     // 2. Check GrapeRank last updated
     promises.push(
         new Promise((resolve) => {
-            const grapeRankLogPath = `${hasenpfeffrLogDir}/calculatePersonalizedGrapeRank.log`;
+            const grapeRankLogPath = `${brainstormLogDir}/calculatePersonalizedGrapeRank.log`;
             fs.access(grapeRankLogPath, fs.constants.F_OK, (err) => {
                 if (err) {
                     console.error('GrapeRank log file not found:', err);
@@ -102,7 +102,7 @@ function getRankingStatus(req, res) {
     // 3. Check PageRank last updated
     promises.push(
         new Promise((resolve) => {
-            const pageRankLogPath = `${hasenpfeffrLogDir}/calculatePersonalizedPageRank.log`;
+            const pageRankLogPath = `${brainstormLogDir}/calculatePersonalizedPageRank.log`;
             fs.access(pageRankLogPath, fs.constants.F_OK, (err) => {
                 if (err) {
                     console.error('PageRank log file not found:', err);

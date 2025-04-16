@@ -14,12 +14,12 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Get the user running the control panel service
-CONTROL_PANEL_USER=$(systemctl show -p User hasenpfeffr-control-panel.service | cut -d= -f2)
+CONTROL_PANEL_USER=$(systemctl show -p User brainstorm-control-panel.service | cut -d= -f2)
 
-# If no user is specified, default to hasenpfeffr
+# If no user is specified, default to brainstorm
 if [ -z "$CONTROL_PANEL_USER" ]; then
-  CONTROL_PANEL_USER="hasenpfeffr"
-  echo "No user found in service file, defaulting to 'hasenpfeffr'"
+  CONTROL_PANEL_USER="brainstorm"
+  echo "No user found in service file, defaulting to 'brainstorm'"
 fi
 
 echo "Configuring sudo privileges for user: $CONTROL_PANEL_USER"
@@ -29,7 +29,7 @@ SUDOERS_TMP=$(mktemp)
 
 # Create the sudoers entry - only allow systemctl commands for specific services
 cat > "$SUDOERS_TMP" << EOF
-# Allow $CONTROL_PANEL_USER to manage Hasenpfeffr systemd services without password
+# Allow $CONTROL_PANEL_USER to manage Brainstorm systemd services without password
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start neo4j
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop neo4j
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart neo4j
@@ -40,10 +40,10 @@ $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop strfry
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart strfry
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active strfry
 
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start hasenpfeffr-control-panel
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop hasenpfeffr-control-panel
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart hasenpfeffr-control-panel
-$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active hasenpfeffr-control-panel
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start brainstorm-control-panel
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop brainstorm-control-panel
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart brainstorm-control-panel
+$CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active brainstorm-control-panel
 
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl start strfry-router
 $CONTROL_PANEL_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop strfry-router
@@ -95,7 +95,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Create a sudoers.d file for the control panel
-SUDOERS_FILE="/etc/sudoers.d/hasenpfeffr-control-panel"
+SUDOERS_FILE="/etc/sudoers.d/brainstorm-control-panel"
 mv "$SUDOERS_TMP" "$SUDOERS_FILE"
 chmod 440 "$SUDOERS_FILE"
 

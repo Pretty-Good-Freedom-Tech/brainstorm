@@ -1,16 +1,16 @@
 #!/bin/bash
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, HASENPFEFFR_OWNER_PUBKEY
+source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_OWNER_PUBKEY
 source /etc/graperank.conf # GrapeRank configuration values
 
-touch ${HASENPFEFFR_LOG_DIR}/calculateImportedGrapeRank.log
-sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/calculateImportedGrapeRank.log
+touch ${BRAINSTORM_LOG_DIR}/calculateImportedGrapeRank.log
+sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/calculateImportedGrapeRank.log
 
 echo "$(date): Starting calculateImportedGrapeRank"
-echo "$(date): Starting calculateImportedGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculateImportedGrapeRank.log
+echo "$(date): Starting calculateImportedGrapeRank" >> ${BRAINSTORM_LOG_DIR}/calculateImportedGrapeRank.log
 
 echo "$(date): Continuing calculateImportedGrapeRank ... starting cypher queries"
-echo "$(date): Continuing calculateImportedGrapeRank ... starting cypher queries" >> ${HASENPFEFFR_LOG_DIR}/calculateImportedGrapeRank.log
+echo "$(date): Continuing calculateImportedGrapeRank ... starting cypher queries" >> ${BRAINSTORM_LOG_DIR}/calculateImportedGrapeRank.log
 
 CYPHER0="
 MATCH (user:NostrUser)
@@ -36,8 +36,8 @@ WHERE ratee.hops < 20
 RETURN rater.pubkey AS pk_rater, ratee.pubkey AS pk_ratee
 "
 # Create the base directory structure
-USERNAME="hasenpfeffr"
-BASE_DIR="/var/lib/hasenpfeffr"
+USERNAME="brainstorm"
+BASE_DIR="/var/lib/brainstorm"
 TEMP_DIR="$BASE_DIR/algos/importedGrapeRankEngine/tmp"
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p $TEMP_DIR
@@ -77,8 +77,8 @@ TMP_CONF=$(mktemp)
 cat /etc/graperank.conf | sed "s/^export WHEN_IMPORTED_LAST_CALCULATED=.*$/export WHEN_IMPORTED_LAST_CALCULATED=$TIMESTAMP/" > "$TMP_CONF"
 sudo cp "$TMP_CONF" /etc/graperank.conf
 sudo chmod 644 /etc/graperank.conf
-sudo chown root:hasenpfeffr /etc/graperank.conf
+sudo chown root:brainstorm /etc/graperank.conf
 rm "$TMP_CONF"
 
 echo "$(date): Finished calculateImportedGrapeRank"
-echo "$(date): Finished calculateImportedGrapeRank" >> ${HASENPFEFFR_LOG_DIR}/calculateImportedGrapeRank.log
+echo "$(date): Finished calculateImportedGrapeRank" >> ${BRAINSTORM_LOG_DIR}/calculateImportedGrapeRank.log

@@ -7,20 +7,20 @@
 # sudo ./transfer.sh --recent 86400
 # Notably, this script will not delete FOLLOWS that need to be deleted due to unfollowing. For that, use the reconcile module.
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
-touch ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
-sudo chown hasenpfeffr:hasenpfeffr ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
+touch ${BRAINSTORM_LOG_DIR}/batchTransfer.log
+sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/batchTransfer.log
 
 echo "$(date): Starting batchTransfer" 
-echo "$(date): Starting batchTransfer" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
+echo "$(date): Starting batchTransfer" >> ${BRAINSTORM_LOG_DIR}/batchTransfer.log
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 ######################## FOLLOWS ###########################
 echo "$(date): Continuing batchTransfer ... starting to process follows"
-echo "$(date): Continuing batchTransfer ... starting to process follows" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
+echo "$(date): Continuing batchTransfer ... starting to process follows" >> ${BRAINSTORM_LOG_DIR}/batchTransfer.log
 
 # Execute the scripts with full paths
 sudo "$SCRIPT_DIR/strfryToKind3Events.sh" "$1" "$2"
@@ -39,7 +39,7 @@ sudo rm /var/lib/neo4j/import/allKind3EventsStripped.json
 
 ######################## MUTES ###########################
 echo "$(date): Continuing batchTransfer ... finished processing follows, starting to process mutes"
-echo "$(date): Continuing batchTransfer ... finished processing follows, starting to process mutes" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
+echo "$(date): Continuing batchTransfer ... finished processing follows, starting to process mutes" >> ${BRAINSTORM_LOG_DIR}/batchTransfer.log
 
 # Execute the scripts with full paths
 sudo "$SCRIPT_DIR/strfryToKind10000Events.sh" "$1" "$2"
@@ -58,7 +58,7 @@ sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
 
 ######################## REPORTS ###########################
 echo "$(date): Continuing batchTransfer ... finished processing mutes, starting to process reports"
-echo "$(date): Continuing batchTransfer ... finished processing mutes, starting to process reports" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
+echo "$(date): Continuing batchTransfer ... finished processing mutes, starting to process reports" >> ${BRAINSTORM_LOG_DIR}/batchTransfer.log
 
 # Execute the scripts with full paths
 sudo "$SCRIPT_DIR/strfryToKind1984Events.sh" "$1" "$2"
@@ -78,4 +78,4 @@ sudo rm /var/lib/neo4j/import/allKind1984EventsStripped.json
 ######################## END ###########################
 
 echo "$(date): Finished batchTransfer" 
-echo "$(date): Finished batchTransfer" >> ${HASENPFEFFR_LOG_DIR}/batchTransfer.log
+echo "$(date): Finished batchTransfer" >> ${BRAINSTORM_LOG_DIR}/batchTransfer.log

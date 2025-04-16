@@ -1,5 +1,5 @@
 /**
- * Hasenpfeffr lists status API endpoint
+ * Brainstorm lists status API endpoint
  * Provides information about whitelist and blacklist status
  */
 

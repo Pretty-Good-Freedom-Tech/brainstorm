@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Script to turn off all Hasenpfeffr services
+# Script to turn off all Brainstorm services
 
-echo "Stopping Hasenpfeffr services..."
+echo "Stopping Brainstorm services..."
 
 # Source configuration
-source /etc/hasenpfeffr.conf
+source /etc/brainstorm.conf
 
-# Stop Hasenpfeffr ETL pipeline services
-echo "Stopping Hasenpfeffr ETL pipeline services..."
+# Stop Brainstorm ETL pipeline services
+echo "Stopping Brainstorm ETL pipeline services..."
 
 # Stop reconcile timer
 # This has been subsumed into the processAllTasks service
@@ -24,7 +24,7 @@ sudo systemctl stop addToQueue
 sleep 1
 
 # Stop control panel (keep this running so we can turn things back on)
-# sudo systemctl stop hasenpfeffr-control-panel
+# sudo systemctl stop brainstorm-control-panel
 # sleep 1
 
 # Stop strfry-router
@@ -42,6 +42,6 @@ echo "Stopping Neo4j..."
 sudo systemctl stop neo4j
 sleep 5
 
-echo "Hasenpfeffr services stopped successfully."
+echo "Brainstorm services stopped successfully."
 
 exit 0

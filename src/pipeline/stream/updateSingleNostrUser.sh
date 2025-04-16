@@ -4,10 +4,10 @@
 # Uses differential updates to minimize Neo4j operations
 # Only adds new follows and removes obsolete ones
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
-path_to_queue="/var/lib/hasenpfeffr/pipeline/stream/queue/"
-tmp_dir="/var/lib/hasenpfeffr/pipeline/stream/queue_tmp"
+path_to_queue="/var/lib/brainstorm/pipeline/stream/queue/"
+tmp_dir="/var/lib/brainstorm/pipeline/stream/queue_tmp"
 mkdir -p "$tmp_dir"
 
 # Get the next pubkey from the queue

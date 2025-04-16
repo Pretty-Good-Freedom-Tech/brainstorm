@@ -1,9 +1,9 @@
 #!/bin/bash
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 # Change to the directory containing the script
-cd /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/
+cd /usr/local/lib/node_modules/brainstorm/src/pipeline/batch/
 
 # Run the optimized Node.js script
 node kind3EventsToFollows.js

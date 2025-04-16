@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Hasenpfeffr Personalized Blacklist Configuration
+# Brainstorm Personalized Blacklist Configuration
 # This file contains parameters for the personalized blacklist algorithm.
 #
 # IMPORTANT: This file should be owned by root with restricted permissions:
 # permissions: chmod 640 /etc/blacklist.conf
-# and ownership: chown root:hasenpfeffr /etc/blacklist.conf
+# and ownership: chown root:brainstorm /etc/blacklist.conf
 
 # ==========================================
 # PARAMETER DESCRIPTIONS AND RANGES

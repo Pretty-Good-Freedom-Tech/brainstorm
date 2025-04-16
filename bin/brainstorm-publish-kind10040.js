@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr Publish Kind 10040 Event
+ * Brainstorm Publish Kind 10040 Event
  * 
  * This script publishes a previously created kind 10040 event
  * to the configured relay after signing it with the authenticated user's key.
@@ -14,7 +14,7 @@ const crypto = require('crypto');
 const { getConfigFromFile } = require('../src/utils/config');
 
 // Get relay configuration
-const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
+const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
 
 if (!relayUrl) {
   console.error('Error: Relay URL not found in configuration');
@@ -22,7 +22,7 @@ if (!relayUrl) {
 }
 
 // Check if the event file exists
-const dataDir = '/var/lib/hasenpfeffr/data';
+const dataDir = '/var/lib/brainstorm/data';
 const eventFile = path.join(dataDir, 'kind10040_event.json');
 
 if (!fs.existsSync(eventFile)) {
@@ -42,7 +42,7 @@ try {
 }
 
 // Check for authenticated session
-const sessionDir = '/var/lib/hasenpfeffr/sessions';
+const sessionDir = '/var/lib/brainstorm/sessions';
 const sessionFile = path.join(sessionDir, 'auth_session.json');
 let session;
 
@@ -61,9 +61,9 @@ let foundSession = false;
 
 // Look in multiple possible session directories
 const possibleSessionDirs = [
-  '/var/lib/hasenpfeffr/sessions',
-  '/tmp/hasenpfeffr-sessions',
-  path.join(process.env.HOME || '/root', '.hasenpfeffr/sessions'),
+  '/var/lib/brainstorm/sessions',
+  '/tmp/brainstorm-sessions',
+  path.join(process.env.HOME || '/root', '.brainstorm/sessions'),
   '/var/lib/sessions',
   '/tmp/sessions'
 ];
@@ -122,7 +122,7 @@ if (!foundSession && fs.existsSync(sessionFile)) {
 // If still no session, check if we can get the owner pubkey from config
 if (!foundSession) {
   try {
-    const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY');
+    const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
     if (ownerPubkey) {
       console.log(`Using owner pubkey from config: ${ownerPubkey}`);
       session = {

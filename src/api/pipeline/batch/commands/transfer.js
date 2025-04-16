@@ -28,7 +28,7 @@ function handleBatchTransfer(req, res) {
     }, 120000); // 2 minutes timeout
     
     // Create a child process to run the transfer script
-    const transferProcess = exec('/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/transfer.sh');
+    const transferProcess = exec('/usr/local/lib/node_modules/brainstorm/src/pipeline/batch/transfer.sh');
     
     let output = '';
     let errorOutput = '';

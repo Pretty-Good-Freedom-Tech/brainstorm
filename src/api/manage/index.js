@@ -4,7 +4,7 @@
  */
 
 const negentropySync = require('./negentropySync');
-const { handleHasenpfeffrControl } = require('./commands/hasenpfeffrControl');
+const { handleBrainstormControl } = require('./commands/brainstormControl');
 const { handleRunScript } = require('./commands/runScript');
 
 // Export handlers directly - this allows the central router to register endpoints
@@ -13,6 +13,6 @@ module.exports = {
     ...negentropySync,
     
     // System control handlers
-    handleHasenpfeffrControl,
+    handleBrainstormControl,
     handleRunScript
 };

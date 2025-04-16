@@ -43,11 +43,11 @@ var fs = require('fs');
 var path = require('path');
 var readline = require('readline');
 // const { Calculator } = require('/usr/local/lib/node_modules/graperank/src/Calculator/index.js');
-var TEMP_DIR = '/var/lib/hasenpfeffr/algos/importedGrapeRankEngine/tmp';
+var TEMP_DIR = '/var/lib/brainstorm/algos/importedGrapeRankEngine/tmp';
 var CONTEXT = 'verifiedUsers';
 var CONFIG_FILES = {
     graperank: '/etc/graperank.conf',
-    hasenpfeffr: '/etc/hasenpfeffr.conf'
+    brainstorm: '/etc/brainstorm.conf'
 };
 var observer = getPubkey();
 var ratings = parseRatings();
@@ -68,8 +68,8 @@ function getCalculatorParams() {
     };
 }
 function getPubkey() {
-    // Load Hasenpfeffr config
-    return (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.hasenpfeffr, " && echo $HASENPFEFFR_OWNER_PUBKEY"), {
+    // Load Brainstorm config
+    return (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.brainstorm, " && echo $BRAINSTORM_OWNER_PUBKEY"), {
         shell: '/bin/bash',
         encoding: 'utf8'
     }).trim();
@@ -219,24 +219,24 @@ function updateNeo4j(scorecards) {
         });
     });
 }
-// Get Neo4j configuration from hasenpfeffr.conf
+// Get Neo4j configuration from brainstorm.conf
 function getNeo4jConfig() {
     try {
-        // Load Neo4j connection details from hasenpfeffr.conf
-        var neo4jUri = (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.hasenpfeffr, " && echo $NEO4J_URI"), {
+        // Load Neo4j connection details from brainstorm.conf
+        var neo4jUri = (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.brainstorm, " && echo $NEO4J_URI"), {
             shell: '/bin/bash',
             encoding: 'utf8'
         }).trim();
-        var neo4jUsername = (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.hasenpfeffr, " && echo $NEO4J_USER"), {
+        var neo4jUsername = (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.brainstorm, " && echo $NEO4J_USER"), {
             shell: '/bin/bash',
             encoding: 'utf8'
         }).trim();
-        var neo4jPassword = (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.hasenpfeffr, " && echo $NEO4J_PASSWORD"), {
+        var neo4jPassword = (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.brainstorm, " && echo $NEO4J_PASSWORD"), {
             shell: '/bin/bash',
             encoding: 'utf8'
         }).trim();
         if (!neo4jUri || !neo4jUsername || !neo4jPassword) {
-            throw new Error('Missing Neo4j connection details in hasenpfeffr.conf. Please ensure NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD are defined.');
+            throw new Error('Missing Neo4j connection details in brainstorm.conf. Please ensure NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD are defined.');
         }
         return {
             uri: neo4jUri,

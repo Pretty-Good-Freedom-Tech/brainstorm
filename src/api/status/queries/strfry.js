@@ -16,7 +16,7 @@ function handleStrfryStats(req, res) {
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
-    exec('hasenpfeffr-strfry-stats', (error, stdout, stderr) => {
+    exec('brainstorm-strfry-stats', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing strfry stats: ${stderr || error.message}`);
             return res.json({

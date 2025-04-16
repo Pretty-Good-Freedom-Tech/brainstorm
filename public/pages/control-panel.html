@@ -14,7 +14,7 @@
 
     <div class="container">
         <div class="nav">
-            <h1>Hasenpfeffr Control Panel</h1>
+            <h1>Brainstorm Control Panel</h1>
         </div>
         
         <div class="section">
@@ -26,7 +26,7 @@
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label for="relaySelector" style="display: block; margin-bottom: 5px; font-weight: bold;">Select Relay:</label>
                     <select id="relaySelector" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
-                        <option value="wss://relay.hasenpfeffr.com">wss://relay.hasenpfeffr.com</option>
+                        <option value="wss://relay.brainstorm.com">wss://relay.brainstorm.com</option>
                         <option value="wss://relay.primal.net">wss://relay.primal.net</option>
                         <option value="wss://profiles.nostr1.com">wss://profiles.nostr1.com</option>
                     </select>
@@ -136,10 +136,10 @@
         </div>
         
         <div class="section">
-            <h2>Hasenpfeffr Systemd Services</h2>
+            <h2>Brainstorm Systemd Services</h2>
             <div class="card">
                 <h3>Service Status and Control</h3>
-                <p>Manage and monitor Hasenpfeffr systemd services.</p>
+                <p>Manage and monitor Brainstorm systemd services.</p>
                 <button id="refreshServicesBtn" class="button">Refresh Status</button>
                 <div id="servicesStatus" class="status" style="display: none;"></div>
                 <div id="servicesContainer" style="margin-top: 15px;">
@@ -164,7 +164,7 @@
             <div class="card">
                 <h3>Stream Filtered Content</h3>
                 <p>Update strfry-router.config to stream content in the form of kinds 1, 7, and 30818 events (may add more later).</p>
-                <p>The hasenpfeffr strfry plugin is implemented to this section of this config, which uses the whitelist based on the GrapeRank influence score (assuming it's been calculated -- don't forget to do this!).</p>
+                <p>The brainstorm strfry plugin is implemented to this section of this config, which uses the whitelist based on the GrapeRank influence score (assuming it's been calculated -- don't forget to do this!).</p>
                 <p>Unfiltered baseline WoT events (kinds 3, 1984, and 10000) and profile events (kind 0) continue to stream whether or not the plugin is active.</p>
                 <div style="display: flex; align-items: center;">
                     <div id="pluginStatusIndicator" style="width: 15px; height: 15px; border-radius: 50%; background-color: gray; margin-right: 10px;"></div>
@@ -367,7 +367,7 @@
                         const serviceDescriptions = {
                             'neo4j': 'Graph database for storing Nostr relationships',
                             'strfry': 'Nostr relay for receiving and serving events',
-                            'hasenpfeffr-control-panel': 'Web interface for system management',
+                            'brainstorm-control-panel': 'Web interface for system management',
                             'strfry-router': 'Live stream events from the nostr network, including: baselineWoT (kinds 3, 1984, and 10000), profile info (kind 0), and all personal events',
                             'addToQueue': 'Add pubkeys to processing queue with recently updated WoT events.',
                             'processQueue': 'Process pubkeys from queue.',

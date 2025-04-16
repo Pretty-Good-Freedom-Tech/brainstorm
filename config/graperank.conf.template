@@ -3,7 +3,7 @@
 # GrapeRank Configuration File
 # This file should be installed at /etc/graperank.conf
 # with proper permissions: chmod 640 /etc/graperank.conf
-# and ownership: chown root:hasenpfeffr /etc/graperank.conf
+# and ownership: chown root:brainstorm /etc/graperank.conf
 
 # ==========================================
 # DEFAULT PARAMETERS

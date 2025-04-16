@@ -23,7 +23,7 @@
  * 2. Iterate until convergence or max iterations
  * 
  * Special cases:
- * - HASENPFEFFR_OWNER_PUBKEY scorecard is fixed at [1,1,1,9999] and never recalculated
+ * - BRAINSTORM_OWNER_PUBKEY scorecard is fixed at [1,1,1,9999] and never recalculated
  */
 
 const fs = require('fs');
@@ -35,13 +35,13 @@ const { Transform } = require('stream');
 const { pipeline } = require('stream/promises');
 
 // Configuration
-const TEMP_DIR = '/var/lib/hasenpfeffr/algos/personalizedGrapeRank/tmp';
+const TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
 const MAX_ITERATIONS = 20;
 const CONVERGENCE_THRESHOLD = 0.0001; // Threshold for determining convergence
 const CONTEXT = 'verifiedUsers';
 const CONFIG_FILES = {
   graperank: '/etc/graperank.conf',
-  hasenpfeffr: '/etc/hasenpfeffr.conf'
+  brainstorm: '/etc/brainstorm.conf'
 };
 
 // Get configuration values
@@ -53,8 +53,8 @@ function getConfig() {
       encoding: 'utf8' 
     }).trim().split(',');
     
-    // Load Hasenpfeffr config
-    const ownerPubkey = execSync(`source ${CONFIG_FILES.hasenpfeffr} && echo $HASENPFEFFR_OWNER_PUBKEY`, { 
+    // Load Brainstorm config
+    const ownerPubkey = execSync(`source ${CONFIG_FILES.brainstorm} && echo $BRAINSTORM_OWNER_PUBKEY`, { 
       shell: '/bin/bash',
       encoding: 'utf8' 
     }).trim();
@@ -62,7 +62,7 @@ function getConfig() {
     return {
       ATTENUATION_FACTOR: parseFloat(graperankConfig[0]),
       RIGOR: parseFloat(graperankConfig[1]),
-      HASENPFEFFR_OWNER_PUBKEY: ownerPubkey
+      BRAINSTORM_OWNER_PUBKEY: ownerPubkey
     };
   } catch (error) {
     console.error(`Error loading configuration: ${error.message}`);
@@ -263,8 +263,8 @@ async function writeScorecards(scorecardsFile, scorecards) {
 
 // Calculate GrapeRank parameters for a single ratee
 function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
-  // Special case: HASENPFEFFR_OWNER_PUBKEY always has fixed values
-  if (pk_ratee === config.HASENPFEFFR_OWNER_PUBKEY) {
+  // Special case: BRAINSTORM_OWNER_PUBKEY always has fixed values
+  if (pk_ratee === config.BRAINSTORM_OWNER_PUBKEY) {
     return [1, 1, 1, 9999];
   }
   
@@ -296,7 +296,7 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
       let rating_weight = rater_influence * rating_confidence;
       
       // Apply attenuation factor if rater is not the owner
-      if (pk_rater !== config.HASENPFEFFR_OWNER_PUBKEY) {
+      if (pk_rater !== config.BRAINSTORM_OWNER_PUBKEY) {
         rating_weight *= config.ATTENUATION_FACTOR;
       }
       
@@ -383,7 +383,7 @@ async function main() {
     
     // Get configuration
     const config = getConfig();
-    console.log(`HASENPFEFFR_OWNER_PUBKEY: ${config.HASENPFEFFR_OWNER_PUBKEY}`);
+    console.log(`BRAINSTORM_OWNER_PUBKEY: ${config.BRAINSTORM_OWNER_PUBKEY}`);
     console.log(`ATTENUATION_FACTOR: ${config.ATTENUATION_FACTOR}`);
     console.log(`RIGOR: ${config.RIGOR}`);
     
@@ -423,9 +423,9 @@ async function main() {
       process.exit(1);
     }
     
-    // Ensure HASENPFEFFR_OWNER_PUBKEY has fixed scorecard values
-    scorecards[config.HASENPFEFFR_OWNER_PUBKEY] = [1, 1, 1, 9999];
-    console.log(`Set fixed scorecard for HASENPFEFFR_OWNER_PUBKEY: [1, 1, 1, 9999]`);
+    // Ensure BRAINSTORM_OWNER_PUBKEY has fixed scorecard values
+    scorecards[config.BRAINSTORM_OWNER_PUBKEY] = [1, 1, 1, 9999];
+    console.log(`Set fixed scorecard for BRAINSTORM_OWNER_PUBKEY: [1, 1, 1, 9999]`);
     
     // Iterate until convergence or max iterations
     let iterations = 0;
@@ -460,8 +460,8 @@ async function main() {
         console.log(`Processing chunk ${Math.floor(i/CHUNK_SIZE) + 1}/${Math.ceil(rateeArray.length/CHUNK_SIZE)} (${chunk.length} ratees)...`);
         
         for (const pk_ratee of chunk) {
-          // Skip recalculation for HASENPFEFFR_OWNER_PUBKEY as it has fixed values
-          if (pk_ratee === config.HASENPFEFFR_OWNER_PUBKEY) {
+          // Skip recalculation for BRAINSTORM_OWNER_PUBKEY as it has fixed values
+          if (pk_ratee === config.BRAINSTORM_OWNER_PUBKEY) {
             continue;
           }
 
@@ -474,8 +474,8 @@ async function main() {
         }
       }
       
-      // Ensure HASENPFEFFR_OWNER_PUBKEY still has fixed scorecard values
-      scorecards[config.HASENPFEFFR_OWNER_PUBKEY] = [1, 1, 1, 9999];
+      // Ensure BRAINSTORM_OWNER_PUBKEY still has fixed scorecard values
+      scorecards[config.BRAINSTORM_OWNER_PUBKEY] = [1, 1, 1, 9999];
       
       // Check for convergence
       max_diff = calculateMaxDifference(scorecards, previous_scorecards);

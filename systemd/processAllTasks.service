@@ -4,9 +4,9 @@ After=network.target neo4j.service
 
 [Service]
 Type=simple
-User=hasenpfeffr
-EnvironmentFile=/etc/hasenpfeffr.conf
-ExecStart=sudo /usr/local/lib/node_modules/hasenpfeffr/src/manage/processAllTasks.sh
+User=brainstorm
+EnvironmentFile=/etc/brainstorm.conf
+ExecStart=sudo /usr/local/lib/node_modules/brainstorm/src/manage/processAllTasks.sh
 Restart=on-failure
 RestartSec=30
 # Set resource limits to prevent excessive resource usage

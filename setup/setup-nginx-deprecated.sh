@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Setup Nginx for Hasenpfeffr with the new URL structure
-# This script configures nginx to serve Hasenpfeffr at the root URL
+# Setup Nginx for Brainstorm with the new URL structure
+# This script configures nginx to serve Brainstorm at the root URL
 # and the strfry relay at /strfry/
 
 # Check if running as root
@@ -17,9 +17,9 @@ if ! command -v nginx &> /dev/null; then
   apt-get install -y nginx
 fi
 
-# Get the domain name from hasenpfeffr.conf
-if [ -f /etc/hasenpfeffr.conf ]; then
-  DOMAIN=$(grep STRFRY_DOMAIN /etc/hasenpfeffr.conf | cut -d '=' -f2 | tr -d '"' | tr -d ' ')
+# Get the domain name from brainstorm.conf
+if [ -f /etc/brainstorm.conf ]; then
+  DOMAIN=$(grep STRFRY_DOMAIN /etc/brainstorm.conf | cut -d '=' -f2 | tr -d '"' | tr -d ' ')
 else
   # Ask for domain if not found
   echo "Enter your domain name (e.g., example.com):"
@@ -27,11 +27,11 @@ else
 fi
 
 # Create nginx configuration
-cat > /etc/nginx/sites-available/hasenpfeffr << EOF
+cat > /etc/nginx/sites-available/brainstorm << EOF
 server {
     server_name ${DOMAIN};
 
-    # Hasenpfeffr Control Panel as main application
+    # Brainstorm Control Panel as main application
     location /control/ {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$host;
@@ -67,7 +67,7 @@ server {
 EOF
 
 # Enable the site
-ln -sf /etc/nginx/sites-available/hasenpfeffr /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/brainstorm /etc/nginx/sites-enabled/
 
 # Remove default if it exists
 if [ -f /etc/nginx/sites-enabled/default ]; then

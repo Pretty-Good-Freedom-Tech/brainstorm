@@ -18,7 +18,7 @@ function handleGenerateGrapeRank(req, res) {
   res.setTimeout(600000);
   
   // Use exec with timeout options
-  const child = exec('sudo /usr/local/lib/node_modules/hasenpfeffr/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', {
+  const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh', {
     timeout: 590000, // slightly less than the HTTP timeout
     maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
   }, (error, stdout, stderr) => {

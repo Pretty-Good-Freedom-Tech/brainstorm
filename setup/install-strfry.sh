@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Hasenpfeffr Strfry Installation Script
+# Brainstorm Strfry Installation Script
 # This script automates the installation and configuration of Strfry Nostr relay
-# for the Hasenpfeffr project.
+# for the Brainstorm project.
 
 set -e  # Exit on error
 
@@ -12,7 +12,7 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "=== Hasenpfeffr Strfry Installation ==="
+echo "=== Brainstorm Strfry Installation ==="
 echo "This script will install and configure Strfry Nostr relay"
 echo ""
 
@@ -22,12 +22,12 @@ STRFRY_DATA_DIR="/var/lib/strfry"
 STRFRY_CONF="/etc/strfry.conf"
 STRFRY_SERVICE="/etc/systemd/system/strfry.service"
 NGINX_CONF="/etc/nginx/sites-available/default"
-HASENPFEFFR_CONF="/etc/hasenpfeffr.conf"
+BRAINSTORM_CONF="/etc/brainstorm.conf"
 DOMAIN_NAME=""
 
 # Try to get domain name from config file
-if [ -f "$HASENPFEFFR_CONF" ]; then
-  source "$HASENPFEFFR_CONF"
+if [ -f "$BRAINSTORM_CONF" ]; then
+  source "$BRAINSTORM_CONF"
   if [ ! -z "$STRFRY_DOMAIN" ]; then
     DOMAIN_NAME="$STRFRY_DOMAIN"
     echo "Using domain name from configuration: $DOMAIN_NAME"
@@ -83,10 +83,10 @@ fi
 
 # Get relay pubkey from config if available
 RELAY_PUBKEY=""
-if [ -f "$HASENPFEFFR_CONF" ]; then
-  source "$HASENPFEFFR_CONF"
-  if [ ! -z "$HASENPFEFFR_RELAY_PUBKEY" ]; then
-    RELAY_PUBKEY="$HASENPFEFFR_RELAY_PUBKEY"
+if [ -f "$BRAINSTORM_CONF" ]; then
+  source "$BRAINSTORM_CONF"
+  if [ ! -z "$BRAINSTORM_RELAY_PUBKEY" ]; then
+    RELAY_PUBKEY="$BRAINSTORM_RELAY_PUBKEY"
     echo "Using relay pubkey from configuration"
   fi
 fi
@@ -197,7 +197,7 @@ cat > "$NGINX_CONF" << EOF
 server {
     server_name $DOMAIN_NAME;
     
-    # Hasenpfeffr Control Panel as main application
+    # Brainstorm Control Panel as main application
     location /control/ {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$host;
@@ -208,7 +208,7 @@ server {
         include /etc/nginx/mime.types;
     }
     
-    # moving Hasenpfeffr Control Panel to /
+    # moving Brainstorm Control Panel to /
     location / {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header Host \$host;
@@ -278,9 +278,9 @@ certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos --email "$SSL_EM
 
 echo ""
 echo "=== Strfry Installation Complete ==="
-echo "Strfry is now installed and configured for Hasenpfeffr"
+echo "Strfry is now installed and configured for Brainstorm"
 echo "You can access your relay at: https://$DOMAIN_NAME/strfry"
-echo "You can access hasenpfeffr at: https://$DOMAIN_NAME/index.html"
+echo "You can access brainstorm at: https://$DOMAIN_NAME/index.html"
 echo ""
 echo "To check the status of the strfry service, run:"
 echo "sudo systemctl is-active strfry"

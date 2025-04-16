@@ -16,8 +16,8 @@ function handleGetNeo4jConstraintsStatus(req, res) {
     console.log('Getting Neo4j constraints setup status...');
     
     try {
-        // Get the HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES from configuration
-        const constraintsTimestamp = parseInt(getConfigFromFile('HASENPFEFFR_CREATED_CONSTRAINTS_AND_INDEXES', '0'), 10);
+        // Get the BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES from configuration
+        const constraintsTimestamp = parseInt(getConfigFromFile('BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES', '0'), 10);
         
         // Return the status
         return res.json({

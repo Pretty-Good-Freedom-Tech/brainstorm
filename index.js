@@ -1,7 +1,7 @@
 /**
- * Hasenpfeffr - Nostr identity data publication system
+ * Brainstorm - Nostr identity data publication system
  * 
- * This is the main entry point for the Hasenpfeffr package.
+ * This is the main entry point for the Brainstorm package.
  * It exports the core functionality for generating and publishing
  * NIP-85 Trusted Assertions.
  */

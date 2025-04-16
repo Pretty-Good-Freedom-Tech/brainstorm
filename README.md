@@ -1,4 +1,4 @@
-# Brainstorm (rebranded from Hasenpfeffr)
+# Brainstorm (rebranded from Brainstorm)
 
 Brainstorm is a _Personalized Webs of Trust Nostr relay_ that uses advanced techniques to calculate personalized webs of trust, resulting in high-quality, spam-free nostr content, curated by _your_ Nostr community. It is currently in alpha and is not yet ready for production use.
 
@@ -7,7 +7,7 @@ Brainstorm is a _Personalized Webs of Trust Nostr relay_ that uses advanced tech
 - You and your friends can use your Brainstorm relay as a normal Nostr content relay, with spam and other unwanted content removed using state of the art WoT technology
 - Export personalized WoT scores as NIP-85 Trusted Assertions (kind 30382 events), ready for usage by all NIP-85-compliant clients
 
-<img src="docs/img/hasenpfeffr.png" width="100%" />
+<img src="docs/img/brainstorm.png" width="100%" />
 
 ## Features
 
@@ -43,12 +43,12 @@ The installation script will:
 2. Set up Neo4j constraints and indexes
 3. Install and configure a strfry nostr relay
 4. Configure systemd services; see `systemd/README.md` for details.
-5. Create configuration files: `/etc/hasenpfeffr.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`, `/etc/whitelist.conf`
+5. Create configuration files: `/etc/brainstorm.conf`, `/etc/graperank.conf`, `/etc/blacklist.conf`, `/etc/whitelist.conf`
 
 ## Update
 
 ```bash
-cd ~/hasenpfeffr
+cd ~/brainstorm
 sudo npm run update
 ```
 

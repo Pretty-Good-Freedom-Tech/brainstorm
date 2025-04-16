@@ -8,11 +8,11 @@ const path = require('path');
 const readline = require('readline');
 // const { Calculator } = require('/usr/local/lib/node_modules/graperank/src/Calculator/index.js');
 
-const TEMP_DIR = '/var/lib/hasenpfeffr/algos/importedGrapeRankEngine/tmp';
+const TEMP_DIR = '/var/lib/brainstorm/algos/importedGrapeRankEngine/tmp';
 const CONTEXT = 'verifiedUsers';
 const CONFIG_FILES = {
   graperank: '/etc/graperank.conf',
-  hasenpfeffr: '/etc/hasenpfeffr.conf'
+  brainstorm: '/etc/brainstorm.conf'
 };
 
 const observer = getPubkey();
@@ -37,8 +37,8 @@ function getCalculatorParams() : Partial<CalculatorParams> {
 }
 
 function getPubkey(){
-      // Load Hasenpfeffr config
-      return execSync(`source ${CONFIG_FILES.hasenpfeffr} && echo $HASENPFEFFR_OWNER_PUBKEY`, { 
+      // Load Brainstorm config
+      return execSync(`source ${CONFIG_FILES.brainstorm} && echo $BRAINSTORM_OWNER_PUBKEY`, { 
         shell: '/bin/bash',
         encoding: 'utf8' 
       }).trim();
@@ -200,27 +200,27 @@ async function updateNeo4j(scorecards : ScorecardsEntry[]) {
   }
 }
 
-// Get Neo4j configuration from hasenpfeffr.conf
+// Get Neo4j configuration from brainstorm.conf
 function getNeo4jConfig() {
   try {
-    // Load Neo4j connection details from hasenpfeffr.conf
-    const neo4jUri = execSync(`source ${CONFIG_FILES.hasenpfeffr} && echo $NEO4J_URI`, { 
+    // Load Neo4j connection details from brainstorm.conf
+    const neo4jUri = execSync(`source ${CONFIG_FILES.brainstorm} && echo $NEO4J_URI`, { 
       shell: '/bin/bash',
       encoding: 'utf8' 
     }).trim();
     
-    const neo4jUsername = execSync(`source ${CONFIG_FILES.hasenpfeffr} && echo $NEO4J_USER`, { 
+    const neo4jUsername = execSync(`source ${CONFIG_FILES.brainstorm} && echo $NEO4J_USER`, { 
       shell: '/bin/bash',
       encoding: 'utf8' 
     }).trim();
     
-    const neo4jPassword = execSync(`source ${CONFIG_FILES.hasenpfeffr} && echo $NEO4J_PASSWORD`, { 
+    const neo4jPassword = execSync(`source ${CONFIG_FILES.brainstorm} && echo $NEO4J_PASSWORD`, { 
       shell: '/bin/bash',
       encoding: 'utf8' 
     }).trim();
     
     if (!neo4jUri || !neo4jUsername || !neo4jPassword) {
-      throw new Error('Missing Neo4j connection details in hasenpfeffr.conf. Please ensure NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD are defined.');
+      throw new Error('Missing Neo4j connection details in brainstorm.conf. Please ensure NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD are defined.');
     }
     
     return {

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Hasenpfeffr Neo4j Installation Script
+# Brainstorm Neo4j Installation Script
 # This script automates the installation and configuration of Neo4j and associated tools
-# for the Hasenpfeffr project.
+# for the Brainstorm project.
 
 set -e  # Exit on error
 
@@ -12,16 +12,16 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "=== Hasenpfeffr Neo4j Installation ==="
+echo "=== Brainstorm Neo4j Installation ==="
 echo "This script will install and configure Neo4j, Graph Data Science, and APOC plugins"
-echo "Required for Hasenpfeffr to function properly"
+echo "Required for Brainstorm to function properly"
 echo ""
 
 # Configuration variables
 NEO4J_VERSION="1:5.26.3"
 GDS_VERSION="2.13.2"
 APOC_VERSION="5.26.2"
-HASENPFEFFR_CONF="/etc/hasenpfeffr.conf"
+BRAINSTORM_CONF="/etc/brainstorm.conf"
 NEO4J_CONF="/etc/neo4j/neo4j.conf"
 NEO4J_BACKUP="/etc/neo4j/neo4j.conf.backup"
 APOC_CONF="/etc/neo4j/apoc.conf"
@@ -151,13 +151,13 @@ rm -f "$CYPHER_FILE"
 
 echo ""
 echo "=== Neo4j Installation Complete ==="
-echo "Neo4j is now installed and configured for Hasenpfeffr"
+echo "Neo4j is now installed and configured for Brainstorm"
 echo "You can access the Neo4j Browser at http://your-server-ip:7474"
 echo "Default username: neo4j"
 echo "Default password: neo4j (you will be prompted to change this on first login)"
 echo ""
-echo "IMPORTANT: After changing the Neo4j password, update it in your Hasenpfeffr configuration:"
-echo "Edit $HASENPFEFFR_CONF and update the NEO4J_PASSWORD value"
+echo "IMPORTANT: After changing the Neo4j password, update it in your Brainstorm configuration:"
+echo "Edit $BRAINSTORM_CONF and update the NEO4J_PASSWORD value"
 echo ""
 echo "To verify the installation, access the Neo4j Browser and run:"
 echo "RETURN gds.version() - to verify Graph Data Science"

@@ -1,27 +1,27 @@
 {
-  "name": "hasenpfeffr",
+  "name": "Brainstorm",
   "version": "0.0.1-alpha",
   "description": "A Personalized Webs of Trust Nostr relay featuring the Grapevine",
   "main": "index.js",
   "bin": {
-    "hasenpfeffr-publish": "./bin/publish.js",
-    "hasenpfeffr-generate": "./bin/generate.js",
-    "hasenpfeffr-control-panel": "./bin/control-panel.js",
-    "hasenpfeffr-install": "./bin/install.js",
-    "hasenpfeffr-init-db": "./bin/init-db.sh"
+    "brainstorm-publish": "./bin/publish.js",
+    "brainstorm-generate": "./bin/generate.js",
+    "brainstorm-control-panel": "./bin/control-panel.js",
+    "brainstorm-install": "./bin/install.js",
+    "brainstorm-init-db": "./bin/init-db.sh"
   },
   "scripts": {
     "test": "node test/test.js",
     "generate": "node bin/generate.js",
     "publish": "node --expose-gc --max-old-space-size=4096 bin/publish.js",
     "control-panel": "node bin/control-panel.js",
-    "install-hasenpfeffr": "node bin/install.js",
+    "install-brainstorm": "node bin/install.js",
     "update": "node bin/update.js",
     "uninstall": "node bin/update.js --uninstall"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Prett-Good-Freedom-Tech/hasenpfeffr.git"
+    "url": "git+https://github.com/Prett-Good-Freedom-Tech/brainstorm.git"
   },
   "keywords": [
     "nostr",
@@ -40,9 +40,9 @@
   "author": "Prett-Good-Freedom-Tech",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/Prett-Good-Freedom-Tech/hasenpfeffr/issues"
+    "url": "https://github.com/Prett-Good-Freedom-Tech/brainstorm/issues"
   },
-  "homepage": "https://github.com/Prett-Good-Freedom-Tech/hasenpfeffr#readme",
+  "homepage": "https://github.com/Prett-Good-Freedom-Tech/brainstorm#readme",
   "dependencies": {
     "@nostr-dev-kit/ndk": "^2.12.0",
     "d3": "^7.9.0",

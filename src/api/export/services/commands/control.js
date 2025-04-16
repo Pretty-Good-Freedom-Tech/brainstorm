@@ -33,7 +33,7 @@ function handleSystemdServices(req, res) {
   const validServices = [
     'neo4j',
     'strfry',
-    'hasenpfeffr-control-panel',
+    'brainstorm-control-panel',
     'strfry-router',
     'addToQueue',
     'processQueue',

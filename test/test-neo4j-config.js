@@ -1,16 +1,16 @@
 /**
  * Test script for Neo4j configuration
  * 
- * This script tests the direct configuration loading from /etc/hasenpfeffr.conf
+ * This script tests the direct configuration loading from /etc/brainstorm.conf
  */
 
-// First, create a mock hasenpfeffr.conf file for testing
+// First, create a mock brainstorm.conf file for testing
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
 // Create a temporary test config file
-const testConfigPath = path.join(os.tmpdir(), 'test-hasenpfeffr.conf');
+const testConfigPath = path.join(os.tmpdir(), 'test-brainstorm.conf');
 fs.writeFileSync(testConfigPath, `
 # Test Neo4j Configuration
 export NEO4J_URI="bolt://localhost:7687"
@@ -24,7 +24,7 @@ const originalExecSync = require('child_process').execSync;
 
 // Override fs.existsSync to return true for our test config
 fs.existsSync = (path) => {
-  if (path === '/etc/hasenpfeffr.conf') {
+  if (path === '/etc/brainstorm.conf') {
     return true;
   }
   return originalExistsSync(path);
@@ -32,7 +32,7 @@ fs.existsSync = (path) => {
 
 // Override execSync to use our test config
 require('child_process').execSync = (cmd) => {
-  if (cmd.includes('source /etc/hasenpfeffr.conf')) {
+  if (cmd.includes('source /etc/brainstorm.conf')) {
     const varName = cmd.split('$')[1];
     if (varName === 'NEO4J_URI') return 'bolt://localhost:7687\n';
     if (varName === 'NEO4J_USER') return 'neo4j\n';

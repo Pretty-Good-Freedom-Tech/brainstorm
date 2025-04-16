@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Source configuration
-source /etc/hasenpfeffr.conf
+source /etc/brainstorm.conf
 
 # Path to queue directory
-QUEUE_DIR="/var/lib/hasenpfeffr/pipeline/stream/queue/"
+QUEUE_DIR="/var/lib/brainstorm/pipeline/stream/queue/"
 LOCK_FILE="/var/lock/processQueue.lock"
 
 # Ensure only one instance runs at a time
@@ -23,7 +23,7 @@ while true; do
         echo "$(date): There are $NUM_FILES events in the queue waiting to be processed"
 
         # Process one event
-        /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/updateNostrRelationships.sh
+        /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/updateNostrRelationships.sh
 
         # Short pause between processing to avoid overloading the system
         # sleep 1

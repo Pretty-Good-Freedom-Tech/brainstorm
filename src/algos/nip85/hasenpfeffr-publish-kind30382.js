@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Hasenpfeffr Publish Kind 30382 Events
+ * Brainstorm Publish Kind 30382 Events
  * 
  * This script publishes kind 30382 events for the top 5 users by personalizedPageRank
- * Each event is signed with the relay's private key (HASENPFEFFR_RELAY_PRIVKEY)
+ * Each event is signed with the relay's private key (BRAINSTORM_RELAY_PRIVKEY)
  * and published to the relay via WebSocket
  */
 
@@ -18,8 +18,8 @@ const WebSocket = require('ws');
 const { getConfigFromFile } = require('../../utils/config');
 
 // Get relay configuration
-const relayUrl = getConfigFromFile('HASENPFEFFR_RELAY_URL', '');
-const relayNsec = getConfigFromFile('HASENPFEFFR_RELAY_PRIVKEY', '');
+const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
+const relayNsec = getConfigFromFile('BRAINSTORM_RELAY_PRIVKEY', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
@@ -31,7 +31,7 @@ console.log(`Neo4j URI: ${neo4jUri}`);
 
 // Fallback relay URLs if the main one is not configured
 const fallbackRelays = [
-  'wss://relay.hasenpfeffr.com',
+  'wss://relay.brainstorm.com',
   'wss://profiles.nostr1.com',
   'wss://relay.nostr.band'
 ];
@@ -39,7 +39,7 @@ const fallbackRelays = [
 // Use fallback relay if the main one is not configured
 let primaryRelayUrl = relayUrl;
 if (!primaryRelayUrl) {
-  console.log('No relay URL configured in HASENPFEFFR_RELAY_URL, using fallback relay');
+  console.log('No relay URL configured in BRAINSTORM_RELAY_URL, using fallback relay');
   primaryRelayUrl = fallbackRelays[0];
 }
 
@@ -320,7 +320,7 @@ async function main() {
     console.log(`Found ${topUsers.length} users`);
     
     // Create data directory if it doesn't exist
-    const dataDir = '/var/lib/hasenpfeffr/data';
+    const dataDir = '/var/lib/brainstorm/data';
     const publishedDir = path.join(dataDir, 'published');
     
     if (!fs.existsSync(dataDir)) {

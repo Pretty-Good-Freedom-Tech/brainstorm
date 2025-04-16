@@ -1,9 +1,0 @@
-# Allow hasenpfeffr user to run strfry commands without a password
-hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/strfry
-hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-strfry-stats
-hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-negentropy-sync
-
-hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-control-panel
-hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-node
-
-hasenpfeffr ALL=(ALL) NOPASSWD: /usr/local/bin/hasenpfeffr-update-config

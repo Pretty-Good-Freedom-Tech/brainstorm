@@ -46,11 +46,11 @@ function handleGetGrapeRankConfig(req, res) {
             }
         });
         
-        // Get the owner pubkey from hasenpfeffr.conf
-        const ownerPubkey = getConfigFromFile('HASENPFEFFR_OWNER_PUBKEY', '');
+        // Get the owner pubkey from brainstorm.conf
+        const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
         
         // Add the owner pubkey to the config object
-        config.HASENPFEFFR_OWNER_PUBKEY = ownerPubkey;
+        config.BRAINSTORM_OWNER_PUBKEY = ownerPubkey;
         
         return res.json({
             success: true,

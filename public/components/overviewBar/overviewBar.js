@@ -1,7 +1,7 @@
 /**
- * Hasenpfeffr Instance Status Overview Bar
+ * Brainstorm Instance Status Overview Bar
  * 
- * This component displays key metrics about the Hasenpfeffr instance status
+ * This component displays key metrics about the Brainstorm instance status
  * in a compact, collapsible bar that can be included in any page.
  */
 
@@ -17,7 +17,7 @@ class OverviewBar {
      * Initialize the overview bar
      */
     initialize() {
-        console.log('Initializing Hasenpfeffr Overview Bar');
+        console.log('Initializing Brainstorm Overview Bar');
         this.setupListeners();
         this.applyCollapseState();
         this.fetchInstanceStatus();

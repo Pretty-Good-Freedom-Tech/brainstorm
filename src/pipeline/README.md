@@ -37,7 +37,7 @@ Located in the `reconcile/` directory, this component ensures consistency betwee
 
 ## Configuration
 
-All components read configuration from `/etc/hasenpfeffr.conf`, which should contain:
+All components read configuration from `/etc/brainstorm.conf`, which should contain:
 
 ```bash
 # Neo4j connection details
@@ -46,7 +46,7 @@ NEO4J_USER="neo4j"
 NEO4J_PASSWORD="your_password"
 
 # Relay URL
-HASENPFEFFR_RELAY_URL="wss://your-relay-url"
+BRAINSTORM_RELAY_URL="wss://your-relay-url"
 ```
 
 ## Directory Structure
@@ -76,31 +76,31 @@ pipeline/
 
 1. Start the queue listener:
    ```bash
-   node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/addToQueue.mjs
+   node /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/addToQueue.mjs
    ```
 
 2. Start the queue processor:
    ```bash
-   /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/stream/processQueue.sh
+   /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/processQueue.sh
    ```
 
 ### Batch Processing
 
 Run the batch processor to process all event kinds:
 ```bash
-/usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/processNostrEvents.sh
+/usr/local/lib/node_modules/brainstorm/src/pipeline/batch/processNostrEvents.sh
 ```
 
 ### Reconciliation
 
 1. Create the reconciliation queue:
    ```bash
-   node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/createReconciliationQueue.js
+   node /usr/local/lib/node_modules/brainstorm/src/pipeline/reconcile/createReconciliationQueue.js
    ```
 
 2. Process the reconciliation queue:
    ```bash
-   node /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/reconcile/processReconciliationQueue.js
+   node /usr/local/lib/node_modules/brainstorm/src/pipeline/reconcile/processReconciliationQueue.js
    ```
 
 ## Relationship Properties

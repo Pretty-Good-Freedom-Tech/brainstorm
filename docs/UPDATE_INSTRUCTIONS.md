@@ -5,7 +5,7 @@
 The easiest way to update is to use the built-in update script:
 
 ```bash
-cd ~/hasenpfeffr
+cd ~/brainstorm
 sudo npm run update
 ```
 
@@ -21,7 +21,7 @@ If you prefer to do a manual update, follow these steps below. NOTE: this overwr
 cd ~
 
 # Stop services
-sudo systemctl stop hasenpfeffr-control-panel
+sudo systemctl stop brainstorm-control-panel
 sudo systemctl stop addToQueue
 sudo systemctl stop processQueue
 sudo systemctl stop strfry-router
@@ -32,14 +32,14 @@ sudo systemctl stop calculatePersonalizedPageRank.timer
 sudo systemctl stop calculatePersonalizedGrapeRank.timer
 
 # Remove configuration files
-sudo rm /etc/hasenpfeffr.conf
+sudo rm /etc/brainstorm.conf
 sudo rm /etc/blacklist.conf
 sudo rm /etc/whitelist.conf
 sudo rm /etc/graperank.conf
 sudo rm /etc/strfry-router.config
 
 # Remove service files
-sudo rm /etc/systemd/system/hasenpfeffr-control-panel.service
+sudo rm /etc/systemd/system/brainstorm-control-panel.service
 sudo rm /etc/systemd/system/addToQueue.service
 sudo rm /etc/systemd/system/processQueue.service
 sudo rm /etc/systemd/system/strfry-router.service
@@ -55,23 +55,23 @@ sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.timer
 
 # Remove data and application files
-sudo rm -r /var/lib/hasenpfeffr
-sudo rm -r /usr/local/lib/node_modules/hasenpfeffr
+sudo rm -r /var/lib/brainstorm
+sudo rm -r /usr/local/lib/node_modules/brainstorm
 sudo rm -r /usr/local/lib/strfry
 
-sudo rm /usr/local/bin/hasenpfeffr-control-panel
-sudo rm /usr/local/bin/hasenpfeffr-strfry-stats
-sudo rm /usr/local/bin/hasenpfeffr-negentropy-sync
-sudo rm /usr/local/bin/hasenpfeffr-update-config
-sudo rm /usr/local/bin/hasenpfeffr-generate
-sudo rm /usr/local/bin/hasenpfeffr-install
-sudo rm /usr/local/bin/hasenpfeffr-node
-sudo rm /usr/local/bin/hasenpfeffr-publish
+sudo rm /usr/local/bin/brainstorm-control-panel
+sudo rm /usr/local/bin/brainstorm-strfry-stats
+sudo rm /usr/local/bin/brainstorm-negentropy-sync
+sudo rm /usr/local/bin/brainstorm-update-config
+sudo rm /usr/local/bin/brainstorm-generate
+sudo rm /usr/local/bin/brainstorm-install
+sudo rm /usr/local/bin/brainstorm-node
+sudo rm /usr/local/bin/brainstorm-publish
 
 sudo rm /var/lock/processQueue.lock
 
 # Remove home directory files
-sudo rm -r ~/hasenpfeffr
+sudo rm -r ~/brainstorm
 ```
 
 #### Step 2 (optional): Update System Packages
@@ -85,13 +85,13 @@ sudo apt upgrade -y
 #### Step 3: Install New Version
 
 ```bash
-# Clone the Hasenpfeffr repository
+# Clone the Brainstorm repository
 cd ~
-# git clone --single-branch --branch graperank-library https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
-git clone https://github.com/Pretty-Good-Freedom-Tech/hasenpfeffr.git
-cd hasenpfeffr
+# git clone --single-branch --branch graperank-library https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+cd brainstorm
 # Install dependencies
 npm install
 # Run the installation script
-sudo npm run install-hasenpfeffr
+sudo npm run install-brainstorm
 ```

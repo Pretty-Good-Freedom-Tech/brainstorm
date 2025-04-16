@@ -3,10 +3,10 @@
 # Script to process different types of Nostr events and update relationships in Neo4j
 # Handles kind 3 (FOLLOWS), kind 10000 (MUTES), and kind 1984 (REPORTS) events
 
-source /etc/hasenpfeffr.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 # Change to the directory containing the script
-cd /usr/local/lib/node_modules/hasenpfeffr/src/pipeline/batch/
+cd /usr/local/lib/node_modules/brainstorm/src/pipeline/batch/
 
 # Process each event kind
 process_event_kind() {
