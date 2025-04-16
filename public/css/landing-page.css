@@ -142,13 +142,12 @@ body {
 
 .profile-image {
     flex: 0 0 80px;
-    margin-right: 15px;
-    margin-bottom: 10px;
+    margin-right: 5px;
 }
 
 .profile-image img {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #b234bd;
@@ -200,8 +199,8 @@ body {
     }
     
     .profile-image img {
-        width: 60px;
-        height: 60px;
+        width: 90px;
+        height: 90px;
     }
     
     .profile-name {

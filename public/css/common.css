@@ -13,6 +13,12 @@ body {
 h1, h2, h3, h4 {
     color: #2c3e50;
 }
+
+.brainstorm-image {
+    height: 48px;
+    position: relative;
+    top: 10px;
+}
 /* CSS for sticky footer layout */
 .page-content {
     flex: 1 0 auto; /* This makes this div take up all available space */
