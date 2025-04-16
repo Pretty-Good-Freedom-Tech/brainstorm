@@ -88,6 +88,7 @@
     grid-template-columns: 1fr;
     gap: 15px;
     margin-top: 15px;
+    max-width: 100%;
 }
 .calculation-item {
     background-color: white;
@@ -96,11 +97,17 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     position: relative;
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
 }
 .calculation-item-content {
     flex: 1;
+    min-width: 200px; /* Ensures content has minimum width before wrapping */
+    max-width: 100%;
 }
 .calculation-item h4 {
     margin-top: 0;
@@ -108,7 +115,9 @@
     color: #3498db;
     font-size: 16px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 .calculation-item p {
     margin: 0;
@@ -129,6 +138,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 .action-btn {
     background-color: #3498db;
@@ -264,6 +274,29 @@
 }
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Media query for small screens */
+@media (max-width: 600px) {
+    .calculation-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .calculation-item-content {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .calculation-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .progress-container {
+        flex: 1;
+        max-width: calc(100% - 120px); /* Adjusts based on space needed for button and text */
+    }
 }
 
 /* Service Toggle Styles */
