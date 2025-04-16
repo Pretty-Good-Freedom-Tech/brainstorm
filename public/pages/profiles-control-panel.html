@@ -108,7 +108,7 @@
                         <th data-sort="pubkey">Pubkey</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
-                        <th data-sort="influence">Influence</th>
+                        <th data-sort="influence" class="sort-desc">Influence</th>
                         <th data-sort="average">Average</th>
                         <th data-sort="confidence">Confidence</th>
                         <th data-sort="input">Input</th>
@@ -138,10 +138,10 @@
             filters: {
                 pubkey: '',
                 minHops: '',
-                maxHops: '',
+                maxHops: '20',
                 minRank: '',
                 maxRank: '',
-                minInfluence: '',
+                minInfluence: '0.1',
                 maxInfluence: '',
                 minAverage: '',
                 maxAverage: '',
@@ -151,7 +151,7 @@
                 maxInput: ''
             },
             sorting: {
-                column: 'personalizedPageRank',
+                column: 'influence',
                 order: 'desc'
             }
         };
@@ -194,6 +194,10 @@
             // Initialize the page
             // Set up event listeners
             setupEventListeners();
+            
+            // Initialize filter fields with default values
+            filterMaxHops.value = state.filters.maxHops;
+            filterMinInfluence.value = state.filters.minInfluence;
             
             // Load initial data
             fetchProfiles();
