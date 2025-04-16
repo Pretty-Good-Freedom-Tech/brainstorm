@@ -9,17 +9,13 @@
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/footer/footer.js"></script>
 </head>
-<body>   
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+    
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container-landing">
-            <h1 class="landing-page-title">
-                <img src="/img/brainstorm010.svg" class="brainstorm-image" />
-                Brainstorm
-            </h1>
-            <h3>a personalized</h3>
-            <h1>Webs of Trust</h1>
-            <h2>Nostr relay</h2>
             <div class="relay-link-container">
                 <span id="relayLink">Loading relay information...</span>
                 <button id="copyRelayButton" class="copy-button" title="Copy relay address to clipboard">
@@ -35,14 +31,16 @@
                     </svg>
                 </a>
             </div>
+            <h3>a personalized</h3>
+            <h1>Webs of Trust</h1>
+            <h2>Nostr relay</h2>
+            <br/><br/>
             <h3>brought to you with 💜 by the Grapevine of:</h3>
+            
             <!-- Enhanced owner profile section -->
             <div id="ownerProfile" class="owner-profile">
                 <div class="profile-loading">Loading owner information...</div>
             </div>
-            <a href="/sign-in.html" class="btn secondary-btn" id="controlPanelLink">Owner Sign In</a>
-            <p>Start your own Brainstorm!</p>
-            <a href="/about.html" class="btn home-btn">Learn more</a>
         </div>
     </div>
     

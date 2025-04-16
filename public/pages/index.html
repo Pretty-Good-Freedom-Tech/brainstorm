@@ -9,13 +9,17 @@
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/footer/footer.js"></script>
 </head>
-<body>
-    <!-- Include the header component -->
-    <div id="headerContainer"></div>
-    
+<body>   
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container-landing">
+            <h1 class="landing-page-title">
+                <img src="/img/brainstorm010.svg" class="brainstorm-image" />
+                Brainstorm
+            </h1>
+            <h3>a personalized</h3>
+            <h1>Webs of Trust</h1>
+            <h2>Nostr relay</h2>
             <div class="relay-link-container">
                 <span id="relayLink">Loading relay information...</span>
                 <button id="copyRelayButton" class="copy-button" title="Copy relay address to clipboard">
@@ -31,16 +35,15 @@
                     </svg>
                 </a>
             </div>
-            <h3>a personalized</h3>
-            <h1>Webs of Trust</h1>
-            <h2>Nostr relay</h2>
-            <br/><br/>
             <h3>brought to you with 💜 by the Grapevine of:</h3>
-            
             <!-- Enhanced owner profile section -->
             <div id="ownerProfile" class="owner-profile">
                 <div class="profile-loading">Loading owner information...</div>
             </div>
+            <a href="/sign-in.html" class="btn secondary-btn" id="ownerSignInButton">Owner Sign In</a>
+            <a href="/home.html" class="btn secondary-btn" id="homeButton">Home</a>
+            <p>Start your own Brainstorm!</p>
+            <a href="/about.html" class="btn home-btn">Learn more</a>
         </div>
     </div>
     
@@ -49,6 +52,9 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication status
+            checkAuthStatus();
+            
             // Fetch owner information from the server
             fetch('/control/api/owner-info')
                 .then(response => {
@@ -151,6 +157,48 @@
                     document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading owner information</div>`;
                 });
         });
+        
+        // Add a copy functionality to the copy button
+        document.getElementById('copyRelayButton').addEventListener('click', function() {
+            const relayText = document.getElementById('relayLink').textContent;
+            navigator.clipboard.writeText(relayText).then(function() {
+                // Add visual feedback
+                const button = document.getElementById('copyRelayButton');
+                button.classList.add('copied');
+                setTimeout(function() {
+                    button.classList.remove('copied');
+                }, 1500);
+            });
+        });
+        
+        // Function to check authentication status and update button visibility
+        function checkAuthStatus() {
+            // Make a request to check if the user is authenticated
+            fetch('/control/api/auth/check')
+                .then(response => response.json())
+                .then(data => {
+                    const ownerSignInButton = document.getElementById('ownerSignInButton');
+                    const homeButton = document.getElementById('homeButton');
+                    
+                    if (data && data.authenticated) {
+                        // User is authenticated - hide sign in, show home
+                        if (ownerSignInButton) ownerSignInButton.style.display = 'none';
+                        if (homeButton) homeButton.style.display = 'inline-block';
+                    } else {
+                        // User is not authenticated - show sign in, hide home
+                        if (ownerSignInButton) ownerSignInButton.style.display = 'inline-block';
+                        if (homeButton) homeButton.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking authentication status:', error);
+                    // Default to showing sign-in button in case of errors
+                    const ownerSignInButton = document.getElementById('ownerSignInButton');
+                    const homeButton = document.getElementById('homeButton');
+                    if (ownerSignInButton) ownerSignInButton.style.display = 'inline-block';
+                    if (homeButton) homeButton.style.display = 'none';
+                });
+        }
     </script>
 </body>
 </html>
