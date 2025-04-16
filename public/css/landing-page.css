@@ -171,3 +171,36 @@ body {
     font-size: 14px;
     font-family: monospace;
 }
+.btn {
+    display: inline-block;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 10px 0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.btn:hover {
+    background-color: #555;
+}
+.secondary-btn {
+    background-color: #95a5a6;
+    text-decoration: none;
+    text-align: center;
+}
+
+.secondary-btn:hover {
+    background-color: #7f8c8d;
+}
+
+.home-btn {
+    background-color: #2ecc71;
+    text-decoration: none;
+    text-align: center;
+}
+
+.home-btn:hover {
+    background-color: #27ae60;
+}
