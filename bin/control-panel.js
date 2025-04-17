@@ -28,9 +28,13 @@ const { getConfigFromFile } = require('../src/utils/config');
 // Determine if we should use HTTPS (local development) or HTTP (behind proxy)
 let useHTTPS = process.env.USE_HTTPS === 'true';
 
-console.log('QWERTY A')
-console.log('Using HTTPS: ', useHTTPS);
-console.log('QWERTY B')
+try {
+    console.log('QWERTY A');
+    console.log('Using HTTPS: ', useHTTPS);
+    console.log('QWERTY B');
+  } catch (e) {
+    console.error('QWERTY Top-level error:', e);
+  }
 
 // Only load certificates if using HTTPS
 let credentials = null;
@@ -84,10 +88,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public'), {
     setHeaders: (res, path, stat) => {
         if (path.endsWith('.css')) {
-            console.log('Setting CSS MIME type for:', path);
+            console.log('QWERTY C', 'Setting CSS MIME type for:', path);
             res.set('Content-Type', 'text/css');
         } else if (path.endsWith('.js')) {
-            console.log('Setting JS MIME type for:', path);
+            console.log('QWERTY D', 'Setting JS MIME type for:', path);
             res.set('Content-Type', 'text/javascript');
         }
     }
@@ -103,14 +107,14 @@ app.use(session({
 
 // Helper function to serve HTML files
 function serveHtmlFile(filename, res) {
-    console.log(`[SERVER] Attempting to serve file: ${filename}`);
+    console.log('QWERTY E', `[SERVER] Attempting to serve file: ${filename}`);
     
     try {
         // Build all possible file paths to check
         const pagesPath = path.join(__dirname, '../public/pages', filename);
         const originalPath = path.join(__dirname, '../public', filename);
         
-        console.log(`[SERVER] Checking paths:
+        console.log('QWERTY F', `[SERVER] Checking paths:
             Pages path: ${pagesPath}
             Original path: ${originalPath}`);
         
@@ -118,19 +122,19 @@ function serveHtmlFile(filename, res) {
         const pagesExists = fs.existsSync(pagesPath);
         const originalExists = fs.existsSync(originalPath);
         
-        console.log(`[SERVER] File existence:
+        console.log('QWERTY G', `[SERVER] File existence:
             In pages directory: ${pagesExists}
             In original directory: ${originalExists}`);
         
         // Determine which file to serve
         if (pagesExists) {
-            console.log(`[SERVER] Serving from pages directory: ${pagesPath}`);
+            console.log('QWERTY H', `[SERVER] Serving from pages directory: ${pagesPath}`);
             res.sendFile(pagesPath);
         } else if (originalExists) {
-            console.log(`[SERVER] Serving from original directory: ${originalPath}`);
+            console.log('QWERTY I', `[SERVER] Serving from original directory: ${originalPath}`);
             res.sendFile(originalPath);
         } else {
-            console.log(`[SERVER] File not found in either location: ${filename}`);
+            console.log('QWERTY J', `[SERVER] File not found in either location: ${filename}`);
             res.status(404).send(`File not found: ${filename}<br>
                 Checked pages path: ${pagesPath}<br>
                 Checked original path: ${originalPath}`);
@@ -150,7 +154,7 @@ app.get('/', (req, res) => {
 // Generic handler for all HTML files
 app.get('/:filename.html', (req, res) => {
     const filename = req.params.filename + '.html';
-    console.log(`[SERVER] Route hit: /${filename}`);
+    console.log('QWERTY K', `[SERVER] Route hit: /${filename}`);
     serveHtmlFile(filename, res);
 });
 
@@ -162,7 +166,7 @@ api.register(app);
 
 // Start the server
 if (useHTTPS) {
-  console.log('Starting in HTTPS mode with credentials:', {
+  console.log('QWERTY L', 'Starting in HTTPS mode with credentials:', {
     keyLength: credentials.key.length,
     certLength: credentials.cert.length
   });
@@ -172,12 +176,12 @@ if (useHTTPS) {
     console.error('HTTPS server error:', err);
   });
   httpsServer.listen(port, () => {
-    console.log(`Brainstorm Control Panel running on HTTPS port ${port}`);
+    console.log('QWERTY M', `Brainstorm Control Panel running on HTTPS port ${port}`);
   });
 } else {
   const httpServer = http.createServer(app);
   httpServer.listen(port, () => {
-      console.log(`Brainstorm Control Panel running on HTTP port ${port}`);
+    console.log('QWERTY N', `Brainstorm Control Panel running on HTTP port ${port}`);
   });
 }
 
