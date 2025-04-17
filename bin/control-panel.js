@@ -9,6 +9,7 @@
 
 const express = require('express');
 const https = require('https');
+const http = require('http');
 const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
@@ -24,9 +25,23 @@ const api = require('../src/api');
 // Import centralized configuration utility
 const { getConfigFromFile } = require('../src/utils/config');
 
-const privateKey = fs.readFileSync(path.join(process.env.HOME, '.ssl', 'localhost.key'), 'utf8');
-const certificate = fs.readFileSync(path.join(process.env.HOME, '.ssl', 'localhost.crt'), 'utf8');
-const credentials = { key: privateKey, cert: certificate };
+// Determine if we should use HTTPS (local development) or HTTP (behind proxy)
+let useHTTPS = process.env.USE_HTTPS === 'true';
+
+// Only load certificates if using HTTPS
+let credentials = null;
+if (useHTTPS) {
+  try {
+    const privateKey = fs.readFileSync(path.join(process.env.HOME, '.ssl', 'localhost.key'), 'utf8');
+    const certificate = fs.readFileSync(path.join(process.env.HOME, '.ssl', 'localhost.crt'), 'utf8');
+    credentials = { key: privateKey, cert: certificate };
+    console.log('HTTPS credentials loaded successfully');
+  } catch (error) {
+    console.warn(`Warning: Could not load SSL certificates: ${error.message}`);
+    console.warn('Falling back to HTTP mode');
+    useHTTPS = false;
+  }
+}
 
 // Import configuration
 let config;
@@ -79,7 +94,7 @@ app.use(session({
     secret: getConfigFromFile('SESSION_SECRET', 'brainstorm-default-session-secret-please-change-in-production'),
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
+    cookie: { secure: useHTTPS } // Set to true if using HTTPS
 }));
 
 // Helper function to serve HTML files
@@ -141,11 +156,18 @@ app.use(authMiddleware);
 // Register API modules
 api.register(app);
 
-// Start the HTTPS server
-const httpsServer = https.createServer(credentials, app);
-httpsServer.listen(port, () => {
-    console.log(`Brainstorm Control Panel running on HTTPS port ${port}`);
-});
+// Start the server
+if (useHTTPS) {
+  const httpsServer = https.createServer(credentials, app);
+  httpsServer.listen(port, () => {
+      console.log(`Brainstorm Control Panel running on HTTPS port ${port}`);
+  });
+} else {
+  const httpServer = http.createServer(app);
+  httpServer.listen(port, () => {
+      console.log(`Brainstorm Control Panel running on HTTP port ${port}`);
+  });
+}
 
 // Export utility functions for testing and reuse
 module.exports = {
