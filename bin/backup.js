@@ -33,10 +33,36 @@ const SOURCE_DIRS = [
   '/usr/local/lib/strfry/plugins/data/'
 ];
 
+// Determine the actual user's home directory, even when run with sudo
+function getActualUserHome() {
+  // Check if running with sudo
+  if (process.env.SUDO_USER) {
+    try {
+      // Get the actual user's home directory
+      const username = process.env.SUDO_USER;
+      // Use the getent command to get the user's home directory
+      const homeDir = execSync(`getent passwd ${username} | cut -d: -f6`).toString().trim();
+      if (homeDir) {
+        return homeDir;
+      }
+    } catch (error) {
+      console.warn(`Warning: Could not determine home directory for ${process.env.SUDO_USER}: ${error.message}`);
+      console.warn('Falling back to current user home directory.');
+    }
+  }
+  
+  // Default to os.homedir() if SUDO_USER is not set or if there was an error
+  return os.homedir();
+}
+
 // Create timestamp for the backup folder
 const now = new Date();
 const timestamp = now.toISOString().replace(/:/g, '-').replace(/\..+/, '');
-const backupDir = path.join(os.homedir(), 'brainstorm-backups', `backup-${timestamp}`);
+const userHome = getActualUserHome();
+const backupDir = path.join(userHome, 'brainstorm-backups', `backup-${timestamp}`);
+
+// Log where we're backing up to
+console.log(`Using home directory: ${userHome}`);
 
 /**
  * Create a directory if it doesn't exist
