@@ -117,6 +117,7 @@ sudo rm /lib/systemd/system/strfry.service
 sudo apt remove strfry
 sudo rm /etc/strfry.conf
 sudo rm /etc/systemd/system/strfry.service
+sudo rm -rf ~/strfry
 sudo rm -rf /usr/local/lib/strfry # contains plugins, node_modules
 sudo rm -rf /usr/local/bin/strfry # contains strfry executable
 sudo rm -rf /var/lib/strfry # contains lmdb database

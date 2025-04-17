@@ -1,4 +1,5 @@
 ## TODO 17 Apr 2025
+- why strfry and neo4j are in /var/lib but brainstorm is in /usr/local/lib/node_modules
 - verified followers score
 - reinstall-from-backup script
 

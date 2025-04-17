@@ -28,6 +28,8 @@ const { getConfigFromFile } = require('../src/utils/config');
 // Determine if we should use HTTPS (local development) or HTTP (behind proxy)
 let useHTTPS = process.env.USE_HTTPS === 'true';
 
+console.log(`Using HTTPS: ${useHTTPS}`);
+
 // Only load certificates if using HTTPS
 let credentials = null;
 if (useHTTPS) {
@@ -158,9 +160,17 @@ api.register(app);
 
 // Start the server
 if (useHTTPS) {
+  console.log('Starting in HTTPS mode with credentials:', {
+    keyLength: credentials.key.length,
+    certLength: credentials.cert.length
+  });
   const httpsServer = https.createServer(credentials, app);
+  // Add error handling
+  httpsServer.on('error', (err) => {
+    console.error('HTTPS server error:', err);
+  });
   httpsServer.listen(port, () => {
-      console.log(`Brainstorm Control Panel running on HTTPS port ${port}`);
+    console.log(`Brainstorm Control Panel running on HTTPS port ${port}`);
   });
 } else {
   const httpServer = http.createServer(app);
