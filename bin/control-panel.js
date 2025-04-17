@@ -28,7 +28,9 @@ const { getConfigFromFile } = require('../src/utils/config');
 // Determine if we should use HTTPS (local development) or HTTP (behind proxy)
 let useHTTPS = process.env.USE_HTTPS === 'true';
 
-console.log(`Using HTTPS: ${useHTTPS}`);
+console.log('QWERTY A')
+console.log('Using HTTPS: ', useHTTPS);
+console.log('QWERTY B')
 
 // Only load certificates if using HTTPS
 let credentials = null;
