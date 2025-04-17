@@ -1,3 +1,11 @@
+## TODO 17 Apr 2025
+
+On installation, function setupStrfryPlugins in install.js, create universalWhitelist of pubkeys that should always be accepted by the brainstorm plugin. To include: owner pubkey, relay pubkey
+
+Create:
+- brainstorm.social landing page for Brainstorm. Basic info about Brainstorm. Links to sign up. List of client brainstorms and DIY brainstorms.
+- relay.brainstorm.social or pgft.brainstorm.social will be the first client relay. More client relays to follow.
+
 ## TODO 7 April 2025
 - import graperank calculation engine
 - fix Friends relays list in brainstorm.conf; set different relays for subcategories

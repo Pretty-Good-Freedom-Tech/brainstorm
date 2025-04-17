@@ -646,6 +646,11 @@ async function setupStrfryPlugins() {
           console.log(`Created empty JSON file ${destJsonFile}`);
         }
       });
+
+      // Create universalWhitelist_pubkeys.json
+      const universalWhitelistFile = path.join(pluginDataDir, 'universalWhitelist_pubkeys.json');
+      fs.writeFileSync(universalWhitelistFile, `["${ownerPubkey}", "${relayPubkey}"]`);
+      console.log(`Created universalWhitelist_pubkeys.json at ${universalWhitelistFile}`);
       
       // Update the plugin file to point to the correct JSON file paths
       if (fs.existsSync(destPluginFile)) {
