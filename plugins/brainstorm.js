@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
 const fs = require('node:fs');
+const { getConfigFromFile } = require('../src/utils/config');
+
+const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
+const relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', ''); 
 
 const whitelist_pubkeys = JSON.parse(fs.readFileSync('/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json', 'utf8'))
 
@@ -38,6 +42,16 @@ rl.on('line', (line) => {
 
     if (blacklist_pubkeys[req.event.pubkey]) {
         res.action = 'reject';
+    }
+
+    // always accept BRAINSTORM_OWNER_PUBKEY
+    if (req.event.pubkey === ownerPubkey) {
+        res.action = 'accept';
+    }
+
+    // always accept BRAINSTORM_RELAY_PUBKEY (e.g. kind 30382 events; DMs to owner; etc)
+    if (req.event.pubkey === relayPubkey) {
+        res.action = 'accept';
     }
 
     if (res.action == 'reject') {
