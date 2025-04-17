@@ -100,6 +100,17 @@ sudo npm run install-brainstorm
 
 After you enter the above-mentioned 3 pieces of information, get some coffee. This takes a while! (About 8 minutes in total for me using an AWS EC2 t2.large instance.)
 
+Work in progress to try to address NIP-07 issues: 
+
+If you're running locally, at this point, the server should run at `http://localhost`, `http://localhost:7778` or `http://localhost:7778/index.html`. However, NIP-07 such as nos2x may not be recognized. In this case, you can run the development server manually, which will start the control panel in HTTPS:
+
+```bash
+# Run the development server
+npm run dev
+```
+
+Now go to `https://localhost`, `https://localhost:7778` or `https://localhost:7778/index.html`. NIP-07 ought to work now.
+
 ## 4. Verify successful installation
 
 ### In the browser
