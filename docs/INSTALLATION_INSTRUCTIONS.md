@@ -4,7 +4,7 @@ We assume you have a registered domain that you will point to a remote server ru
 
 The following instructions are for setting up a new Amazon AWS EC2 instance to test the Brainstorm installation process. They can be adapted for other Linux distributions.
 
-## 1. Launch a New EC2 Instance
+## 1. Launch a New EC2 Instance (if not running locally)
 
 ### Recommended specifications:
 
@@ -55,7 +55,7 @@ Have the following 3 pieces of information ready:
 2. Your pubkey, e.g. `e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f`, i.e. the "owner" of the personal Webs of Trust relay. (TODO: give option of entering npub instead)
 3. A Neo4j password. Important! After installation, the first thing you will do is change the Neo4j password in the Neo4j browser (initial login: neo4j / neo4j). Brainstorm will need to know what this is. (TODO: ability to change password in the control panel.)
 
-### Step 1: System Preparation
+### 3.1: System Preparation
 
 ```bash
 # Update system packages
@@ -70,7 +70,20 @@ sudo apt install -y curl git pv
 sudo apt install -y nodejs npm
 ```
 
-### Step 2: Install Brainstorm
+### 3.2: If running locally, you will need to generate a self-signed certificate.
+
+```bash
+# Create a directory for your certificates
+mkdir -p ~/.ssl
+
+# Go to the directory
+cd ~/.ssl
+
+# Generate a private key and certificate
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout localhost.key -out localhost.crt
+```
+
+### 3.3: Install Brainstorm
 
 ```bash
 # Clone the Brainstorm repository

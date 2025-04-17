@@ -8,6 +8,7 @@
  */
 
 const express = require('express');
+const https = require('https');
 const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
@@ -22,6 +23,10 @@ const api = require('../src/api');
 
 // Import centralized configuration utility
 const { getConfigFromFile } = require('../src/utils/config');
+
+const privateKey = fs.readFileSync(path.join(process.env.HOME, '.ssl', 'localhost.key'), 'utf8');
+const certificate = fs.readFileSync(path.join(process.env.HOME, '.ssl', 'localhost.crt'), 'utf8');
+const credentials = { key: privateKey, cert: certificate };
 
 // Import configuration
 let config;
@@ -135,9 +140,11 @@ app.use(authMiddleware);
 
 // Register API modules
 api.register(app);
-// Start the server
-app.listen(port, () => {
-    console.log(`Brainstorm Control Panel running on port ${port}`);
+
+// Start the HTTPS server
+const httpsServer = https.createServer(credentials, app);
+httpsServer.listen(port, () => {
+    console.log(`Brainstorm Control Panel running on HTTPS port ${port}`);
 });
 
 // Export utility functions for testing and reuse
