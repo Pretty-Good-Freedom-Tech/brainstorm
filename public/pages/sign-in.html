@@ -33,10 +33,9 @@
                 
                 <div class="divider">OR</div>
                 
-                <p>You can access the control panel in read-only mode without signing in:</p>
+                <p>You can access the site in read-only mode without signing in:</p>
                 <div class="button-group">
                     <a href="/home.html" class="btn home-btn">Home</a>
-                    <a href="/control-panel.html" class="btn secondary-btn" id="controlPanelLink">Control Panel (Read-Only)</a>
                 </div>
             </div>
         </div>
@@ -48,7 +47,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const signInBtn = document.getElementById('signInBtn');
             const signInStatus = document.getElementById('signInStatus');
-            const controlPanelLink = document.getElementById('controlPanelLink');
             const nsecInput = document.getElementById('nsecInput');
             const showNsec = document.getElementById('showNsec');
             
@@ -57,11 +55,6 @@
                 showNsec.addEventListener('change', function() {
                     nsecInput.type = this.checked ? 'text' : 'password';
                 });
-            }
-            
-            // Update control panel link
-            if (controlPanelLink) {
-                controlPanelLink.href = '/control-panel.html';
             }
             
             // Check if NIP-07 extension is available

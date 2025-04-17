@@ -96,7 +96,7 @@ sudo systemctl stop neo4j
 sudo systemctl disable neo4j
 sudo rm /lib/systemd/system/neo4j.service
 sudo rm -rf /var/lib/neo4j
-sudo rm -rf /etc/neo4j
+sudo rm -rf /etc/neo4j # includes several configuration files including neo4j.conf
 ```
 
 **Optional - use one of the following; untested; use with extreme caution!!**
