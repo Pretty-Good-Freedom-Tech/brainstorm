@@ -1,6 +1,5 @@
 ## TODO 17 Apr 2025
-
-On installation, function setupStrfryPlugins in install.js, create universalWhitelist of pubkeys that should always be accepted by the brainstorm plugin. To include: owner pubkey, relay pubkey
+- backup, reinstall-from-backup scripts; brainstorm.conf, graperank.conf, blacklist.conf, whitelist.conf, whitelist_pubkeys.json, blacklist_pubkeys.json
 
 Create:
 - brainstorm.social landing page for Brainstorm. Basic info about Brainstorm. Links to sign up. List of client brainstorms and DIY brainstorms.
