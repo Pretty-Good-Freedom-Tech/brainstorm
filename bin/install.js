@@ -648,9 +648,11 @@ async function setupStrfryPlugins() {
       });
 
       // Create universalWhitelist_pubkeys.json
+      const relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
+      const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
       const universalWhitelistFile = path.join(pluginDataDir, 'universalWhitelist_pubkeys.json');
       fs.writeFileSync(universalWhitelistFile, `["${ownerPubkey}", "${relayPubkey}"]`);
-      console.log(`Created universalWhitelist_pubkeys.json at ${universalWhitelistFile}`);
+      console.log(`Created universalWhitelist_pubkeys.json at ${universalWhitelistFile}, including ${ownerPubkey} and ${relayPubkey}`);
       
       // Update the plugin file to point to the correct JSON file paths
       if (fs.existsSync(destPluginFile)) {
