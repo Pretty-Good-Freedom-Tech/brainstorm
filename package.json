@@ -18,7 +18,8 @@
     "install-brainstorm": "node bin/install.js",
     "update": "node bin/update.js",
     "uninstall": "node bin/update.js --uninstall",
-    "backup": "node bin/backup.js"
+    "backup": "node bin/backup.js",
+    "dev": "node bin/dev.js"
   },
   "repository": {
     "type": "git",
