@@ -33,12 +33,16 @@ sudo systemctl stop calculateHops.timer
 sudo systemctl stop calculatePersonalizedPageRank.timer
 sudo systemctl stop calculatePersonalizedGrapeRank.timer
 
-# Remove configuration files
-sudo rm /etc/brainstorm.conf
-sudo rm /etc/blacklist.conf
-sudo rm /etc/whitelist.conf
-sudo rm /etc/graperank.conf
-sudo rm /etc/strfry-router.config
+# Disable services
+sudo systemctl disable brainstorm-control-panel
+sudo systemctl disable addToQueue
+sudo systemctl disable processQueue
+sudo systemctl disable strfry-router
+sudo systemctl disable processAllTasks.timer
+sudo systemctl disable reconcile.timer
+sudo systemctl disable calculateHops.timer
+sudo systemctl disable calculatePersonalizedPageRank.timer
+sudo systemctl disable calculatePersonalizedGrapeRank.timer
 
 # Remove service files
 sudo rm /etc/systemd/system/brainstorm-control-panel.service
@@ -55,6 +59,14 @@ sudo rm /etc/systemd/system/calculatePersonalizedPageRank.service
 sudo rm /etc/systemd/system/calculatePersonalizedPageRank.timer
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.timer
+sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
+
+# Remove configuration files
+sudo rm /etc/brainstorm.conf
+sudo rm /etc/blacklist.conf
+sudo rm /etc/whitelist.conf
+sudo rm /etc/graperank.conf
+sudo rm /etc/strfry-router.config
 
 # Remove data and application files
 sudo rm -r /var/lib/brainstorm
@@ -74,6 +86,40 @@ sudo rm /var/lock/processQueue.lock
 
 # Remove home directory files
 sudo rm -r ~/brainstorm
+```
+
+Optional: uninstall neo4j
+
+```bash
+sudo neo4j stop
+sudo systemctl stop neo4j
+sudo systemctl disable neo4j
+sudo rm /lib/systemd/system/neo4j.service
+sudo rm -rf /var/lib/neo4j
+sudo rm -rf /etc/neo4j
+```
+
+**Optional - use one of the following; untested; use with extreme caution!!**
+
+```bash
+sudo apt purge neo4j 
+sudo apt remove neo4j
+sudo apt autoremove neo4j
+```
+
+**Optional - uninstall strfry - the following steps are untested; use with extreme caution!!**
+
+```bash
+sudo systemctl stop strfry
+sudo systemctl disable strfry
+sudo rm /lib/systemd/system/strfry.service
+
+sudo apt remove strfry
+sudo rm /etc/strfry.conf
+sudo rm /etc/systemd/system/strfry.service
+sudo rm -rf /usr/local/lib/strfry # contains plugins, node_modules
+sudo rm -rf /usr/local/bin/strfry # contains strfry executable
+sudo rm -rf /var/lib/strfry # contains lmdb database
 ```
 
 #### Step 2 (optional): Update System Packages
