@@ -1,5 +1,6 @@
 ## TODO 17 Apr 2025
-- backup, reinstall-from-backup scripts; brainstorm.conf, graperank.conf, blacklist.conf, whitelist.conf, whitelist_pubkeys.json, blacklist_pubkeys.json
+- verified followers score
+- reinstall-from-backup script
 
 Create:
 - brainstorm.social landing page for Brainstorm. Basic info about Brainstorm. Links to sign up. List of client brainstorms and DIY brainstorms.

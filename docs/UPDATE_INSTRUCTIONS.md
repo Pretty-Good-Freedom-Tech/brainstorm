@@ -9,6 +9,8 @@ cd ~/brainstorm
 sudo npm run update
 ```
 
+** 17 April 2025: currently may break -- recommend option 2 **
+
 NOTE: The update script preserves your owner pubkey, your relay nsec, your URL, and your Neo4j password, but erases your blacklist and whitelist files. However, strfry or Neo4j databases are not affected.
 
 ### Option 2: Manual Update Process

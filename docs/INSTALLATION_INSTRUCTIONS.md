@@ -95,7 +95,7 @@ After you enter the above-mentioned 3 pieces of information, get some coffee. Th
 2. Access the Neo4j Browser at `http://your-domain:7474` (note: not https!!)
    - Default credentials: `neo4j` / `neo4j`
    - Change password after first login to the password that you entered during installation
-3. Access the Brainstorm Control Panel at: `https://your-domain/control/index.html`
+3. Access the Brainstorm landing page at: `https://your-domain` or `https://your-domain/index.html`
 
 ### At the command line, 
 
