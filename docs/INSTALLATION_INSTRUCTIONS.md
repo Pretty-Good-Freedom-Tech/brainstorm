@@ -1,8 +1,6 @@
 # Installation of Brainstorm
 
-We assume you have a registered domain that you will point to a remote server running Brainstorm. Alternatively, you can run Brainstorm locally for testing purposes.
-
-The following instructions are for setting up a new Amazon AWS EC2 instance to test the Brainstorm installation process. They can be adapted for other Linux distributions.
+The following instructions provide an overview for setting up a new Amazon AWS EC2 instance. They can be adapted for other Linux distributions. You can run this locally on Ubuntu for testing purposes.
 
 ## 1. Launch a New EC2 Instance (if not running locally)
 
@@ -55,7 +53,7 @@ Have the following 3 pieces of information ready:
 2. Your pubkey, e.g. `e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f`, i.e. the "owner" of the personal Webs of Trust relay. (TODO: give option of entering npub instead)
 3. A Neo4j password. Important! After installation, the first thing you will do is change the Neo4j password in the Neo4j browser (initial login: neo4j / neo4j). Brainstorm will need to know what this is. (TODO: ability to change password in the control panel.)
 
-### 3.1: System Preparation
+### System Preparation
 
 ```bash
 # Update system packages
@@ -70,20 +68,7 @@ sudo apt install -y curl git pv
 sudo apt install -y nodejs npm
 ```
 
-### 3.2: If running locally, you will need to generate a self-signed certificate.
-
-```bash
-# Create a directory for your certificates
-mkdir -p ~/.ssl
-
-# Go to the directory
-cd ~/.ssl
-
-# Generate a private key and certificate
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout localhost.key -out localhost.crt
-```
-
-### 3.3: Install Brainstorm
+### Install Brainstorm
 
 ```bash
 # Clone the Brainstorm repository
@@ -100,9 +85,32 @@ sudo npm run install-brainstorm
 
 After you enter the above-mentioned 3 pieces of information, get some coffee. This takes a while! (About 8 minutes in total for me using an AWS EC2 t2.large instance.)
 
-Work in progress to try to address NIP-07 issues: 
+TROUBLESHOOTING: If you can access neo4j and strfry but you get a 502 error trying to access the Brainbstrom UX, you may need to troubleshoot and/or restart the brainstorm-control-panel service with one or more of the following commands:
 
-If you're running locally, at this point, the server should run at `http://localhost`, `http://localhost:7778` or `http://localhost:7778/index.html`. However, NIP-07 such as nos2x may not be recognized. In this case, you can run the development server manually, which will start the control panel in HTTPS:
+```bash
+sudo systemctl status brainstorm-control-panel
+sudo journalctl -u brainstorm-control-panel
+sudo systemctl restart brainstorm-control-panel
+```
+
+## OPTIONAL: local HTTPS
+
+If you're running locally, at this point, the server should run at `http://localhost`, `http://localhost:7778` or `http://localhost:7778/index.html`. If desired, you can generate a self-signed certificate to start brainstorm-control-panel systemd service in HTTPS and access via `https://localhost`.
+
+First, generate the certificate. 
+
+```bash
+# Create a directory for your certificates
+mkdir -p ~/.ssl
+
+# Go to the directory
+cd ~/.ssl
+
+# Generate a private key and certificate
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout localhost.key -out localhost.crt
+```
+
+Next, run the development server:
 
 ```bash
 # Run the development server
