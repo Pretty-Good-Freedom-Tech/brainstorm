@@ -12,13 +12,38 @@ This creates a backup of your configuration files in `~/brainstorm-backup`, incl
 
 ### Update Option 1: Uninstall then reinstall
 
+
+#### Step 1: Uninstall
+
 ```bash
 sudo npm run uninstall
 ```
 
 This will uninstall Brainstorm but leaves neo4j and strfry databases intact. All configuration files, owner pubkey, relay nsec, URL, Neo4j password, whitelist, and blacklist will be lost. 
 
-Next, follow the [installation instructions](INSTALLATION_INSTRUCTIONS.md) as before. The reinstallation process will proceed faster because strfry and neo4j will not need to be reinstalled.
+Next, install Brainstorm similarly to how you installed it previously (see [installation instructions](INSTALLATION_INSTRUCTIONS.md)). The reinstallation process will proceed faster because strfry and neo4j will not need to be reinstalled.
+
+#### Step 2 (optional): Update System Packages
+
+```bash
+# Update system packages
+sudo apt update
+sudo apt upgrade -y
+```
+
+#### Step 3: Install New Version
+
+```bash
+# Clone the Brainstorm repository
+cd ~
+# git clone --single-branch --branch graperank-library https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+cd brainstorm
+# Install dependencies
+npm install
+# Run the installation script
+sudo npm run install-brainstorm
+```
 
 ### Update Option 2: Full Update Script
 
