@@ -138,6 +138,9 @@ function register(app) {
     // PageRank endpoints
     app.post('/api/generate-pagerank', algos.pagerank.handleGeneratePageRank);
 
+    // Verified Followers endpoints
+    app.post('/api/generate-verified-followers', algos.verifiedFollowers.handleGenerateVerifiedFollowers);
+
     // Services endpoints
     app.get('/api/service-status', services.handleServiceStatus);
     app.get('/api/systemd-services', services.handleSystemdServices);

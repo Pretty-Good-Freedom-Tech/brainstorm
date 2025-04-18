@@ -6,11 +6,13 @@
 const hops = require('./hops');
 const pagerank = require('./pagerank');
 const graperank = require('./graperank');
+const verifiedFollowers = require('./verifiedFollowers');
 
 // Export modules directly with their namespaces
 module.exports = {
     // Export modules for nested access
     hops,
     pagerank,
-    graperank
+    graperank,
+    verifiedFollowers
 };

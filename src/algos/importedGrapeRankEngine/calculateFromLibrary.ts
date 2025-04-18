@@ -146,59 +146,6 @@ async function parseRatings() : Promise<RatingsList> {
   })
 }
 
-function parseRatings_deprecated() : RatingsList {
-  let ratings : RatingsList = [];
-  let protocols = getConfig();
-  protocols.forEach((params,protocol)=>{
-    const fileStream = fs.createReadStream(params.path);
-    const rl = readline.createInterface({
-      input: fileStream,
-      crlfDelay: Infinity
-    });
-
-    // Skip header line
-    let isFirstLine = true;
-
-    // Process each line
-    rl.on('line', (line : any) => {
-      if (isFirstLine) {
-        isFirstLine = false;
-        return;
-      }
-          
-      // Skip empty lines
-      if (!line.trim()) return;
-          
-      // Parse line (format: "pk_rater","pk_ratee")
-      const parts = line.split(',');
-      if (parts.length < 2) return;
-          
-      const pk_rater = parts[0].replace(/"/g, '').trim();
-      const pk_ratee = parts[1].replace(/"/g, '').trim();
-          
-      // Skip if either pubkey is empty
-      if (!pk_rater || !pk_ratee) return;
-          
-      // Skip self-ratings (where pk_ratee equals pk_rater)
-      if (pk_ratee === pk_rater) {
-        return;
-      }
-      
-      // Set the rating
-      // ratings[CONTEXT][pk_ratee][pk_rater] = [rating, confidence];
-      ratings.push({
-        protocol, 
-        ratee : pk_ratee,
-        rater : pk_rater,
-        score : params.score,
-        confidence : params.confidence,
-      } as Rating)
-    });
-
-  })
-  return ratings;
-}
-
 // Update Neo4j with GrapeRank scores
 async function updateNeo4j(scorecards : ScorecardsEntry[]) {
   const BATCH_SIZE = 500; // Number of users to update in a single batch

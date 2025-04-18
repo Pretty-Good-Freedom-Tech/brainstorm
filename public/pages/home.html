@@ -205,6 +205,20 @@
                             <span class="progress-text">0%</span>
                         </div>
                     </div>
+                    <div class="calculation-item">
+                        <div class="calculation-item-content">
+                            <h4>Verified Followers <span class="info-icon">i</span><span class="tooltip">Calculates the number of followers whose influence score is above a threshold.</span></h4>
+                            <p id="verifiedFollowers-last-calculation-time" class="timestamp"></p>
+                            <p id="verifiedFollowers-last-calculation-duration" class="duration"></p>
+                        </div>
+                        <div class="calculation-actions">
+                            <button class="action-btn">Run</button>
+                            <div class="progress-container">
+                                <div class="progress-bar"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                    </div>
                 </div>
                 <br/>
                 <h3>Webs of Trust Score Export</h3>
@@ -584,7 +598,7 @@
         
         function loadCalculationTimes() {
             // Show loading state for all calculation items
-            const calculationItems = ['hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'batchTransfer', 'reconciliation'];
+            const calculationItems = ['verifiedFollowers', 'hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'batchTransfer', 'reconciliation'];
             
             calculationItems.forEach(item => {
                 const element = document.getElementById(`${item}-last-calculation-time`);
@@ -961,6 +975,11 @@
                     endpoint: '/control/api/generate-graperank',
                     method: 'POST',
                     buttonText: 'Calculate GrapeRank'
+                },
+                'verifiedFollowers': {
+                    endpoint: '/control/api/generate-verified-followers',
+                    method: 'POST',
+                    buttonText: 'Calculate Verified Followers'
                 },
                 'blacklist': {
                     endpoint: '/control/api/generate-blacklist',

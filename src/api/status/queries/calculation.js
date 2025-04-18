@@ -20,6 +20,7 @@ function handleCalculationStatus(req, res) {
         
         // Define log files to check
         const logFiles = {
+            verifiedFollowers: `${logDir}/calculateVerifiedFollowers.log`,
             hops: `${logDir}/calculateHops.log`,
             pageRank: `${logDir}/calculatePersonalizedPageRank.log`,
             grapeRank: `${logDir}/calculatePersonalizedGrapeRank.log`,
