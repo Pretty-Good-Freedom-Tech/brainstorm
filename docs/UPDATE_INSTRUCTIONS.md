@@ -36,7 +36,7 @@ sudo apt upgrade -y
 ```bash
 # Clone the Brainstorm repository
 cd ~
-# git clone --single-branch --branch graperank-library https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+# git clone --single-branch --branch <branch-name> https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 cd brainstorm
 # Install dependencies
@@ -179,7 +179,7 @@ sudo apt upgrade -y
 ```bash
 # Clone the Brainstorm repository
 cd ~
-# git clone --single-branch --branch graperank-library https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+# git clone --single-branch --branch <branch-name> https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 cd brainstorm
 # Install dependencies
