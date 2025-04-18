@@ -1,6 +1,14 @@
 ## Update Process
 
-### Option 1: Full Update Script (Recommended)
+### Optional: BACKUP
+
+```bash
+sudo npm run backup
+```
+
+This creates a backup of your configuration files in `~/brainstorm-backup`, including your owner pubkey, relay nsec, URL, Neo4j password, blacklist, and whitelist. (Restore script is not yet implemented.)
+
+### Update Option 1: Full Update Script
 
 The easiest way to update is to use the built-in update script:
 
@@ -9,11 +17,9 @@ cd ~/brainstorm
 sudo npm run update
 ```
 
-** 17 April 2025: currently may break -- recommend option 2 **
-
 NOTE: The update script preserves your owner pubkey, your relay nsec, your URL, and your Neo4j password, but erases your blacklist and whitelist files. However, strfry or Neo4j databases are not affected.
 
-### Option 2: Manual Update Process
+### Update Option 2: Manual Update Process
 
 If you prefer to do a manual update, follow these steps below. NOTE: this overwrites your initial configuration, including your pubkey, relay nsec, URL, Neo4j password, as well as your blacklist and whitelist. However, strfry or Neo4j databases are not affected.
 
@@ -88,7 +94,7 @@ sudo rm /var/lock/processQueue.lock
 sudo rm -r ~/brainstorm
 ```
 
-Optional: uninstall neo4j
+**Optional: uninstall neo4j**
 
 ```bash
 sudo neo4j stop

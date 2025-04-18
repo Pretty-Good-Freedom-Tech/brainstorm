@@ -147,7 +147,7 @@ function removeFiles() {
   ];
   
   const directories = [
-    // '/usr/local/lib/strfry',
+    '/usr/local/lib/strfry',
     '/var/lib/brainstorm',
     '/usr/local/lib/node_modules/brainstorm',
     `${homeDir}/brainstorm`

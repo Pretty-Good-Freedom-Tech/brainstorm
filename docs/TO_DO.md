@@ -1,7 +1,11 @@
-## TODO 17 Apr 2025
+## TODO 18 Apr 2025
+- make sure brainstorm-control-panel service is running at installation
+- debug when negentropy steps seem to stop early when run locally
 - why strfry and neo4j are in /var/lib but brainstorm is in /usr/local/lib/node_modules
-- verified followers score
-- reinstall-from-backup script
+- create verified followers score
+- more rigorous verification of GrapeRank scores
+- create reinstall-from-backup script
+- make sure current relay pubkey matches with kind 10040 and 30382 events (may not be the case when updating destroys old relay nsec; so need to create reinstall-from-backup script)
 
 Create:
 - brainstorm.social landing page for Brainstorm. Basic info about Brainstorm. Links to sign up. List of client brainstorms and DIY brainstorms.
