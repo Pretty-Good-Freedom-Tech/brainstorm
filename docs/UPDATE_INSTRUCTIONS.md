@@ -62,6 +62,8 @@ If you prefer to do a manual update, follow these steps below. NOTE: this overwr
 
 #### Step 1: Uninstall Current Version
 
+In theory this should be exactly what `sudo npm run uninstall` does.
+
 ```bash
 cd ~
 

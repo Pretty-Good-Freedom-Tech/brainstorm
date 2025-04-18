@@ -6,6 +6,7 @@
 - more rigorous verification of GrapeRank scores
 - create reinstall-from-backup script
 - make sure current relay pubkey matches with kind 10040 and 30382 events (may not be the case when updating destroys old relay nsec; so need to create reinstall-from-backup script)
+- set neo4j password automatically during the installation process
 
 Create:
 - brainstorm.social landing page for Brainstorm. Basic info about Brainstorm. Links to sign up. List of client brainstorms and DIY brainstorms.
