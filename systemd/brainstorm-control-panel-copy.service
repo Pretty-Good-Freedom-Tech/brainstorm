@@ -5,8 +5,12 @@ After=network.target neo4j.service
 [Service]
 Type=simple
 User=brainstorm
+EnvironmentFile=/etc/brainstorm.conf
 ExecStart=/usr/local/bin/brainstorm-node /usr/local/lib/node_modules/brainstorm/bin/control-panel.js
 Restart=always
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/usr/local/lib/node_modules/brainstorm
 
 [Install]
 WantedBy=multi-user.target
