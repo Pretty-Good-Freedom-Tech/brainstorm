@@ -18,7 +18,7 @@
                 <h2>Sign In with Nostr</h2>
                 <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can perform administrative actions.</p>
                 
-                <button id="signInBtn" class="btn">Sign In with Nostr</button>
+                <button id="signInBtn" class="btn" disabled>Sign In with Nostr</button>
                 
                 <div class="nsec-input-container" style="margin-top: 20px;">
                     <p><strong>Optional:</strong> Provide your nsec (private key) for signing events. This is required for publishing kind 10040 events.</p>
@@ -29,7 +29,7 @@
                     </label>
                 </div>
                 
-                <div id="signInStatus" class="status"></div>
+                <div id="signInStatus" class="status">Checking for Nostr extension...</div>
                 
                 <div class="divider">OR</div>
                 
@@ -44,8 +44,10 @@
     <div id="footerContainer"></div>
 
     <script>
-        console.log(`window.nostr: ${window.nostr}`);
+        // Initialize UI elements and set up event handlers
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded: window.nostr status:', window.nostr ? 'Defined' : 'Undefined');
+            
             const signInBtn = document.getElementById('signInBtn');
             const signInStatus = document.getElementById('signInStatus');
             const nsecInput = document.getElementById('nsecInput');
@@ -58,15 +60,7 @@
                 });
             }
             
-            // Check if NIP-07 extension is available
-            if (typeof window.nostr === 'undefined') {
-                signInStatus.textContent = 'No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.';
-                signInStatus.className = 'status error';
-                signInStatus.style.display = 'block';
-                signInBtn.disabled = true;
-                return;
-            }
-            
+            // Set up the sign-in button click handler
             signInBtn.addEventListener('click', async function() {
                 signInBtn.disabled = true;
                 signInStatus.textContent = 'Authenticating... ';
@@ -178,6 +172,32 @@
                     signInBtn.disabled = false;
                 }
             });
+        });
+        
+        // Move Nostr extension check to window.load event
+        window.addEventListener('load', function() {
+            console.log('Window loaded: window.nostr status:', window.nostr ? 'Defined' : 'Undefined');
+            
+            const signInBtn = document.getElementById('signInBtn');
+            const signInStatus = document.getElementById('signInStatus');
+            
+            // Allow a short delay after window.load to ensure extension is fully initialized
+            setTimeout(() => {
+                // Check if NIP-07 extension is available
+                if (typeof window.nostr === 'undefined') {
+                    console.log('After delay: window.nostr is still undefined');
+                    signInStatus.textContent = 'No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.';
+                    signInStatus.className = 'status error';
+                    signInStatus.style.display = 'block';
+                    signInBtn.disabled = true;
+                } else {
+                    console.log('After delay: window.nostr is defined:', !!window.nostr);
+                    signInStatus.textContent = 'Nostr extension detected! You can now sign in.';
+                    signInStatus.className = 'status success';
+                    signInStatus.style.display = 'block';
+                    signInBtn.disabled = false;
+                }
+            }, 500); // 500ms delay after window.load for extra safety
         });
     </script>
 </body>
