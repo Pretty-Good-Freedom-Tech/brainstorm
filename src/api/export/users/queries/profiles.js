@@ -33,6 +33,8 @@ function handleGetProfiles(req, res) {
     const filterMaxConfidence = req.query.filterMaxConfidence || '';
     const filterMinInput = req.query.filterMinInput || '';
     const filterMaxInput = req.query.filterMaxInput || '';
+    const filterMinVerifiedFollowers = req.query.filterMinVerifiedFollowers || '';
+    const filterMaxVerifiedFollowers = req.query.filterMaxVerifiedFollowers || '';
     
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
@@ -101,6 +103,14 @@ function handleGetProfiles(req, res) {
       query += ` AND u.input <= ${parseFloat(filterMaxInput)}`;
     }
     
+    if (filterMinVerifiedFollowers) {
+      query += ` AND u.verifiedFollowerCount >= ${parseInt(filterMinVerifiedFollowers)}`;
+    }
+    
+    if (filterMaxVerifiedFollowers) {
+      query += ` AND u.verifiedFollowerCount <= ${parseInt(filterMaxVerifiedFollowers)}`;
+    }
+    
     if (filterPubkey) {
       query += ` AND u.pubkey CONTAINS '${filterPubkey}'`;
     }
@@ -120,7 +130,8 @@ function handleGetProfiles(req, res) {
              u.mutingCount as mutingCount,
              u.muterCount as muterCount,
              u.reportingCount as reportingCount,
-             u.reporterCount as reporterCount
+             u.reporterCount as reporterCount,
+             u.verifiedFollowerCount as verifiedFollowerCount
       ORDER BY u.${sortBy} ${sortOrder}
       SKIP ${(page - 1) * limit}
       LIMIT ${limit}
@@ -151,7 +162,8 @@ function handleGetProfiles(req, res) {
                     mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
                     muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
                     reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
-                    reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0
+                    reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0,
+                    verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0
                   };
                 });
                 

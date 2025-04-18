@@ -68,6 +68,12 @@ echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRank.sh com
 
 sleep 5
 
+sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateVerifiedFollowers.sh
+echo "$(date): Continuing processAllTasks; calculateVerifiedFollowers.sh completed"
+echo "$(date): Continuing processAllTasks; calculateVerifiedFollowers.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+sleep 5
+
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedBlacklist/calculatePersonalizedBlacklist.sh
 echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed"
 echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log

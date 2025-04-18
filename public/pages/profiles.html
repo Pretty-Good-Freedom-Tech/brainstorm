@@ -54,6 +54,7 @@
                     <tr class="header-row">
                         <th class="profile-pic-col">Pic</th>
                         <th data-sort="pubkey">Pubkey</th>
+                        <th data-sort="verifiedFollowerCount" class="sort-desc">Verified Followers</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
                         <th data-sort="influence" class="sort-desc">Influence</th>
@@ -65,6 +66,12 @@
                         <th></th>
                         <th>
                             <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinVerifiedFollowers" placeholder="Min" min="0" class="table-filter small-input">
+                                <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" min="0" class="table-filter small-input">
+                            </div>
                         </th>
                         <th>
                             <div class="filter-inputs">
@@ -142,7 +149,9 @@
                 minConfidence: '',
                 maxConfidence: '',
                 minInput: '',
-                maxInput: ''
+                maxInput: '',
+                minVerifiedFollowers: '',
+                maxVerifiedFollowers: ''
             },
             sorting: {
                 column: 'influence',
@@ -156,6 +165,7 @@
         let filterPubkey, filterMinHops, filterMaxHops, filterMinRank, filterMaxRank;
         let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
+        let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
         let limitSelect, applyFiltersBtn, resetFiltersBtn, refreshBtn, exportCsvBtn;
             
         document.addEventListener('DOMContentLoaded', function() {
@@ -180,6 +190,8 @@
             filterMaxConfidence = document.getElementById('filterMaxConfidence');
             filterMinInput = document.getElementById('filterMinInput');
             filterMaxInput = document.getElementById('filterMaxInput');
+            filterMinVerifiedFollowers = document.getElementById('filterMinVerifiedFollowers');
+            filterMaxVerifiedFollowers = document.getElementById('filterMaxVerifiedFollowers');
             limitSelect = document.getElementById('limitSelect');
             applyFiltersBtn = document.getElementById('applyFiltersBtn');
             resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -225,6 +237,8 @@
                 if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
                 if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
                 if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
+                if (state.filters.minVerifiedFollowers) params.append('filterMinVerifiedFollowers', state.filters.minVerifiedFollowers);
+                if (state.filters.maxVerifiedFollowers) params.append('filterMaxVerifiedFollowers', state.filters.maxVerifiedFollowers);
                 
                 // Fetch data from API
                 fetch(`/control/api/get-profiles?${params.toString()}`)
@@ -304,6 +318,8 @@
                     state.filters.maxConfidence = filterMaxConfidence.value.trim();
                     state.filters.minInput = filterMinInput.value.trim();
                     state.filters.maxInput = filterMaxInput.value.trim();
+                    state.filters.minVerifiedFollowers = filterMinVerifiedFollowers.value.trim();
+                    state.filters.maxVerifiedFollowers = filterMaxVerifiedFollowers.value.trim();
                     state.pagination.limit = parseInt(limitSelect.value);
                     state.pagination.page = 1; // Reset to first page
                     fetchProfiles();
@@ -323,6 +339,8 @@
                     filterMaxConfidence.value = '';
                     filterMinInput.value = '';
                     filterMaxInput.value = '';
+                    filterMinVerifiedFollowers.value = '';
+                    filterMaxVerifiedFollowers.value = '';
                     
                     state.filters.pubkey = '';
                     state.filters.minHops = '';
@@ -337,6 +355,8 @@
                     state.filters.maxConfidence = '';
                     state.filters.minInput = '';
                     state.filters.maxInput = '';
+                    state.filters.minVerifiedFollowers = '';
+                    state.filters.maxVerifiedFollowers = '';
                     state.pagination.limit = 100;
                     state.pagination.page = 1;
                     
@@ -396,6 +416,7 @@
                     row.appendChild(pubkeyCell);
                     
                     // Numeric data cells
+                    addNumericCell(row, profile.verifiedFollowerCount);
                     addNumericCell(row, profile.hops);
                     addNumericCell(row, profile.personalizedPageRank, 6);
                     addNumericCell(row, profile.influence, 6);
@@ -409,7 +430,7 @@
                 if (state.profiles.length === 0) {
                     const row = document.createElement('tr');
                     const cell = document.createElement('td');
-                    cell.colSpan = 8;
+                    cell.colSpan = 9;
                     cell.textContent = 'No profiles found matching the current filters';
                     cell.style.textAlign = 'center';
                     cell.style.padding = '20px';
@@ -664,6 +685,8 @@
                 if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
                 if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
                 if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
+                if (state.filters.minVerifiedFollowers) params.append('filterMinVerifiedFollowers', state.filters.minVerifiedFollowers);
+                if (state.filters.maxVerifiedFollowers) params.append('filterMaxVerifiedFollowers', state.filters.maxVerifiedFollowers);
                 
                 // Fetch all data for export
                 fetch(`/control/api/get-profiles?${params.toString()}`)
@@ -673,17 +696,21 @@
                             const profiles = data.data.users;
                             
                             // Create CSV header
-                            let csv = 'pubkey,hops,personalizedPageRank,influence,average,confidence,input\n';
+                            let csv = 'Pubkey,VerifiedFollowers,Hops,PageRank,Influence,Average,Confidence,Input\n';
                             
-                            // Add rows
+                            // Add each profile as a row
                             profiles.forEach(profile => {
-                                csv += `"${profile.pubkey}",`;
-                                csv += `${profile.hops || ''},`;
-                                csv += `${profile.personalizedPageRank || ''},`;
-                                csv += `${profile.influence || ''},`;
-                                csv += `${profile.average || ''},`;
-                                csv += `${profile.confidence || ''},`;
-                                csv += `${profile.input || ''}\n`;
+                                const row = [
+                                    `"${profile.pubkey}"`,
+                                    profile.verifiedFollowerCount,
+                                    profile.hops,
+                                    profile.personalizedPageRank,
+                                    profile.influence,
+                                    profile.average,
+                                    profile.confidence,
+                                    profile.input
+                                ];
+                                csv += row.join(',') + '\n';
                             });
                             
                             // Create download link
