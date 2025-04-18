@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nostr Extension Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #b234bd;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #e6f7e6;
+            border: 1px solid #c3e6c3;
+            color: #2e7d32;
+        }
+        .error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+        .pending {
+            background-color: #fff8e1;
+            border: 1px solid #ffe082;
+            color: #f57f17;
+        }
+        .neutral {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1565c0;
+        }
+        button {
+            background-color: #b234bd;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #9c2da7;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .nav-links {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .nav-links a {
+            margin: 0 10px;
+            color: #b234bd;
+            text-decoration: none;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        #delaySlider {
+            margin-top: 10px;
+            width: 100%;
+        }
+        .delay-controls {
+            margin-top: 10px;
+        }
+        .delay-value {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nostr Extension Detection Test</h1>
+    
+    <!-- Test 1: Immediate Check -->
+    <div class="test-container">
+        <div class="test-header">
+            Test 1: Immediate Check
+            <button id="test1Button">Run Test</button>
+        </div>
+        <p>Checks for window.nostr immediately when the page loads.</p>
+        <div id="test1Result" class="test-result neutral">Not run yet</div>
+    </div>
+    
+    <!-- Test 2: Delayed Check -->
+    <div class="test-container">
+        <div class="test-header">
+            Test 2: Delayed Check
+            <div class="test-buttons">
+                <button id="test2Button">Run Test</button>
+            </div>
+        </div>
+        <p>Checks for window.nostr after a delay to allow the extension to initialize.</p>
+        <div class="delay-controls">
+            <label for="delaySlider">Delay: <span id="delayValue" class="delay-value">1000</span> ms</label>
+            <input type="range" id="delaySlider" min="0" max="5000" step="100" value="1000">
+        </div>
+        <div id="test2Result" class="test-result neutral">Not run yet</div>
+    </div>
+    
+    <!-- Test 3: Multiple Attempts -->
+    <div class="test-container">
+        <div class="test-header">
+            Test 3: Multiple Attempts
+            <button id="test3Button">Run Test</button>
+        </div>
+        <p>Attempts to detect window.nostr multiple times with increasing delays.</p>
+        <div id="test3Result" class="test-result neutral">Not run yet</div>
+    </div>
+    
+    <!-- Test 4: Get Public Key -->
+    <div class="test-container">
+        <div class="test-header">
+            Test 4: Get Public Key
+            <button id="test4Button">Run Test</button>
+        </div>
+        <p>Attempts to get your public key using window.nostr.getPublicKey().</p>
+        <div id="test4Result" class="test-result neutral">Not run yet</div>
+    </div>
+    
+    <!-- Console Output -->
+    <div class="test-container">
+        <div class="test-header">
+            Console Output
+            <button id="clearConsoleButton">Clear</button>
+        </div>
+        <div id="consoleOutput" class="test-result neutral">Console output will appear here</div>
+    </div>
+    
+    <div class="nav-links">
+        <a href="/index.html">Home</a>
+        <a href="/sign-in.html">Sign In Page</a>
+    </div>
+
+    <script>
+        // Initialize variables
+        let consoleOutput = [];
+        const consoleOutputElement = document.getElementById('consoleOutput');
+        
+        // Override console.log
+        const originalConsoleLog = console.log;
+        console.log = function() {
+            // Call the original console.log
+            originalConsoleLog.apply(console, arguments);
+            
+            // Format the arguments into a string
+            const message = Array.from(arguments).map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            // Add timestamp
+            const timestamp = new Date().toISOString().substring(11, 23);
+            const formattedMessage = `[${timestamp}] ${message}`;
+            
+            // Add to our console output array
+            consoleOutput.push(formattedMessage);
+            
+            // Update the UI
+            consoleOutputElement.textContent = consoleOutput.join('\n');
+        };
+        
+        // Log initial state
+        console.log('Page loaded. Initial window.nostr:', window.nostr ? 'Defined' : 'Undefined');
+        
+        // Update delay slider value
+        const delaySlider = document.getElementById('delaySlider');
+        const delayValue = document.getElementById('delayValue');
+        delaySlider.addEventListener('input', function() {
+            delayValue.textContent = this.value;
+        });
+        
+        // Test 1: Immediate Check
+        document.getElementById('test1Button').addEventListener('click', function() {
+            const resultElement = document.getElementById('test1Result');
+            resultElement.textContent = 'Checking...';
+            resultElement.className = 'test-result pending';
+            
+            console.log('Test 1: Checking window.nostr immediately');
+            
+            if (typeof window.nostr !== 'undefined') {
+                console.log('Test 1: window.nostr is defined');
+                resultElement.textContent = 'SUCCESS: window.nostr is defined';
+                resultElement.className = 'test-result success';
+            } else {
+                console.log('Test 1: window.nostr is undefined');
+                resultElement.textContent = 'ERROR: window.nostr is undefined';
+                resultElement.className = 'test-result error';
+            }
+        });
+        
+        // Test 2: Delayed Check
+        document.getElementById('test2Button').addEventListener('click', function() {
+            const resultElement = document.getElementById('test2Result');
+            const delay = parseInt(delaySlider.value);
+            
+            resultElement.textContent = `Checking after ${delay}ms delay...`;
+            resultElement.className = 'test-result pending';
+            
+            console.log(`Test 2: Checking window.nostr after ${delay}ms delay`);
+            
+            setTimeout(() => {
+                if (typeof window.nostr !== 'undefined') {
+                    console.log(`Test 2: window.nostr is defined after ${delay}ms delay`);
+                    resultElement.textContent = `SUCCESS: window.nostr is defined after ${delay}ms delay`;
+                    resultElement.className = 'test-result success';
+                } else {
+                    console.log(`Test 2: window.nostr is undefined after ${delay}ms delay`);
+                    resultElement.textContent = `ERROR: window.nostr is undefined after ${delay}ms delay`;
+                    resultElement.className = 'test-result error';
+                }
+            }, delay);
+        });
+        
+        // Test 3: Multiple Attempts
+        document.getElementById('test3Button').addEventListener('click', function() {
+            const resultElement = document.getElementById('test3Result');
+            resultElement.textContent = 'Testing with multiple attempts...';
+            resultElement.className = 'test-result pending';
+            
+            console.log('Test 3: Checking window.nostr with multiple attempts');
+            
+            // Check immediately first
+            if (typeof window.nostr !== 'undefined') {
+                console.log('Test 3: window.nostr is defined immediately');
+                resultElement.textContent = 'SUCCESS: window.nostr is defined immediately';
+                resultElement.className = 'test-result success';
+                return;
+            }
+            
+            // Not found immediately, try multiple times with increasing delays
+            let attempts = 0;
+            const maxAttempts = 5;
+            const baseDelay = 500;
+            
+            function attemptCheck(attempt) {
+                const currentDelay = baseDelay * (attempt + 1);
+                console.log(`Test 3: Attempt ${attempt + 1}/${maxAttempts} with ${currentDelay}ms delay`);
+                
+                setTimeout(() => {
+                    if (typeof window.nostr !== 'undefined') {
+                        console.log(`Test 3: window.nostr is defined on attempt ${attempt + 1} after ${currentDelay}ms`);
+                        resultElement.textContent = `SUCCESS: window.nostr is defined on attempt ${attempt + 1} after ${currentDelay}ms`;
+                        resultElement.className = 'test-result success';
+                    } else if (attempt < maxAttempts - 1) {
+                        // Try again with longer delay
+                        attemptCheck(attempt + 1);
+                    } else {
+                        // All attempts failed
+                        console.log(`Test 3: window.nostr is undefined after all ${maxAttempts} attempts`);
+                        resultElement.textContent = `ERROR: window.nostr is undefined after all ${maxAttempts} attempts`;
+                        resultElement.className = 'test-result error';
+                    }
+                }, currentDelay);
+            }
+            
+            // Start attempts
+            attemptCheck(0);
+        });
+        
+        // Test 4: Get Public Key
+        document.getElementById('test4Button').addEventListener('click', function() {
+            const resultElement = document.getElementById('test4Result');
+            resultElement.textContent = 'Attempting to get public key...';
+            resultElement.className = 'test-result pending';
+            
+            console.log('Test 4: Attempting to get public key');
+            
+            if (typeof window.nostr === 'undefined') {
+                console.log('Test 4: window.nostr is undefined, cannot get public key');
+                resultElement.textContent = 'ERROR: window.nostr is undefined, cannot get public key';
+                resultElement.className = 'test-result error';
+                return;
+            }
+            
+            // Try to get public key
+            try {
+                window.nostr.getPublicKey()
+                    .then(pubkey => {
+                        console.log(`Test 4: Successfully got public key: ${pubkey}`);
+                        resultElement.textContent = `SUCCESS: Got public key: ${pubkey}`;
+                        resultElement.className = 'test-result success';
+                    })
+                    .catch(error => {
+                        console.log(`Test 4: Error getting public key: ${error.message}`);
+                        resultElement.textContent = `ERROR: Failed to get public key: ${error.message}`;
+                        resultElement.className = 'test-result error';
+                    });
+            } catch (error) {
+                console.log(`Test 4: Exception when calling getPublicKey: ${error.message}`);
+                resultElement.textContent = `ERROR: Exception when calling getPublicKey: ${error.message}`;
+                resultElement.className = 'test-result error';
+            }
+        });
+        
+        // Clear console
+        document.getElementById('clearConsoleButton').addEventListener('click', function() {
+            consoleOutput = [];
+            consoleOutputElement.textContent = 'Console cleared';
+        });
+        
+        // Window load event
+        window.addEventListener('load', function() {
+            console.log('Window load event fired. window.nostr:', window.nostr ? 'Defined' : 'Undefined');
+        });
+        
+        // DOM content loaded event
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded event fired. window.nostr:', window.nostr ? 'Defined' : 'Undefined');
+        });
+    </script>
+</body>
+</html>

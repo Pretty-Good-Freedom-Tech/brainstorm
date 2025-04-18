@@ -38,6 +38,7 @@ archived/
 archived2/
 node_modules/
 jspm_packages/
+related-repositories
 
 # TypeScript cache
 *.tsbuildinfo
