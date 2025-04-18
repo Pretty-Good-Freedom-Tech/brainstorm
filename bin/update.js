@@ -180,6 +180,9 @@ function removeFiles() {
       executeCommand(`sudo rm -r ${dir}`, { exitOnError: false });
     }
   }
+
+  // move back to home directory
+  executeCommand(`cd ${homeDir}`, { exitOnError: false });
 }
 
 // Install the new version

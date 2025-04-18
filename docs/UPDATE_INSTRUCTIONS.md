@@ -1,25 +1,37 @@
 ## Update Process
 
+There are 3 options to update Brainstorm. As of 18 April 2025, manual update is the most reliable, but uninstall-then-reinstall probably works and is easier.
+
 ### Optional: BACKUP
 
 ```bash
 sudo npm run backup
 ```
 
-This creates a backup of your configuration files in `~/brainstorm-backup`, including your owner pubkey, relay nsec, URL, Neo4j password, blacklist, and whitelist. (Restore script is not yet implemented.)
+This creates a backup of your configuration files in `~/brainstorm-backup`, including your owner pubkey, relay nsec, URL, Neo4j password, blacklist, and whitelist. (Restore-from-backup script is not yet implemented.)
 
-### Update Option 1: Full Update Script
+### Update Option 1: Uninstall then reinstall
 
-The easiest way to update is to use the built-in update script:
+```bash
+sudo npm run uninstall
+```
+
+This will uninstall Brainstorm but leaves neo4j and strfry databases intact. All configuration files, owner pubkey, relay nsec, URL, Neo4j password, whitelist, and blacklist will be lost. 
+
+Next, follow the [installation instructions](INSTALLATION_INSTRUCTIONS.md) as before. The reinstallation process will proceed faster because strfry and neo4j will not need to be reinstalled.
+
+### Update Option 2: Full Update Script
+
+_As of 18 April 2025, the update script is being rewritten; Update Options 1 or 3 are recommended._
+
+The easiest way to update will be to use the built-in update script:
 
 ```bash
 cd ~/brainstorm
 sudo npm run update
 ```
 
-NOTE: The update script preserves your owner pubkey, your relay nsec, your URL, and your Neo4j password, but erases your blacklist and whitelist files. However, strfry or Neo4j databases are not affected.
-
-### Update Option 2: Manual Update Process
+### Update Option 3: Manual Update Process
 
 If you prefer to do a manual update, follow these steps below. NOTE: this overwrites your initial configuration, including your pubkey, relay nsec, URL, Neo4j password, as well as your blacklist and whitelist. However, strfry or Neo4j databases are not affected.
 
