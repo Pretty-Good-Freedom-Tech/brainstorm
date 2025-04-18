@@ -15,14 +15,21 @@ const CONFIG_FILES = {
   brainstorm: '/etc/brainstorm.conf'
 };
 
-const observer = getPubkey();
-const ratings = parseRatings();
-const params = getCalculatorParams();
-const calculator = new Calculator(observer,ratings,params)
-calculator.calculate().then((scorecards) => {
-  console.log(`scorecards.length: ${scorecards.length}`)
-  updateNeo4j(scorecards);
-})
+async function main() {
+  const observer = getPubkey();
+  const ratings = await parseRatings();
+  const params = getCalculatorParams();
+  const calculator = new Calculator(observer,ratings,params)
+  await calculator.calculate().then((scorecards) => {
+    console.log(`scorecards.length: ${scorecards.length}`)
+    updateNeo4j(scorecards);
+  })
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
 
 function getCalculatorParams() : Partial<CalculatorParams> {
   const params = execSync(`source ${CONFIG_FILES.graperank} && echo $RIGOR,$ATTENUATION_FACTOR`, { 
@@ -76,7 +83,70 @@ function getConfig() : Map<protocol,ProtocolParams> {
   }
 }
 
-function parseRatings() : RatingsList {
+async function parseRatings() : Promise<RatingsList> {
+  return new Promise((resolve, reject) => {
+    try {
+      let ratings : RatingsList = [];
+      let protocols = getConfig();
+      protocols.forEach((params,protocol)=>{
+        const fileStream = fs.createReadStream(params.path);
+        const rl = readline.createInterface({
+          input: fileStream,
+          crlfDelay: Infinity
+        });
+
+        // Skip header line
+        let isFirstLine = true;
+
+        // Process each line
+        rl.on('line', (line : any) => {
+          if (isFirstLine) {
+            isFirstLine = false;
+            return;
+          }
+          
+          // Skip empty lines
+          if (!line.trim()) return;
+          
+          // Parse line (format: "pk_rater","pk_ratee")
+          const parts = line.split(',');
+          if (parts.length < 2) return;
+          
+          const pk_rater = parts[0].replace(/"/g, '').trim();
+          const pk_ratee = parts[1].replace(/"/g, '').trim();
+          
+          // Skip if either pubkey is empty
+          if (!pk_rater || !pk_ratee) return;
+          
+          // Skip self-ratings (where pk_ratee equals pk_rater)
+          if (pk_ratee === pk_rater) {
+            return;
+          }
+          
+          // Set the rating
+          // ratings[CONTEXT][pk_ratee][pk_rater] = [rating, confidence];
+          ratings.push({
+            protocol, 
+            ratee : pk_ratee,
+            rater : pk_rater,
+            score : params.score,
+            confidence : params.confidence,
+          } as Rating)
+        });
+        rl.on('close', () => {
+          resolve(ratings);
+        });
+        rl.on('error', (err : any) => {
+          reject(err);
+        });
+      })
+    } catch (error : any) {
+      reject(error);
+    }
+  })
+}
+
+function parseRatings_deprecated() : RatingsList {
   let ratings : RatingsList = [];
   let protocols = getConfig();
   protocols.forEach((params,protocol)=>{

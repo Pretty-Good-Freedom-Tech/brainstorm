@@ -49,32 +49,13 @@ var CONFIG_FILES = {
     graperank: '/etc/graperank.conf',
     brainstorm: '/etc/brainstorm.conf'
 };
-function main() {
-    return __awaiter(this, void 0, void 0, function () {
-        var observer, ratings, params, calculator;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    observer = getPubkey();
-                    return [4 /*yield*/, parseRatings()];
-                case 1:
-                    ratings = _a.sent();
-                    params = getCalculatorParams();
-                    calculator = new calculator_1.Calculator(observer, ratings, params);
-                    return [4 /*yield*/, calculator.calculate().then(function (scorecards) {
-                            console.log("scorecards.length: ".concat(scorecards.length));
-                            updateNeo4j(scorecards);
-                        })];
-                case 2:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-main().catch(function (error) {
-    console.error(error);
-    process.exit(1);
+var observer = getPubkey();
+var ratings = parseRatings();
+var params = getCalculatorParams();
+var calculator = new calculator_1.Calculator(observer, ratings, params);
+calculator.calculate().then(function (scorecards) {
+    console.log("scorecards.length: ".concat(scorecards.length));
+    updateNeo4j(scorecards);
 });
 function getCalculatorParams() {
     var params = (0, child_process_1.execSync)("source ".concat(CONFIG_FILES.graperank, " && echo $RIGOR,$ATTENUATION_FACTOR"), {
@@ -124,68 +105,6 @@ function getConfig() {
     }
 }
 function parseRatings() {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            return [2 /*return*/, new Promise(function (resolve, reject) {
-                    try {
-                        var ratings_1 = [];
-                        var protocols = getConfig();
-                        protocols.forEach(function (params, protocol) {
-                            var fileStream = fs.createReadStream(params.path);
-                            var rl = readline.createInterface({
-                                input: fileStream,
-                                crlfDelay: Infinity
-                            });
-                            // Skip header line
-                            var isFirstLine = true;
-                            // Process each line
-                            rl.on('line', function (line) {
-                                if (isFirstLine) {
-                                    isFirstLine = false;
-                                    return;
-                                }
-                                // Skip empty lines
-                                if (!line.trim())
-                                    return;
-                                // Parse line (format: "pk_rater","pk_ratee")
-                                var parts = line.split(',');
-                                if (parts.length < 2)
-                                    return;
-                                var pk_rater = parts[0].replace(/"/g, '').trim();
-                                var pk_ratee = parts[1].replace(/"/g, '').trim();
-                                // Skip if either pubkey is empty
-                                if (!pk_rater || !pk_ratee)
-                                    return;
-                                // Skip self-ratings (where pk_ratee equals pk_rater)
-                                if (pk_ratee === pk_rater) {
-                                    return;
-                                }
-                                // Set the rating
-                                // ratings[CONTEXT][pk_ratee][pk_rater] = [rating, confidence];
-                                ratings_1.push({
-                                    protocol: protocol,
-                                    ratee: pk_ratee,
-                                    rater: pk_rater,
-                                    score: params.score,
-                                    confidence: params.confidence,
-                                });
-                            });
-                            rl.on('close', function () {
-                                resolve(ratings_1);
-                            });
-                            rl.on('error', function (err) {
-                                reject(err);
-                            });
-                        });
-                    }
-                    catch (error) {
-                        reject(error);
-                    }
-                })];
-        });
-    });
-}
-function parseRatings_deprecated() {
     var ratings = [];
     var protocols = getConfig();
     protocols.forEach(function (params, protocol) {
@@ -234,7 +153,7 @@ function parseRatings_deprecated() {
 // Update Neo4j with GrapeRank scores
 function updateNeo4j(scorecards) {
     return __awaiter(this, void 0, void 0, function () {
-        var BATCH_SIZE, neo4jConfig, driver, session, i, batch, params, result, updatedCount, error_1;
+        var BATCH_SIZE, neo4jConfig, driver, session, i, batch, params_1, result, updatedCount, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -254,7 +173,7 @@ function updateNeo4j(scorecards) {
                     if (!(i < scorecards.length)) return [3 /*break*/, 5];
                     batch = scorecards.slice(i, i + BATCH_SIZE);
                     console.log("Processing batch ".concat(Math.floor(i / BATCH_SIZE) + 1, "/").concat(Math.ceil(scorecards.length / BATCH_SIZE), " (").concat(batch.length, " users)..."));
-                    params = {
+                    params_1 = {
                         updates: batch.map(function (entry) {
                             var weights = 0;
                             Object.keys(entry[1].interpretersums || {}).forEach(function (protocol) {
@@ -272,7 +191,7 @@ function updateNeo4j(scorecards) {
                             };
                         })
                     };
-                    return [4 /*yield*/, session.run("\n        UNWIND $updates AS update\n        MATCH (u:NostrUser {pubkey: update.pubkey})\n        SET u.influence_imported = update.influence,\n            u.average_imported = update.average,\n            u.confidence_imported = update.confidence,\n            u.input_imported = update.input\n        RETURN count(u) AS updatedCount\n      ", params)];
+                    return [4 /*yield*/, session.run("\n        UNWIND $updates AS update\n        MATCH (u:NostrUser {pubkey: update.pubkey})\n        SET u.influence_imported = update.influence,\n            u.average_imported = update.average,\n            u.confidence_imported = update.confidence,\n            u.input_imported = update.input\n        RETURN count(u) AS updatedCount\n      ", params_1)];
                 case 3:
                     result = _a.sent();
                     updatedCount = result.records[0].get('updatedCount').toNumber();
