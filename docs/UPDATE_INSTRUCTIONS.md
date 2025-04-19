@@ -105,7 +105,9 @@ sudo rm /etc/systemd/system/calculatePersonalizedPageRank.timer
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.timer
 sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
+```
 
+```bash
 # Remove configuration files
 sudo rm /etc/brainstorm.conf
 sudo rm /etc/blacklist.conf
