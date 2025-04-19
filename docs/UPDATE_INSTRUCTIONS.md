@@ -122,7 +122,6 @@ sudo rm /usr/local/bin/brainstorm-control-panel
 sudo rm /usr/local/bin/brainstorm-strfry-stats
 sudo rm /usr/local/bin/brainstorm-negentropy-sync
 sudo rm /usr/local/bin/brainstorm-update-config
-sudo rm /usr/local/bin/brainstorm-generate
 sudo rm /usr/local/bin/brainstorm-install
 sudo rm /usr/local/bin/brainstorm-node
 sudo rm /usr/local/bin/brainstorm-publish

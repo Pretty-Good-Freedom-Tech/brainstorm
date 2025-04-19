@@ -139,7 +139,6 @@ function removeFiles() {
     '/usr/local/bin/brainstorm-strfry-stats',
     '/usr/local/bin/brainstorm-negentropy-sync',
     '/usr/local/bin/brainstorm-update-config',
-    '/usr/local/bin/brainstorm-generate',
     '/usr/local/bin/brainstorm-install',
     '/usr/local/bin/brainstorm-node',
     '/usr/local/bin/brainstorm-publish',
