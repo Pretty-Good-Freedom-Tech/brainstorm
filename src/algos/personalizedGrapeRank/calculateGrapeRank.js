@@ -341,18 +341,19 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
 // Calculate maximum difference between two scorecard sets
 function calculateMaxDifference(scorecards1, scorecards2) {
   let max_diff = 0;
+  let pubkey_max_diff = '';
   
   for (const pk_ratee in scorecards1) {
     if (scorecards2[pk_ratee]) {
-      // Compare each parameter
-      for (let i = 0; i < 4; i++) {
-        const diff = Math.abs(scorecards1[pk_ratee][i] - scorecards2[pk_ratee][i]);
-        max_diff = Math.max(max_diff, diff);
+      const diff = Math.abs(scorecards1[pk_ratee][0] - scorecards2[pk_ratee][0]);
+      if (diff > max_diff) {
+        max_diff = diff;
+        pubkey_max_diff = pk_ratee;
       }
     }
   }
   
-  return max_diff;
+  return [max_diff, pubkey_max_diff];
 }
 
 // Generate metadata
@@ -392,6 +393,9 @@ async function main() {
     const scorecardsInitFile = path.join(TEMP_DIR, 'scorecards_init.json');
     const scorecardsFile = path.join(TEMP_DIR, 'scorecards.json');
     const metadataFile = path.join(TEMP_DIR, 'scorecards_metadata.json');
+    const debugFile = path.join(TEMP_DIR, 'debug.log');
+
+    let debug = `${new Date().toISOString()}: Starting GrapeRank calculation\n`;
     
     // Load ratings using streaming approach
     console.log(`Loading ratings from ${ratingsFile}...`);
@@ -478,13 +482,15 @@ async function main() {
       scorecards[config.BRAINSTORM_OWNER_PUBKEY] = [1, 1, 1, 9999];
       
       // Check for convergence
-      max_diff = calculateMaxDifference(scorecards, previous_scorecards);
+      [max_diff, pubkey_max_diff] = calculateMaxDifference(scorecards, previous_scorecards);
       console.log(`Maximum difference: ${max_diff}`);
       
       if (max_diff < CONVERGENCE_THRESHOLD) {
         converged = true;
         console.log(`Converged after ${iterations + 1} iterations`);
       }
+
+      debug += `${new Date().toISOString()}: Iteration ${iterations + 1}, max_diff: ${max_diff}, pubkey_max_diff: ${pubkey_max_diff}\n`;
       
       iterations++;
     }
@@ -499,6 +505,11 @@ async function main() {
     // Write metadata to file
     fs.writeFileSync(metadataFile, JSON.stringify(metadata, null, 2));
     console.log(`Wrote metadata to ${metadataFile}`);
+    
+    debug += `${new Date().toISOString()}: GrapeRank calculation completed\n`;
+    // Write debug log
+    fs.writeFileSync(debugFile, debug);
+    console.log(`Wrote debug log to ${debugFile}`);
     
     console.log(`GrapeRank calculation completed in ${metadata.calculation_time_ms}ms`);
   } catch (error) {
