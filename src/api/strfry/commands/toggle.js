@@ -59,7 +59,9 @@ async function handleToggleStrfryPlugin(req, res) {
             execSync(`sudo chmod +x ${pluginPath}`);
         }
         
+        /*
         // Update strfry.conf based on action
+        // This section is currently disabled; strfry-router-plugin.config handles the plugin configuration
         if (action === 'enable') {
             if (writePolicyMatch) {
                 // Update the existing plugin setting in the writePolicy section
@@ -97,6 +99,7 @@ async function handleToggleStrfryPlugin(req, res) {
                 }
             }
         }
+        */
         
         // Remove any incorrect relay.writePolicy.plugin line if it exists
         if (relayMatch) {
