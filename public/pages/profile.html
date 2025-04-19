@@ -35,6 +35,7 @@
                     </div>
                     <div class="profile-links" id="profileLinks">
                         <!-- Links will be added here -->
+                        <a id="profileNjumpLink" href="#" target="_blank">view on njump.me</a>
                     </div>
                 </div>
                 
@@ -168,6 +169,7 @@
         } else {
             // Configure GrapeRank Review link
             document.getElementById('grapeRankReviewLink').href = `graperank-calculations-review.html?pubkey=${pubkey}`;
+            document.getElementById('profileNjumpLink').href = `https://njump.me/${pubkey}`;
             
             // Base URL for API calls
             const baseUrl = '/api';
