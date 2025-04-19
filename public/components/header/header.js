@@ -99,6 +99,12 @@ function loadNavbar() {
     }
 
     if (
+        currentPath === '/personalizedRecommendations/index.html'
+    ) {
+        navbarPath = '/components/header/navbars/nav4.html';
+    }
+
+    if (
         currentPath === ''
         || currentPath === '/'
         || currentPath === '/index.html'
