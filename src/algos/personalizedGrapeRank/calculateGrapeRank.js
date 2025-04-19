@@ -345,14 +345,18 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
 function calculateMaxDifference(scorecards1, scorecards2) {
   let max_diff = 0;
   let pubkey_max_diff = '';
+  let current_diff = 0;
   
   for (const pk_ratee in scorecards1) {
     if (scorecards2[pk_ratee]) {
-      const diff = Math.abs(scorecards1[pk_ratee][0] - scorecards2[pk_ratee][0]);
-      if (diff > max_diff) {
-        max_diff = diff;
-        pubkey_max_diff = pk_ratee;
-      }
+      current_diff = Math.abs(scorecards1[pk_ratee][0] - scorecards2[pk_ratee][0]);
+    }
+    else {
+      current_diff = scorecards1[pk_ratee][0];
+    }
+    if (current_diff > max_diff) {
+      max_diff = current_diff;
+      pubkey_max_diff = pk_ratee;
     }
   }
   
