@@ -44,6 +44,9 @@ const CONFIG_FILES = {
   brainstorm: '/etc/brainstorm.conf'
 };
 
+// Debug pubkey: Pretty Good Freedom Tech. Track calculations for each iteration.
+const pubkey_debug = "53dab47395542b4df9c9d5b32934403b751f0a882e69bb8dd8a660df3a95f02d";
+
 // Get configuration values
 function getConfig() {
   try {
@@ -484,13 +487,22 @@ async function main() {
       // Check for convergence
       [max_diff, pubkey_max_diff] = calculateMaxDifference(scorecards, previous_scorecards);
       console.log(`Maximum difference: ${max_diff}`);
-      
+
+
       if (max_diff < CONVERGENCE_THRESHOLD) {
         converged = true;
         console.log(`Converged after ${iterations + 1} iterations`);
       }
 
-      debug += `${new Date().toISOString()}: Iteration ${iterations + 1}, max_diff: ${max_diff}, pubkey_max_diff: ${pubkey_max_diff}\n`;
+      // Debug: Track calculations for each iteration
+      if (pubkey_debug) {
+        const scorecard_current = scorecards[pubkey_debug];
+        const scorecard_previous = previous_scorecards[pubkey_debug];
+        console.log(`Debug pubkey ${pubkey_debug}: scorecard_previous: ${JSON.stringify(scorecard_previous)}, scorecard_current: ${JSON.stringify(scorecard_current)}`);
+        debug += `${new Date().toISOString()}: Debug pubkey ${pubkey_debug}; iteration: ${iterations}, scorecard_previous: ${JSON.stringify(scorecard_previous)}, scorecard_current: ${JSON.stringify(scorecard_current)}\n`;
+      }
+
+      debug += `${new Date().toISOString()}: Iteration ${iterations}, max_diff: ${max_diff}, pubkey_max_diff: ${pubkey_max_diff}\n`;
       
       iterations++;
     }
