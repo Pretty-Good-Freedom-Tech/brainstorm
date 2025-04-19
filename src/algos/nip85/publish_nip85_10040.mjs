@@ -475,7 +475,7 @@ async function main() {
     
     // Define data directories
     const dataDir = process.env.DATA_DIR || (process.env.NODE_ENV === 'production' ? '/var/lib/brainstorm/data' : './data');
-    const publishedDir = path.join(dataDir, 'published');
+    let publishedDir = path.join(dataDir, 'published');
     
     // Create directories if they don't exist
     if (!fs.existsSync(dataDir)) {
