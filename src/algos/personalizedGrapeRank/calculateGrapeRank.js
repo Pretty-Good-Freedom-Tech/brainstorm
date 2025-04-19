@@ -36,8 +36,8 @@ const { pipeline } = require('stream/promises');
 
 // Configuration
 const TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
-const MAX_ITERATIONS = 20;
-const CONVERGENCE_THRESHOLD = 0.0001; // Threshold for determining convergence
+const MAX_ITERATIONS = 60;
+const CONVERGENCE_THRESHOLD = 0.001; // Threshold for determining convergence; for any iteration, the change in influence score for every profile must be less than this threshold.
 const CONTEXT = 'verifiedUsers';
 const CONFIG_FILES = {
   graperank: '/etc/graperank.conf',
