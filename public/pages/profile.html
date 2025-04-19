@@ -4,144 +4,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainstorm</title>
-    <link rel="stylesheet" href="/control/css/profile.css">
+    <link rel="stylesheet" href="/css/profile.css">
+    <script src="./components/header/header.js"></script>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <script src="./components/footer/footer.js"></script>
 </head>
 <body>
     <!-- Include the header component -->
     <div id="headerContainer"></div>
     
-    <div class="container">
-        <div class="header-profile">
-            <h1>Nostr User Profile</h1>
-            <div class="nav-links">
-                <a href="/control">Control Panel</a>
-                <a href="/control/profiles">All Profiles</a>
-            </div>
-        </div>
-        
-        <div id="loadingIndicator" class="loading"></div>
-        
-        <div id="errorMessage" class="error-message" style="display: none;"></div>
-        
-        <div id="profileContainer" class="profile-container" style="display: none;">
-            <div class="profile-sidebar">
-                <img id="profilePicture" class="profile-picture" src="/img/default-avatar.png" alt="Profile Picture">
-                <div class="profile-info">
-                    <h2 id="displayName">Loading...</h2>
-                    <p id="username">@username</p>
-                    <p id="nip05" style="display: none;"></p>
-                    <div class="pubkey-display" id="pubkeyDisplay"></div>
-                </div>
-                <div class="profile-links" id="profileLinks">
-                    <!-- Links will be added here -->
-                </div>
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="header-profile">
+                <h1>Nostr User Profile</h1>
             </div>
             
-            <div class="profile-content">
-                <div class="profile-stats">
-                    <div class="stat-box">
-                        <h3>PageRank</h3>
-                        <p id="pageRankValue">-</p>
+            <div id="loadingIndicator" class="loading"></div>
+            
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            
+            <div id="profileContainer" class="profile-container" style="display: none;">
+                <div class="profile-sidebar">
+                    <img id="profilePicture" class="profile-picture" src="/img/default-avatar.png" alt="Profile Picture">
+                    <div class="profile-info">
+                        <h2 id="displayName">Loading...</h2>
+                        <p id="username">@username</p>
+                        <p id="nip05" style="display: none;"></p>
+                        <div class="pubkey-display" id="pubkeyDisplay"></div>
                     </div>
-                    <div class="stat-box">
-                        <h3>Hops</h3>
-                        <p id="hopsValue">-</p>
-                    </div>
-                    <div class="stat-box">
-                        <h3>Influence</h3>
-                        <p id="influenceValue">-</p>
-                        <p class="stat-link"><a href="#" id="grapeRankReviewLink">Review Calculations</a></p>
-                    </div>
-                    <div class="stat-box">
-                        <h3>Confidence</h3>
-                        <p id="confidenceValue">-</p>
+                    <div class="profile-links" id="profileLinks">
+                        <!-- Links will be added here -->
                     </div>
                 </div>
                 
-                <div class="profile-stats">
-                    <div class="stat-box">
-                        <h3>Following</h3>
-                        <p id="followingCountValue">-</p>
+                <div class="profile-content">
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <h3>PageRank</h3>
+                            <p id="pageRankValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Hops</h3>
+                            <p id="hopsValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Influence</h3>
+                            <p id="influenceValue">-</p>
+                            <p class="stat-link"><a href="#" id="grapeRankReviewLink">Review Calculations</a></p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Confidence</h3>
+                            <p id="confidenceValue">-</p>
+                        </div>
                     </div>
-                    <div class="stat-box">
-                        <h3>Followers</h3>
-                        <p id="followerCountValue">-</p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <h3>Following</h3>
+                            <p id="followingCountValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Followers</h3>
+                            <p id="followerCountValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Verified Followers<br/><h4>(influence > 0.05)</h4></h3>
+                            <p id="verifiedFollowerCountValue">-</p>
+                        </div>
                     </div>
-                    <div class="stat-box">
-                        <h3>Verified Followers<br/><h4>(influence > 0.05)</h4></h3>
-                        <p id="verifiedFollowerCountValue">-</p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <h3>Muting</h3>
+                            <p id="mutingCountValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Muters</h3>
+                            <p id="muterCountValue">-</p>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="profile-stats">
-                    <div class="stat-box">
-                        <h3>Muting</h3>
-                        <p id="mutingCountValue">-</p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <h3>Reporting</h3>
+                            <p id="reportingCountValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Reporters</h3>
+                            <p id="reporterCountValue">-</p>
+                        </div>
                     </div>
-                    <div class="stat-box">
-                        <h3>Muters</h3>
-                        <p id="muterCountValue">-</p>
+                    
+                    <div class="profile-about" id="aboutSection">
+                        <h3>About</h3>
+                        <p id="aboutText">No information available</p>
                     </div>
-                </div>
-                
-                <div class="profile-stats">
-                    <div class="stat-box">
-                        <h3>Reporting</h3>
-                        <p id="reportingCountValue">-</p>
+                    
+                    <div class="profile-metadata">
+                        <h3>Profile Metadata</h3>
+                        <table class="metadata-table" id="metadataTable">
+                            <tbody>
+                                <!-- Metadata will be added here -->
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="stat-box">
-                        <h3>Reporters</h3>
-                        <p id="reporterCountValue">-</p>
-                    </div>
-                </div>
-                
-                <div class="profile-about" id="aboutSection">
-                    <h3>About</h3>
-                    <p id="aboutText">No information available</p>
-                </div>
-                
-                <div class="profile-metadata">
-                    <h3>Profile Metadata</h3>
-                    <table class="metadata-table" id="metadataTable">
-                        <tbody>
-                            <!-- Metadata will be added here -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="network-visualization">
-                    <h3>Network Proximity Visualization</h3>
-                    <p><a href="network-visualization-lite.html?pubkey={{pubkey}}" id="networkLink" target="_blank">Open Network Visualization in New Tab</a> (Lite version to prevent server overload)</p>
-                    <div id="networkContainer" class="network-container">
-                        <div id="networkLoading" class="network-loading"></div>
-                        <div id="networkLegend" class="network-legend">
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #3498db;"></div>
-                                <span>Center (This User)</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #2ecc71;"></div>
-                                <span>Following</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #27ae60;"></div>
-                                <span>Followers</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #f39c12;"></div>
-                                <span>Muting</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #d35400;"></div>
-                                <span>Muters</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #e74c3c;"></div>
-                                <span>Reporting</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #c0392b;"></div>
-                                <span>Reporters</span>
+                    
+                    <div class="network-visualization">
+                        <h3>Network Proximity Visualization</h3>
+                        <p><a href="network-visualization-lite.html?pubkey={{pubkey}}" id="networkLink" target="_blank">Open Network Visualization in New Tab</a> (Lite version to prevent server overload)</p>
+                        <div id="networkContainer" class="network-container">
+                            <div id="networkLoading" class="network-loading"></div>
+                            <div id="networkLegend" class="network-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #3498db;"></div>
+                                    <span>Center (This User)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #2ecc71;"></div>
+                                    <span>Following</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #27ae60;"></div>
+                                    <span>Followers</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #f39c12;"></div>
+                                    <span>Muting</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #d35400;"></div>
+                                    <span>Muters</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #e74c3c;"></div>
+                                    <span>Reporting</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #c0392b;"></div>
+                                    <span>Reporters</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -149,6 +151,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- Footer container -->
+    <div id="footerContainer"></div>
     
     <!-- Include D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
