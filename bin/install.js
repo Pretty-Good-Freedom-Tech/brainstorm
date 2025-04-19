@@ -198,7 +198,15 @@ async function install() {
     await configureSudoPrivileges();
 
     // make sure brainstorm-control-panel is running
-    execSync('sudo systemctl restart brainstorm-control-panel');
+    console.log('Waiting for system to stabilize before starting services...');
+    execSync('sleep 5'); // 5-second delay
+    try {
+      execSync('sudo systemctl restart brainstorm-control-panel');
+      console.log('Successfully started brainstorm-control-panel service');
+    } catch (error) {
+      console.warn('Warning: Could not start service automatically. You may need to start it manually:');
+      console.warn('sudo systemctl restart brainstorm-control-panel');
+    }
     
     // Step 9: Final setup and instructions
     await finalSetup();
