@@ -6,6 +6,7 @@
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const { getConfigFromFile } = require('../../../../utils/config');
 
 /**
  * Publish Kind 30382 events
@@ -26,8 +27,11 @@ function handlePublishKind30382(req, res) {
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
+    // Get the base directory from config with fallback
+    const baseDir = getConfigFromFile('BRAINSTORM_MODULE_BASE_DIR', '/usr/local/lib/node_modules/brainstorm');
+    
     // Get the full path to the script
-    const scriptPath = path.join(process.cwd(), 'src/algos/nip85/brainstorm-publish-kind30382.js');
+    const scriptPath = path.join(baseDir, 'src/algos/nip85/brainstorm-publish-kind30382.js');
     console.log('Using script path:', scriptPath);
     
     // Send an initial response that the process has started
@@ -64,9 +68,12 @@ function handlePublishKind30382(req, res) {
     childProcess.on('close', (code) => {
         console.log(`Kind 30382 background process exited with code ${code}`);
         
+        // Get the base directory from config with fallback for logs
+        const baseDir = getConfigFromFile('BRAINSTORM_MODULE_BASE_DIR', '/usr/local/lib/node_modules/brainstorm');
+        
         // Save the output to a log file for debugging
         const timestamp = new Date().toISOString().replace(/:/g, '-');
-        const logDir = path.join(process.cwd(), 'logs');
+        const logDir = path.join(baseDir, 'logs');
         
         // Create logs directory if it doesn't exist
         if (!fs.existsSync(logDir)) {

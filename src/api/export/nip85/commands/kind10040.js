@@ -7,6 +7,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const { getConfigFromFile } = require('../../../../utils/config');
 
 /**
  * Create Kind 10040 events
@@ -27,8 +28,11 @@ function handleCreateKind10040(req, res) {
     // Set the response header to ensure it's always JSON
     res.setHeader('Content-Type', 'application/json');
     
+    // Get the base directory from config with fallback
+    const baseDir = getConfigFromFile('BRAINSTORM_MODULE_BASE_DIR', '/usr/local/lib/node_modules/brainstorm');
+    
     // Get the full path to the script
-    const scriptPath = path.join(process.cwd(), 'bin', 'brainstorm-create-kind10040.js');
+    const scriptPath = path.join(baseDir, 'bin', 'brainstorm-create-kind10040.js');
     console.log('Using script path:', scriptPath);
     
     // Set a timeout to ensure the response doesn't hang
@@ -139,8 +143,11 @@ function handlePublishKind10040(req, res) {
         const signedEventFile = path.join(publishedDir, `kind10040_${signedEvent.id.substring(0, 8)}_${Date.now()}.json`);
         fs.writeFileSync(signedEventFile, JSON.stringify(signedEvent, null, 2));
         
+        // Get the base directory from config with fallback
+        const baseDir = getConfigFromFile('BRAINSTORM_MODULE_BASE_DIR', '/usr/local/lib/node_modules/brainstorm');
+        
         // Execute the publish script with the signed event file
-        const scriptPath = path.join(process.cwd(), 'src', 'algos', 'nip85', 'publish_nip85_10040.mjs');
+        const scriptPath = path.join(baseDir, 'src', 'algos', 'nip85', 'publish_nip85_10040.mjs');
         
         // Run the script as a child process
         const child = spawn('node', [scriptPath], {
@@ -168,9 +175,12 @@ function handlePublishKind10040(req, res) {
         child.on('close', (code) => {
             console.log(`publish_nip85_10040.mjs exited with code ${code}`);
             
+            // Get the base directory from config with fallback for logs
+            const baseDir = getConfigFromFile('BRAINSTORM_MODULE_BASE_DIR', '/usr/local/lib/node_modules/brainstorm');
+            
             // Save the output to a log file for debugging
             const timestamp = new Date().toISOString().replace(/:/g, '-');
-            const logDir = path.join(process.cwd(), 'logs');
+            const logDir = path.join(baseDir, 'logs');
             
             // Create logs directory if it doesn't exist
             if (!fs.existsSync(logDir)) {
@@ -199,21 +209,17 @@ function handlePublishKind10040(req, res) {
             }
         });
         
-        // Unref the child to allow the parent process to exit independently
-        child.unref();
-        
-        // Return success response to the client
-        return res.json({
+        // Return success response
+        res.json({
             success: true,
-            message: 'Kind 10040 event publishing started',
-            file: signedEventFile
+            message: 'Kind 10040 event published. The process will continue in the background.'
         });
-        
     } catch (error) {
         console.error('Error publishing kind 10040 event:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            message: 'Error publishing kind 10040 event',
+            error: error.message
         });
     }
 }
