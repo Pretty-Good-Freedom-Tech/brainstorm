@@ -15,6 +15,7 @@
     "control-panel": "node bin/control-panel.js",
     "install-brainstorm": "node bin/install.js",
     "update-deprecated": "node bin/update-deprecated.js",
+    "update": "node bin/update.js",
     "uninstall": "node bin/update.js --uninstall",
     "backup": "node bin/backup.js",
     "restore-from-backup": "node bin/restore-from-backup.js",
