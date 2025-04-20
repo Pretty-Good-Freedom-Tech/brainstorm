@@ -211,7 +211,7 @@ function performRestore() {
     console.log('\nRestoring configuration files:');
     TARGET_FILES.forEach(file => {
       const fileName = path.basename(file);
-      const backupPath = path.join(backupDir, fileName);
+      const backupPath = path.join(backupDir, 'etc', fileName);
       restoreFile(backupPath, file);
     });
     
