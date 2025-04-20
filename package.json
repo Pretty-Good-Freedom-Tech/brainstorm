@@ -16,7 +16,7 @@
     "install-brainstorm": "node bin/install.js",
     "update-deprecated": "node bin/update-deprecated.js",
     "update": "node bin/update.js",
-    "uninstall": "node bin/update.js --uninstall",
+    "uninstall": "node bin/update-deprecated.js --uninstall",
     "backup": "node bin/backup.js",
     "restore-from-backup": "node bin/restore-from-backup.js",
     "dev": "node bin/dev.js"
