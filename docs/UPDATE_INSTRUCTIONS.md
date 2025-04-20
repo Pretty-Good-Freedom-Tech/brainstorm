@@ -119,6 +119,7 @@ sudo rm /etc/strfry-router.config
 sudo rm -r /var/lib/brainstorm
 sudo rm -r /usr/local/lib/node_modules/brainstorm
 sudo rm -r /usr/local/lib/strfry
+sudo rm -r /var/log/brainstorm
 
 sudo rm /usr/local/bin/brainstorm-control-panel
 sudo rm /usr/local/bin/brainstorm-strfry-stats

@@ -30,7 +30,8 @@ const SOURCE_FILES = [
 ];
 
 const SOURCE_DIRS = [
-  '/usr/local/lib/strfry/plugins/data/'
+  '/usr/local/lib/strfry/plugins/data/',
+  '/var/log/brainstorm'
 ];
 
 // Determine the actual user's home directory, even when run with sudo
