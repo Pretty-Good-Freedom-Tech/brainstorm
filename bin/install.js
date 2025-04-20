@@ -20,6 +20,12 @@ const isUpdateMode = process.env.UPDATE_MODE === 'true' || process.env.UPDATE_MO
 console.log('\x1b[32m=== UPDATE_MODE env var: "' + process.env.UPDATE_MODE + '" ===\x1b[0m');
 console.log(isUpdateMode ? '\x1b[32m=== Running in Update Mode ===\x1b[0m' : '\x1b[32m=== Running in Fresh Installation Mode ===\x1b[0m');
 
+// Check for --use-default-config flag
+const useDefaultConfig = process.argv.includes('--use-default-config');
+if (useDefaultConfig) {
+  console.log('\x1b[32m=== Using Default Configuration (no prompts) ===\x1b[0m');
+}
+
 // Create readline interface for user input
 const rl = readline.createInterface({
   input: process.stdin,
@@ -336,21 +342,32 @@ async function createBrainstormConfigFile() {
       console.log('Will ask for missing values...');
     }
   } else {
-    // Fresh installation, ask for values
+    // Fresh installation, ask for values or use defaults
     defaultFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    
+    // Set default values if using default config
+    if (useDefaultConfig) {
+      domainName = 'localhost';
+      ownerPubkey = 'unassigned';
+      neo4jPassword = 'neo4j';
+      console.log('\x1b[36mUsing default values:\x1b[0m');
+      console.log(`Domain name: ${domainName}`);
+      console.log(`Owner pubkey: ${ownerPubkey}`);
+      console.log(`Neo4j password: ${neo4jPassword}`);
+    }
   }
   
-  // Get configuration values from user if not in environment or incomplete
-  if (!isUpdateMode || !domainName) {
+  // Get configuration values from user if not in environment or incomplete and not using defaults
+  if ((!isUpdateMode || !domainName) && !useDefaultConfig) {
     domainName = await askQuestion('Enter your domain name (e.g., relay.example.com; if running locally, leave blank for localhost): ');
     if (!domainName) { domainName = 'localhost'; };
   }
   
-  if (!isUpdateMode || !ownerPubkey) {
+  if ((!isUpdateMode || !ownerPubkey) && !useDefaultConfig) {
     ownerPubkey = await askQuestion('Enter your Brainstorm owner pubkey: ');
   }
   
-  if (!isUpdateMode || !neo4jPassword) {
+  if ((!isUpdateMode || !neo4jPassword) && !useDefaultConfig) {
     neo4jPassword = await askQuestion('Enter the password that you intend to use for Neo4j: ') || 'neo4j';
   }
   
@@ -362,8 +379,19 @@ async function createBrainstormConfigFile() {
   const sessionSecret = crypto.randomBytes(32).toString('hex');
   
   // Calculate owner's npub from hex pubkey
-  const ownerNpub = nip19.npubEncode(ownerPubkey);
-  
+  let ownerNpub;
+  try {
+    // Only attempt to calculate npub if ownerPubkey is in a valid format
+    if (ownerPubkey && ownerPubkey !== 'unassigned' && ownerPubkey.length === 64) {
+      ownerNpub = nip19.npubEncode(ownerPubkey);
+    } else {
+      ownerNpub = 'unassigned';
+    }
+  } catch (error) {
+    console.warn(`Warning: Could not calculate npub from pubkey "${ownerPubkey}": ${error.message}`);
+    ownerNpub = 'unassigned';
+  }
+
   // Create brainstorm configuration content
   const brainstormConfigContent = `# Brainstorm Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
@@ -1255,8 +1283,15 @@ async function finalSetup() {
 }
 
 // Helper function to ask questions
-function askQuestion(question) {
+async function askQuestion(question) {
   return new Promise((resolve) => {
+    // If using default config, don't actually prompt
+    if (useDefaultConfig) {
+      console.log(`Skipping prompt: ${question}`);
+      resolve('');
+      return;
+    }
+    
     rl.question(question, (answer) => {
       resolve(answer);
     });
