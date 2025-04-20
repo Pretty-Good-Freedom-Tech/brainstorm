@@ -5,8 +5,12 @@
  * 
  * This script performs a complete update of Brainstorm by:
  * 1. Creating a backup of the current configuration
- * 2. Installing/updating the application with default config
- * 3. Restoring the backed-up configuration
+ * 2. Uninstalling the current version
+ * 3. Downloading a fresh copy of the code
+ * 4. Installing dependencies
+ * 5. Installing Brainstorm with default config
+ * 6. Restoring the backed-up configuration
+ * 7. Restarting services
  * 
  * Usage:
  *   sudo npm run update
@@ -15,6 +19,7 @@
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 // Colors for console output
 const colors = {
@@ -31,6 +36,9 @@ const colors = {
 
 // Get package root directory
 const packageRoot = path.resolve(__dirname, '..');
+
+// Get temp directory for cloning
+const tempDir = path.join(os.tmpdir(), 'brainstorm-update-' + Date.now());
 
 // Timestamp for logging
 function timestamp() {
@@ -72,12 +80,76 @@ function createBackup() {
   }
 }
 
+// Uninstall existing version
+function uninstallExisting() {
+  log('Uninstalling existing Brainstorm installation...', colors.cyan);
+  try {
+    execSync('npm run uninstall', {
+      cwd: packageRoot,
+      stdio: 'inherit'
+    });
+    log('Uninstallation complete', colors.green);
+  } catch (error) {
+    log(`Uninstallation failed: ${error.message}`, colors.red);
+    throw new Error('Uninstallation step failed');
+  }
+}
+
+// Clone fresh repository
+function cloneFreshRepo() {
+  log('Downloading fresh copy of Brainstorm...', colors.cyan);
+  try {
+    // Create temp directory
+    fs.mkdirSync(tempDir, { recursive: true });
+    
+    // Clone the repository
+    execSync('git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git .', {
+      cwd: tempDir,
+      stdio: 'inherit'
+    });
+    
+    log('Repository cloned successfully', colors.green);
+    return tempDir;
+  } catch (error) {
+    log(`Repository cloning failed: ${error.message}`, colors.red);
+    throw new Error('Repository cloning step failed');
+  }
+}
+
+// Install dependencies
+function installDependencies(repoDir) {
+  log('Installing dependencies...', colors.cyan);
+  try {
+    // Get username of the actual user who ran sudo
+    const username = process.env.SUDO_USER;
+    
+    if (username) {
+      // Run npm install as the regular user, not as root
+      execSync(`sudo -u ${username} npm install`, {
+        cwd: repoDir,
+        stdio: 'inherit'
+      });
+    } else {
+      // Fallback if SUDO_USER is not available
+      execSync('npm install', {
+        cwd: repoDir,
+        stdio: 'inherit'
+      });
+    }
+    
+    log('Dependencies installed successfully', colors.green);
+  } catch (error) {
+    log(`Dependencies installation failed: ${error.message}`, colors.red);
+    throw new Error('Dependencies installation step failed');
+  }
+}
+
 // Install with default configuration
-function installWithDefaultConfig() {
+function installBrainstorm(repoDir) {
   log('Installing Brainstorm with default configuration...', colors.cyan);
   try {
-    execSync('node bin/install.js --use-default-config', { 
-      cwd: packageRoot,
+    execSync('npm run install-brainstorm -- --use-default-config', { 
+      cwd: repoDir,
       stdio: 'inherit',
       env: { ...process.env, UPDATE_MODE: 'true' } 
     });
@@ -132,9 +204,24 @@ function restartServices() {
   }
 }
 
+// Clean up temp directory
+function cleanUp(tempDir) {
+  if (tempDir && fs.existsSync(tempDir)) {
+    log('Cleaning up temporary files...', colors.cyan);
+    try {
+      execSync(`rm -rf "${tempDir}"`, { stdio: 'pipe' });
+      log('Cleanup complete', colors.green);
+    } catch (error) {
+      log(`Cleanup failed: ${error.message}`, colors.yellow);
+    }
+  }
+}
+
 // Main function
 async function main() {
   log('Starting Brainstorm update process', colors.bright + colors.magenta);
+  
+  let tempRepoDir = null;
   
   try {
     // Check if running as root
@@ -143,18 +230,36 @@ async function main() {
     // Step 1: Backup
     const backupDir = createBackup();
     
-    // Step 2: Install with default config
-    installWithDefaultConfig();
+    // Step 2: Uninstall existing version
+    uninstallExisting();
     
-    // Step 3: Restore from backup
+    // Step 3: Clone fresh repository
+    tempRepoDir = cloneFreshRepo();
+    
+    // Step 4: Install dependencies
+    installDependencies(tempRepoDir);
+    
+    // Step 5: Install Brainstorm with default config
+    installBrainstorm(tempRepoDir);
+    
+    // Step 6: Restore from backup
     restoreFromBackup(backupDir);
     
-    // Step 4: Restart services
+    // Step 7: Restart services
     restartServices();
+    
+    // Step 8: Clean up
+    cleanUp(tempRepoDir);
     
     log('Update process completed successfully!', colors.bright + colors.green);
   } catch (error) {
     log(`Update process failed: ${error.message}`, colors.bright + colors.red);
+    
+    // Still try to clean up temp directory if it exists
+    if (tempRepoDir) {
+      cleanUp(tempRepoDir);
+    }
+    
     process.exit(1);
   }
 }
