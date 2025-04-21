@@ -32,7 +32,6 @@ function handleServiceStatus(req, res) {
     'strfry-router',
     'addToQueue',
     'processQueue',
-    'processAllTasks',
     'reconcile.timer',
     'processAllTasks.timer',
     'calculateHops.timer',

@@ -78,6 +78,14 @@ for service in "${SERVICES[@]}"; do
     log "Removing $SERVICE_PATH..."
     rm -f "$SERVICE_PATH" "$SERVICE_PATH.service" || warn "Failed to remove $SERVICE_PATH"
   fi
+  # Remove timer files if service string ends with .timer
+  if [[ "$service" == *.timer ]]; then
+    TIMER_PATH="/etc/systemd/system/$service"
+    if [ -f "$TIMER_PATH" ]; then
+      log "Removing $TIMER_PATH..."
+      rm -f "$TIMER_PATH" || warn "Failed to remove $TIMER_PATH"
+    fi
+  fi
 done
 
 # Reload systemd
