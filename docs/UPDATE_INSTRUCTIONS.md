@@ -1,6 +1,6 @@
-## Update Process
+# Update Process
 
-There are multiple options to update Brainstorm.
+## Preparation (optional)
 
 ### Optional: BACKUP
 
@@ -10,7 +10,34 @@ sudo npm run backup
 
 This creates a backup of your configuration files in `~/brainstorm-backup`, including your owner pubkey, relay nsec, URL, Neo4j password, blacklist, and whitelist. (Restore-from-backup script is not yet implemented.)
 
-### Preferred option: manual update
+## Update
+
+There are multiple options to update Brainstorm, arranged from hands-off to hands-on.
+
+### Easiest option
+
+```bash
+cd ~/brainstorm
+sudo npm run update
+```
+
+This will prompt you to enter your domain name, owner pubkey, and Neo4j password.
+
+Alternatively, you can provide those values directly:
+
+```bash
+cd ~/brainstorm
+sudo npm run update -- --domainName=your-domain.com --ownerPubkey=your-key --neo4jPassword=your-password
+```
+
+Example: 
+
+```bash
+cd ~/brainstorm
+sudo npm run update -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
+```
+
+### Manual update
 
 Run without options; prompts will guide you through the process.
 
@@ -54,32 +81,7 @@ sudo npm run install-brainstorm -- --domainName=relay42.hasenpfeffr.com --ownerP
 sudo npm run restore-from-backup
 ```
 
-### Work in progress option
-
-**This option is not yet implemented.**
-
-```bash
-cd ~/brainstorm
-sudo npm run update
-```
-
-This will prompt you to enter your domain name, owner pubkey, and Neo4j password.
-
-Alternatively, you can provide those values directly:
-
-```bash
-cd ~/brainstorm
-sudo npm run update -- --domainName=your-domain.com --ownerPubkey=your-key --neo4jPassword=your-password
-```
-
-Example: 
-
-```bash
-cd ~/brainstorm
-sudo npm run update -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
-```
-
-### Update Option 1: Uninstall then reinstall
+### Uninstall then reinstall
 
 
 #### Step 1: Uninstall
@@ -114,18 +116,7 @@ npm install
 sudo npm run install-brainstorm
 ```
 
-### Update Option 2: Full Update Script
-
-_As of 18 April 2025, the update script is being rewritten; Update Options 1 or 3 are recommended._
-
-The easiest way to update will be to use the built-in update script:
-
-```bash
-cd ~/brainstorm
-sudo npm run update
-```
-
-### Update Option 3: Manual Update Process
+### Full Manual Update Process
 
 If you prefer to do a manual update, follow these steps below. NOTE: this overwrites your initial configuration, including your pubkey, relay nsec, URL, Neo4j password, as well as your blacklist and whitelist. However, strfry or Neo4j databases are not affected.
 
