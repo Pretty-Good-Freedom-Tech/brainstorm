@@ -19,7 +19,7 @@ for reportType in ${REPORT_TYPES[@]}; do
     cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "
 MATCH (a:NostrUser)-[r:REPORTS {report_type: '$reportType'}]->(u:NostrUser)
 WITH u, SUM(a.influence) AS influenceTotal, COUNT(r) AS totalReportCount
-SET u.${reportType}_grapeRankScore = influenceTotal, u.${reportType}_totalCount = totalReportCount
+SET u.nip56_${reportType}_grapeRankScore = influenceTotal, u.nip56_${reportType}_totalCount = totalReportCount
 RETURN COUNT(u) AS numReportedUsers")
     numReportedUsers="${cypherResults1:11}"
     echo "$(date): for reportType: $reportType; numReportedUsers: $numReportedUsers"
@@ -29,7 +29,7 @@ RETURN COUNT(u) AS numReportedUsers")
 MATCH (a:NostrUser)-[r:REPORTS {report_type: '$reportType'}]->(u:NostrUser)
 WHERE a.influence > 0.1
 WITH u, COUNT(r) AS verifiedReportCount
-SET u.${reportType}_verifiedCount = verifiedReportCount
+SET u.nip56_${reportType}_verifiedCount = verifiedReportCount
 RETURN COUNT(u) AS numReportedUsers")
     numReportedUsers="${cypherResults2:11}"
     echo "$(date): for reportType: $reportType; numReportedUsers: $numReportedUsers"
