@@ -14,7 +14,6 @@
     "publish": "node --expose-gc --max-old-space-size=4096 bin/publish.js",
     "control-panel": "node bin/control-panel.js",
     "install-brainstorm": "node bin/install.js",
-    "update-deprecated": "node bin/update-deprecated.js",
     "update": "node bin/update.js",
     "uninstall": "bash bin/uninstall.sh",
     "backup": "node bin/backup.js",
