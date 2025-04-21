@@ -20,7 +20,21 @@ cd ~
 git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 cd brainstorm
 npm install
-sudo npm run install-brainstorm -- --use-empty-config
+sudo npm run install-brainstorm -- --domainName=relay.example.com --ownerPubkey=your-key --neo4jPassword=secure123
+sudo npm run restore-from-backup
+```
+
+Example: 
+
+```bash
+cd ~/brainstorm
+sudo npm run backup
+sudo npm run uninstall
+cd ~
+git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+cd brainstorm
+npm install
+sudo npm run install-brainstorm -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
 sudo npm run restore-from-backup
 ```
 
