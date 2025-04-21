@@ -233,7 +233,7 @@ function installBrainstorm() {
     execSync(installCommand, { 
       cwd: repoDir,
       stdio: 'inherit',
-      env: { ...process.env, UPDATE_MODE: 'true' } 
+      env: { ...process.env, UPDATE_MODE: 'false' } // deactivating UPDATE_MODE to prevent installation from skipping Neo4j and Strfry
     });
     
     log('Installation with configuration complete', colors.green);
