@@ -2,29 +2,6 @@
 
 There are multiple options to update Brainstorm.
 
-### Latest option
-
-```bash
-cd ~/brainstorm
-sudo npm run update
-```
-
-This will prompt you to enter your domain name, owner pubkey, and Neo4j password.
-
-Alternatively, you can provide those values directly:
-
-```bash
-cd ~/brainstorm
-sudo npm run update -- --domainName=your-domain.com --ownerPubkey=your-key --neo4jPassword=your-password
-```
-
-Example: 
-
-```bash
-cd ~/brainstorm
-sudo npm run update -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
-```
-
 ### Optional: BACKUP
 
 ```bash
@@ -33,7 +10,23 @@ sudo npm run backup
 
 This creates a backup of your configuration files in `~/brainstorm-backup`, including your owner pubkey, relay nsec, URL, Neo4j password, blacklist, and whitelist. (Restore-from-backup script is not yet implemented.)
 
-### Update Option 0: Manual Update
+### Preferred option: manual update
+
+Run without options; prompts will guide you through the process.
+
+```bash
+cd ~/brainstorm
+sudo npm run backup
+sudo npm run uninstall
+cd ~
+git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+cd brainstorm
+npm install
+sudo npm run install-brainstorm
+sudo npm run restore-from-backup
+```
+
+Alternately, you can provide values directly:
 
 ```bash
 cd ~/brainstorm
@@ -59,6 +52,31 @@ cd brainstorm
 npm install
 sudo npm run install-brainstorm -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
 sudo npm run restore-from-backup
+```
+
+### Work in progress option
+
+**This option is not yet implemented.**
+
+```bash
+cd ~/brainstorm
+sudo npm run update
+```
+
+This will prompt you to enter your domain name, owner pubkey, and Neo4j password.
+
+Alternatively, you can provide those values directly:
+
+```bash
+cd ~/brainstorm
+sudo npm run update -- --domainName=your-domain.com --ownerPubkey=your-key --neo4jPassword=your-password
+```
+
+Example: 
+
+```bash
+cd ~/brainstorm
+sudo npm run update -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
 ```
 
 ### Update Option 1: Uninstall then reinstall
