@@ -164,7 +164,7 @@ function restoreDirectory(backupDir, targetDir) {
     }
     
     // For clarity on directories being restored
-    console.log(`Restoring directory: ${targetDir}`);
+    console.log(`Restoring directory: ${targetDir} from ${backupDir}`);
     
     // Create the target directory if it doesn't exist
     ensureDirectoryExists(targetDir);
@@ -223,7 +223,7 @@ function performRestore() {
       const trimmedDir = dir.endsWith('/') ? dir.slice(0, -1) : dir;
       const dirName = path.basename(trimmedDir);
       // Backup location might have paths like usr/local/lib/...
-      const backupSourceDir = path.join(backupDir, 'usr/local/lib/strfry/plugins/data');
+      const backupSourceDir = path.join(backupDir, trimmedDir);
       
       // Check if this path format exists
       if (fs.existsSync(backupSourceDir)) {
