@@ -102,11 +102,29 @@ function cloneFreshRepo() {
     // Create temp directory
     fs.mkdirSync(tempDir, { recursive: true });
     
+    // Get the username of the actual user who ran sudo
+    const username = process.env.SUDO_USER;
+    
+    // Change ownership of temp directory to the actual user
+    if (username) {
+      log(`Setting ownership of temp directory to ${username}...`, colors.cyan);
+      execSync(`chown -R ${username}:${username} "${tempDir}"`, { stdio: 'pipe' });
+    }
+    
     // Clone the repository
-    execSync('git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git .', {
-      cwd: tempDir,
-      stdio: 'inherit'
-    });
+    if (username) {
+      // Clone as the regular user
+      execSync(`sudo -u ${username} git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git .`, {
+        cwd: tempDir,
+        stdio: 'inherit'
+      });
+    } else {
+      // Fallback if SUDO_USER is not available
+      execSync('git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git .', {
+        cwd: tempDir,
+        stdio: 'inherit'
+      });
+    }
     
     log('Repository cloned successfully', colors.green);
     return tempDir;
