@@ -3,13 +3,13 @@
  * Exports strfry-related operation handlers
  */
 
-const { handleGetPluginStatus } = require('./queries/plugin');
+const { handleGetFilteredContentStatus } = require('./queries/filteredContent');
 const { handleToggleStrfryPlugin } = require('./commands/toggle');
 
 // Export handlers directly - this allows the central router to register endpoints
 module.exports = {
     // Queries (read operations)
-    handleGetPluginStatus,
+    handleGetFilteredContentStatus,
     
     // Commands (write operations)
     handleToggleStrfryPlugin

@@ -10,7 +10,7 @@ const fs = require('fs');
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleGetPluginStatus(req, res) {
+function handleGetFilteredContentStatus(req, res) {
     try {
         // Define paths
         const strfryRouterConfPath = '/etc/strfry-router.config';
@@ -47,5 +47,5 @@ function handleGetPluginStatus(req, res) {
 }
 
 module.exports = {
-    handleGetPluginStatus
+    handleGetFilteredContentStatus
 };

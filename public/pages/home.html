@@ -1140,7 +1140,7 @@
 
         // Functions for content filter toggle
         function checkFilteredContentStatus() {
-            fetch('/control/api/get-strfry-plugin')
+            fetch('/control/api/get-strfry-filteredContent')
                 .then(response => response.json())
                 .then(data => {
                     const toggle = document.getElementById('contentFilterToggle');
@@ -1174,7 +1174,7 @@
             
             // Call API to enable/disable the plugin
             const action = enable ? 'enable' : 'disable';
-            fetch('/control/api/toggle-strfry-plugin', {
+            fetch('/control/api/toggle-strfry-filteredContent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -292,7 +292,7 @@ function authMiddleware(req, res, next) {
             '/generate-verified-followers',
             '/generate-nip85',
             '/systemd-services',
-            '/toggle-strfry-plugin',
+            '/toggle-strfry-filteredContent',
             '/batch-transfer',
             '/reconciliation',
             '/calculate-hops',
@@ -332,7 +332,7 @@ function authMiddleware(req, res, next) {
             '/generate-nip85',
             '/systemd-services',
             '/brainstorm-control',
-            '/toggle-strfry-plugin',  // New endpoint for enabling/disabling
+            '/toggle-strfry-filteredContent',  // New endpoint for enabling/disabling
             '/batch-transfer',
             '/reconciliation',
             '/calculate-hops',

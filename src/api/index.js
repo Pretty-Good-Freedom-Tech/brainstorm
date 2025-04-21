@@ -153,8 +153,8 @@ function register(app) {
     app.get('/api/status/neo4j-constraints', status.handleGetNeo4jConstraintsStatus);
 
     // Strfry plugin endpoints - with clearer separation of concerns
-    app.get('/api/get-strfry-plugin', strfry.handleGetPluginStatus);  // Status query (public)
-    app.post('/api/toggle-strfry-plugin', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
+    app.get('/api/get-strfry-filteredContent', strfry.handleGetFilteredContentStatus);  // Status query (public)
+    app.post('/api/toggle-strfry-filteredContent', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
 
     // List statistics endpoints - read-only operations
     app.get('/api/whitelist-stats', lists.handleGetWhitelistStats);

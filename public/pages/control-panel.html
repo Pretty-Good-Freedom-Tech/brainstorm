@@ -240,8 +240,8 @@
             const disablePluginBtn = document.getElementById('disablePluginBtn');
             const pluginStatus = document.getElementById('pluginStatus');
             
-            function checkPluginStatus() {
-                fetch('/control/api/get-strfry-plugin')
+            function checkFilteredContentStatus() {
+                fetch('/control/api/get-strfry-filteredContent')
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'enabled') {
@@ -275,7 +275,7 @@
                 enablePluginBtn.disabled = true;
                 disablePluginBtn.disabled = true;
                 
-                fetch('/control/api/toggle-strfry-plugin', {
+                fetch('/control/api/toggle-strfry-filteredContent', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -287,7 +287,7 @@
                         if (data.status === 'enabled') {
                             pluginStatus.className = 'status success';
                             pluginStatus.textContent = 'Plugin enabled successfully!';
-                            checkPluginStatus();
+                            checkFilteredContentStatus();
                         } else {
                             pluginStatus.className = 'status error';
                             pluginStatus.textContent = data.error || 'Failed to enable plugin';
@@ -311,7 +311,7 @@
                 enablePluginBtn.disabled = true;
                 disablePluginBtn.disabled = true;
                 
-                fetch('/control/api/toggle-strfry-plugin', {
+                fetch('/control/api/toggle-strfry-filteredContent', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -323,7 +323,7 @@
                         if (data.status === 'disabled') {
                             pluginStatus.className = 'status success';
                             pluginStatus.textContent = 'Plugin disabled successfully!';
-                            checkPluginStatus();
+                            checkFilteredContentStatus();
                         } else {
                             pluginStatus.className = 'status error';
                             pluginStatus.textContent = data.error || 'Failed to disable plugin';
@@ -341,7 +341,7 @@
             });
             
             // Check plugin status on page load
-            checkPluginStatus();
+            checkFilteredContentStatus();
             
             // Systemd Services Management
             const refreshServicesBtn = document.getElementById('refreshServicesBtn');
