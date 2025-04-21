@@ -13,39 +13,32 @@ const fs = require('fs');
 function handleGetPluginStatus(req, res) {
     try {
         // Define paths
-        const strfryConfPath = '/etc/strfry.conf';
+        const strfryRouterConfPath = '/etc/strfry-router.config';
         
         // Check if strfry.conf exists
-        if (!fs.existsSync(strfryConfPath)) {
-            return res.status(404).json({ error: 'strfry.conf not found' });
+        if (!fs.existsSync(strfryRouterConfPath)) {
+            return res.status(404).json({ error: 'strfry-router.config not found' });
         }
         
         // Read current config
-        let confContent = fs.readFileSync(strfryConfPath, 'utf8');
+        let confContent = fs.readFileSync(strfryRouterConfPath, 'utf8');
         
-        // Check current plugin status
-        // Look for the plugin setting in the writePolicy section
-        const writePolicyPluginRegex = /writePolicy\s*{[^}]*plugin\s*=\s*"([^"]*)"/s;
-        const writePolicyMatch = confContent.match(writePolicyPluginRegex);
+        // Check to determine whether the string: filteredContent is present
+        const filteredContentRegex = /filteredContent\s*{[^}]*}/s;
+        const filteredContentMatch = confContent.match(filteredContentRegex);
         
-        // Also check for the relay.writePolicy.plugin line that might have been added incorrectly
-        const relayPluginRegex = /relay\.writePolicy\.plugin\s*=\s*"([^"]*)"/;
-        const relayMatch = confContent.match(relayPluginRegex);
-        
-        // Determine plugin status from either match
-        let pluginStatus = 'unknown';
-        if (writePolicyMatch) {
-            pluginStatus = writePolicyMatch[1] ? 'enabled' : 'disabled';
-        } else if (relayMatch) {
-            pluginStatus = relayMatch[1] ? 'enabled' : 'disabled';
+        // Determine plugin status from match
+        let filteredContentStatus = 'disabled';
+        if (filteredContentMatch) {
+            filteredContentStatus = 'enabled';
         }
         
         return res.json({ 
             success: true,
-            status: pluginStatus 
+            status: filteredContentStatus 
         });
     } catch (error) {
-        console.error('Error checking strfry plugin status:', error);
+        console.error('Error checking strfry-router plugin status:', error);
         return res.status(500).json({ 
             success: false,
             error: error.message 

@@ -10,6 +10,20 @@ sudo npm run backup
 
 This creates a backup of your configuration files in `~/brainstorm-backup`, including your owner pubkey, relay nsec, URL, Neo4j password, blacklist, and whitelist. (Restore-from-backup script is not yet implemented.)
 
+### Update Option 0: Manual Update
+
+```bash
+cd ~/brainstorm
+sudo npm run backup
+sudo npm run uninstall
+cd ~
+git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
+cd brainstorm
+npm install
+sudo npm run install-brainstorm -- --use-default-config
+sudo npm run restore-from-backup
+```
+
 ### Update Option 1: Uninstall then reinstall
 
 
