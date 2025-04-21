@@ -80,10 +80,17 @@ for service in "${SERVICES[@]}"; do
   fi
   # Remove timer files if service string ends with .timer
   if [[ "$service" == *.timer ]]; then
+    # remove timer path
     TIMER_PATH="/etc/systemd/system/$service"
     if [ -f "$TIMER_PATH" ]; then
       log "Removing $TIMER_PATH..."
       rm -f "$TIMER_PATH" || warn "Failed to remove $TIMER_PATH"
+    fi
+    # also need to remove service path. To calculate service path, first we remove .timer from service string, then add .service
+    SERVICE_PATH="/etc/systemd/system/${service%.timer}.service"
+    if [ -f "$SERVICE_PATH" ]; then
+      log "Removing $SERVICE_PATH..."
+      rm -f "$SERVICE_PATH" || warn "Failed to remove $SERVICE_PATH"
     fi
   fi
 done
