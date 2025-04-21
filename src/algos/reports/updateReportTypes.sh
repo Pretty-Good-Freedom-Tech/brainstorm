@@ -12,11 +12,15 @@ echo "$(date): Starting updateReportTypes" >> ${BRAINSTORM_LOG_DIR}/updateReport
 CYPHER1="
 MATCH (a:NostrUser)-[r:REPORTS]->(u:NostrUser)
 WHERE r.report_type IS NOT NULL
-WITH DISTINCT r.report_type AS reportType
-RETURN reportType
+AND r.report_type <> ''
+WITH DISTINCT r.report_type AS reportType_g3Rfg5HY
+RETURN reportType_g3Rfg5HY
 "
 
 cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
+
+# cypher returns results with 'reportType_g3Rfg5HY' prefix, so we need to remove it
+cypherResults1=$(echo "$cypherResults1" | sed 's/"reportType_g3Rfg5HY": //g')
 
 # remove existing reportTypes.json
 sudo rm -f ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.json
