@@ -6,7 +6,7 @@
  * This script performs a complete update of Brainstorm by:
  * 1. Creating a backup of the current configuration
  * 2. Uninstalling the current version
- * 3. Downloading a fresh copy of the code
+ * 3. Downloading a fresh copy of the code to ~/brainstorm
  * 4. Installing dependencies
  * 5. Installing Brainstorm with default config
  * 6. Restoring the backed-up configuration
@@ -37,8 +37,26 @@ const colors = {
 // Get package root directory
 const packageRoot = path.resolve(__dirname, '..');
 
-// Get temp directory for cloning
-const tempDir = path.join(os.tmpdir(), 'brainstorm-update-' + Date.now());
+// Get the actual user's home directory, even when run with sudo
+function getActualUserHome() {
+  if (process.env.SUDO_USER) {
+    try {
+      const username = process.env.SUDO_USER;
+      const homeDir = execSync(`getent passwd ${username} | cut -d: -f6`).toString().trim();
+      if (homeDir) {
+        return homeDir;
+      }
+    } catch (error) {
+      console.warn(`Warning: Could not determine home directory for ${process.env.SUDO_USER}: ${error.message}`);
+    }
+  }
+  
+  return os.homedir();
+}
+
+// Get user's home directory and set repo dir
+const userHome = getActualUserHome();
+const repoDir = path.join(userHome, 'brainstorm');
 
 // Timestamp for logging
 function timestamp() {
@@ -97,37 +115,42 @@ function uninstallExisting() {
 
 // Clone fresh repository
 function cloneFreshRepo() {
-  log('Downloading fresh copy of Brainstorm...', colors.cyan);
+  log(`Downloading fresh copy of Brainstorm to ${repoDir}...`, colors.cyan);
   try {
-    // Create temp directory
-    fs.mkdirSync(tempDir, { recursive: true });
-    
     // Get the username of the actual user who ran sudo
     const username = process.env.SUDO_USER;
     
-    // Change ownership of temp directory to the actual user
-    if (username) {
-      log(`Setting ownership of temp directory to ${username}...`, colors.cyan);
-      execSync(`chown -R ${username}:${username} "${tempDir}"`, { stdio: 'pipe' });
+    // Remove existing directory if it exists
+    if (fs.existsSync(repoDir)) {
+      log(`Removing existing directory at ${repoDir}...`, colors.cyan);
+      if (username) {
+        execSync(`sudo -u ${username} rm -rf "${repoDir}"`, { stdio: 'pipe' });
+      } else {
+        execSync(`rm -rf "${repoDir}"`, { stdio: 'pipe' });
+      }
     }
     
-    // Clone the repository
+    // Create directory and set correct ownership
+    log(`Creating directory ${repoDir}...`, colors.cyan);
+    fs.mkdirSync(repoDir, { recursive: true });
+    
     if (username) {
+      log(`Setting ownership of directory to ${username}...`, colors.cyan);
+      execSync(`chown -R ${username}:${username} "${repoDir}"`, { stdio: 'pipe' });
+      
       // Clone as the regular user
-      execSync(`sudo -u ${username} git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git .`, {
-        cwd: tempDir,
+      execSync(`cd "${userHome}" && sudo -u ${username} git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git brainstorm`, {
         stdio: 'inherit'
       });
     } else {
       // Fallback if SUDO_USER is not available
-      execSync('git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git .', {
-        cwd: tempDir,
+      execSync(`cd "${userHome}" && git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git brainstorm`, {
         stdio: 'inherit'
       });
     }
     
     log('Repository cloned successfully', colors.green);
-    return tempDir;
+    return repoDir;
   } catch (error) {
     log(`Repository cloning failed: ${error.message}`, colors.red);
     throw new Error('Repository cloning step failed');
@@ -135,7 +158,7 @@ function cloneFreshRepo() {
 }
 
 // Install dependencies
-function installDependencies(repoDir) {
+function installDependencies() {
   log('Installing dependencies...', colors.cyan);
   try {
     // Get username of the actual user who ran sudo
@@ -163,7 +186,7 @@ function installDependencies(repoDir) {
 }
 
 // Install with default configuration
-function installBrainstorm(repoDir) {
+function installBrainstorm() {
   log('Installing Brainstorm with default configuration...', colors.cyan);
   try {
     execSync('npm run install-brainstorm -- --use-default-config', { 
@@ -192,7 +215,7 @@ function restoreFromBackup(backupDir) {
     }
     
     execSync(restoreCommand, { 
-      cwd: packageRoot,
+      cwd: repoDir,
       stdio: 'inherit' 
     });
     
@@ -222,24 +245,9 @@ function restartServices() {
   }
 }
 
-// Clean up temp directory
-function cleanUp(tempDir) {
-  if (tempDir && fs.existsSync(tempDir)) {
-    log('Cleaning up temporary files...', colors.cyan);
-    try {
-      execSync(`rm -rf "${tempDir}"`, { stdio: 'pipe' });
-      log('Cleanup complete', colors.green);
-    } catch (error) {
-      log(`Cleanup failed: ${error.message}`, colors.yellow);
-    }
-  }
-}
-
 // Main function
 async function main() {
   log('Starting Brainstorm update process', colors.bright + colors.magenta);
-  
-  let tempRepoDir = null;
   
   try {
     // Check if running as root
@@ -252,13 +260,13 @@ async function main() {
     uninstallExisting();
     
     // Step 3: Clone fresh repository
-    tempRepoDir = cloneFreshRepo();
+    cloneFreshRepo();
     
     // Step 4: Install dependencies
-    installDependencies(tempRepoDir);
+    installDependencies();
     
     // Step 5: Install Brainstorm with default config
-    installBrainstorm(tempRepoDir);
+    installBrainstorm();
     
     // Step 6: Restore from backup
     restoreFromBackup(backupDir);
@@ -266,18 +274,9 @@ async function main() {
     // Step 7: Restart services
     restartServices();
     
-    // Step 8: Clean up
-    cleanUp(tempRepoDir);
-    
     log('Update process completed successfully!', colors.bright + colors.green);
   } catch (error) {
     log(`Update process failed: ${error.message}`, colors.bright + colors.red);
-    
-    // Still try to clean up temp directory if it exists
-    if (tempRepoDir) {
-      cleanUp(tempRepoDir);
-    }
-    
     process.exit(1);
   }
 }
