@@ -1,17 +1,15 @@
-## TODO 20 Apr 2025
+## TODO 21 Apr 2025
 - take care of neo4j password during installation
-- redo update script
 - DCoNR: decentralized curation of NIP-56 reports
 - why strfry and neo4j are in /var/lib but brainstorm is in /usr/local/lib/node_modules
 - make sure current relay pubkey matches with kind 10040 and 30382 events (may not be the case when updating destroys old relay nsec; so need to create reinstall-from-backup script)
-- set neo4j password automatically during the installation process
+- fix ManiMe's graperank calculation engine
 
 Create:
 - brainstorm.social landing page for Brainstorm. Basic info about Brainstorm. Links to sign up. List of client brainstorms and DIY brainstorms.
 - relay.brainstorm.social or pgft.brainstorm.social will be the first client relay. More client relays to follow.
 
 ## TODO 7 April 2025
-- import ManiMe's graperank calculation engine
 - fix Friends relays list in brainstorm.conf; set different relays for subcategories
 - move export files from algos to export directory
 - refactor nip-85 publishing scripts
