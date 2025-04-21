@@ -189,7 +189,7 @@ function installDependencies() {
 function installBrainstorm() {
   log('Installing Brainstorm with default configuration...', colors.cyan);
   try {
-    execSync('npm run install-brainstorm -- --use-default-config', { 
+    execSync('npm run install-brainstorm -- --use-empty-config', { 
       cwd: repoDir,
       stdio: 'inherit',
       env: { ...process.env, UPDATE_MODE: 'true' } 

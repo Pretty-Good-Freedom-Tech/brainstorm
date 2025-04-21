@@ -20,11 +20,32 @@ const isUpdateMode = process.env.UPDATE_MODE === 'true' || process.env.UPDATE_MO
 console.log('\x1b[32m=== UPDATE_MODE env var: "' + process.env.UPDATE_MODE + '" ===\x1b[0m');
 console.log(isUpdateMode ? '\x1b[32m=== Running in Update Mode ===\x1b[0m' : '\x1b[32m=== Running in Fresh Installation Mode ===\x1b[0m');
 
-// Check for --use-default-config flag
-const useDefaultConfig = process.argv.includes('--use-default-config');
-if (useDefaultConfig) {
+// Check for --use-empty-config flag
+const useEmptyConfig = process.argv.includes('--use-empty-config');
+if (useEmptyConfig) {
   console.log('\x1b[32m=== Using Default Configuration (no prompts) ===\x1b[0m');
 }
+
+// Parse command-line arguments for specific configuration values
+const configArgs = {
+  domainName: null,
+  ownerPubkey: null,
+  neo4jPassword: null
+};
+
+// Extract values from command-line arguments
+process.argv.forEach(arg => {
+  if (arg.startsWith('--domainName=')) {
+    configArgs.domainName = arg.split('=')[1];
+    console.log(`\x1b[32m=== Using provided domain name: ${configArgs.domainName} ===\x1b[0m`);
+  } else if (arg.startsWith('--ownerPubkey=')) {
+    configArgs.ownerPubkey = arg.split('=')[1];
+    console.log(`\x1b[32m=== Using provided owner pubkey ===\x1b[0m`);
+  } else if (arg.startsWith('--neo4jPassword=')) {
+    configArgs.neo4jPassword = arg.split('=')[1];
+    console.log(`\x1b[32m=== Using provided Neo4j password ===\x1b[0m`);
+  }
+});
 
 // Create readline interface for user input
 const rl = readline.createInterface({
@@ -346,7 +367,7 @@ async function createBrainstormConfigFile() {
     defaultFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
     
     // Set default values if using default config
-    if (useDefaultConfig) {
+    if (useEmptyConfig) {
       domainName = 'localhost';
       ownerPubkey = 'unassigned';
       neo4jPassword = 'neo4j';
@@ -357,17 +378,22 @@ async function createBrainstormConfigFile() {
     }
   }
   
+  // Apply any provided command-line values
+  if (configArgs.domainName) domainName = configArgs.domainName;
+  if (configArgs.ownerPubkey) ownerPubkey = configArgs.ownerPubkey;
+  if (configArgs.neo4jPassword) neo4jPassword = configArgs.neo4jPassword;
+
   // Get configuration values from user if not in environment or incomplete and not using defaults
-  if ((!isUpdateMode || !domainName) && !useDefaultConfig) {
+  if ((!isUpdateMode || !domainName) && !useEmptyConfig && !configArgs.domainName) {
     domainName = await askQuestion('Enter your domain name (e.g., relay.example.com; if running locally, leave blank for localhost): ');
     if (!domainName) { domainName = 'localhost'; };
   }
-  
-  if ((!isUpdateMode || !ownerPubkey) && !useDefaultConfig) {
+
+  if ((!isUpdateMode || !ownerPubkey) && !useEmptyConfig && !configArgs.ownerPubkey) {
     ownerPubkey = await askQuestion('Enter your Brainstorm owner pubkey: ');
   }
-  
-  if ((!isUpdateMode || !neo4jPassword) && !useDefaultConfig) {
+
+  if ((!isUpdateMode || !neo4jPassword) && !useEmptyConfig && !configArgs.neo4jPassword) {
     neo4jPassword = await askQuestion('Enter the password that you intend to use for Neo4j: ') || 'neo4j';
   }
   
@@ -1285,10 +1311,25 @@ async function finalSetup() {
 // Helper function to ask questions
 async function askQuestion(question) {
   return new Promise((resolve) => {
-    // If using default config, don't actually prompt
-    if (useDefaultConfig) {
+    // If using default config or specific value is provided via CLI, don't actually prompt
+    if (useEmptyConfig) {
       console.log(`Skipping prompt: ${question}`);
       resolve('');
+      return;
+    }
+    
+    // Check if this is a known question and we have a command-line value for it
+    if (question.includes('domain name') && configArgs.domainName) {
+      console.log(`Skipping prompt for domain name, using provided value: ${configArgs.domainName}`);
+      resolve(configArgs.domainName);
+      return;
+    } else if (question.includes('owner pubkey') && configArgs.ownerPubkey) {
+      console.log(`Skipping prompt for owner pubkey, using provided value`);
+      resolve(configArgs.ownerPubkey);
+      return;
+    } else if (question.includes('Neo4j') && configArgs.neo4jPassword) {
+      console.log(`Skipping prompt for Neo4j password, using provided value`);
+      resolve(configArgs.neo4jPassword);
       return;
     }
     

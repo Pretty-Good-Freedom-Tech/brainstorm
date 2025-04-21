@@ -20,7 +20,7 @@ cd ~
 git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 cd brainstorm
 npm install
-sudo npm run install-brainstorm -- --use-default-config
+sudo npm run install-brainstorm -- --use-empty-config
 sudo npm run restore-from-backup
 ```
 
