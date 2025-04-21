@@ -22,7 +22,7 @@ Example:
 
 ```bash
 cd ~/brainstorm
-sudo npm run update -- --domainName=relay24.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
+sudo npm run update -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
 ```
 
 ### Optional: BACKUP
