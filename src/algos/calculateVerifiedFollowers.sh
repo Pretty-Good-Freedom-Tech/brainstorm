@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# This calculates number of hops from scratch starting with BRAINSTORM_OWNER_PUBKEY which by definition is 0 hops away
-# The resuls are stored in neo4j using the property: hops
-
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
 touch ${BRAINSTORM_LOG_DIR}/calculateVerifiedFollowers.log
