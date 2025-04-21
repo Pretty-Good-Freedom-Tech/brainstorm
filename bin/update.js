@@ -58,6 +58,24 @@ function getActualUserHome() {
 const userHome = getActualUserHome();
 const repoDir = path.join(userHome, 'brainstorm');
 
+// Parse command-line arguments for specific configuration values
+const configArgs = {
+  domainName: null,
+  ownerPubkey: null,
+  neo4jPassword: null
+};
+
+// Extract values from command-line arguments
+process.argv.forEach(arg => {
+  if (arg.startsWith('--domainName=')) {
+    configArgs.domainName = arg.split('=')[1];
+  } else if (arg.startsWith('--ownerPubkey=')) {
+    configArgs.ownerPubkey = arg.split('=')[1];
+  } else if (arg.startsWith('--neo4jPassword=')) {
+    configArgs.neo4jPassword = arg.split('=')[1];
+  }
+});
+
 // Timestamp for logging
 function timestamp() {
   return new Date().toISOString();
@@ -187,14 +205,34 @@ function installDependencies() {
 
 // Install with default configuration
 function installBrainstorm() {
-  log('Installing Brainstorm with default configuration...', colors.cyan);
+  log('Installing Brainstorm with configuration...', colors.cyan);
   try {
-    execSync('npm run install-brainstorm -- --use-empty-config', { 
+    // Build the installation command with any provided configuration options
+    let installCommand = 'npm run install-brainstorm -- --use-empty-config';
+    
+    // Add any provided config options to the command
+    if (configArgs.domainName) {
+      installCommand += ` --domainName=${configArgs.domainName}`;
+      log(`Using domain name: ${configArgs.domainName}`, colors.cyan);
+    }
+    
+    if (configArgs.ownerPubkey) {
+      installCommand += ` --ownerPubkey=${configArgs.ownerPubkey}`;
+      log('Using provided owner pubkey', colors.cyan);
+    }
+    
+    if (configArgs.neo4jPassword) {
+      installCommand += ` --neo4jPassword=${configArgs.neo4jPassword}`;
+      log('Using provided Neo4j password', colors.cyan);
+    }
+    
+    execSync(installCommand, { 
       cwd: repoDir,
       stdio: 'inherit',
       env: { ...process.env, UPDATE_MODE: 'true' } 
     });
-    log('Installation with default configuration complete', colors.green);
+    
+    log('Installation with configuration complete', colors.green);
   } catch (error) {
     log(`Installation failed: ${error.message}`, colors.red);
     throw new Error('Installation step failed');

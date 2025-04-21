@@ -1,6 +1,29 @@
 ## Update Process
 
-There are 3 options to update Brainstorm. As of 18 April 2025, manual update is the most reliable, but uninstall-then-reinstall probably works and is easier.
+There are multiple options to update Brainstorm.
+
+### Latest option
+
+```bash
+cd ~/brainstorm
+sudo npm run update
+```
+
+This will prompt you to enter your domain name, owner pubkey, and Neo4j password.
+
+Alternatively, you can provide those values directly:
+
+```bash
+cd ~/brainstorm
+sudo npm run update -- --domainName=your-domain.com --ownerPubkey=your-key --neo4jPassword=your-password
+```
+
+Example: 
+
+```bash
+cd ~/brainstorm
+sudo npm run update -- --domainName=relay24.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=neo4jneo4j
+```
 
 ### Optional: BACKUP
 
