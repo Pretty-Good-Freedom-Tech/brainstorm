@@ -208,9 +208,13 @@ function installBrainstorm() {
   log('Installing Brainstorm with configuration...', colors.cyan);
   try {
     // Build the installation command with any provided configuration options
-    let installCommand = 'npm run install-brainstorm -- --use-empty-config';
+    let installCommand = 'npm run install-brainstorm';
     
     // Add any provided config options to the command
+    if ((configArgs.domainName || configArgs.ownerPubkey || configArgs.neo4jPassword)) {
+      installCommand += ' --';
+    }
+
     if (configArgs.domainName) {
       installCommand += ` --domainName=${configArgs.domainName}`;
       log(`Using domain name: ${configArgs.domainName}`, colors.cyan);
