@@ -1,1 +1,9 @@
-["nudity", "malware", "profanity", "illegal", "spam", "impersonation", "other"]
+{
+    "nudity": true,
+    "malware": true,
+    "profanity": true,
+    "illegal": true,
+    "spam": true,
+    "impersonation": true,
+    "other": true
+}

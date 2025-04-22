@@ -37,6 +37,10 @@ CREATE INDEX nostrUser_kind10000CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.
 CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);
 CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);
 
+CREATE INDEX nostrUser_nip56_totalGrapeRankScore IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalGrapeRankScore);
+CREATE INDEX nostrUser_nip56_totalReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalReportCount);
+CREATE INDEX nostrUser_nip56_totalVerifiedReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalVerifiedReportCount);
+
 CREATE INDEX nostrUser_influence IF NOT EXISTS FOR (n:NostrUser) ON (n.influence);
 CREATE INDEX nostrUser_average IF NOT EXISTS FOR (n:NostrUser) ON (n.average);
 CREATE INDEX nostrUser_confidence IF NOT EXISTS FOR (n:NostrUser) ON (n.confidence);

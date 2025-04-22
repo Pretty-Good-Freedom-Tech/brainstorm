@@ -14,9 +14,11 @@ sudo $BRAINSTORM_MODULE_ALGOS_DIR/reports/updateReportTypes.sh
 # import array of report types
 REPORT_TYPES=$(cat ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.json)
 
+# remove quotes from cypher results.
+REPORT_TYPES=$(echo "$REPORT_TYPES" | sed 's/"//g')
+
 # loop through report types; for each user, initialize report counts
-# skip the first item in the array, which is "reportType"
-for reportType in ${REPORT_TYPES[@]:1}; do
+for reportType in ${REPORT_TYPES[@]}; do
     cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "
 MATCH (u:NostrUser)
 SET u.nip56_${reportType}_grapeRankScore = 0
