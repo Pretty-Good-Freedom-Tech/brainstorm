@@ -16,7 +16,7 @@ function handleGetProfiles(req, res) {
     // Get query parameters for filtering and pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 100;
-    const sortBy = req.query.sortBy || 'personalizedPageRank';
+    const sortBy = req.query.sortBy || 'influence';
     const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
     
     // Get all filter parameters
@@ -131,7 +131,10 @@ function handleGetProfiles(req, res) {
              u.muterCount as muterCount,
              u.reportingCount as reportingCount,
              u.reporterCount as reporterCount,
-             u.verifiedFollowerCount as verifiedFollowerCount
+             u.verifiedFollowerCount as verifiedFollowerCount,
+             u.nip56_totalGrapeRankScore as nip56_totalGrapeRankScore,
+             u.nip56_totalReportCount as nip56_totalReportCount,
+             u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount
       ORDER BY u.${sortBy} ${sortOrder}
       SKIP ${(page - 1) * limit}
       LIMIT ${limit}
@@ -163,7 +166,10 @@ function handleGetProfiles(req, res) {
                     muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
                     reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
                     reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0,
-                    verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0
+                    verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
+                    nip56_totalGrapeRankScore: record.get('nip56_totalGrapeRankScore') ? parseFloat(record.get('nip56_totalGrapeRankScore').toString()) : null,
+                    nip56_totalReportCount: record.get('nip56_totalReportCount') ? parseInt(record.get('nip56_totalReportCount').toString()) : null,
+                    nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseInt(record.get('nip56_totalVerifiedReportCount').toString()) : null
                   };
                 });
                 
