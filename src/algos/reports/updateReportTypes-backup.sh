@@ -19,17 +19,19 @@ RETURN reportType_e34fT4hG
 
 cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 
-# remove existing reportTypes.txt
-sudo rm -f ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.txt
+# remove existing reportTypes.json
+sudo rm -f ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.json
 
-# write new reportTypes.txt
-# cycle through results and create reportTypes.txt
+# write new reportTypes.json
+# add opening bracket
+echo "{" > ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.json
+# cycle through results and create reportTypes.json
 for reportType in $cypherResults1; do
     # make sure to remove quotes from cypher results
     reportType=$(echo "$reportType" | sed 's/"//g')
     # add if reportType does not equal reportType_e34fT4hG
     if [ "$reportType" != "reportType_e34fT4hG" ]; then
-        echo "$reportType" >> ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.txt
+        echo "$reportType": true >> ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.json
         # add cypher index for properties: nip56_${reportType}_verifiedReportCount, nip56_${reportType}_reportCount, nip56_${reportType}_grapeRankScore
         # use this format: CREATE INDEX nostrUser_nip56_totalGrapeRankScore IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalGrapeRankScore);
         cypherCommand1="CREATE INDEX nostrUser_nip56_${reportType}_verifiedReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_${reportType}_verifiedReportCount)"
@@ -40,6 +42,8 @@ for reportType in $cypherResults1; do
         sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$cypherCommand3"
     fi
 done
+# add closing bracket
+echo "}" >> ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.json
 
 echo "$(date): Finished updateReportTypes"
 echo "$(date): Finished updateReportTypes" >> ${BRAINSTORM_LOG_DIR}/updateReportTypes.log
