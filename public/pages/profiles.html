@@ -124,8 +124,8 @@
                     <tr class="header-row">
                         <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
                         <th data-sort="pubkey">Pubkey</th>
-                        <th data-sort="verifiedFollowerCount" class="sort-desc">Verified Followers</th>
-                        <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">Verified Reports</th>
+                        <th data-sort="verifiedFollowerCount" class="sort-desc">🍇-Verified Followers</th>
+                        <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Verified Reporters</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
                         <th data-sort="influence" class="sort-desc">Influence</th>
@@ -352,12 +352,19 @@
                 paginationContainer.style.display = 'none';
                 
                 // Build query parameters
-                const params = new URLSearchParams({
-                    page: state.pagination.page,
-                    limit: state.pagination.limit,
-                    sortBy: state.sorting.column,
-                    sortOrder: state.sorting.order
-                });
+                const params = new URLSearchParams();
+                params.append('page', state.pagination.page);
+                params.append('limit', state.pagination.limit);
+                
+                // Map frontend column names to backend field names for sorting
+                let sortColumn = state.sorting.column;
+                // Handle special cases for column names that differ between frontend and backend
+                if (sortColumn === 'nip56TotalGrapeRankScore') {
+                    sortColumn = 'nip56_totalGrapeRankScore';
+                }
+                
+                params.append('sortBy', sortColumn);
+                params.append('sortOrder', state.sorting.order);
                 
                 // Add filters if they exist
                 if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
