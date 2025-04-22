@@ -605,14 +605,45 @@
                     row.appendChild(pubkeyCell);
                     
                     // Numeric data cells
-                    addNumericCell(row, profile.verifiedFollowerCount, 0, 'verifiedFollowerCount');
-                    addNumericCell(row, profile.nip56TotalScore, 0, 'nip56TotalScore');
-                    addNumericCell(row, profile.hops, 0, 'hops');
-                    addNumericCell(row, profile.personalizedPageRank, 6, 'personalizedPageRank');
-                    addNumericCell(row, profile.influence, 6, 'influence');
-                    addNumericCell(row, profile.average, 2, 'average');
-                    addNumericCell(row, profile.confidence, 2, 'confidence');
-                    addNumericCell(row, profile.input, 2, 'input');
+                    // Verify the property path is correct based on your API response
+                    // Handle different possible data structures 
+                    const verifiedFollowers = 
+                        typeof profile.verified_follower_count !== 'undefined' ? profile.verified_follower_count : 
+                        (typeof profile.verifiedFollowerCount !== 'undefined' ? profile.verifiedFollowerCount : 0);
+                    
+                    const nip56Score = 
+                        typeof profile.nip56_total_score !== 'undefined' ? profile.nip56_total_score : 
+                        (typeof profile.nip56TotalScore !== 'undefined' ? profile.nip56TotalScore : 0);
+                    
+                    const hops = 
+                        typeof profile.hops !== 'undefined' ? profile.hops : 
+                        (profile.hop_distance !== undefined ? profile.hop_distance : 999);
+                    
+                    const pageRank = 
+                        typeof profile.personalized_page_rank !== 'undefined' ? profile.personalized_page_rank : 
+                        (typeof profile.personalizedPageRank !== 'undefined' ? profile.personalizedPageRank : 0);
+                    
+                    const influence = 
+                        typeof profile.influence !== 'undefined' ? profile.influence : 0;
+                    
+                    const average = 
+                        typeof profile.average !== 'undefined' ? profile.average : 0;
+                    
+                    const confidence = 
+                        typeof profile.confidence !== 'undefined' ? profile.confidence : 0;
+                    
+                    const input = 
+                        typeof profile.input !== 'undefined' ? profile.input : 0;
+                    
+                    // Add cells with proper fallbacks
+                    addNumericCell(row, verifiedFollowers, 0, 'verifiedFollowerCount');
+                    addNumericCell(row, nip56Score, 0, 'nip56TotalScore');
+                    addNumericCell(row, hops, 0, 'hops');
+                    addNumericCell(row, pageRank, 6, 'personalizedPageRank');
+                    addNumericCell(row, influence, 6, 'influence');
+                    addNumericCell(row, average, 2, 'average');
+                    addNumericCell(row, confidence, 2, 'confidence');
+                    addNumericCell(row, input, 2, 'input');
                     
                     tableBody.appendChild(row);
                 });
