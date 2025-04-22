@@ -125,7 +125,7 @@
                         <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
                         <th data-sort="pubkey">Pubkey</th>
                         <th data-sort="verifiedFollowerCount" class="sort-desc">Verified Followers</th>
-                        <th data-sort="nip56TotalScore" class="sort-desc">Verified Reports</th>
+                        <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">Verified Reports</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
                         <th data-sort="influence" class="sort-desc">Influence</th>
@@ -204,8 +204,8 @@
         const columns = [
             { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
             { id: 'pubkey', name: 'Pubkey', defaultVisible: true, alwaysVisible: true },
-            { id: 'verifiedFollowerCount', name: 'Verified Followers', defaultVisible: true },
-            { id: 'nip56TotalScore', name: 'Verified Reports', defaultVisible: true },
+            { id: 'verifiedFollowerCount', name: '🍇-Verified Followers', defaultVisible: true },
+            { id: 'nip56TotalGrapeRankScore', name: '🍇-Verified Reporters', defaultVisible: true },
             { id: 'hops', name: 'Hops', defaultVisible: true },
             { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
             { id: 'influence', name: 'Influence', defaultVisible: true },
@@ -579,7 +579,7 @@
                     
                     // Numeric data cells
                     addNumericCell(row, profile.verifiedFollowerCount, 0, 'verifiedFollowerCount');
-                    addNumericCell(row, profile.nip56_totalGrapeRankScore, 0, 'nip56TotalScore');
+                    addNumericCell(row, profile.nip56_totalGrapeRankScore, 0, 'nip56TotalGrapeRankScore');
                     addNumericCell(row, profile.hops, 0, 'hops');
                     addNumericCell(row, profile.personalizedPageRank, 6, 'personalizedPageRank');
                     addNumericCell(row, profile.influence, 6, 'influence');
@@ -844,7 +844,7 @@
                             case 'verifiedFollowerCount':
                                 row.push(profile.verifiedFollowerCount || 0);
                                 break;
-                            case 'nip56TotalScore':
+                            case 'nip56TotalGrapeRankScore':
                                 row.push(profile.nip56_totalGrapeRankScore || 0);
                                 break;
                             case 'hops':
