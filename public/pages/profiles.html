@@ -124,13 +124,14 @@
                     <tr class="header-row">
                         <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
                         <th data-sort="pubkey">Pubkey</th>
-                        <th data-sort="verifiedFollowerCount" class="sort-desc">Verified Followers</th>
+                        <th data-sort="verifiedFollowerCount" class="sort-desc">🍇-Verified Followers</th>
+                        <th data-sort="nip56TotalScore" class="sort-desc">🍇-Verified Reports</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
                         <th data-sort="influence" class="sort-desc">Influence</th>
-                        <th data-sort="average">Average</th>
-                        <th data-sort="confidence">Confidence</th>
-                        <th data-sort="input">Input</th>
+                        <th data-sort="average" class="sort-desc">Average</th>
+                        <th data-sort="confidence" class="sort-desc">Confidence</th>
+                        <th data-sort="input" class="sort-desc">Input</th>
                     </tr>
                     <tr class="filter-row">
                         <th></th>
@@ -141,6 +142,12 @@
                             <div class="filter-inputs">
                                 <input type="number" id="filterMinVerifiedFollowers" placeholder="Min" min="0" class="table-filter small-input">
                                 <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" min="0" class="table-filter small-input">
+                            </div>
+                        </th>
+                        <th>
+                            <div class="filter-inputs">
+                                <input type="number" id="filterMinNip56TotalScore" placeholder="Min" min="0" class="table-filter small-input">
+                                <input type="number" id="filterMaxNip56TotalScore" placeholder="Max" min="0" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
@@ -197,7 +204,8 @@
         const columns = [
             { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
             { id: 'pubkey', name: 'Pubkey', defaultVisible: true, alwaysVisible: true },
-            { id: 'verifiedFollowerCount', name: 'Verified Followers', defaultVisible: true },
+            { id: 'verifiedFollowerCount', name: '🍇-Verified Followers', defaultVisible: true },
+            { id: 'nip56TotalScore', name: '🍇-Verified Reports', defaultVisible: true },
             { id: 'hops', name: 'Hops', defaultVisible: true },
             { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
             { id: 'influence', name: 'Influence', defaultVisible: true },
@@ -228,14 +236,10 @@
         // Global state management
         let state = {
             profiles: [],
+            filteredProfiles: [],
             pagination: {
-                total: 0,
                 page: 1,
                 limit: 100,
-                pages: 0
-            },
-            counts: {
-                filtered: 0,
                 total: 0
             },
             filters: {
@@ -253,13 +257,14 @@
                 minInput: '',
                 maxInput: '',
                 minVerifiedFollowers: '',
-                maxVerifiedFollowers: ''
+                maxVerifiedFollowers: '',
+                minNip56TotalScore: '',
+                maxNip56TotalScore: ''
             },
-            sorting: {
+            sort: {
                 column: 'influence',
                 order: 'desc'
             },
-            profileCache: {}, // Cache for profile data to avoid duplicate API calls
             columnVisibility: loadColumnVisibility()
         };
         
@@ -269,6 +274,7 @@
         let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
         let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
+        let filterMinNip56TotalScore, filterMaxNip56TotalScore;
         let limitSelect, applyFiltersBtn, resetFiltersBtn, refreshBtn, exportCsvBtn;
         let columnSettingsBtn, columnSettingsPanel, columnToggles;
             
@@ -296,6 +302,8 @@
             filterMaxInput = document.getElementById('filterMaxInput');
             filterMinVerifiedFollowers = document.getElementById('filterMinVerifiedFollowers');
             filterMaxVerifiedFollowers = document.getElementById('filterMaxVerifiedFollowers');
+            filterMinNip56TotalScore = document.getElementById('filterMinNip56TotalScore');
+            filterMaxNip56TotalScore = document.getElementById('filterMaxNip56TotalScore');
             limitSelect = document.getElementById('limitSelect');
             applyFiltersBtn = document.getElementById('applyFiltersBtn');
             resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -318,16 +326,15 @@
             
             function fetchProfiles() {
                 // Show loading indicator
-                loadingIndicator.style.display = 'flex';
+                loadingIndicator.style.display = 'block';
                 profilesTable.style.display = 'none';
-                paginationContainer.style.display = 'none';
                 
                 // Build query parameters
                 const params = new URLSearchParams({
                     page: state.pagination.page,
                     limit: state.pagination.limit,
-                    sortBy: state.sorting.column,
-                    sortOrder: state.sorting.order
+                    sortBy: state.sort.column,
+                    sortOrder: state.sort.order
                 });
                 
                 // Add filters if they exist
@@ -346,6 +353,8 @@
                 if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
                 if (state.filters.minVerifiedFollowers) params.append('filterMinVerifiedFollowers', state.filters.minVerifiedFollowers);
                 if (state.filters.maxVerifiedFollowers) params.append('filterMaxVerifiedFollowers', state.filters.maxVerifiedFollowers);
+                if (state.filters.minNip56TotalScore) params.append('filterMinNip56TotalScore', state.filters.minNip56TotalScore);
+                if (state.filters.maxNip56TotalScore) params.append('filterMaxNip56TotalScore', state.filters.maxNip56TotalScore);
                 
                 // Fetch data from API
                 fetch(`/control/api/get-profiles?${params.toString()}`)
@@ -354,9 +363,8 @@
                         if (data.success) {
                             // Update state
                             state.profiles = data.data.users;
-                            state.pagination = data.data.pagination;
-                            state.counts.filtered = data.data.pagination.total;
-                            state.counts.total = data.data.totalProfiles || state.counts.filtered;
+                            state.pagination.total = data.data.pagination.total;
+                            state.filteredProfiles = state.profiles;
                             
                             // Update the count display
                             updateProfileCounts();
@@ -368,10 +376,6 @@
                             // Hide loading indicator
                             loadingIndicator.style.display = 'none';
                             profilesTable.style.display = 'table';
-                            paginationContainer.style.display = 'flex';
-                            
-                            // Show success message
-                            showStatusMessage(`Loaded ${state.profiles.length} of ${state.pagination.total} profiles`, 'success');
                         } else {
                             // Show error message
                             showStatusMessage(`Error: ${data.message}`, 'error');
@@ -394,19 +398,20 @@
                         let order = 'desc';
                         
                         // Toggle sort order if clicking the same column
-                        if (state.sorting.column === column) {
-                            order = state.sorting.order === 'desc' ? 'asc' : 'desc';
+                        if (state.sort.column === column) {
+                            order = state.sort.order === 'desc' ? 'asc' : 'desc';
                         }
                         
                         // Update sorting state
-                        state.sorting.column = column;
-                        state.sorting.order = order;
+                        state.sort.column = column;
+                        state.sort.order = order;
                         
                         // Update UI
                         updateSortIndicators(column, order);
                         
-                        // Fetch data with new sorting
-                        fetchProfiles();
+                        // Re-sort profiles and render table
+                        sortProfiles();
+                        renderTable();
                     });
                 });
                 
@@ -427,69 +432,115 @@
                     state.filters.maxInput = filterMaxInput.value.trim();
                     state.filters.minVerifiedFollowers = filterMinVerifiedFollowers.value.trim();
                     state.filters.maxVerifiedFollowers = filterMaxVerifiedFollowers.value.trim();
+                    state.filters.minNip56TotalScore = filterMinNip56TotalScore.value.trim();
+                    state.filters.maxNip56TotalScore = filterMaxNip56TotalScore.value.trim();
                     state.pagination.limit = parseInt(limitSelect.value);
                     state.pagination.page = 1; // Reset to first page
                     fetchProfiles();
                 });
                 
-                resetFiltersBtn.addEventListener('click', () => {
-                    filterPubkey.value = '';
-                    filterMinHops.value = '';
-                    filterMaxHops.value = '';
-                    filterMinRank.value = '';
-                    filterMaxRank.value = '';
-                    filterMinInfluence.value = '';
-                    filterMaxInfluence.value = '';
-                    filterMinAverage.value = '';
-                    filterMaxAverage.value = '';
-                    filterMinConfidence.value = '';
-                    filterMaxConfidence.value = '';
-                    filterMinInput.value = '';
-                    filterMaxInput.value = '';
-                    filterMinVerifiedFollowers.value = '';
-                    filterMaxVerifiedFollowers.value = '';
-                    
-                    state.filters.pubkey = '';
-                    state.filters.minHops = '';
-                    state.filters.maxHops = '';
-                    state.filters.minRank = '';
-                    state.filters.maxRank = '';
-                    state.filters.minInfluence = '';
-                    state.filters.maxInfluence = '';
-                    state.filters.minAverage = '';
-                    state.filters.maxAverage = '';
-                    state.filters.minConfidence = '';
-                    state.filters.maxConfidence = '';
-                    state.filters.minInput = '';
-                    state.filters.maxInput = '';
-                    state.filters.minVerifiedFollowers = '';
-                    state.filters.maxVerifiedFollowers = '';
-                    state.pagination.limit = 100;
-                    state.pagination.page = 1;
-                    
-                    fetchProfiles();
-                });
+                resetFiltersBtn.addEventListener('click', resetFilters);
                 
-                // Refresh button
                 refreshBtn.addEventListener('click', () => {
                     fetchProfiles();
                 });
                 
-                // Export CSV button
                 exportCsvBtn.addEventListener('click', exportToCsv);
                 
-                // Column settings button
                 columnSettingsBtn.addEventListener('click', toggleColumnSettingsPanel);
                 
-                // Close column settings panel when clicking outside
                 document.addEventListener('click', (e) => {
                     if (!columnSettingsPanel.contains(e.target) && e.target !== columnSettingsBtn) {
                         columnSettingsPanel.style.display = 'none';
                     }
                 });
                 
-                // Initialize column toggles
                 initColumnToggles();
+                
+                filterPubkey.addEventListener('input', () => {
+                    state.filters.pubkey = filterPubkey.value;
+                    applyFilters();
+                });
+                
+                filterMinHops.addEventListener('change', () => {
+                    state.filters.minHops = filterMinHops.value;
+                    applyFilters();
+                });
+                
+                filterMaxHops.addEventListener('change', () => {
+                    state.filters.maxHops = filterMaxHops.value;
+                    applyFilters();
+                });
+                
+                filterMinRank.addEventListener('change', () => {
+                    state.filters.minRank = filterMinRank.value;
+                    applyFilters();
+                });
+                
+                filterMaxRank.addEventListener('change', () => {
+                    state.filters.maxRank = filterMaxRank.value;
+                    applyFilters();
+                });
+                
+                filterMinInfluence.addEventListener('change', () => {
+                    state.filters.minInfluence = filterMinInfluence.value;
+                    applyFilters();
+                });
+                
+                filterMaxInfluence.addEventListener('change', () => {
+                    state.filters.maxInfluence = filterMaxInfluence.value;
+                    applyFilters();
+                });
+                
+                filterMinAverage.addEventListener('change', () => {
+                    state.filters.minAverage = filterMinAverage.value;
+                    applyFilters();
+                });
+                
+                filterMaxAverage.addEventListener('change', () => {
+                    state.filters.maxAverage = filterMaxAverage.value;
+                    applyFilters();
+                });
+                
+                filterMinConfidence.addEventListener('change', () => {
+                    state.filters.minConfidence = filterMinConfidence.value;
+                    applyFilters();
+                });
+                
+                filterMaxConfidence.addEventListener('change', () => {
+                    state.filters.maxConfidence = filterMaxConfidence.value;
+                    applyFilters();
+                });
+                
+                filterMinInput.addEventListener('change', () => {
+                    state.filters.minInput = filterMinInput.value;
+                    applyFilters();
+                });
+                
+                filterMaxInput.addEventListener('change', () => {
+                    state.filters.maxInput = filterMaxInput.value;
+                    applyFilters();
+                });
+                
+                filterMinVerifiedFollowers.addEventListener('change', () => {
+                    state.filters.minVerifiedFollowers = filterMinVerifiedFollowers.value;
+                    applyFilters();
+                });
+                
+                filterMaxVerifiedFollowers.addEventListener('change', () => {
+                    state.filters.maxVerifiedFollowers = filterMaxVerifiedFollowers.value;
+                    applyFilters();
+                });
+                
+                filterMinNip56TotalScore.addEventListener('change', () => {
+                    state.filters.minNip56TotalScore = filterMinNip56TotalScore.value;
+                    applyFilters();
+                });
+                
+                filterMaxNip56TotalScore.addEventListener('change', () => {
+                    state.filters.maxNip56TotalScore = filterMaxNip56TotalScore.value;
+                    applyFilters();
+                });
             }
             
             function renderTable() {
@@ -542,6 +593,7 @@
                     
                     // Numeric data cells
                     addNumericCell(row, profile.verifiedFollowerCount, 0, 'verifiedFollowerCount');
+                    addNumericCell(row, profile.nip56TotalScore, 0, 'nip56TotalScore');
                     addNumericCell(row, profile.hops, 0, 'hops');
                     addNumericCell(row, profile.personalizedPageRank, 6, 'personalizedPageRank');
                     addNumericCell(row, profile.influence, 6, 'influence');
@@ -555,7 +607,7 @@
                 if (state.profiles.length === 0) {
                     const row = document.createElement('tr');
                     const cell = document.createElement('td');
-                    cell.colSpan = 9;
+                    cell.colSpan = 10;
                     cell.textContent = 'No profiles found matching the current filters';
                     cell.style.textAlign = 'center';
                     cell.style.padding = '20px';
@@ -564,7 +616,7 @@
                 }
                 
                 // Update sorting indicators in the table header
-                updateSortIndicators(state.sorting.column, state.sorting.order);
+                updateSortIndicators(state.sort.column, state.sort.order);
             }
             
             /**
@@ -664,94 +716,66 @@
             }
             
             function renderPagination() {
-                // Clear existing pagination
+                const totalPages = Math.ceil(state.filteredProfiles.length / state.pagination.limit);
                 paginationContainer.innerHTML = '';
                 
-                // Create pagination controls
-                const totalPages = state.pagination.pages;
-                const currentPage = state.pagination.page;
+                if (totalPages <= 1) {
+                    return;
+                }
                 
-                // Previous button
-                const prevButton = document.createElement('button');
-                prevButton.textContent = '←';
-                prevButton.disabled = currentPage === 1;
-                prevButton.addEventListener('click', () => {
-                    if (currentPage > 1) {
-                        state.pagination.page = currentPage - 1;
-                        fetchProfiles();
+                // Create pagination container
+                const pagination = document.createElement('div');
+                pagination.className = 'pagination';
+                
+                // "Previous" button
+                const prevBtn = document.createElement('button');
+                prevBtn.innerHTML = '&laquo; Previous';
+                prevBtn.className = state.pagination.page === 1 ? 'disabled' : '';
+                prevBtn.disabled = state.pagination.page === 1;
+                prevBtn.addEventListener('click', () => {
+                    if (state.pagination.page > 1) {
+                        state.pagination.page--;
+                        applyPagination();
+                        renderTable();
+                        renderPagination();
                     }
                 });
-                paginationContainer.appendChild(prevButton);
+                pagination.appendChild(prevBtn);
                 
                 // Page buttons
-                const maxPageButtons = 7;
-                let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
-                let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+                const maxButtons = 5; // Maximum number of page buttons to show
+                const startPage = Math.max(1, state.pagination.page - Math.floor(maxButtons / 2));
+                const endPage = Math.min(totalPages, startPage + maxButtons - 1);
                 
-                // Adjust if we're near the end
-                if (endPage - startPage + 1 < maxPageButtons && startPage > 1) {
-                    startPage = Math.max(1, endPage - maxPageButtons + 1);
-                }
-                
-                // First page button if not visible
-                if (startPage > 1) {
-                    const firstButton = document.createElement('button');
-                    firstButton.textContent = '1';
-                    firstButton.addEventListener('click', () => {
-                        state.pagination.page = 1;
-                        fetchProfiles();
-                    });
-                    paginationContainer.appendChild(firstButton);
-                    
-                    if (startPage > 2) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.textContent = '...';
-                        ellipsis.style.margin = '0 5px';
-                        paginationContainer.appendChild(ellipsis);
-                    }
-                }
-                
-                // Page number buttons
                 for (let i = startPage; i <= endPage; i++) {
-                    const pageButton = document.createElement('button');
-                    pageButton.textContent = i;
-                    pageButton.className = i === currentPage ? 'active' : '';
-                    pageButton.addEventListener('click', () => {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.textContent = i;
+                    pageBtn.className = i === state.pagination.page ? 'active' : '';
+                    pageBtn.addEventListener('click', () => {
                         state.pagination.page = i;
-                        fetchProfiles();
+                        applyPagination();
+                        renderTable();
+                        renderPagination();
                     });
-                    paginationContainer.appendChild(pageButton);
+                    pagination.appendChild(pageBtn);
                 }
                 
-                // Last page button if not visible
-                if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.textContent = '...';
-                        ellipsis.style.margin = '0 5px';
-                        paginationContainer.appendChild(ellipsis);
-                    }
-                    
-                    const lastButton = document.createElement('button');
-                    lastButton.textContent = totalPages;
-                    lastButton.addEventListener('click', () => {
-                        state.pagination.page = totalPages;
-                        fetchProfiles();
-                    });
-                    paginationContainer.appendChild(lastButton);
-                }
-                
-                // Next button
-                const nextButton = document.createElement('button');
-                nextButton.textContent = '→';
-                nextButton.disabled = currentPage === totalPages;
-                nextButton.addEventListener('click', () => {
-                    if (currentPage < totalPages) {
-                        state.pagination.page = currentPage + 1;
-                        fetchProfiles();
+                // "Next" button
+                const nextBtn = document.createElement('button');
+                nextBtn.innerHTML = 'Next &raquo;';
+                nextBtn.className = state.pagination.page === totalPages ? 'disabled' : '';
+                nextBtn.disabled = state.pagination.page === totalPages;
+                nextBtn.addEventListener('click', () => {
+                    if (state.pagination.page < totalPages) {
+                        state.pagination.page++;
+                        applyPagination();
+                        renderTable();
+                        renderPagination();
                     }
                 });
-                paginationContainer.appendChild(nextButton);
+                pagination.appendChild(nextBtn);
+                
+                paginationContainer.appendChild(pagination);
             }
             
             function updateSortIndicators(column, order) {
@@ -780,8 +804,8 @@
             
             // Update the profile count displays
             function updateProfileCounts() {
-                document.getElementById('filteredCount').textContent = state.counts.filtered.toLocaleString();
-                document.getElementById('totalCount').textContent = state.counts.total.toLocaleString();
+                document.getElementById('filteredCount').textContent = state.filteredProfiles.length.toLocaleString();
+                document.getElementById('totalCount').textContent = state.profiles.length.toLocaleString();
             }
             
             function exportToCsv() {
@@ -792,7 +816,7 @@
                 let csvContent = visibleColumns.map(col => `"${col.name}"`).join(',') + '\n';
                 
                 // Add data rows
-                state.profiles.forEach(profile => {
+                state.filteredProfiles.forEach(profile => {
                     const row = [];
                     
                     visibleColumns.forEach(column => {
@@ -805,6 +829,9 @@
                                 break;
                             case 'verifiedFollowerCount':
                                 row.push(profile.verifiedFollowerCount || 0);
+                                break;
+                            case 'nip56TotalScore':
+                                row.push(profile.nip56TotalScore || 0);
                                 break;
                             case 'hops':
                                 row.push(profile.hops || 0);
@@ -925,6 +952,174 @@
                 } else {
                     columnSettingsPanel.style.display = 'block';
                 }
+            }
+            
+            // Apply filters to the profiles
+            function applyFilters() {
+                state.filteredProfiles = state.profiles.filter(profile => {
+                    // Filter by pubkey (partial match)
+                    if (state.filters.pubkey && !profile.pubkey.toLowerCase().includes(state.filters.pubkey.toLowerCase())) {
+                        return false;
+                    }
+                    
+                    // Numeric filters
+                    if (state.filters.minHops && (!profile.hops || profile.hops < parseInt(state.filters.minHops))) return false;
+                    if (state.filters.maxHops && (profile.hops > parseInt(state.filters.maxHops))) return false;
+                    
+                    if (state.filters.minRank && (!profile.personalizedPageRank || profile.personalizedPageRank < parseFloat(state.filters.minRank))) return false;
+                    if (state.filters.maxRank && (profile.personalizedPageRank > parseFloat(state.filters.maxRank))) return false;
+                    
+                    if (state.filters.minInfluence && (!profile.influence || profile.influence < parseFloat(state.filters.minInfluence))) return false;
+                    if (state.filters.maxInfluence && (profile.influence > parseFloat(state.filters.maxInfluence))) return false;
+                    
+                    if (state.filters.minAverage && (!profile.average || profile.average < parseFloat(state.filters.minAverage))) return false;
+                    if (state.filters.maxAverage && (profile.average > parseFloat(state.filters.maxAverage))) return false;
+                    
+                    if (state.filters.minConfidence && (!profile.confidence || profile.confidence < parseFloat(state.filters.minConfidence))) return false;
+                    if (state.filters.maxConfidence && (profile.confidence > parseFloat(state.filters.maxConfidence))) return false;
+                    
+                    if (state.filters.minInput && (!profile.input || profile.input < parseFloat(state.filters.minInput))) return false;
+                    if (state.filters.maxInput && (profile.input > parseFloat(state.filters.maxInput))) return false;
+                    
+                    if (state.filters.minVerifiedFollowers && (!profile.verifiedFollowerCount || profile.verifiedFollowerCount < parseInt(state.filters.minVerifiedFollowers))) return false;
+                    if (state.filters.maxVerifiedFollowers && (profile.verifiedFollowerCount > parseInt(state.filters.maxVerifiedFollowers))) return false;
+                    
+                    // NIP-56 Total Score filter
+                    if (state.filters.minNip56TotalScore && (!profile.nip56TotalScore || profile.nip56TotalScore < parseFloat(state.filters.minNip56TotalScore))) return false;
+                    if (state.filters.maxNip56TotalScore && (profile.nip56TotalScore > parseFloat(state.filters.maxNip56TotalScore))) return false;
+                    
+                    return true;
+                });
+                
+                // Apply sorting to the filtered profiles
+                sortProfiles();
+                
+                // Apply pagination
+                applyPagination();
+                
+                // Update the table with the filtered, sorted, and paginated profiles
+                renderTable();
+                
+                // Update profile counts
+                updateProfileCounts();
+            }
+            
+            // Sort the profiles by the selected column
+            function sortProfiles() {
+                // Sort by the selected column
+                state.filteredProfiles.sort((a, b) => {
+                    let aValue, bValue;
+                    
+                    // Handle specific column sorting
+                    switch (state.sort.column) {
+                        case 'pubkey':
+                            aValue = a.pubkey;
+                            bValue = b.pubkey;
+                            break;
+                        case 'verifiedFollowerCount':
+                            aValue = a.verifiedFollowerCount || 0;
+                            bValue = b.verifiedFollowerCount || 0;
+                            break;
+                        case 'nip56TotalScore':
+                            aValue = a.nip56TotalScore || 0;
+                            bValue = b.nip56TotalScore || 0;
+                            break;
+                        case 'hops':
+                            aValue = a.hops || 0;
+                            bValue = b.hops || 0;
+                            break;
+                        case 'personalizedPageRank':
+                            aValue = a.personalizedPageRank || 0;
+                            bValue = b.personalizedPageRank || 0;
+                            break;
+                        case 'influence':
+                            aValue = a.influence || 0;
+                            bValue = b.influence || 0;
+                            break;
+                        case 'average':
+                            aValue = a.average || 0;
+                            bValue = b.average || 0;
+                            break;
+                        case 'confidence':
+                            aValue = a.confidence || 0;
+                            bValue = b.confidence || 0;
+                            break;
+                        case 'input':
+                            aValue = a.input || 0;
+                            bValue = b.input || 0;
+                            break;
+                        default:
+                            aValue = a[state.sort.column] || 0;
+                            bValue = b[state.sort.column] || 0;
+                    }
+                    
+                    // String comparison for pubkey
+                    if (typeof aValue === 'string' && typeof bValue === 'string') {
+                        const result = aValue.localeCompare(bValue);
+                        return state.sort.order === 'asc' ? result : -result;
+                    }
+                    
+                    // Numeric comparison for other fields
+                    const result = aValue - bValue;
+                    return state.sort.order === 'asc' ? result : -result;
+                });
+            }
+
+            // Apply pagination to the filtered and sorted profiles
+            function applyPagination() {
+                const { page, limit } = state.pagination;
+                const startIndex = (page - 1) * limit;
+                const endIndex = startIndex + limit;
+                
+                state.profiles = state.filteredProfiles.slice(startIndex, endIndex);
+            }
+            
+            function resetFilters() {
+                // Clear all input values
+                filterPubkey.value = '';
+                filterMinHops.value = '';
+                filterMaxHops.value = '';
+                filterMinRank.value = '';
+                filterMaxRank.value = '';
+                filterMinInfluence.value = '';
+                filterMaxInfluence.value = '';
+                filterMinAverage.value = '';
+                filterMaxAverage.value = '';
+                filterMinConfidence.value = '';
+                filterMaxConfidence.value = '';
+                filterMinInput.value = '';
+                filterMaxInput.value = '';
+                filterMinVerifiedFollowers.value = '';
+                filterMaxVerifiedFollowers.value = '';
+                filterMinNip56TotalScore.value = '';
+                filterMaxNip56TotalScore.value = '';
+                
+                // Reset state filters
+                state.filters = {
+                    pubkey: '',
+                    minHops: '',
+                    maxHops: '',
+                    minRank: '',
+                    maxRank: '',
+                    minInfluence: '',
+                    maxInfluence: '',
+                    minAverage: '',
+                    maxAverage: '',
+                    minConfidence: '',
+                    maxConfidence: '',
+                    minInput: '',
+                    maxInput: '',
+                    minVerifiedFollowers: '',
+                    maxVerifiedFollowers: '',
+                    minNip56TotalScore: '',
+                    maxNip56TotalScore: ''
+                };
+                
+                // Reset to first page
+                state.pagination.page = 1;
+                
+                // Apply filters (this will render the table)
+                applyFilters();
             }
         });
     </script>
