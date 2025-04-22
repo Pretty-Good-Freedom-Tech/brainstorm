@@ -193,6 +193,38 @@
     </div>
     
     <script>
+        // Column definitions with display names and default visibility
+        const columns = [
+            { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
+            { id: 'pubkey', name: 'Pubkey', defaultVisible: true, alwaysVisible: true },
+            { id: 'verifiedFollowerCount', name: 'Verified Followers', defaultVisible: true },
+            { id: 'hops', name: 'Hops', defaultVisible: true },
+            { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
+            { id: 'influence', name: 'Influence', defaultVisible: true },
+            { id: 'average', name: 'Average', defaultVisible: true },
+            { id: 'confidence', name: 'Confidence', defaultVisible: true },
+            { id: 'input', name: 'Input', defaultVisible: true }
+        ];
+
+        // Load column visibility settings from localStorage
+        function loadColumnVisibility() {
+            const savedSettings = localStorage.getItem('profilesColumnVisibility');
+            if (savedSettings) {
+                try {
+                    return JSON.parse(savedSettings);
+                } catch (e) {
+                    console.error('Error parsing saved column visibility', e);
+                }
+            }
+            
+            // Default settings if none saved
+            const defaults = {};
+            columns.forEach(col => {
+                defaults[col.id] = col.defaultVisible;
+            });
+            return defaults;
+        }
+
         // Global state management
         let state = {
             profiles: [],
@@ -812,38 +844,6 @@
                 showStatusMessage('CSV export completed', 'success');
             }
 
-            // Column definitions with display names and default visibility
-            const columns = [
-                { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
-                { id: 'pubkey', name: 'Pubkey', defaultVisible: true, alwaysVisible: true },
-                { id: 'verifiedFollowerCount', name: 'Verified Followers', defaultVisible: true },
-                { id: 'hops', name: 'Hops', defaultVisible: true },
-                { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
-                { id: 'influence', name: 'Influence', defaultVisible: true },
-                { id: 'average', name: 'Average', defaultVisible: true },
-                { id: 'confidence', name: 'Confidence', defaultVisible: true },
-                { id: 'input', name: 'Input', defaultVisible: true }
-            ];
-
-            // Load column visibility settings from localStorage
-            function loadColumnVisibility() {
-                const savedSettings = localStorage.getItem('profilesColumnVisibility');
-                if (savedSettings) {
-                    try {
-                        return JSON.parse(savedSettings);
-                    } catch (e) {
-                        console.error('Error parsing saved column visibility', e);
-                    }
-                }
-                
-                // Default settings if none saved
-                const defaults = {};
-                columns.forEach(col => {
-                    defaults[col.id] = col.defaultVisible;
-                });
-                return defaults;
-            }
-            
             // Save column visibility settings to localStorage
             function saveColumnVisibility() {
                 localStorage.setItem('profilesColumnVisibility', JSON.stringify(state.columnVisibility));
