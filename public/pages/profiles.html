@@ -146,8 +146,8 @@
                         </th>
                         <th>
                             <div class="filter-inputs">
-                                <input type="number" id="filterMinNip56Score" placeholder="Min" min="0" class="table-filter small-input">
-                                <input type="number" id="filterMaxNip56Score" placeholder="Max" min="0" class="table-filter small-input">
+                                <input type="number" id="filterMinNip56TotalGrapeRankScore" placeholder="Min" min="0" class="table-filter small-input">
+                                <input type="number" id="filterMaxNip56TotalGrapeRankScore" placeholder="Max" min="0" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
@@ -262,8 +262,8 @@
                 maxInput: '',
                 minVerifiedFollowers: '',
                 maxVerifiedFollowers: '',
-                minNip56Score: '',
-                maxNip56Score: ''
+                minNip56TotalGrapeRankScore: '',
+                maxNip56TotalGrapeRankScore: ''
             },
             sorting: {
                 column: 'influence',
@@ -279,7 +279,7 @@
         let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
         let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
-        let filterMinNip56Score, filterMaxNip56Score;
+        let filterMinNip56TotalGrapeRankScore, filterMaxNip56TotalGrapeRankScore;
         let limitSelect, applyFiltersBtn, resetFiltersBtn, refreshBtn, exportCsvBtn;
         let columnSettingsBtn, columnSettingsPanel, columnToggles;
             
@@ -307,8 +307,8 @@
             filterMaxInput = document.getElementById('filterMaxInput');
             filterMinVerifiedFollowers = document.getElementById('filterMinVerifiedFollowers');
             filterMaxVerifiedFollowers = document.getElementById('filterMaxVerifiedFollowers');
-            filterMinNip56Score = document.getElementById('filterMinNip56Score');
-            filterMaxNip56Score = document.getElementById('filterMaxNip56Score');
+            filterMinNip56TotalGrapeRankScore = document.getElementById('filterMinNip56TotalGrapeRankScore');
+            filterMaxNip56TotalGrapeRankScore = document.getElementById('filterMaxNip56TotalGrapeRankScore');
             limitSelect = document.getElementById('limitSelect');
             applyFiltersBtn = document.getElementById('applyFiltersBtn');
             resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -338,8 +338,8 @@
             filterMaxInput.value = state.filters.maxInput;
             filterMinVerifiedFollowers.value = state.filters.minVerifiedFollowers;
             filterMaxVerifiedFollowers.value = state.filters.maxVerifiedFollowers;
-            filterMinNip56Score.value = state.filters.minNip56Score;
-            filterMaxNip56Score.value = state.filters.maxNip56Score;
+            filterMinNip56TotalGrapeRankScore.value = state.filters.minNip56TotalGrapeRankScore;
+            filterMaxNip56TotalGrapeRankScore.value = state.filters.maxNip56TotalGrapeRankScore;
             limitSelect.value = state.pagination.limit;
             
             // Load initial data
@@ -375,8 +375,8 @@
                 if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
                 if (state.filters.minVerifiedFollowers) params.append('filterMinVerifiedFollowers', state.filters.minVerifiedFollowers);
                 if (state.filters.maxVerifiedFollowers) params.append('filterMaxVerifiedFollowers', state.filters.maxVerifiedFollowers);
-                if (state.filters.minNip56Score) params.append('filterMinNip56Score', state.filters.minNip56Score);
-                if (state.filters.maxNip56Score) params.append('filterMaxNip56Score', state.filters.maxNip56Score);
+                if (state.filters.minNip56TotalGrapeRankScore) params.append('filterMinNip56TotalGrapeRankScore', state.filters.minNip56TotalGrapeRankScore);
+                if (state.filters.maxNip56TotalGrapeRankScore) params.append('filterMaxNip56TotalGrapeRankScore', state.filters.maxNip56TotalGrapeRankScore);
                 
                 // Fetch data from API
                 fetch(`/control/api/get-profiles?${params.toString()}`)
@@ -458,8 +458,8 @@
                     state.filters.maxInput = filterMaxInput.value.trim();
                     state.filters.minVerifiedFollowers = filterMinVerifiedFollowers.value.trim();
                     state.filters.maxVerifiedFollowers = filterMaxVerifiedFollowers.value.trim();
-                    state.filters.minNip56Score = filterMinNip56Score.value.trim();
-                    state.filters.maxNip56Score = filterMaxNip56Score.value.trim();
+                    state.filters.minNip56TotalGrapeRankScore = filterMinNip56TotalGrapeRankScore.value.trim();
+                    state.filters.maxNip56TotalGrapeRankScore = filterMaxNip56TotalGrapeRankScore.value.trim();
                     state.pagination.limit = parseInt(limitSelect.value);
                     state.pagination.page = 1; // Reset to first page
                     fetchProfiles();
@@ -481,8 +481,8 @@
                     filterMaxInput.value = '';
                     filterMinVerifiedFollowers.value = '';
                     filterMaxVerifiedFollowers.value = '';
-                    filterMinNip56Score.value = '';
-                    filterMaxNip56Score.value = '';
+                    filterMinNip56TotalGrapeRankScore.value = '';
+                    filterMaxNip56TotalGrapeRankScore.value = '';
                     
                     state.filters.pubkey = '';
                     state.filters.minHops = '';
@@ -499,8 +499,8 @@
                     state.filters.maxInput = '';
                     state.filters.minVerifiedFollowers = '';
                     state.filters.maxVerifiedFollowers = '';
-                    state.filters.minNip56Score = '';
-                    state.filters.maxNip56Score = '';
+                    state.filters.minNip56TotalGrapeRankScore = '';
+                    state.filters.maxNip56TotalGrapeRankScore = '';
                     state.pagination.limit = 100;
                     state.pagination.page = 1;
                     

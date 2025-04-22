@@ -35,6 +35,8 @@ function handleGetProfiles(req, res) {
     const filterMaxInput = req.query.filterMaxInput || '';
     const filterMinVerifiedFollowers = req.query.filterMinVerifiedFollowers || '';
     const filterMaxVerifiedFollowers = req.query.filterMaxVerifiedFollowers || '';
+    const filterMinNip56TotalGrapeRankScore = req.query.filterMinNip56TotalGrapeRankScore || '';
+    const filterMaxNip56TotalGrapeRankScore = req.query.filterMaxNip56TotalGrapeRankScore || '';
     
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
@@ -109,6 +111,14 @@ function handleGetProfiles(req, res) {
     
     if (filterMaxVerifiedFollowers) {
       query += ` AND u.verifiedFollowerCount <= ${parseInt(filterMaxVerifiedFollowers)}`;
+    }
+
+    if (filterMinNip56TotalGrapeRankScore) {
+      query += ` AND u.nip56_totalGrapeRankScore >= ${parseFloat(filterMinNip56TotalGrapeRankScore)}`;
+    }
+    
+    if (filterMaxNip56TotalGrapeRankScore) {
+      query += ` AND u.nip56_totalGrapeRankScore <= ${parseFloat(filterMaxNip56TotalGrapeRankScore)}`;
     }
     
     if (filterPubkey) {
