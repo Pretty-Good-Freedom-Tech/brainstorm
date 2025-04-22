@@ -240,7 +240,8 @@
             pagination: {
                 page: 1,
                 limit: 100,
-                total: 0
+                total: 0,
+                pages: 0
             },
             filters: {
                 pubkey: '',
@@ -265,6 +266,7 @@
                 column: 'influence',
                 order: 'desc'
             },
+            totalCount: 0,
             profileCache: {}, // Cache for profile data to avoid duplicate API calls
             columnVisibility: loadColumnVisibility()
         };
@@ -364,19 +366,29 @@
                         if (data.success) {
                             // Update state
                             state.profiles = data.data.users;
+                            state.filteredProfiles = state.profiles; // This is just the current page
+                            
+                            // Store pagination information
                             state.pagination.total = data.data.pagination.total;
-                            state.filteredProfiles = state.profiles;
+                            state.pagination.page = data.data.pagination.page;
+                            state.pagination.pages = data.data.pagination.pages;
+                            state.totalCount = data.data.totalProfiles || data.data.pagination.total;
                             
-                            // Update the count display
-                            updateProfileCounts();
-                            
-                            // Render table and pagination
+                            // Render table with the new data
                             renderTable();
+                            
+                            // Render pagination controls
                             renderPagination();
+                            
+                            // Update profile counts
+                            updateProfileCounts();
                             
                             // Hide loading indicator
                             loadingIndicator.style.display = 'none';
                             profilesTable.style.display = 'table';
+                            
+                            // Show success message
+                            showStatusMessage(`Loaded ${state.profiles.length} of ${state.pagination.total} profiles`, 'success');
                         } else {
                             // Show error message
                             showStatusMessage(`Error: ${data.message}`, 'error');
@@ -717,8 +729,9 @@
             }
             
             function renderPagination() {
-                const totalPages = Math.ceil(state.filteredProfiles.length / state.pagination.limit);
                 paginationContainer.innerHTML = '';
+                
+                const totalPages = state.pagination.pages || Math.ceil(state.pagination.total / state.pagination.limit);
                 
                 if (totalPages <= 1) {
                     return;
@@ -736,9 +749,7 @@
                 prevBtn.addEventListener('click', () => {
                     if (state.pagination.page > 1) {
                         state.pagination.page--;
-                        applyPagination();
-                        renderTable();
-                        renderPagination();
+                        fetchProfiles();
                     }
                 });
                 pagination.appendChild(prevBtn);
@@ -754,9 +765,7 @@
                     pageBtn.className = i === state.pagination.page ? 'active' : '';
                     pageBtn.addEventListener('click', () => {
                         state.pagination.page = i;
-                        applyPagination();
-                        renderTable();
-                        renderPagination();
+                        fetchProfiles();
                     });
                     pagination.appendChild(pageBtn);
                 }
@@ -769,9 +778,7 @@
                 nextBtn.addEventListener('click', () => {
                     if (state.pagination.page < totalPages) {
                         state.pagination.page++;
-                        applyPagination();
-                        renderTable();
-                        renderPagination();
+                        fetchProfiles();
                     }
                 });
                 pagination.appendChild(nextBtn);
@@ -805,8 +812,8 @@
             
             // Update the profile count displays
             function updateProfileCounts() {
-                document.getElementById('filteredCount').textContent = state.filteredProfiles.length.toLocaleString();
-                document.getElementById('totalCount').textContent = state.profiles.length.toLocaleString();
+                document.getElementById('filteredCount').textContent = state.pagination.total.toLocaleString();
+                document.getElementById('totalCount').textContent = state.totalCount.toLocaleString();
             }
             
             function exportToCsv() {
