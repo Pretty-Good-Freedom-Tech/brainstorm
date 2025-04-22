@@ -241,10 +241,10 @@
             filters: {
                 pubkey: '',
                 minHops: '',
-                maxHops: '',
+                maxHops: '20',
                 minRank: '',
                 maxRank: '',
-                minInfluence: '',
+                minInfluence: '0.1',
                 maxInfluence: '',
                 minAverage: '',
                 maxAverage: '',
@@ -309,9 +309,23 @@
             // Set up event listeners
             setupEventListeners();
             
-            // Initialize filter fields with default values
+            // Set the default filter values in UI
+            filterPubkey.value = state.filters.pubkey;
+            filterMinHops.value = state.filters.minHops;
             filterMaxHops.value = state.filters.maxHops;
+            filterMinRank.value = state.filters.minRank;
+            filterMaxRank.value = state.filters.maxRank;
             filterMinInfluence.value = state.filters.minInfluence;
+            filterMaxInfluence.value = state.filters.maxInfluence;
+            filterMinAverage.value = state.filters.minAverage;
+            filterMaxAverage.value = state.filters.maxAverage;
+            filterMinConfidence.value = state.filters.minConfidence;
+            filterMaxConfidence.value = state.filters.maxConfidence;
+            filterMinInput.value = state.filters.minInput;
+            filterMaxInput.value = state.filters.maxInput;
+            filterMinVerifiedFollowers.value = state.filters.minVerifiedFollowers;
+            filterMaxVerifiedFollowers.value = state.filters.maxVerifiedFollowers;
+            limitSelect.value = state.pagination.limit;
             
             // Load initial data
             fetchProfiles();
