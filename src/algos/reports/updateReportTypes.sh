@@ -19,9 +19,6 @@ RETURN reportType
 
 cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 
-# cypher returns results with 'reportType' prefix, so we need to remove the first item in the array
-cypherResults1=(${cypherResults1[@]:1})
-
 # remove existing reportTypes.json
 sudo rm -f ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.json
 
