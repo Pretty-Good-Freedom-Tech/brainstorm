@@ -175,12 +175,52 @@
         }
         row.appendChild(td);
     }
-    // --- Load Profile Picture (stub: can be improved with real avatars) ---
+    // --- Profile Picture Cache (shared with profiles.html pattern) ---
+    const profileCache = {};
+
+    // --- Load Profile Picture (fetches kind0 profile, uses cache, fallback to default avatar) ---
     function loadProfilePicture(pubkey, imgElement) {
-        // If you have a real avatar service, replace this stub
-        // Optionally: fetch(`/api/avatar?pubkey=${pubkey}`) ...
-        // For now, just use default avatar
-        imgElement.src = '/img/default-avatar.png';
+        // If already loaded, use cached data
+        if (profileCache[pubkey]) {
+            updateProfilePictureWithData(imgElement, profileCache[pubkey]);
+            return;
+        }
+        // Fetch kind0 profile
+        fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
+            .then(response => response.json())
+            .then(data => {
+                let profileData = null;
+                if (data.success && data.data && data.data.content) {
+                    try {
+                        profileData = JSON.parse(data.data.content);
+                    } catch (e) {
+                        // Ignore parse errors
+                    }
+                }
+                profileCache[pubkey] = profileData || {};
+                updateProfilePictureWithData(imgElement, profileCache[pubkey]);
+            })
+            .catch(() => {
+                // On error, just use default
+                updateProfilePictureWithData(imgElement, {});
+            });
+    }
+
+    // --- Update Profile Picture With Data (copied/adapted from profiles.html) ---
+    function updateProfilePictureWithData(imgElement, profileData) {
+        if (profileData && profileData.picture) {
+            imgElement.src = profileData.picture;
+            imgElement.onerror = function() {
+                // If image fails to load, fallback to placeholder
+                imgElement.src = '/img/default-avatar.png';
+            };
+        } else {
+            imgElement.src = '/img/default-avatar.png';
+        }
+        // Tooltip with name if available
+        if (profileData && (profileData.display_name || profileData.name)) {
+            imgElement.title = profileData.display_name || profileData.name;
+        }
     }
     // --- Pagination ---
     function renderPagination() {
