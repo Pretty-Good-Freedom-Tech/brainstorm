@@ -141,6 +141,9 @@ function register(app) {
     // Verified Followers endpoints
     app.post('/api/generate-verified-followers', algos.verifiedFollowers.handleGenerateVerifiedFollowers);
 
+    // Reports endpoints
+    app.post('/api/generate-reports', algos.reports.handleGenerateReports);
+
     // Services endpoints
     app.get('/api/service-status', services.handleServiceStatus);
     app.get('/api/systemd-services', services.handleSystemdServices);

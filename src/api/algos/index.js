@@ -7,6 +7,7 @@ const hops = require('./hops');
 const pagerank = require('./pagerank');
 const graperank = require('./graperank');
 const verifiedFollowers = require('./verifiedFollowers');
+const reports = require('./reports');
 
 // Export modules directly with their namespaces
 module.exports = {
@@ -14,5 +15,6 @@ module.exports = {
     hops,
     pagerank,
     graperank,
-    verifiedFollowers
+    verifiedFollowers,
+    reports
 };

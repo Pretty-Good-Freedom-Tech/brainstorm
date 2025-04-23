@@ -219,6 +219,20 @@
                             <span class="progress-text">0%</span>
                         </div>
                     </div>
+                    <div class="calculation-item">
+                        <div class="calculation-item-content">
+                            <h4>Reports <span class="info-icon">i</span><span class="tooltip">Processes reports according to report type.</span></h4>
+                            <p id="reports-last-calculation-time" class="timestamp"></p>
+                            <p id="reports-last-calculation-duration" class="duration"></p>
+                        </div>
+                        <div class="calculation-actions">
+                            <button class="action-btn">Run</button>
+                            <div class="progress-container">
+                                <div class="progress-bar"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                    </div>
                 </div>
                 <br/>
                 <h3>Webs of Trust Score Export</h3>
@@ -979,6 +993,11 @@
                     endpoint: '/control/api/generate-verified-followers',
                     method: 'POST',
                     buttonText: 'Calculate Verified Followers'
+                },
+                'reports': {
+                    endpoint: '/control/api/generate-reports',
+                    method: 'POST',
+                    buttonText: 'Generate Reports'
                 },
                 'blacklist': {
                     endpoint: '/control/api/generate-blacklist',

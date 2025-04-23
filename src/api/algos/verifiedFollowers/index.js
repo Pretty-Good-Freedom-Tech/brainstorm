@@ -1,6 +1,6 @@
 /**
- * PageRank API Module
- * Exports handlers for PageRank algorithm operations
+ * Verified Followers API Module
+ * Exports handlers for Verified Followers algorithm operations
  */
 
 const { handleGenerateVerifiedFollowers } = require('./commands/generate');
