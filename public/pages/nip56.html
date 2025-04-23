@@ -26,6 +26,7 @@
     <div class="container">
         <div class="header-profiles">
             <h1>NIP-56 Reports Summary</h1>
+            <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
             <div class="report-type-selector">
                 <label for="reportTypeSelect">Report Type:</label>
                 <select id="reportTypeSelect"></select>
@@ -148,6 +149,8 @@
         updateSortIndicators();
         // Filtering
         let filtered = filterProfiles(allProfiles);
+        // Results indicator
+        renderResultsIndicator(filtered.length, allProfiles.length);
         // Sorting
         filtered.sort((a, b) => {
             const key = state.sortBy;
@@ -354,6 +357,20 @@
                 };
             }
         });
+    }
+
+    // --- Results Count Indicator ---
+    function renderResultsIndicator(filteredCount, totalCount) {
+        let indicator = document.getElementById('resultsIndicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'resultsIndicator';
+            indicator.style.margin = '10px 0 10px 0';
+            indicator.style.fontWeight = 'bold';
+            const container = document.querySelector('.header-profiles');
+            container.appendChild(indicator);
+        }
+        indicator.textContent = `Showing ${filteredCount} of ${totalCount} profiles`;
     }
 
     // --- Pagination Controls ---
