@@ -148,9 +148,15 @@
             picLink.appendChild(img);
             picCell.appendChild(picLink);
             row.appendChild(picCell);
-            // Pubkey
+            // Pubkey (link to njump.me, shortened)
             const pubkeyCell = document.createElement('td');
-            pubkeyCell.textContent = profile.pubkey;
+            const pubkeyLink = document.createElement('a');
+            pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
+            pubkeyLink.target = '_blank';
+            pubkeyLink.className = 'pubkey-link';
+            pubkeyLink.textContent = profile.pubkey.substring(0, 12) + '...';
+            pubkeyLink.title = profile.pubkey;
+            pubkeyCell.appendChild(pubkeyLink);
             row.appendChild(pubkeyCell);
             // GrapeRank Score
             addNumericCell(row, profile.grapeRankScore, 3);
