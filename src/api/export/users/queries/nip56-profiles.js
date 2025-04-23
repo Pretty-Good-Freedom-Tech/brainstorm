@@ -73,11 +73,11 @@ function handleGetNip56Profiles(req, res) {
             driver.close();
             const profiles = result.records.map(r => ({
               pubkey: r.get('pubkey'),
-              totalCount: r.get('totalCount'),
-              grapeRankScore: r.get('grapeRankScore'),
-              totalVerifiedCount: r.get('totalVerifiedCount'),
-              influence: r.get('influence'),
-              verifiedFollowerCount: r.get('verifiedFollowerCount')
+              totalCount: typeof r.get('totalCount') === 'object' && r.get('totalCount') !== null && typeof r.get('totalCount').toNumber === 'function' ? r.get('totalCount').toNumber() : r.get('totalCount'),
+              grapeRankScore: typeof r.get('grapeRankScore') === 'object' && r.get('grapeRankScore') !== null && typeof r.get('grapeRankScore').toNumber === 'function' ? r.get('grapeRankScore').toNumber() : r.get('grapeRankScore'),
+              totalVerifiedCount: typeof r.get('totalVerifiedCount') === 'object' && r.get('totalVerifiedCount') !== null && typeof r.get('totalVerifiedCount').toNumber === 'function' ? r.get('totalVerifiedCount').toNumber() : r.get('totalVerifiedCount'),
+              influence: typeof r.get('influence') === 'object' && r.get('influence') !== null && typeof r.get('influence').toNumber === 'function' ? r.get('influence').toNumber() : r.get('influence'),
+              verifiedFollowerCount: typeof r.get('verifiedFollowerCount') === 'object' && r.get('verifiedFollowerCount') !== null && typeof r.get('verifiedFollowerCount').toNumber === 'function' ? r.get('verifiedFollowerCount').toNumber() : r.get('verifiedFollowerCount')
             }));
             res.json({ success: true, data: { profiles, total } });
           });
