@@ -75,26 +75,32 @@ function handleGetNip56Profiles(req, res) {
       RETURN count(n) AS total
     `;
 
-    Promise.all([
-      session.run(countCypher),
-      session.run(cypher, { skip: neo4j.int(skip), limit: neo4j.int(limit) })
-    ])
-      .then(([countResult, result]) => {
+    // Run queries sequentially, closing and reopening session as in profiles.js
+    session.run(countCypher)
+      .then(countResult => {
         const total = countResult.records[0].get('total').toNumber();
-        const profiles = result.records.map(r => ({
-          pubkey: r.get('pubkey'),
-          totalCount: r.get('totalCount')?.toNumber?.() ?? 0,
-          grapeRankScore: r.get('grapeRankScore'),
-          totalVerifiedCount: r.get('totalVerifiedCount')?.toNumber?.() ?? 0,
-          influence: r.get('influence'),
-          verifiedFollowerCount: r.get('verifiedFollowerCount')?.toNumber?.() ?? 0
-        }));
-        res.json({ success: true, data: { profiles, total } });
+        session.close();
+        const session2 = driver.session();
+        return session2.run(cypher, { skip: neo4j.int(skip), limit: neo4j.int(limit) })
+          .then(result => {
+            session2.close();
+            driver.close();
+            const profiles = result.records.map(r => ({
+              pubkey: r.get('pubkey'),
+              totalCount: r.get('totalCount')?.toNumber?.() ?? 0,
+              grapeRankScore: r.get('grapeRankScore'),
+              totalVerifiedCount: r.get('totalVerifiedCount')?.toNumber?.() ?? 0,
+              influence: r.get('influence'),
+              verifiedFollowerCount: r.get('verifiedFollowerCount')?.toNumber?.() ?? 0
+            }));
+            res.json({ success: true, data: { profiles, total } });
+          });
       })
       .catch(e => {
+        session.close();
+        driver.close();
         res.status(500).json({ success: false, message: e.message });
-      })
-      .finally(() => session.close());
+      });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }
