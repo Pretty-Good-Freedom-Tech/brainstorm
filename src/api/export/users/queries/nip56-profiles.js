@@ -17,11 +17,7 @@ const path = require('path');
  */
 function handleGetNip56Profiles(req, res) {
   try {
-    // Get query parameters for filtering and pagination
-    const sortBy = req.query.sortBy || 'influence';
-    const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
-    
-    // Get reportType from query
+    // Get query parameters
     const reportType = req.query.reportType;
     if (!reportType) {
       return res.status(400).json({ success: false, message: 'Missing reportType parameter.' });
@@ -46,11 +42,6 @@ function handleGetNip56Profiles(req, res) {
     const driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword));
     const session = driver.session();
 
-    // Remove pagination & sorting for client-side filtering/sorting
-    const sortField = `nip56_${reportType}_grapeRankScore`;
-    const allowedSortFields = [sortField, 'influence', 'verifiedFollowerCount', `nip56_${reportType}_totalCount`, `nip56_${reportType}_totalVerifiedCount`];
-    const orderBy = allowedSortFields.includes(sortBy) ? sortBy : sortField;
-
     // Cypher query (main): return all profiles for this report type, sorted by orderBy (optional)
     const cypher = `
       MATCH (n:NostrUser)
@@ -58,10 +49,10 @@ function handleGetNip56Profiles(req, res) {
       RETURN n.pubkey AS pubkey,
              n.nip56_${reportType}_totalCount AS totalCount,
              n.nip56_${reportType}_grapeRankScore AS grapeRankScore,
-             n.nip56_${reportType}_totalVerifiedCount AS totalVerifiedCount,
+             n.nip56_${reportType}_verifiedCount AS totalVerifiedCount,
              n.influence AS influence,
              n.verifiedFollowerCount AS verifiedFollowerCount
-      ORDER BY n.${orderBy} ${sortOrder}
+      ORDER BY grapeRankScore DESC
     `;
     // Cypher query (count)
     const countCypher = `
