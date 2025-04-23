@@ -43,6 +43,15 @@
                         <th>Influence</th>
                         <th>🍇-Verified Followers</th>
                     </tr>
+                    <tr class="filter-row">
+                        <th></th>
+                        <th><input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter"></th>
+                        <th><input type="number" id="filterMinGrapeRank" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxGrapeRank" placeholder="Max" class="table-filter small-input"></th>
+                        <th><input type="number" id="filterMinVerifiedCount" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxVerifiedCount" placeholder="Max" class="table-filter small-input"></th>
+                        <th><input type="number" id="filterMinTotalCount" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxTotalCount" placeholder="Max" class="table-filter small-input"></th>
+                        <th><input type="number" id="filterMinInfluence" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxInfluence" placeholder="Max" class="table-filter small-input"></th>
+                        <th><input type="number" id="filterMinVerifiedFollowers" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" class="table-filter small-input"></th>
+                    </tr>
                 </thead>
                 <tbody id="nip56ProfilesTableBody"></tbody>
             </table>
@@ -78,7 +87,20 @@
         },
         reportType: reportTypes[0],
         sortBy: 'grapeRankScore',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
+        filters: {
+            pubkey: '',
+            minGrapeRank: '',
+            maxGrapeRank: '',
+            minVerifiedCount: '',
+            maxVerifiedCount: '',
+            minTotalCount: '',
+            maxTotalCount: '',
+            minInfluence: '',
+            maxInfluence: '',
+            minVerifiedFollowers: '',
+            maxVerifiedFollowers: ''
+        }
     };
     // --- Populate Report Type Selector ---
     function populateReportTypeSelector() {
@@ -128,11 +150,12 @@
     // --- Render Table ---
     function renderTable() {
         tableBody.innerHTML = '';
-        if (state.profiles.length === 0) {
+        let filtered = filterProfiles(state.profiles);
+        if (filtered.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7">No profiles found for this report type.</td></tr>';
             return;
         }
-        state.profiles.forEach(profile => {
+        filtered.forEach(profile => {
             const row = document.createElement('tr');
             // Profile pic
             const picCell = document.createElement('td');
@@ -279,9 +302,77 @@
     refreshBtn.addEventListener('click', () => {
         fetchProfiles();
     });
-    // --- Initial Load ---
-    populateReportTypeSelector();
-    fetchProfiles();
+    // --- Setup filter input events ---
+    function setupFilterInputs() {
+        document.getElementById('filterPubkey').addEventListener('input', e => {
+            state.filters.pubkey = e.target.value;
+            renderTable();
+        });
+        document.getElementById('filterMinGrapeRank').addEventListener('input', e => { state.filters.minGrapeRank = e.target.value; renderTable(); });
+        document.getElementById('filterMaxGrapeRank').addEventListener('input', e => { state.filters.maxGrapeRank = e.target.value; renderTable(); });
+        document.getElementById('filterMinVerifiedCount').addEventListener('input', e => { state.filters.minVerifiedCount = e.target.value; renderTable(); });
+        document.getElementById('filterMaxVerifiedCount').addEventListener('input', e => { state.filters.maxVerifiedCount = e.target.value; renderTable(); });
+        document.getElementById('filterMinTotalCount').addEventListener('input', e => { state.filters.minTotalCount = e.target.value; renderTable(); });
+        document.getElementById('filterMaxTotalCount').addEventListener('input', e => { state.filters.maxTotalCount = e.target.value; renderTable(); });
+        document.getElementById('filterMinInfluence').addEventListener('input', e => { state.filters.minInfluence = e.target.value; renderTable(); });
+        document.getElementById('filterMaxInfluence').addEventListener('input', e => { state.filters.maxInfluence = e.target.value; renderTable(); });
+        document.getElementById('filterMinVerifiedFollowers').addEventListener('input', e => { state.filters.minVerifiedFollowers = e.target.value; renderTable(); });
+        document.getElementById('filterMaxVerifiedFollowers').addEventListener('input', e => { state.filters.maxVerifiedFollowers = e.target.value; renderTable(); });
+    }
+
+    // --- Sorting: header click events ---
+    function setupSorting() {
+        const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
+        const sortMap = [
+            null, // Pic
+            'pubkey',
+            'grapeRankScore',
+            'totalVerifiedCount',
+            'totalCount',
+            'influence',
+            'verifiedFollowerCount'
+        ];
+        headerRow.querySelectorAll('th').forEach((th, idx) => {
+            if (sortMap[idx]) {
+                th.style.cursor = 'pointer';
+                th.addEventListener('click', () => {
+                    if (state.sortBy === sortMap[idx]) {
+                        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        state.sortBy = sortMap[idx];
+                        state.sortOrder = 'desc';
+                    }
+                    fetchProfiles();
+                });
+            }
+        });
+    }
+
+    // --- Table Filtering Logic ---
+    function filterProfiles(profiles) {
+        return profiles.filter(profile => {
+            if (state.filters.pubkey && !profile.pubkey.includes(state.filters.pubkey)) return false;
+            if (state.filters.minGrapeRank && Number(profile.grapeRankScore) < Number(state.filters.minGrapeRank)) return false;
+            if (state.filters.maxGrapeRank && Number(profile.grapeRankScore) > Number(state.filters.maxGrapeRank)) return false;
+            if (state.filters.minVerifiedCount && Number(profile.totalVerifiedCount) < Number(state.filters.minVerifiedCount)) return false;
+            if (state.filters.maxVerifiedCount && Number(profile.totalVerifiedCount) > Number(state.filters.maxVerifiedCount)) return false;
+            if (state.filters.minTotalCount && Number(profile.totalCount) < Number(state.filters.minTotalCount)) return false;
+            if (state.filters.maxTotalCount && Number(profile.totalCount) > Number(state.filters.maxTotalCount)) return false;
+            if (state.filters.minInfluence && Number(profile.influence) < Number(state.filters.minInfluence)) return false;
+            if (state.filters.maxInfluence && Number(profile.influence) > Number(state.filters.maxInfluence)) return false;
+            if (state.filters.minVerifiedFollowers && Number(profile.verifiedFollowerCount) < Number(state.filters.minVerifiedFollowers)) return false;
+            if (state.filters.maxVerifiedFollowers && Number(profile.verifiedFollowerCount) > Number(state.filters.maxVerifiedFollowers)) return false;
+            return true;
+        });
+    }
+
+    // --- Init: setup filter and sort events ---
+    document.addEventListener('DOMContentLoaded', function() {
+        populateReportTypeSelector();
+        setupFilterInputs();
+        setupSorting();
+        fetchProfiles();
+    });
     </script>
 </body>
 </html>
