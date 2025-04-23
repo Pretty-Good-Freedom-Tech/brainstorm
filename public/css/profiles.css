@@ -1,4 +1,5 @@
 @import "./common.css";
+@import "./table.css";
 
 .header-profiles {
     display: flex;
