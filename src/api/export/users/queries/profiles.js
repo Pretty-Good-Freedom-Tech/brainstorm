@@ -37,6 +37,10 @@ function handleGetProfiles(req, res) {
     const filterMaxVerifiedFollowers = req.query.filterMaxVerifiedFollowers || '';
     const filterMinNip56TotalGrapeRankScore = req.query.filterMinNip56TotalGrapeRankScore || '';
     const filterMaxNip56TotalGrapeRankScore = req.query.filterMaxNip56TotalGrapeRankScore || '';
+    const filterMinNip56TotalVerifiedReportCount = req.query.filterMinNip56TotalVerifiedReportCount || '';
+    const filterMaxNip56TotalVerifiedReportCount = req.query.filterMaxNip56TotalVerifiedReportCount || '';
+    const filterMinNip56TotalReportCount = req.query.filterMinNip56TotalReportCount || '';
+    const filterMaxNip56TotalReportCount = req.query.filterMaxNip56TotalReportCount || '';
     
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
