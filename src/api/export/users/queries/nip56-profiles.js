@@ -42,16 +42,16 @@ function handleGetNip56Profiles(req, res) {
     const driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword));
     const session = driver.session();
 
-    // Cypher query (main): return all profiles for this report type, sorted by orderBy (optional)
+    // Cypher query (main): return all profiles for this report type, with null/missing values defaulted to 0
     const cypher = `
       MATCH (n:NostrUser)
       WHERE n.nip56_${reportType}_totalCount > 0
       RETURN n.pubkey AS pubkey,
-             n.nip56_${reportType}_totalCount AS totalCount,
-             n.nip56_${reportType}_grapeRankScore AS grapeRankScore,
-             n.nip56_${reportType}_verifiedCount AS totalVerifiedCount,
-             n.influence AS influence,
-             n.verifiedFollowerCount AS verifiedFollowerCount
+             coalesce(n.nip56_${reportType}_totalCount, 0) AS totalCount,
+             coalesce(n.nip56_${reportType}_grapeRankScore, 0) AS grapeRankScore,
+             coalesce(n.nip56_${reportType}_verifiedCount, 0) AS totalVerifiedCount,
+             coalesce(n.influence, 0) AS influence,
+             coalesce(n.verifiedFollowerCount, 0) AS verifiedFollowerCount
       ORDER BY grapeRankScore DESC
     `;
     // Cypher query (count)
@@ -73,11 +73,11 @@ function handleGetNip56Profiles(req, res) {
             driver.close();
             const profiles = result.records.map(r => ({
               pubkey: r.get('pubkey'),
-              totalCount: r.get('totalCount')?.toNumber?.() ?? 0,
-              grapeRankScore: r.get('grapeRankScore'),
-              totalVerifiedCount: r.get('totalVerifiedCount')?.toNumber?.() ?? 0,
-              influence: r.get('influence'),
-              verifiedFollowerCount: r.get('verifiedFollowerCount')?.toNumber?.() ?? 0
+              totalCount: r.get('totalCount').toNumber(),
+              grapeRankScore: r.get('grapeRankScore').toNumber(),
+              totalVerifiedCount: r.get('totalVerifiedCount').toNumber(),
+              influence: r.get('influence').toNumber(),
+              verifiedFollowerCount: r.get('verifiedFollowerCount').toNumber()
             }));
             res.json({ success: true, data: { profiles, total } });
           });
