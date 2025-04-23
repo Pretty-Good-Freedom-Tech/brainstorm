@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIP-56 Reports Summary</title>
+    <link rel="stylesheet" href="/control/css/profiles.css">
+    <script src="./components/header/header.js"></script>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <style>
+        .report-type-selector {
+            margin: 20px 0 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .report-type-selector label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="headerContainer"></div>
+    <div class="container">
+        <div class="header-profiles">
+            <h1>NIP-56 Reports Summary</h1>
+            <div class="report-type-selector">
+                <label for="reportTypeSelect">Report Type:</label>
+                <select id="reportTypeSelect"></select>
+                <button id="refreshBtn">Refresh</button>
+            </div>
+        </div>
+        <div id="tableContainer">
+            <div id="loadingIndicator" class="loading"></div>
+            <table id="nip56ProfilesTable" style="display: none;">
+                <thead>
+                    <tr class="header-row">
+                        <th class="profile-pic-col">Pic</th>
+                        <th>Pubkey</th>
+                        <th>Grapevine Report Score</th>
+                        <th>Verified Report Count</th>
+                        <th>Report Count</th>
+                        <th>Influence</th>
+                        <th>🍇-Verified Followers</th>
+                    </tr>
+                </thead>
+                <tbody id="nip56ProfilesTableBody"></tbody>
+            </table>
+        </div>
+        <div id="paginationContainer" class="pagination" style="display: none;"></div>
+    </div>
+    <script>
+    // --- Report Types ---
+    const reportTypes = [
+        'nudity',
+        'malware',
+        'profanity',
+        'illegal',
+        'spam',
+        'impersonation',
+        'other'
+    ];
+    // --- DOM Elements ---
+    const reportTypeSelect = document.getElementById('reportTypeSelect');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const tableBody = document.getElementById('nip56ProfilesTableBody');
+    const profilesTable = document.getElementById('nip56ProfilesTable');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const paginationContainer = document.getElementById('paginationContainer');
+    // --- State ---
+    let state = {
+        profiles: [],
+        pagination: {
+            total: 0,
+            page: 1,
+            limit: 100,
+            pages: 1
+        },
+        reportType: reportTypes[0],
+        sortBy: 'grapeRankScore',
+        sortOrder: 'desc'
+    };
+    // --- Populate Report Type Selector ---
+    function populateReportTypeSelector() {
+        reportTypes.forEach(type => {
+            const opt = document.createElement('option');
+            opt.value = type;
+            opt.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            reportTypeSelect.appendChild(opt);
+        });
+        reportTypeSelect.value = state.reportType;
+    }
+    // --- Fetch Profiles ---
+    function fetchProfiles() {
+        loadingIndicator.style.display = 'flex';
+        profilesTable.style.display = 'none';
+        paginationContainer.style.display = 'none';
+        tableBody.innerHTML = '';
+        const params = new URLSearchParams({
+            page: state.pagination.page,
+            limit: state.pagination.limit,
+            reportType: state.reportType,
+            sortBy: state.sortBy,
+            sortOrder: state.sortOrder
+        });
+        fetch(`/api/get-nip56-profiles?${params}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    state.profiles = data.data.profiles;
+                    state.pagination.total = data.data.total;
+                    state.pagination.pages = Math.ceil(data.data.total / state.pagination.limit);
+                    renderTable();
+                    renderPagination();
+                    profilesTable.style.display = '';
+                    paginationContainer.style.display = '';
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="7">${data.message || 'Failed to load data'}</td></tr>`;
+                }
+            })
+            .catch(e => {
+                tableBody.innerHTML = `<tr><td colspan="7">Error: ${e.message}</td></tr>`;
+            })
+            .finally(() => {
+                loadingIndicator.style.display = 'none';
+            });
+    }
+    // --- Render Table ---
+    function renderTable() {
+        tableBody.innerHTML = '';
+        if (state.profiles.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7">No profiles found for this report type.</td></tr>';
+            return;
+        }
+        state.profiles.forEach(profile => {
+            const row = document.createElement('tr');
+            // Profile pic
+            const picCell = document.createElement('td');
+            picCell.className = 'profile-pic-cell';
+            const picLink = document.createElement('a');
+            picLink.href = `profile.html?pubkey=${profile.pubkey}`;
+            picLink.target = '_blank';
+            const img = document.createElement('img');
+            img.src = `/img/default-avatar.png`;
+            img.alt = 'Profile Picture';
+            img.className = 'profile-pic';
+            loadProfilePicture(profile.pubkey, img);
+            picLink.appendChild(img);
+            picCell.appendChild(picLink);
+            row.appendChild(picCell);
+            // Pubkey
+            const pubkeyCell = document.createElement('td');
+            pubkeyCell.textContent = profile.pubkey;
+            row.appendChild(pubkeyCell);
+            // GrapeRank Score
+            addNumericCell(row, profile.grapeRankScore, 3);
+            // Verified Report Count
+            addNumericCell(row, profile.totalVerifiedCount);
+            // Report Count
+            addNumericCell(row, profile.totalCount);
+            // Influence
+            addNumericCell(row, profile.influence, 4);
+            // Verified Follower Count
+            addNumericCell(row, profile.verifiedFollowerCount);
+            tableBody.appendChild(row);
+        });
+    }
+    // --- Add Numeric Cell ---
+    function addNumericCell(row, value, decimals = 0) {
+        const td = document.createElement('td');
+        if (typeof value === 'number' && !isNaN(value)) {
+            td.textContent = decimals > 0 ? value.toFixed(decimals) : value;
+        } else {
+            td.textContent = '—';
+        }
+        row.appendChild(td);
+    }
+    // --- Load Profile Picture (stub: can be improved with real avatars) ---
+    function loadProfilePicture(pubkey, imgElement) {
+        // If you have a real avatar service, replace this stub
+        // Optionally: fetch(`/api/avatar?pubkey=${pubkey}`) ...
+        // For now, just use default avatar
+        imgElement.src = '/img/default-avatar.png';
+    }
+    // --- Pagination ---
+    function renderPagination() {
+        paginationContainer.innerHTML = '';
+        if (state.pagination.pages <= 1) return;
+        for (let i = 1; i <= state.pagination.pages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = (i === state.pagination.page) ? 'active' : '';
+            btn.onclick = () => {
+                state.pagination.page = i;
+                fetchProfiles();
+            };
+            paginationContainer.appendChild(btn);
+        }
+    }
+    // --- Event Listeners ---
+    reportTypeSelect.addEventListener('change', () => {
+        state.reportType = reportTypeSelect.value;
+        state.pagination.page = 1;
+        fetchProfiles();
+    });
+    refreshBtn.addEventListener('click', () => {
+        fetchProfiles();
+    });
+    // --- Initial Load ---
+    populateReportTypeSelector();
+    fetchProfiles();
+    </script>
+</body>
+</html>
