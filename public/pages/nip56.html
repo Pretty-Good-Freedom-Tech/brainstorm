@@ -284,11 +284,12 @@
         if (imgElement.nextSibling && imgElement.nextSibling.classList && imgElement.nextSibling.classList.contains('default-profile-pic')) {
             imgElement.parentNode.removeChild(imgElement.nextSibling);
         }
+        // Only proceed if imgElement has a parentNode
+        if (!imgElement.parentNode) return;
         if (profileData && profileData.picture) {
             imgElement.src = profileData.picture;
             imgElement.style.display = '';
             imgElement.onerror = function() {
-                // Hide broken image, show placeholder with name/??
                 imgElement.style.display = 'none';
                 let placeholder = document.createElement('div');
                 placeholder.className = 'default-profile-pic';
@@ -297,24 +298,26 @@
                 } else {
                     placeholder.textContent = '??';
                 }
-                imgElement.parentNode.appendChild(placeholder);
+                if (imgElement.parentNode) {
+                    imgElement.parentNode.appendChild(placeholder);
+                }
             };
         } else if (profileData && profileData.name) {
             imgElement.style.display = 'none';
             let placeholder = document.createElement('div');
             placeholder.className = 'default-profile-pic';
             placeholder.textContent = profileData.name.substring(0, 2).toUpperCase();
-            imgElement.parentNode.appendChild(placeholder);
-        } else {
-            imgElement.src = '/img/default-avatar.png';
-            imgElement.style.display = '';
-            imgElement.onerror = function() {
-                imgElement.style.display = 'none';
-                let placeholder = document.createElement('div');
-                placeholder.className = 'default-profile-pic';
-                placeholder.textContent = '??';
+            if (imgElement.parentNode) {
                 imgElement.parentNode.appendChild(placeholder);
-            };
+            }
+        } else {
+            imgElement.style.display = 'none';
+            let placeholder = document.createElement('div');
+            placeholder.className = 'default-profile-pic';
+            placeholder.textContent = '??';
+            if (imgElement.parentNode) {
+                imgElement.parentNode.appendChild(placeholder);
+            }
         }
         // Tooltip with name if available
         if (profileData && (profileData.display_name || profileData.name)) {
