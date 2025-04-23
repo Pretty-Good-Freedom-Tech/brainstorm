@@ -151,14 +151,18 @@
         let filtered = filterProfiles(allProfiles);
         // Results indicator
         renderResultsIndicator(filtered.length, allProfiles.length);
-        // Sorting
+        // Sorting (use numeric fallback for undefined/null, and ensure correct comparison for numbers)
         filtered.sort((a, b) => {
             const key = state.sortBy;
             let va = a[key], vb = b[key];
+            // Try to convert to numbers if possible for numeric columns
+            if (typeof va === 'string' && !isNaN(parseFloat(va)) && isFinite(va)) va = parseFloat(va);
+            if (typeof vb === 'string' && !isNaN(parseFloat(vb)) && isFinite(vb)) vb = parseFloat(vb);
             // Handle undefined/null
-            if (va === undefined || va === null) va = -Infinity;
-            if (vb === undefined || vb === null) vb = -Infinity;
-            if (typeof va === 'string') {
+            if (va === undefined || va === null || (typeof va === 'number' && isNaN(va))) va = -Infinity;
+            if (vb === undefined || vb === null || (typeof vb === 'number' && isNaN(vb))) vb = -Infinity;
+            // For strings, compare case-insensitively
+            if (typeof va === 'string' && typeof vb === 'string') {
                 va = va.toLowerCase();
                 vb = vb.toLowerCase();
             }
