@@ -69,6 +69,8 @@
         'impersonation',
         'other'
     ];
+    // --- Global: Store all profiles for client-side filtering/sorting ---
+    let allProfiles = [];
     // --- DOM Elements ---
     const reportTypeSelect = document.getElementById('reportTypeSelect');
     const refreshBtn = document.getElementById('refreshBtn');
@@ -79,15 +81,7 @@
     // --- State ---
     let state = {
         profiles: [],
-        pagination: {
-            total: 0,
-            page: 1,
-            limit: 100,
-            pages: 1
-        },
         reportType: reportTypes[0],
-        sortBy: 'grapeRankScore',
-        sortOrder: 'desc',
         filters: {
             pubkey: '',
             minGrapeRank: '',
@@ -119,23 +113,16 @@
         paginationContainer.style.display = 'none';
         tableBody.innerHTML = '';
         const params = new URLSearchParams({
-            page: state.pagination.page,
-            limit: state.pagination.limit,
-            reportType: state.reportType,
-            sortBy: state.sortBy,
-            sortOrder: state.sortOrder
+            reportType: state.reportType
         });
         fetch(`/api/get-nip56-profiles?${params}`)
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    state.profiles = data.data.profiles;
-                    state.pagination.total = data.data.total;
-                    state.pagination.pages = Math.ceil(data.data.total / state.pagination.limit);
+                    allProfiles = data.data.profiles;
+                    state.profiles = allProfiles;
                     renderTable();
-                    renderPagination();
                     profilesTable.style.display = '';
-                    paginationContainer.style.display = '';
                 } else {
                     tableBody.innerHTML = `<tr><td colspan="7">${data.message || 'Failed to load data'}</td></tr>`;
                 }
@@ -150,7 +137,8 @@
     // --- Render Table ---
     function renderTable() {
         tableBody.innerHTML = '';
-        let filtered = filterProfiles(state.profiles);
+        // Always filter from allProfiles, not state.profiles
+        let filtered = filterProfiles(allProfiles);
         if (filtered.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7">No profiles found for this report type.</td></tr>';
             return;
@@ -278,25 +266,9 @@
             imgElement.title = profileData.display_name || profileData.name;
         }
     }
-    // --- Pagination ---
-    function renderPagination() {
-        paginationContainer.innerHTML = '';
-        if (state.pagination.pages <= 1) return;
-        for (let i = 1; i <= state.pagination.pages; i++) {
-            const btn = document.createElement('button');
-            btn.textContent = i;
-            btn.className = (i === state.pagination.page) ? 'active' : '';
-            btn.onclick = () => {
-                state.pagination.page = i;
-                fetchProfiles();
-            };
-            paginationContainer.appendChild(btn);
-        }
-    }
     // --- Event Listeners ---
     reportTypeSelect.addEventListener('change', () => {
         state.reportType = reportTypeSelect.value;
-        state.pagination.page = 1;
         fetchProfiles();
     });
     refreshBtn.addEventListener('click', () => {
