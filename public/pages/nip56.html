@@ -81,7 +81,8 @@
     const loadingIndicator = document.getElementById('loadingIndicator');
     const paginationContainer = document.getElementById('paginationContainer');
     // --- State ---
-    const PAGE_SIZE = 100;
+    const DEFAULT_PAGE_SIZE = 50;
+    const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
     let state = {
         profiles: [],
         reportType: reportTypes[0],
@@ -99,6 +100,7 @@
             maxVerifiedFollowers: ''
         },
         page: 1,
+        pageSize: DEFAULT_PAGE_SIZE,
         sortBy: 'grapeRankScore',
         sortOrder: 'desc'
     };
@@ -163,12 +165,13 @@
         });
         // Pagination
         const total = filtered.length;
-        const startIdx = (state.page - 1) * PAGE_SIZE;
-        const endIdx = Math.min(startIdx + PAGE_SIZE, total);
+        const startIdx = (state.page - 1) * state.pageSize;
+        const endIdx = Math.min(startIdx + state.pageSize, total);
         const pageRows = filtered.slice(startIdx, endIdx);
         if (pageRows.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7">No profiles found for this report type.</td></tr>';
             renderPagination(0, 1);
+            renderPageSizeSelector();
             return;
         }
         pageRows.forEach(profile => {
@@ -209,7 +212,8 @@
             addNumericCell(row, profile.verifiedFollowerCount);
             tableBody.appendChild(row);
         });
-        renderPagination(total, Math.ceil(total / PAGE_SIZE));
+        renderPagination(total, Math.ceil(total / state.pageSize));
+        renderPageSizeSelector();
     }
     // --- Update Sort Indicators in Header ---
     function updateSortIndicators() {
@@ -369,6 +373,32 @@
                 renderTable();
             };
             paginationContainer.appendChild(btn);
+        }
+    }
+
+    // --- Page Size Selector ---
+    function renderPageSizeSelector() {
+        let selector = document.getElementById('pageSizeSelector');
+        if (!selector) {
+            selector = document.createElement('select');
+            selector.id = 'pageSizeSelector';
+            selector.className = 'table-pagesize';
+            PAGE_SIZE_OPTIONS.forEach(size => {
+                const opt = document.createElement('option');
+                opt.value = size;
+                opt.textContent = `${size} per page`;
+                selector.appendChild(opt);
+            });
+            selector.value = state.pageSize;
+            selector.addEventListener('change', e => {
+                state.pageSize = parseInt(e.target.value, 10);
+                state.page = 1;
+                renderTable();
+            });
+            // Insert selector above pagination
+            paginationContainer.parentNode.insertBefore(selector, paginationContainer);
+        } else {
+            selector.value = state.pageSize;
         }
     }
 
