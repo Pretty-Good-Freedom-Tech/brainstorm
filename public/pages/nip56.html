@@ -17,6 +17,8 @@
         .report-type-selector label {
             font-weight: bold;
         }
+        th.sorted-asc, th.sorted-desc { color: #7a4cff; }
+        .sort-indicator { font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -141,6 +143,7 @@
     // --- Render Table ---
     function renderTable() {
         tableBody.innerHTML = '';
+        updateSortIndicators();
         // Filtering
         let filtered = filterProfiles(allProfiles);
         // Sorting
@@ -207,6 +210,32 @@
             tableBody.appendChild(row);
         });
         renderPagination(total, Math.ceil(total / PAGE_SIZE));
+    }
+    // --- Update Sort Indicators in Header ---
+    function updateSortIndicators() {
+        const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
+        const sortMap = [
+            null, // Pic
+            'pubkey',
+            'grapeRankScore',
+            'totalVerifiedCount',
+            'totalCount',
+            'influence',
+            'verifiedFollowerCount'
+        ];
+        headerRow.querySelectorAll('th').forEach((th, idx) => {
+            th.classList.remove('sorted-asc', 'sorted-desc');
+            // Remove previous indicator
+            let indicator = th.querySelector('.sort-indicator');
+            if (indicator) th.removeChild(indicator);
+            if (sortMap[idx] && state.sortBy === sortMap[idx]) {
+                th.classList.add(state.sortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                const span = document.createElement('span');
+                span.className = 'sort-indicator';
+                span.textContent = state.sortOrder === 'asc' ? ' ▲' : ' ▼';
+                th.appendChild(span);
+            }
+        });
     }
     // --- Add Numeric Cell ---
     function addNumericCell(row, value, decimals = 0) {
