@@ -97,6 +97,23 @@
                         </div>
                     </div>
                     
+                    <div class="profile-nip56-reports" id="nip56ReportsSection" style="display: none;">
+                        <h3>NIP-56 Reports</h3>
+                        <table class="nip56-table" id="nip56ReportsTable" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Report Type</th>
+                                    <th>GrapeRank Score</th>
+                                    <th>Verified Report Count</th>
+                                    <th>Report Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
                     <div class="profile-about" id="aboutSection">
                         <h3>About</h3>
                         <p id="aboutText">No information available</p>
@@ -306,6 +323,39 @@
             
             if (data.reporterCount !== null && data.reporterCount !== undefined) {
                 reporterCountValue.textContent = data.reporterCount;
+            }
+            
+            // NIP-56 Reports Table
+            const nip56 = data.nip56;
+            const nip56ReportsTable = document.getElementById('nip56ReportsTable');
+            if (nip56 && nip56ReportsTable) {
+                const tbody = nip56ReportsTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                // Add totals row
+                if (nip56.totals) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td><b>Total</b></td>
+                        <td>${nip56.totals.nip56TotalGrapeRankScore !== null ? nip56.totals.nip56TotalGrapeRankScore.toFixed(3) : '—'}</td>
+                        <td>${nip56.totals.nip56TotalVerifiedReportCount ?? '—'}</td>
+                        <td>${nip56.totals.nip56TotalReportCount ?? '—'}</td>`;
+                    tbody.appendChild(tr);
+                }
+                // Add row for each report type
+                if (nip56.byReportType) {
+                    for (const [type, vals] of Object.entries(nip56.byReportType)) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${type}</td>
+                            <td>${vals.grapeRankScore !== null ? vals.grapeRankScore.toFixed(3) : '—'}</td>
+                            <td>${vals.verifiedReportCount ?? '—'}</td>
+                            <td>${vals.reportCount ?? '—'}</td>`;
+                        tbody.appendChild(tr);
+                    }
+                }
+                nip56ReportsTable.style.display = '';
+                document.getElementById('nip56ReportsSection').style.display = '';
+            } else if (nip56ReportsTable) {
+                nip56ReportsTable.style.display = 'none';
+                document.getElementById('nip56ReportsSection').style.display = 'none';
             }
         }
         
