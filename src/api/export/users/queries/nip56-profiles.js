@@ -73,11 +73,11 @@ function handleGetNip56Profiles(req, res) {
             driver.close();
             const profiles = result.records.map(r => ({
               pubkey: r.get('pubkey'),
-              totalCount: r.get('totalCount').toNumber(),
-              grapeRankScore: r.get('grapeRankScore').toNumber(),
-              totalVerifiedCount: r.get('totalVerifiedCount').toNumber(),
-              influence: r.get('influence').toNumber(),
-              verifiedFollowerCount: r.get('verifiedFollowerCount').toNumber()
+              totalCount: r.get('totalCount'),
+              grapeRankScore: r.get('grapeRankScore'),
+              totalVerifiedCount: r.get('totalVerifiedCount'),
+              influence: r.get('influence'),
+              verifiedFollowerCount: r.get('verifiedFollowerCount')
             }));
             res.json({ success: true, data: { profiles, total } });
           });
