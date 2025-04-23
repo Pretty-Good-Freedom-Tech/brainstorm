@@ -120,23 +120,7 @@ function handleGetProfiles(req, res) {
     if (filterMaxNip56TotalGrapeRankScore) {
       query += ` AND u.nip56_totalGrapeRankScore <= ${parseFloat(filterMaxNip56TotalGrapeRankScore)}`;
     }
-
-    if (filterMinNip56TotalReportCount) {
-      query += ` AND u.nip56_totalReportCount >= ${parseFloat(filterMinNip56TotalReportCount)}`;
-    }
     
-    if (filterMaxNip56TotalReportCount) {
-      query += ` AND u.nip56_totalReportCount <= ${parseFloat(filterMaxNip56TotalReportCount)}`;
-    }
-
-    if (filterMinNip56TotalVerifiedReportCount) {
-      query += ` AND u.nip56_totalVerifiedReportCount >= ${parseFloat(filterMinNip56TotalVerifiedReportCount)}`;
-    }
-    
-    if (filterMaxNip56TotalVerifiedReportCount) {
-      query += ` AND u.nip56_totalVerifiedReportCount <= ${parseFloat(filterMaxNip56TotalVerifiedReportCount)}`;
-    }
-
     if (filterPubkey) {
       query += ` AND u.pubkey CONTAINS '${filterPubkey}'`;
     }

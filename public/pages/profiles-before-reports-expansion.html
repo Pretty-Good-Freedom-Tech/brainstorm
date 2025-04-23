@@ -125,9 +125,7 @@
                         <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
                         <th data-sort="pubkey">Pubkey</th>
                         <th data-sort="verifiedFollowerCount" class="sort-desc">🍇-Verified Followers</th>
-                        <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
-                        <th data-sort="nip56TotalVerifiedReportCount" class="sort-desc">🍇-Verified Reports</th>
-                        <th data-sort="nip56TotalReportCount" class="sort-desc">Total Reports</th>  
+                        <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Verified Reporters</th>
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
                         <th data-sort="influence" class="sort-desc">Influence</th>
@@ -150,18 +148,6 @@
                             <div class="filter-inputs">
                                 <input type="number" id="filterMinNip56TotalGrapeRankScore" placeholder="Min" min="0" class="table-filter small-input">
                                 <input type="number" id="filterMaxNip56TotalGrapeRankScore" placeholder="Max" min="0" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs">
-                                <input type="number" id="filterMinNip56TotalVerifiedReportCount" placeholder="Min" min="0" class="table-filter small-input">
-                                <input type="number" id="filterMaxNip56TotalVerifiedReportCount" placeholder="Max" min="0" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs">
-                                <input type="number" id="filterMinNip56TotalReportCount" placeholder="Min" min="0" class="table-filter small-input">
-                                <input type="number" id="filterMaxNip56TotalReportCount" placeholder="Max" min="0" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
@@ -219,9 +205,7 @@
             { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
             { id: 'pubkey', name: 'Pubkey', defaultVisible: true, alwaysVisible: true },
             { id: 'verifiedFollowerCount', name: '🍇-Verified Followers', defaultVisible: true },
-            { id: 'nip56TotalGrapeRankScore', name: '🍇-Report Score', defaultVisible: true },
-            { id: 'nip56TotalVerifiedReportCount', name: '🍇-Verified Reports', defaultVisible: true },
-            { id: 'nip56TotalReportCount', name: 'Total Reports', defaultVisible: true },
+            { id: 'nip56TotalGrapeRankScore', name: '🍇-Verified Reporters', defaultVisible: true },
             { id: 'hops', name: 'Hops', defaultVisible: true },
             { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
             { id: 'influence', name: 'Influence', defaultVisible: true },
@@ -279,11 +263,7 @@
                 minVerifiedFollowers: '',
                 maxVerifiedFollowers: '',
                 minNip56TotalGrapeRankScore: '',
-                maxNip56TotalGrapeRankScore: '',
-                minNip56TotalVerifiedReportCount: '',
-                maxNip56TotalVerifiedReportCount: '',
-                minNip56TotalReportCount: '',
-                maxNip56TotalReportCount: ''
+                maxNip56TotalGrapeRankScore: ''
             },
             sorting: {
                 column: 'influence',
@@ -300,8 +280,6 @@
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
         let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
         let filterMinNip56TotalGrapeRankScore, filterMaxNip56TotalGrapeRankScore;
-        let filterMinNip56TotalVerifiedReportCount, filterMaxNip56TotalVerifiedReportCount;
-        let filterMinNip56TotalReportCount, filterMaxNip56TotalReportCount;
         let limitSelect, applyFiltersBtn, resetFiltersBtn, refreshBtn, exportCsvBtn;
         let columnSettingsBtn, columnSettingsPanel, columnToggles;
             
@@ -331,10 +309,6 @@
             filterMaxVerifiedFollowers = document.getElementById('filterMaxVerifiedFollowers');
             filterMinNip56TotalGrapeRankScore = document.getElementById('filterMinNip56TotalGrapeRankScore');
             filterMaxNip56TotalGrapeRankScore = document.getElementById('filterMaxNip56TotalGrapeRankScore');
-            filterMinNip56TotalVerifiedReportCount = document.getElementById('filterMinNip56TotalVerifiedReportCount');
-            filterMaxNip56TotalVerifiedReportCount = document.getElementById('filterMaxNip56TotalVerifiedReportCount');
-            filterMinNip56TotalReportCount = document.getElementById('filterMinNip56TotalReportCount');
-            filterMaxNip56TotalReportCount = document.getElementById('filterMaxNip56TotalReportCount');
             limitSelect = document.getElementById('limitSelect');
             applyFiltersBtn = document.getElementById('applyFiltersBtn');
             resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -366,10 +340,6 @@
             filterMaxVerifiedFollowers.value = state.filters.maxVerifiedFollowers;
             filterMinNip56TotalGrapeRankScore.value = state.filters.minNip56TotalGrapeRankScore;
             filterMaxNip56TotalGrapeRankScore.value = state.filters.maxNip56TotalGrapeRankScore;
-            filterMinNip56TotalReportCount.value = state.filters.minNip56TotalReportCount;
-            filterMaxNip56TotalReportCount.value = state.filters.maxNip56TotalReportCount;
-            filterMinNip56TotalVerifiedReportCount.value = state.filters.minNip56TotalVerifiedReportCount;
-            filterMaxNip56TotalVerifiedReportCount.value = state.filters.maxNip56TotalVerifiedReportCount;
             limitSelect.value = state.pagination.limit;
             
             // Load initial data
@@ -391,12 +361,6 @@
                 // Handle special cases for column names that differ between frontend and backend
                 if (sortColumn === 'nip56TotalGrapeRankScore') {
                     sortColumn = 'nip56_totalGrapeRankScore';
-                }
-                if (sortColumn === 'nip56TotalVerifiedReportCount') {
-                    sortColumn = 'nip56_totalVerifiedReportCount';
-                }
-                if (sortColumn === 'nip56TotalReportCount') {
-                    sortColumn = 'nip56_totalReportCount';
                 }
                 
                 params.append('sortBy', sortColumn);
@@ -420,10 +384,6 @@
                 if (state.filters.maxVerifiedFollowers) params.append('filterMaxVerifiedFollowers', state.filters.maxVerifiedFollowers);
                 if (state.filters.minNip56TotalGrapeRankScore) params.append('filterMinNip56TotalGrapeRankScore', state.filters.minNip56TotalGrapeRankScore);
                 if (state.filters.maxNip56TotalGrapeRankScore) params.append('filterMaxNip56TotalGrapeRankScore', state.filters.maxNip56TotalGrapeRankScore);
-                if (state.filters.minNip56TotalVerifiedReportCount) params.append('filterMinNip56TotalVerifiedReportCount', state.filters.minNip56TotalVerifiedReportCount);
-                if (state.filters.maxNip56TotalVerifiedReportCount) params.append('filterMaxNip56TotalVerifiedReportCount', state.filters.maxNip56TotalVerifiedReportCount);
-                if (state.filters.minNip56TotalReportCount) params.append('filterMinNip56TotalReportCount', state.filters.minNip56TotalReportCount);
-                if (state.filters.maxNip56TotalReportCount) params.append('filterMaxNip56TotalReportCount', state.filters.maxNip56TotalReportCount);
                 
                 // Fetch data from API
                 fetch(`/control/api/get-profiles?${params.toString()}`)
@@ -507,10 +467,6 @@
                     state.filters.maxVerifiedFollowers = filterMaxVerifiedFollowers.value.trim();
                     state.filters.minNip56TotalGrapeRankScore = filterMinNip56TotalGrapeRankScore.value.trim();
                     state.filters.maxNip56TotalGrapeRankScore = filterMaxNip56TotalGrapeRankScore.value.trim();
-                    state.filters.minNip56TotalVerifiedReportCount = filterMinNip56TotalVerifiedReportCount.value.trim();
-                    state.filters.maxNip56TotalVerifiedReportCount = filterMaxNip56TotalVerifiedReportCount.value.trim();
-                    state.filters.minNip56TotalReportCount = filterMinNip56TotalReportCount.value.trim();
-                    state.filters.maxNip56TotalReportCount = filterMaxNip56TotalReportCount.value.trim();
                     state.pagination.limit = parseInt(limitSelect.value);
                     state.pagination.page = 1; // Reset to first page
                     fetchProfiles();
@@ -534,10 +490,6 @@
                     filterMaxVerifiedFollowers.value = '';
                     filterMinNip56TotalGrapeRankScore.value = '';
                     filterMaxNip56TotalGrapeRankScore.value = '';
-                    filterMinNip56TotalVerifiedReportCount.value = '';
-                    filterMaxNip56TotalVerifiedReportCount.value = '';
-                    filterMinNip56TotalReportCount.value = '';
-                    filterMaxNip56TotalReportCount.value = '';
                     
                     state.filters.pubkey = '';
                     state.filters.minHops = '';
@@ -556,10 +508,6 @@
                     state.filters.maxVerifiedFollowers = '';
                     state.filters.minNip56TotalGrapeRankScore = '';
                     state.filters.maxNip56TotalGrapeRankScore = '';
-                    state.filters.minNip56TotalVerifiedReportCount = '';
-                    state.filters.maxNip56TotalVerifiedReportCount = '';
-                    state.filters.minNip56TotalReportCount = '';
-                    state.filters.maxNip56TotalReportCount = '';
                     state.pagination.limit = 100;
                     state.pagination.page = 1;
                     
@@ -639,8 +587,6 @@
                     // Numeric data cells
                     addNumericCell(row, profile.verifiedFollowerCount, 0, 'verifiedFollowerCount');
                     addNumericCell(row, profile.nip56_totalGrapeRankScore, 0, 'nip56TotalGrapeRankScore');
-                    addNumericCell(row, profile.nip56_totalVerifiedReportCount, 0, 'nip56TotalVerifiedReportCount');
-                    addNumericCell(row, profile.nip56_totalReportCount, 0, 'nip56TotalReportCount');
                     addNumericCell(row, profile.hops, 0, 'hops');
                     addNumericCell(row, profile.personalizedPageRank, 6, 'personalizedPageRank');
                     addNumericCell(row, profile.influence, 6, 'influence');
@@ -907,12 +853,6 @@
                                 break;
                             case 'nip56TotalGrapeRankScore':
                                 row.push(profile.nip56_totalGrapeRankScore || 0);
-                                break;
-                            case 'nip56TotalVerifiedReportCount':
-                                row.push(profile.nip56_totalVerifiedReportCount || 0);
-                                break;
-                            case 'nip56TotalReportCount':
-                                row.push(profile.nip56_totalReportCount || 0);
                                 break;
                             case 'hops':
                                 row.push(profile.hops || 0);
