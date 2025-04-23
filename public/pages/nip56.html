@@ -79,6 +79,7 @@
     const loadingIndicator = document.getElementById('loadingIndicator');
     const paginationContainer = document.getElementById('paginationContainer');
     // --- State ---
+    const PAGE_SIZE = 100;
     let state = {
         profiles: [],
         reportType: reportTypes[0],
@@ -94,7 +95,10 @@
             maxInfluence: '',
             minVerifiedFollowers: '',
             maxVerifiedFollowers: ''
-        }
+        },
+        page: 1,
+        sortBy: 'grapeRankScore',
+        sortOrder: 'desc'
     };
     // --- Populate Report Type Selector ---
     function populateReportTypeSelector() {
@@ -137,13 +141,34 @@
     // --- Render Table ---
     function renderTable() {
         tableBody.innerHTML = '';
-        // Always filter from allProfiles, not state.profiles
+        // Filtering
         let filtered = filterProfiles(allProfiles);
-        if (filtered.length === 0) {
+        // Sorting
+        filtered.sort((a, b) => {
+            const key = state.sortBy;
+            let va = a[key], vb = b[key];
+            // Handle undefined/null
+            if (va === undefined || va === null) va = -Infinity;
+            if (vb === undefined || vb === null) vb = -Infinity;
+            if (typeof va === 'string') {
+                va = va.toLowerCase();
+                vb = vb.toLowerCase();
+            }
+            if (va < vb) return state.sortOrder === 'asc' ? -1 : 1;
+            if (va > vb) return state.sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+        // Pagination
+        const total = filtered.length;
+        const startIdx = (state.page - 1) * PAGE_SIZE;
+        const endIdx = Math.min(startIdx + PAGE_SIZE, total);
+        const pageRows = filtered.slice(startIdx, endIdx);
+        if (pageRows.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7">No profiles found for this report type.</td></tr>';
+            renderPagination(0, 1);
             return;
         }
-        filtered.forEach(profile => {
+        pageRows.forEach(profile => {
             const row = document.createElement('tr');
             // Profile pic
             const picCell = document.createElement('td');
@@ -181,6 +206,7 @@
             addNumericCell(row, profile.verifiedFollowerCount);
             tableBody.appendChild(row);
         });
+        renderPagination(total, Math.ceil(total / PAGE_SIZE));
     }
     // --- Add Numeric Cell ---
     function addNumericCell(row, value, decimals = 0) {
@@ -266,32 +292,6 @@
             imgElement.title = profileData.display_name || profileData.name;
         }
     }
-    // --- Event Listeners ---
-    reportTypeSelect.addEventListener('change', () => {
-        state.reportType = reportTypeSelect.value;
-        fetchProfiles();
-    });
-    refreshBtn.addEventListener('click', () => {
-        fetchProfiles();
-    });
-    // --- Setup filter input events ---
-    function setupFilterInputs() {
-        document.getElementById('filterPubkey').addEventListener('input', e => {
-            state.filters.pubkey = e.target.value;
-            renderTable();
-        });
-        document.getElementById('filterMinGrapeRank').addEventListener('input', e => { state.filters.minGrapeRank = e.target.value; renderTable(); });
-        document.getElementById('filterMaxGrapeRank').addEventListener('input', e => { state.filters.maxGrapeRank = e.target.value; renderTable(); });
-        document.getElementById('filterMinVerifiedCount').addEventListener('input', e => { state.filters.minVerifiedCount = e.target.value; renderTable(); });
-        document.getElementById('filterMaxVerifiedCount').addEventListener('input', e => { state.filters.maxVerifiedCount = e.target.value; renderTable(); });
-        document.getElementById('filterMinTotalCount').addEventListener('input', e => { state.filters.minTotalCount = e.target.value; renderTable(); });
-        document.getElementById('filterMaxTotalCount').addEventListener('input', e => { state.filters.maxTotalCount = e.target.value; renderTable(); });
-        document.getElementById('filterMinInfluence').addEventListener('input', e => { state.filters.minInfluence = e.target.value; renderTable(); });
-        document.getElementById('filterMaxInfluence').addEventListener('input', e => { state.filters.maxInfluence = e.target.value; renderTable(); });
-        document.getElementById('filterMinVerifiedFollowers').addEventListener('input', e => { state.filters.minVerifiedFollowers = e.target.value; renderTable(); });
-        document.getElementById('filterMaxVerifiedFollowers').addEventListener('input', e => { state.filters.maxVerifiedFollowers = e.target.value; renderTable(); });
-    }
-
     // --- Sorting: header click events ---
     function setupSorting() {
         const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
@@ -307,17 +307,37 @@
         headerRow.querySelectorAll('th').forEach((th, idx) => {
             if (sortMap[idx]) {
                 th.style.cursor = 'pointer';
-                th.addEventListener('click', () => {
+                th.onclick = () => {
                     if (state.sortBy === sortMap[idx]) {
                         state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
                     } else {
                         state.sortBy = sortMap[idx];
                         state.sortOrder = 'desc';
                     }
-                    fetchProfiles();
-                });
+                    renderTable();
+                };
             }
         });
+    }
+
+    // --- Pagination Controls ---
+    function renderPagination(total, pages) {
+        paginationContainer.innerHTML = '';
+        if (pages <= 1) {
+            paginationContainer.style.display = 'none';
+            return;
+        }
+        paginationContainer.style.display = '';
+        for (let i = 1; i <= pages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = (i === state.page) ? 'active' : '';
+            btn.onclick = () => {
+                state.page = i;
+                renderTable();
+            };
+            paginationContainer.appendChild(btn);
+        }
     }
 
     // --- Table Filtering Logic ---
@@ -338,11 +358,36 @@
         });
     }
 
-    // --- Init: setup filter and sort events ---
+    // --- Filter input events ---
+    function setupFilterInputs() {
+        document.getElementById('filterPubkey').addEventListener('input', e => { state.filters.pubkey = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMinGrapeRank').addEventListener('input', e => { state.filters.minGrapeRank = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMaxGrapeRank').addEventListener('input', e => { state.filters.maxGrapeRank = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMinVerifiedCount').addEventListener('input', e => { state.filters.minVerifiedCount = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMaxVerifiedCount').addEventListener('input', e => { state.filters.maxVerifiedCount = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMinTotalCount').addEventListener('input', e => { state.filters.minTotalCount = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMaxTotalCount').addEventListener('input', e => { state.filters.maxTotalCount = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMinInfluence').addEventListener('input', e => { state.filters.minInfluence = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMaxInfluence').addEventListener('input', e => { state.filters.maxInfluence = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMinVerifiedFollowers').addEventListener('input', e => { state.filters.minVerifiedFollowers = e.target.value; state.page = 1; renderTable(); });
+        document.getElementById('filterMaxVerifiedFollowers').addEventListener('input', e => { state.filters.maxVerifiedFollowers = e.target.value; state.page = 1; renderTable(); });
+    }
+
+    // --- Sorting and filter setup on load ---
     document.addEventListener('DOMContentLoaded', function() {
         populateReportTypeSelector();
         setupFilterInputs();
         setupSorting();
+        fetchProfiles();
+    });
+
+    // --- Event Listeners ---
+    reportTypeSelect.addEventListener('change', () => {
+        state.reportType = reportTypeSelect.value;
+        state.page = 1;
+        fetchProfiles();
+    });
+    refreshBtn.addEventListener('click', () => {
         fetchProfiles();
     });
     </script>
