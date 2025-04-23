@@ -18,8 +18,6 @@ const path = require('path');
 function handleGetNip56Profiles(req, res) {
   try {
     // Get query parameters for filtering and pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 100;
     const sortBy = req.query.sortBy || 'influence';
     const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
     
@@ -48,13 +46,12 @@ function handleGetNip56Profiles(req, res) {
     const driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword));
     const session = driver.session();
 
-    // Pagination & sorting
-    const skip = (page - 1) * limit;
+    // Remove pagination & sorting for client-side filtering/sorting
     const sortField = `nip56_${reportType}_grapeRankScore`;
     const allowedSortFields = [sortField, 'influence', 'verifiedFollowerCount', `nip56_${reportType}_totalCount`, `nip56_${reportType}_totalVerifiedCount`];
     const orderBy = allowedSortFields.includes(sortBy) ? sortBy : sortField;
 
-    // Cypher query (main)
+    // Cypher query (main): return all profiles for this report type, sorted by orderBy (optional)
     const cypher = `
       MATCH (n:NostrUser)
       WHERE n.nip56_${reportType}_totalCount > 0
@@ -65,8 +62,6 @@ function handleGetNip56Profiles(req, res) {
              n.influence AS influence,
              n.verifiedFollowerCount AS verifiedFollowerCount
       ORDER BY n.${orderBy} ${sortOrder}
-      SKIP $skip
-      LIMIT $limit
     `;
     // Cypher query (count)
     const countCypher = `
@@ -81,7 +76,7 @@ function handleGetNip56Profiles(req, res) {
         const total = countResult.records[0].get('total').toNumber();
         session.close();
         const session2 = driver.session();
-        return session2.run(cypher, { skip: neo4j.int(skip), limit: neo4j.int(limit) })
+        return session2.run(cypher)
           .then(result => {
             session2.close();
             driver.close();
