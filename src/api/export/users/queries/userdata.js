@@ -8,12 +8,6 @@ const { getConfigFromFile } = require('../../../../utils/config');
 const fs = require('fs');
 const path = require('path');
 
-const reportTypesPath = path.join(__dirname, 'reportTypes.txt');
-const reportTypes = fs.readFileSync(reportTypesPath, 'utf-8')
-  .split('\n')
-  .map(line => line.trim())
-  .filter(line => line.length > 0);
-
 /**
  * Get detailed data for a specific user
  * @param {Object} req - Express request object
@@ -21,6 +15,14 @@ const reportTypes = fs.readFileSync(reportTypesPath, 'utf-8')
  */
 function handleGetUserData(req, res) {
   try {
+    // TODO: Remove this when BRAINSTORM_MODULE_ALGOS_DIR is implemented
+    // const BRAINSTORM_MODULE_ALGOS_DIR = getConfigFromFile('BRAINSTORM_MODULE_ALGOS_DIR', '');
+    const reportTypesPath = "/usr/local/lib/node_modules/brainstorm/src/algos/reports/reportTypes.txt"
+    const reportTypes = fs.readFileSync(reportTypesPath, 'utf-8')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
     // Get query parameters for filtering
     const pubkey = req.query.pubkey;
     
