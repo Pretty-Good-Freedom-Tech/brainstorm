@@ -138,30 +138,22 @@ function handleGetUserData(req, res) {
                 nip56TotalVerifiedReportCount: user.get('nip56TotalVerifiedReportCount') ? parseInt(user.get('nip56TotalVerifiedReportCount').toString()) : 0,
                 nip56TotalReportCount: user.get('nip56TotalReportCount') ? parseInt(user.get('nip56TotalReportCount').toString()) : 0
               },
-              byReportType: {
-                ...Object.fromEntries(
-                  reportTypes.flatMap(reportType => [
-                    [
-                      `nip56${reportType}GrapeRankScore`,
-                      user.get(`nip56${reportType}GrapeRankScore`)
-                        ? parseFloat(user.get(`nip56${reportType}GrapeRankScore`).toString())
-                        : null
-                    ],
-                    [
-                      `nip56${reportType}VerifiedReportCount`,
-                      user.get(`nip56${reportType}VerifiedReportCount`)
-                        ? parseInt(user.get(`nip56${reportType}VerifiedReportCount`).toString())
-                        : 0
-                    ],
-                    [
-                      `nip56${reportType}ReportCount`,
-                      user.get(`nip56${reportType}ReportCount`)
-                        ? parseInt(user.get(`nip56${reportType}ReportCount`).toString())
-                        : 0
-                    ]
-                  ])
-                )
-              }
+              byReportType: Object.fromEntries(
+                reportTypes.map(reportType => [
+                  reportType,
+                  {
+                    grapeRankScore: user.get(`nip56${reportType}GrapeRankScore`)
+                      ? parseFloat(user.get(`nip56${reportType}GrapeRankScore`).toString())
+                      : null,
+                    verifiedReportCount: user.get(`nip56${reportType}VerifiedReportCount`)
+                      ? parseInt(user.get(`nip56${reportType}VerifiedReportCount`).toString())
+                      : 0,
+                    reportCount: user.get(`nip56${reportType}ReportCount`)
+                      ? parseInt(user.get(`nip56${reportType}ReportCount`).toString())
+                      : 0
+                  }
+                ])
+              )
             }
           }
         });
