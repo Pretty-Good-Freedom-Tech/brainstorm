@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# NIP-56 GrapeRank Configuration
+
+reportTypes='["nudity", "malware", "profanity", "illegal", "spam", "impersonation", "other"]'
+export reportTypes
+
+# WHEN LAST CALCULATED: unix timestamp; 0 indicates not yet calculated
+export WHEN_LAST_CALCULATED=0

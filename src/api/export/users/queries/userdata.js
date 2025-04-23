@@ -33,7 +33,7 @@ function handleGetUserData(req, res) {
     const session = driver.session();
     
     // Build the Cypher query to get user data and counts
-    const query = `
+    let query = `
       MATCH (u:NostrUser {pubkey: $pubkey})
       
       // Count users that this user follows
@@ -71,6 +71,23 @@ function handleGetUserData(req, res) {
              u.average as average,
              u.confidence as confidence,
              u.input as input,
+             u.nip56_totalGrapeRankScore as nip56TotalGrapeRankScore,
+             u.nip56_totalVerifiedReportCount as nip56TotalVerifiedReportCount,
+             u.nip56_totalReportCount as nip56TotalReportCount,`
+    // cycle through each report type in ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.txt
+    // and add to query
+    // use this format:
+    // u.nip56_nudity_grapeRankScore as nip56NudityGrapeRankScore,
+    // u.nip56_nudity_verifiedReportCount as nip56NudityVerifiedReportCount,
+    // u.nip56_nudity_reportCount as nip56NudityReportCount,
+    const reportTypes = fs.readFileSync(`${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.txt`, 'utf8').split('\n');
+    reportTypes.forEach(reportType => {
+      query += `
+             u.nip56_${reportType}_grapeRankScore as nip56${reportType}GrapeRankScore,
+             u.nip56_${reportType}_verifiedReportCount as nip56${reportType}VerifiedReportCount,
+             u.nip56_${reportType}_reportCount as nip56${reportType}ReportCount,`
+    });
+    query += `
              followingCount,
              verifiedFollowerCount,
              followerCount,
@@ -105,7 +122,13 @@ function handleGetUserData(req, res) {
             mutingCount: user.get('mutingCount') ? parseInt(user.get('mutingCount').toString()) : 0,
             muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
             reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
-            reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0
+            reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
+            // ${reportTypes.map(reportType => `nip56${reportType}GrapeRankScore: user.get('nip56${reportType}GrapeRankScore') ? parseFloat(user.get('nip56${reportType}GrapeRankScore').toString()) : null,`).join('')}
+            // ${reportTypes.map(reportType => `nip56${reportType}VerifiedReportCount: user.get('nip56${reportType}VerifiedReportCount') ? parseInt(user.get('nip56${reportType}VerifiedReportCount').toString()) : 0,`).join('')}
+            // ${reportTypes.map(reportType => `nip56${reportType}ReportCount: user.get('nip56${reportType}ReportCount') ? parseInt(user.get('nip56${reportType}ReportCount').toString()) : 0,`).join('')}
+            nip56TotalGrapeRankScore: user.get('nip56TotalGrapeRankScore') ? parseFloat(user.get('nip56TotalGrapeRankScore').toString()) : null,
+            nip56TotalVerifiedReportCount: user.get('nip56TotalVerifiedReportCount') ? parseInt(user.get('nip56TotalVerifiedReportCount').toString()) : 0,
+            nip56TotalReportCount: user.get('nip56TotalReportCount') ? parseInt(user.get('nip56TotalReportCount').toString()) : 0
           }
         });
       })
