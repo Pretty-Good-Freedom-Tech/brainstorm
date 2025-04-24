@@ -31,29 +31,26 @@
                 <label for="reportTypeSelect">Report Type:</label>
                 <select id="reportTypeSelect"></select>
                 <button id="refreshBtn">Refresh</button>
+                <button id="columnSettingsBtn" class="secondary" style="margin-left:10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    Columns
+                </button>
             </div>
+        </div>
+        <!-- Column settings panel -->
+        <div id="columnSettingsPanel" class="column-settings-panel" style="display:none;">
+            <h3>Column Visibility</h3>
+            <div id="columnToggles"></div>
         </div>
         <div id="tableContainer">
             <div id="loadingIndicator" class="loading"></div>
             <table id="nip56ProfilesTable" style="display: none;">
                 <thead>
                     <tr class="header-row">
-                        <th class="profile-pic-col">Pic</th>
-                        <th>Pubkey</th>
-                        <th>🍇-Report Score</th>
-                        <th>🍇-Verified Report Count</th>
-                        <th>Total Report Count</th>
-                        <th>Influence</th>
-                        <th>🍇-Verified Followers</th>
                     </tr>
                     <tr class="filter-row">
-                        <th></th>
-                        <th><input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter"></th>
-                        <th><input type="number" id="filterMinGrapeRank" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxGrapeRank" placeholder="Max" class="table-filter small-input"></th>
-                        <th><input type="number" id="filterMinVerifiedCount" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxVerifiedCount" placeholder="Max" class="table-filter small-input"></th>
-                        <th><input type="number" id="filterMinTotalCount" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxTotalCount" placeholder="Max" class="table-filter small-input"></th>
-                        <th><input type="number" id="filterMinInfluence" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxInfluence" placeholder="Max" class="table-filter small-input"></th>
-                        <th><input type="number" id="filterMinVerifiedFollowers" placeholder="Min" class="table-filter small-input"> <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" class="table-filter small-input"></th>
                     </tr>
                 </thead>
                 <tbody id="nip56ProfilesTableBody"></tbody>
@@ -74,6 +71,53 @@
     ];
     // --- Global: Store all profiles for client-side filtering/sorting ---
     let allProfiles = [];
+    // --- Column Definitions for Visibility ---
+    const nip56Columns = [
+        { id: 'pic', label: 'Pic', visible: true },
+        { id: 'pubkey', label: 'Pubkey', visible: true },
+        { id: 'grapeRankScore', label: '🍇-Report Score', visible: true },
+        { id: 'totalVerifiedCount', label: '🍇-Verified Report Count', visible: true },
+        { id: 'totalCount', label: 'Total Report Count', visible: true },
+        { id: 'influence', label: 'Influence', visible: true },
+        { id: 'verifiedFollowerCount', label: '🍇-Verified Followers', visible: true }
+    ];
+    let columnVisibility = {};
+    function loadColumnVisibility() {
+        const saved = localStorage.getItem('nip56ColumnVisibility');
+        if (saved) {
+            columnVisibility = JSON.parse(saved);
+        } else {
+            nip56Columns.forEach(col => { columnVisibility[col.id] = col.visible; });
+        }
+    }
+    function saveColumnVisibility() {
+        localStorage.setItem('nip56ColumnVisibility', JSON.stringify(columnVisibility));
+    }
+    function initColumnToggles() {
+        const togglesDiv = document.getElementById('columnToggles');
+        togglesDiv.innerHTML = '';
+        nip56Columns.forEach((col, idx) => {
+            // Optionally skip 'pic' column from being hidden
+            if (col.id === 'pic') return;
+            const label = document.createElement('label');
+            label.style.display = 'block';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = columnVisibility[col.id];
+            checkbox.addEventListener('change', function() {
+                columnVisibility[col.id] = this.checked;
+                saveColumnVisibility();
+                renderTable();
+            });
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(' ' + col.label));
+            togglesDiv.appendChild(label);
+        });
+    }
+    function toggleColumnSettingsPanel() {
+        const panel = document.getElementById('columnSettingsPanel');
+        panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+    }
     // --- DOM Elements ---
     const reportTypeSelect = document.getElementById('reportTypeSelect');
     const refreshBtn = document.getElementById('refreshBtn');
@@ -181,61 +225,113 @@
             renderPageSizeSelector();
             return;
         }
+        // Render header
+        const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
+        headerRow.innerHTML = '';
+        nip56Columns.forEach(col => {
+            if (!columnVisibility[col.id]) return;
+            const th = document.createElement('th');
+            th.textContent = col.label;
+            headerRow.appendChild(th);
+        });
+        // Render filter row (optional: hide if column hidden)
+        const filterRow = document.querySelector('#nip56ProfilesTable .filter-row');
+        filterRow.innerHTML = '';
+        nip56Columns.forEach(col => {
+            if (!columnVisibility[col.id]) return;
+            let th = document.createElement('th');
+            // ...existing filter input logic by col.id...
+            if (col.id === 'pubkey') {
+                th.appendChild(document.getElementById('filterPubkey'));
+            } else if (col.id === 'grapeRankScore') {
+                th.appendChild(document.getElementById('filterMinGrapeRank'));
+                th.appendChild(document.getElementById('filterMaxGrapeRank'));
+            } else if (col.id === 'totalVerifiedCount') {
+                th.appendChild(document.getElementById('filterMinVerifiedCount'));
+                th.appendChild(document.getElementById('filterMaxVerifiedCount'));
+            } else if (col.id === 'totalCount') {
+                th.appendChild(document.getElementById('filterMinTotalCount'));
+                th.appendChild(document.getElementById('filterMaxTotalCount'));
+            } else if (col.id === 'influence') {
+                th.appendChild(document.getElementById('filterMinInfluence'));
+                th.appendChild(document.getElementById('filterMaxInfluence'));
+            } else if (col.id === 'verifiedFollowerCount') {
+                th.appendChild(document.getElementById('filterMinVerifiedFollowers'));
+                th.appendChild(document.getElementById('filterMaxVerifiedFollowers'));
+            }
+            filterRow.appendChild(th);
+        });
+        // Render table body
         pageRows.forEach(profile => {
             const row = document.createElement('tr');
-            // Profile pic
-            const picCell = document.createElement('td');
-            picCell.className = 'profile-pic-cell';
-            picCell.innerHTML = '';
-            const picLink = document.createElement('a');
-            picLink.href = `profile.html?pubkey=${profile.pubkey}`;
-            picLink.target = '_blank';
-            const img = document.createElement('img');
-            img.alt = 'Profile Picture';
-            img.className = 'profile-pic';
-            picLink.appendChild(img);
-            picCell.appendChild(picLink);
-            row.appendChild(picCell);
-            const cache = profileCache[profile.pubkey];
-            if (cache && cache.pictureLoaded) {
-                if (cache.picture) {
-                    img.src = cache.picture;
-                    img.title = cache.display_name || cache.name || '';
-                    img.style.display = '';
-                } else {
-                    // No picture: let updateProfilePictureWithData handle everything (including hiding img and adding placeholder)
-                    updateProfilePictureWithData(img, cache);
+            nip56Columns.forEach(col => {
+                if (!columnVisibility[col.id]) return;
+                let cell;
+                if (col.id === 'pic') {
+                    cell = document.createElement('td');
+                    cell.className = 'profile-pic-cell';
+                    // Profile pic
+                    const picLink = document.createElement('a');
+                    picLink.href = `profile.html?pubkey=${profile.pubkey}`;
+                    picLink.target = '_blank';
+                    const img = document.createElement('img');
+                    img.alt = 'Profile Picture';
+                    img.className = 'profile-pic';
+                    picLink.appendChild(img);
+                    cell.appendChild(picLink);
+                    const cache = profileCache[profile.pubkey];
+                    if (cache && cache.pictureLoaded) {
+                        if (cache.picture) {
+                            img.src = cache.picture;
+                            img.title = cache.display_name || cache.name || '';
+                            img.style.display = '';
+                        } else {
+                            // No picture: let updateProfilePictureWithData handle everything (including hiding img and adding placeholder)
+                            updateProfilePictureWithData(img, cache);
+                        }
+                    } else {
+                        img.src = '/img/default-avatar.svg';
+                        img.title = '';
+                        loadProfilePicture(profile.pubkey, img);
+                    }
+                    img.onerror = function() {
+                        if (img.src !== '/img/default-avatar.svg') {
+                            img.src = '/img/default-avatar.svg';
+                        }
+                    };
+                } else if (col.id === 'pubkey') {
+                    cell = document.createElement('td');
+                    // Pubkey (link to njump.me, shortened)
+                    const pubkeyLink = document.createElement('a');
+                    pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
+                    pubkeyLink.target = '_blank';
+                    pubkeyLink.className = 'pubkey-link';
+                    pubkeyLink.textContent = profile.pubkey.substring(0, 12) + '...';
+                    pubkeyLink.title = profile.pubkey;
+                    cell.appendChild(pubkeyLink);
+                } else if (col.id === 'grapeRankScore') {
+                    cell = document.createElement('td');
+                    // GrapeRank Score
+                    addNumericCell(cell, profile.grapeRankScore, 3);
+                } else if (col.id === 'totalVerifiedCount') {
+                    cell = document.createElement('td');
+                    // Verified Report Count
+                    addNumericCell(cell, profile.totalVerifiedCount);
+                } else if (col.id === 'totalCount') {
+                    cell = document.createElement('td');
+                    // Report Count
+                    addNumericCell(cell, profile.totalCount);
+                } else if (col.id === 'influence') {
+                    cell = document.createElement('td');
+                    // Influence
+                    addNumericCell(cell, profile.influence, 4);
+                } else if (col.id === 'verifiedFollowerCount') {
+                    cell = document.createElement('td');
+                    // Verified Follower Count
+                    addNumericCell(cell, profile.verifiedFollowerCount);
                 }
-            } else {
-                img.src = '/img/default-avatar.svg';
-                img.title = '';
-                loadProfilePicture(profile.pubkey, img);
-            }
-            img.onerror = function() {
-                if (img.src !== '/img/default-avatar.svg') {
-                    img.src = '/img/default-avatar.svg';
-                }
-            };
-            // Pubkey (link to njump.me, shortened)
-            const pubkeyCell = document.createElement('td');
-            const pubkeyLink = document.createElement('a');
-            pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
-            pubkeyLink.target = '_blank';
-            pubkeyLink.className = 'pubkey-link';
-            pubkeyLink.textContent = profile.pubkey.substring(0, 12) + '...';
-            pubkeyLink.title = profile.pubkey;
-            pubkeyCell.appendChild(pubkeyLink);
-            row.appendChild(pubkeyCell);
-            // GrapeRank Score
-            addNumericCell(row, profile.grapeRankScore, 3);
-            // Verified Report Count
-            addNumericCell(row, profile.totalVerifiedCount);
-            // Report Count
-            addNumericCell(row, profile.totalCount);
-            // Influence
-            addNumericCell(row, profile.influence, 4);
-            // Verified Follower Count
-            addNumericCell(row, profile.verifiedFollowerCount);
+                row.appendChild(cell);
+            });
             tableBody.appendChild(row);
         });
         renderPagination(total, Math.ceil(total / state.pageSize));
@@ -268,14 +364,12 @@
         });
     }
     // --- Add Numeric Cell ---
-    function addNumericCell(row, value, decimals = 0) {
-        const td = document.createElement('td');
+    function addNumericCell(cell, value, decimals = 0) {
         if (typeof value === 'number' && !isNaN(value)) {
-            td.textContent = decimals > 0 ? value.toFixed(decimals) : value;
+            cell.textContent = decimals > 0 ? value.toFixed(decimals) : value;
         } else {
-            td.textContent = '—';
+            cell.textContent = '—';
         }
-        row.appendChild(td);
     }
     // --- Profile Picture Cache (shared with profiles.html pattern) ---
     const profileCache = {};
@@ -502,6 +596,9 @@
 
     // --- Sorting and filter setup on load ---
     document.addEventListener('DOMContentLoaded', function() {
+        loadColumnVisibility();
+        initColumnToggles();
+        document.getElementById('columnSettingsBtn').addEventListener('click', toggleColumnSettingsPanel);
         populateReportTypeSelector();
         setupFilterInputs();
         setupSorting();
