@@ -418,13 +418,22 @@ tr:hover {
 #profilesTable.compact-table tr {
     width: 100%;
 }
-#nip56ProfilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell),
-#profilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell) {
+#nip56ProfilesTable.compact-table td.profile-pic-cell,
+#profilesTable.compact-table td.profile-pic-cell {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+#nip56ProfilesTable.compact-table td:not(.profile-pic-cell),
+#profilesTable.compact-table td:not(.profile-pic-cell) {
     width: auto !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    flex: 1 1 0 !important;
-    white-space: normal;
+    box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
