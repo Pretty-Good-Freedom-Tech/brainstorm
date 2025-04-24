@@ -73,8 +73,8 @@
     let allProfiles = [];
     // --- Column Definitions for Visibility ---
     const nip56Columns = [
-        { id: 'pic', label: 'Pic', visible: true },
-        { id: 'pubkey', label: 'Pubkey', visible: true },
+        { id: 'pic', label: '', visible: true },
+        { id: 'pubkey', label: '', visible: true },
         { id: 'grapeRankScore', label: '🍇-Report Score', visible: true },
         { id: 'totalVerifiedCount', label: '🍇-Verified Report Count', visible: true },
         { id: 'totalCount', label: 'Total Report Count', visible: true },
@@ -442,6 +442,7 @@
                     };
                 } else if (col.id === 'pubkey') {
                     cell = document.createElement('td');
+                    cell.className = 'pubkey-cell';
                     cell.setAttribute('data-label', col.label);
                     const pubkeyLink = document.createElement('a');
                     pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
