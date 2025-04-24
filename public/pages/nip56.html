@@ -195,8 +195,12 @@
             img.alt = 'Profile Picture';
             img.className = 'profile-pic';
             // Use cached profile data if available, otherwise load
-            if (profileCache[profile.pubkey]) {
-                updateProfilePictureWithData(img, profileCache[profile.pubkey]);
+            const cache = profileCache[profile.pubkey];
+            if (cache && cache.pictureFailed) {
+                // Always show placeholder if image failed to load previously
+                updateProfilePictureWithData(img, { ...cache, picture: undefined });
+            } else if (cache) {
+                updateProfilePictureWithData(img, cache);
             } else {
                 img.src = `/img/default-avatar.png`;
                 loadProfilePicture(profile.pubkey, img);
@@ -287,12 +291,14 @@
                         // Ignore parse errors
                     }
                 }
-                profileCache[pubkey] = profileData || {};
-                updateProfilePictureWithData(imgElement, profileCache[pubkey]);
+                profileData = profileData || {};
+                profileData.pubkey = pubkey; // Save for error handling
+                profileCache[pubkey] = profileData;
+                updateProfilePictureWithData(imgElement, profileData);
             })
             .catch(() => {
                 // On error, just use default
-                updateProfilePictureWithData(imgElement, {});
+                updateProfilePictureWithData(imgElement, { pubkey });
             });
     }
 
@@ -317,6 +323,11 @@
             imgElement.style.display = '';
             imgElement.onerror = function() {
                 imgElement.style.display = 'none';
+                // Mark as failed in cache so we don't retry this image
+                if (profileData && profileData.pubkey) {
+                    if (!profileCache[profileData.pubkey]) profileCache[profileData.pubkey] = {};
+                    profileCache[profileData.pubkey].pictureFailed = true;
+                }
                 // Remove any existing placeholder before adding a new one
                 if (imgElement.parentNode) {
                     Array.from(imgElement.parentNode.children).forEach(child => {
