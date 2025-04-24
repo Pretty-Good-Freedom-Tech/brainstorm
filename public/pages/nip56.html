@@ -186,7 +186,6 @@
             // Profile pic
             const picCell = document.createElement('td');
             picCell.className = 'profile-pic-cell';
-            // Clear previous content in case of rerender
             picCell.innerHTML = '';
             const picLink = document.createElement('a');
             picLink.href = `profile.html?pubkey=${profile.pubkey}`;
@@ -194,17 +193,21 @@
             const img = document.createElement('img');
             img.alt = 'Profile Picture';
             img.className = 'profile-pic';
-            // Use cached profile data if available, otherwise load
-            const cache = profileCache[profile.pubkey];
-            if (cache && cache.pictureFailed) {
-                // Always show placeholder if image failed to load previously
-                updateProfilePictureWithData(img, { ...cache, picture: undefined });
-            } else if (cache) {
-                updateProfilePictureWithData(img, cache);
-            } else {
-                img.src = `/img/default-avatar.png`;
-                loadProfilePicture(profile.pubkey, img);
+            // Use or initialize imgSrc and imgUpdated fields on the profile object
+            if (!('imgUpdated' in profile)) {
+                // First render for this profile in this session
+                profile.imgSrc = (profileCache[profile.pubkey] && profileCache[profile.pubkey].picture) ? profileCache[profile.pubkey].picture : '/img/default-avatar.png';
+                profile.imgUpdated = true;
             }
+            img.src = profile.imgSrc;
+            // If the image fails to load, update imgSrc to default and keep imgUpdated true
+            img.onerror = function() {
+                if (img.src !== '/img/default-avatar.png') {
+                    img.src = '/img/default-avatar.png';
+                    profile.imgSrc = '/img/default-avatar.png';
+                }
+            };
+            img.title = (profileCache[profile.pubkey] && (profileCache[profile.pubkey].display_name || profileCache[profile.pubkey].name)) ? (profileCache[profile.pubkey].display_name || profileCache[profile.pubkey].name) : '';
             picLink.appendChild(img);
             picCell.appendChild(picLink);
             row.appendChild(picCell);
