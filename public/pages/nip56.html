@@ -199,10 +199,13 @@
                     img.src = cache.picture;
                     img.title = cache.display_name || cache.name || '';
                 } else {
-                    // No picture: use placeholder logic
+                    // No picture: use placeholder logic, but always set src and title
+                    img.src = '/img/default-avatar.svg';
+                    img.title = '';
                     updateProfilePictureWithData(img, cache);
                 }
             } else {
+                // No cache: always set src and title before async load
                 img.src = '/img/default-avatar.svg';
                 img.title = '';
                 loadProfilePicture(profile.pubkey, img);
@@ -326,13 +329,11 @@
                 }
             });
         }
-        // Only proceed if imgElement has a parentNode
-        if (!imgElement.parentNode) return;
-        // Defensive: always set src and title
+        // Always set src and title, even if no parentNode
         if (profileData && profileData.picture) {
             imgElement.src = profileData.picture;
-            imgElement.style.display = '';
             imgElement.title = profileData.display_name || profileData.name || '';
+            imgElement.style.display = '';
             imgElement.onerror = function() {
                 imgElement.style.display = 'none';
                 if (profileData && profileData.pubkey) {
@@ -360,7 +361,7 @@
         } else {
             // No valid picture, always show default avatar and placeholder
             imgElement.src = '/img/default-avatar.svg';
-            imgElement.title = profileData && (profileData.display_name || profileData.name) ? (profileData.display_name || profileData.name) : '';
+            imgElement.title = '';
             imgElement.style.display = 'none';
             if (imgElement.parentNode) {
                 Array.from(imgElement.parentNode.children).forEach(child => {
