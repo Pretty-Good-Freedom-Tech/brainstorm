@@ -197,10 +197,11 @@
             if (cache && cache.pictureLoaded) {
                 if (cache.picture) {
                     img.src = cache.picture;
+                    img.title = cache.display_name || cache.name || '';
                 } else {
-                    img.src = '/img/default-avatar.png';
+                    // No picture: use placeholder logic
+                    updateProfilePictureWithData(img, cache);
                 }
-                img.title = cache.display_name || cache.name || '';
             } else {
                 img.src = '/img/default-avatar.png';
                 img.title = '';
