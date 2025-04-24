@@ -406,34 +406,33 @@ tr:hover {
     white-space: nowrap;
 }
 
-/* Pic and Pubkey column width constraints for compact table view */
+/* Pic and Pubkey column width constraints for compact table view (force fixed width, even if only 1 or 2 columns) */
 #nip56ProfilesTable.compact-table td.profile-pic-cell,
 #profilesTable.compact-table td.profile-pic-cell {
-    width: 44px;
-    min-width: 44px;
-    max-width: 44px;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    flex: 0 0 44px !important;
     padding-left: 4px;
     padding-right: 4px;
-    flex: 0 0 44px;
-}
-#nip56ProfilesTable.compact-table td.pubkey-cell,
-#profilesTable.compact-table td.pubkey-cell {
-    max-width: 110px;
-    min-width: 60px;
-    white-space: nowrap;
+    box-sizing: border-box;
     overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 0 0 auto;
-}
-#nip56ProfilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell),
-#profilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell) {
-    min-width: 0;
-    max-width: 100%;
-    flex: 1 1 0;
-    white-space: normal;
 }
 
-/* Responsive Table Styles */
+@media (max-width: 900px) {
+  #nip56ProfilesTable.compact-table td.profile-pic-cell,
+  #profilesTable.compact-table td.profile-pic-cell {
+      width: 44px !important;
+      min-width: 44px !important;
+      max-width: 44px !important;
+      flex: 0 0 44px !important;
+      padding-left: 4px;
+      padding-right: 4px;
+      box-sizing: border-box;
+      overflow: hidden;
+  }
+}
+
 @media (max-width: 900px) {
     .container {
         padding: 0 2vw;
@@ -502,15 +501,6 @@ tr:hover {
         font-size: 13px;
         width: 120px;
         box-sizing: border-box;
-    }
-    #nip56ProfilesTable.compact-table td.profile-pic-cell,
-    #profilesTable.compact-table td.profile-pic-cell {
-        width: 44px;
-        min-width: 44px;
-        max-width: 44px;
-        flex: 0 0 44px;
-        padding-left: 4px;
-        padding-right: 4px;
     }
     #nip56ProfilesTable.compact-table td.pubkey-cell,
     #profilesTable.compact-table td.pubkey-cell {
