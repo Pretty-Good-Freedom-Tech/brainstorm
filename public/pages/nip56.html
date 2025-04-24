@@ -203,13 +203,13 @@
                     updateProfilePictureWithData(img, cache);
                 }
             } else {
-                img.src = '/img/default-avatar.png';
+                img.src = '/img/default-avatar.svg';
                 img.title = '';
                 loadProfilePicture(profile.pubkey, img);
             }
             img.onerror = function() {
-                if (img.src !== '/img/default-avatar.png') {
-                    img.src = '/img/default-avatar.png';
+                if (img.src !== '/img/default-avatar.svg') {
+                    img.src = '/img/default-avatar.svg';
                 }
             };
             picLink.appendChild(img);
@@ -359,7 +359,7 @@
             };
         } else {
             // No valid picture, always show default avatar and placeholder
-            imgElement.src = '/img/default-avatar.png';
+            imgElement.src = '/img/default-avatar.svg';
             imgElement.title = profileData && (profileData.display_name || profileData.name) ? (profileData.display_name || profileData.name) : '';
             imgElement.style.display = 'none';
             if (imgElement.parentNode) {
