@@ -193,19 +193,20 @@
             const img = document.createElement('img');
             img.alt = 'Profile Picture';
             img.className = 'profile-pic';
+            picLink.appendChild(img);
+            picCell.appendChild(picLink);
+            row.appendChild(picCell);
             const cache = profileCache[profile.pubkey];
             if (cache && cache.pictureLoaded) {
                 if (cache.picture) {
                     img.src = cache.picture;
                     img.title = cache.display_name || cache.name || '';
+                    img.style.display = '';
                 } else {
-                    // No picture: use placeholder logic, but always set src and title
-                    img.src = '/img/default-avatar.svg';
-                    img.title = '';
+                    // No picture: let updateProfilePictureWithData handle everything (including hiding img and adding placeholder)
                     updateProfilePictureWithData(img, cache);
                 }
             } else {
-                // No cache: always set src and title before async load
                 img.src = '/img/default-avatar.svg';
                 img.title = '';
                 loadProfilePicture(profile.pubkey, img);
@@ -215,9 +216,6 @@
                     img.src = '/img/default-avatar.svg';
                 }
             };
-            picLink.appendChild(img);
-            picCell.appendChild(picLink);
-            row.appendChild(picCell);
             // Pubkey (link to njump.me, shortened)
             const pubkeyCell = document.createElement('td');
             const pubkeyLink = document.createElement('a');
@@ -329,7 +327,6 @@
                 }
             });
         }
-        // Always set src and title, even if no parentNode
         if (profileData && profileData.picture) {
             imgElement.src = profileData.picture;
             imgElement.title = profileData.display_name || profileData.name || '';
@@ -364,20 +361,19 @@
             imgElement.title = '';
             imgElement.style.display = 'none';
             if (imgElement.parentNode) {
+                // Remove any existing placeholder before adding a new one
                 Array.from(imgElement.parentNode.children).forEach(child => {
                     if (child.classList && child.classList.contains('default-profile-pic')) {
                         imgElement.parentNode.removeChild(child);
                     }
                 });
-            }
-            let placeholder = document.createElement('div');
-            placeholder.className = 'default-profile-pic';
-            if (profileData && profileData.name) {
-                placeholder.textContent = profileData.name.substring(0, 2).toUpperCase();
-            } else {
-                placeholder.textContent = '??';
-            }
-            if (imgElement.parentNode) {
+                let placeholder = document.createElement('div');
+                placeholder.className = 'default-profile-pic';
+                if (profileData && profileData.name) {
+                    placeholder.textContent = profileData.name.substring(0, 2).toUpperCase();
+                } else {
+                    placeholder.textContent = '??';
+                }
                 imgElement.parentNode.appendChild(placeholder);
             }
         }
