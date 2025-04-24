@@ -597,13 +597,13 @@ tr:hover {
 }
 
 .report-type-selector select {
-    font-size: 1.12em;
+    font-size: 1.23em;
+    font-weight: 700;
+    padding: 9px 16px;
     background: #fff;
     border: 2px solid #a58fff;
     border-radius: 7px;
-    padding: 7px 20px 7px 12px;
     color: #5a2bb6;
-    font-weight: 600;
     box-shadow: 0 1px 3px rgba(122,76,255,0.06);
     outline: none;
     transition: border-color 0.2s;
@@ -650,9 +650,9 @@ tr:hover {
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    font-size: 1.18em;
+    font-size: 1.28em;
     font-weight: 700;
-    padding: 8px 14px;
+    padding: 10px 16px;
     box-sizing: border-box;
     margin: 0 auto;
     background: #fff;
@@ -669,7 +669,7 @@ tr:hover {
     color: #7a4cff !important;
     border: 1.5px solid #a58fff !important;
     font-size: 0.98em !important;
-    padding: 5px 12px !important;
+    padding: 7px 22px 7px 12px !important;
     box-shadow: none !important;
     font-weight: 500 !important;
     margin-left: 0 !important;
@@ -696,9 +696,9 @@ tr:hover {
     max-width: 180px;
     align-self: flex-start;
     font-size: 1em !important;
-    padding: 7px 0 !important;
+    padding: 9px 24px 9px 14px !important;
     margin-top: 2px;
-    margin-bottom: 2px;
+    margin-bottom: 8px !important;
   }
 }
 
