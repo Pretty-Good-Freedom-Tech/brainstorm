@@ -414,11 +414,21 @@ tr:hover {
         box-sizing: border-box;
     }
     table, thead, tbody, th, td, tr {
-        display: block;
         width: 100%;
         box-sizing: border-box;
     }
-    #nip56ProfilesTable, #profilesTable {
+    /* Only switch to card view if not .compact-table */
+    #nip56ProfilesTable:not(.compact-table), #profilesTable:not(.compact-table) {
+        display: block;
+    }
+    #nip56ProfilesTable:not(.compact-table) thead, #profilesTable:not(.compact-table) thead,
+    #nip56ProfilesTable:not(.compact-table) tr, #profilesTable:not(.compact-table) tr,
+    #nip56ProfilesTable:not(.compact-table) td, #profilesTable:not(.compact-table) td,
+    #nip56ProfilesTable:not(.compact-table) th, #profilesTable:not(.compact-table) th,
+    #nip56ProfilesTable:not(.compact-table) tbody, #profilesTable:not(.compact-table) tbody {
+        display: block;
+    }
+    #nip56ProfilesTable:not(.compact-table), #profilesTable:not(.compact-table) {
         width: 100vw;
         min-width: unset;
         max-width: 100vw;
@@ -427,10 +437,10 @@ tr:hover {
         box-sizing: border-box;
         overflow-x: hidden;
     }
-    #nip56ProfilesTable thead, #profilesTable thead {
+    #nip56ProfilesTable:not(.compact-table) thead, #profilesTable:not(.compact-table) thead {
         display: none;
     }
-    #nip56ProfilesTable tr, #profilesTable tr {
+    #nip56ProfilesTable:not(.compact-table) tr, #profilesTable:not(.compact-table) tr {
         margin-bottom: 18px;
         border-radius: 6px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -439,7 +449,7 @@ tr:hover {
         width: 100%;
         box-sizing: border-box;
     }
-    #nip56ProfilesTable td, #profilesTable td {
+    #nip56ProfilesTable:not(.compact-table) td, #profilesTable:not(.compact-table) td {
         display: flex;
         align-items: center;
         padding: 10px 6px;
@@ -452,10 +462,10 @@ tr:hover {
         box-sizing: border-box;
         word-break: break-word;
     }
-    #nip56ProfilesTable td:last-child, #profilesTable td:last-child {
+    #nip56ProfilesTable:not(.compact-table) td:last-child, #profilesTable:not(.compact-table) td:last-child {
         border-bottom: none;
     }
-    #nip56ProfilesTable td::before, #profilesTable td::before {
+    #nip56ProfilesTable:not(.compact-table) td::before, #profilesTable:not(.compact-table) td::before {
         content: attr(data-label);
         font-weight: 600;
         color: #666;
@@ -478,7 +488,7 @@ tr:hover {
         max-width: 100vw;
         box-sizing: border-box;
     }
-    #nip56ProfilesTable, #profilesTable {
+    #nip56ProfilesTable:not(.compact-table), #profilesTable:not(.compact-table) {
         width: 100vw;
         max-width: 100vw;
         margin-left: -1vw;
@@ -486,13 +496,13 @@ tr:hover {
         box-sizing: border-box;
         overflow-x: hidden;
     }
-    #nip56ProfilesTable td, #profilesTable td {
+    #nip56ProfilesTable:not(.compact-table) td, #profilesTable:not(.compact-table) td {
         font-size: 13px;
         padding: 8px 4px;
         width: 100%;
         box-sizing: border-box;
     }
-    #nip56ProfilesTable td::before, #profilesTable td::before {
+    #nip56ProfilesTable:not(.compact-table) td::before, #profilesTable:not(.compact-table) td::before {
         min-width: 90px;
         font-size: 12px;
         width: 90px;

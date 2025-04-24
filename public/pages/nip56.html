@@ -257,6 +257,14 @@
             headerRow.appendChild(th);
             thToColId.push(col.id);
         });
+        // Set compact-table class if <= 2 columns are visible
+        const tableElem = document.getElementById('nip56ProfilesTable');
+        const visibleCols = nip56Columns.filter(col => columnVisibility[col.id]);
+        if (visibleCols.length <= 2) {
+            tableElem.classList.add('compact-table');
+        } else {
+            tableElem.classList.remove('compact-table');
+        }
         // Render filter row (optional: hide if column hidden)
         const filterRow = document.querySelector('#nip56ProfilesTable .filter-row');
         filterRow.innerHTML = '';
