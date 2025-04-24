@@ -291,14 +291,19 @@
                         // Ignore parse errors
                     }
                 }
+                // Defensive: always store expected fields
                 profileData = profileData || {};
-                profileData.pubkey = pubkey; // Save for error handling
+                profileData.pubkey = pubkey;
+                if (!('picture' in profileData)) profileData.picture = undefined;
+                if (!('name' in profileData)) profileData.name = undefined;
+                if (!('display_name' in profileData)) profileData.display_name = undefined;
                 profileCache[pubkey] = profileData;
                 updateProfilePictureWithData(imgElement, profileData);
             })
             .catch(() => {
-                // On error, just use default
-                updateProfilePictureWithData(imgElement, { pubkey });
+                // On error, store a stub
+                profileCache[pubkey] = { pubkey, picture: undefined, name: undefined, display_name: undefined };
+                updateProfilePictureWithData(imgElement, profileCache[pubkey]);
             });
     }
 
@@ -318,17 +323,17 @@
         }
         // Only proceed if imgElement has a parentNode
         if (!imgElement.parentNode) return;
+        // Defensive: always set src and title
         if (profileData && profileData.picture) {
             imgElement.src = profileData.picture;
             imgElement.style.display = '';
+            imgElement.title = profileData.display_name || profileData.name || '';
             imgElement.onerror = function() {
                 imgElement.style.display = 'none';
-                // Mark as failed in cache so we don't retry this image
                 if (profileData && profileData.pubkey) {
                     if (!profileCache[profileData.pubkey]) profileCache[profileData.pubkey] = {};
                     profileCache[profileData.pubkey].pictureFailed = true;
                 }
-                // Remove any existing placeholder before adding a new one
                 if (imgElement.parentNode) {
                     Array.from(imgElement.parentNode.children).forEach(child => {
                         if (child.classList && child.classList.contains('default-profile-pic')) {
@@ -347,25 +352,11 @@
                     imgElement.parentNode.appendChild(placeholder);
                 }
             };
-        } else if (profileData && profileData.name) {
-            imgElement.style.display = 'none';
-            // Remove any existing placeholder before adding a new one
-            if (imgElement.parentNode) {
-                Array.from(imgElement.parentNode.children).forEach(child => {
-                    if (child.classList && child.classList.contains('default-profile-pic')) {
-                        imgElement.parentNode.removeChild(child);
-                    }
-                });
-            }
-            let placeholder = document.createElement('div');
-            placeholder.className = 'default-profile-pic';
-            placeholder.textContent = profileData.name.substring(0, 2).toUpperCase();
-            if (imgElement.parentNode) {
-                imgElement.parentNode.appendChild(placeholder);
-            }
         } else {
+            // No valid picture, always show default avatar and placeholder
+            imgElement.src = '/img/default-avatar.png';
+            imgElement.title = profileData && (profileData.display_name || profileData.name) ? (profileData.display_name || profileData.name) : '';
             imgElement.style.display = 'none';
-            // Remove any existing placeholder before adding a new one
             if (imgElement.parentNode) {
                 Array.from(imgElement.parentNode.children).forEach(child => {
                     if (child.classList && child.classList.contains('default-profile-pic')) {
@@ -375,14 +366,14 @@
             }
             let placeholder = document.createElement('div');
             placeholder.className = 'default-profile-pic';
-            placeholder.textContent = '??';
+            if (profileData && profileData.name) {
+                placeholder.textContent = profileData.name.substring(0, 2).toUpperCase();
+            } else {
+                placeholder.textContent = '??';
+            }
             if (imgElement.parentNode) {
                 imgElement.parentNode.appendChild(placeholder);
             }
-        }
-        // Tooltip with name if available
-        if (profileData && (profileData.display_name || profileData.name)) {
-            imgElement.title = profileData.display_name || profileData.name;
         }
     }
 
