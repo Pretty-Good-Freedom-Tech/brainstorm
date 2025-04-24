@@ -25,8 +25,6 @@
     <div id="headerContainer"></div>
     <div class="container">
         <div class="header-profiles">
-            <h1>NIP-56 Reports Summary</h1>
-            <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
             <div class="report-type-selector">
                 <label for="reportTypeSelect">Report Type:</label>
                 <select id="reportTypeSelect"></select>
@@ -39,6 +37,7 @@
                 </button>
             </div>
         </div>
+        <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
         <!-- Column settings panel -->
         <div id="columnSettingsPanel" class="column-settings-panel" style="display:none;">
             <h3>Column Visibility</h3>
@@ -73,8 +72,8 @@
     let allProfiles = [];
     // --- Column Definitions for Visibility ---
     const nip56Columns = [
-        { id: 'pic', label: '', visible: true },
-        { id: 'pubkey', label: '', visible: true },
+        { id: 'pic', label: 'Profile', visible: true },
+        { id: 'pubkey', label: 'Pubkey', visible: true },
         { id: 'grapeRankScore', label: '🍇-Report Score', visible: true },
         { id: 'totalVerifiedCount', label: '🍇-Verified Report Count', visible: true },
         { id: 'totalCount', label: 'Total Report Count', visible: true },
