@@ -232,6 +232,12 @@
             if (!columnVisibility[col.id]) return;
             const th = document.createElement('th');
             th.textContent = col.label;
+            if (col.id === 'pic') {
+                th.className = 'profile-pic-cell';
+                th.style.width = '44px';
+                th.style.minWidth = '44px';
+                th.style.maxWidth = '44px';
+            }
             // Sorting: only add sort indicator for sortable columns (not pic)
             if (col.id !== 'pic') {
                 th.style.cursor = 'pointer';
