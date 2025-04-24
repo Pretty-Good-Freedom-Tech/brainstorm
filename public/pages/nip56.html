@@ -186,6 +186,8 @@
             // Profile pic
             const picCell = document.createElement('td');
             picCell.className = 'profile-pic-cell';
+            // Clear previous content in case of rerender
+            picCell.innerHTML = '';
             const picLink = document.createElement('a');
             picLink.href = `profile.html?pubkey=${profile.pubkey}`;
             picLink.target = '_blank';
@@ -295,6 +297,14 @@
         if (imgElement.nextSibling && imgElement.nextSibling.classList && imgElement.nextSibling.classList.contains('default-profile-pic')) {
             imgElement.parentNode.removeChild(imgElement.nextSibling);
         }
+        // Remove any previous placeholder in the parent
+        if (imgElement.parentNode) {
+            Array.from(imgElement.parentNode.children).forEach(child => {
+                if (child !== imgElement && child.classList && child.classList.contains('default-profile-pic')) {
+                    imgElement.parentNode.removeChild(child);
+                }
+            });
+        }
         // Only proceed if imgElement has a parentNode
         if (!imgElement.parentNode) return;
         if (profileData && profileData.picture) {
@@ -302,6 +312,14 @@
             imgElement.style.display = '';
             imgElement.onerror = function() {
                 imgElement.style.display = 'none';
+                // Remove any existing placeholder before adding a new one
+                if (imgElement.parentNode) {
+                    Array.from(imgElement.parentNode.children).forEach(child => {
+                        if (child.classList && child.classList.contains('default-profile-pic')) {
+                            imgElement.parentNode.removeChild(child);
+                        }
+                    });
+                }
                 let placeholder = document.createElement('div');
                 placeholder.className = 'default-profile-pic';
                 if (profileData.name) {
@@ -315,6 +333,14 @@
             };
         } else if (profileData && profileData.name) {
             imgElement.style.display = 'none';
+            // Remove any existing placeholder before adding a new one
+            if (imgElement.parentNode) {
+                Array.from(imgElement.parentNode.children).forEach(child => {
+                    if (child.classList && child.classList.contains('default-profile-pic')) {
+                        imgElement.parentNode.removeChild(child);
+                    }
+                });
+            }
             let placeholder = document.createElement('div');
             placeholder.className = 'default-profile-pic';
             placeholder.textContent = profileData.name.substring(0, 2).toUpperCase();
@@ -323,6 +349,14 @@
             }
         } else {
             imgElement.style.display = 'none';
+            // Remove any existing placeholder before adding a new one
+            if (imgElement.parentNode) {
+                Array.from(imgElement.parentNode.children).forEach(child => {
+                    if (child.classList && child.classList.contains('default-profile-pic')) {
+                        imgElement.parentNode.removeChild(child);
+                    }
+                });
+            }
             let placeholder = document.createElement('div');
             placeholder.className = 'default-profile-pic';
             placeholder.textContent = '??';
@@ -335,6 +369,7 @@
             imgElement.title = profileData.display_name || profileData.name;
         }
     }
+
     // --- Sorting: header click events ---
     function setupSorting() {
         const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
