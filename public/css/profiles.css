@@ -691,8 +691,45 @@ tr:hover {
     gap: 8px;
   }
   .columns-btn {
-    width: 100%;
+    width: auto !important;
+    min-width: 90px;
+    max-width: 180px;
+    align-self: flex-start;
     font-size: 1em !important;
     padding: 7px 0 !important;
+    margin-top: 2px;
+    margin-bottom: 2px;
+  }
+}
+
+/* Improve spacing and placement of column settings panel on mobile */
+@media (max-width: 700px) {
+  #columnSettingsPanel.column-settings-panel {
+    position: static !important;
+    margin-top: 10px !important;
+    margin-bottom: 16px !important;
+    width: 96vw !important;
+    left: unset !important;
+    right: unset !important;
+    max-width: 98vw !important;
+    box-sizing: border-box;
+    z-index: 100;
+  }
+  .results-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .columns-btn {
+    margin-bottom: 8px !important;
+  }
+}
+
+/* When panel is open, scroll it into view below the button */
+@media (max-width: 700px) {
+  .columns-btn:focus + #columnSettingsPanel,
+  .columns-btn:active + #columnSettingsPanel,
+  #columnSettingsPanel[style*="display: block"] {
+    scroll-margin-top: 14px;
   }
 }
