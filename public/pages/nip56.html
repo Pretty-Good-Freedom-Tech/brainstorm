@@ -190,7 +190,6 @@
     // --- Render Table ---
     function renderTable() {
         tableBody.innerHTML = '';
-        updateSortIndicators();
         // Filtering
         let filtered = filterProfiles(allProfiles);
         // Results indicator
@@ -228,11 +227,35 @@
         // Render header
         const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
         headerRow.innerHTML = '';
+        // Track mapping of rendered th to column id for sorting
+        const thToColId = [];
         nip56Columns.forEach(col => {
             if (!columnVisibility[col.id]) return;
             const th = document.createElement('th');
             th.textContent = col.label;
+            // Sorting: only add sort indicator for sortable columns (not pic)
+            if (col.id !== 'pic') {
+                th.style.cursor = 'pointer';
+                // Add sort indicator if this is the sorted column
+                if (state.sortBy === col.id) {
+                    th.classList.add(state.sortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                    const span = document.createElement('span');
+                    span.className = 'sort-indicator';
+                    span.textContent = state.sortOrder === 'asc' ? ' ▲' : ' ▼';
+                    th.appendChild(span);
+                }
+                th.onclick = () => {
+                    if (state.sortBy === col.id) {
+                        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        state.sortBy = col.id;
+                        state.sortOrder = 'desc';
+                    }
+                    renderTable();
+                };
+            }
             headerRow.appendChild(th);
+            thToColId.push(col.id);
         });
         // Render filter row (optional: hide if column hidden)
         const filterRow = document.querySelector('#nip56ProfilesTable .filter-row');
@@ -447,32 +470,6 @@
         renderPagination(total, Math.ceil(total / state.pageSize));
         renderPageSizeSelector();
     }
-    // --- Update Sort Indicators in Header ---
-    function updateSortIndicators() {
-        const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
-        const sortMap = [
-            null, // Pic
-            'pubkey',
-            'grapeRankScore',
-            'totalVerifiedCount',
-            'totalCount',
-            'influence',
-            'verifiedFollowerCount'
-        ];
-        headerRow.querySelectorAll('th').forEach((th, idx) => {
-            th.classList.remove('sorted-asc', 'sorted-desc');
-            // Remove previous indicator
-            let indicator = th.querySelector('.sort-indicator');
-            if (indicator) th.removeChild(indicator);
-            if (sortMap[idx] && state.sortBy === sortMap[idx]) {
-                th.classList.add(state.sortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc');
-                const span = document.createElement('span');
-                span.className = 'sort-indicator';
-                span.textContent = state.sortOrder === 'asc' ? ' ▲' : ' ▼';
-                th.appendChild(span);
-            }
-        });
-    }
     // --- Add Numeric Cell ---
     function addNumericCell(cell, value, decimals = 0) {
         if (typeof value === 'number' && !isNaN(value)) {
@@ -583,33 +580,16 @@
         }
     }
 
-    // --- Sorting: header click events ---
-    function setupSorting() {
-        const headerRow = document.querySelector('#nip56ProfilesTable .header-row');
-        const sortMap = [
-            null, // Pic
-            'pubkey',
-            'grapeRankScore',
-            'totalVerifiedCount',
-            'totalCount',
-            'influence',
-            'verifiedFollowerCount'
-        ];
-        headerRow.querySelectorAll('th').forEach((th, idx) => {
-            if (sortMap[idx]) {
-                th.style.cursor = 'pointer';
-                th.onclick = () => {
-                    if (state.sortBy === sortMap[idx]) {
-                        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        state.sortBy = sortMap[idx];
-                        state.sortOrder = 'desc';
-                    }
-                    renderTable();
-                };
-            }
-        });
-    }
+    // Fix column settings panel toggle to close when clicking outside or re-clicking the button
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('columnSettingsPanel');
+        const btn = document.getElementById('columnSettingsBtn');
+        if (!panel || !btn) return;
+        if (panel.style.display === 'none') return;
+        if (!panel.contains(e.target) && !btn.contains(e.target)) {
+            panel.style.display = 'none';
+        }
+    });
 
     // --- Results Count Indicator ---
     function renderResultsIndicator(filteredCount, totalCount) {
@@ -695,7 +675,6 @@
         initColumnToggles();
         document.getElementById('columnSettingsBtn').addEventListener('click', toggleColumnSettingsPanel);
         populateReportTypeSelector();
-        setupSorting();
         renderResultsIndicator(0, 0);
         fetchProfiles();
     });
