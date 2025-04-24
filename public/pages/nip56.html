@@ -192,10 +192,15 @@
             picLink.href = `profile.html?pubkey=${profile.pubkey}`;
             picLink.target = '_blank';
             const img = document.createElement('img');
-            img.src = `/img/default-avatar.png`;
             img.alt = 'Profile Picture';
             img.className = 'profile-pic';
-            loadProfilePicture(profile.pubkey, img);
+            // Use cached profile data if available, otherwise load
+            if (profileCache[profile.pubkey]) {
+                updateProfilePictureWithData(img, profileCache[profile.pubkey]);
+            } else {
+                img.src = `/img/default-avatar.png`;
+                loadProfilePicture(profile.pubkey, img);
+            }
             picLink.appendChild(img);
             picCell.appendChild(picLink);
             row.appendChild(picCell);
