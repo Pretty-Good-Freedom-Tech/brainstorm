@@ -630,15 +630,15 @@ tr:hover {
     width: 100vw;
     margin-left: 0;
     margin-right: 0;
-    padding-left: 3vw;
-    padding-right: 3vw;
+    padding-left: 0;
+    padding-right: 0;
     box-sizing: border-box;
   }
   .report-type-selector {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    padding: 14px 5vw 14px 5vw;
+    padding: 14px 3vw 14px 3vw;
     font-size: 1em;
     max-width: 100vw;
     width: 100vw;
@@ -646,6 +646,7 @@ tr:hover {
     margin-left: 0;
     margin-right: 0;
     box-sizing: border-box;
+    overflow-x: hidden;
   }
   .report-type-selector label {
     margin-bottom: 3px;

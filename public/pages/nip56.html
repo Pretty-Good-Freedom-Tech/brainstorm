@@ -73,7 +73,7 @@
     let allProfiles = [];
     // --- Column Definitions for Visibility ---
     const nip56Columns = [
-        { id: 'pic', label: 'Profile', visible: true },
+        { id: 'pic', label: '', visible: true },
         { id: 'pubkey', label: 'Pubkey', visible: true },
         { id: 'grapeRankScore', label: '🍇-Report Score', visible: true },
         { id: 'totalVerifiedCount', label: '🍇-Verified Report Count', visible: true },
@@ -87,7 +87,15 @@
         if (saved) {
             columnVisibility = JSON.parse(saved);
         } else {
-            nip56Columns.forEach(col => { columnVisibility[col.id] = col.visible; });
+            // Responsive default: only totalVerifiedCount on for narrow screens, all on otherwise
+            const isNarrow = window.innerWidth <= 700;
+            nip56Columns.forEach(col => {
+                if (isNarrow) {
+                    columnVisibility[col.id] = (col.id === 'totalVerifiedCount');
+                } else {
+                    columnVisibility[col.id] = col.visible;
+                }
+            });
         }
     }
     function saveColumnVisibility() {
