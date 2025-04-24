@@ -240,24 +240,134 @@
         nip56Columns.forEach(col => {
             if (!columnVisibility[col.id]) return;
             let th = document.createElement('th');
-            // ...existing filter input logic by col.id...
+            // Dynamically create filter inputs and attach event listeners
             if (col.id === 'pubkey') {
-                th.appendChild(document.getElementById('filterPubkey'));
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Pubkey contains...';
+                input.className = 'table-filter';
+                input.value = state.filters?.pubkey || '';
+                input.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.pubkey = this.value;
+                    renderTable();
+                });
+                th.appendChild(input);
             } else if (col.id === 'grapeRankScore') {
-                th.appendChild(document.getElementById('filterMinGrapeRank'));
-                th.appendChild(document.getElementById('filterMaxGrapeRank'));
+                const minInput = document.createElement('input');
+                minInput.type = 'number';
+                minInput.placeholder = 'Min';
+                minInput.className = 'table-filter small-input';
+                minInput.value = state.filters?.minGrapeRank || '';
+                minInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.minGrapeRank = this.value;
+                    renderTable();
+                });
+                const maxInput = document.createElement('input');
+                maxInput.type = 'number';
+                maxInput.placeholder = 'Max';
+                maxInput.className = 'table-filter small-input';
+                maxInput.value = state.filters?.maxGrapeRank || '';
+                maxInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.maxGrapeRank = this.value;
+                    renderTable();
+                });
+                th.appendChild(minInput);
+                th.appendChild(maxInput);
             } else if (col.id === 'totalVerifiedCount') {
-                th.appendChild(document.getElementById('filterMinVerifiedCount'));
-                th.appendChild(document.getElementById('filterMaxVerifiedCount'));
+                const minInput = document.createElement('input');
+                minInput.type = 'number';
+                minInput.placeholder = 'Min';
+                minInput.className = 'table-filter small-input';
+                minInput.value = state.filters?.minVerifiedCount || '';
+                minInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.minVerifiedCount = this.value;
+                    renderTable();
+                });
+                const maxInput = document.createElement('input');
+                maxInput.type = 'number';
+                maxInput.placeholder = 'Max';
+                maxInput.className = 'table-filter small-input';
+                maxInput.value = state.filters?.maxVerifiedCount || '';
+                maxInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.maxVerifiedCount = this.value;
+                    renderTable();
+                });
+                th.appendChild(minInput);
+                th.appendChild(maxInput);
             } else if (col.id === 'totalCount') {
-                th.appendChild(document.getElementById('filterMinTotalCount'));
-                th.appendChild(document.getElementById('filterMaxTotalCount'));
+                const minInput = document.createElement('input');
+                minInput.type = 'number';
+                minInput.placeholder = 'Min';
+                minInput.className = 'table-filter small-input';
+                minInput.value = state.filters?.minTotalCount || '';
+                minInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.minTotalCount = this.value;
+                    renderTable();
+                });
+                const maxInput = document.createElement('input');
+                maxInput.type = 'number';
+                maxInput.placeholder = 'Max';
+                maxInput.className = 'table-filter small-input';
+                maxInput.value = state.filters?.maxTotalCount || '';
+                maxInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.maxTotalCount = this.value;
+                    renderTable();
+                });
+                th.appendChild(minInput);
+                th.appendChild(maxInput);
             } else if (col.id === 'influence') {
-                th.appendChild(document.getElementById('filterMinInfluence'));
-                th.appendChild(document.getElementById('filterMaxInfluence'));
+                const minInput = document.createElement('input');
+                minInput.type = 'number';
+                minInput.placeholder = 'Min';
+                minInput.className = 'table-filter small-input';
+                minInput.value = state.filters?.minInfluence || '';
+                minInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.minInfluence = this.value;
+                    renderTable();
+                });
+                const maxInput = document.createElement('input');
+                maxInput.type = 'number';
+                maxInput.placeholder = 'Max';
+                maxInput.className = 'table-filter small-input';
+                maxInput.value = state.filters?.maxInfluence || '';
+                maxInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.maxInfluence = this.value;
+                    renderTable();
+                });
+                th.appendChild(minInput);
+                th.appendChild(maxInput);
             } else if (col.id === 'verifiedFollowerCount') {
-                th.appendChild(document.getElementById('filterMinVerifiedFollowers'));
-                th.appendChild(document.getElementById('filterMaxVerifiedFollowers'));
+                const minInput = document.createElement('input');
+                minInput.type = 'number';
+                minInput.placeholder = 'Min';
+                minInput.className = 'table-filter small-input';
+                minInput.value = state.filters?.minVerifiedFollowers || '';
+                minInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.minVerifiedFollowers = this.value;
+                    renderTable();
+                });
+                const maxInput = document.createElement('input');
+                maxInput.type = 'number';
+                maxInput.placeholder = 'Max';
+                maxInput.className = 'table-filter small-input';
+                maxInput.value = state.filters?.maxVerifiedFollowers || '';
+                maxInput.addEventListener('input', function() {
+                    state.filters = state.filters || {};
+                    state.filters.maxVerifiedFollowers = this.value;
+                    renderTable();
+                });
+                th.appendChild(minInput);
+                th.appendChild(maxInput);
             }
             filterRow.appendChild(th);
         });
@@ -579,29 +689,14 @@
         });
     }
 
-    // --- Filter input events ---
-    function setupFilterInputs() {
-        document.getElementById('filterPubkey').addEventListener('input', e => { state.filters.pubkey = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMinGrapeRank').addEventListener('input', e => { state.filters.minGrapeRank = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMaxGrapeRank').addEventListener('input', e => { state.filters.maxGrapeRank = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMinVerifiedCount').addEventListener('input', e => { state.filters.minVerifiedCount = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMaxVerifiedCount').addEventListener('input', e => { state.filters.maxVerifiedCount = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMinTotalCount').addEventListener('input', e => { state.filters.minTotalCount = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMaxTotalCount').addEventListener('input', e => { state.filters.maxTotalCount = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMinInfluence').addEventListener('input', e => { state.filters.minInfluence = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMaxInfluence').addEventListener('input', e => { state.filters.maxInfluence = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMinVerifiedFollowers').addEventListener('input', e => { state.filters.minVerifiedFollowers = e.target.value; state.page = 1; renderTable(); });
-        document.getElementById('filterMaxVerifiedFollowers').addEventListener('input', e => { state.filters.maxVerifiedFollowers = e.target.value; state.page = 1; renderTable(); });
-    }
-
     // --- Sorting and filter setup on load ---
     document.addEventListener('DOMContentLoaded', function() {
         loadColumnVisibility();
         initColumnToggles();
         document.getElementById('columnSettingsBtn').addEventListener('click', toggleColumnSettingsPanel);
         populateReportTypeSelector();
-        setupFilterInputs();
         setupSorting();
+        renderResultsIndicator(0, 0);
         fetchProfiles();
     });
 
