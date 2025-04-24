@@ -193,10 +193,13 @@
             const img = document.createElement('img');
             img.alt = 'Profile Picture';
             img.className = 'profile-pic';
-            // Use cached profile data if available, otherwise load
             const cache = profileCache[profile.pubkey];
-            if (cache && cache.picture) {
-                img.src = cache.picture;
+            if (cache && cache.pictureLoaded) {
+                if (cache.picture) {
+                    img.src = cache.picture;
+                } else {
+                    img.src = '/img/default-avatar.png';
+                }
                 img.title = cache.display_name || cache.name || '';
             } else {
                 img.src = '/img/default-avatar.png';
@@ -277,12 +280,10 @@
 
     // --- Load Profile Picture (fetches kind0 profile, uses cache, fallback to default avatar) ---
     function loadProfilePicture(pubkey, imgElement) {
-        // If already loaded, use cached data
-        if (profileCache[pubkey]) {
-            updateProfilePictureWithData(imgElement, profileCache[pubkey]);
+        if (profileCache[pubkey] && profileCache[pubkey].pictureLoaded) {
+            // Already loaded, nothing to do
             return;
         }
-        // Fetch kind0 profile
         fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
             .then(response => response.json())
             .then(data => {
@@ -294,18 +295,18 @@
                         // Ignore parse errors
                     }
                 }
-                // Defensive: always store expected fields
                 profileData = profileData || {};
                 profileData.pubkey = pubkey;
                 if (!('picture' in profileData)) profileData.picture = undefined;
                 if (!('name' in profileData)) profileData.name = undefined;
                 if (!('display_name' in profileData)) profileData.display_name = undefined;
+                profileData.pictureLoaded = true;
                 profileCache[pubkey] = profileData;
                 updateProfilePictureWithData(imgElement, profileData);
             })
             .catch(() => {
                 // On error, store a stub
-                profileCache[pubkey] = { pubkey, picture: undefined, name: undefined, display_name: undefined };
+                profileCache[pubkey] = { pubkey, picture: undefined, name: undefined, display_name: undefined, pictureLoaded: true };
                 updateProfilePictureWithData(imgElement, profileCache[pubkey]);
             });
     }
