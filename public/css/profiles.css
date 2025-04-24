@@ -407,16 +407,23 @@ tr:hover {
 }
 
 /* Pic and Pubkey column width constraints for compact table view (force fixed width, even if only 1 or 2 columns) */
-#nip56ProfilesTable.compact-table td.profile-pic-cell,
-#profilesTable.compact-table td.profile-pic-cell {
-    width: 44px !important;
-    min-width: 44px !important;
-    max-width: 44px !important;
-    flex: 0 0 44px !important;
-    padding-left: 4px;
-    padding-right: 4px;
-    box-sizing: border-box;
-    overflow: hidden;
+#nip56ProfilesTable.compact-table,
+#profilesTable.compact-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    max-width: 100vw;
+}
+#nip56ProfilesTable.compact-table tr,
+#profilesTable.compact-table tr {
+    width: 100%;
+}
+#nip56ProfilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell),
+#profilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell) {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 0 !important;
+    white-space: normal;
 }
 
 @media (max-width: 900px) {
