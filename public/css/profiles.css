@@ -648,3 +648,37 @@ tr:hover {
     padding: 8px 0;
   }
 }
+
+/* Less prominent styling for Columns button in results row */
+.columns-btn {
+    background: #f7f3ff !important;
+    color: #7a4cff !important;
+    border: 1.5px solid #a58fff !important;
+    font-size: 0.98em !important;
+    padding: 5px 12px !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    transition: background 0.2s;
+}
+.columns-btn svg {
+    margin-right: 2px;
+}
+.columns-btn:hover {
+    background: #ede7fa !important;
+    color: #5a2bb6 !important;
+    border-color: #7a4cff !important;
+}
+@media (max-width: 700px) {
+  .results-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .columns-btn {
+    width: 100%;
+    font-size: 1em !important;
+    padding: 7px 0 !important;
+  }
+}

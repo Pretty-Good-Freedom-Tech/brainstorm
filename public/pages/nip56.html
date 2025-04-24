@@ -28,16 +28,17 @@
             <div class="report-type-selector">
                 <label for="reportTypeSelect">Report Type:</label>
                 <select id="reportTypeSelect"></select>
-                <button id="refreshBtn">Refresh</button>
-                <button id="columnSettingsBtn" class="secondary" style="margin-left:10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;">
-                        <path d="M12 5v14M5 12h14"></path>
-                    </svg>
-                    Columns
-                </button>
             </div>
         </div>
-        <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
+        <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
+            <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
+            <button id="columnSettingsBtn" class="secondary columns-btn" style="margin-left: 0; font-size: 0.98em; padding: 5px 12px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                Columns
+            </button>
+        </div>
         <!-- Column settings panel -->
         <div id="columnSettingsPanel" class="column-settings-panel" style="display:none;">
             <h3>Column Visibility</h3>
@@ -119,7 +120,6 @@
     }
     // --- DOM Elements ---
     const reportTypeSelect = document.getElementById('reportTypeSelect');
-    const refreshBtn = document.getElementById('refreshBtn');
     const tableBody = document.getElementById('nip56ProfilesTableBody');
     const profilesTable = document.getElementById('nip56ProfilesTable');
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -691,9 +691,6 @@
     reportTypeSelect.addEventListener('change', () => {
         state.reportType = reportTypeSelect.value;
         state.page = 1;
-        fetchProfiles();
-    });
-    refreshBtn.addEventListener('click', () => {
         fetchProfiles();
     });
     </script>
