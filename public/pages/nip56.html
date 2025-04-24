@@ -403,6 +403,7 @@
                 if (col.id === 'pic') {
                     cell = document.createElement('td');
                     cell.className = 'profile-pic-cell';
+                    cell.setAttribute('data-label', col.label);
                     // Profile pic
                     const picLink = document.createElement('a');
                     picLink.href = `profile.html?pubkey=${profile.pubkey}`;
@@ -419,7 +420,6 @@
                             img.title = cache.display_name || cache.name || '';
                             img.style.display = '';
                         } else {
-                            // No picture: let updateProfilePictureWithData handle everything (including hiding img and adding placeholder)
                             updateProfilePictureWithData(img, cache);
                         }
                     } else {
@@ -434,7 +434,7 @@
                     };
                 } else if (col.id === 'pubkey') {
                     cell = document.createElement('td');
-                    // Pubkey (link to njump.me, shortened)
+                    cell.setAttribute('data-label', col.label);
                     const pubkeyLink = document.createElement('a');
                     pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
                     pubkeyLink.target = '_blank';
@@ -444,23 +444,23 @@
                     cell.appendChild(pubkeyLink);
                 } else if (col.id === 'grapeRankScore') {
                     cell = document.createElement('td');
-                    // GrapeRank Score
+                    cell.setAttribute('data-label', col.label);
                     addNumericCell(cell, profile.grapeRankScore, 3);
                 } else if (col.id === 'totalVerifiedCount') {
                     cell = document.createElement('td');
-                    // Verified Report Count
+                    cell.setAttribute('data-label', col.label);
                     addNumericCell(cell, profile.totalVerifiedCount);
                 } else if (col.id === 'totalCount') {
                     cell = document.createElement('td');
-                    // Report Count
+                    cell.setAttribute('data-label', col.label);
                     addNumericCell(cell, profile.totalCount);
                 } else if (col.id === 'influence') {
                     cell = document.createElement('td');
-                    // Influence
+                    cell.setAttribute('data-label', col.label);
                     addNumericCell(cell, profile.influence, 4);
                 } else if (col.id === 'verifiedFollowerCount') {
                     cell = document.createElement('td');
-                    // Verified Follower Count
+                    cell.setAttribute('data-label', col.label);
                     addNumericCell(cell, profile.verifiedFollowerCount);
                 }
                 row.appendChild(cell);

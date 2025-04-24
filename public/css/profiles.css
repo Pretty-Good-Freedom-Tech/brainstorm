@@ -405,3 +405,67 @@ tr:hover {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* Responsive Table Styles */
+@media (max-width: 900px) {
+    .container {
+        padding: 0 2vw;
+    }
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    #nip56ProfilesTable, #profilesTable {
+        width: 100%;
+        min-width: unset;
+    }
+    #nip56ProfilesTable thead, #profilesTable thead {
+        display: none;
+    }
+    #nip56ProfilesTable tr, #profilesTable tr {
+        margin-bottom: 18px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        background: #fff;
+        padding: 10px 0;
+    }
+    #nip56ProfilesTable td, #profilesTable td {
+        display: flex;
+        align-items: center;
+        padding: 10px 6px;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        min-height: 38px;
+        font-size: 15px;
+    }
+    #nip56ProfilesTable td:last-child, #profilesTable td:last-child {
+        border-bottom: none;
+    }
+    #nip56ProfilesTable td::before, #profilesTable td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #666;
+        min-width: 120px;
+        margin-right: 12px;
+        flex-shrink: 0;
+        font-size: 13px;
+    }
+}
+@media (max-width: 600px) {
+    .header-profiles {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .container {
+        padding: 0 1vw;
+    }
+    #nip56ProfilesTable td, #profilesTable td {
+        font-size: 13px;
+        padding: 8px 4px;
+    }
+    #nip56ProfilesTable td::before, #profilesTable td::before {
+        min-width: 90px;
+        font-size: 12px;
+    }
+}
