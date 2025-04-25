@@ -40,6 +40,26 @@
                 </div>
                 
                 <div class="profile-content">
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <h3>🍇-Influence</h3>
+                            <p id="influenceValue">-</p>
+                            <p class="stat-link"><a href="#" id="grapeRankReviewLink">Review Calculations</a></p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>Hops</h3>
+                            <p id="hopsValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>🍇-Confidence</h3>
+                            <p id="confidenceValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>PageRank</h3>
+                            <p id="pageRankValue">-</p>
+                        </div>
+                    </div>
+
                     <div class="profile-about" id="aboutSection">
                         <h3>About</h3>
                         <p id="aboutText">No information available</p>
@@ -56,26 +76,6 @@
                     
                     <div class="profile-stats">
                         <div class="stat-box">
-                            <h3>Hops</h3>
-                            <p id="hopsValue">-</p>
-                        </div>
-                        <div class="stat-box">
-                            <h3>Influence</h3>
-                            <p id="influenceValue">-</p>
-                            <p class="stat-link"><a href="#" id="grapeRankReviewLink">Review Calculations</a></p>
-                        </div>
-                        <div class="stat-box">
-                            <h3>Confidence</h3>
-                            <p id="confidenceValue">-</p>
-                        </div>
-                        <div class="stat-box">
-                            <h3>PageRank</h3>
-                            <p id="pageRankValue">-</p>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-stats">
-                        <div class="stat-box">
                             <h3>Following</h3>
                             <p id="followingCountValue">-</p>
                         </div>
@@ -84,7 +84,7 @@
                             <p id="followerCountValue">-</p>
                         </div>
                         <div class="stat-box">
-                            <h3>Verified Followers<br/><h4>(influence > 0.05)</h4></h3>
+                            <h3>🍇-Verified Followers<br/><h4>(influence > 0.05)</h4></h3>
                             <p id="verifiedFollowerCountValue">-</p>
                         </div>
                     </div>
@@ -111,21 +111,26 @@
                         </div>
                     </div>
                     
-                    <div class="profile-nip56-reports" id="nip56ReportsSection" style="display: none;">
-                        <h3>NIP-56 Reports</h3>
-                        <table class="nip56-table" id="nip56ReportsTable" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>Report Type</th>
-                                    <th>🍇-Verified Reports Weight</th>
-                                    <th>🍇-Verified Report Count</th>
-                                    <th>Total Report Count</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Rows will be populated by JS -->
-                            </tbody>
-                        </table>
+                    <div class="profile-section nip56-section">
+                        <h3 class="section-title"><span style="color:#7a4cff;">🚩 NIP-56 Reports</span></h3>
+                        <div class="nip56-table-wrapper">
+                            <table class="nip56-table styled-table">
+                                <thead>
+                                    <tr>
+                                        <th>Report Type</th>
+                                        <th>🍇-Verified Reports Weight</th>
+                                        <th>🍇-Verified Report Count</th>
+                                        <th>Total Report Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nip56ReportsTableBody">
+                                    <!-- Rows will be populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="nip56-table-info">
+                            <span class="nip56-hint">🍇 = GrapeRank-verified (influence > 0.1). Total Count includes all reports, including bots.</span>
+                        </div>
                     </div>
 
                     <div class="network-visualization">
@@ -284,10 +289,9 @@
             
             // NIP-56 Reports Table
             const nip56 = data.nip56;
-            const nip56ReportsTable = document.getElementById('nip56ReportsTable');
+            const nip56ReportsTable = document.getElementById('nip56ReportsTableBody');
             if (nip56 && nip56ReportsTable) {
-                const tbody = nip56ReportsTable.querySelector('tbody');
-                tbody.innerHTML = '';
+                nip56ReportsTable.innerHTML = '';
                 // Add totals row
                 if (nip56.totals) {
                     const tr = document.createElement('tr');
@@ -295,7 +299,7 @@
                         <td>${nip56.totals.nip56TotalGrapeRankScore !== null ? nip56.totals.nip56TotalGrapeRankScore.toFixed(3) : '—'}</td>
                         <td>${nip56.totals.nip56TotalVerifiedReportCount ?? '—'}</td>
                         <td>${nip56.totals.nip56TotalReportCount ?? '—'}</td>`;
-                    tbody.appendChild(tr);
+                    nip56ReportsTable.appendChild(tr);
                 }
                 // Add row for each report type
                 if (nip56.byReportType) {
@@ -305,14 +309,12 @@
                             <td>${vals.grapeRankScore !== null ? vals.grapeRankScore.toFixed(3) : '—'}</td>
                             <td>${vals.verifiedReportCount ?? '—'}</td>
                             <td>${vals.reportCount ?? '—'}</td>`;
-                        tbody.appendChild(tr);
+                        nip56ReportsTable.appendChild(tr);
                     }
                 }
-                nip56ReportsTable.style.display = '';
-                document.getElementById('nip56ReportsSection').style.display = '';
-            } else if (nip56ReportsTable) {
-                nip56ReportsTable.style.display = 'none';
-                document.getElementById('nip56ReportsSection').style.display = 'none';
+                document.querySelector('.nip56-section').style.display = '';
+            } else {
+                document.querySelector('.nip56-section').style.display = 'none';
             }
         }
         
