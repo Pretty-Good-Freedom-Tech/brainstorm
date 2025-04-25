@@ -13,7 +13,6 @@ const { getConfigFromFile } = require('../../../utils/config');
  */
 function handleGetGrapevineInteraction(req, res) {
   try {
-    // TODO: Implement handleGetGrapevineInteraction
     // expected parameters: observer, observee, and interactionType
     const observer = req.query.observer;
     const observee = req.query.observee;
