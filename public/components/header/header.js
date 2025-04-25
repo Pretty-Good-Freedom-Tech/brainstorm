@@ -89,12 +89,18 @@ function loadNavbar() {
     if (
         currentPath === '/home.html' 
         || currentPath === '/nip85.html' 
+        || currentPath === '/nip87.html' 
         || currentPath === '/nip56.html' 
         || currentPath === '/profiles.html' 
         || currentPath === '/about.html'
+        || currentPath === '/subscribe.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
+        || currentPath === '/control/nip87.html' 
+        || currentPath === '/control/nip56.html' 
+        || currentPath === '/control/profiles.html' 
         || currentPath === '/control/about.html'
+        || currentPath === '/control/subscribe.html'
     ) {
         navbarPath = '/components/header/navbars/nav1.html';
     }
@@ -281,7 +287,9 @@ function highlightCurrentPage() {
         '/overview.html': '/overview',
         '/index.html': '/index',
         '/nip85.html': '/nip85',
+        '/nip56.html': '/nip56',
         '/nip85-control-panel.html': '/nip85',
+        '/nip87.html': '/nip87',
         '/about.html': '/about',
         '/reconciliation.html': '/reconciliation',
         '/profiles.html': '/profiles',
@@ -289,18 +297,24 @@ function highlightCurrentPage() {
         '/graperank-control-panel.html': '/graperank',
         '/network-visualization.html': '/network-visualization',
         '/neo4j-control-panel.html': '/neo4j-control-panel',
+        '/personalized-recommendations.html': '/personalized-recommendations',
+        '/subscribe.html': '/subscribe',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
         '/control/nip85.html': '/control/nip85',
+        '/control/nip56.html': '/control/nip56',
         '/control/nip85-control-panel.html': '/control/nip85',
+        '/control/nip87.html': '/control/nip87',
         '/control/about.html': '/control/about',
         '/control/reconciliation.html': '/control/reconciliation',
         '/control/profiles.html': '/control/profiles',
         '/control/profile.html': '/control/profiles',
         '/control/graperank-control-panel.html': '/control/graperank',
         '/control/network-visualization.html': '/control/network-visualization',
-        '/control/neo4j-control-panel.html': '/control/neo4j-control-panel'
+        '/control/neo4j-control-panel.html': '/control/neo4j-control-panel',
+        '/control/personalized-recommendations.html': '/control/personalized-recommendations',
+        '/control/subscribe.html': '/control/subscribe'
     };
     
     // Get the matching prefix for the current path
