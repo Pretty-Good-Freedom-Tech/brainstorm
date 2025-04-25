@@ -19,7 +19,7 @@
             <h1>Subscribe to this Brainstorm relay live feed</h1>
             <div class="section">
                 <h2>What's on this relay?</h2>
-                <li>(username)'s (nuber) follows</li>
+                <li><span id="ownerName"></span>'s (number) follows</li>
                 <li>PLUS the top (500) recommended users, not including those already in (username)'s' follow list</li>
                 <li>MINUS blacklist, which includes: (list of report types)</li>
                 <p>All of these parameters are configurable by the relay owner.</p>
@@ -29,5 +29,53 @@
     
     <!-- Footer container -->
     <div id="footerContainer"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch owner information from the server
+            fetch('/control/api/owner-info')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.ownerPubkey) {
+                        // Store the owner pubkey and npub for reference
+                        const ownerPubkey = data.ownerPubkey;
+                        const ownerNpub = data.ownerNpub;
+                        
+                        // Fetch owner's profile information (kind0)
+                        fetch(`/control/api/get-kind0?pubkey=${ownerPubkey}`)
+                            .then(response => response.json())
+                            .then(profileData => {
+                                if (profileData && profileData.success) {
+                                    // Extract profile content
+                                    const content = profileData.data.content ? JSON.parse(profileData.data.content) : {};
+                                    
+                                    // Extract profile details
+                                    const picture = content.picture || '/control/img/default-avatar.svg';
+                                    const name = content.name || 'Unknown';
+                                    const displayName = content.display_name || content.displayName || name;
+                                    
+                                    // Update the owner name
+                                    document.getElementById('ownerName').textContent = displayName;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching profile:', error);
+                                document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading profile</div>`;
+                            });
+                    } else {
+                        document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Owner information not available</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching owner information:', error);
+                    document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading owner information</div>`;
+                });
+            });
+    </script>
 </body>
 </html>
