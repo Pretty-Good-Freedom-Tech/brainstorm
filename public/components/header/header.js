@@ -89,6 +89,7 @@ function loadNavbar() {
     if (
         currentPath === '/home.html' 
         || currentPath === '/nip85.html' 
+        || currentPath === '/nip56.html' 
         || currentPath === '/profiles.html' 
         || currentPath === '/about.html'
         || currentPath === '/control/home.html' 
