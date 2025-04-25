@@ -40,11 +40,21 @@
                 </div>
                 
                 <div class="profile-content">
+                    <div class="profile-about" id="aboutSection">
+                        <h3>About</h3>
+                        <p id="aboutText">No information available</p>
+                    </div>
+                    
+                    <div class="profile-metadata">
+                        <h3>Profile Metadata</h3>
+                        <table class="metadata-table" id="metadataTable">
+                            <tbody>
+                                <!-- Metadata will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
                     <div class="profile-stats">
-                        <div class="stat-box">
-                            <h3>PageRank</h3>
-                            <p id="pageRankValue">-</p>
-                        </div>
                         <div class="stat-box">
                             <h3>Hops</h3>
                             <p id="hopsValue">-</p>
@@ -57,6 +67,10 @@
                         <div class="stat-box">
                             <h3>Confidence</h3>
                             <p id="confidenceValue">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>PageRank</h3>
+                            <p id="pageRankValue">-</p>
                         </div>
                     </div>
                     
@@ -103,9 +117,9 @@
                             <thead>
                                 <tr>
                                     <th>Report Type</th>
-                                    <th>GrapeRank Score</th>
-                                    <th>Verified Report Count</th>
-                                    <th>Report Count</th>
+                                    <th>🍇-Verified Reports Weight</th>
+                                    <th>🍇-Verified Report Count</th>
+                                    <th>Total Report Count</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -113,21 +127,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
-                    <div class="profile-about" id="aboutSection">
-                        <h3>About</h3>
-                        <p id="aboutText">No information available</p>
-                    </div>
-                    
-                    <div class="profile-metadata">
-                        <h3>Profile Metadata</h3>
-                        <table class="metadata-table" id="metadataTable">
-                            <tbody>
-                                <!-- Metadata will be added here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
+
                     <div class="network-visualization">
                         <h3>Network Proximity Visualization</h3>
                         <p><a href="network-visualization-lite.html?pubkey={{pubkey}}" id="networkLink" target="_blank">Open Network Visualization in New Tab</a> (Lite version to prevent server overload)</p>
