@@ -7,6 +7,19 @@ const neo4j = require('neo4j-driver');
 const { getConfigFromFile } = require('../../../../utils/config');
 const fs = require('fs');
 const path = require('path');
+const { nip19 } = require('nostr-tools');
+
+function getNpub(pubkey) {
+  try {
+    if (!pubkey) return null;
+    // If pubkey is already npub, return as-is
+    if (pubkey.startsWith('npub')) return pubkey;
+    // Use nostr-tools nip19
+    return nip19.npubEncode(pubkey);
+  } catch (e) {
+    return null;
+  }
+}
 
 /**
  * Get detailed data for a specific user
@@ -25,6 +38,8 @@ function handleGetUserData(req, res) {
     
     // Get query parameters for filtering
     const pubkey = req.query.pubkey;
+
+    const npub = getNpub(pubkey);
     
     if (!pubkey) {
       return res.status(400).json({ error: 'Missing pubkey parameter' });
@@ -174,6 +189,7 @@ function handleGetUserData(req, res) {
           data: {
             ownerPubkey: ownerPubkey,
             pubkey: user.get('pubkey'),
+            npub: npub,
             personalizedPageRank: user.get('personalizedPageRank') ? parseFloat(user.get('personalizedPageRank').toString()) : null,
             hops: user.get('hops') ? parseInt(user.get('hops').toString()) : null,
             influence: user.get('influence') ? parseFloat(user.get('influence').toString()) : null,

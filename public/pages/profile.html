@@ -167,22 +167,8 @@
     
     <!-- Footer container -->
     <div id="footerContainer"></div>
-
-    <!-- Include NIP19 library -->
-    <script src="https://unpkg.com/nostr-tools@1.0.0/dist/nostr-tools.js"></script>
     
     <script>
-        // Helper: get npub from nostr-tools nip19
-        function getNpub(pubkey) {
-            if (window.nostrTools && window.nostrTools.nip19 && typeof window.nostrTools.nip19.npubEncode === 'function') {
-                return window.nostrTools.nip19.npubEncode(pubkey);
-            } else if (window.nip19 && typeof window.nip19.npubEncode === 'function') {
-                return window.nip19.npubEncode(pubkey);
-            } else {
-                return '(npub unavailable)';
-            }
-        }
-
         // Get pubkey from URL
         const urlParams = new URLSearchParams(window.location.search);
         const pubkey = urlParams.get('pubkey');
@@ -198,8 +184,7 @@
             const baseUrl = '/api';
             
             // Load data
-            // deprecating this line -- this function is called below
-            // loadProfileDataSequentially(pubkey, baseUrl);
+            loadProfileDataSequentially(pubkey, baseUrl);
         }
         
         // Get DOM elements
@@ -227,9 +212,6 @@
             
             // Set the pubkey in the display
             pubkeyDisplay.textContent = pubkey;
-
-            // Set the npub in the display
-            npubDisplay.textContent = getNpub(pubkey);
 
             // Sequential API calls to prevent concurrent request issues
             loadProfileDataSequentially(pubkey, baseUrl);
@@ -332,6 +314,10 @@
                 document.querySelector('.nip56-section').style.display = '';
             } else {
                 document.querySelector('.nip56-section').style.display = 'none';
+            }
+            // Set npub from API if present
+            if (data.npub) {
+                document.getElementById('npubDisplay').textContent = data.npub;
             }
         }
         
