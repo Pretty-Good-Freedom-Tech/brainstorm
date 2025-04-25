@@ -17,8 +17,27 @@
     <div class="page-content">
         <div class="container">
             <h1>Grapevine Analysis</h1>
-            <div class="section" id="grapevine-result-section">
-                <p id="grapevine-status">Loading analysis...</p>
+            <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
+                <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
+                <div class="column-panel-controls" style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
+                    <button id="columnSettingsButton" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
+                </div>
+            </div>
+            <div id="columnSettingsPanel" class="panel" style="display: none; margin-bottom: 10px;">
+                <h3>Column Visibility</h3>
+                <div id="columnToggles"></div>
+                <button id="resetColumnDefaultsBtn" class="secondary" style="margin-top: 10px;">Reset Defaults</button>
+            </div>
+            <div id="tableContainer">
+                <div id="loadingIndicator" class="loading"></div>
+                <table id="grapevineProfilesTable" style="display: none;">
+                    <thead>
+                        <tr class="header-row"></tr>
+                        <tr class="filter-row"></tr>
+                    </thead>
+                    <tbody id="grapevineProfilesTableBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -26,41 +45,167 @@
     <!-- Footer container -->
     <div id="footerContainer"></div>
     <script>
-    // Helper to get query params
+    // --- Column Definitions ---
+    const grapevineColumns = [
+        { id: 'pubkey', label: 'Pubkey', visible: true },
+        { id: 'hops', label: 'Hops', visible: true },
+        { id: 'influence', label: 'Influence', visible: true }
+    ];
+    let columnVisibility = {};
+    function loadColumnVisibility() {
+        const saved = localStorage.getItem('grapevineColumnVisibility');
+        if (saved) {
+            columnVisibility = JSON.parse(saved);
+        } else {
+            grapevineColumns.forEach(col => { columnVisibility[col.id] = col.visible; });
+        }
+    }
+    function saveColumnVisibility() {
+        localStorage.setItem('grapevineColumnVisibility', JSON.stringify(columnVisibility));
+    }
+    function initColumnToggles() {
+        const togglesDiv = document.getElementById('columnToggles');
+        togglesDiv.innerHTML = '';
+        grapevineColumns.forEach((col, idx) => {
+            const label = document.createElement('label');
+            label.style.display = 'block';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = columnVisibility[col.id];
+            checkbox.addEventListener('change', function() {
+                columnVisibility[col.id] = this.checked;
+                saveColumnVisibility();
+                renderTable();
+            });
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(' ' + col.label));
+            togglesDiv.appendChild(label);
+        });
+    }
+    function toggleColumnSettingsPanel() {
+        const panel = document.getElementById('columnSettingsPanel');
+        panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+    }
+    document.getElementById('columnSettingsButton').onclick = toggleColumnSettingsPanel;
+    document.getElementById('resetColumnDefaultsBtn').onclick = function() {
+        grapevineColumns.forEach(col => { columnVisibility[col.id] = col.visible; });
+        saveColumnVisibility();
+        renderTable();
+    };
+    // --- Sorting ---
+    let sortBy = 'influence';
+    let sortOrder = 'desc';
+    function sortData(data) {
+        return [...data].sort((a, b) => {
+            let valA = a[sortBy], valB = b[sortBy];
+            if (typeof valA === 'string') return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            if (typeof valA === 'number') return sortOrder === 'asc' ? valA - valB : valB - valA;
+            return 0;
+        });
+    }
+    // --- Filtering ---
+    let filters = { pubkey: '', hops: '', influence: '' };
+    function filterData(data) {
+        return data.filter(row => {
+            return (!filters.pubkey || row.pubkey.includes(filters.pubkey)) &&
+                   (!filters.hops || String(row.hops).includes(filters.hops)) &&
+                   (!filters.influence || String(row.influence).includes(filters.influence));
+        });
+    }
+    // --- Table Rendering ---
+    let allProfiles = [];
+    function renderTable() {
+        const table = document.getElementById('grapevineProfilesTable');
+        const headerRow = table.querySelector('.header-row');
+        const filterRow = table.querySelector('.filter-row');
+        const tbody = document.getElementById('grapevineProfilesTableBody');
+        // Build headers
+        headerRow.innerHTML = '';
+        grapevineColumns.forEach(col => {
+            if (!columnVisibility[col.id]) return;
+            const th = document.createElement('th');
+            th.textContent = col.label;
+            th.style.cursor = 'pointer';
+            th.onclick = function() {
+                if (sortBy === col.id) sortOrder = (sortOrder === 'asc' ? 'desc' : 'asc');
+                else { sortBy = col.id; sortOrder = 'desc'; }
+                renderTable();
+            };
+            if (sortBy === col.id) th.classList.add('sorted-' + sortOrder);
+            headerRow.appendChild(th);
+        });
+        // Build filter row
+        filterRow.innerHTML = '';
+        grapevineColumns.forEach(col => {
+            if (!columnVisibility[col.id]) return;
+            const th = document.createElement('th');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = filters[col.id] || '';
+            input.placeholder = 'Filter...';
+            input.oninput = function() {
+                filters[col.id] = this.value;
+                renderTable();
+            };
+            th.appendChild(input);
+            filterRow.appendChild(th);
+        });
+        // Sort & filter data
+        let rows = filterData(sortData(allProfiles));
+        // Render body
+        tbody.innerHTML = '';
+        rows.forEach(row => {
+            const tr = document.createElement('tr');
+            grapevineColumns.forEach(col => {
+                if (!columnVisibility[col.id]) return;
+                const td = document.createElement('td');
+                td.textContent = row[col.id];
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        // Show/hide table
+        table.style.display = rows.length ? '' : 'none';
+        // Update results indicator
+        document.getElementById('resultsIndicator').textContent = `Showing ${rows.length} profiles`;
+        document.getElementById('loadingIndicator').style.display = 'none';
+    }
+    // --- API Fetch and Initialization ---
     function getQueryParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
     }
-
-    // Required variables
     const observer = getQueryParam('observer');
     const observee = getQueryParam('observee');
     const interactionType = getQueryParam('interactionType');
-
-    // Validate parameters
     function isValidPubkey(pubkey) {
         return typeof pubkey === 'string' && pubkey.length >= 32;
     }
     function isValidInteractionType(type) {
         return typeof type === 'string' && type.length > 0;
     }
-
-    const statusElem = document.getElementById('grapevine-status');
+    function showError(msg) {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('resultsIndicator').textContent = msg;
+    }
+    loadColumnVisibility();
+    initColumnToggles();
+    document.getElementById('loadingIndicator').style.display = '';
     if (!isValidPubkey(observer) || !isValidPubkey(observee) || !isValidInteractionType(interactionType)) {
-        statusElem.textContent = 'Invalid or missing parameters. Please check the link.';
+        showError('Invalid or missing parameters. Please check the link.');
     } else {
-        // Call the API
         fetch(`/api/get-grapevine-interaction?observer=${encodeURIComponent(observer)}&observee=${encodeURIComponent(observee)}&interactionType=${encodeURIComponent(interactionType)}`)
             .then(resp => resp.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
-                    statusElem.textContent = `Number of items: ${data.data.length}`;
+                    allProfiles = data.data;
+                    renderTable();
                 } else {
-                    statusElem.textContent = 'API error: ' + (data.message || 'Unknown error');
+                    showError('API error: ' + (data.message || 'Unknown error'));
                 }
             })
             .catch(err => {
-                statusElem.textContent = 'Network/API error: ' + err;
+                showError('Network/API error: ' + err);
             });
     }
     </script>
