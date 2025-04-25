@@ -26,7 +26,7 @@
     <div class="container">
         <div class="header-profiles">
             <div class="report-type-selector">
-                <label for="reportTypeSelect">Report Type:</label>
+                <label for="reportTypeSelect">NIP-56 Report Type:</label>
                 <select id="reportTypeSelect"></select>
             </div>
         </div>
@@ -78,8 +78,8 @@
         { id: 'grapeRankScore', label: '🍇-Verified Reports Weight', visible: true },
         { id: 'totalVerifiedCount', label: '🍇-Verified Report Count', visible: true },
         { id: 'totalCount', label: 'Total Report Count', visible: true },
-        { id: 'influence', label: 'Influence', visible: true },
-        { id: 'verifiedFollowerCount', label: '🍇-Verified Followers', visible: true }
+        { id: 'influence', label: '🍇-Verified Followers Weight', visible: true },
+        { id: 'verifiedFollowerCount', label: '🍇-Verified Follower Count', visible: true }
     ];
     let columnVisibility = {};
     function loadColumnVisibility() {
@@ -87,11 +87,11 @@
         if (saved) {
             columnVisibility = JSON.parse(saved);
         } else {
-            // Responsive default: only totalVerifiedCount on for narrow screens, all on otherwise
+            // Responsive default: totalVerifiedCount and verifiedFollowerCount on for narrow screens, all on otherwise
             const isNarrow = window.innerWidth <= 700;
             nip56Columns.forEach(col => {
                 if (isNarrow) {
-                    columnVisibility[col.id] = (col.id === 'totalVerifiedCount');
+                    columnVisibility[col.id] = (col.id === 'totalVerifiedCount' || col.id === 'verifiedFollowerCount');
                 } else {
                     columnVisibility[col.id] = col.visible;
                 }
