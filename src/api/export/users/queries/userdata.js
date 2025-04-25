@@ -85,14 +85,19 @@ function handleGetUserData(req, res) {
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, count(fren) as frenCount
 
       // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
-      OPTIONAL MATCH (u)-[m5:FOLLOWS]->(groupie:NostrUser)
-      WHERE NOT (groupie)-[:FOLLOWS]->(u)
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, count(groupie) as groupieCount
 
       // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
-      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
-      WHERE NOT (u)-[:FOLLOWS]->(follower)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, count(follower) as idolCount
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
+      WHERE NOT (idol)-[:FOLLOWS]->(u)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, count(idol) as idolCount
+
+      // mutuals MUTUALS TODO: define mutuals.
+      // EITHER: profiles followed by this user and by the owner (mutualFollows)
+      // OR: frens of this user and frens of the owner (mutualFrens)
+      // could also do: mutualGroupies, mutualIdols
 
       //////// RECOMMENDATIONS:
       // calculated as:
