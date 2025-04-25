@@ -270,10 +270,11 @@
             headerRow.appendChild(th);
             thToColId.push(col.id);
         });
-        // Set compact-table class if <= 2 columns are visible
+        // Set compact-table class if <= 2 data columns are visible (excluding pic)
         const tableElem = document.getElementById('nip56ProfilesTable');
-        const visibleCols = nip56Columns.filter(col => columnVisibility[col.id]);
-        if (visibleCols.length <= 2) {
+        // Count only data columns (exclude pic)
+        const visibleDataCols = nip56Columns.filter(col => col.id !== 'pic' && columnVisibility[col.id]);
+        if (visibleDataCols.length <= 2) {
             tableElem.classList.add('compact-table');
         } else {
             tableElem.classList.remove('compact-table');
