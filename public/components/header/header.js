@@ -94,6 +94,7 @@ function loadNavbar() {
         || currentPath === '/profiles.html' 
         || currentPath === '/about.html'
         || currentPath === '/subscribe.html'
+        || currentPath === '/profile.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
@@ -101,6 +102,7 @@ function loadNavbar() {
         || currentPath === '/control/profiles.html' 
         || currentPath === '/control/about.html'
         || currentPath === '/control/subscribe.html'
+        || currentPath === '/control/profile.html'
     ) {
         navbarPath = '/components/header/navbars/nav1.html';
     }

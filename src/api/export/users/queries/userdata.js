@@ -97,7 +97,7 @@ function handleGetUserData(req, res) {
       // mutuals MUTUALS TODO: define mutuals.
       // EITHER: profiles followed by this user and by the owner (mutualFollows)
       // OR: frens of this user and frens of the owner (mutualFrens)
-      // could also do: mutualGroupies, mutualIdols
+      // could also do: mutualGroupies, mutualIdols, mutualFollowers, mutualFollows
 
       //////// RECOMMENDATIONS:
       // calculated as:

@@ -125,19 +125,12 @@
                         </div>
                     </div>
 
-                    <div class="profile-stats">
-                        <div class="stat-box">
-                            <h3>Muting</h3>
-                            <p id="mutingCountValue">-</p>
-                        </div>
-                        <div class="stat-box">
-                            <h3>Muters</h3>
-                            <p id="muterCountValue">-</p>
-                        </div>
-                    </div>
-                    
                     <div class="profile-section nip56-section">
                         <h3 class="section-title"><span style="color:#7a4cff;">🚩 Mutes (nip-51) and Reports (nip-56)</span></h3>
+                        <div class="mute-report-stats">
+                            <span><b>Muted by you:</b> <span id="mutingCountValue">-</span></span>
+                            <span style="margin-left: 24px;"><b>Muted you:</b> <span id="muterCountValue">-</span></span>
+                        </div>
                         <div class="nip56-table-wrapper">
                             <table class="nip56-table styled-table">
                                 <thead>
@@ -294,8 +287,8 @@
             document.getElementById('recommendationsToOwnerCountValue').textContent = data.recommendationsToOwnerCount ?? 0;
             document.getElementById('recommendationsFromOwnerCountValue').textContent = data.recommendationsFromOwnerCount ?? 0;
             // Muting/muters
-            mutingCountValue.textContent = data.mutingCount ?? 0;
-            muterCountValue.textContent = data.muterCount ?? 0;
+            document.getElementById('mutingCountValue').textContent = data.mutingCount ?? 0;
+            document.getElementById('muterCountValue').textContent = data.muterCount ?? 0;
             // NIP-56 Reports Table
             const nip56 = data.nip56;
             const nip56ReportsTable = document.getElementById('nip56ReportsTableBody');
@@ -431,13 +424,6 @@
             }
             if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
                 pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
-            }
-            // Remove deprecated stat updates for following, followers, verifiedFollowers, reportingCount, reporterCount
-            if (userData.mutingCount !== null && userData.mutingCount !== undefined) {
-                mutingCountValue.textContent = userData.mutingCount;
-            }
-            if (userData.muterCount !== null && userData.muterCount !== undefined) {
-                muterCountValue.textContent = userData.muterCount;
             }
         }
         
