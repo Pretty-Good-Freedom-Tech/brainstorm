@@ -51,9 +51,15 @@
                             <h3>Hops</h3>
                             <p id="hopsValue">-</p>
                         </div>
+                        <!--
                         <div class="stat-box">
                             <h3>🍇-Confidence</h3>
                             <p id="confidenceValue">-</p>
+                        </div>
+                        -->
+                        <div class="stat-box">
+                            <h3>🍇-Verified Followers</h3>
+                            <p id="verifiedFollowerCountValue1">-</p>
                         </div>
                         <div class="stat-box">
                             <h3>PageRank</h3>
@@ -90,7 +96,7 @@
                                     </tr>
                                     <tr>
                                         <th>🍇-Verified Followers</th>
-                                        <td id="verifiedFollowerCountValue">-</td>
+                                        <td id="verifiedFollowerCountValue2">-</td>
                                     </tr>
                                     <tr>
                                         <th>Frens</th>
@@ -278,7 +284,8 @@
             // Social graph panel
             document.getElementById('followingCountValue').textContent = data.followingCount ?? 0;
             document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;
-            document.getElementById('verifiedFollowerCountValue').textContent = data.verifiedFollowerCount ?? 0;
+            document.getElementById('verifiedFollowerCountValue1').textContent = data.verifiedFollowerCount ?? 0;
+            document.getElementById('verifiedFollowerCountValue2').textContent = data.verifiedFollowerCount ?? 0;
             document.getElementById('frenCountValue').textContent = data.frenCount ?? 0;
             document.getElementById('groupieCountValue').textContent = data.groupieCount ?? 0;
             document.getElementById('idolCountValue').textContent = data.idolCount ?? 0;
@@ -417,9 +424,12 @@
             if (userData.hops !== null && userData.hops !== undefined) {
                 hopsValue.textContent = userData.hops;
             }
+            /*
+            // removing this block from the page
             if (userData.confidence !== null && userData.confidence !== undefined) {
                 confidenceValue.textContent = parseFloat(userData.confidence).toFixed(4);
             }
+            */
             if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
                 pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
             }
