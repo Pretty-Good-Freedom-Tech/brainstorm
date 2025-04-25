@@ -8,6 +8,10 @@
     <script src="./components/header/header.js"></script>
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/footer/footer.js"></script>
+    <style>
+        .sg-link { color: #3b54b7; text-decoration: underline; font-weight: 500; cursor: pointer; }
+        .sg-link:hover { color: #5a2bb6; text-decoration: underline dotted; }
+    </style>
 </head>
 <body>
     <!-- Include the header component -->
@@ -330,6 +334,28 @@
             if (data.npub) {
                 document.getElementById('npubDisplay').textContent = data.npub;
             }
+            
+            // Add dynamic linking for Social Graph Overview panel values
+            const observer = data.ownerPubkey;
+            const observee = data.pubkey;
+            const socialLinks = [
+                { id: 'followingCountValue', type: 'following' },
+                { id: 'followerCountValue', type: 'followers' },
+                { id: 'verifiedFollowerCountValue2', type: 'verifiedFollowers' },
+                { id: 'frenCountValue', type: 'frens' },
+                { id: 'groupieCountValue', type: 'groupies' },
+                { id: 'idolCountValue', type: 'idols' },
+                { id: 'recommendationsToOwnerCountValue', type: 'recommendedToObserver' },
+                { id: 'recommendationsFromOwnerCountValue', type: 'recommendedByObserver' }
+            ];
+            socialLinks.forEach(({id, type}) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const value = el.textContent;
+                    const url = `/tekkadan.html?observer=${encodeURIComponent(observer)}&observee=${encodeURIComponent(observee)}&interactionType=${encodeURIComponent(type)}`;
+                    el.innerHTML = `<a href="${url}" class="sg-link" title="View ${type} list">${value}</a>`;
+                }
+            });
         }
         
         // Function to display kind 0 data
