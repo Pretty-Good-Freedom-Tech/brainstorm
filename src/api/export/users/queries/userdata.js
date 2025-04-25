@@ -185,6 +185,8 @@ function handleGetUserData(req, res) {
             mutualCount: user.get('mutualCount') ? parseInt(user.get('mutualCount').toString()) : 0,
             fanCount: user.get('fanCount') ? parseInt(user.get('fanCount').toString()) : 0,
             idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : 0,
+            recommendationsToOwnerCount: user.get('recommendationsToOwnerCount') ? parseInt(user.get('recommendationsToOwnerCount').toString()) : 0,
+            recommendationsFromOwnerCount: user.get('recommendationsFromOwnerCount') ? parseInt(user.get('recommendationsFromOwnerCount').toString()) : 0,
             nip56: {
               totals: {
                 nip56TotalGrapeRankScore: user.get('nip56TotalGrapeRankScore') ? parseFloat(user.get('nip56TotalGrapeRankScore').toString()) : null,
