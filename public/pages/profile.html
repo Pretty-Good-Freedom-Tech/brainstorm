@@ -31,6 +31,7 @@
                         <h2 id="displayName">Loading...</h2>
                         <p id="username">@username</p>
                         <p id="nip05" style="display: none;"></p>
+                        <div class="pubkey-display" id="npubDisplay"></div>
                         <div class="pubkey-display" id="pubkeyDisplay"></div>
                     </div>
                     <div class="profile-links" id="profileLinks">
@@ -166,6 +167,9 @@
     
     <!-- Footer container -->
     <div id="footerContainer"></div>
+
+    <!-- Include NIP19 library -->
+    <script src="https://unpkg.com/nostr-tools@1.0.0/dist/nostr-tools.js"></script>
     
     <script>
         // Get pubkey from URL
@@ -212,6 +216,12 @@
             
             // Set the pubkey in the display
             pubkeyDisplay.textContent = pubkey;
+
+            // Get the npub from the pubkey
+            const npub = nip19.npubEncode(pubkey);
+
+            // Set the npub in the display
+            npubDisplay.textContent = npub;
             
             // Sequential API calls to prevent concurrent request issues
             loadProfileDataSequentially(pubkey, baseUrl);
