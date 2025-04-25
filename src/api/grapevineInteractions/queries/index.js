@@ -53,7 +53,15 @@ function handleGetGrapevineInteraction(req, res) {
       .then(result => {
         session.close();
         driver.close();
-        res.json({ success: true, data: result.records });
+        // Parse the Neo4j results for clean output
+        const data = result.records.map(record => {
+          return {
+            pubkey: record.get('pubkey') ?? null,
+            hops: record.get('hops') ?? null,
+            influence: record.get('influence') ?? null
+          };
+        });
+        res.json({ success: true, data });
       })
       .catch(error => {
         session.close();
