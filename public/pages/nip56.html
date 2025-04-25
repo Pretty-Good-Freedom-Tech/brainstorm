@@ -41,6 +41,7 @@
         <div id="columnSettingsPanel" class="panel" style="display: none; margin-bottom: 10px;">
             <h3>Column Visibility</h3>
             <div id="columnToggles"></div>
+            <button id="resetColumnDefaultsBtn" class="secondary" style="margin-top: 10px;">Reset Defaults</button>
         </div>
         <div id="columnInfoPanel" class="panel" style="display: none; margin-bottom: 10px;">
             Wherever you see the 🍇 in the column header, it means we are using your web of trust to filter out any input from bots, spam, etc. Total counts may include untrustworthy sources!
@@ -74,7 +75,7 @@
     let allProfiles = [];
     // --- Column Definitions for Visibility ---
     const nip56Columns = [
-        { id: 'pic', label: '', visible: true },
+        { id: 'pic', label: 'Pic', visible: true },
         { id: 'pubkey', label: 'Pubkey', visible: true },
         { id: 'grapeRankScore', label: '🍇-Verified Reports Weight', visible: true },
         { id: 'totalVerifiedCount', label: '🍇-Verified Report Count', visible: true },
@@ -717,6 +718,30 @@
         populateReportTypeSelector();
         renderResultsIndicator(0, 0);
         fetchProfiles();
+        const resetBtn = document.getElementById('resetColumnDefaultsBtn');
+        if (resetBtn) {
+            resetBtn.onclick = function() {
+                const isNarrow = window.innerWidth <= 700;
+                if (isNarrow) {
+                    columnVisibility = {
+                        pic: true,
+                        totalVerifiedCount: true,
+                        verifiedFollowerCount: true
+                    };
+                    // Set all others to false
+                    nip56Columns.forEach(col => {
+                        if (!(col.id in columnVisibility)) columnVisibility[col.id] = false;
+                    });
+                } else {
+                    nip56Columns.forEach(col => {
+                        columnVisibility[col.id] = true;
+                    });
+                }
+                saveColumnVisibility();
+                initColumnToggles();
+                renderTable();
+            };
+        }
     });
 
     // --- Event Listeners ---
