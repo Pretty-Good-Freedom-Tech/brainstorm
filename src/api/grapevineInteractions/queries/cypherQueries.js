@@ -28,6 +28,15 @@ module.exports = {
             `
         },
         {
+            interactionType: 'verifiedFollowers',
+            cypherQuery: `
+                MATCH (observee:NostrUser {pubkey: $observee})
+                OPTIONAL MATCH (u:NostrUser)-[f:FOLLOWS]->(observee)
+                WHERE u.influence > 0.05
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence
+            `
+        },
+        {
             interactionType: 'mutes',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
