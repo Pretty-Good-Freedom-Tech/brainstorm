@@ -240,6 +240,14 @@
             if (!columnVisibility[col.id]) return;
             const th = document.createElement('th');
             th.textContent = col.label;
+            // BAD columns
+            if (col.id === 'grapeRankScore' || col.id === 'totalVerifiedCount' || col.id === 'totalCount') {
+                th.classList.add('bad-col');
+            }
+            // GOOD columns
+            if (col.id === 'influence' || col.id === 'verifiedFollowerCount') {
+                th.classList.add('good-col');
+            }
             if (col.id === 'pic') {
                 th.className = 'profile-pic-cell';
                 th.style.width = '44px';
@@ -465,26 +473,21 @@
                     pubkeyLink.textContent = profile.pubkey.substring(0, 12) + '...';
                     pubkeyLink.title = profile.pubkey;
                     cell.appendChild(pubkeyLink);
-                } else if (col.id === 'grapeRankScore') {
+                } else if (col.id === 'grapeRankScore' || col.id === 'totalVerifiedCount' || col.id === 'totalCount') {
+                    cell = document.createElement('td');
+                    cell.classList.add('bad-col');
+                    cell.setAttribute('data-label', col.label);
+                    addNumericCell(cell, profile[col.id], col.id === 'grapeRankScore' ? 3 : undefined);
+                } else if (col.id === 'influence' || col.id === 'verifiedFollowerCount') {
+                    cell = document.createElement('td');
+                    cell.classList.add('good-col');
+                    cell.setAttribute('data-label', col.label);
+                    addNumericCell(cell, profile[col.id], col.id === 'influence' ? 4 : undefined);
+                }
+                else {
                     cell = document.createElement('td');
                     cell.setAttribute('data-label', col.label);
-                    addNumericCell(cell, profile.grapeRankScore, 3);
-                } else if (col.id === 'totalVerifiedCount') {
-                    cell = document.createElement('td');
-                    cell.setAttribute('data-label', col.label);
-                    addNumericCell(cell, profile.totalVerifiedCount);
-                } else if (col.id === 'totalCount') {
-                    cell = document.createElement('td');
-                    cell.setAttribute('data-label', col.label);
-                    addNumericCell(cell, profile.totalCount);
-                } else if (col.id === 'influence') {
-                    cell = document.createElement('td');
-                    cell.setAttribute('data-label', col.label);
-                    addNumericCell(cell, profile.influence, 4);
-                } else if (col.id === 'verifiedFollowerCount') {
-                    cell = document.createElement('td');
-                    cell.setAttribute('data-label', col.label);
-                    addNumericCell(cell, profile.verifiedFollowerCount);
+                    addNumericCell(cell, profile[col.id]);
                 }
                 row.appendChild(cell);
             });

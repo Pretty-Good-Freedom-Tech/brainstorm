@@ -766,3 +766,39 @@ tr:hover {
     scroll-margin-top: 14px;
   }
 }
+
+/* Subtle distinction for "bad" vs. "good" behaviour columns */
+/* BAD columns: grapeRankScore, totalVerifiedCount, totalCount */
+#nip56ProfilesTable th.bad-col, #nip56ProfilesTable td.bad-col,
+#profilesTable th.bad-col, #profilesTable td.bad-col {
+    background: rgba(255, 80, 80, 0.06);
+    color: #b14d4d;
+    border-right: 1px solid #f3d1d1;
+    font-weight: 600;
+}
+/* GOOD columns: influence, verifiedFollowerCount */
+#nip56ProfilesTable th.good-col, #nip56ProfilesTable td.good-col,
+#profilesTable th.good-col, #profilesTable td.good-col {
+    background: rgba(90, 210, 120, 0.07);
+    color: #388e3c;
+    border-right: 1px solid #b8eacb;
+    font-weight: 600;
+}
+#nip56ProfilesTable th.good-col:last-child, #nip56ProfilesTable td.good-col:last-child,
+#profilesTable th.good-col:last-child, #profilesTable td.good-col:last-child {
+    border-right: none;
+}
+
+/* Keep the effect subtle in card view */
+@media (max-width: 900px) {
+  #nip56ProfilesTable:not(.compact-table) td.bad-col,
+  #profilesTable:not(.compact-table) td.bad-col {
+    background: rgba(255, 80, 80, 0.035);
+    color: #b14d4d;
+  }
+  #nip56ProfilesTable:not(.compact-table) td.good-col,
+  #profilesTable:not(.compact-table) td.good-col {
+    background: rgba(90, 210, 120, 0.04);
+    color: #388e3c;
+  }
+}
