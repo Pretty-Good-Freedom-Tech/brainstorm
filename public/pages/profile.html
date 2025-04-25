@@ -184,7 +184,8 @@
             const baseUrl = '/api';
             
             // Load data
-            loadProfileDataSequentially(pubkey, baseUrl);
+            // deprecating this line -- this function is called below; here it causes an error with a broken api call
+            // loadProfileDataSequentially(pubkey, baseUrl);
         }
         
         // Get DOM elements
@@ -214,7 +215,7 @@
             pubkeyDisplay.textContent = pubkey;
 
             // Sequential API calls to prevent concurrent request issues
-            // loadProfileDataSequentially(pubkey, baseUrl);
+            loadProfileDataSequentially(pubkey, baseUrl);
         } else {
             // Show error message if no pubkey is provided
             showError('No pubkey provided');
