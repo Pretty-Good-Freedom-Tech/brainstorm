@@ -1,4 +1,5 @@
 @import "./common.css";
+@import "./relay-link.css";
 
 body {
     background-color: #333;
@@ -37,55 +38,6 @@ body {
 .container-landing {
     text-align: center;
     margin: 0 auto;
-}
-
-.relay-link-container {
-    text-align: center;
-    color: rgb(146, 121, 107);
-    margin: 50px 0 50px 0;
-    font-size: 18px;
-    overflow: scroll;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-/* Copy button styling */
-.copy-button, .verify-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #b234bd;
-    padding: 5px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.copy-button:hover, .verify-button:hover {
-    background-color: rgba(178, 52, 189, 0.1);
-    transform: scale(1.1);
-}
-
-.copy-button:active, .verify-button:active {
-    transform: scale(0.95);
-}
-
-.copy-button.copied {
-    color: #4BB543; /* Green color for success */
-    animation: pulse 0.5s;
-}
-
-.verify-button {
-    color: #007bff; /* Blue color for the verify button */
-}
-
-.verify-button:hover {
-    background-color: rgba(0, 123, 255, 0.1);
 }
 
 @keyframes pulse {
