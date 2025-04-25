@@ -55,9 +55,17 @@ function handleGetGrapevineInteraction(req, res) {
         driver.close();
         // Parse the Neo4j results for clean output
         const data = result.records.map(record => {
+          // Neo4j integer objects have .toNumber(), otherwise return as is
+          let hops = record.get('hops');
+          if (hops && typeof hops.toNumber === 'function') {
+            hops = hops.toNumber();
+          } else if (typeof hops === 'object' && hops !== null && typeof hops.low === 'number') {
+            // If it's the neo4j-driver integer object (pre .toNumber()), combine low/high
+            hops = hops.low;
+          }
           return {
             pubkey: record.get('pubkey') ?? null,
-            hops: record.get('hops') ?? null,
+            hops: hops ?? null,
             influence: record.get('influence') ?? null
           };
         });
