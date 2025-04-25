@@ -696,6 +696,55 @@ tr:hover {
   }
 }
 
+/* Column panel controls styling */
+.column-panel-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 0.5em;
+}
+.column-panel-controls span {
+    font-weight: 600;
+    font-size: 1.03em;
+    letter-spacing: 0.01em;
+    color: #444;
+}
+.columns-btn {
+    background: #f6f6fb;
+    border: 1.2px solid #bcbcf2;
+    border-radius: 5px;
+    color: #6b6b8d;
+    font-size: 1.06em;
+    font-weight: 600;
+    padding: 4px 10px;
+    min-width: 32px;
+    margin: 0 0.5px;
+    transition: background 0.13s, border 0.13s;
+    box-shadow: 0 1px 2px rgba(120,120,160,0.03);
+    cursor: pointer;
+}
+.columns-btn:hover, .columns-btn:focus {
+    background: #e4e4ff;
+    border-color: #7a4cff;
+    color: #4a3d7b;
+}
+.panel {
+    background: #f8f8fa;
+    border: 1.2px solid #e3e3ee;
+    border-radius: 7px;
+    padding: 13px 18px 13px 18px;
+    box-shadow: 0 1px 4px rgba(120,120,160,0.04);
+    margin-bottom: 10px;
+    font-size: 1.02em;
+    color: #2d2d38;
+}
+#columnInfoPanel {
+    min-height: 32px;
+    font-size: 1.01em;
+    color: #555;
+    /* Placeholder for info text to be added later */
+}
+
 /* Less prominent styling for Columns button in results row */
 .columns-btn {
     background: #f7f3ff !important;

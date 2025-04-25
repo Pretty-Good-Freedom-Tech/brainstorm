@@ -32,18 +32,17 @@
         </div>
         <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
             <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
-            <button id="columnSettingsBtn" class="secondary columns-btn" style="margin-left: 0; font-size: 0.98em; padding: 5px 12px;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;">
-                    <path d="M12 5v14M5 12h14"></path>
-                </svg>
-                Columns
-            </button>
+            <div class="column-panel-controls" style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
+                <button id="columnSettingsBtn" class="secondary columns-btn" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 10px; min-width: 32px;">+</button>
+                <button id="columnInfoBtn" class="secondary columns-btn" title="Show column information" style="font-size: 1.06em; padding: 4px 10px; min-width: 32px;">?</button>
+            </div>
         </div>
-        <!-- Column settings panel -->
-        <div id="columnSettingsPanel" class="column-settings-panel" style="display:none;">
+        <div id="columnSettingsPanel" class="panel" style="display: none; margin-bottom: 10px;">
             <h3>Column Visibility</h3>
             <div id="columnToggles"></div>
         </div>
+        <div id="columnInfoPanel" class="panel" style="display: none; margin-bottom: 10px;"></div>
         <div id="tableContainer">
             <div id="loadingIndicator" class="loading"></div>
             <table id="nip56ProfilesTable" style="display: none;">
@@ -711,6 +710,20 @@
         state.page = 1;
         fetchProfiles();
     });
+
+    // --- Column Visibility and Info Panel Toggles ---
+    document.getElementById('columnSettingsBtn').onclick = function() {
+        const panel = document.getElementById('columnSettingsPanel');
+        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+        // Hide info panel if open
+        document.getElementById('columnInfoPanel').style.display = 'none';
+    };
+    document.getElementById('columnInfoBtn').onclick = function() {
+        const panel = document.getElementById('columnInfoPanel');
+        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+        // Hide settings panel if open
+        document.getElementById('columnSettingsPanel').style.display = 'none';
+    };
     </script>
 </body>
 </html>
