@@ -420,49 +420,24 @@
         
         // Function to update profile stats
         function updateProfileStats(userData) {
-            // Update the profile stats with Neo4j data
-            if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
-                pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
-            }
-            
-            if (userData.hops !== null && userData.hops !== undefined) {
-                hopsValue.textContent = userData.hops;
-            }
-            
             if (userData.influence !== null && userData.influence !== undefined) {
                 influenceValue.textContent = parseFloat(userData.influence).toFixed(4);
             }
-            
+            if (userData.hops !== null && userData.hops !== undefined) {
+                hopsValue.textContent = userData.hops;
+            }
             if (userData.confidence !== null && userData.confidence !== undefined) {
                 confidenceValue.textContent = parseFloat(userData.confidence).toFixed(4);
             }
-            
-            if (userData.followingCount !== null && userData.followingCount !== undefined) {
-                followingCountValue.textContent = userData.followingCount;
+            if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
+                pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
             }
-            
-            if (userData.followerCount !== null && userData.followerCount !== undefined) {
-                followerCountValue.textContent = userData.followerCount;
-            }
-            
-            if (userData.verifiedFollowerCount !== null && userData.verifiedFollowerCount !== undefined) {
-                verifiedFollowerCountValue.textContent = userData.verifiedFollowerCount;
-            }
-            
+            // Remove deprecated stat updates for following, followers, verifiedFollowers, reportingCount, reporterCount
             if (userData.mutingCount !== null && userData.mutingCount !== undefined) {
                 mutingCountValue.textContent = userData.mutingCount;
             }
-            
             if (userData.muterCount !== null && userData.muterCount !== undefined) {
                 muterCountValue.textContent = userData.muterCount;
-            }
-            
-            if (userData.reportingCount !== null && userData.reportingCount !== undefined) {
-                reportingCountValue.textContent = userData.reportingCount;
-            }
-            
-            if (userData.reporterCount !== null && userData.reporterCount !== undefined) {
-                reporterCountValue.textContent = userData.reporterCount;
             }
         }
         
