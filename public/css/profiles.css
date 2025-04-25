@@ -8,7 +8,7 @@
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
-    width: 100%;
+    width: auto;
     margin-left: 0;
     margin-right: 0;
     padding: 0;
@@ -575,23 +575,20 @@ tr:hover {
 
 /* Center report-type-selector on desktop, full width on mobile */
 .header-profiles {
+    width: auto;
+    margin: 0;
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-    padding: 0;
     box-sizing: border-box;
 }
+
 @media (max-width: 700px) {
   .header-profiles {
-    width: 100vw;
-    margin-left: 0;
-    margin-right: 0;
+    width: auto;
+    margin-left: -3vw;
+    margin-right: -3vw;
     padding: 0;
     box-sizing: border-box;
   }
@@ -653,9 +650,9 @@ tr:hover {
 @media (max-width: 700px) {
   .header-profiles {
     justify-content: stretch;
-    width: 100vw;
-    margin-left: 0;
-    margin-right: 0;
+    width: auto;
+    margin-left: -3vw;
+    margin-right: -3vw;
     padding-left: 0;
     padding-right: 0;
     box-sizing: border-box;
