@@ -278,9 +278,12 @@
             if (data.influence !== null && data.influence !== undefined) {
                 influenceValue.textContent = parseFloat(data.influence).toFixed(4);
             }
+            /*
+            // removing this from top panel
             if (data.confidence !== null && data.confidence !== undefined) {
                 confidenceValue.textContent = parseFloat(data.confidence).toFixed(4);
             }
+            */
             // Social graph panel
             document.getElementById('followingCountValue').textContent = data.followingCount ?? 0;
             document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;
