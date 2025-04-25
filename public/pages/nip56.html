@@ -42,7 +42,9 @@
             <h3>Column Visibility</h3>
             <div id="columnToggles"></div>
         </div>
-        <div id="columnInfoPanel" class="panel" style="display: none; margin-bottom: 10px;"></div>
+        <div id="columnInfoPanel" class="panel" style="display: none; margin-bottom: 10px;">
+            Lorem ipsum.
+        </div>
         <div id="tableContainer">
             <div id="loadingIndicator" class="loading"></div>
             <table id="nip56ProfilesTable" style="display: none;">
@@ -712,13 +714,17 @@
     });
 
     // --- Column Visibility and Info Panel Toggles ---
-    document.getElementById('columnSettingsBtn').onclick = function() {
+    document.getElementById('columnSettingsBtn').onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         const panel = document.getElementById('columnSettingsPanel');
         panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
         // Hide info panel if open
         document.getElementById('columnInfoPanel').style.display = 'none';
     };
-    document.getElementById('columnInfoBtn').onclick = function() {
+    document.getElementById('columnInfoBtn').onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         const panel = document.getElementById('columnInfoPanel');
         panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
         // Hide settings panel if open

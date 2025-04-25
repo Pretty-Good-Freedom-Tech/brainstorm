@@ -700,7 +700,7 @@ tr:hover {
 .column-panel-controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 3px;
     margin-left: 0.5em;
 }
 .column-panel-controls span {
@@ -716,12 +716,15 @@ tr:hover {
     color: #6b6b8d;
     font-size: 1.06em;
     font-weight: 600;
-    padding: 4px 10px;
-    min-width: 32px;
-    margin: 0 0.5px;
+    padding: 4px 8px;
+    min-width: 28px;
+    margin: 0 0.5px 0 0.5px;
     transition: background 0.13s, border 0.13s;
     box-shadow: 0 1px 2px rgba(120,120,160,0.03);
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .columns-btn:hover, .columns-btn:focus {
     background: #e4e4ff;
