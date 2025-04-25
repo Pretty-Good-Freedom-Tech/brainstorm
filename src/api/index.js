@@ -34,6 +34,7 @@ const graperank = require('./export/graperank');
 const manage = require('./manage');
 const lists = require('./lists');
 const status = require('./status');
+const { handleGetGrapevineInteraction } = require('./grapevineInteractions');
 
 const { handleNeo4jSetupConstraintsAndIndexes } = require('./neo4j/commands/setupConstraintsAndIndexes.js');
 
@@ -193,6 +194,9 @@ function register(app) {
 
     // Owner info endpoint
     app.get('/api/owner-info', handleGetOwnerInfo);
+
+    // Grapevine Interactions endpoint
+    app.get('/api/get-grapevine-interaction', handleGetGrapevineInteraction);
 
     console.log('Registered all Brainstorm API endpoints');
 }
