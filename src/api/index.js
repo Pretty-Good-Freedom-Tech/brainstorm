@@ -18,6 +18,7 @@ const {
     handleAuthTest 
 } = require('../middleware/auth');
 const { handleGetOwnerInfo } = require('./owner/ownerInfo');
+const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
@@ -34,7 +35,6 @@ const graperank = require('./export/graperank');
 const manage = require('./manage');
 const lists = require('./lists');
 const status = require('./status');
-const { handleGetGrapevineInteraction } = require('./grapevineInteractions');
 
 const { handleNeo4jSetupConstraintsAndIndexes } = require('./neo4j/commands/setupConstraintsAndIndexes.js');
 

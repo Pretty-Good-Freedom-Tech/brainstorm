@@ -4,7 +4,7 @@
  */
 
 const neo4j = require('neo4j-driver');
-const { getConfigFromFile } = require('../../../../utils/config');
+const { getConfigFromFile } = require('../../../utils/config');
 const fs = require('fs');
 const path = require('path');
 
