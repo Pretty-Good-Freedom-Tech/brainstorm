@@ -73,6 +73,26 @@ function handleGetUserData(req, res) {
       
       // Count users that report this user
       OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount
+
+      ////////// Tekkadan's Parameters
+      // mutuals MUTUALS (profiles that follow AND are followed by this user)
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(mutual:NostrUser)-[m4:FOLLOWS]->(u)
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount
+
+      // fans FANS (profiles that follow but ARE NOT FOLLOWED BY this user)
+      OPTIONAL MATCH (u)-[m5:FOLLOWS]->(fan:NostrUser)
+      WHERE NOT (fan)-[:FOLLOWS]->(u)
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount, count(fan) as fanCount
+
+      // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(follower)
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount, fanCount, count(follower) as idolCount
+
+      // followRecommendationsToOwnerFromThisUser RECOMMENDED FOLLOWS A: (for owner to follow, recommended by this user)
+
+      // followRecommendationsFromOwnerToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by owner)
       
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
@@ -103,7 +123,10 @@ function handleGetUserData(req, res) {
              mutingCount,
              muterCount,
              reportingCount,
-             count(reporter) as reporterCount
+             reporterCount,
+             mutualCount,
+             fanCount,
+             idolCount
     `;
     
     // Execute the query
@@ -132,6 +155,9 @@ function handleGetUserData(req, res) {
             muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
             reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
             reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
+            mutualCount: user.get('mutualCount') ? parseInt(user.get('mutualCount').toString()) : 0,
+            fanCount: user.get('fanCount') ? parseInt(user.get('fanCount').toString()) : 0,
+            idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : 0,
             nip56: {
               totals: {
                 nip56TotalGrapeRankScore: user.get('nip56TotalGrapeRankScore') ? parseFloat(user.get('nip56TotalGrapeRankScore').toString()) : null,
