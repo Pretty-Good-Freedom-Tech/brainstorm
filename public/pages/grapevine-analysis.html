@@ -31,10 +31,52 @@
                 <li>Recommended Follows (You → Owner)</li>
                 <li>Recommended Follows (Owner → You)</li>
             </div>
+            <div class="section" id="grapevine-result-section">
+                <p id="grapevine-status">Loading analysis...</p>
+            </div>
         </div>
     </div>
     
     <!-- Footer container -->
     <div id="footerContainer"></div>
+    <script>
+    // Helper to get query params
+    function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    // Required variables
+    const observer = getQueryParam('observer');
+    const observee = getQueryParam('observee');
+    const interactionType = getQueryParam('interactionType');
+
+    // Validate parameters
+    function isValidPubkey(pubkey) {
+        return typeof pubkey === 'string' && pubkey.length >= 32;
+    }
+    function isValidInteractionType(type) {
+        return typeof type === 'string' && type.length > 0;
+    }
+
+    const statusElem = document.getElementById('grapevine-status');
+    if (!isValidPubkey(observer) || !isValidPubkey(observee) || !isValidInteractionType(interactionType)) {
+        statusElem.textContent = 'Invalid or missing parameters. Please check the link.';
+    } else {
+        // Call the API
+        fetch(`/api/get-grapevine-interaction?observer=${encodeURIComponent(observer)}&observee=${encodeURIComponent(observee)}&interactionType=${encodeURIComponent(interactionType)}`)
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.data)) {
+                    statusElem.textContent = `Number of items: ${data.data.length}`;
+                } else {
+                    statusElem.textContent = 'API error: ' + (data.message || 'Unknown error');
+                }
+            })
+            .catch(err => {
+                statusElem.textContent = 'Network/API error: ' + err;
+            });
+    }
+    </script>
 </body>
 </html>
