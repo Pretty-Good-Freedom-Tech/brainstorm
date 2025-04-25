@@ -79,7 +79,7 @@
         { id: 'grapeRankScore', label: '🍇-Verified Reports Weight', visible: true },
         { id: 'totalVerifiedCount', label: '🍇-Verified Report Count', visible: true },
         { id: 'totalCount', label: 'Total Report Count', visible: true },
-        { id: 'influence', label: '🍇-Verified Followers Weight', visible: true },
+        { id: 'influence', label: '🍇-Influence', visible: true },
         { id: 'verifiedFollowerCount', label: '🍇-Verified Follower Count', visible: true }
     ];
     let columnVisibility = {};
@@ -106,8 +106,6 @@
         const togglesDiv = document.getElementById('columnToggles');
         togglesDiv.innerHTML = '';
         nip56Columns.forEach((col, idx) => {
-            // Optionally skip 'pic' column from being hidden
-            if (col.id === 'pic') return;
             const label = document.createElement('label');
             label.style.display = 'block';
             const checkbox = document.createElement('input');
