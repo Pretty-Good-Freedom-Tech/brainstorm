@@ -74,21 +74,57 @@
                         </table>
                     </div>
                     
-                    <div class="profile-stats">
-                        <div class="stat-box">
-                            <h3>Following</h3>
-                            <p id="followingCountValue">-</p>
+                    <div class="profile-section social-connections-section">
+                        <h3 class="section-title">Social Graph Overview</h3>
+                        <div class="connections-table-wrapper">
+                            <table class="connections-table styled-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Following</th>
+                                        <td id="followingCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Followers</th>
+                                        <td id="followerCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>🍇-Verified Followers</th>
+                                        <td id="verifiedFollowerCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mutuals</th>
+                                        <td id="mutualCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Fans</th>
+                                        <td id="fanCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Idols</th>
+                                        <td id="idolCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Recommended Follows (You → Owner)</th>
+                                        <td id="recommendationsToOwnerCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Recommended Follows (Owner → You)</th>
+                                        <td id="recommendationsFromOwnerCountValue">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="stat-box">
-                            <h3>Followers</h3>
-                            <p id="followerCountValue">-</p>
-                        </div>
-                        <div class="stat-box">
-                            <h3>🍇-Verified Followers<br/><h4>(influence > 0.05)</h4></h3>
-                            <p id="verifiedFollowerCountValue">-</p>
+                        <div class="connections-table-info">
+                            <span class="connections-hint">
+                                <li>Mutuals: Users you follow who also follow you back.</li>
+                                <li>Fans: Users you follow who do not follow you back.</li>
+                                <li>Idols: Users who follow you but you do not follow back.</li>
+                                <li>🍇-Verified Followers: Followers with influence &gt; 0.05.</li>
+                                <li>Recommended Follows: Based on mutual connections.</li>
+                            </span>
                         </div>
                     </div>
-                    
+
                     <div class="profile-stats">
                         <div class="stat-box">
                             <h3>Muting</h3>
@@ -97,17 +133,6 @@
                         <div class="stat-box">
                             <h3>Muters</h3>
                             <p id="muterCountValue">-</p>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-stats">
-                        <div class="stat-box">
-                            <h3>Reporting</h3>
-                            <p id="reportingCountValue">-</p>
-                        </div>
-                        <div class="stat-box">
-                            <h3>Reporters</h3>
-                            <p id="reporterCountValue">-</p>
                         </div>
                     </div>
                     
@@ -246,51 +271,31 @@
         
         // Function to display Neo4j data
         function displayNeo4jData(data) {
-            // Update the profile stats with Neo4j data
+            // Influence, hops, confidence, pagerank
             if (data.personalizedPageRank !== null && data.personalizedPageRank !== undefined) {
                 pageRankValue.textContent = parseFloat(data.personalizedPageRank).toFixed(4);
             }
-            
             if (data.hops !== null && data.hops !== undefined) {
                 hopsValue.textContent = data.hops;
             }
-            
             if (data.influence !== null && data.influence !== undefined) {
                 influenceValue.textContent = parseFloat(data.influence).toFixed(4);
             }
-            
             if (data.confidence !== null && data.confidence !== undefined) {
                 confidenceValue.textContent = parseFloat(data.confidence).toFixed(4);
             }
-            
-            if (data.followingCount !== null && data.followingCount !== undefined) {
-                followingCountValue.textContent = data.followingCount;
-            }
-            
-            if (data.followerCount !== null && data.followerCount !== undefined) {
-                followerCountValue.textContent = data.followerCount;
-            }
-
-            if (data.verifiedFollowerCount !== null && data.verifiedFollowerCount !== undefined) {
-                verifiedFollowerCountValue.textContent = data.verifiedFollowerCount;
-            }
-            
-            if (data.mutingCount !== null && data.mutingCount !== undefined) {
-                mutingCountValue.textContent = data.mutingCount;
-            }
-            
-            if (data.muterCount !== null && data.muterCount !== undefined) {
-                muterCountValue.textContent = data.muterCount;
-            }
-            
-            if (data.reportingCount !== null && data.reportingCount !== undefined) {
-                reportingCountValue.textContent = data.reportingCount;
-            }
-            
-            if (data.reporterCount !== null && data.reporterCount !== undefined) {
-                reporterCountValue.textContent = data.reporterCount;
-            }
-            
+            // Social graph panel
+            document.getElementById('followingCountValue').textContent = data.followingCount ?? 0;
+            document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;
+            document.getElementById('verifiedFollowerCountValue').textContent = data.verifiedFollowerCount ?? 0;
+            document.getElementById('mutualCountValue').textContent = data.mutualCount ?? 0;
+            document.getElementById('fanCountValue').textContent = data.fanCount ?? 0;
+            document.getElementById('idolCountValue').textContent = data.idolCount ?? 0;
+            document.getElementById('recommendationsToOwnerCountValue').textContent = data.recommendationsToOwnerCount ?? 0;
+            document.getElementById('recommendationsFromOwnerCountValue').textContent = data.recommendationsFromOwnerCount ?? 0;
+            // Muting/muters
+            mutingCountValue.textContent = data.mutingCount ?? 0;
+            muterCountValue.textContent = data.muterCount ?? 0;
             // NIP-56 Reports Table
             const nip56 = data.nip56;
             const nip56ReportsTable = document.getElementById('nip56ReportsTableBody');
