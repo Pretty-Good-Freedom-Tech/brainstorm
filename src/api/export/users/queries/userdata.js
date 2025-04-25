@@ -32,7 +32,7 @@ function handleGetUserData(req, res) {
 
     // Get pubkey of the owner from brainstorm.conf
     const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
-    
+
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
     const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
@@ -47,9 +47,9 @@ function handleGetUserData(req, res) {
     
     // Build the Cypher query to get user data and counts
     let query = `
-      MATCH (u:NostrUser {pubkey: $pubkey})
-      MATCH (owner:NostrUser {pubkey: $ownerPubkey})
-      
+      MATCH (u:NostrUser {pubkey: $pubkey}) // This works fine
+      MATCH (owner:NostrUser {pubkey: $ownerPubkey}) // This causes an error!
+
       // Count users that this user follows
       OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)
       WITH u, owner, count(following) as followingCount
@@ -156,7 +156,7 @@ function handleGetUserData(req, res) {
     `;
     
     // Execute the query
-    session.run(query, { pubkey })
+    session.run(query, { pubkey, ownerPubkey })
       .then(result => {
         const user = result.records[0];
         
