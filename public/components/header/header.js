@@ -301,7 +301,7 @@ function highlightCurrentPage() {
         '/neo4j-control-panel.html': '/neo4j-control-panel',
         '/personalized-recommendations.html': '/personalized-recommendations',
         '/subscribe.html': '/subscribe',
-        '/tekkadan.html': '/tekkadan',
+        '/grapevine-analysis.html': '/grapevine-analysis',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
@@ -318,7 +318,7 @@ function highlightCurrentPage() {
         '/control/neo4j-control-panel.html': '/control/neo4j-control-panel',
         '/control/personalized-recommendations.html': '/control/personalized-recommendations',
         '/control/subscribe.html': '/control/subscribe',
-        '/control/tekkadan.html': '/control/tekkadan'
+        '/control/grapevine-analysis.html': '/control/grapevine-analysis'
     };
     
     // Get the matching prefix for the current path

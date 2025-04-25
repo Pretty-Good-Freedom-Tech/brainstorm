@@ -94,7 +94,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, count(reporter) as reporterCount
 
-      ////////// Tekkadan's Parameters
+      ////////// Grapevine Analysis
       // frens FRENS (profiles that follow AND are followed by this user)
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, count(fren) as frenCount
