@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm</title>
+    <link rel="stylesheet" href="/control/css/tekkadan.css">
+    <script src="./components/header/header.js"></script>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <h1>Tekkadan Social Graph Analysis</h1>
+            <div class="section">
+                <p>Tekkadan Social Graph Analysis looks at interactions between your social graph and another user's social graph.</p>
+                <p>Each Graph is the result of a cypher query that takes two inputs: owner pubkey (you) and this user's pubkey.</p>
+                <p>Some queries, such as Frens, Fans, and Idols, use only the user pubkey, while others use both pubkeys. Those are still considered TSG because the results of those queries are used in more complex TSG lists.</p>
+                <p>Each Graph has its own unique cypher query.</p>
+                <p>Each Query returns a list of pubkeys.</p>
+                <p>The results of the query are displayed in table format. (Techically it's a list, not a graph?)</p>
+                <p>There are 5 TSG Lists:</p>
+                <li>Frens</li>
+                <li>Fans</li>
+                <li>Idols</li>
+                <li>Recommended Follows (You → Owner)</li>
+                <li>Recommended Follows (Owner → You)</li>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer container -->
+    <div id="footerContainer"></div>
+</body>
+</html>

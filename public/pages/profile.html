@@ -92,8 +92,8 @@
                                         <td id="verifiedFollowerCountValue">-</td>
                                     </tr>
                                     <tr>
-                                        <th>Mutuals</th>
-                                        <td id="mutualCountValue">-</td>
+                                        <th>Frens</th>
+                                        <td id="frenCountValue">-</td>
                                     </tr>
                                     <tr>
                                         <th>Fans</th>
@@ -116,11 +116,11 @@
                         </div>
                         <div class="connections-table-info">
                             <span class="connections-hint">
-                                <li>Mutuals: Users you follow who also follow you back.</li>
+                                <li>Frens: Users you follow who also follow you back.</li>
                                 <li>Fans: Users you follow who do not follow you back.</li>
                                 <li>Idols: Users who follow you but you do not follow back.</li>
                                 <li>🍇-Verified Followers: Followers with influence &gt; 0.05.</li>
-                                <li>Recommended Follows: Based on mutual connections.</li>
+                                <li>Recommended Follows: Based on fren connections.</li>
                             </span>
                         </div>
                     </div>
@@ -288,7 +288,7 @@
             document.getElementById('followingCountValue').textContent = data.followingCount ?? 0;
             document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;
             document.getElementById('verifiedFollowerCountValue').textContent = data.verifiedFollowerCount ?? 0;
-            document.getElementById('mutualCountValue').textContent = data.mutualCount ?? 0;
+            document.getElementById('frenCountValue').textContent = data.frenCount ?? 0;
             document.getElementById('fanCountValue').textContent = data.fanCount ?? 0;
             document.getElementById('idolCountValue').textContent = data.idolCount ?? 0;
             document.getElementById('recommendationsToOwnerCountValue').textContent = data.recommendationsToOwnerCount ?? 0;

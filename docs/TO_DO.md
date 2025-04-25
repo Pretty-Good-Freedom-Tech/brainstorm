@@ -1,5 +1,5 @@
 ## TODO 21 Apr 2025
-- add mutuals, fans, idols, and recommended follows to this user's profile page
+- add frens, fans, idols, and recommended follows to this user's profile page
 - MIP-87: curate mints
 - add npub to tables
 - update profiles page with same features as nip56 page
