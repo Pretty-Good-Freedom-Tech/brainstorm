@@ -84,15 +84,15 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, count(fren) as frenCount
 
-      // fans FANS (profiles that follow but ARE NOT FOLLOWED BY this user)
-      OPTIONAL MATCH (u)-[m5:FOLLOWS]->(fan:NostrUser)
-      WHERE NOT (fan)-[:FOLLOWS]->(u)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, count(fan) as fanCount
+      // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
+      OPTIONAL MATCH (u)-[m5:FOLLOWS]->(groupie:NostrUser)
+      WHERE NOT (groupie)-[:FOLLOWS]->(u)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, count(groupie) as groupieCount
 
       // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE NOT (u)-[:FOLLOWS]->(follower)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, fanCount, count(follower) as idolCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, count(follower) as idolCount
 
       //////// RECOMMENDATIONS:
       // calculated as:
@@ -100,23 +100,23 @@ function handleGetUserData(req, res) {
       // who also follow the recommendee
       // but whom the recommendee does not already follow
 
-      // Intersection of owner frens and the fans of this user
+      // Intersection of owner frens and the groupies of this user
       // followRecommendationsToOwnerFromThisUser RECOMMENDED FOLLOWS A: (for owner to follow, recommended by this user)
       // Recommender: this user
       // Recommendee: owner
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(u)
       WHERE (recommendation)-[:FOLLOWS]->(owner)
       AND NOT (owner)-[:FOLLOWS]->(recommendation)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, fanCount, idolCount, count(recommendation) as recommendationsToOwnerCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, count(recommendation) as recommendationsToOwnerCount
 
-      // Intersection of this user's frens and the fans of the owner
+      // Intersection of this user's frens and the groupies of the owner
       // followRecommendationsFromOwnerToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by owner)
       // Recommender: owner
       // Recommendee: this user
       OPTIONAL MATCH (owner)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(owner)
       WHERE (recommendation)-[:FOLLOWS]->(u)
       AND NOT (u)-[:FOLLOWS]->(recommendation)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, fanCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
       
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
@@ -149,7 +149,7 @@ function handleGetUserData(req, res) {
              reportingCount,
              reporterCount,
              frenCount,
-             fanCount,
+             groupieCount,
              idolCount,
              recommendationsToOwnerCount,
              recommendationsFromOwnerCount
@@ -183,7 +183,7 @@ function handleGetUserData(req, res) {
             reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
             reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
             frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : 0,
-            fanCount: user.get('fanCount') ? parseInt(user.get('fanCount').toString()) : 0,
+            groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : 0,
             idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : 0,
             recommendationsToOwnerCount: user.get('recommendationsToOwnerCount') ? parseInt(user.get('recommendationsToOwnerCount').toString()) : 0,
             recommendationsFromOwnerCount: user.get('recommendationsFromOwnerCount') ? parseInt(user.get('recommendationsFromOwnerCount').toString()) : 0,

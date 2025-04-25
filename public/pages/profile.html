@@ -96,8 +96,8 @@
                                         <td id="frenCountValue">-</td>
                                     </tr>
                                     <tr>
-                                        <th>Fans</th>
-                                        <td id="fanCountValue">-</td>
+                                        <th>Groupies</th>
+                                        <td id="groupieCountValue">-</td>
                                     </tr>
                                     <tr>
                                         <th>Idols</th>
@@ -117,7 +117,7 @@
                         <div class="connections-table-info">
                             <span class="connections-hint">
                                 <li>Frens: Users you follow who also follow you back.</li>
-                                <li>Fans: Users you follow who do not follow you back.</li>
+                                <li>Groupies: Users you follow who do not follow you back.</li>
                                 <li>Idols: Users who follow you but you do not follow back.</li>
                                 <li>🍇-Verified Followers: Followers with influence &gt; 0.05.</li>
                                 <li>Recommended Follows: Based on fren connections.</li>
@@ -137,7 +137,7 @@
                     </div>
                     
                     <div class="profile-section nip56-section">
-                        <h3 class="section-title"><span style="color:#7a4cff;">🚩 NIP-56 Reports</span></h3>
+                        <h3 class="section-title"><span style="color:#7a4cff;">🚩 Mutes (nip-51) and Reports (nip-56)</span></h3>
                         <div class="nip56-table-wrapper">
                             <table class="nip56-table styled-table">
                                 <thead>
@@ -289,7 +289,7 @@
             document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;
             document.getElementById('verifiedFollowerCountValue').textContent = data.verifiedFollowerCount ?? 0;
             document.getElementById('frenCountValue').textContent = data.frenCount ?? 0;
-            document.getElementById('fanCountValue').textContent = data.fanCount ?? 0;
+            document.getElementById('groupieCountValue').textContent = data.groupieCount ?? 0;
             document.getElementById('idolCountValue').textContent = data.idolCount ?? 0;
             document.getElementById('recommendationsToOwnerCountValue').textContent = data.recommendationsToOwnerCount ?? 0;
             document.getElementById('recommendationsFromOwnerCountValue').textContent = data.recommendationsFromOwnerCount ?? 0;
