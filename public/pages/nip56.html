@@ -136,6 +136,8 @@
     const DEFAULT_PAGE_SIZE = 50;
     const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
     let state = {
+        sortBy: 'totalVerifiedCount',
+        sortOrder: 'desc',
         profiles: [],
         reportType: reportTypes[0],
         filters: {
@@ -152,9 +154,7 @@
             maxVerifiedFollowers: ''
         },
         page: 1,
-        pageSize: DEFAULT_PAGE_SIZE,
-        sortBy: 'grapeRankScore',
-        sortOrder: 'desc'
+        pageSize: DEFAULT_PAGE_SIZE
     };
     // --- Populate Report Type Selector ---
     function populateReportTypeSelector() {
