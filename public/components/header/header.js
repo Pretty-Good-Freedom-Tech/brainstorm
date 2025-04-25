@@ -95,6 +95,7 @@ function loadNavbar() {
         || currentPath === '/about.html'
         || currentPath === '/subscribe.html'
         || currentPath === '/profile.html'
+        || currentPath === '/tekkadan.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
@@ -103,6 +104,7 @@ function loadNavbar() {
         || currentPath === '/control/about.html'
         || currentPath === '/control/subscribe.html'
         || currentPath === '/control/profile.html'
+        || currentPath === '/control/tekkadan.html'
     ) {
         navbarPath = '/components/header/navbars/nav1.html';
     }
