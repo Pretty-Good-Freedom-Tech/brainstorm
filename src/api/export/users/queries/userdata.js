@@ -29,6 +29,9 @@ function handleGetUserData(req, res) {
     if (!pubkey) {
       return res.status(400).json({ error: 'Missing pubkey parameter' });
     }
+
+    // Get pubkey of the owner from brainstorm.conf
+    const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
     
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
@@ -45,6 +48,7 @@ function handleGetUserData(req, res) {
     // Build the Cypher query to get user data and counts
     let query = `
       MATCH (u:NostrUser {pubkey: $pubkey})
+      MATCH (owner:NostrUser {pubkey: $ownerPubkey})
       
       // Count users that this user follows
       OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)
@@ -98,9 +102,21 @@ function handleGetUserData(req, res) {
 
       // Intersection of owner mutuals and the fans of this user
       // followRecommendationsToOwnerFromThisUser RECOMMENDED FOLLOWS A: (for owner to follow, recommended by this user)
+      // Recommender: this user
+      // Recommendee: owner
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(u)
+      WHERE (recommendation)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(recommendation)
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount, fanCount, idolCount, count(recommendation) as recommendationsToOwnerCount
 
       // Intersection of this user's mutuals and the fans of the owner
       // followRecommendationsFromOwnerToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by owner)
+      // Recommender: owner
+      // Recommendee: this user
+      OPTIONAL MATCH (owner)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(owner)
+      WHERE (recommendation)-[:FOLLOWS]->(u)
+      AND NOT (u)-[:FOLLOWS]->(recommendation)
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount, fanCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
       
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
@@ -134,7 +150,9 @@ function handleGetUserData(req, res) {
              reporterCount,
              mutualCount,
              fanCount,
-             idolCount
+             idolCount,
+             recommendationsToOwnerCount,
+             recommendationsFromOwnerCount
     `;
     
     // Execute the query
