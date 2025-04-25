@@ -128,8 +128,8 @@
                     <div class="profile-section nip56-section">
                         <h3 class="section-title"><span style="color:#7a4cff;">🚩 Mutes (nip-51) and Reports (nip-56)</span></h3>
                         <div class="mute-report-stats">
-                            <span><b>Muted by you:</b> <span id="mutingCountValue">-</span></span>
-                            <span style="margin-left: 24px;"><b>Muted you:</b> <span id="muterCountValue">-</span></span>
+                            <span><b>Muted by this user:</b> <span id="mutingCountValue">-</span></span>
+                            <span style="margin-left: 24px;"><b>Muted this user:</b> <span id="muterCountValue">-</span></span>
                         </div>
                         <div class="nip56-table-wrapper">
                             <table class="nip56-table styled-table">
@@ -166,9 +166,6 @@
     
     <!-- Footer container -->
     <div id="footerContainer"></div>
-    
-    <!-- Include D3.js -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     
     <script>
         // Get pubkey from URL
@@ -322,10 +319,6 @@
         
         // Function to display kind 0 data
         function displayKind0Data(data) {
-            if (!data || !data.content) {
-                return;
-            }
-            
             try {
                 // Parse the content as JSON
                 const profileContent = JSON.parse(data.content);
@@ -402,9 +395,9 @@
                     const date = new Date(data.created_at * 1000);
                     addMetadataRow('Profile Updated', date.toLocaleString());
                 }
-                
                 if (data.id) {
-                    addMetadataRow('Event ID', data.id);
+                    // Add as clickable link to njump.me
+                    addMetadataRow('Event ID', `<a href="https://njump.me/${data.id}" target="_blank" rel="noopener">${data.id}</a>`);
                 }
             } catch (error) {
                 console.error('Error parsing profile content:', error);
@@ -441,21 +434,16 @@
         function addMetadataRow(key, value) {
             const row = document.createElement('tr');
             
-            const keyCell = document.createElement('th');
+            const keyCell = document.createElement('td');
             keyCell.textContent = key.replace(/([A-Z])/g, ' $1')
                 .replace(/_/g, ' ')
                 .replace(/^./, str => str.toUpperCase());
             
             const valueCell = document.createElement('td');
             
-            // Check if value is a URL
-            if (value.match(/^https?:\/\//)) {
-                const link = document.createElement('a');
-                link.href = value;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                link.textContent = value;
-                valueCell.appendChild(link);
+            // Check if value looks like HTML (e.g. contains <a ...>)
+            if (typeof value === 'string' && value.startsWith('<a ')) {
+                valueCell.innerHTML = value;
             } else {
                 valueCell.textContent = value;
             }
