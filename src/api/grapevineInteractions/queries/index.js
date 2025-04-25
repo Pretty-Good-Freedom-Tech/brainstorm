@@ -5,8 +5,6 @@
 
 const neo4j = require('neo4j-driver');
 const { getConfigFromFile } = require('../../../utils/config');
-const fs = require('fs');
-const path = require('path');
 
 /**
  * Get detailed data for a specific Grapevine interaction
@@ -28,53 +26,43 @@ function handleGetGrapevineInteraction(req, res) {
       });
     }
 
-    // for each interactionType, there will be a unique cypher query. These queries will be stored in a separate file in the same directory as this script:
-    // cypherQueries.js
-    const cypherQueriesPath = path.join(__dirname, 'cypherQueries.js');
-    const cypherQueries = fs.readFileSync(cypherQueriesPath, 'utf-8')
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
+    // --- FIX: Use require to load cypherQueries.js as a module, not as text ---
+    const { cypherQueries } = require('./cypherQueries.js');
 
-    // find the cypher query that matches the interactionType
-    const cypherQuery = cypherQueries.find(query => query.startsWith(interactionType));
-    if (!cypherQuery) {
+    // Find the cypher query object for the requested interactionType
+    const queryObj = cypherQueries.find(q => q.interactionType === interactionType);
+    if (!queryObj) {
       return res.status(400).json({
         success: false,
         message: `Invalid interactionType: ${interactionType}`
       });
     }
+    const cypherQuery = queryObj.cypherQuery;
 
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
     const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
     const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
-    
     const driver = neo4j.driver(
       neo4jUri,
       neo4j.auth.basic(neo4jUser, neo4jPassword)
     );
-    
     const session = driver.session();
-    
+
     // Execute the cypher query
-    const result = session.run(cypherQuery, { observer, observee });
-    
-    // Close the session and driver
-    session.close();
-    driver.close();
-    
-    // Return the result
-    return res.json({
-      success: true,
-      data: result.records
-    }); 
+    session.run(cypherQuery, { observer, observee })
+      .then(result => {
+        session.close();
+        driver.close();
+        res.json({ success: true, data: result.records });
+      })
+      .catch(error => {
+        session.close();
+        driver.close();
+        res.status(500).json({ success: false, message: error.message });
+      });
   } catch (error) {
-    console.error('Error in handleGetGrapevineInteraction:', error);
-    res.status(500).json({
-      success: false,
-      message: `Server error: ${error.message}`
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 }
 
