@@ -231,7 +231,7 @@
         // Function to load profile data sequentially
         function loadProfileDataSequentially(pubkey, baseUrl) {
             // Step 1: Load Neo4j data
-            fetch(`${baseUrl}/get-user-data?pubkey=${encodeURIComponent(pubkey)}`)
+            fetch(`${baseUrl}/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
