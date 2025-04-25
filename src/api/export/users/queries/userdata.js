@@ -61,7 +61,7 @@ function handleGetUserData(req, res) {
       // Count verified users (influence > 0.05) that follow this user
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE follower.influence > 0.05
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount
+      WITH u, owner, followingCount, followerCount, count(follower) as verifiedFollowerCount
 
       // Count users that this user mutes
       OPTIONAL MATCH (u)-[m:MUTES]->(muted:NostrUser)
@@ -77,12 +77,12 @@ function handleGetUserData(req, res) {
       
       // Count users that report this user
       OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, count(reporter) as reporterCount
 
       ////////// Tekkadan's Parameters
       // mutuals MUTUALS (profiles that follow AND are followed by this user)
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(mutual:NostrUser)-[m4:FOLLOWS]->(u)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, count(mutual) as mutualCount
 
       // fans FANS (profiles that follow but ARE NOT FOLLOWED BY this user)
       OPTIONAL MATCH (u)-[m5:FOLLOWS]->(fan:NostrUser)
