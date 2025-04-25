@@ -214,7 +214,7 @@
             pubkeyDisplay.textContent = pubkey;
 
             // Sequential API calls to prevent concurrent request issues
-            loadProfileDataSequentially(pubkey, baseUrl);
+            // loadProfileDataSequentially(pubkey, baseUrl);
         } else {
             // Show error message if no pubkey is provided
             showError('No pubkey provided');
