@@ -34,7 +34,7 @@
             <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
             <div class="column-panel-controls" style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
-                <button id="columnSettingsBtn" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
+                <button id="columnSettingsButton" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
                 <button id="columnInfoBtn" class="secondary" title="Show column information" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">?</button>
             </div>
         </div>
@@ -610,7 +610,7 @@
     // Fix column settings panel toggle to close when clicking outside or re-clicking the button
     document.addEventListener('click', function(e) {
         const panel = document.getElementById('columnSettingsPanel');
-        const btn = document.getElementById('columnSettingsBtn');
+        const btn = document.getElementById('columnSettingsButton');
         if (!panel || !btn) return;
         if (panel.style.display === 'none') return;
         if (!panel.contains(e.target) && !btn.contains(e.target)) {
@@ -700,7 +700,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadColumnVisibility();
         initColumnToggles();
-        document.getElementById('columnSettingsBtn').onclick = function(e) {
+        document.getElementById('columnSettingsButton').onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             const panel = document.getElementById('columnSettingsPanel');
