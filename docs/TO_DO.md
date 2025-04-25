@@ -1,4 +1,8 @@
 ## TODO 21 Apr 2025
+- add mutuals, fans, idols, and recommended follows to this user's profile page
+- MIP-87: curate mints
+- add npub to tables
+- update profiles page with same features as nip56 page
 - take care of neo4j password during installation
 - DCoNR: decentralized curation of NIP-56 reports
 - why strfry and neo4j are in /var/lib but brainstorm is in /usr/local/lib/node_modules
