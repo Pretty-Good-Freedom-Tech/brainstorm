@@ -73,12 +73,12 @@ function handleGetUserData(req, res) {
       
       // Count users that report this user
       OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
-      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, count(reporter) as reporterCount
 
       ////////// Tekkadan's Parameters
       // mutuals MUTUALS (profiles that follow AND are followed by this user)
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(mutual:NostrUser)-[m4:FOLLOWS]->(u)
-      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount
+      WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, count(mutual) as mutualCount
 
       // fans FANS (profiles that follow but ARE NOT FOLLOWED BY this user)
       OPTIONAL MATCH (u)-[m5:FOLLOWS]->(fan:NostrUser)
@@ -90,8 +90,16 @@ function handleGetUserData(req, res) {
       WHERE NOT (u)-[:FOLLOWS]->(follower)
       WITH u, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, mutualCount, fanCount, count(follower) as idolCount
 
+      //////// RECOMMENDATIONS:
+      // calculated as:
+      // mutuals of the recommender
+      // who also follow the recommendee
+      // but whom the recommendee does not already follow
+
+      // Intersection of owner mutuals and the fans of this user
       // followRecommendationsToOwnerFromThisUser RECOMMENDED FOLLOWS A: (for owner to follow, recommended by this user)
 
+      // Intersection of this user's mutuals and the fans of the owner
       // followRecommendationsFromOwnerToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by owner)
       
       RETURN u.pubkey as pubkey,
