@@ -48,7 +48,7 @@ function handleGetUserData(req, res) {
     // Build the Cypher query to get user data and counts
     let query = `
       MATCH (u:NostrUser {pubkey: $pubkey})
-      MATCH (owner:NostrUser {pubkey: $ownerPubkey})
+      MATCH (owner:NostrUser {pubkey: "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f"})
       
       // Count users that this user follows
       OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)
@@ -167,6 +167,7 @@ function handleGetUserData(req, res) {
         res.json({
           success: true,
           data: {
+            ownerPubkey: ownerPubkey,
             pubkey: user.get('pubkey'),
             personalizedPageRank: user.get('personalizedPageRank') ? parseFloat(user.get('personalizedPageRank').toString()) : null,
             hops: user.get('hops') ? parseInt(user.get('hops').toString()) : null,
