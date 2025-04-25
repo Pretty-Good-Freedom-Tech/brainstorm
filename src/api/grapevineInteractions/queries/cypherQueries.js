@@ -7,7 +7,7 @@ module.exports = {
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(u:NostrUser)
-                RETURN u, count(u) as NumFollows
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumFollows
             `
         },
         {
@@ -16,7 +16,7 @@ module.exports = {
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(u:NostrUser)
                 WHERE u.influence > 0.05
-                RETURN u, count(u) as NumVerifiedFollows
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumVerifiedFollows
             `
         },
         {
@@ -24,7 +24,7 @@ module.exports = {
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[f:FOLLOWS]->(observee)
-                RETURN u, count(u) as NumFollowers
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumFollowers
             `
         },
         {
@@ -32,7 +32,7 @@ module.exports = {
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[m:MUTES]->(u:NostrUser)
-                RETURN u, count(u) as NumMutes
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumMutes
             `
         },
         {
@@ -40,7 +40,7 @@ module.exports = {
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[m:MUTES]->(observee)
-                RETURN u, count(u) as NumMuters
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumMuters
             `
         },
         {
@@ -48,7 +48,7 @@ module.exports = {
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[r:REPORTS]->(u:NostrUser)
-                RETURN u, count(u) as NumReports
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumReports
             `
         },
         {
@@ -56,7 +56,7 @@ module.exports = {
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:REPORTS]->(observee)
-                RETURN u, r
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence r
             `
         },
         {
@@ -65,7 +65,7 @@ module.exports = {
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
                 WHERE (observee)-[:FOLLOWS]->(u)
-                RETURN u, count(u) as NumFrens
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumFrens
             `
         },
         {
@@ -74,7 +74,7 @@ module.exports = {
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
                 WHERE NOT (observee)-[:FOLLOWS]->(u)
-                RETURN u, count(u) as NumGroupies
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumGroupies
             `
         },
         {
@@ -83,7 +83,7 @@ module.exports = {
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
                 WHERE NOT (observee)-[:FOLLOWS]->(u)
-                RETURN u, count(u) as NumIdols
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumIdols
             `
         },
         {
@@ -93,7 +93,7 @@ module.exports = {
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observer)-[r:FOLLOWS]->(u:NostrUser)
                 WHERE (observee)-[:FOLLOWS]->(u)
-                RETURN u, count(u) as NumMutualFollows
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumMutualFollows
             `
         },
         {
@@ -103,7 +103,7 @@ module.exports = {
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
                 WHERE (u)-[:FOLLOWS]->(observer)
-                RETURN u, count(u) as NumMutualFollowers
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumMutualFollowers
             `
         },
         {
@@ -115,7 +115,7 @@ module.exports = {
                 WHERE (u)-[:FOLLOWS]->(observer)
                 AND (observee)-[:FOLLOWS]->(u)
                 AND (u)-[:FOLLOWS]->(observee)
-                RETURN u, count(u) as NumMutualFrens
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence count(u) as NumMutualFrens
             `
         }
     ]
