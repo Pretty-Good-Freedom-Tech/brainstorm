@@ -227,6 +227,11 @@
     margin-top: 3px;
     font-size: 1.07em;
     box-shadow: none;
+    width: 95%;
+    max-width: 95%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 }
 
