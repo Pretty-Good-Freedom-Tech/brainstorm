@@ -5,7 +5,7 @@ module.exports = {
         {
             interactionType: 'follows',
             title: 'Follows',
-            description: 'All profiles followed by ${observee}.',
+            description: `All profiles followed by {{observee}}.`,
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(u:NostrUser)
@@ -15,7 +15,7 @@ module.exports = {
         {
             interactionType: 'verifiedFollows',
             title: 'Verified Follows',
-            description: 'lorem ipsum',
+            description: `All verified profiles followed by {{observee}}.`,
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(u:NostrUser)
@@ -26,7 +26,7 @@ module.exports = {
         {
             interactionType: 'followers',
             title: 'Followers',
-            description: 'lorem ipsum',
+            description: `All profiles following {{observee}}.`,
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[f:FOLLOWS]->(observee)
@@ -36,7 +36,7 @@ module.exports = {
         {
             interactionType: 'verifiedFollowers',
             title: 'Verified Followers',
-            description: 'lorem ipsum',
+            description: `All verified profiles following {{observee}}.`,
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[f:FOLLOWS]->(observee)

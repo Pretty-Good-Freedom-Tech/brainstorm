@@ -404,6 +404,11 @@
         document.getElementById('loadingIndicator').style.display = 'none';
         renderPagination(total, pages);
     }
+    // --- Helper: Get Display Name for Pubkey ---
+    function getDisplayName(pubkey) {
+        const p = profileCache[pubkey];
+        return (p && (p.display_name || p.name)) ? (p.display_name || p.name) : pubkey;
+    }
     // --- Interaction Metadata ---
     const interactionMeta = {
         follows: { title: 'Follows', description: 'lorem ipsum' },
@@ -429,13 +434,30 @@
     const observer = getQueryParam('observer');
     const observee = getQueryParam('observee');
     const interactionType = getQueryParam('interactionType');
-    // Set interactionType at top with title/description
+    // Set interactionType at top with title/description (with display name replacement)
     const header = document.getElementById('interactionTypeHeader');
+    let observerDisplayName = observer ? getDisplayName(observer) : observer;
+    let observeeDisplayName = observee ? getDisplayName(observee) : observee;
     if (interactionType && interactionMeta[interactionType]) {
-        header.innerHTML = `<div style="font-size:1.5em;font-weight:700;line-height:1.2">${interactionMeta[interactionType].title}</div><div style="font-size:1.04em;color:#666;margin-top:3px;max-width:600px;">${interactionMeta[interactionType].description}</div>`;
+        let desc = interactionMeta[interactionType].description;
+        desc = desc.replace(/\{\{observer\}\}/g, observerDisplayName || '').replace(/\{\{observee\}\}/g, observeeDisplayName || '');
+        header.innerHTML = `<div style="font-size:1.5em;font-weight:700;line-height:1.2">${interactionMeta[interactionType].title}</div><div style="font-size:1.04em;color:#666;margin-top:3px;max-width:600px;">${desc}</div>`;
     } else {
         header.textContent = interactionType ? interactionType : '';
     }
+    function refreshHeaderWithDisplayNames() {
+        if (interactionType && interactionMeta[interactionType]) {
+            let desc = interactionMeta[interactionType].description;
+            let observerDisplayName = observer ? getDisplayName(observer) : observer;
+            let observeeDisplayName = observee ? getDisplayName(observee) : observee;
+            desc = desc.replace(/\{\{observer\}\}/g, observerDisplayName || '').replace(/\{\{observee\}\}/g, observeeDisplayName || '');
+            header.innerHTML = `<div style=\"font-size:1.5em;font-weight:700;line-height:1.2\">${interactionMeta[interactionType].title}</div><div style=\"font-size:1.04em;color:#666;margin-top:3px;max-width:600px;\">${desc}</div>`;
+        }
+    }
+    // When profileCache loads observer/observee, refresh header
+    if (observer && !profileCache[observer]) loadProfilePicture(observer, document.createElement('img'));
+    if (observee && !profileCache[observee]) loadProfilePicture(observee, document.createElement('img'));
+    setTimeout(refreshHeaderWithDisplayNames, 800);
     function isValidPubkey(pubkey) {
         return typeof pubkey === 'string' && pubkey.length >= 32;
     }
