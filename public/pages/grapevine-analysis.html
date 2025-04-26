@@ -15,10 +15,12 @@
     <div id="headerContainer"></div>
 
     <!-- Modern Card-style Header for Analysis -->
-    <div class="analysis-header-card">
-      <div id="interactionTypeHeader"></div>
+    <div class="analysis-header-card analysis-header-flex">
+      <div class="analysis-header-main">
+        <div id="interactionTypeHeader"></div>
+      </div>
+      <button id="toggleCypherBtn" class="secondary">Show Cypher Query</button>
     </div>
-    <button id="toggleCypherBtn" class="secondary" style="margin-bottom:8px;display:inline-block;">Show Cypher Query</button>
     <pre id="cypherQueryBox" style="display:none;background:#fafbfc;border:1px solid #ddd;padding:12px 14px;font-size:1em;margin-bottom:10px;overflow-x:auto;max-width:100%;white-space:pre-wrap;word-break:break-all;"></pre>
 
     <!-- Main content wrapper -->
@@ -397,7 +399,12 @@
                     link.textContent = row.pubkey.length > 16 ? `${row.pubkey.slice(0, 8)}...${row.pubkey.slice(-4)}` : row.pubkey;
                     td.appendChild(link);
                 } else {
-                    td.textContent = row[col.id];
+                    if (col.id === 'influence') {
+                        // Round influence to 4 decimals for display
+                        td.textContent = (typeof row[col.id] === 'number' && !isNaN(row[col.id])) ? row[col.id].toFixed(4) : row[col.id];
+                    } else {
+                        td.textContent = row[col.id];
+                    }
                 }
                 tr.appendChild(td);
             });

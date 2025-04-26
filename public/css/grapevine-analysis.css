@@ -12,6 +12,16 @@
     margin-right: auto;
     box-sizing: border-box;
 }
+.analysis-header-flex {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+.analysis-header-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
 .analysis-title {
     font-size: 1.7em;
     font-weight: 700;
@@ -48,8 +58,9 @@
     color: #37227a;
     border: 1px solid #d5d5e6;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    margin-bottom: 12px;
+    margin-bottom: 0;
     margin-top: 0;
+    align-self: flex-start;
     cursor: pointer;
     transition: background 0.13s, color 0.13s;
 }
@@ -67,5 +78,14 @@
     }
     .analysis-description {
       font-size: 0.97em;
+    }
+    .analysis-header-flex {
+      flex-direction: column;
+      gap: 10px;
+    }
+    #toggleCypherBtn {
+      width: 100%;
+      min-width: 0;
+      align-self: stretch;
     }
 }
