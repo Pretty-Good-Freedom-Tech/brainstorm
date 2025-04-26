@@ -100,9 +100,18 @@
     let sortOrder = 'desc';
     function sortData(data) {
         return [...data].sort((a, b) => {
-            let valA = a[sortBy], valB = b[sortBy];
-            if (typeof valA === 'string') return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            if (typeof valA === 'number') return sortOrder === 'asc' ? valA - valB : valB - valA;
+            let va = a[sortBy], vb = b[sortBy];
+            // Numeric fallback for undefined/null
+            if (typeof va === 'string' && !isNaN(parseFloat(va)) && isFinite(va)) va = parseFloat(va);
+            if (typeof vb === 'string' && !isNaN(parseFloat(vb)) && isFinite(vb)) vb = parseFloat(vb);
+            if (va === undefined || va === null || (typeof va === 'number' && isNaN(va))) va = -Infinity;
+            if (vb === undefined || vb === null || (typeof vb === 'number' && isNaN(vb))) vb = -Infinity;
+            if (typeof va === 'string' && typeof vb === 'string') {
+                va = va.toLowerCase();
+                vb = vb.toLowerCase();
+            }
+            if (va < vb) return sortOrder === 'asc' ? -1 : 1;
+            if (va > vb) return sortOrder === 'asc' ? 1 : -1;
             return 0;
         });
     }
@@ -253,7 +262,15 @@
                 else { sortBy = col.id; sortOrder = 'desc'; }
                 renderTable();
             };
-            if (sortBy === col.id) th.classList.add('sorted-' + sortOrder);
+            // Sorting indicator
+            if (sortBy === col.id) {
+                const arrow = document.createElement('span');
+                arrow.style.marginLeft = '6px';
+                arrow.style.fontSize = '1em';
+                arrow.textContent = sortOrder === 'asc' ? '▲' : '▼';
+                th.appendChild(arrow);
+                th.classList.add('sorted-' + sortOrder);
+            }
             headerRow.appendChild(th);
         });
         // Build filter row
@@ -333,12 +350,27 @@
                 if (!columnVisibility[col.id]) return;
                 const td = document.createElement('td');
                 if (col.id === 'pic') {
+                    const link = document.createElement('a');
+                    link.href = `profile.html?pubkey=${encodeURIComponent(row.pubkey)}`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
                     const img = document.createElement('img');
                     img.alt = 'profile';
                     img.width = 36; img.height = 36;
                     img.style = 'border-radius:50%;object-fit:cover;background:#eee;';
                     loadProfilePicture(row.pubkey, img);
-                    td.appendChild(img);
+                    link.appendChild(img);
+                    td.appendChild(link);
+                } else if (col.id === 'pubkey') {
+                    const link = document.createElement('a');
+                    link.href = `https://njump.me/${row.pubkey}`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'pubkey-link';
+                    link.title = row.pubkey;
+                    // Shorten pubkey: first 8 ... last 4
+                    link.textContent = row.pubkey.length > 16 ? `${row.pubkey.slice(0, 8)}...${row.pubkey.slice(-4)}` : row.pubkey;
+                    td.appendChild(link);
                 } else {
                     td.textContent = row[col.id];
                 }
