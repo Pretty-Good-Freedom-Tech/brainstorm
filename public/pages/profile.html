@@ -51,20 +51,20 @@
                             <h3>Hops</h3>
                             <p id="hopsValue">-</p>
                         </div>
+                        <div class="stat-box">
+                            <h3>🍇-Verified Followers</h3>
+                            <p id="verifiedFollowerCountValue1">-</p>
+                        </div>
                         <!--
                         <div class="stat-box">
                             <h3>🍇-Confidence</h3>
                             <p id="confidenceValue">-</p>
                         </div>
-                        -->
-                        <div class="stat-box">
-                            <h3>🍇-Verified Followers</h3>
-                            <p id="verifiedFollowerCountValue1">-</p>
-                        </div>
                         <div class="stat-box">
                             <h3>PageRank</h3>
                             <p id="pageRankValue">-</p>
                         </div>
+                        -->
                     </div>
 
                     <div class="profile-about" id="aboutSection">
@@ -346,9 +346,9 @@
         // Function to display Neo4j data
         function displayNeo4jData(data) {
             // Influence, hops, confidence, pagerank
-            if (data.personalizedPageRank !== null && data.personalizedPageRank !== undefined) {
-                pageRankValue.textContent = parseFloat(data.personalizedPageRank).toFixed(4);
-            }
+            // if (data.personalizedPageRank !== null && data.personalizedPageRank !== undefined) {
+            //     pageRankValue.textContent = parseFloat(data.personalizedPageRank).toFixed(4);
+            // }
             if (data.hops !== null && data.hops !== undefined) {
                 hopsValue.textContent = data.hops;
             }
@@ -442,10 +442,10 @@
             
             // Trust Scores Panel population
             if (data.grapeRank) {
-                document.getElementById('trustInfluenceValue').textContent = (data.grapeRank.influence !== undefined && data.grapeRank.influence !== null) ? parseFloat(data.grapeRank.influence).toFixed(4) : '-';
-                document.getElementById('trustAverageValue').textContent = (data.grapeRank.average !== undefined && data.grapeRank.average !== null) ? parseFloat(data.grapeRank.average).toFixed(4) : '-';
-                document.getElementById('trustConfidenceValue').textContent = (data.grapeRank.confidence !== undefined && data.grapeRank.confidence !== null) ? parseFloat(data.grapeRank.confidence).toFixed(4) : '-';
-                document.getElementById('trustInputValue').textContent = (data.grapeRank.input !== undefined && data.grapeRank.input !== null) ? parseFloat(data.grapeRank.input).toFixed(4) : '-';
+                document.getElementById('trustInfluenceValue').textContent = (data.influence !== undefined && data.grapeRank.influence !== null) ? parseFloat(data.grapeRank.influence).toFixed(4) : '-';
+                document.getElementById('trustAverageValue').textContent = (data.average !== undefined && data.grapeRank.average !== null) ? parseFloat(data.grapeRank.average).toFixed(4) : '-';
+                document.getElementById('trustConfidenceValue').textContent = (data.confidence !== undefined && data.grapeRank.confidence !== null) ? parseFloat(data.grapeRank.confidence).toFixed(4) : '-';
+                document.getElementById('trustInputValue').textContent = (data.input !== undefined && data.grapeRank.input !== null) ? parseFloat(data.grapeRank.input).toFixed(4) : '-';
             } else {
                 document.getElementById('trustInfluenceValue').textContent = '-';
                 document.getElementById('trustAverageValue').textContent = '-';
@@ -556,10 +556,10 @@
             if (userData.confidence !== null && userData.confidence !== undefined) {
                 confidenceValue.textContent = parseFloat(userData.confidence).toFixed(4);
             }
-            */
             if (userData.personalizedPageRank !== null && userData.personalizedPageRank !== undefined) {
                 pageRankValue.textContent = parseFloat(userData.personalizedPageRank).toFixed(4);
             }
+            */
         }
         
         // Function to add profile link
