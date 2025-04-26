@@ -132,17 +132,38 @@ function handleGetUserData(req, res) {
       WHERE (recommendation)-[:FOLLOWS]->(u)
       AND NOT (u)-[:FOLLOWS]->(recommendation)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
-      
-      // mutuals MUTUALS TODO: define mutuals.
-      // EITHER: profiles followed by this user and by the owner (mutualFollows)
-      // OR: frens of this user and frens of the owner (mutualFrens)
-      // could also do: mutualFrens, mutualGroupies, mutualIdols, mutualFollowers, mutualFollows
 
       // mutualFrens MUTUAL FRENDS
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
       WHERE (fren)-[:FOLLOWS]->(owner)
       AND NOT (owner)-[:FOLLOWS]->(fren)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, count(fren) as mutualFrenCount
+
+      // mutualGroupies MUTUAL GROUPIES
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
+      AND (groupie)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(groupie)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, count(groupie) as mutualGroupieCount
+
+      // mutualIdols MUTUAL IDOLS
+      OPTIONAL MATCH (idol:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(idol)
+      AND (idol)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(idol)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, count(idol) as mutualIdolCount
+
+      // mutualFollowers MUTUAL FOLLOWERS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(follower:NostrUser)
+      WHERE (follower)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(follower)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, count(follower) as mutualFollowerCount
+
+      // mutualFollows MUTUAL FOLLOWS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(followee:NostrUser)
+      WHERE (followee)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(followee)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, count(followee) as mutualFollowCount
 
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
@@ -178,7 +199,12 @@ function handleGetUserData(req, res) {
              groupieCount,
              idolCount,
              recommendationsToOwnerCount,
-             recommendationsFromOwnerCount
+             recommendationsFromOwnerCount,
+             mutualFrenCount,
+             mutualGroupieCount,
+             mutualIdolCount,
+             mutualFollowerCount,
+             mutualFollowCount
     `;
     
     // Execute the query
@@ -214,6 +240,11 @@ function handleGetUserData(req, res) {
             idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : 0,
             recommendationsToOwnerCount: user.get('recommendationsToOwnerCount') ? parseInt(user.get('recommendationsToOwnerCount').toString()) : 0,
             recommendationsFromOwnerCount: user.get('recommendationsFromOwnerCount') ? parseInt(user.get('recommendationsFromOwnerCount').toString()) : 0,
+            mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : 0,
+            mutualGroupieCount: user.get('mutualGroupieCount') ? parseInt(user.get('mutualGroupieCount').toString()) : 0,
+            mutualIdolCount: user.get('mutualIdolCount') ? parseInt(user.get('mutualIdolCount').toString()) : 0,
+            mutualFollowerCount: user.get('mutualFollowerCount') ? parseInt(user.get('mutualFollowerCount').toString()) : 0,
+            mutualFollowCount: user.get('mutualFollowCount') ? parseInt(user.get('mutualFollowCount').toString()) : 0,
             nip56: {
               totals: {
                 nip56TotalGrapeRankScore: user.get('nip56TotalGrapeRankScore') ? parseFloat(user.get('nip56TotalGrapeRankScore').toString()) : null,
