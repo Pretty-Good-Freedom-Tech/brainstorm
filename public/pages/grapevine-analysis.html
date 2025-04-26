@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainstorm</title>
     <link rel="stylesheet" href="/control/css/grapevine-analysis.css">
+    <link rel="stylesheet" href="/control/css/profiles.css">
     <script src="./components/header/header.js"></script>
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/footer/footer.js"></script>
@@ -38,6 +39,7 @@
                     </thead>
                     <tbody id="grapevineProfilesTableBody"></tbody>
                 </table>
+                <div id="paginationContainer" class="pagination" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -112,7 +114,45 @@
                    (!filters.influence || String(row.influence).includes(filters.influence));
         });
     }
-    // --- Table Rendering ---
+    // --- Pagination ---
+    const DEFAULT_PAGE_SIZE = 50;
+    const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
+    let page = 1;
+    let pageSize = DEFAULT_PAGE_SIZE;
+    function renderPagination(total, pages) {
+        const container = document.getElementById('paginationContainer');
+        if (pages <= 1) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+        container.style.display = '';
+        let html = '';
+        html += `<span style='margin-right:8px;'>Page</span>`;
+        for (let i = 1; i <= pages; i++) {
+            html += `<button class='page-btn' data-page='${i}' style='margin-right:2px;${i===page?"font-weight:bold;background:#eee;":''}'>${i}</button>`;
+        }
+        html += `<span style='margin-left:16px;'>Page Size:</span>`;
+        html += `<select id='pageSizeSelect' style='margin-left:4px;'>`;
+        PAGE_SIZE_OPTIONS.forEach(opt => {
+            html += `<option value='${opt}'${opt===pageSize?' selected':''}>${opt}</option>`;
+        });
+        html += `</select>`;
+        container.innerHTML = html;
+        // Add listeners
+        Array.from(container.querySelectorAll('.page-btn')).forEach(btn => {
+            btn.onclick = function() {
+                page = parseInt(this.getAttribute('data-page'));
+                renderTable();
+            };
+        });
+        container.querySelector('#pageSizeSelect').onchange = function() {
+            pageSize = parseInt(this.value);
+            page = 1;
+            renderTable();
+        };
+    }
+    // --- Table Rendering (with Pagination) ---
     let allProfiles = [];
     function renderTable() {
         const table = document.getElementById('grapevineProfilesTable');
@@ -145,6 +185,7 @@
             input.placeholder = 'Filter...';
             input.oninput = function() {
                 filters[col.id] = this.value;
+                page = 1;
                 renderTable();
             };
             th.appendChild(input);
@@ -152,9 +193,16 @@
         });
         // Sort & filter data
         let rows = filterData(sortData(allProfiles));
+        // Pagination
+        const total = rows.length;
+        const pages = Math.max(1, Math.ceil(total / pageSize));
+        if (page > pages) page = pages;
+        const start = (page - 1) * pageSize;
+        const end = Math.min(start + pageSize, total);
+        const pagedRows = rows.slice(start, end);
         // Render body
         tbody.innerHTML = '';
-        rows.forEach(row => {
+        pagedRows.forEach(row => {
             const tr = document.createElement('tr');
             grapevineColumns.forEach(col => {
                 if (!columnVisibility[col.id]) return;
@@ -167,8 +215,9 @@
         // Show/hide table
         table.style.display = rows.length ? '' : 'none';
         // Update results indicator
-        document.getElementById('resultsIndicator').textContent = `Showing ${rows.length} profiles`;
+        document.getElementById('resultsIndicator').textContent = `Showing ${end-start>0?start+1:0}-${end} of ${total} profiles`;
         document.getElementById('loadingIndicator').style.display = 'none';
+        renderPagination(total, pages);
     }
     // --- API Fetch and Initialization ---
     function getQueryParam(name) {
