@@ -140,11 +140,11 @@ function handleGetUserData(req, res) {
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, count(fren) as mutualFrenCount
 
       // mutualGroupies MUTUAL GROUPIES
-      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
-      WHERE NOT (u)-[:FOLLOWS]->(groupie)
-      AND (groupie)-[:FOLLOWS]->(owner)
-      AND NOT (owner)-[:FOLLOWS]->(groupie)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, count(groupie) as mutualGroupieCount
+      OPTIONAL MATCH (groupiee:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupiee)
+      AND (groupiee)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(groupiee)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, count(groupiee) as mutualGroupieCount
 
       // mutualIdols MUTUAL IDOLS
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
