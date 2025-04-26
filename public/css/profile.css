@@ -582,7 +582,6 @@
   }
   .profile-stats {
     display: flex;
-    flex-wrap: wrap;
     flex-direction: column;
     gap: 10px;
   }
@@ -591,25 +590,14 @@
     margin: 0;
     box-sizing: border-box;
   }
-  .stat-box:nth-child(1) {
-    order: 0;
+  .profile-stats-row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
     width: 100%;
   }
-  .stat-box:nth-child(2),
-  .stat-box:nth-child(3) {
-    order: 1;
-    display: inline-block;
-    width: 48%;
-    margin-right: 2%;
-    vertical-align: top;
-  }
-  .stat-box:nth-child(3) {
-    margin-right: 0;
-  }
-  /* If there are more stat-boxes, stack them below */
-  .stat-box:nth-child(n+4) {
-    order: 2;
-    width: 100%;
-    margin-top: 10px;
+  .profile-stats-row .stat-box {
+    width: 50%;
+    margin: 0;
   }
 }
