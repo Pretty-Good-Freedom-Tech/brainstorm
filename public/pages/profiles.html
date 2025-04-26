@@ -209,8 +209,8 @@
                 pubkey: '',
                 minHops: '',
                 maxHops: '20',
-                minRank: '',
-                maxRank: '',
+                minPersonalizedPageRank: '',
+                maxPersonalizedPageRank: '',
                 minInfluence: '0.1',
                 maxInfluence: '',
                 minAverage: '',
@@ -238,7 +238,7 @@
         
         // Global DOM element references
         let tableBody, profilesTable, loadingIndicator, paginationContainer, statusMessage;
-        let filterPubkey, filterMinHops, filterMaxHops, filterMinRank, filterMaxRank;
+        let filterPubkey, filterMinHops, filterMaxHops, filterMinPersonalizedPageRank, filterMaxPersonalizedPageRank;
         let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
         let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
@@ -260,8 +260,8 @@
             filterPubkey = document.getElementById('filterPubkey');
             filterMinHops = document.getElementById('filterMinHops');
             filterMaxHops = document.getElementById('filterMaxHops');
-            filterMinRank = document.getElementById('filterMinRank');
-            filterMaxRank = document.getElementById('filterMaxRank');
+            filterMinPersonalizedPageRank = document.getElementById('filterMinPersonalizedPageRank');
+            filterMaxPersonalizedPageRank = document.getElementById('filterMaxPersonalizedPageRank');
             filterMinInfluence = document.getElementById('filterMinInfluence');
             filterMaxInfluence = document.getElementById('filterMaxInfluence');
             filterMinAverage = document.getElementById('filterMinAverage');
@@ -295,8 +295,8 @@
             filterPubkey.value = state.filters.pubkey;
             filterMinHops.value = state.filters.minHops;
             filterMaxHops.value = state.filters.maxHops;
-            filterMinRank.value = state.filters.minRank;
-            filterMaxRank.value = state.filters.maxRank;
+            filterMinPersonalizedPageRank.value = state.filters.minPersonalizedPageRank;
+            filterMaxPersonalizedPageRank.value = state.filters.maxPersonalizedPageRank;
             filterMinInfluence.value = state.filters.minInfluence;
             filterMaxInfluence.value = state.filters.maxInfluence;
             filterMinAverage.value = state.filters.minAverage;
@@ -349,8 +349,8 @@
                 if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
                 if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
                 if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
-                if (state.filters.minRank) params.append('filterMinRank', state.filters.minRank);
-                if (state.filters.maxRank) params.append('filterMaxRank', state.filters.maxRank);
+                if (state.filters.minPersonalizedPageRank) params.append('filterMinPersonalizedPageRank', state.filters.minPersonalizedPageRank);
+                if (state.filters.maxPersonalizedPageRank) params.append('filterMaxPersonalizedPageRank', state.filters.maxPersonalizedPageRank);
                 if (state.filters.minInfluence) params.append('filterMinInfluence', state.filters.minInfluence);
                 if (state.filters.maxInfluence) params.append('filterMaxInfluence', state.filters.maxInfluence);
                 if (state.filters.minAverage) params.append('filterMinAverage', state.filters.minAverage);
@@ -436,8 +436,8 @@
                     state.filters.pubkey = filterPubkey.value.trim();
                     state.filters.minHops = filterMinHops.value.trim();
                     state.filters.maxHops = filterMaxHops.value.trim();
-                    state.filters.minRank = filterMinRank.value.trim();
-                    state.filters.maxRank = filterMaxRank.value.trim();
+                    state.filters.minPersonalizedPageRank = filterMinPersonalizedPageRank.value.trim();
+                    state.filters.maxPersonalizedPageRank = filterMaxPersonalizedPageRank.value.trim();
                     state.filters.minInfluence = filterMinInfluence.value.trim();
                     state.filters.maxInfluence = filterMaxInfluence.value.trim();
                     state.filters.minAverage = filterMinAverage.value.trim();
@@ -463,8 +463,8 @@
                     filterPubkey.value = '';
                     filterMinHops.value = '';
                     filterMaxHops.value = '';
-                    filterMinRank.value = '';
-                    filterMaxRank.value = '';
+                    filterMinPersonalizedPageRank.value = '';
+                    filterMaxPersonalizedPageRank.value = '';
                     filterMinInfluence.value = '';
                     filterMaxInfluence.value = '';
                     filterMinAverage.value = '';
@@ -485,8 +485,8 @@
                     state.filters.pubkey = '';
                     state.filters.minHops = '';
                     state.filters.maxHops = '';
-                    state.filters.minRank = '';
-                    state.filters.maxRank = '';
+                    state.filters.minPersonalizedPageRank = '';
+                    state.filters.maxPersonalizedPageRank = '';
                     state.filters.minInfluence = '';
                     state.filters.maxInfluence = '';
                     state.filters.minAverage = '';
