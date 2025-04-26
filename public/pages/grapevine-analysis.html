@@ -17,7 +17,7 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h1>Grapevine Analysis</h1>
+            <div id="interactionTypeHeader" style="font-size:1.6em;font-weight:700;margin-bottom:10px;"></div>
             <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
                 <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
                 <div class="column-panel-controls" style="display: flex; align-items: center; gap: 6px;">
@@ -113,11 +113,11 @@
             // Pubkey text filter
             if (filters.pubkey && !row.pubkey.includes(filters.pubkey)) return false;
             // Hops min/max
-            if (filters.hopsMin && !(typeof row.hops === 'number' && row.hops >= parseFloat(filters.hopsMin))) return false;
-            if (filters.hopsMax && !(typeof row.hops === 'number' && row.hops <= parseFloat(filters.hopsMax))) return false;
+            if (filters.hopsMin !== '' && !(typeof row.hops === 'number' && row.hops >= parseFloat(filters.hopsMin))) return false;
+            if (filters.hopsMax !== '' && !(typeof row.hops === 'number' && row.hops <= parseFloat(filters.hopsMax))) return false;
             // Influence min/max
-            if (filters.influenceMin && !(typeof row.influence === 'number' && row.influence >= parseFloat(filters.influenceMin))) return false;
-            if (filters.influenceMax && !(typeof row.influence === 'number' && row.influence <= parseFloat(filters.influenceMax))) return false;
+            if (filters.influenceMin !== '' && !(typeof row.influence === 'number' && row.influence >= parseFloat(filters.influenceMin))) return false;
+            if (filters.influenceMax !== '' && !(typeof row.influence === 'number' && row.influence <= parseFloat(filters.influenceMax))) return false;
             return true;
         });
     }
@@ -266,31 +266,37 @@
                 return;
             }
             if (col.id === 'hops' || col.id === 'influence') {
-                // Numeric min/max filters
+                // Numeric min/max filters stacked vertically
+                const filterStack = document.createElement('div');
+                filterStack.style.display = 'flex';
+                filterStack.style.flexDirection = 'column';
+                filterStack.style.gap = '2px';
+                filterStack.style.alignItems = 'stretch';
                 const minInput = document.createElement('input');
                 minInput.type = 'number';
                 minInput.step = 'any';
                 minInput.placeholder = 'Min';
+                minInput.className = 'table-filter small-input';
                 minInput.value = filters[col.id + 'Min'] || '';
-                minInput.style.width = '45%';
-                minInput.oninput = function() {
+                minInput.addEventListener('input', function(e) {
                     filters[col.id + 'Min'] = this.value;
                     page = 1;
                     renderTable();
-                };
+                });
                 const maxInput = document.createElement('input');
                 maxInput.type = 'number';
                 maxInput.step = 'any';
                 maxInput.placeholder = 'Max';
+                maxInput.className = 'table-filter small-input';
                 maxInput.value = filters[col.id + 'Max'] || '';
-                maxInput.style.width = '45%';
-                maxInput.oninput = function() {
+                maxInput.addEventListener('input', function(e) {
                     filters[col.id + 'Max'] = this.value;
                     page = 1;
                     renderTable();
-                };
-                th.appendChild(minInput);
-                th.appendChild(maxInput);
+                });
+                filterStack.appendChild(minInput);
+                filterStack.appendChild(maxInput);
+                th.appendChild(filterStack);
                 filterRow.appendChild(th);
                 return;
             }
@@ -299,11 +305,12 @@
             input.type = 'text';
             input.value = filters[col.id] || '';
             input.placeholder = 'Filter...';
-            input.oninput = function() {
+            input.className = 'table-filter';
+            input.addEventListener('input', function() {
                 filters[col.id] = this.value;
                 page = 1;
                 renderTable();
-            };
+            });
             th.appendChild(input);
             filterRow.appendChild(th);
         });
@@ -352,6 +359,8 @@
     const observer = getQueryParam('observer');
     const observee = getQueryParam('observee');
     const interactionType = getQueryParam('interactionType');
+    // Set interactionType at top
+    document.getElementById('interactionTypeHeader').textContent = interactionType ? interactionType : '';
     function isValidPubkey(pubkey) {
         return typeof pubkey === 'string' && pubkey.length >= 32;
     }
