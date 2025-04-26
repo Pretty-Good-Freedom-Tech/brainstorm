@@ -188,10 +188,10 @@ module.exports = {
             cypherQuery: `
                 MATCH (observer:NostrUser {pubkey: $observer})
                 MATCH (observee:NostrUser {pubkey: $observee})
-                WHERE (groupie:NostrUser)-[:FOLLOWS]->(observer)
-                AND (groupie)-[:FOLLOWS]->(observee)
+                OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(observee)
+                WHERE NOT (observee)-[:FOLLOWS]->(groupie)
+                AND (groupie)-[:FOLLOWS]->(observer)
                 AND NOT (observer)-[:FOLLOWS]->(groupie)
-                AND NOT (observee)-[:FOLLOWS]->(groupie)
                 RETURN groupie.pubkey AS pubkey, groupie.hops AS hops, groupie.influence AS influence
             `
         },
@@ -202,10 +202,10 @@ module.exports = {
             cypherQuery: `
                 MATCH (observer:NostrUser {pubkey: $observer})
                 MATCH (observee:NostrUser {pubkey: $observee})
-                WHERE (observer)-[:FOLLOWS]->(idol:NostrUser)
-                AND (observee)-[:FOLLOWS]->(idol)
+                OPTIONAL MATCH (observee)-[f2:FOLLOWS]->(idol:NostrUser)
+                WHERE NOT (idol)-[:FOLLOWS]->(observee)
+                AND (observer)-[:FOLLOWS]->(idol)
                 AND NOT (idol)-[:FOLLOWS]->(observer)
-                AND NOT (idol)-[:FOLLOWS]->(observee)
                 RETURN idol.pubkey AS pubkey, idol.hops AS hops, idol.influence AS influence
             `
         },
