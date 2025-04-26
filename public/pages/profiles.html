@@ -14,7 +14,6 @@
 
     <div class="container">
         <div class="header-profiles">
-            <h1>Nostr User Profiles</h1>
             <div>
                 <button id="refreshBtn">Refresh Data</button>
                 <button id="exportCsvBtn" class="secondary">Export CSV</button>
@@ -161,7 +160,7 @@
         // Column definitions with display names and default visibility
         const columns = [
             { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
-            { id: 'pubkey', name: 'Pubkey', defaultVisible: true, alwaysVisible: true },
+            { id: 'pubkey', name: 'Pubkey', defaultVisible: true },
             { id: 'verifiedFollowerCount', name: '🍇-Verified Followers', defaultVisible: true },
             { id: 'nip56TotalGrapeRankScore', name: '🍇-Report Score', defaultVisible: true },
             { id: 'nip56TotalVerifiedReportCount', name: '🍇-Verified Reports', defaultVisible: true },
