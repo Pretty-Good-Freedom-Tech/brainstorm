@@ -69,7 +69,15 @@ function handleGetGrapevineInteraction(req, res) {
             influence: record.get('influence') ?? null
           };
         });
-        res.json({ success: true, data });
+        res.json({
+          success: true,
+          data,
+          interactionTypeMetaData: {
+            title: queryObj.title,
+            description: queryObj.description,
+            cypherQuery: queryObj.cypherQuery
+          }
+        });
       })
       .catch(error => {
         session.close();
