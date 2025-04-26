@@ -456,3 +456,70 @@
     padding-left: 1px;
   }
 }
+
+/* Trust Scores Panel Styles */
+.trust-scores-section {
+  margin-bottom: 28px;
+  background: #f8f9fe;
+  border-radius: 7px;
+  box-shadow: 0 1px 6px 0 rgba(120,120,170,0.06);
+  padding: 18px 18px 10px 18px;
+  border: 1px solid #ece9f9;
+}
+.trust-scores-section .section-title {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #7a4cff;
+  font-size: 1.15em;
+  letter-spacing: 0.01em;
+}
+.trust-scores-table-wrapper {
+  margin-bottom: 8px;
+}
+.trust-scores-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px 0 rgba(120,120,170,0.03);
+  overflow: hidden;
+}
+.trust-scores-table th, .trust-scores-table td {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 1em;
+}
+.trust-scores-table th {
+  background: #f6f3ff;
+  color: #7a4cff;
+  font-weight: 600;
+}
+.trust-scores-table tr:not(:first-child):not(:nth-child(6)) th {
+  background: #f8f9fe;
+  color: #444;
+  font-weight: 500;
+}
+.trust-scores-table td {
+  color: #2c3e50;
+  background: #fff;
+  font-weight: 500;
+}
+.trust-scores-info {
+  margin-top: 8px;
+  font-size: 0.96em;
+}
+.trust-scores-hint li {
+  margin-bottom: 2px;
+  color: #7a4cff;
+  font-size: 0.97em;
+}
+@media (max-width: 700px) {
+  .trust-scores-section {
+    padding: 10px 4px 4px 4px;
+  }
+  .trust-scores-table th, .trust-scores-table td {
+    padding: 6px 7px;
+    font-size: 0.97em;
+  }
+}

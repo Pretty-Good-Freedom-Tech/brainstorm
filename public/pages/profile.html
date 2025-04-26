@@ -20,10 +20,6 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <div class="header-profile">
-                <h1>Nostr User Profile</h1>
-            </div>
-            
             <div id="loadingIndicator" class="loading"></div>
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
@@ -84,6 +80,59 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Trust Scores Panel -->
+                    <div class="profile-section trust-scores-section">
+                        <h3 class="section-title">Trust Scores</h3>
+                        <div class="trust-scores-table-wrapper">
+                            <table class="trust-scores-table styled-table">
+                                <tbody>
+                                    <tr>
+                                        <th colspan="2" style="text-align:left;color:#7a4cff;background:#f6f3ff;border-radius:4px 4px 0 0;">GrapeRank</th>
+                                    </tr>
+                                    <tr>
+                                        <th>Influence</th>
+                                        <td id="trustInfluenceValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Average</th>
+                                        <td id="trustAverageValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Confidence</th>
+                                        <td id="trustConfidenceValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Input</th>
+                                        <td id="trustInputValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="2" style="text-align:left;color:#7a4cff;background:#f6f3ff;">Other Metrics</th>
+                                    </tr>
+                                    <tr>
+                                        <th>Hops</th>
+                                        <td id="trustHopsValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Personalized PageRank</th>
+                                        <td id="trustPersonalizedPageRankValue">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="trust-scores-info">
+                            <span class="trust-scores-hint">
+                                <li>GrapeRank is a personalized trust score based on the social graph.</li>
+                                <li>Influence: Your overall trust score from the GrapeRank algorithm.</li>
+                                <li>Average: Mean of incoming trust values.</li>
+                                <li>Confidence: Certainty in the trust score.</li>
+                                <li>Input: Direct trust input from observer to this profile.</li>
+                                <li>Hops: Number of hops from observer to this profile.</li>
+                                <li>Personalized PageRank: Classic PageRank, personalized to the observer.</li>
+                            </span>
+                        </div>
+                    </div>
+                    <!-- End Trust Scores Panel -->
                     
                     <div class="profile-section social-connections-section">
                         <h3 class="section-title">Social Graph Overview</h3>
@@ -390,6 +439,21 @@
                     el.innerHTML = `<a href="${url}" class="sg-link" title="View ${type} list">${value}</a>`;
                 }
             });
+            
+            // Trust Scores Panel population
+            if (data.grapeRank) {
+                document.getElementById('trustInfluenceValue').textContent = (data.grapeRank.influence !== undefined && data.grapeRank.influence !== null) ? parseFloat(data.grapeRank.influence).toFixed(4) : '-';
+                document.getElementById('trustAverageValue').textContent = (data.grapeRank.average !== undefined && data.grapeRank.average !== null) ? parseFloat(data.grapeRank.average).toFixed(4) : '-';
+                document.getElementById('trustConfidenceValue').textContent = (data.grapeRank.confidence !== undefined && data.grapeRank.confidence !== null) ? parseFloat(data.grapeRank.confidence).toFixed(4) : '-';
+                document.getElementById('trustInputValue').textContent = (data.grapeRank.input !== undefined && data.grapeRank.input !== null) ? parseFloat(data.grapeRank.input).toFixed(4) : '-';
+            } else {
+                document.getElementById('trustInfluenceValue').textContent = '-';
+                document.getElementById('trustAverageValue').textContent = '-';
+                document.getElementById('trustConfidenceValue').textContent = '-';
+                document.getElementById('trustInputValue').textContent = '-';
+            }
+            document.getElementById('trustHopsValue').textContent = (data.hops !== undefined && data.hops !== null) ? data.hops : '-';
+            document.getElementById('trustPersonalizedPageRankValue').textContent = (data.personalizedPageRank !== undefined && data.personalizedPageRank !== null) ? parseFloat(data.personalizedPageRank).toFixed(4) : '-';
         }
         
         // Function to display kind 0 data
