@@ -115,6 +115,26 @@
                                         <td id="idolCountValue">-</td>
                                     </tr>
                                     <tr>
+                                        <th>Mutual Frens</th>
+                                        <td id="mutualFrenCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mutual Groupies</th>
+                                        <td id="mutualGroupieCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mutual Idols</th>
+                                        <td id="mutualIdolCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mutual Followers</th>
+                                        <td id="mutualFollowerCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mutual Follows</th>
+                                        <td id="mutualFollowCountValue">-</td>
+                                    </tr>
+                                    <tr>
                                         <th>Recommended Follows (to Owner by this profile)</th>
                                         <td id="recommendationsToOwnerCountValue">-</td>
                                     </tr>
@@ -282,12 +302,12 @@
             if (data.influence !== null && data.influence !== undefined) {
                 influenceValue.textContent = parseFloat(data.influence).toFixed(4);
             }
-            /*
-            // removing this from top panel
-            if (data.confidence !== null && data.confidence !== undefined) {
-                confidenceValue.textContent = parseFloat(data.confidence).toFixed(4);
-            }
-            */
+            // Mutual counts
+            if (data.mutualFrenCount !== undefined) document.getElementById('mutualFrenCountValue').textContent = data.mutualFrenCount;
+            if (data.mutualGroupieCount !== undefined) document.getElementById('mutualGroupieCountValue').textContent = data.mutualGroupieCount;
+            if (data.mutualIdolCount !== undefined) document.getElementById('mutualIdolCountValue').textContent = data.mutualIdolCount;
+            if (data.mutualFollowerCount !== undefined) document.getElementById('mutualFollowerCountValue').textContent = data.mutualFollowerCount;
+            if (data.mutualFollowCount !== undefined) document.getElementById('mutualFollowCountValue').textContent = data.mutualFollowCount;
             // Social graph panel
             document.getElementById('followingCountValue').textContent = data.followingCount ?? 0;
             document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;

@@ -180,6 +180,71 @@ module.exports = {
                 AND NOT (observee)-[:FOLLOWS]->(recommendation)
                 RETURN recommendation.pubkey AS pubkey, recommendation.hops AS hops, recommendation.influence AS influence
             `
+        },
+        {
+            interactionType: 'mutualFrens',
+            title: 'Mutual Frens',
+            description: 'All profiles followed by both {{observer}} and {{observee}}.',
+            cypherQuery: `
+                MATCH (observer:NostrUser {pubkey: $observer})
+                MATCH (observee:NostrUser {pubkey: $observee})
+                OPTIONAL MATCH (observer)-[r:FOLLOWS]->(u:NostrUser)
+                WHERE (observee)-[:FOLLOWS]->(u)
+                AND NOT (u)-[:FOLLOWS]->(observer)
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence
+            `
+        },
+        {
+            interactionType: 'mutualGroupies',
+            title: 'Mutual Groupies',
+            description: 'All profiles following both {{observer}} and {{observee}}.',
+            cypherQuery: `
+                MATCH (observer:NostrUser {pubkey: $observer})
+                MATCH (observee:NostrUser {pubkey: $observee})
+                OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
+                WHERE (observer)-[:FOLLOWS]->(u)
+                AND NOT (u)-[:FOLLOWS]->(observer)
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence
+            `
+        },
+        {
+            interactionType: 'mutualIdols',
+            title: 'Mutual Idols',
+            description: 'All profiles followed by both {{observer}} and {{observee}}.',
+            cypherQuery: `
+                MATCH (observer:NostrUser {pubkey: $observer})
+                MATCH (observee:NostrUser {pubkey: $observee})
+                OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
+                WHERE (observee)-[:FOLLOWS]->(u)
+                AND NOT (u)-[:FOLLOWS]->(observer)
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence
+            `
+        },
+        {
+            interactionType: 'mutualFollowerCount',
+            title: 'Mutual Followers',
+            description: 'All profiles following both {{observer}} and {{observee}}.',
+            cypherQuery: `
+                MATCH (observer:NostrUser {pubkey: $observer})
+                MATCH (observee:NostrUser {pubkey: $observee})
+                OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
+                WHERE (observer)-[:FOLLOWS]->(u)
+                AND NOT (u)-[:FOLLOWS]->(observer)
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence
+            `
+        },
+        {
+            interactionType: 'mutualFollowCount',
+            title: 'Mutual Follows',
+            description: 'All profiles followed by both {{observer}} and {{observee}}.',
+            cypherQuery: `
+                MATCH (observer:NostrUser {pubkey: $observer})
+                MATCH (observee:NostrUser {pubkey: $observee})
+                OPTIONAL MATCH (observer)-[r:FOLLOWS]->(u:NostrUser)
+                WHERE (observee)-[:FOLLOWS]->(u)
+                AND NOT (u)-[:FOLLOWS]->(observer)
+                RETURN u.pubkey AS pubkey, u.hops AS hops, u.influence AS influence
+            `
         }
     ]
 };
