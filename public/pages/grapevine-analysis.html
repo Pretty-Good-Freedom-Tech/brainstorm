@@ -18,6 +18,8 @@
     <div class="page-content">
         <div class="container">
             <div id="interactionTypeHeader" style="font-size:1.6em;font-weight:700;margin-bottom:10px;"></div>
+            <button id="toggleCypherBtn" class="secondary" style="margin-bottom:8px;display:inline-block;">Show Cypher Query</button>
+            <pre id="cypherQueryBox" style="display:none;background:#fafbfc;border:1px solid #ddd;padding:12px 14px;font-size:1em;margin-bottom:10px;overflow-x:auto;max-width:100%;white-space:pre-wrap;word-break:break-all;"></pre>
             <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
                 <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
                 <div class="column-panel-controls" style="display: flex; align-items: center; gap: 6px;">
@@ -412,14 +414,24 @@
     // --- API Fetch and Initialization ---
     function setHeaderFromMeta(meta) {
         const header = document.getElementById('interactionTypeHeader');
+        // Prepare display names and hyperlinks
         let observerDisplayName = observer ? getDisplayName(observer) : observer;
         let observeeDisplayName = observee ? getDisplayName(observee) : observee;
+        let observerLink = observer ? `<a href=\"profile.html?pubkey=${observer}\" style=\"color:#3366cc;text-decoration:underline;\">${observerDisplayName}</a>` : '';
+        let observeeLink = observee ? `<a href=\"profile.html?pubkey=${observee}\" style=\"color:#3366cc;text-decoration:underline;\">${observeeDisplayName}</a>` : '';
         if (meta && meta.title && meta.description) {
             let desc = meta.description;
-            desc = desc.replace(/\{\{observer\}\}/g, observerDisplayName || '').replace(/\{\{observee\}\}/g, observeeDisplayName || '');
+            desc = desc.replace(/\{\{observer\}\}/g, observerLink).replace(/\{\{observee\}\}/g, observeeLink);
             header.innerHTML = `<div style=\"font-size:1.5em;font-weight:700;line-height:1.2\">${meta.title}</div><div style=\"font-size:1.04em;color:#666;margin-top:3px;max-width:600px;\">${desc}</div>`;
         } else {
             header.textContent = interactionType ? interactionType : '';
+        }
+        // Set cypher query for toggle display
+        const cypherBox = document.getElementById('cypherQueryBox');
+        if (meta && meta.cypherQuery) {
+            cypherBox.textContent = meta.cypherQuery.trim();
+        } else {
+            cypherBox.textContent = '';
         }
     }
     const observer = getQueryParam('observer');
@@ -463,6 +475,17 @@
                 showError('Network/API error: ' + err);
             });
     }
+    // Add event listener for toggle button
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('toggleCypherBtn');
+        const box = document.getElementById('cypherQueryBox');
+        let visible = false;
+        btn.addEventListener('click', function() {
+            visible = !visible;
+            box.style.display = visible ? '' : 'none';
+            btn.textContent = visible ? 'Hide Cypher Query' : 'Show Cypher Query';
+        });
+    });
     </script>
 </body>
 </html>
