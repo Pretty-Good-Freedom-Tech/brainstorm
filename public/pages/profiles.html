@@ -17,22 +17,8 @@
         <div class="container">
             <div class="header-profiles">
                 <div>
-                    <button id="refreshBtn">Refresh Data</button>
-                    <button id="exportCsvBtn" class="secondary">Export CSV</button>
-                    <button id="columnSettingsBtn" class="secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 5v14M5 12h14"></path>
-                        </svg>
-                        Columns
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Column settings panel -->
-            <div id="columnSettingsPanel" class="column-settings-panel">
-                <h3>Column Visibility</h3>
-                <div id="columnToggles">
-                    <!-- Checkboxes will be added here dynamically -->
+                    <button id="refreshBtn" style="display: none">Refresh Data</button>
+                    <button id="exportCsvBtn" class="secondary" style="display: none">Export CSV</button>
                 </div>
             </div>
             
@@ -56,12 +42,26 @@
                         </select>
                     </div>
                     <div>
+                        <button id="columnSettingsBtn" class="secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 5v14M5 12h14"></path>
+                            </svg>
+                            Columns
+                        </button>
                         <button id="applyFiltersBtn">Apply Filters</button>
-                        <button id="resetFiltersBtn" class="secondary">Reset</button>
+                        <button id="resetFiltersBtn" class="secondary" style="display: none">Reset</button>
                     </div>
                 </div>
             </div>
             
+            <!-- Column settings panel -->
+            <div id="columnSettingsPanel" class="column-settings-panel">
+                <h3>Column Visibility</h3>
+                <div id="columnToggles">
+                    <!-- Checkboxes will be added here dynamically -->
+                </div>
+            </div>
+
             <div id="tableContainer">
                 <div id="loadingIndicator" class="loading"></div>
                 <table id="mainProfilesTable" style="display: none;">
