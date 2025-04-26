@@ -109,11 +109,6 @@ function handleGetUserData(req, res) {
       WHERE NOT (idol)-[:FOLLOWS]->(u)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, count(idol) as idolCount
 
-      // mutuals MUTUALS TODO: define mutuals.
-      // EITHER: profiles followed by this user and by the owner (mutualFollows)
-      // OR: frens of this user and frens of the owner (mutualFrens)
-      // could also do: mutualFrens, mutualGroupies, mutualIdols, mutualFollowers, mutualFollows
-
       //////// RECOMMENDATIONS:
       // calculated as:
       // frens of the recommender
@@ -138,6 +133,17 @@ function handleGetUserData(req, res) {
       AND NOT (u)-[:FOLLOWS]->(recommendation)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
       
+      // mutuals MUTUALS TODO: define mutuals.
+      // EITHER: profiles followed by this user and by the owner (mutualFollows)
+      // OR: frens of this user and frens of the owner (mutualFrens)
+      // could also do: mutualFrens, mutualGroupies, mutualIdols, mutualFollowers, mutualFollows
+
+      // mutualFrens MUTUAL FRENDS
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
+      WHERE (fren)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(fren)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, count(fren) as mutualFrenCount
+
       RETURN u.pubkey as pubkey,
              u.personalizedPageRank as personalizedPageRank,
              u.hops as hops,

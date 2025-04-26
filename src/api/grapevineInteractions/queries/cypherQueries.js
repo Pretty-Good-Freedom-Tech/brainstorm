@@ -158,7 +158,7 @@ module.exports = {
         {
             interactionType: 'recommendedToObserver',
             title: 'Recommended to Observer',
-            description: 'All profiles recommended to {{observer}} by {{observee}}: Intersection of {{observer}} frens and the groupies of {{observee}}',
+            description: 'All profiles recommended to {{observer}} by {{observee}}: Intersection of {{observee}} frens and the groupies of {{observer}}',
             cypherQuery: `
                 MATCH (observer:NostrUser {pubkey: $observer})
                 MATCH (observee:NostrUser {pubkey: $observee})
@@ -171,13 +171,13 @@ module.exports = {
         {
             interactionType: 'recommendedToObservee',
             title: 'Recommended to Observee',
-            description: 'All profiles recommended to {{observee}} by {{observer}}: Intersection of {{observee}} frens and the groupies of {{observer}}',
+            description: 'All profiles recommended to {{observee}} by {{observer}}: Intersection of {{observer}} frens and the groupies of {{observee}}',
             cypherQuery: `
                 MATCH (observer:NostrUser {pubkey: $observer})
                 MATCH (observee:NostrUser {pubkey: $observee})
-                OPTIONAL MATCH (observee)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(observee)
-                WHERE (recommendation)-[:FOLLOWS]->(observer)
-                AND NOT (observer)-[:FOLLOWS]->(recommendation)
+                OPTIONAL MATCH (observer)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(observee)
+                WHERE (recommendation)-[:FOLLOWS]->(observee)
+                AND NOT (observee)-[:FOLLOWS]->(recommendation)
                 RETURN recommendation.pubkey AS pubkey, recommendation.hops AS hops, recommendation.influence AS influence
             `
         }
