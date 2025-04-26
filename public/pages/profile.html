@@ -492,10 +492,13 @@
                 }
                 
                 // Add website link if available
+                // deprecating; include this only in metadata table
+                /*
                 if (profileContent.website) {
                     const websiteUrl = new URL(profileContent.website);
                     addProfileLink('Website', websiteUrl.href);
                 }
+                */
                 
                 // Add social media links
                 const socialPlatforms = {
@@ -574,8 +577,20 @@
             
             const valueCell = document.createElement('td');
             
-            // Check if value looks like HTML (e.g. contains <a ...>)
-            if (typeof value === 'string' && value.startsWith('<a ')) {
+            // Special handling for website field to make it a clickable link
+            if (key.toLowerCase() === 'website' && typeof value === 'string' && value.trim() !== '') {
+                let url = value.trim();
+                // Add protocol if missing
+                if (!/^https?:\/\//i.test(url)) {
+                    url = 'https://' + url;
+                }
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.textContent = value;
+                valueCell.appendChild(a);
+            } else if (typeof value === 'string' && value.startsWith('<a ')) {
                 valueCell.innerHTML = value;
             } else {
                 valueCell.textContent = value;
@@ -583,7 +598,7 @@
             
             row.appendChild(keyCell);
             row.appendChild(valueCell);
-            metadataTable.appendChild(row);
+            document.getElementById('metadataTable').appendChild(row);
         }
         
         // Function to show error message
