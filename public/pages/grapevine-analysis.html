@@ -429,18 +429,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
     }
-    function refreshHeaderWithDisplayNames() {
-        if (interactionType) {
-            let observerDisplayName = observer ? getDisplayName(observer) : observer;
-            let observeeDisplayName = observee ? getDisplayName(observee) : observee;
-            const header = document.getElementById('interactionTypeHeader');
-            header.innerHTML = `<div style=\"font-size:1.5em;font-weight:700;line-height:1.2\">${interactionType}</div>`;
-        }
-    }
     // When profileCache loads observer/observee, refresh header
     if (observer && !profileCache[observer]) loadProfilePicture(observer, document.createElement('img'));
     if (observee && !profileCache[observee]) loadProfilePicture(observee, document.createElement('img'));
-    setTimeout(refreshHeaderWithDisplayNames, 800);
     function isValidPubkey(pubkey) {
         return typeof pubkey === 'string' && pubkey.length >= 32;
     }
