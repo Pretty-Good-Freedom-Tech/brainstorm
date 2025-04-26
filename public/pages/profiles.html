@@ -406,6 +406,18 @@
                     });
             }
             
+            function isCompactTableMode() {
+                // Get visible columns (excluding profile-pic-col)
+                const visibleCols = columns.filter(col => {
+                    if (col.id === 'profile-pic-col') return false;
+                    // Column is visible if defaultVisible and not alwaysVisible=false, or user toggled it on
+                    const th = document.querySelector(`#profilesTable th[data-sort='${col.id}']`);
+                    return th && th.offsetParent !== null;
+                });
+                // If only 2 data columns are visible (besides pic), and screen is narrow, use compact-table
+                return (window.innerWidth <= 700 && visibleCols.length === 2);
+            }
+
             function setupEventListeners() {
                 // Table header sorting
                 const headers = document.querySelectorAll('th[data-sort]');
@@ -538,6 +550,14 @@
                 // Apply column visibility
                 applyColumnVisibility();
                 
+                // Switch table to compact-table mode if needed
+                const tableElem = document.getElementById('profilesTable');
+                if (isCompactTableMode()) {
+                    tableElem.classList.add('compact-table');
+                } else {
+                    tableElem.classList.remove('compact-table');
+                }
+
                 // Render profiles
                 state.profiles.forEach(profile => {
                     const row = document.createElement('tr');
