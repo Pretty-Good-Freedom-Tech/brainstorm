@@ -107,12 +107,18 @@
         });
     }
     // --- Filtering ---
-    let filters = { pubkey: '', hops: '', influence: '' };
+    let filters = { pubkey: '', hopsMin: '', hopsMax: '', influenceMin: '', influenceMax: '' };
     function filterData(data) {
         return data.filter(row => {
-            return (!filters.pubkey || row.pubkey.includes(filters.pubkey)) &&
-                   (!filters.hops || String(row.hops).includes(filters.hops)) &&
-                   (!filters.influence || String(row.influence).includes(filters.influence));
+            // Pubkey text filter
+            if (filters.pubkey && !row.pubkey.includes(filters.pubkey)) return false;
+            // Hops min/max
+            if (filters.hopsMin && !(typeof row.hops === 'number' && row.hops >= parseFloat(filters.hopsMin))) return false;
+            if (filters.hopsMax && !(typeof row.hops === 'number' && row.hops <= parseFloat(filters.hopsMax))) return false;
+            // Influence min/max
+            if (filters.influenceMin && !(typeof row.influence === 'number' && row.influence >= parseFloat(filters.influenceMin))) return false;
+            if (filters.influenceMax && !(typeof row.influence === 'number' && row.influence <= parseFloat(filters.influenceMax))) return false;
+            return true;
         });
     }
     // --- Pagination ---
@@ -259,6 +265,36 @@
                 filterRow.appendChild(th); // no filter for pic
                 return;
             }
+            if (col.id === 'hops' || col.id === 'influence') {
+                // Numeric min/max filters
+                const minInput = document.createElement('input');
+                minInput.type = 'number';
+                minInput.step = 'any';
+                minInput.placeholder = 'Min';
+                minInput.value = filters[col.id + 'Min'] || '';
+                minInput.style.width = '45%';
+                minInput.oninput = function() {
+                    filters[col.id + 'Min'] = this.value;
+                    page = 1;
+                    renderTable();
+                };
+                const maxInput = document.createElement('input');
+                maxInput.type = 'number';
+                maxInput.step = 'any';
+                maxInput.placeholder = 'Max';
+                maxInput.value = filters[col.id + 'Max'] || '';
+                maxInput.style.width = '45%';
+                maxInput.oninput = function() {
+                    filters[col.id + 'Max'] = this.value;
+                    page = 1;
+                    renderTable();
+                };
+                th.appendChild(minInput);
+                th.appendChild(maxInput);
+                filterRow.appendChild(th);
+                return;
+            }
+            // Default: text filter
             const input = document.createElement('input');
             input.type = 'text';
             input.value = filters[col.id] || '';
