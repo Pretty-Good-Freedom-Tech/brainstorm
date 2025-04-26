@@ -564,56 +564,51 @@
                 // Render profiles
                 state.profiles.forEach(profile => {
                     const row = document.createElement('tr');
-                    
-                    // Profile picture cell
+
+                    // Profile picture cell (always visible)
                     const profilePicCell = document.createElement('td');
                     profilePicCell.className = 'profile-pic-cell';
                     profilePicCell.dataset.column = 'profile-pic-col';
                     profilePicCell.dataset.pubkey = profile.pubkey;
-                    
-                    // Create link element that will contain the profile picture
                     const profileLink = document.createElement('a');
                     profileLink.href = `/profile.html?pubkey=${encodeURIComponent(profile.pubkey)}`;
                     profileLink.target = '_blank';
                     profileLink.className = 'profile-pic-link';
                     profilePicCell.appendChild(profileLink);
-                    
-                    // Create a placeholder (default profile pic or initial)
                     const placeholder = document.createElement('div');
                     placeholder.className = 'default-profile-pic';
                     placeholder.textContent = profile.pubkey.substring(0, 2).toUpperCase();
                     profileLink.appendChild(placeholder);
-                    
-                    // Lazy load the actual profile picture
                     loadProfilePicture(profile.pubkey, profilePicCell, profileLink);
-                    
                     row.appendChild(profilePicCell);
-                    
-                    // Pubkey cell with truncation and hyperlink
-                    const pubkeyCell = document.createElement('td');
-                    pubkeyCell.className = 'pubkey-cell';
-                    pubkeyCell.dataset.column = 'pubkey';
-                    const pubkeyLink = document.createElement('a');
-                    pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
-                    pubkeyLink.target = '_blank';
-                    pubkeyLink.className = 'pubkey-link';
-                    pubkeyLink.textContent = profile.pubkey.substring(0, 12) + '...';
-                    pubkeyLink.title = profile.pubkey;
-                    pubkeyCell.appendChild(pubkeyLink);
-                    row.appendChild(pubkeyCell);
-                    
-                    // Numeric data cells
-                    addNumericCell(row, profile.verifiedFollowerCount, 0, 'verifiedFollowerCount');
-                    addNumericCell(row, profile.nip56_totalGrapeRankScore, 0, 'nip56TotalGrapeRankScore');
-                    addNumericCell(row, profile.nip56_totalVerifiedReportCount, 0, 'nip56TotalVerifiedReportCount');
-                    addNumericCell(row, profile.nip56_totalReportCount, 0, 'nip56TotalReportCount');
-                    addNumericCell(row, profile.hops, 0, 'hops');
-                    addNumericCell(row, profile.personalizedPageRank, 6, 'personalizedPageRank');
-                    addNumericCell(row, profile.influence, 6, 'influence');
-                    addNumericCell(row, profile.average, 2, 'average');
-                    addNumericCell(row, profile.confidence, 2, 'confidence');
-                    addNumericCell(row, profile.input, 2, 'input');
-                    
+
+                    // Render only visible columns
+                    columns.forEach(col => {
+                        if (col.id === 'profile-pic-col') return; // already handled
+                        if (state.columnVisibility && state.columnVisibility[col.id] === false) return;
+
+                        if (col.id === 'pubkey') {
+                            const pubkeyCell = document.createElement('td');
+                            pubkeyCell.className = 'pubkey-cell';
+                            pubkeyCell.dataset.column = 'pubkey';
+                            const pubkeyLink = document.createElement('a');
+                            pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
+                            pubkeyLink.target = '_blank';
+                            pubkeyLink.className = 'pubkey-link';
+                            pubkeyLink.textContent = profile.pubkey.substring(0, 12) + '...';
+                            pubkeyLink.title = profile.pubkey;
+                            pubkeyCell.appendChild(pubkeyLink);
+                            row.appendChild(pubkeyCell);
+                        } else {
+                            // Numeric/data cells
+                            let value = profile[col.id];
+                            let decimals = 0;
+                            if (col.id === 'personalizedPageRank' || col.id === 'influence') decimals = 6;
+                            else if (col.id === 'average' || col.id === 'confidence' || col.id === 'input') decimals = 2;
+                            addNumericCell(row, value, decimals, col.id);
+                        }
+                    });
+
                     tableBody.appendChild(row);
                 });
                 
@@ -851,7 +846,7 @@
             
             function exportToCsv() {
                 // Only export visible columns
-                const visibleColumns = columns.filter(col => state.columnVisibility[col.id] !== false);
+                const visibleColumns = columns.filter(col => state.columnVisibility && state.columnVisibility[col.id] !== false);
                 
                 // Create CSV header
                 let csvContent = visibleColumns.map(col => `"${col.name}"`).join(',') + '\n';
@@ -936,7 +931,7 @@
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.id = `toggle-${column.id}`;
-                    checkbox.checked = state.columnVisibility[column.id] !== false;
+                    checkbox.checked = state.columnVisibility && state.columnVisibility[column.id] !== false;
                     checkbox.disabled = column.alwaysVisible === true;
                     
                     checkbox.addEventListener('change', () => {
@@ -962,7 +957,7 @@
                 headerCells.forEach(cell => {
                     const columnId = cell.getAttribute('data-sort') || cell.className;
                     
-                    if (columnId && state.columnVisibility[columnId] === false) {
+                    if (columnId && state.columnVisibility && state.columnVisibility[columnId] === false) {
                         cell.classList.add('hidden-column');
                     } else {
                         cell.classList.remove('hidden-column');
@@ -984,7 +979,7 @@
                 const dataCells = document.querySelectorAll('#profilesTable tbody td');
                 dataCells.forEach(cell => {
                     const columnId = cell.dataset.column;
-                    if (columnId && state.columnVisibility[columnId] === false) {
+                    if (columnId && state.columnVisibility && state.columnVisibility[columnId] === false) {
                         cell.classList.add('hidden-column');
                     } else {
                         cell.classList.remove('hidden-column');
