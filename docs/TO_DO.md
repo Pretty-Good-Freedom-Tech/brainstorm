@@ -1,10 +1,8 @@
 ## TODO 21 Apr 2025
-- add frens, groupies, idols, and recommended follows to this user's profile page
 - MIP-87: curate mints
 - add npub to tables
 - update profiles page with same features as nip56 page
 - take care of neo4j password during installation
-- DCoNR: decentralized curation of NIP-56 reports
 - why strfry and neo4j are in /var/lib but brainstorm is in /usr/local/lib/node_modules
 - make sure current relay pubkey matches with kind 10040 and 30382 events (may not be the case when updating destroys old relay nsec; so need to create reinstall-from-backup script)
 - fix ManiMe's graperank calculation engine
