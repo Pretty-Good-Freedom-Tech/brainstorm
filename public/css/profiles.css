@@ -440,108 +440,145 @@ tr:hover {
     min-width: 44px !important;
     max-width: 44px !important;
     box-sizing: border-box;
-}
-
-/* Responsive/card view styles for mainProfilesTable only */
-@media (max-width: 900px) {
-  #mainProfilesTable:not(.compact-table) {
-    display: block;
-    width: 100vw;
-    min-width: unset;
-    max-width: 100vw;
-    margin-left: -1vw;
-    margin-right: -1vw;
-    box-sizing: border-box;
-    overflow-x: hidden;
-  }
-  #mainProfilesTable:not(.compact-table) thead,
-  #mainProfilesTable:not(.compact-table) tr,
-  #mainProfilesTable:not(.compact-table) td,
-  #mainProfilesTable:not(.compact-table) th,
-  #mainProfilesTable:not(.compact-table) tbody {
-    display: block;
-  }
-  #mainProfilesTable:not(.compact-table) thead {
-    display: none;
-  }
-  #mainProfilesTable:not(.compact-table) tr {
-    margin-bottom: 18px;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    background: #fff;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  #mainProfilesTable:not(.compact-table) td {
-    display: flex;
-    align-items: center;
-    padding: 10px 6px;
-    font-size: 13px;
-    width: 100%;
-    border-bottom: 1px solid #eee;
-    box-sizing: border-box;
-  }
-  #mainProfilesTable:not(.compact-table) td:last-child {
-    border-bottom: none;
-  }
-  #mainProfilesTable:not(.compact-table) td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #666;
-    min-width: 90px;
-    font-size: 12px;
-    width: 90px;
-    margin-right: 10px;
-    flex-shrink: 0;
-    display: inline-block;
-  }
-}
-
-/* Pic and Pubkey column width constraints for compact table view */
-#mainProfilesTable.compact-table td.pubkey-cell {
-    max-width: 110px;
-    min-width: 60px;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: left;
-    flex: 0 0 auto;
+    padding-left: 4px;
+    padding-right: 4px;
 }
-#mainProfilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell) {
-    min-width: 0;
-    max-width: 100%;
-    text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1 1 0;
+#mainProfilesTable.compact-table td:not(.profile-pic-cell) {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
 }
 
-/* Subtle distinction for "bad" vs. "good" behaviour columns */
-#mainProfilesTable th.bad-col, #mainProfilesTable td.bad-col {
-    background: rgba(255, 80, 80, 0.06);
-    color: #b14d4d;
-    border-right: 1px solid #f3d1d1;
-    font-weight: 600;
-}
-#mainProfilesTable th.good-col, #mainProfilesTable td.good-col {
-    background: rgba(90, 210, 120, 0.07);
-    color: #388e3c;
-    border-right: 1px solid #b8eacb;
-    font-weight: 600;
-}
-#mainProfilesTable th.good-col:last-child, #mainProfilesTable td.good-col:last-child {
-    border-right: none;
-}
 @media (max-width: 900px) {
-  #mainProfilesTable:not(.compact-table) td.bad-col {
-    background: rgba(255, 80, 80, 0.035);
-    color: #b14d4d;
+  #mainProfilesTable.compact-table td.profile-pic-cell {
+      width: 44px !important;
+      min-width: 44px !important;
+      max-width: 44px !important;
+      flex: 0 0 44px !important;
+      padding-left: 4px;
+      padding-right: 4px;
+      box-sizing: border-box;
+      overflow: hidden;
   }
-  #mainProfilesTable:not(.compact-table) td.good-col {
-    background: rgba(90, 210, 120, 0.04);
-    color: #388e3c;
-  }
+}
+
+@media (max-width: 900px) {
+    .container {
+        padding: 0 2vw;
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+    table, thead, tbody, th, td, tr {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    /* Only switch to card view if not .compact-table */
+    #mainProfilesTable:not(.compact-table) {
+        display: block;
+    }
+    #mainProfilesTable:not(.compact-table) thead,
+    #mainProfilesTable:not(.compact-table) tr,
+    #mainProfilesTable:not(.compact-table) td,
+    #mainProfilesTable:not(.compact-table) th,
+    #mainProfilesTable:not(.compact-table) tbody {
+        display: block;
+    }
+    #mainProfilesTable:not(.compact-table) {
+        width: 100vw;
+        min-width: unset;
+        max-width: 100vw;
+        margin-left: -2vw;
+        margin-right: -2vw;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+    #mainProfilesTable:not(.compact-table) thead {
+        display: none;
+    }
+    #mainProfilesTable:not(.compact-table) tr {
+        margin-bottom: 18px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        background: #fff;
+        padding: 10px 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    #mainProfilesTable:not(.compact-table) td {
+        display: flex;
+        align-items: center;
+        padding: 10px 6px;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        min-height: 38px;
+        font-size: 15px;
+        width: 100%;
+        box-sizing: border-box;
+        word-break: break-word;
+    }
+    #mainProfilesTable:not(.compact-table) td:last-child {
+        border-bottom: none;
+    }
+    #mainProfilesTable:not(.compact-table) td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #666;
+        min-width: 120px;
+        margin-right: 12px;
+        flex-shrink: 0;
+        font-size: 13px;
+        width: 120px;
+        box-sizing: border-box;
+    }
+    #mainProfilesTable.compact-table td.pubkey-cell {
+        max-width: 110px;
+        min-width: 60px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 0 0 auto;
+    }
+    #mainProfilesTable.compact-table td:not(.profile-pic-cell):not(.pubkey-cell) {
+        min-width: 0;
+        max-width: 100%;
+        flex: 1 1 0;
+        white-space: normal;
+    }
+}
+@media (max-width: 600px) {
+    .header-profiles {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .container {
+        padding: 0 1vw;
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+    #mainProfilesTable:not(.compact-table) {
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: -1vw;
+        margin-right: -1vw;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+    #mainProfilesTable:not(.compact-table) td {
+        font-size: 13px;
+        padding: 8px 4px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    #mainProfilesTable:not(.compact-table) td::before {
+        min-width: 90px;
+        font-size: 12px;
+        width: 90px;
+        box-sizing: border-box;
+    }
 }
 
 /* Center report-type-selector on desktop, full width on mobile */
@@ -844,4 +881,31 @@ tr:hover {
         width: 90px;
         box-sizing: border-box;
     }
+}
+
+/* Subtle distinction for "bad" vs. "good" behaviour columns */
+#mainProfilesTable th.bad-col, #mainProfilesTable td.bad-col {
+    background: rgba(255, 80, 80, 0.06);
+    color: #b14d4d;
+    border-right: 1px solid #f3d1d1;
+    font-weight: 600;
+}
+#mainProfilesTable th.good-col, #mainProfilesTable td.good-col {
+    background: rgba(90, 210, 120, 0.07);
+    color: #388e3c;
+    border-right: 1px solid #b8eacb;
+    font-weight: 600;
+}
+#mainProfilesTable th.good-col:last-child, #mainProfilesTable td.good-col:last-child {
+    border-right: none;
+}
+@media (max-width: 900px) {
+  #mainProfilesTable:not(.compact-table) td.bad-col {
+    background: rgba(255, 80, 80, 0.035);
+    color: #b14d4d;
+  }
+  #mainProfilesTable:not(.compact-table) td.good-col {
+    background: rgba(90, 210, 120, 0.04);
+    color: #388e3c;
+  }
 }
