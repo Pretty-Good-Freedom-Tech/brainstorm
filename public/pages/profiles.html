@@ -749,63 +749,21 @@
                 });
                 paginationContainer.appendChild(prevButton);
                 
-                // Page buttons
-                const maxPageButtons = 7;
-                let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
-                let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
-                
-                // Adjust if we're near the end
-                if (endPage - startPage + 1 < maxPageButtons && startPage > 1) {
-                    startPage = Math.max(1, endPage - maxPageButtons + 1);
+                // Page selector (dropdown)
+                const pageSelect = document.createElement('select');
+                pageSelect.className = 'pagination-select';
+                for (let i = 1; i <= totalPages; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `Page ${i}`;
+                    if (i === currentPage) option.selected = true;
+                    pageSelect.appendChild(option);
                 }
-                
-                // First page button if not visible
-                if (startPage > 1) {
-                    const firstButton = document.createElement('button');
-                    firstButton.textContent = '1';
-                    firstButton.addEventListener('click', () => {
-                        state.pagination.page = 1;
-                        fetchProfiles();
-                    });
-                    paginationContainer.appendChild(firstButton);
-                    
-                    if (startPage > 2) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.textContent = '...';
-                        ellipsis.style.margin = '0 5px';
-                        paginationContainer.appendChild(ellipsis);
-                    }
-                }
-                
-                // Page number buttons
-                for (let i = startPage; i <= endPage; i++) {
-                    const pageButton = document.createElement('button');
-                    pageButton.textContent = i;
-                    pageButton.className = i === currentPage ? 'active' : '';
-                    pageButton.addEventListener('click', () => {
-                        state.pagination.page = i;
-                        fetchProfiles();
-                    });
-                    paginationContainer.appendChild(pageButton);
-                }
-                
-                // Last page button if not visible
-                if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.textContent = '...';
-                        ellipsis.style.margin = '0 5px';
-                        paginationContainer.appendChild(ellipsis);
-                    }
-                    
-                    const lastButton = document.createElement('button');
-                    lastButton.textContent = totalPages;
-                    lastButton.addEventListener('click', () => {
-                        state.pagination.page = totalPages;
-                        fetchProfiles();
-                    });
-                    paginationContainer.appendChild(lastButton);
-                }
+                pageSelect.addEventListener('change', function() {
+                    state.pagination.page = parseInt(this.value, 10);
+                    fetchProfiles();
+                });
+                paginationContainer.appendChild(pageSelect);
                 
                 // Next button
                 const nextButton = document.createElement('button');

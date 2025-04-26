@@ -150,30 +150,59 @@
             return;
         }
         container.style.display = '';
-        let html = '';
-        html += `<span style='margin-right:8px;'>Page</span>`;
-        for (let i = 1; i <= pages; i++) {
-            html += `<button class='page-btn' data-page='${i}' style='margin-right:2px;${i===page?"font-weight:bold;background:#eee;":''}'>${i}</button>`;
-        }
-        html += `<span style='margin-left:16px;'>Page Size:</span>`;
-        html += `<select id='pageSizeSelect' style='margin-left:4px;'>`;
-        PAGE_SIZE_OPTIONS.forEach(opt => {
-            html += `<option value='${opt}'${opt===pageSize?' selected':''}>${opt}</option>`;
-        });
-        html += `</select>`;
-        container.innerHTML = html;
-        // Add listeners
-        Array.from(container.querySelectorAll('.page-btn')).forEach(btn => {
-            btn.onclick = function() {
-                page = parseInt(this.getAttribute('data-page'));
+        // Previous button
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '←';
+        prevButton.disabled = page === 1;
+        prevButton.onclick = function() {
+            if (page > 1) {
+                page -= 1;
                 renderTable();
-            };
+            }
+        };
+        container.appendChild(prevButton);
+        // Page selector (dropdown)
+        const pageSelect = document.createElement('select');
+        pageSelect.className = 'pagination-select';
+        for (let i = 1; i <= pages; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Page ${i}`;
+            if (i === page) option.selected = true;
+            pageSelect.appendChild(option);
+        }
+        pageSelect.addEventListener('change', function() {
+            page = parseInt(this.value, 10);
+            renderTable();
         });
-        container.querySelector('#pageSizeSelect').onchange = function() {
-            pageSize = parseInt(this.value);
+        container.appendChild(pageSelect);
+        // Next button
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '→';
+        nextButton.disabled = page === pages;
+        nextButton.onclick = function() {
+            if (page < pages) {
+                page += 1;
+                renderTable();
+            }
+        };
+        container.appendChild(nextButton);
+        // Page Size selector
+        const pageSizeSelect = document.createElement('select');
+        pageSizeSelect.id = 'pageSizeSelect';
+        PAGE_SIZE_OPTIONS.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.textContent = `Page Size: ${opt}`;
+            if (opt === pageSize) option.selected = true;
+            pageSizeSelect.appendChild(option);
+        });
+        pageSizeSelect.addEventListener('change', function() {
+            pageSize = parseInt(this.value, 10);
             page = 1;
             renderTable();
-        };
+        });
+        container.appendChild(pageSizeSelect);
     }
     // --- Profile Picture Cache (shared pattern) ---
     const profileCache = {};

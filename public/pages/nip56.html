@@ -666,16 +666,43 @@
             return;
         }
         paginationContainer.style.display = '';
-        for (let i = 1; i <= pages; i++) {
-            const btn = document.createElement('button');
-            btn.textContent = i;
-            btn.className = (i === state.page) ? 'active' : '';
-            btn.onclick = () => {
-                state.page = i;
+        // Previous button
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '←';
+        prevButton.disabled = state.page === 1;
+        prevButton.onclick = () => {
+            if (state.page > 1) {
+                state.page -= 1;
                 renderTable();
-            };
-            paginationContainer.appendChild(btn);
+            }
+        };
+        paginationContainer.appendChild(prevButton);
+        // Page selector (dropdown)
+        const pageSelect = document.createElement('select');
+        pageSelect.className = 'pagination-select';
+        for (let i = 1; i <= pages; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Page ${i}`;
+            if (i === state.page) option.selected = true;
+            pageSelect.appendChild(option);
         }
+        pageSelect.addEventListener('change', function() {
+            state.page = parseInt(this.value, 10);
+            renderTable();
+        });
+        paginationContainer.appendChild(pageSelect);
+        // Next button
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '→';
+        nextButton.disabled = state.page === pages;
+        nextButton.onclick = () => {
+            if (state.page < pages) {
+                state.page += 1;
+                renderTable();
+            }
+        };
+        paginationContainer.appendChild(nextButton);
     }
 
     // --- Page Size Selector ---
