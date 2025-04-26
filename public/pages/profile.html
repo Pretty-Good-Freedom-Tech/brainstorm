@@ -36,7 +36,7 @@
                     </div>
                     <div class="profile-links" id="profileLinks">
                         <!-- Links will be added here -->
-                        <a id="profileNjumpLink" href="#" target="_blank">view on njump.me</a>
+                        <a id="profileNjumpLink" href="#" target="_blank">njump.me</a>
                     </div>
                 </div>
                 
@@ -431,17 +431,12 @@
             });
             
             // Trust Scores Panel population
-            if (data.grapeRank) {
-                document.getElementById('trustInfluenceValue').textContent = (data.influence !== undefined && data.influence !== null) ? parseFloat(data.influence).toFixed(4) : '-';
-                document.getElementById('trustAverageValue').textContent = (data.average !== undefined && data.average !== null) ? parseFloat(data.average).toFixed(4) : '-';
-                document.getElementById('trustConfidenceValue').textContent = (data.confidence !== undefined && data.confidence !== null) ? parseFloat(data.confidence).toFixed(4) : '-';
-                document.getElementById('trustInputValue').textContent = (data.input !== undefined && data.input !== null) ? parseFloat(data.input).toFixed(4) : '-';
-            } else {
-                document.getElementById('trustInfluenceValue').textContent = '-';
-                document.getElementById('trustAverageValue').textContent = '-';
-                document.getElementById('trustConfidenceValue').textContent = '-';
-                document.getElementById('trustInputValue').textContent = '-';
-            }
+            document.getElementById('trustInfluenceValue').textContent = (data.influence !== undefined && data.influence !== null) ? parseFloat(data.influence).toFixed(4) : '-';
+            document.getElementById('trustAverageValue').textContent = (data.average !== undefined && data.average !== null) ? parseFloat(data.average).toFixed(4) : '-';
+            document.getElementById('trustConfidenceValue').textContent = (data.confidence !== undefined && data.confidence !== null) ? parseFloat(data.confidence).toFixed(4) : '-';
+            document.getElementById('trustInputValue').textContent = (data.input !== undefined && data.input !== null) ? parseFloat(data.input).toFixed(4) : '-';
+            
+            // Trust Hops and Personalized PageRank
             document.getElementById('trustHopsValue').textContent = (data.hops !== undefined && data.hops !== null) ? data.hops : '-';
             document.getElementById('trustPersonalizedPageRankValue').textContent = (data.personalizedPageRank !== undefined && data.personalizedPageRank !== null) ? parseFloat(data.personalizedPageRank).toFixed(4) : '-';
         }
