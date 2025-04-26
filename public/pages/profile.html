@@ -493,7 +493,8 @@
                 
                 // Add website link if available
                 if (profileContent.website) {
-                    addProfileLink('Website', profileContent.website);
+                    const websiteUrl = new URL(profileContent.website);
+                    addProfileLink('Website', websiteUrl.href);
                 }
                 
                 // Add social media links
