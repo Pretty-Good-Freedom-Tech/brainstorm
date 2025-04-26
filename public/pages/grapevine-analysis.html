@@ -144,9 +144,9 @@
     let pageSize = DEFAULT_PAGE_SIZE;
     function renderPagination(total, pages) {
         const container = document.getElementById('paginationContainer');
+        container.innerHTML = '';
         if (pages <= 1) {
             container.style.display = 'none';
-            container.innerHTML = '';
             return;
         }
         container.style.display = '';
