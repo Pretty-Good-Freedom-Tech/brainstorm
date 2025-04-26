@@ -11,151 +11,154 @@
 <body>
     <!-- Include the header component -->
     <div id="headerContainer"></div>
-
-    <div class="container">
-        <div class="header-profiles">
-            <div>
-                <button id="refreshBtn">Refresh Data</button>
-                <button id="exportCsvBtn" class="secondary">Export CSV</button>
-                <button id="columnSettingsBtn" class="secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 5v14M5 12h14"></path>
-                    </svg>
-                    Columns
-                </button>
-            </div>
-        </div>
-        
-        <!-- Column settings panel -->
-        <div id="columnSettingsPanel" class="column-settings-panel">
-            <h3>Column Visibility</h3>
-            <div id="columnToggles">
-                <!-- Checkboxes will be added here dynamically -->
-            </div>
-        </div>
-        
-        <div id="statusMessage" style="display: none;"></div>
-        
-        <!-- Profile count information -->
-        <div class="profile-counts">
-            Showing <span id="filteredCount">0</span> filtered profiles out of <span id="totalCount">0</span> total
-        </div>
-        
-        <!-- Limit selection and action buttons -->
-        <div class="actions-container">
-            <div class="filter-actions">
-                <div class="filter-group">
-                    <label for="limitSelect">Results Per Page</label>
-                    <select id="limitSelect">
-                        <option value="50">50</option>
-                        <option value="100" selected>100</option>
-                        <option value="250">250</option>
-                        <option value="500">500</option>
-                    </select>
-                </div>
+    
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="header-profiles">
                 <div>
-                    <button id="applyFiltersBtn">Apply Filters</button>
-                    <button id="resetFiltersBtn" class="secondary">Reset</button>
+                    <button id="refreshBtn">Refresh Data</button>
+                    <button id="exportCsvBtn" class="secondary">Export CSV</button>
+                    <button id="columnSettingsBtn" class="secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5v14M5 12h14"></path>
+                        </svg>
+                        Columns
+                    </button>
                 </div>
             </div>
-        </div>
-        
-        <div id="tableContainer">
-            <div id="loadingIndicator" class="loading"></div>
-            <table id="profilesTable" style="display: none;">
-                <thead>
-                    <tr class="header-row">
-                        <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
-                        <th data-sort="pubkey">Pubkey</th>
-                        <th data-sort="verifiedFollowerCount" class="sort-desc">🍇-Verified Followers</th>
-                        <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
-                        <th data-sort="nip56TotalVerifiedReportCount" class="sort-desc">🍇-Verified Reports</th>
-                        <th data-sort="nip56TotalReportCount" class="sort-desc">Total Reports</th>  
-                        <th data-sort="hops" class="sort-desc">Hops</th>
-                        <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
-                        <th data-sort="influence" class="sort-desc">Influence</th>
-                        <th data-sort="average" class="sort-desc">Average</th>
-                        <th data-sort="confidence" class="sort-desc">Confidence</th>
-                        <th data-sort="input" class="sort-desc">Input</th>
-                    </tr>
-                    <tr class="filter-row">
-                        <th></th>
-                        <th>
-                            <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinVerifiedFollowers" placeholder="Min" min="0" class="table-filter small-input">
-                                <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" min="0" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinNip56TotalGrapeRankScore" placeholder="Min" min="0" class="table-filter small-input">
-                                <input type="number" id="filterMaxNip56TotalGrapeRankScore" placeholder="Max" min="0" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinNip56TotalVerifiedReportCount" placeholder="Min" min="0" class="table-filter small-input">
-                                <input type="number" id="filterMaxNip56TotalVerifiedReportCount" placeholder="Max" min="0" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinNip56TotalReportCount" placeholder="Min" min="0" class="table-filter small-input">
-                                <input type="number" id="filterMaxNip56TotalReportCount" placeholder="Max" min="0" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinHops" placeholder="Min" min="0" max="20" class="table-filter small-input">
-                                <input type="number" id="filterMaxHops" placeholder="Max" min="1" max="20" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinPersonalizedPageRank" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
-                                <input type="number" id="filterMaxPersonalizedPageRank" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinInfluence" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
-                                <input type="number" id="filterMaxInfluence" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinAverage" placeholder="Min" min="-1" max="1" step="0.01" class="table-filter small-input">
-                                <input type="number" id="filterMaxAverage" placeholder="Max" min="-1" max="1" step="0.01" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinConfidence" placeholder="Min" min="0" max="1" step="0.01" class="table-filter small-input">
-                                <input type="number" id="filterMaxConfidence" placeholder="Max" min="0" max="1" step="0.01" class="table-filter small-input">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filter-inputs filter-inputs-vertical">
-                                <input type="number" id="filterMinInput" placeholder="Min" min="0" step="0.01" class="table-filter small-input">
-                                <input type="number" id="filterMaxInput" placeholder="Max" min="0" step="0.01" class="table-filter small-input">
-                            </div>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="profilesTableBody">
-                    <!-- Table data will be inserted here -->
-                </tbody>
-            </table>
-        </div>
-        
-        <div id="paginationContainer" class="pagination" style="display: none;">
-            <!-- Pagination controls will be inserted here -->
+            
+            <!-- Column settings panel -->
+            <div id="columnSettingsPanel" class="column-settings-panel">
+                <h3>Column Visibility</h3>
+                <div id="columnToggles">
+                    <!-- Checkboxes will be added here dynamically -->
+                </div>
+            </div>
+            
+            <div id="statusMessage" style="display: none;"></div>
+            
+            <!-- Profile count information -->
+            <div class="profile-counts">
+                Showing <span id="filteredCount">0</span> filtered profiles out of <span id="totalCount">0</span> total
+            </div>
+            
+            <!-- Limit selection and action buttons -->
+            <div class="actions-container">
+                <div class="filter-actions">
+                    <div class="filter-group">
+                        <label for="limitSelect">Results Per Page</label>
+                        <select id="limitSelect">
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="250">250</option>
+                            <option value="500">500</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="applyFiltersBtn">Apply Filters</button>
+                        <button id="resetFiltersBtn" class="secondary">Reset</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="tableContainer">
+                <div id="loadingIndicator" class="loading"></div>
+                <table id="profilesTable" style="display: none;">
+                    <thead>
+                        <tr class="header-row">
+                            <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
+                            <th data-sort="pubkey">Pubkey</th>
+                            <th data-sort="verifiedFollowerCount" class="sort-desc">🍇-Verified Followers</th>
+                            <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
+                            <th data-sort="nip56TotalVerifiedReportCount" class="sort-desc">🍇-Verified Reports</th>
+                            <th data-sort="nip56TotalReportCount" class="sort-desc">Total Reports</th>  
+                            <th data-sort="hops" class="sort-desc">Hops</th>
+                            <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
+                            <th data-sort="influence" class="sort-desc">Influence</th>
+                            <th data-sort="average" class="sort-desc">Average</th>
+                            <th data-sort="confidence" class="sort-desc">Confidence</th>
+                            <th data-sort="input" class="sort-desc">Input</th>
+                        </tr>
+                        <tr class="filter-row">
+                            <th></th>
+                            <th>
+                                <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinVerifiedFollowers" placeholder="Min" min="0" class="table-filter small-input">
+                                    <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" min="0" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinNip56TotalGrapeRankScore" placeholder="Min" min="0" class="table-filter small-input">
+                                    <input type="number" id="filterMaxNip56TotalGrapeRankScore" placeholder="Max" min="0" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinNip56TotalVerifiedReportCount" placeholder="Min" min="0" class="table-filter small-input">
+                                    <input type="number" id="filterMaxNip56TotalVerifiedReportCount" placeholder="Max" min="0" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinNip56TotalReportCount" placeholder="Min" min="0" class="table-filter small-input">
+                                    <input type="number" id="filterMaxNip56TotalReportCount" placeholder="Max" min="0" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinHops" placeholder="Min" min="0" max="20" class="table-filter small-input">
+                                    <input type="number" id="filterMaxHops" placeholder="Max" min="1" max="20" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinPersonalizedPageRank" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
+                                    <input type="number" id="filterMaxPersonalizedPageRank" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinInfluence" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
+                                    <input type="number" id="filterMaxInfluence" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinAverage" placeholder="Min" min="-1" max="1" step="0.01" class="table-filter small-input">
+                                    <input type="number" id="filterMaxAverage" placeholder="Max" min="-1" max="1" step="0.01" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinConfidence" placeholder="Min" min="0" max="1" step="0.01" class="table-filter small-input">
+                                    <input type="number" id="filterMaxConfidence" placeholder="Max" min="0" max="1" step="0.01" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinInput" placeholder="Min" min="0" step="0.01" class="table-filter small-input">
+                                    <input type="number" id="filterMaxInput" placeholder="Max" min="0" step="0.01" class="table-filter small-input">
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="profilesTableBody">
+                        <!-- Table data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="paginationContainer" class="pagination" style="display: none;">
+                <!-- Pagination controls will be inserted here -->
+            </div>
         </div>
     </div>
-    
+
     <script>
         // Column definitions with display names and default visibility
         const columns = [

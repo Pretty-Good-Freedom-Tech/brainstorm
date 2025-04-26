@@ -12,87 +12,90 @@
     <!-- Include the header component -->
     <div id="headerContainer"></div>
 
-    <div class="container">
-        <div class="nav">
-            <h1>NIP-85 Control Panel</h1>
-        </div>
-        
-        <div class="section">
-            <h2>Kind 10040 Event Management</h2>
-            <div class="card">
-                <h3>Publish Kind 10040 Event</h3>
-                <p>Create and publish your Kind 10040 event for NIP-85 trusted assertions. This instructs clients how to find your published WoT scores.</p>
-                
-                <div class="button-group">
-                    <button id="createKind10040Btn" class="button primary-btn">Create Kind 10040 Event</button>
-                    <button id="publishKind10040Btn" class="button secondary-btn" disabled>Publish Kind 10040 Event</button>
-                </div>
-                
-                <div id="kind10040Output" class="output-container" style="display: none;">
-                    <h4>Event Preview:</h4>
-                    <pre id="kind10040EventPreview" class="code-preview"></pre>
-                </div>
-                
-                <div id="kind10040Status" class="status-message"></div>
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="nav">
+                <h1>NIP-85 Control Panel</h1>
             </div>
             
-            <!-- Kind 10040 Event Status Card -->
-            <div class="card">
-                <h3>Kind 10040 Event Status</h3>
-                <p>View information about your Kind 10040 event.</p>
-                
-                <div class="info-panel">
-                    <div class="info-row">
-                        <span class="info-label">Last Published:</span>
-                        <span id="kind10040Timestamp" class="info-value">Loading...</span>
+            <div class="section">
+                <h2>Kind 10040 Event Management</h2>
+                <div class="card">
+                    <h3>Publish Kind 10040 Event</h3>
+                    <p>Create and publish your Kind 10040 event for NIP-85 trusted assertions. This instructs clients how to find your published WoT scores.</p>
+                    
+                    <div class="button-group">
+                        <button id="createKind10040Btn" class="button primary-btn">Create Kind 10040 Event</button>
+                        <button id="publishKind10040Btn" class="button secondary-btn" disabled>Publish Kind 10040 Event</button>
                     </div>
-                    <div class="info-row" id="kind10040EventIdRow" style="display: none;">
-                        <span class="info-label">Event ID:</span>
-                        <a id="kind10040NjumpLink" href="#" target="_blank" class="button small-btn"><span id="kind10040EventId" class="info-value">Loading...</span></a>
+                    
+                    <div id="kind10040Output" class="output-container" style="display: none;">
+                        <h4>Event Preview:</h4>
+                        <pre id="kind10040EventPreview" class="code-preview"></pre>
                     </div>
+                    
+                    <div id="kind10040Status" class="status-message"></div>
                 </div>
                 
-                <div class="button-group">
-                    <button id="refreshKind10040InfoBtn" class="button secondary-btn">Refresh Event Info</button>
+                <!-- Kind 10040 Event Status Card -->
+                <div class="card">
+                    <h3>Kind 10040 Event Status</h3>
+                    <p>View information about your Kind 10040 event.</p>
+                    
+                    <div class="info-panel">
+                        <div class="info-row">
+                            <span class="info-label">Last Published:</span>
+                            <span id="kind10040Timestamp" class="info-value">Loading...</span>
+                        </div>
+                        <div class="info-row" id="kind10040EventIdRow" style="display: none;">
+                            <span class="info-label">Event ID:</span>
+                            <a id="kind10040NjumpLink" href="#" target="_blank" class="button small-btn"><span id="kind10040EventId" class="info-value">Loading...</span></a>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="refreshKind10040InfoBtn" class="button secondary-btn">Refresh Event Info</button>
+                    </div>
+                    
+                    <div id="kind10040EventContainer" class="output-container" style="display: none;">
+                        <h4>Your Kind 10040 Event:</h4>
+                        <pre id="kind10040LatestEvent" class="code-preview"></pre>
+                    </div>
+                    
+                    <div id="kind10040InfoStatus" class="status-message"></div>
                 </div>
-                
-                <div id="kind10040EventContainer" class="output-container" style="display: none;">
-                    <h4>Your Kind 10040 Event:</h4>
-                    <pre id="kind10040LatestEvent" class="code-preview"></pre>
-                </div>
-                
-                <div id="kind10040InfoStatus" class="status-message"></div>
             </div>
-        </div>
-        
-        <div class="section">
-            <h2>Kind 30382 Event Management</h2>
             
-            <div class="card">
-                <h3>Kind 30382 Event Status</h3>
-                <p>View information about existing Kind 30382 events in the local strfry relay.</p>
+            <div class="section">
+                <h2>Kind 30382 Event Management</h2>
                 
-                <div class="button-group">
-                    <button id="refreshKind30382InfoBtn" class="button">Refresh Event Info</button>
-                </div>
-                
-                <div id="kind30382InfoContainer" class="info-container">
-                    <div class="info-row">
-                        <span class="info-label">Total Events:</span>
-                        <span id="kind30382Count" class="info-value">Loading...</span>
+                <div class="card">
+                    <h3>Kind 30382 Event Status</h3>
+                    <p>View information about existing Kind 30382 events in the local strfry relay.</p>
+                    
+                    <div class="button-group">
+                        <button id="refreshKind30382InfoBtn" class="button">Refresh Event Info</button>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Last Published:</span>
-                        <span id="kind30382Timestamp" class="info-value">Loading...</span>
+                    
+                    <div id="kind30382InfoContainer" class="info-container">
+                        <div class="info-row">
+                            <span class="info-label">Total Events:</span>
+                            <span id="kind30382Count" class="info-value">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Last Published:</span>
+                            <span id="kind30382Timestamp" class="info-value">Loading...</span>
+                        </div>
                     </div>
+                    
+                    <div id="kind30382EventContainer" style="display: none;">
+                        <h4>Latest Kind 30382 Event:</h4>
+                        <pre id="kind30382LatestEvent" class="code-preview"></pre>
+                    </div>
+                    
+                    <div id="kind30382InfoStatus" class="status-message"></div>
                 </div>
-                
-                <div id="kind30382EventContainer" style="display: none;">
-                    <h4>Latest Kind 30382 Event:</h4>
-                    <pre id="kind30382LatestEvent" class="code-preview"></pre>
-                </div>
-                
-                <div id="kind30382InfoStatus" class="status-message"></div>
             </div>
         </div>
     </div>

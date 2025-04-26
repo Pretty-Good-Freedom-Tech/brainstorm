@@ -23,44 +23,49 @@
 </head>
 <body>
     <div id="headerContainer"></div>
-    <div class="container">
-        <div class="header-profiles">
-            <div class="report-type-selector">
-                <label for="reportTypeSelect">NIP-56 Report Type:</label>
-                <select id="reportTypeSelect"></select>
+
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="header-profiles">
+                <div class="report-type-selector">
+                    <label for="reportTypeSelect">NIP-56 Report Type:</label>
+                    <select id="reportTypeSelect"></select>
+                </div>
             </div>
-        </div>
-        <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
-            <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
-            <div class="column-panel-controls" style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
-                <button id="columnSettingsButton" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
-                <button id="columnInfoBtn" class="secondary" title="Show column information" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">?</button>
+            <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
+                <div id="resultsIndicator" style="margin: 10px 0 10px 0; font-weight: bold;"></div>
+                <div class="column-panel-controls" style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
+                    <button id="columnSettingsButton" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
+                    <button id="columnInfoBtn" class="secondary" title="Show column information" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">?</button>
+                </div>
             </div>
+            <div id="columnSettingsPanel" class="panel" style="display: none; margin-bottom: 10px;">
+                <h3>Column Visibility</h3>
+                <div id="columnToggles"></div>
+                <button id="resetColumnDefaultsBtn" class="secondary" style="margin-top: 10px;">Reset Defaults</button>
+            </div>
+            <div id="columnInfoPanel" class="panel" style="display: none; margin-bottom: 10px;">
+                <li>Total Count means all reports in the database. Including the bots!</li>
+                <li>🍇-Verified Report/Follower Count include only those reports/follows corresponding to profiles with GrapeRank Influence score above an arbitrarily chosen cutoff value (default: 0.1).</li>
+            </div>
+            <div id="tableContainer">
+                <div id="loadingIndicator" class="loading"></div>
+                <table id="nip56ProfilesTable" style="display: none;">
+                    <thead>
+                        <tr class="header-row">
+                        </tr>
+                        <tr class="filter-row">
+                        </tr>
+                    </thead>
+                    <tbody id="nip56ProfilesTableBody"></tbody>
+                </table>
+            </div>
+            <div id="paginationContainer" class="pagination" style="display: none;"></div>
         </div>
-        <div id="columnSettingsPanel" class="panel" style="display: none; margin-bottom: 10px;">
-            <h3>Column Visibility</h3>
-            <div id="columnToggles"></div>
-            <button id="resetColumnDefaultsBtn" class="secondary" style="margin-top: 10px;">Reset Defaults</button>
-        </div>
-        <div id="columnInfoPanel" class="panel" style="display: none; margin-bottom: 10px;">
-            <li>Total Count means all reports in the database. Including the bots!</li>
-            <li>🍇-Verified Report/Follower Count include only those reports/follows corresponding to profiles with GrapeRank Influence score above an arbitrarily chosen cutoff value (default: 0.1).</li>
-        </div>
-        <div id="tableContainer">
-            <div id="loadingIndicator" class="loading"></div>
-            <table id="nip56ProfilesTable" style="display: none;">
-                <thead>
-                    <tr class="header-row">
-                    </tr>
-                    <tr class="filter-row">
-                    </tr>
-                </thead>
-                <tbody id="nip56ProfilesTableBody"></tbody>
-            </table>
-        </div>
-        <div id="paginationContainer" class="pagination" style="display: none;"></div>
     </div>
+    
     <script>
     // --- Report Types ---
     const reportTypes = [
