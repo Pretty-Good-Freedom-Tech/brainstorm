@@ -418,6 +418,7 @@
                 // Estimate minimum table width: 44px for pic + 120px per visible column + 32px padding
                 const minTableWidth = 44 + visibleCols.length * 120 + 32;
                 // Only use compact mode if screen is narrow AND table won't fit
+                console.log(`isCompactTableMode: ${window.innerWidth <= 700 && window.innerWidth < minTableWidth}`)
                 return window.innerWidth <= 700 && window.innerWidth < minTableWidth;
             }
 
@@ -556,9 +557,9 @@
                 // Switch table to compact-table mode if needed
                 const tableElem = document.getElementById('mainProfilesTable');
                 if (isCompactTableMode()) {
-                    tableElem.classList.add('compact-table');
-                } else {
                     tableElem.classList.remove('compact-table');
+                } else {
+                    tableElem.classList.add('compact-table');
                 }
 
                 // Render profiles
