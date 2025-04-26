@@ -5,7 +5,7 @@ module.exports = {
         {
             interactionType: 'follows',
             title: 'Follows',
-            description: 'lorem ipsum',
+            description: 'All profiles followed by ${observee}.',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(u:NostrUser)

@@ -378,23 +378,43 @@
                 th.appendChild(maxInput);
             } else if (col.id === 'influence') {
                 const minInput = document.createElement('input');
-                minInput.type = 'number';
+                minInput.type = 'text';
+                minInput.inputMode = 'decimal';
+                minInput.autocomplete = 'off';
+                minInput.pattern = '^-?\\d*(\\.\\d*)?$';
                 minInput.placeholder = 'Min';
                 minInput.className = 'table-filter small-input';
                 minInput.value = state.filters?.minInfluence || '';
                 minInput.addEventListener('input', function() {
-                    state.filters = state.filters || {};
-                    state.filters.minInfluence = this.value;
+                    if (this.value === '' || /^-?\d*(\.\d*)?$/.test(this.value)) {
+                        state.filters = state.filters || {};
+                        state.filters.minInfluence = this.value;
+                    } else {
+                        this.classList.add('input-error');
+                    }
+                });
+                minInput.addEventListener('blur', function() {
+                    this.classList.remove('input-error');
                     renderTable();
                 });
                 const maxInput = document.createElement('input');
-                maxInput.type = 'number';
+                maxInput.type = 'text';
+                maxInput.inputMode = 'decimal';
+                maxInput.autocomplete = 'off';
+                maxInput.pattern = '^-?\\d*(\\.\\d*)?$';
                 maxInput.placeholder = 'Max';
                 maxInput.className = 'table-filter small-input';
                 maxInput.value = state.filters?.maxInfluence || '';
                 maxInput.addEventListener('input', function() {
-                    state.filters = state.filters || {};
-                    state.filters.maxInfluence = this.value;
+                    if (this.value === '' || /^-?\d*(\.\d*)?$/.test(this.value)) {
+                        state.filters = state.filters || {};
+                        state.filters.maxInfluence = this.value;
+                    } else {
+                        this.classList.add('input-error');
+                    }
+                });
+                maxInput.addEventListener('blur', function() {
+                    this.classList.remove('input-error');
                     renderTable();
                 });
                 th.appendChild(minInput);
