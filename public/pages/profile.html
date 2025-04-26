@@ -442,10 +442,10 @@
             
             // Trust Scores Panel population
             if (data.grapeRank) {
-                document.getElementById('trustInfluenceValue').textContent = (data.influence !== undefined && data.grapeRank.influence !== null) ? parseFloat(data.grapeRank.influence).toFixed(4) : '-';
-                document.getElementById('trustAverageValue').textContent = (data.average !== undefined && data.grapeRank.average !== null) ? parseFloat(data.grapeRank.average).toFixed(4) : '-';
-                document.getElementById('trustConfidenceValue').textContent = (data.confidence !== undefined && data.grapeRank.confidence !== null) ? parseFloat(data.grapeRank.confidence).toFixed(4) : '-';
-                document.getElementById('trustInputValue').textContent = (data.input !== undefined && data.grapeRank.input !== null) ? parseFloat(data.grapeRank.input).toFixed(4) : '-';
+                document.getElementById('trustInfluenceValue').textContent = (data.influence !== undefined && data.influence !== null) ? parseFloat(data.influence).toFixed(4) : '-';
+                document.getElementById('trustAverageValue').textContent = (data.average !== undefined && data.average !== null) ? parseFloat(data.average).toFixed(4) : '-';
+                document.getElementById('trustConfidenceValue').textContent = (data.confidence !== undefined && data.confidence !== null) ? parseFloat(data.confidence).toFixed(4) : '-';
+                document.getElementById('trustInputValue').textContent = (data.input !== undefined && data.input !== null) ? parseFloat(data.input).toFixed(4) : '-';
             } else {
                 document.getElementById('trustInfluenceValue').textContent = '-';
                 document.getElementById('trustAverageValue').textContent = '-';
