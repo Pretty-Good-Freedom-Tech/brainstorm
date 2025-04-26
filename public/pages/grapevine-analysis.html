@@ -161,7 +161,7 @@
             return;
         }
         // Try to fetch kind0 profile (nip05, etc.), fallback to default avatar
-        fetch(`/control/api/get-kind0?pubkey=${encodeURIComponent(pubkey)}`)
+        fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
             .then(r => r.json())
             .then(data => {
                 if (data && data.picture) {
