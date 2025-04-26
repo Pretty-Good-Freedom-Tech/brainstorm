@@ -124,9 +124,9 @@
             // Hops min/max
             if (filters.hopsMin !== '' && !(typeof row.hops === 'number' && row.hops >= parseFloat(filters.hopsMin))) return false;
             if (filters.hopsMax !== '' && !(typeof row.hops === 'number' && row.hops <= parseFloat(filters.hopsMax))) return false;
-            // Influence min/max
-            if (filters.influenceMin !== '' && !(typeof row.influence === 'number' && row.influence >= parseFloat(filters.influenceMin))) return false;
-            if (filters.influenceMax !== '' && !(typeof row.influence === 'number' && row.influence <= parseFloat(filters.influenceMax))) return false;
+            // Influence min/max (custom parse for decimals)
+            if (filters.influenceMin !== '' && (isNaN(parseFloat(filters.influenceMin)) || !(typeof row.influence === 'number' && row.influence >= parseFloat(filters.influenceMin)))) return false;
+            if (filters.influenceMax !== '' && (isNaN(parseFloat(filters.influenceMax)) || !(typeof row.influence === 'number' && row.influence <= parseFloat(filters.influenceMax)))) return false;
             return true;
         });
     }
@@ -283,35 +283,53 @@
                 return;
             }
             if (col.id === 'hops' || col.id === 'influence') {
-                // Numeric min/max filters stacked vertically
+                // Numeric min/max filters stacked vertically (custom for decimals)
                 const filterStack = document.createElement('div');
                 filterStack.style.display = 'flex';
                 filterStack.style.flexDirection = 'column';
                 filterStack.style.gap = '2px';
                 filterStack.style.alignItems = 'stretch';
                 const minInput = document.createElement('input');
-                minInput.type = 'number';
-                minInput.step = 'any';
+                minInput.type = 'text'; // Use text to allow any decimal format
                 minInput.inputMode = 'decimal';
+                minInput.autocomplete = 'off';
+                minInput.pattern = '^-?\\d*(\\.\\d*)?$';
                 minInput.placeholder = 'Min';
                 minInput.className = 'table-filter small-input';
                 minInput.value = filters[col.id + 'Min'] || '';
                 minInput.addEventListener('input', function(e) {
-                    filters[col.id + 'Min'] = this.value;
-                    page = 1;
-                    renderTable();
+                    // Accept only valid numbers or empty
+                    if (this.value === '' || /^-?\d*(\.\d*)?$/.test(this.value)) {
+                        filters[col.id + 'Min'] = this.value;
+                        page = 1;
+                        renderTable();
+                    } else {
+                        // Optionally: mark invalid
+                        this.classList.add('input-error');
+                    }
+                });
+                minInput.addEventListener('blur', function() {
+                    this.classList.remove('input-error');
                 });
                 const maxInput = document.createElement('input');
-                maxInput.type = 'number';
-                maxInput.step = 'any';
+                maxInput.type = 'text';
                 maxInput.inputMode = 'decimal';
+                maxInput.autocomplete = 'off';
+                maxInput.pattern = '^-?\\d*(\\.\\d*)?$';
                 maxInput.placeholder = 'Max';
                 maxInput.className = 'table-filter small-input';
                 maxInput.value = filters[col.id + 'Max'] || '';
                 maxInput.addEventListener('input', function(e) {
-                    filters[col.id + 'Max'] = this.value;
-                    page = 1;
-                    renderTable();
+                    if (this.value === '' || /^-?\d*(\.\d*)?$/.test(this.value)) {
+                        filters[col.id + 'Max'] = this.value;
+                        page = 1;
+                        renderTable();
+                    } else {
+                        this.classList.add('input-error');
+                    }
+                });
+                maxInput.addEventListener('blur', function() {
+                    this.classList.remove('input-error');
                 });
                 filterStack.appendChild(minInput);
                 filterStack.appendChild(maxInput);

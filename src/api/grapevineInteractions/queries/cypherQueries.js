@@ -4,6 +4,8 @@ module.exports = {
     cypherQueries: [
         {
             interactionType: 'follows',
+            title: 'Follows',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(u:NostrUser)
@@ -12,6 +14,8 @@ module.exports = {
         },
         {
             interactionType: 'verifiedFollows',
+            title: 'Verified Follows',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(u:NostrUser)
@@ -21,6 +25,8 @@ module.exports = {
         },
         {
             interactionType: 'followers',
+            title: 'Followers',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[f:FOLLOWS]->(observee)
@@ -29,6 +35,8 @@ module.exports = {
         },
         {
             interactionType: 'verifiedFollowers',
+            title: 'Verified Followers',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[f:FOLLOWS]->(observee)
@@ -38,6 +46,8 @@ module.exports = {
         },
         {
             interactionType: 'mutes',
+            title: 'Mutes',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[m:MUTES]->(u:NostrUser)
@@ -46,6 +56,8 @@ module.exports = {
         },
         {
             interactionType: 'muters',
+            title: 'Muters',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[m:MUTES]->(observee)
@@ -54,6 +66,8 @@ module.exports = {
         },
         {
             interactionType: 'reports',
+            title: 'Reports',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (observee)-[r:REPORTS]->(u:NostrUser)
@@ -62,6 +76,8 @@ module.exports = {
         },
         {
             interactionType: 'reporters',
+            title: 'Reporters',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:REPORTS]->(observee)
@@ -70,6 +86,8 @@ module.exports = {
         },
         {
             interactionType: 'frens',
+            title: 'Frens',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
@@ -79,6 +97,8 @@ module.exports = {
         },
         {
             interactionType: 'groupies',
+            title: 'Groupies',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
@@ -88,6 +108,8 @@ module.exports = {
         },
         {
             interactionType: 'idols',
+            title: 'Idols',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observee:NostrUser {pubkey: $observee})
                 OPTIONAL MATCH (u:NostrUser)-[r:FOLLOWS]->(observee)
@@ -97,6 +119,8 @@ module.exports = {
         },
         {
             interactionType: 'mutualFollows',
+            title: 'Mutual Follows',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observer:NostrUser {pubkey: $observer})
                 MATCH (observee:NostrUser {pubkey: $observee})
@@ -107,6 +131,8 @@ module.exports = {
         },
         {
             interactionType: 'mutualFollowers',
+            title: 'Mutual Followers',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observer:NostrUser {pubkey: $observer})
                 MATCH (observee:NostrUser {pubkey: $observee})
@@ -117,6 +143,8 @@ module.exports = {
         },
         {
             interactionType: 'mutualFrens',
+            title: 'Mutual Frens',
+            description: 'lorem ipsum',
             cypherQuery: `
                 MATCH (observer:NostrUser {pubkey: $observer})
                 MATCH (observee:NostrUser {pubkey: $observee})
