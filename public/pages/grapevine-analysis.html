@@ -275,6 +275,7 @@
                 const minInput = document.createElement('input');
                 minInput.type = 'number';
                 minInput.step = 'any';
+                minInput.inputMode = 'decimal';
                 minInput.placeholder = 'Min';
                 minInput.className = 'table-filter small-input';
                 minInput.value = filters[col.id + 'Min'] || '';
@@ -286,6 +287,7 @@
                 const maxInput = document.createElement('input');
                 maxInput.type = 'number';
                 maxInput.step = 'any';
+                maxInput.inputMode = 'decimal';
                 maxInput.placeholder = 'Max';
                 maxInput.className = 'table-filter small-input';
                 maxInput.value = filters[col.id + 'Max'] || '';
