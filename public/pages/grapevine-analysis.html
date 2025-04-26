@@ -156,26 +156,76 @@
     // --- Profile Picture Cache (shared pattern) ---
     const profileCache = {};
     function loadProfilePicture(pubkey, imgElement) {
-        if (profileCache[pubkey]) {
-            imgElement.src = profileCache[pubkey];
+        if (profileCache[pubkey] && profileCache[pubkey].pictureLoaded) {
+            // Already loaded, just update
+            updateProfilePictureWithData(imgElement, profileCache[pubkey]);
             return;
         }
-        // Try to fetch kind0 profile (nip05, etc.), fallback to default avatar
         fetch(`/control/api/get-kind0?pubkey=${pubkey}`)
-            .then(r => r.json())
+            .then(response => response.json())
             .then(data => {
-                if (data && data.picture) {
-                    imgElement.src = data.picture;
-                    profileCache[pubkey] = data.picture;
-                } else {
-                    imgElement.src = '/control/img/default-avatar.svg';
-                    profileCache[pubkey] = '/control/img/default-avatar.svg';
+                let profileData = null;
+                if (data.success && data.data && data.data.content) {
+                    try {
+                        profileData = JSON.parse(data.data.content);
+                    } catch (e) {
+                        // Ignore parse errors
+                    }
                 }
+                profileData = profileData || {};
+                profileData.pubkey = pubkey;
+                if (!('picture' in profileData)) profileData.picture = undefined;
+                if (!('name' in profileData)) profileData.name = undefined;
+                if (!('display_name' in profileData)) profileData.display_name = undefined;
+                profileData.pictureLoaded = true;
+                profileCache[pubkey] = profileData;
+                updateProfilePictureWithData(imgElement, profileData);
             })
             .catch(() => {
-                imgElement.src = '/control/img/default-avatar.svg';
-                profileCache[pubkey] = '/control/img/default-avatar.svg';
+                // On error, store a stub
+                profileCache[pubkey] = { pubkey, picture: undefined, name: undefined, display_name: undefined, pictureLoaded: true };
+                updateProfilePictureWithData(imgElement, profileCache[pubkey]);
             });
+    }
+    function updateProfilePictureWithData(imgElement, profileData) {
+        // Remove any previous sibling placeholder
+        if (imgElement.nextSibling && imgElement.nextSibling.classList && imgElement.nextSibling.classList.contains('default-profile-pic')) {
+            imgElement.parentNode.removeChild(imgElement.nextSibling);
+        }
+        // Remove any previous placeholder in the parent
+        if (imgElement.parentNode) {
+            Array.from(imgElement.parentNode.children).forEach(child => {
+                if (child !== imgElement && child.classList && child.classList.contains('default-profile-pic')) {
+                    imgElement.parentNode.removeChild(child);
+                }
+            });
+        }
+        if (profileData && profileData.picture) {
+            imgElement.src = profileData.picture;
+            imgElement.title = profileData.display_name || profileData.name || '';
+            imgElement.style.display = '';
+            imgElement.onerror = function() {
+                imgElement.style.display = 'none';
+                if (profileData && profileData.pubkey) {
+                    if (!profileCache[profileData.pubkey]) profileCache[profileData.pubkey] = {};
+                    profileCache[profileData.pubkey].pictureFailed = true;
+                }
+                if (imgElement.parentNode) {
+                    Array.from(imgElement.parentNode.children).forEach(child => {
+                        if (child.classList && child.classList.contains('default-profile-pic')) {
+                            imgElement.parentNode.removeChild(child);
+                        }
+                    });
+                }
+                // Optionally add a default avatar here
+                imgElement.src = '/control/img/default-avatar.svg';
+                imgElement.style.display = '';
+            };
+        } else {
+            imgElement.src = '/control/img/default-avatar.svg';
+            imgElement.title = '';
+            imgElement.style.display = '';
+        }
     }
     // --- Table Rendering (with Pagination) ---
     let allProfiles = [];
