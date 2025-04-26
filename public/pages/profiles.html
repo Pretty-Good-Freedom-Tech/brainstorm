@@ -153,9 +153,8 @@
                 </table>
             </div>
             
-            <div id="paginationContainer" class="pagination" style="display: none;">
-                <!-- Pagination controls will be inserted here -->
-            </div>
+            <div id="paginationContainer" class="pagination" style="display: none;"></div>
+            <div id="pageSizeContainer" class="pagination" style="display: none;"></div>
         </div>
     </div>
 
@@ -776,6 +775,36 @@
                     }
                 });
                 paginationContainer.appendChild(nextButton);
+                
+                // Render page size selector
+                renderPageSizeSelector();
+            }
+
+            function renderPageSizeSelector() {
+                let pageSizeContainer = document.getElementById('pageSizeContainer');
+                if (!pageSizeContainer) {
+                    pageSizeContainer = document.createElement('div');
+                    pageSizeContainer.id = 'pageSizeContainer';
+                    pageSizeContainer.className = 'pagination';
+                    paginationContainer.parentNode.appendChild(pageSizeContainer);
+                }
+                pageSizeContainer.innerHTML = '';
+                const pageSizeSelect = document.createElement('select');
+                pageSizeSelect.className = 'pagination-select';
+                [50, 100, 250, 500].forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = `Page Size: ${opt}`;
+                    if (opt === state.pagination.limit) option.selected = true;
+                    pageSizeSelect.appendChild(option);
+                });
+                pageSizeSelect.addEventListener('change', function() {
+                    state.pagination.limit = parseInt(this.value, 10);
+                    state.pagination.page = 1;
+                    fetchProfiles();
+                });
+                pageSizeContainer.appendChild(pageSizeSelect);
+                pageSizeContainer.style.display = '';
             }
             
             function updateSortIndicators(column, order) {

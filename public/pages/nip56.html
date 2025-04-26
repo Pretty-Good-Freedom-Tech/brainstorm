@@ -63,6 +63,7 @@
                 </table>
             </div>
             <div id="paginationContainer" class="pagination" style="display: none;"></div>
+            <div id="pageSizeContainer" class="pagination" style="display: none;"></div>
         </div>
     </div>
     
@@ -235,7 +236,6 @@
         if (pageRows.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7">No profiles found for this report type.</td></tr>';
             renderPagination(0, 1);
-            renderPageSizeSelector();
             return;
         }
         // Render header
@@ -521,7 +521,6 @@
             tableBody.appendChild(row);
         });
         renderPagination(total, Math.ceil(total / state.pageSize));
-        renderPageSizeSelector();
     }
     // --- Add Numeric Cell ---
     function addNumericCell(cell, value, decimals = 0) {
@@ -703,32 +702,34 @@
             }
         };
         paginationContainer.appendChild(nextButton);
+        renderPageSizeSelector();
     }
 
-    // --- Page Size Selector ---
     function renderPageSizeSelector() {
-        let selector = document.getElementById('pageSizeSelector');
-        if (!selector) {
-            selector = document.createElement('select');
-            selector.id = 'pageSizeSelector';
-            selector.className = 'table-pagesize';
-            PAGE_SIZE_OPTIONS.forEach(size => {
-                const opt = document.createElement('option');
-                opt.value = size;
-                opt.textContent = `${size} per page`;
-                selector.appendChild(opt);
-            });
-            selector.value = state.pageSize;
-            selector.addEventListener('change', e => {
-                state.pageSize = parseInt(e.target.value, 10);
-                state.page = 1;
-                renderTable();
-            });
-            // Insert selector above pagination
-            paginationContainer.parentNode.insertBefore(selector, paginationContainer);
-        } else {
-            selector.value = state.pageSize;
+        let pageSizeContainer = document.getElementById('pageSizeContainer');
+        if (!pageSizeContainer) {
+            pageSizeContainer = document.createElement('div');
+            pageSizeContainer.id = 'pageSizeContainer';
+            pageSizeContainer.className = 'pagination';
+            paginationContainer.parentNode.appendChild(pageSizeContainer);
         }
+        pageSizeContainer.innerHTML = '';
+        const pageSizeSelect = document.createElement('select');
+        pageSizeSelect.className = 'pagination-select';
+        PAGE_SIZE_OPTIONS.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.textContent = `Page Size: ${opt}`;
+            if (opt === state.pageSize) option.selected = true;
+            pageSizeSelect.appendChild(option);
+        });
+        pageSizeSelect.addEventListener('change', function() {
+            state.pageSize = parseInt(this.value, 10);
+            state.page = 1;
+            renderTable();
+        });
+        pageSizeContainer.appendChild(pageSizeSelect);
+        pageSizeContainer.style.display = '';
     }
 
     // --- Table Filtering Logic ---
