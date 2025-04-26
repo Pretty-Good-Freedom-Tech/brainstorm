@@ -192,9 +192,12 @@
   .metadata-table th, .metadata-table td {
     display: block;
     width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
     padding: 8px 8px;
     text-align: left;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   .metadata-table tr {
     display: block;
@@ -203,6 +206,9 @@
     background: #fcfcff;
     border-radius: 6px;
     padding: 5px 0 7px 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .metadata-table th {
     background-color: #f8f9fe;
