@@ -116,23 +116,23 @@
                                     </tr>
                                     <tr>
                                         <th>Mutual Frens</th>
-                                        <td id="mutualFrenCountValue">-</td>
+                                        <td id="mutualFrenCountValue"><a href="#" class="mutual-link" data-type="mutualFrens">-</a></td>
                                     </tr>
                                     <tr>
                                         <th>Mutual Groupies</th>
-                                        <td id="mutualGroupieCountValue">-</td>
+                                        <td id="mutualGroupieCountValue"><a href="#" class="mutual-link" data-type="mutualGroupies">-</a></td>
                                     </tr>
                                     <tr>
                                         <th>Mutual Idols</th>
-                                        <td id="mutualIdolCountValue">-</td>
+                                        <td id="mutualIdolCountValue"><a href="#" class="mutual-link" data-type="mutualIdols">-</a></td>
                                     </tr>
                                     <tr>
                                         <th>Mutual Followers</th>
-                                        <td id="mutualFollowerCountValue">-</td>
+                                        <td id="mutualFollowerCountValue"><a href="#" class="mutual-link" data-type="mutualFollowers">-</a></td>
                                     </tr>
                                     <tr>
                                         <th>Mutual Follows</th>
-                                        <td id="mutualFollowCountValue">-</td>
+                                        <td id="mutualFollowCountValue"><a href="#" class="mutual-link" data-type="mutualFollows">-</a></td>
                                     </tr>
                                     <tr>
                                         <th>Recommended Follows (to Owner by this profile)</th>
@@ -275,6 +275,9 @@
                         // Show profile container
                         loadingIndicator.style.display = 'none';
                         profileContainer.style.display = 'flex';
+                        
+                        // Add click handlers for mutual links
+                        setupMutualLinks(pubkey, data.data.ownerPubkey);
                     } else {
                         // If we can't get kind 0 data, still show what we have
                         console.warn('Could not fetch kind 0 data:', data.message);
@@ -303,11 +306,11 @@
                 influenceValue.textContent = parseFloat(data.influence).toFixed(4);
             }
             // Mutual counts
-            if (data.mutualFrenCount !== undefined) document.getElementById('mutualFrenCountValue').textContent = data.mutualFrenCount;
-            if (data.mutualGroupieCount !== undefined) document.getElementById('mutualGroupieCountValue').textContent = data.mutualGroupieCount;
-            if (data.mutualIdolCount !== undefined) document.getElementById('mutualIdolCountValue').textContent = data.mutualIdolCount;
-            if (data.mutualFollowerCount !== undefined) document.getElementById('mutualFollowerCountValue').textContent = data.mutualFollowerCount;
-            if (data.mutualFollowCount !== undefined) document.getElementById('mutualFollowCountValue').textContent = data.mutualFollowCount;
+            if (data.mutualFrenCount !== undefined) document.querySelector('#mutualFrenCountValue a').textContent = data.mutualFrenCount;
+            if (data.mutualGroupieCount !== undefined) document.querySelector('#mutualGroupieCountValue a').textContent = data.mutualGroupieCount;
+            if (data.mutualIdolCount !== undefined) document.querySelector('#mutualIdolCountValue a').textContent = data.mutualIdolCount;
+            if (data.mutualFollowerCount !== undefined) document.querySelector('#mutualFollowerCountValue a').textContent = data.mutualFollowerCount;
+            if (data.mutualFollowCount !== undefined) document.querySelector('#mutualFollowCountValue a').textContent = data.mutualFollowCount;
             // Social graph panel
             document.getElementById('followingCountValue').textContent = data.followingCount ?? 0;
             document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;
@@ -523,6 +526,21 @@
             profileContainer.style.display = 'none';
             errorMessage.style.display = 'block';
             errorMessage.textContent = message;
+        }
+        
+        // Function to setup mutual links
+        function setupMutualLinks(pubkey, ownerPubkey) {
+            document.querySelectorAll('.mutual-link').forEach(link => {
+                const type = link.getAttribute('data-type');
+                link.onclick = function(e) {
+                    e.preventDefault();
+                    // observer = owner, observee = this profile
+                    let observer = ownerPubkey;
+                    let observee = pubkey;
+                    // For mutualIdols, mutualFollowers, mutualFollows, observer/observee order may not matter, but keep it consistent
+                    window.open(`grapevine-analysis.html?observer=${encodeURIComponent(observer)}&observee=${encodeURIComponent(observee)}&interactionType=${encodeURIComponent(type)}`, '_blank');
+                };
+            });
         }
     </script>
 </body>
