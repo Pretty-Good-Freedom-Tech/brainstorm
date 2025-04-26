@@ -413,12 +413,12 @@
                 // Get visible columns (excluding profile-pic-col)
                 const visibleCols = columns.filter(col => {
                     if (col.id === 'profile-pic-col') return false;
-                    // Column is visible if defaultVisible and not alwaysVisible=false, or user toggled it on
-                    const th = document.querySelector(`#profilesTable th[data-sort='${col.id}']`);
-                    return th && th.offsetParent !== null;
+                    return state.columnVisibility && state.columnVisibility[col.id] !== false;
                 });
-                // If only 2 data columns are visible (besides pic), and screen is narrow, use compact-table
-                return (window.innerWidth <= 700 && visibleCols.length === 2);
+                // Estimate minimum table width: 44px for pic + 120px per visible column + 32px padding
+                const minTableWidth = 44 + visibleCols.length * 120 + 32;
+                // Only use compact mode if screen is narrow AND table won't fit
+                return window.innerWidth <= 700 && window.innerWidth < minTableWidth;
             }
 
             function setupEventListeners() {
