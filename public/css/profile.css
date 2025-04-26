@@ -48,23 +48,32 @@
 }
 
 .profile-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap-reverse;
+  flex-direction: row-reverse;
 }
 
-.profile-stats .stat-box {
-    flex: 1 1 0;
-    min-width: 120px;
+.stat-box {
+  background-color: #f9f9f9;
+  padding: 10px 15px;
+  border-radius: 5px;
+  min-width: 100px;
+  text-align: center;
 }
 
-.profile-stats .stat-box:first-child {
-    flex: 34 34 0;
+.stat-box h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #7f8c8d;
 }
 
-.profile-stats .stat-box:nth-child(2),
-.profile-stats .stat-box:nth-child(3) {
-    flex: 33 33 0;
+.stat-box p {
+  margin: 5px 0 0 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c3e50;
 }
 
 .profile-links {
@@ -570,36 +579,5 @@
     width: 120px;
     height: 120px;
     margin-bottom: 10px;
-  }
-  .profile-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .stat-box {
-    width: 100%;
-    margin: 0;
-    box-sizing: border-box;
-  }
-  .profile-stats-row {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    width: 100%;
-  }
-  .profile-stats-row .stat-box {
-    width: 50%;
-    margin: 0;
-  }
-  .profile-stats {
-    flex-direction: column;
-  }
-  .profile-stats .stat-box,
-  .profile-stats-row .stat-box {
-    width: 100%;
-    min-width: unset;
-  }
-  .profile-stats-row .stat-box {
-    width: 50%;
   }
 }
