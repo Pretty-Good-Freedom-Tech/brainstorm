@@ -64,7 +64,7 @@
             
             <div id="tableContainer">
                 <div id="loadingIndicator" class="loading"></div>
-                <table id="profilesTable" style="display: none;">
+                <table id="mainProfilesTable" style="display: none;">
                     <thead>
                         <tr class="header-row">
                             <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
@@ -147,7 +147,7 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="profilesTableBody">
+                    <tbody id="mainProfilesTableBody">
                         <!-- Table data will be inserted here -->
                     </tbody>
                 </table>
@@ -240,7 +240,7 @@
         };
         
         // Global DOM element references
-        let tableBody, profilesTable, loadingIndicator, paginationContainer, statusMessage;
+        let tableBody, mainProfilesTable, loadingIndicator, paginationContainer, statusMessage;
         let filterPubkey, filterMinHops, filterMaxHops, filterMinPersonalizedPageRank, filterMaxPersonalizedPageRank;
         let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
@@ -253,8 +253,8 @@
             
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize DOM element references
-            tableBody = document.getElementById('profilesTableBody');
-            profilesTable = document.getElementById('profilesTable');
+            tableBody = document.getElementById('mainProfilesTableBody');
+            mainProfilesTable = document.getElementById('mainProfilesTable');
             loadingIndicator = document.getElementById('loadingIndicator');
             paginationContainer = document.getElementById('paginationContainer');
             statusMessage = document.getElementById('statusMessage');
@@ -324,7 +324,7 @@
             function fetchProfiles() {
                 // Show loading indicator
                 loadingIndicator.style.display = 'flex';
-                profilesTable.style.display = 'none';
+                mainProfilesTable.style.display = 'none';
                 paginationContainer.style.display = 'none';
                 
                 // Build query parameters
@@ -391,7 +391,7 @@
                             
                             // Hide loading indicator
                             loadingIndicator.style.display = 'none';
-                            profilesTable.style.display = 'table';
+                            mainProfilesTable.style.display = 'table';
                             paginationContainer.style.display = 'flex';
                             
                             // Show success message
@@ -554,7 +554,7 @@
                 applyColumnVisibility();
                 
                 // Switch table to compact-table mode if needed
-                const tableElem = document.getElementById('profilesTable');
+                const tableElem = document.getElementById('mainProfilesTable');
                 if (isCompactTableMode()) {
                     tableElem.classList.add('compact-table');
                 } else {
@@ -953,7 +953,7 @@
             // Apply column visibility settings to the table
             function applyColumnVisibility() {
                 // Apply to header cells
-                const headerCells = document.querySelectorAll('#profilesTable th');
+                const headerCells = document.querySelectorAll('#mainProfilesTable th');
                 headerCells.forEach(cell => {
                     const columnId = cell.getAttribute('data-sort') || cell.className;
                     
@@ -976,7 +976,7 @@
                 });
                 
                 // Apply to data cells
-                const dataCells = document.querySelectorAll('#profilesTable tbody td');
+                const dataCells = document.querySelectorAll('#mainProfilesTable tbody td');
                 dataCells.forEach(cell => {
                     const columnId = cell.dataset.column;
                     if (columnId && state.columnVisibility && state.columnVisibility[columnId] === false) {
