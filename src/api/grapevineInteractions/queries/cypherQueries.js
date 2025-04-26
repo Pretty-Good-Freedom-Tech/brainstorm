@@ -210,7 +210,7 @@ module.exports = {
             `
         },
         {
-            interactionType: 'mutualFollowerCount',
+            interactionType: 'mutualFollowers',
             title: 'Mutual Followers',
             description: 'All profiles following both {{observer}} and {{observee}}.',
             cypherQuery: `
@@ -222,7 +222,7 @@ module.exports = {
             `
         },
         {
-            interactionType: 'mutualFollowCount',
+            interactionType: 'mutualFollows',
             title: 'Mutual Follows',
             description: 'All profiles followed by both {{observer}} and {{observee}}.',
             cypherQuery: `
