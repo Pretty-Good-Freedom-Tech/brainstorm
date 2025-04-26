@@ -570,6 +570,7 @@
                     profilePicCell.className = 'profile-pic-cell';
                     profilePicCell.dataset.column = 'profile-pic-col';
                     profilePicCell.dataset.pubkey = profile.pubkey;
+                    profilePicCell.setAttribute('data-label', 'Pic');
                     const profileLink = document.createElement('a');
                     profileLink.href = `/profile.html?pubkey=${encodeURIComponent(profile.pubkey)}`;
                     profileLink.target = '_blank';
@@ -591,6 +592,7 @@
                             const pubkeyCell = document.createElement('td');
                             pubkeyCell.className = 'pubkey-cell';
                             pubkeyCell.dataset.column = 'pubkey';
+                            pubkeyCell.setAttribute('data-label', col.name);
                             const pubkeyLink = document.createElement('a');
                             pubkeyLink.href = `https://njump.me/p/${profile.pubkey}`;
                             pubkeyLink.target = '_blank';
@@ -605,7 +607,7 @@
                             let decimals = 0;
                             if (col.id === 'personalizedPageRank' || col.id === 'influence') decimals = 6;
                             else if (col.id === 'average' || col.id === 'confidence' || col.id === 'input') decimals = 2;
-                            addNumericCell(row, value, decimals, col.id);
+                            addNumericCell(row, value, decimals, col.id, col.name);
                         }
                     });
 
@@ -706,11 +708,13 @@
                 }
             }
             
-            function addNumericCell(row, value, decimals = 0, columnId) {
+            function addNumericCell(row, value, decimals = 0, columnId, columnLabel) {
                 const cell = document.createElement('td');
                 cell.className = 'numeric-cell';
                 cell.dataset.column = columnId;
-                
+                if (columnLabel) {
+                    cell.setAttribute('data-label', columnLabel);
+                }
                 if (value !== null && value !== undefined) {
                     const formattedValue = typeof value === 'number' 
                         ? value.toFixed(decimals)
