@@ -302,14 +302,14 @@
                     if (this.value === '' || /^-?\d*(\.\d*)?$/.test(this.value)) {
                         filters[col.id + 'Min'] = this.value;
                         page = 1;
-                        renderTable();
+                        // Do not call renderTable() here; let event bubble
                     } else {
-                        // Optionally: mark invalid
                         this.classList.add('input-error');
                     }
                 });
                 minInput.addEventListener('blur', function() {
                     this.classList.remove('input-error');
+                    renderTable(); // Only re-render on blur
                 });
                 const maxInput = document.createElement('input');
                 maxInput.type = 'text';
@@ -323,13 +323,14 @@
                     if (this.value === '' || /^-?\d*(\.\d*)?$/.test(this.value)) {
                         filters[col.id + 'Max'] = this.value;
                         page = 1;
-                        renderTable();
+                        // Do not call renderTable() here; let event bubble
                     } else {
                         this.classList.add('input-error');
                     }
                 });
                 maxInput.addEventListener('blur', function() {
                     this.classList.remove('input-error');
+                    renderTable(); // Only re-render on blur
                 });
                 filterStack.appendChild(minInput);
                 filterStack.appendChild(maxInput);
@@ -403,6 +404,23 @@
         document.getElementById('loadingIndicator').style.display = 'none';
         renderPagination(total, pages);
     }
+    // --- Interaction Metadata ---
+    const interactionMeta = {
+        follows: { title: 'Follows', description: 'lorem ipsum' },
+        verifiedFollows: { title: 'Verified Follows', description: 'lorem ipsum' },
+        followers: { title: 'Followers', description: 'lorem ipsum' },
+        verifiedFollowers: { title: 'Verified Followers', description: 'lorem ipsum' },
+        mutes: { title: 'Mutes', description: 'lorem ipsum' },
+        muters: { title: 'Muters', description: 'lorem ipsum' },
+        reports: { title: 'Reports', description: 'lorem ipsum' },
+        reporters: { title: 'Reporters', description: 'lorem ipsum' },
+        frens: { title: 'Frens', description: 'lorem ipsum' },
+        groupies: { title: 'Groupies', description: 'lorem ipsum' },
+        idols: { title: 'Idols', description: 'lorem ipsum' },
+        mutualFollows: { title: 'Mutual Follows', description: 'lorem ipsum' },
+        mutualFollowers: { title: 'Mutual Followers', description: 'lorem ipsum' },
+        mutualFrens: { title: 'Mutual Frens', description: 'lorem ipsum' }
+    };
     // --- API Fetch and Initialization ---
     function getQueryParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -411,8 +429,13 @@
     const observer = getQueryParam('observer');
     const observee = getQueryParam('observee');
     const interactionType = getQueryParam('interactionType');
-    // Set interactionType at top
-    document.getElementById('interactionTypeHeader').textContent = interactionType ? interactionType : '';
+    // Set interactionType at top with title/description
+    const header = document.getElementById('interactionTypeHeader');
+    if (interactionType && interactionMeta[interactionType]) {
+        header.innerHTML = `<div style="font-size:1.5em;font-weight:700;line-height:1.2">${interactionMeta[interactionType].title}</div><div style="font-size:1.04em;color:#666;margin-top:3px;max-width:600px;">${interactionMeta[interactionType].description}</div>`;
+    } else {
+        header.textContent = interactionType ? interactionType : '';
+    }
     function isValidPubkey(pubkey) {
         return typeof pubkey === 'string' && pubkey.length >= 32;
     }
