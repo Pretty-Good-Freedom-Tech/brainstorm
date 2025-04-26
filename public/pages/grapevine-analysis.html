@@ -49,6 +49,7 @@
     <script>
     // --- Column Definitions ---
     const grapevineColumns = [
+        { id: 'pic', label: 'Pic', visible: true },
         { id: 'pubkey', label: 'Pubkey', visible: true },
         { id: 'hops', label: 'Hops', visible: true },
         { id: 'influence', label: 'Influence', visible: true }
@@ -152,6 +153,30 @@
             renderTable();
         };
     }
+    // --- Profile Picture Cache (shared pattern) ---
+    const profileCache = {};
+    function loadProfilePicture(pubkey, imgElement) {
+        if (profileCache[pubkey]) {
+            imgElement.src = profileCache[pubkey];
+            return;
+        }
+        // Try to fetch kind0 profile (nip05, etc.), fallback to default avatar
+        fetch(`/api/export/users/queries/userdata.js?pubkey=${encodeURIComponent(pubkey)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.picture) {
+                    imgElement.src = data.picture;
+                    profileCache[pubkey] = data.picture;
+                } else {
+                    imgElement.src = '/control/img/default-avatar.svg';
+                    profileCache[pubkey] = '/control/img/default-avatar.svg';
+                }
+            })
+            .catch(() => {
+                imgElement.src = '/control/img/default-avatar.svg';
+                profileCache[pubkey] = '/control/img/default-avatar.svg';
+            });
+    }
     // --- Table Rendering (with Pagination) ---
     let allProfiles = [];
     function renderTable() {
@@ -165,6 +190,7 @@
             if (!columnVisibility[col.id]) return;
             const th = document.createElement('th');
             th.textContent = col.label;
+            if (col.id === 'pic') th.style.width = '44px';
             th.style.cursor = 'pointer';
             th.onclick = function() {
                 if (sortBy === col.id) sortOrder = (sortOrder === 'asc' ? 'desc' : 'asc');
@@ -179,6 +205,10 @@
         grapevineColumns.forEach(col => {
             if (!columnVisibility[col.id]) return;
             const th = document.createElement('th');
+            if (col.id === 'pic') {
+                filterRow.appendChild(th); // no filter for pic
+                return;
+            }
             const input = document.createElement('input');
             input.type = 'text';
             input.value = filters[col.id] || '';
@@ -207,7 +237,16 @@
             grapevineColumns.forEach(col => {
                 if (!columnVisibility[col.id]) return;
                 const td = document.createElement('td');
-                td.textContent = row[col.id];
+                if (col.id === 'pic') {
+                    const img = document.createElement('img');
+                    img.alt = 'profile';
+                    img.width = 36; img.height = 36;
+                    img.style = 'border-radius:50%;object-fit:cover;background:#eee;';
+                    loadProfilePicture(row.pubkey, img);
+                    td.appendChild(img);
+                } else {
+                    td.textContent = row[col.id];
+                }
                 tr.appendChild(td);
             });
             tbody.appendChild(tr);
