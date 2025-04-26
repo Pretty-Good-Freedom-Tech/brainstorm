@@ -326,6 +326,21 @@ tr:hover {
     min-width: 40px;
 }
 
+.filter-inputs-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Optional: make sure min/max inputs don't get too wide on small screens */
+@media (max-width: 700px) {
+  .filter-inputs-vertical input {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 /* Actions container */
 .actions-container {
     margin: 10px 0;

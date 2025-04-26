@@ -74,9 +74,9 @@
                         <th data-sort="hops" class="sort-desc">Hops</th>
                         <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
                         <th data-sort="influence" class="sort-desc">Influence</th>
-                        <th data-sort="average">Average</th>
-                        <th data-sort="confidence">Confidence</th>
-                        <th data-sort="input">Input</th>
+                        <th data-sort="average" class="sort-desc">Average</th>
+                        <th data-sort="confidence" class="sort-desc">Confidence</th>
+                        <th data-sort="input" class="sort-desc">Input</th>
                     </tr>
                     <tr class="filter-row">
                         <th></th>
@@ -84,61 +84,61 @@
                             <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinVerifiedFollowers" placeholder="Min" min="0" class="table-filter small-input">
                                 <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" min="0" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinNip56TotalGrapeRankScore" placeholder="Min" min="0" class="table-filter small-input">
                                 <input type="number" id="filterMaxNip56TotalGrapeRankScore" placeholder="Max" min="0" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinNip56TotalVerifiedReportCount" placeholder="Min" min="0" class="table-filter small-input">
                                 <input type="number" id="filterMaxNip56TotalVerifiedReportCount" placeholder="Max" min="0" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinNip56TotalReportCount" placeholder="Min" min="0" class="table-filter small-input">
                                 <input type="number" id="filterMaxNip56TotalReportCount" placeholder="Max" min="0" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinHops" placeholder="Min" min="0" max="20" class="table-filter small-input">
                                 <input type="number" id="filterMaxHops" placeholder="Max" min="1" max="20" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
-                                <input type="number" id="filterMinRank" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
-                                <input type="number" id="filterMaxRank" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
+                            <div class="filter-inputs filter-inputs-vertical">
+                                <input type="number" id="filterMinPersonalizedPageRank" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
+                                <input type="number" id="filterMaxPersonalizedPageRank" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinInfluence" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
                                 <input type="number" id="filterMaxInfluence" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinAverage" placeholder="Min" min="-1" max="1" step="0.01" class="table-filter small-input">
                                 <input type="number" id="filterMaxAverage" placeholder="Max" min="-1" max="1" step="0.01" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinConfidence" placeholder="Min" min="0" max="1" step="0.01" class="table-filter small-input">
                                 <input type="number" id="filterMaxConfidence" placeholder="Max" min="0" max="1" step="0.01" class="table-filter small-input">
                             </div>
                         </th>
                         <th>
-                            <div class="filter-inputs">
+                            <div class="filter-inputs filter-inputs-vertical">
                                 <input type="number" id="filterMinInput" placeholder="Min" min="0" step="0.01" class="table-filter small-input">
                                 <input type="number" id="filterMaxInput" placeholder="Max" min="0" step="0.01" class="table-filter small-input">
                             </div>
