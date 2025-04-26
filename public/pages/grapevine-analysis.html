@@ -409,49 +409,32 @@
         const p = profileCache[pubkey];
         return (p && (p.display_name || p.name)) ? (p.display_name || p.name) : pubkey;
     }
-    // --- Interaction Metadata ---
-    const interactionMeta = {
-        follows: { title: 'Follows', description: 'unable to retrieve' },
-        verifiedFollows: { title: 'Verified Follows', description: 'unable to retrieve' },
-        followers: { title: 'Followers', description: 'unable to retrieve' },
-        verifiedFollowers: { title: 'Verified Followers', description: 'unable to retrieve' },
-        mutes: { title: 'Mutes', description: 'unable to retrieve' },
-        muters: { title: 'Muters', description: 'unable to retrieve' },
-        reports: { title: 'Reports', description: 'unable to retrieve' },
-        reporters: { title: 'Reporters', description: 'unable to retrieve' },
-        frens: { title: 'Frens', description: 'unable to retrieve' },
-        groupies: { title: 'Groupies', description: 'unable to retrieve' },
-        idols: { title: 'Idols', description: 'unable to retrieve' },
-        mutualFollows: { title: 'Mutual Follows', description: 'unable to retrieve' },
-        mutualFollowers: { title: 'Mutual Followers', description: 'unable to retrieve' },
-        mutualFrens: { title: 'Mutual Frens', description: 'unable to retrieve' }
-    };
     // --- API Fetch and Initialization ---
-    function getQueryParam(name) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
+    function setHeaderFromMeta(meta) {
+        const header = document.getElementById('interactionTypeHeader');
+        let observerDisplayName = observer ? getDisplayName(observer) : observer;
+        let observeeDisplayName = observee ? getDisplayName(observee) : observee;
+        if (meta && meta.title && meta.description) {
+            let desc = meta.description;
+            desc = desc.replace(/\{\{observer\}\}/g, observerDisplayName || '').replace(/\{\{observee\}\}/g, observeeDisplayName || '');
+            header.innerHTML = `<div style=\"font-size:1.5em;font-weight:700;line-height:1.2\">${meta.title}</div><div style=\"font-size:1.04em;color:#666;margin-top:3px;max-width:600px;\">${desc}</div>`;
+        } else {
+            header.textContent = interactionType ? interactionType : '';
+        }
     }
     const observer = getQueryParam('observer');
     const observee = getQueryParam('observee');
     const interactionType = getQueryParam('interactionType');
-    // Set interactionType at top with title/description (with display name replacement)
-    const header = document.getElementById('interactionTypeHeader');
-    let observerDisplayName = observer ? getDisplayName(observer) : observer;
-    let observeeDisplayName = observee ? getDisplayName(observee) : observee;
-    if (interactionType && interactionMeta[interactionType]) {
-        let desc = interactionMeta[interactionType].description;
-        desc = desc.replace(/\{\{observer\}\}/g, observerDisplayName || '').replace(/\{\{observee\}\}/g, observeeDisplayName || '');
-        header.innerHTML = `<div style="font-size:1.5em;font-weight:700;line-height:1.2">${interactionMeta[interactionType].title}</div><div style="font-size:1.04em;color:#666;margin-top:3px;max-width:600px;">${desc}</div>`;
-    } else {
-        header.textContent = interactionType ? interactionType : '';
+    function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
     }
     function refreshHeaderWithDisplayNames() {
-        if (interactionType && interactionMeta[interactionType]) {
-            let desc = interactionMeta[interactionType].description;
+        if (interactionType) {
             let observerDisplayName = observer ? getDisplayName(observer) : observer;
             let observeeDisplayName = observee ? getDisplayName(observee) : observee;
-            desc = desc.replace(/\{\{observer\}\}/g, observerDisplayName || '').replace(/\{\{observee\}\}/g, observeeDisplayName || '');
-            header.innerHTML = `<div style=\"font-size:1.5em;font-weight:700;line-height:1.2\">${interactionMeta[interactionType].title}</div><div style=\"font-size:1.04em;color:#666;margin-top:3px;max-width:600px;\">${desc}</div>`;
+            const header = document.getElementById('interactionTypeHeader');
+            header.innerHTML = `<div style=\"font-size:1.5em;font-weight:700;line-height:1.2\">${interactionType}</div>`;
         }
     }
     // When profileCache loads observer/observee, refresh header
@@ -479,6 +462,7 @@
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
                     allProfiles = data.data;
+                    setHeaderFromMeta(data.interactionTypeMetaData);
                     renderTable();
                 } else {
                     showError('API error: ' + (data.message || 'Unknown error'));
