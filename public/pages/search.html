@@ -16,8 +16,6 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h1>Search</h1>
-            <p>Search for profiles by npub</p>
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="npub...">
                 <button id="searchButton">Search</button>
@@ -125,10 +123,10 @@
             fetch(`/api/search/profiles?searchType=kind0&searchString=${searchInput2}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.success && data.pubkeys && data.pubkeys.length > 0) {
                         // Display search results
                         const searchResults2 = document.getElementById('searchResults2');
-                        searchResults2.innerHTML = data.output;
+                        searchResults2.innerHTML = data.pubkeys.map(pubkey => `<div>${pubkey}</div>`).join('');
                         searchResults2.style.display = 'block';
                     } else {
                         console.error('Search failed:', data.error);

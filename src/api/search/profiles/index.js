@@ -62,39 +62,72 @@ async function handleSearchProfiles(req, res) {
         }
     }
 
-    // if searchType == kind0, then use strfry to search
-    if (searchType === 'kind0') {
-        try {
-            let searchResult;
-            // Retrieve all kind 0 events from strfry database
-            // execute this bash command:
-            // sudo strfry scan '{"kind": [0]}'
-            // Build the command for all kind0 notes
-            const command = `sudo strfry scan '{"kind": [0]}'`;
-            console.log(`Executing command: ${command}`);
-            
-            exec(command, (error, stdout, stderr) => {
-                // Check if the response has already been sent
-                if (res.headersSent) {
-                    console.log('Response already sent, search continuing in background');
+    // Function to return list of pubkeys whose kind 0 events contain the search Strings 
+    function getAllMatchingKind0Profiles(searchString) {
+        return new Promise((resolve) => {
+            const cmd = `sudo strfry scan '{"kinds":[0], "limit": 1000}'`;
+            exec(cmd, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error getting matching profiles:`, error);
+                    resolve();
                     return;
                 }
                 
-                // if searchType == kind0, scan through events to find matches
-                const events = JSON.parse(stdout);
-                const matches = events.filter(event => event.content.includes(searchString));
-                return res.json({
-                    success: true,
-                    searchType,
-                    searchString,
-                    matches,
-                    error: null
-                });
+                try {
+                    // Parse pubkeys from output
+                    const aKind0Events = stdout.trim().split('\n');
+                    const pubkeys = aKind0Events.map(event => {
+                        if (!event) return null;
+                        if (event.includes(searchString)) {
+                            const oEvent = JSON.parse(event)
+                            return oEvent.pubkey
+                        }
+                        return null;
+                    }).filter(pubkey => pubkey !== null);
+                    resolve(pubkeys);
+                } catch (e) {
+                    console.error(`Error parsing pubkeys:`, e);
+                    resolve();
+                }
+                resolve();
             });
+        });
+    }
+
+    // if searchType == kind0, then use strfry to search
+    if (searchType === 'kind0') {
+        try {
+            // Array to collect promises for parallel execution
+            const promises = [];
+            promises.push(getAllMatchingKind0Profiles(searchString));
+            Promise.all(promises)
+                .then(results => {
+                    const pubkeys = results[0];
+                    if (!pubkeys || pubkeys.length === 0) {
+                        return res.json({
+                            success: true,
+                            message: 'No matching profiles found',
+                            pubkeys: []
+                        });
+                    }
+                    return res.json({
+                        success: true,
+                        message: 'kind0 search results',
+                        numPubkeys: pubkeys.length,
+                        pubkeys
+                    });
+                })
+                .catch(error => {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'kind0 search failure',
+                        error
+                    });
+                });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: 'strfry scan failure',
+                message: 'kind0 search failure',
                 error
             });
         }
