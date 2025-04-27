@@ -708,52 +708,51 @@ tr:hover {
 .column-panel-controls {
     display: flex;
     align-items: center;
-    gap: 3px;
-    margin-left: 0.5em;
+    gap: 6px;
+    margin-bottom: 6px;
 }
-.column-panel-controls span {
-    font-weight: 600;
-    font-size: 1.03em;
-    letter-spacing: 0.01em;
-    color: #444;
-}
-.columns-btn {
-    background: #f6f6fb;
-    border: 1.2px solid #bcbcf2;
-    border-radius: 5px;
-    color: #6b6b8d;
+#columnSettingsBtn {
     font-size: 1.06em;
-    font-weight: 600;
-    padding: 4px 8px;
-    min-width: 28px;
-    margin: 0 0.5px 0 0.5px;
-    transition: background 0.13s, border 0.13s;
-    box-shadow: 0 1px 2px rgba(120,120,160,0.03);
+    padding: 4px 4px;
+    min-width: 32px;
+    background-color: #95a5a6;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
+    transition: background-color 0.3s;
+}
+#columnSettingsBtn:hover {
+    background-color: #7a7d7d;
+}
+.column-settings-panel {
+    background: #f9f9f9;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 18px 18px 10px 18px;
+    margin-bottom: 10px;
+    margin-top: 0;
+    border: 1px solid #e0e0e0;
+    max-width: 420px;
+}
+#columnToggles label {
+    font-size: 1em;
+    margin-bottom: 7px;
+    color: #444;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
 }
-.columns-btn:hover, .columns-btn:focus {
-    background: #e4e4ff;
-    border-color: #7a4cff;
-    color: #4a3d7b;
+#columnToggles input[type='checkbox'] {
+    margin-right: 7px;
 }
-.panel {
-    background: #f8f8fa;
-    border: 1.2px solid #e3e3ee;
-    border-radius: 7px;
-    padding: 13px 18px 13px 18px;
-    box-shadow: 0 1px 4px rgba(120,120,160,0.04);
-    margin-bottom: 10px;
-    font-size: 1.02em;
-    color: #2d2d38;
+#resetColumnDefaultsBtn {
+    margin-top: 10px;
+    background-color: #95a5a6;
+    color: #fff;
 }
-#columnInfoPanel {
-    min-height: 32px;
-    font-size: 1.01em;
-    color: #555;
-    /* Placeholder for info text to be added later */
+#resetColumnDefaultsBtn:hover {
+    background-color: #7a7d7d;
 }
 
 /* Less prominent styling for Columns button in results row */

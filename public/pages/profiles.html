@@ -33,12 +33,10 @@
             <div class="actions-container">
                 <div class="filter-actions">
                     <div>
-                        <button id="columnSettingsBtn" class="secondary">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 5v14M5 12h14"></path>
-                            </svg>
-                            Columns
-                        </button>
+                        <div class="column-panel-controls">
+                            <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
+                            <button id="columnSettingsBtn" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
+                        </div>
                         <button id="applyFiltersBtn">Apply Filters</button>
                         <button id="resetFiltersBtn" class="secondary" style="display: none">Reset</button>
                     </div>
@@ -51,6 +49,7 @@
                 <div id="columnToggles">
                     <!-- Checkboxes will be added here dynamically -->
                 </div>
+                <button id="resetColumnDefaultsBtn" class="secondary" style="margin-top: 10px;">Reset Defaults</button>
             </div>
 
             <div id="tableContainer">
