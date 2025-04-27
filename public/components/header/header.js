@@ -438,6 +438,25 @@ function fetchUserProfile(pubkey) {
 }
 
 /**
+ * Initialize the hamburger menu
+ */
+function initializeHamburgerMenu() {
+    const btn = document.getElementById('hamburgerBtn');
+    const menu = document.getElementById('hamburgerMenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menu.classList.toggle('open');
+    });
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!menu.contains(e.target) && e.target !== btn) {
+            menu.classList.remove('open');
+        }
+    });
+}
+
+/**
  * Load the header component HTML
  */
 function loadHeaderComponent() {
@@ -462,6 +481,9 @@ function loadHeaderComponent() {
             
             // Initialize the header
             initializeHeader();
+
+            // Initialize the hamburger menu
+            initializeHamburgerMenu();
         })
         .catch(error => {
             console.error('Error loading header component:', error);
