@@ -160,6 +160,9 @@ function loadNavbar() {
                     
                     // After loading the navbar, highlight the current page
                     setTimeout(highlightCurrentPage, 0);
+                    
+                    // Initialize the hamburger menu
+                    initializeHamburgerMenu();
                 });
         })
         .catch(error => {
@@ -441,9 +444,11 @@ function fetchUserProfile(pubkey) {
  * Initialize the hamburger menu
  */
 function initializeHamburgerMenu() {
+    console.log(`Initializing hamburger menu`);
     const btn = document.getElementById('hamburgerBtn');
     const menu = document.getElementById('hamburgerMenu');
     if (!btn || !menu) return;
+    console.log(`Hamburger button and menu found`);
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         menu.classList.toggle('open');
@@ -481,9 +486,6 @@ function loadHeaderComponent() {
             
             // Initialize the header
             initializeHeader();
-
-            // Initialize the hamburger menu
-            initializeHamburgerMenu();
         })
         .catch(error => {
             console.error('Error loading header component:', error);
