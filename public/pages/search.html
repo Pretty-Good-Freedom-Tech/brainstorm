@@ -38,6 +38,9 @@
                 <input type="text" id="searchInput2" class="search-input" placeholder="Enter kind 0 search string (name, display_name, about, etc)">
                 <button id="searchButton2">Search</button>
             </div>
+            <br />
+            <p>TODO: stratify results by WoT score</p>
+            <br />
             <div id="searchResults2" class="search-results"  style="display: none;">
                 <!-- Search results will be dynamically added here -->
             </div>
@@ -139,7 +142,7 @@
                     if (data.success && data.pubkeys && data.pubkeys.length > 0) {
                         // Display search results
                         const searchResults2 = document.getElementById('searchResults2');
-                        searchResults2.innerHTML = data.pubkeys.map(pubkey => `<div>${pubkey}</div>`).join('');
+                        searchResults2.innerHTML = data.pubkeys.map(pubkey => `<a href="/profile.html?pubkey=${pubkey}" target="_blank">${pubkey}</a>`).join('');
                         searchResults2.style.display = 'block';
                     } else {
                         console.error('Search failed:', data.error);
