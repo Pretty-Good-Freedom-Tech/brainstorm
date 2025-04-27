@@ -49,6 +49,8 @@
     <script>
         // Search by npub
         document.getElementById('searchButton').addEventListener('click', () => {
+            searchResultsPubkey.innerHTML = '';
+            searchResultsProfileCard.innerHTML = '';
             const searchInput = document.getElementById('searchInput').value;
 
             // Check if the input is a valid npub
@@ -117,6 +119,7 @@
 
         // Search by kind0 profile data
         document.getElementById('searchButton2').addEventListener('click', () => {
+            searchResults2.innerHTML = '';
             const searchInput2 = document.getElementById('searchInput2').value;
             
             // Send a GET request to the API endpoint
