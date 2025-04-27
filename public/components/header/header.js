@@ -95,6 +95,7 @@ function loadNavbar() {
         || currentPath === '/about.html'
         || currentPath === '/subscribe.html'
         || currentPath === '/profile.html'
+        || currentPath === '/grapevine-analysis.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
