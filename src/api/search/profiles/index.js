@@ -7,7 +7,7 @@
  * Returns an array of pubkeys
  */
 
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const nostrTools = require('nostr-tools');
 
 /**
@@ -65,22 +65,24 @@ async function handleSearchProfiles(req, res) {
     // Function to return list of pubkeys whose kind 0 events contain the search Strings 
     function getAllMatchingKind0Profiles(searchString) {
         return new Promise((resolve) => {
-            const strfryCommand = `sudo strfry scan '{"kinds":[0], "limit": 1000}'`;
-            exec(strfryCommand, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error getting matching profiles:`, error);
-                    resolve();
-                    return;
-                }
-                
+            const args = ['strfry', 'scan', '{"kinds":[0], "limit": 5000}'];
+            const strfryProcess = spawn('sudo', args);
+            let output = '';
+            strfryProcess.stdout.on('data', (data) => {
+                output += data.toString();
+            });
+            strfryProcess.stderr.on('data', (data) => {
+                console.error(`strfry error: ${data}`);
+            });
+            strfryProcess.on('close', (code) => {
                 try {
-                    // Parse pubkeys from output
-                    const aKind0Events = stdout.trim().split('\n');
+                    // Each line is a JSON event
+                    const aKind0Events = output.trim().split('\n');
                     const pubkeys = aKind0Events.map(event => {
                         if (!event) return null;
                         if (event.includes(searchString)) {
-                            const oEvent = JSON.parse(event)
-                            return oEvent.pubkey
+                            const oEvent = JSON.parse(event);
+                            return oEvent.pubkey;
                         }
                         return null;
                     }).filter(pubkey => pubkey !== null);
@@ -89,7 +91,6 @@ async function handleSearchProfiles(req, res) {
                     console.error(`Error parsing pubkeys:`, e);
                     resolve();
                 }
-                resolve();
             });
         });
     }
