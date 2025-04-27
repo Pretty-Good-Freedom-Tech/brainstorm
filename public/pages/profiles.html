@@ -21,8 +21,6 @@
                     <button id="exportCsvBtn" class="secondary" style="display: none">Export CSV</button>
                 </div>
             </div>
-            
-            <div id="statusMessage" style="display: none;"></div>
 
             <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
                 <!-- Profile count information -->
@@ -32,22 +30,13 @@
                 <div class="column-panel-controls">
                     <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
                     <button id="columnSettingsBtn" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
-                </div>
-                <div>
                     <button id="applyFiltersBtn">Apply Filters</button>
                     <button id="resetFiltersBtn" class="secondary" style="display: none">Reset</button>
                 </div>
             </div>
-            
-            <!-- Limit selection and action buttons -->
-            <div class="actions-container">
-                <div class="filter-actions">
-                    <div>
-                        deprecating
-                    </div>
-                </div>
-            </div>
-            
+
+            <div id="statusMessage" style="display: none;"></div>
+
             <!-- Column settings panel -->
             <div id="columnSettingsPanel" class="panel" style="display: none; margin-bottom: 10px;">
                 <h3>Column Visibility</h3>
