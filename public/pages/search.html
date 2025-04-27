@@ -142,7 +142,7 @@
                     if (data.success && data.pubkeys && data.pubkeys.length > 0) {
                         // Display search results
                         const searchResults2 = document.getElementById('searchResults2');
-                        searchResults2.innerHTML = data.pubkeys.map(pubkey => `<a href="/profile.html?pubkey=${pubkey}" target="_blank">${pubkey}</a>`).join('');
+                        searchResults2.innerHTML = data.pubkeys.map(pubkey => `<div><a href="/profile.html?pubkey=${pubkey}" target="_blank">${pubkey}</a></div>`).join('');
                         searchResults2.style.display = 'block';
                     } else {
                         console.error('Search failed:', data.error);
