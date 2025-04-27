@@ -19,7 +19,7 @@
             <h1>Search</h1>
             <p>Search for profiles by kind0 (name, username, about, picture, banner, lnpub):</p>
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search...">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search...">
                 <button id="searchButton">Search</button>
             </div>
             <div id="searchResults" class="search-results"  style="display: none;">
@@ -27,11 +27,16 @@
             </div>
             <p>Search for profiles by npub:</p>
             <div class="search-container">
-                <input type="text" id="searchInput2" placeholder="Search...">
+                <input type="text" id="searchInput2" class="search-input" placeholder="Search...">
                 <button id="searchButton2">Search</button>
             </div>
             <div id="searchResults2" class="search-results"  style="display: none;">
                 <!-- Search results will be dynamically added here -->
+            </div>
+
+            <div id="profileCard" class="profile-card"  style="display: none;">
+                <!-- Profile card will be dynamically added here
+                 will contain profile information includig picture, displayName, username, about, and will link to profile page -->
             </div>
             
         </div>
@@ -51,8 +56,43 @@
                     if (data.success) {
                         // Display search results
                         const searchResults = document.getElementById('searchResults');
-                        searchResults.innerHTML = data.output;
                         searchResults.style.display = 'block';
+                        const decodeResultsType = data.decodeResultsType
+                        if (decodeResultsType == 'npub') {
+                            searchResults.innerHTML = data.pubkey;
+                            // fetch kind0 data from pubkey using get-kind0 API endpoint
+                            fetch(`/control/api/get-kind0?pubkey=${data.pubkey}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Display profile card
+                                        const profileCard = document.getElementById('profileCard');
+                                        profileCard.style.display = 'block';
+                                        const profileHTML = `
+                                            <div class="profile-card">
+                                                <a href="/profile.html?pubkey=${data.pubkey}" target="_blank" class="profile-link">
+                                                    <div class="profile-image">
+                                                        <img src="${data.data.content.picture || '/control/img/default-avatar.svg'}" alt="${data.data.content.name || 'Unknown'}">
+                                                    </div>
+                                                    <div class="profile-info">
+                                                        <h3 class="profile-name">${data.data.content.name || 'Unknown'}</h3>
+                                                        <p class="profile-handle">@${data.data.content.username || 'Unknown'}</p>
+                                                        <p class="profile-about">${data.data.content.about || 'No bio'}</p>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        `;
+                                        profileCard.innerHTML = profileHTML;
+                                    } else {
+                                        console.error('Failed to fetch profile data:', data.error);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error during profile data fetch:', error);
+                                });
+                        } else {
+                            searchResults.innerHTML = 'Invalid search type';
+                        }
                     } else {
                         console.error('Search failed:', data.error);
                     }

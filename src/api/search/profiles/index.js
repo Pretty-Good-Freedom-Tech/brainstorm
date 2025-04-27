@@ -34,18 +34,23 @@ async function handleSearchProfiles(req, res) {
         });
     }
 
-    let searchResult;
-
     // if searchType == npub, then use nip19 to get the pubkey
     if (searchType === 'npub') {
         try {
-            searchResult = nostrTools.nip19.decode(searchString);
+            const decodeResults = nostrTools.nip19.decode(searchString);
+            if (decodeResults.type !== 'npub') {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid search type; expecting npub'
+                });
+            }
             // return here
             return res.json({
                 success: true,
                 searchType,
                 searchString,
-                output: searchResult,
+                decodeResultsType: decodeResults.type,
+                pubkey: decodeResults.data,
                 error: null
             });
         } catch (error) {
@@ -60,6 +65,7 @@ async function handleSearchProfiles(req, res) {
     // if searchType == kind0, then use strfry to search
     if (searchType === 'kind0') {
         try {
+            let searchResult;
             // Retrieve all kind 0 events from strfry database
             // execute this bash command:
             // sudo strfry scan '{"kind": [0]}'
