@@ -171,9 +171,19 @@
             }
             
             // Default settings if none saved
+            const isNarrow = window.innerWidth <= 700;
             const defaults = {};
             columns.forEach(col => {
-                defaults[col.id] = col.defaultVisible;
+                if (isNarrow) {
+                    // Default ON for Pic, Verified Followers, Hops, Influence; OFF for others
+                    defaults[col.id] = (
+                        col.id === 'profile-pic-col' ||
+                        col.id === 'verifiedFollowerCount' ||
+                        col.id === 'influence'
+                    );
+                } else {
+                    defaults[col.id] = true;
+                }
             });
             return defaults;
         }
@@ -526,6 +536,31 @@
                 
                 // Initialize column toggles
                 initColumnToggles();
+                
+                // Reset Defaults button
+                const resetDefaultsBtn = document.getElementById('resetColumnDefaultsBtn');
+                if (resetDefaultsBtn) {
+                    resetDefaultsBtn.addEventListener('click', function() {
+                        const isNarrow = window.innerWidth <= 700;
+                        state.columnVisibility = {};
+                        columns.forEach(col => {
+                            if (isNarrow) {
+                                state.columnVisibility[col.id] = (
+                                    col.id === 'profile-pic-col' ||
+                                    col.id === 'verifiedFollowerCount' ||
+                                    col.id === 'hops' ||
+                                    col.id === 'influence'
+                                );
+                            } else {
+                                state.columnVisibility[col.id] = true;
+                            }
+                        });
+                        saveColumnVisibility();
+                        initColumnToggles();
+                        applyColumnVisibility();
+                        renderTable();
+                    });
+                }
             }
             
             function renderTable() {
