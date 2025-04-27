@@ -755,6 +755,17 @@ tr:hover {
     background-color: #7a7d7d;
 }
 
+.panel {
+    background: #f8f8fa;
+    border: 1.2px solid #e3e3ee;
+    border-radius: 7px;
+    padding: 13px 18px 13px 18px;
+    box-shadow: 0 1px 4px rgba(120,120,160,0.04);
+    margin-bottom: 10px;
+    font-size: 1.02em;
+    color: #2d2d38;
+}
+
 /* Less prominent styling for Columns button in results row */
 .columns-btn {
     background: #f7f3ff !important;

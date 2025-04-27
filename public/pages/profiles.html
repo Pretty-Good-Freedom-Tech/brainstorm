@@ -23,22 +23,27 @@
             </div>
             
             <div id="statusMessage" style="display: none;"></div>
-            
-            <!-- Profile count information -->
-            <div class="profile-counts">
-                Showing <span id="filteredCount">0</span> filtered profiles out of <span id="totalCount">0</span> total
+
+            <div class="results-row" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
+                <!-- Profile count information -->
+                <div class="profile-counts">
+                    Showing <span id="filteredCount">0</span> filtered profiles out of <span id="totalCount">0</span> total
+                </div>
+                <div class="column-panel-controls">
+                    <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
+                    <button id="columnSettingsBtn" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
+                </div>
+                <div>
+                    <button id="applyFiltersBtn">Apply Filters</button>
+                    <button id="resetFiltersBtn" class="secondary" style="display: none">Reset</button>
+                </div>
             </div>
             
             <!-- Limit selection and action buttons -->
             <div class="actions-container">
                 <div class="filter-actions">
                     <div>
-                        <div class="column-panel-controls">
-                            <span style="font-weight: 600; font-size: 1.03em; letter-spacing: 0.01em;">Columns</span>
-                            <button id="columnSettingsBtn" class="secondary" title="Toggle column visibility" style="font-size: 1.06em; padding: 4px 4px; min-width: 32px;">+</button>
-                        </div>
-                        <button id="applyFiltersBtn">Apply Filters</button>
-                        <button id="resetFiltersBtn" class="secondary" style="display: none">Reset</button>
+                        deprecating
                     </div>
                 </div>
             </div>
