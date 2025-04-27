@@ -237,7 +237,7 @@
         let filterMinNip56TotalGrapeRankScore, filterMaxNip56TotalGrapeRankScore;
         let filterMinNip56TotalVerifiedReportCount, filterMaxNip56TotalVerifiedReportCount;
         let filterMinNip56TotalReportCount, filterMaxNip56TotalReportCount;
-        let limitSelect, applyFiltersBtn, resetFiltersBtn, refreshBtn, exportCsvBtn;
+        let applyFiltersBtn, resetFiltersBtn, refreshBtn, exportCsvBtn;
         let columnSettingsBtn, columnSettingsPanel, columnToggles;
             
         document.addEventListener('DOMContentLoaded', function() {
@@ -270,7 +270,6 @@
             filterMaxNip56TotalVerifiedReportCount = document.getElementById('filterMaxNip56TotalVerifiedReportCount');
             filterMinNip56TotalReportCount = document.getElementById('filterMinNip56TotalReportCount');
             filterMaxNip56TotalReportCount = document.getElementById('filterMaxNip56TotalReportCount');
-            limitSelect = document.getElementById('limitSelect');
             applyFiltersBtn = document.getElementById('applyFiltersBtn');
             resetFiltersBtn = document.getElementById('resetFiltersBtn');
             refreshBtn = document.getElementById('refreshBtn');
@@ -305,7 +304,6 @@
             filterMaxNip56TotalReportCount.value = state.filters.maxNip56TotalReportCount;
             filterMinNip56TotalVerifiedReportCount.value = state.filters.minNip56TotalVerifiedReportCount;
             filterMaxNip56TotalVerifiedReportCount.value = state.filters.maxNip56TotalVerifiedReportCount;
-            limitSelect.value = state.pagination.limit;
             
             // Load initial data
             fetchProfiles();
@@ -459,8 +457,8 @@
                     state.filters.maxNip56TotalVerifiedReportCount = filterMaxNip56TotalVerifiedReportCount.value.trim();
                     state.filters.minNip56TotalReportCount = filterMinNip56TotalReportCount.value.trim();
                     state.filters.maxNip56TotalReportCount = filterMaxNip56TotalReportCount.value.trim();
-                    state.pagination.limit = parseInt(limitSelect.value);
-                    state.pagination.page = 1; // Reset to first page
+                    // state.pagination.limit = parseInt(limitSelect.value);
+                    // state.pagination.page = 1; // Reset to first page
                     fetchProfiles();
                 });
                 
