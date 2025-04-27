@@ -17,6 +17,7 @@
     <div class="page-content">
         <div class="container">
             <h2>Profile Search</h2>
+            <h3>Search by npub</h3>
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="npub...">
                 <button id="searchButton">Search</button>
@@ -27,6 +28,12 @@
             <div id="searchResultsProfileCard" class="search-results"  style="display: none;">
                 <!-- Search results (full profile) will be dynamically added here -->
             </div>
+            
+            <br />
+            
+            <h3>Search kind 0 notes by keyword</h3>
+            <p>(keyword search is currently very slow; timeout set to 3 minutes; optimizations pending)</p>
+
             <div class="search-container">
                 <input type="text" id="searchInput2" class="search-input" placeholder="Enter kind 0 search string (name, display_name, about, etc)">
                 <button id="searchButton2">Search</button>

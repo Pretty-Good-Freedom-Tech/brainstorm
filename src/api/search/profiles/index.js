@@ -16,6 +16,10 @@ const nostrTools = require('nostr-tools');
  * @param {Object} res - Express response object
  */
 async function handleSearchProfiles(req, res) {
+    // Set timeout to 3 minutes (180000 ms)
+    req.setTimeout(180000);
+    res.setTimeout(180000);
+
     const searchType = req.query.searchType; // npub (fragment), pubkey (fragment), kind0 (name, username, about, picture, banner, lnpub)
     const searchString = req.query.searchString;
     
@@ -65,7 +69,7 @@ async function handleSearchProfiles(req, res) {
     // Function to return list of pubkeys whose kind 0 events contain the search Strings 
     function getAllMatchingKind0Profiles(searchString) {
         return new Promise((resolve) => {
-            const args = ['strfry', 'scan', '{"kinds":[0], "limit": 5000}'];
+            const args = ['strfry', 'scan', '{"kinds":[0]}'];
             const strfryProcess = spawn('sudo', args);
             let output = '';
             strfryProcess.stdout.on('data', (data) => {
