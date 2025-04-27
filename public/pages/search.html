@@ -22,8 +22,11 @@
                 <input type="text" id="searchInput" class="search-input" placeholder="npub...">
                 <button id="searchButton">Search</button>
             </div>
-            <div id="searchResults" class="search-results"  style="display: none;">
-                <!-- Search results will be dynamically added here -->
+            <div id="searchResultsPubkey" class="search-results"  style="display: none;">
+                <!-- Search results (pubkey) will be dynamically added here -->
+            </div>
+            <div id="searchResultsProfileCard" class="search-results"  style="display: none;">
+                <!-- Search results (full profile) will be dynamically added here -->
             </div>
             <p>Search for profiles by kind0 profile data (name, username, about, picture, banner, etc)</p>
             <div class="search-container">
@@ -53,26 +56,38 @@
             // Send a GET request to the API endpoint
             fetch(`/api/search/profiles?searchType=npub&searchString=${searchInput}`)
                 .then(response => response.json())
-                .then(result => {
-                    if (result.success && result.data) {
-                        // Parse the kind 0 event content
-                        const event = result.data;
-                        const content = JSON.parse(event.content);
-                        if (content.name || content.display_name) {
-                            // Display profile card
-                            const profileCard = document.getElementById('profileCard');
-                            profileCard.innerHTML = `
-                                <img src="${content.picture}" alt="Profile Picture">
-                                <h2>${content.display_name || content.name}</h2>
-                                <p>${content.about}</p>
-                                <a href="/profile.html?pubkey=${event.pubkey}">View Profile</a>
-                            `;
-                            profileCard.style.display = 'block';
-                        } else {
-                            console.error('Search failed:', data.error);
-                        }
+                .then(data => {
+                    if (data.success) {
+                        // Display search results
+                        const searchResultsPubkey = document.getElementById('searchResultsPubkey');
+                        searchResultsPubkey.innerHTML = data.pubkey;
+                        searchResultsPubkey.style.display = 'block';
+                        // Now use the get-kind0 endpoint to get the profile data
+                        fetch(`/api/get-kind0?pubkey=${data.pubkey}`)
+                            .then(response => response.json())
+                            .then(result => {
+                                if (result.success && result.data) {
+                                    // Parse the kind 0 event content
+                                    const event = result.data;
+                                    const content = JSON.parse(event.content);
+                                    // Display the profile card
+                                    const profileCard = document.getElementById('searchResultsProfileCard');
+                                    profileCard.innerHTML = `
+                                        <img src="${content.picture}" alt="Profile Picture">
+                                        <h2>${content.display_name || content.name}</h2>
+                                        <p>${content.about}</p>
+                                        <a href="/profile.html?pubkey=${content.pubkey}">View Profile</a>
+                                    `;
+                                    profileCard.style.display = 'block';
+                                } else {
+                                    console.error('Failed to get profile data:', data.error);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error getting profile data:', error);
+                            });
                     } else {
-                        console.error('Search failed:', data.error);
+                        console.error('Search failed:', 'No profile data found');
                     }
                 })
                 .catch(error => {
