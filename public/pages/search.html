@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainstorm</title>
     <link rel="stylesheet" href="/css/search.css">
+    <link rel="stylesheet" href="/css/landing-page.css">
     <link rel="shortcut icon" href="/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
@@ -28,7 +29,7 @@
             <div id="searchResultsProfileCard" class="search-results"  style="display: none;">
                 <!-- Search results (full profile) will be dynamically added here -->
             </div>
-            <p>Search for profiles by kind0 profile data (name, username, about, picture, banner, etc)</p>
+            <p>Under construction: Search for profiles by kind0 profile data (name, username, about, picture, banner, etc)</p>
             <div class="search-container">
                 <input type="text" id="searchInput2" class="search-input" placeholder="Search...">
                 <button id="searchButton2">Search</button>
@@ -52,32 +53,54 @@
         // Search by npub
         document.getElementById('searchButton').addEventListener('click', () => {
             const searchInput = document.getElementById('searchInput').value;
+
+            // Check if the input is a valid npub
+            if (!searchInput.startsWith('npub1')) {
+                alert('Please enter a valid npub');
+                return;
+            }
+            const searchNpub = searchInput;
             
             // Send a GET request to the API endpoint
-            fetch(`/api/search/profiles?searchType=npub&searchString=${searchInput}`)
+            fetch(`/api/search/profiles?searchType=npub&searchString=${searchNpub}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         // Display search results
-                        const searchResultsPubkey = document.getElementById('searchResultsPubkey');
-                        searchResultsPubkey.innerHTML = data.pubkey;
-                        searchResultsPubkey.style.display = 'block';
+                        const searchResultPubkey = data.pubkey;
+                        const searchResultsPubkeyElem = document.getElementById('searchResultsPubkey');
+                        searchResultsPubkeyElem.innerHTML = searchResultPubkey;
+                        searchResultsPubkeyElem.style.display = 'block';
                         // Now use the get-kind0 endpoint to get the profile data
-                        fetch(`/api/get-kind0?pubkey=${data.pubkey}`)
+                        fetch(`/api/get-kind0?pubkey=${searchResultPubkey}`)
                             .then(response => response.json())
                             .then(result => {
                                 if (result.success && result.data) {
                                     // Parse the kind 0 event content
                                     const event = result.data;
                                     const content = JSON.parse(event.content);
+                                    // Extract profile details
+                                    const picture = content.picture || '/control/img/default-avatar.svg';
+                                    const name = content.name || 'Unknown';
+                                    const displayName = content.display_name || content.displayName || name;
                                     // Display the profile card
                                     const profileCard = document.getElementById('searchResultsProfileCard');
-                                    profileCard.innerHTML = `
-                                        <img src="${content.picture}" alt="Profile Picture">
-                                        <h2>${content.display_name || content.name}</h2>
-                                        <p>${content.about}</p>
-                                        <a href="/profile.html?pubkey=${content.pubkey}">View Profile</a>
+                                    // style profile card similarly to the landing page (index.html)
+                                    const profileHTML = `
+                                        <div class="profile-card">
+                                            <a href="/profile.html?pubkey=${searchResultPubkey}" target="_blank" class="profile-link">
+                                                <div class="profile-image">
+                                                    <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/control/img/default-avatar.svg'">
+                                                </div>
+                                                <div class="profile-info">
+                                                    <h3 class="profile-name">${displayName}</h3>
+                                                    <p class="profile-handle">@${name}</p>
+                                                    <p class="profile-npub">${searchNpub.substring(0, 8)}...${searchNpub.substring(searchNpub.length - 4)}</p>
+                                                </div>
+                                            </a>
+                                        </div>
                                     `;
+                                    profileCard.innerHTML = profileHTML;
                                     profileCard.style.display = 'block';
                                 } else {
                                     console.error('Failed to get profile data:', data.error);
