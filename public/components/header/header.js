@@ -96,6 +96,7 @@ function loadNavbar() {
         || currentPath === '/subscribe.html'
         || currentPath === '/profile.html'
         || currentPath === '/grapevine-analysis.html'
+        || currentPath === '/test.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
@@ -104,9 +105,17 @@ function loadNavbar() {
         || currentPath === '/control/about.html'
         || currentPath === '/control/subscribe.html'
         || currentPath === '/control/profile.html'
+        || currentPath === '/control/test.html'
     ) {
         navbarPath = '/components/header/navbars/nav1.html';
     }
+
+    if (
+        currentPath === '/test.html'
+    ) {
+        navbarPath = '/components/header/navbars/nav3.html';
+    }
+
 
     if (
         currentPath === '/personalized-recommendations.html'
