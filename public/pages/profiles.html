@@ -621,6 +621,10 @@
                         } else {
                             // Numeric/data cells
                             let value = profile[col.id];
+                            // correct for discrepancies between NIP-56 and GrapeRank
+                            if (col.id === 'nip56TotalGrapeRankScore') value = profile.nip56TotalGrapeRankScore;
+                            if (col.id === 'nip56TotalVerifiedReportCount') value = profile.nip56TotalVerifiedReportCount;
+                            if (col.id === 'nip56TotalReportCount') value = profile.nip56TotalReportCount;
                             let decimals = 0;
                             if (col.id === 'personalizedPageRank' || col.id === 'influence') decimals = 6;
                             else if (col.id === 'average' || col.id === 'confidence' || col.id === 'input') decimals = 2;
