@@ -70,6 +70,19 @@
     padding: 0 10px;
     justify-content: center;
 }
+
+/* Scrollable Navbar */
+.navbar-content-scrollable {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+.navbar-content-scrollable .nav-btn {
+    display: inline-block;
+    min-width: 90px;
+}
+
+/* Default Navbar */
 .nav-btn {
     background-color: #2196F3;
     color: white;
