@@ -98,6 +98,7 @@ function loadNavbar() {
         || currentPath === '/grapevine-analysis.html'
         || currentPath === '/test.html'
         || currentPath === '/search.html'
+        || currentPath === '/follow-recs.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
@@ -108,6 +109,7 @@ function loadNavbar() {
         || currentPath === '/control/profile.html'
         || currentPath === '/control/test.html'
         || currentPath === '/control/search.html'
+        || currentPath === '/control/follow-recs.html'
     ) {
         navbarPath = '/components/header/navbars/nav1.html';
     }
@@ -310,13 +312,14 @@ function highlightCurrentPage() {
         '/about.html': '/about',
         '/reconciliation.html': '/reconciliation',
         '/profiles.html': '/profiles',
-        '/profile.html': '/profiles',
+        '/profile.html': '/profile',
         '/graperank-control-panel.html': '/graperank',
         '/network-visualization.html': '/network-visualization',
         '/neo4j-control-panel.html': '/neo4j-control-panel',
         '/personalized-recommendations.html': '/personalized-recommendations',
         '/subscribe.html': '/subscribe',
         '/search.html': '/search',
+        '/follow-recs.html': '/follow-recs',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
@@ -327,13 +330,14 @@ function highlightCurrentPage() {
         '/control/about.html': '/control/about',
         '/control/reconciliation.html': '/control/reconciliation',
         '/control/profiles.html': '/control/profiles',
-        '/control/profile.html': '/control/profiles',
+        '/control/profile.html': '/control/profile',
         '/control/graperank-control-panel.html': '/control/graperank',
         '/control/network-visualization.html': '/control/network-visualization',
         '/control/neo4j-control-panel.html': '/control/neo4j-control-panel',
         '/control/personalized-recommendations.html': '/control/personalized-recommendations',
         '/control/subscribe.html': '/control/subscribe',
-        '/control/search.html': '/control/search'
+        '/control/search.html': '/control/search',
+        '/control/follow-recs.html': '/control/follow-recs'
     };
     
     // Get the matching prefix for the current path
