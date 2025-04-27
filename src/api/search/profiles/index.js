@@ -65,8 +65,8 @@ async function handleSearchProfiles(req, res) {
     // Function to return list of pubkeys whose kind 0 events contain the search Strings 
     function getAllMatchingKind0Profiles(searchString) {
         return new Promise((resolve) => {
-            const cmd = `sudo strfry scan '{"kinds":[0], "limit": 1000}'`;
-            exec(cmd, (error, stdout, stderr) => {
+            const strfryCommand = `sudo strfry scan '{"kinds":[0], "limit": 1000}'`;
+            exec(strfryCommand, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error getting matching profiles:`, error);
                     resolve();
