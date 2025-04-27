@@ -71,30 +71,44 @@ async function handleSearchProfiles(req, res) {
         return new Promise((resolve) => {
             const args = ['strfry', 'scan', '{"kinds":[0]}'];
             const strfryProcess = spawn('sudo', args);
-            let output = '';
+            let buffer = '';
+            const pubkeys = [];
             strfryProcess.stdout.on('data', (data) => {
-                output += data.toString();
+                buffer += data.toString();
+                let lines = buffer.split('\n');
+                buffer = lines.pop(); // Save incomplete line for next chunk
+                for (const line of lines) {
+                    if (!line) continue;
+                    if (!line.includes(searchString)) continue;
+                    try {
+                        const oEvent = JSON.parse(line);
+                        if (oEvent && oEvent.pubkey) {
+                            pubkeys.push(oEvent.pubkey);
+                        }
+                    } catch (e) {
+                        // Malformed JSON, skip this line
+                        continue;
+                    }
+                }
             });
             strfryProcess.stderr.on('data', (data) => {
                 console.error(`strfry error: ${data}`);
             });
             strfryProcess.on('close', (code) => {
-                try {
-                    // Each line is a JSON event
-                    const aKind0Events = output.trim().split('\n');
-                    const pubkeys = aKind0Events.map(event => {
-                        if (!event) return null;
-                        if (event.includes(searchString)) {
-                            const oEvent = JSON.parse(event);
-                            return oEvent.pubkey;
+                // Optionally process any remaining buffered line
+                if (buffer) {
+                    try {
+                        if (buffer.includes(searchString)) {
+                            const oEvent = JSON.parse(buffer);
+                            if (oEvent && oEvent.pubkey) {
+                                pubkeys.push(oEvent.pubkey);
+                            }
                         }
-                        return null;
-                    }).filter(pubkey => pubkey !== null);
-                    resolve(pubkeys);
-                } catch (e) {
-                    console.error(`Error parsing pubkeys:`, e);
-                    resolve();
+                    } catch (e) {
+                        // Ignore malformed last line
+                    }
                 }
+                resolve(pubkeys);
             });
         });
     }
