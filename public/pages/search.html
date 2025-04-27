@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm</title>
+    <link rel="stylesheet" href="/css/search.css">
+    <link rel="shortcut icon" href="/img/brainstorm010.svg">
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <h1>Search</h1>
+            <p>Search for profiles by kind0 (name, username, about, picture, banner, lnpub):</p>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search...">
+                <button id="searchButton">Search</button>
+            </div>
+            <div id="searchResults" class="search-results"  style="display: none;">
+                <!-- Search results will be dynamically added here -->
+            </div>
+            <p>Search for profiles by npub:</p>
+            <div class="search-container">
+                <input type="text" id="searchInput2" placeholder="Search...">
+                <button id="searchButton2">Search</button>
+            </div>
+            <div id="searchResults2" class="search-results"  style="display: none;">
+                <!-- Search results will be dynamically added here -->
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
+
+    <script>
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const searchInput = document.getElementById('searchInput').value;
+            
+            // Send a GET request to the API endpoint
+            fetch(`/api/search/profiles?searchField=npub&searchString=${searchInput}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Display search results
+                        const searchResults = document.getElementById('searchResults');
+                        searchResults.innerHTML = data.output;
+                        searchResults.style.display = 'block';
+                    } else {
+                        console.error('Search failed:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during search:', error);
+                });
+        });
+
+        document.getElementById('searchButton2').addEventListener('click', () => {
+            const searchInput2 = document.getElementById('searchInput2').value;
+            
+            // Send a GET request to the API endpoint
+            fetch(`/api/search/profiles?searchField=npub&searchString=${searchInput2}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Display search results
+                        const searchResults2 = document.getElementById('searchResults2');
+                        searchResults2.innerHTML = data.output;
+                        searchResults2.style.display = 'block';
+                    } else {
+                        console.error('Search failed:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during search:', error);
+                });
+        });
+    </script>
+</body>
+</html>

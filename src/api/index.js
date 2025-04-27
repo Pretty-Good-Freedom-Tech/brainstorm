@@ -19,6 +19,7 @@ const {
 } = require('../middleware/auth');
 const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
+const { handleSearchProfiles } = require('./search/profiles');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
@@ -197,6 +198,9 @@ function register(app) {
 
     // Grapevine Interactions endpoint
     app.get('/api/get-grapevine-interaction', handleGetGrapevineInteraction);
+
+    // Search endpoint
+    app.get('/api/search/profiles', handleSearchProfiles);
 
     console.log('Registered all Brainstorm API endpoints');
 }

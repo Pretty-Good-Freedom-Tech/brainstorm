@@ -97,6 +97,7 @@ function loadNavbar() {
         || currentPath === '/profile.html'
         || currentPath === '/grapevine-analysis.html'
         || currentPath === '/test.html'
+        || currentPath === '/search.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
@@ -106,6 +107,7 @@ function loadNavbar() {
         || currentPath === '/control/subscribe.html'
         || currentPath === '/control/profile.html'
         || currentPath === '/control/test.html'
+        || currentPath === '/control/search.html'
     ) {
         navbarPath = '/components/header/navbars/nav1.html';
     }
@@ -311,6 +313,7 @@ function highlightCurrentPage() {
         '/neo4j-control-panel.html': '/neo4j-control-panel',
         '/personalized-recommendations.html': '/personalized-recommendations',
         '/subscribe.html': '/subscribe',
+        '/search.html': '/search',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
@@ -326,7 +329,8 @@ function highlightCurrentPage() {
         '/control/network-visualization.html': '/control/network-visualization',
         '/control/neo4j-control-panel.html': '/control/neo4j-control-panel',
         '/control/personalized-recommendations.html': '/control/personalized-recommendations',
-        '/control/subscribe.html': '/control/subscribe'
+        '/control/subscribe.html': '/control/subscribe',
+        '/control/search.html': '/control/search'
     };
     
     // Get the matching prefix for the current path
