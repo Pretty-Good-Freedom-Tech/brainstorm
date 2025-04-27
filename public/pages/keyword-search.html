@@ -28,9 +28,28 @@
             <div id="searchResultsProfileCard" class="search-results"  style="display: none;">
                 <!-- Search results (full profile) will be dynamically added here -->
             </div>
+            
             <br />
-            <h2>Keyword Search (coming soon)</h2>
+            
+            <h3>Search kind 0 notes by keyword</h3>
+            <p>(keyword search is currently very slow; timeout set to 3 minutes; optimizations pending)</p>
+
+            <div class="search-container">
+                <input type="text" id="searchInput2" class="search-input" placeholder="Enter kind 0 search string (name, display_name, about, etc)">
+                <button id="searchButton2">Search</button>
+            </div>
             <br />
+            <p>TODO: stratify results by WoT score</p>
+            <br />
+            <div id="searchResults2" class="search-results"  style="display: none;">
+                <!-- Search results will be dynamically added here -->
+            </div>
+
+            <div id="profileCard" class="profile-card"  style="display: none;">
+                <!-- Profile card will be dynamically added here
+                 will contain profile information includig picture, displayName, username, about, and will link to profile page -->
+            </div>
+            <h2>Content Search (coming soon)</h2>
         </div>
     </div>
 
@@ -103,6 +122,31 @@
                             });
                     } else {
                         console.error('Search failed:', 'No profile data found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during search:', error);
+                });
+        });
+
+        // Search by kind0 profile data
+        document.getElementById('searchButton2').addEventListener('click', () => {
+            searchResultsPubkey.innerHTML = '';
+            searchResultsProfileCard.innerHTML = '';
+            searchResults2.innerHTML = '';
+            const searchInput2 = document.getElementById('searchInput2').value;
+            
+            // Send a GET request to the API endpoint
+            fetch(`/api/search/profiles?searchType=kind0&searchString=${searchInput2}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.pubkeys && data.pubkeys.length > 0) {
+                        // Display search results
+                        const searchResults2 = document.getElementById('searchResults2');
+                        searchResults2.innerHTML = data.pubkeys.map(pubkey => `<div><a href="/profile.html?pubkey=${pubkey}" target="_blank">${pubkey}</a></div>`).join('');
+                        searchResults2.style.display = 'block';
+                    } else {
+                        console.error('Search failed:', data.error);
                     }
                 })
                 .catch(error => {
