@@ -1,16 +1,79 @@
 <link rel="stylesheet" href="/control/css/header.css">
-
+<style>
+/* Minimal hamburger menu styles scoped to nav3 */
+.navbar-hamburger {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+.hamburger-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 10px;
+  margin-right: 10px;
+}
+.hamburger-menu {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  min-width: 170px;
+  z-index: 1000;
+}
+.hamburger-menu.open {
+  display: flex;
+}
+.hamburger-menu .nav-btn {
+  margin: 0;
+  border-radius: 0;
+  border-bottom: 1px solid #eee;
+  background: none;
+  color: #2196F3;
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 1.07em;
+}
+.hamburger-menu .nav-btn:last-child {
+  border-bottom: none;
+}
+@media (min-width: 700px) {
+  .navbar-hamburger { display: none; }
+}
+</style>
 <div class="navbar">
-    <div class="navbar-content-scrollable">
-        <a href="#" class="nav-btn">Test 1</a>
-        <a href="#" class="nav-btn">Test 2</a>
-        <a href="#" class="nav-btn">Test 3</a>
-        <a href="#" class="nav-btn">Test 4</a>
-        <a href="#" class="nav-btn">Test 5</a>
-        <a href="#" class="nav-btn">Test 6</a>
-        <a href="#" class="nav-btn">Test 7</a>
-        <a href="#" class="nav-btn">Test 8</a>
-        <a href="#" class="nav-btn">Test 9</a>
-        <a href="#" class="nav-btn">Test 10</a>
-    </div>
+  <div class="navbar-hamburger">
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">☰</button>
+    <span style="font-weight: bold; font-size: 1.13em;">Hamburger Demo</span>
+    <nav class="hamburger-menu" id="hamburgerMenu">
+      <a href="#" class="nav-btn">Test 1</a>
+      <a href="#" class="nav-btn">Test 2</a>
+      <a href="#" class="nav-btn">Test 3</a>
+      <a href="#" class="nav-btn">Test 4</a>
+      <a href="#" class="nav-btn">Test 5</a>
+      <a href="#" class="nav-btn">Test 6</a>
+    </nav>
+  </div>
 </div>
+<script>
+(function() {
+  const btn = document.getElementById('hamburgerBtn');
+  const menu = document.getElementById('hamburgerMenu');
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    menu.classList.toggle('open');
+  });
+  // Close menu when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!menu.contains(e.target) && e.target !== btn) {
+      menu.classList.remove('open');
+    }
+  });
+})();
+</script>
