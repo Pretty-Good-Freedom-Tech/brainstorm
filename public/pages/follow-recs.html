@@ -21,9 +21,89 @@
             <p>Top 20 profiles based on influence score that you do not already follow</p>
             <p>(Coming soon: add requirement: who have been posting recently)</p>
         </div>
+        <div id="follow-recs-container"></div>
     </div>
 
     <!-- Include the footer component -->
     <div id="footerContainer"></div>
+    <script>
+        // Fetch an ordered list of pubkeys from the API endpoint
+        async function loadFollowRecommendations() {
+            const container = document.getElementById('follow-recs-container');
+            container.innerHTML = '<div class="loading">Loading recommendations...</div>';
+            try {
+                // Fetch the top 100 by influence (we'll display only the top 20)
+                const res = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1');
+                const data = await res.json();
+                if (!data.success || !Array.isArray(data.profiles)) {
+                    container.innerHTML = '<div class="error">Failed to load recommendations.</div>';
+                    return;
+                }
+                // Filter out profiles the user already follows (coming soon: use real follow list)
+                const profiles = data.profiles.slice(0, 20); // Top 20
+                if (profiles.length === 0) {
+                    container.innerHTML = '<div class="no-results">No recommendations found.</div>';
+                    return;
+                }
+                // Fetch kind0 profile data for each pubkey
+                const profilePromises = profiles.map(async (profile) => {
+                    try {
+                        const resp = await fetch(`/api/get-kind0?pubkey=${profile.pubkey}`);
+                        const kind0 = await resp.json();
+                        return { ...profile, kind0 };
+                    } catch (e) {
+                        return { ...profile, kind0: null };
+                    }
+                });
+                const profilesWithKind0 = await Promise.all(profilePromises);
+
+                // Render recommendations
+                container.innerHTML = '';
+                profilesWithKind0.forEach(profile => {
+                    const card = document.createElement('div');
+                    card.className = 'follow-rec-card';
+                    card.onclick = () => window.location = `/profile.html?pubkey=${profile.pubkey}`;
+
+                    // Profile picture
+                    let picUrl = profile.kind0 && profile.kind0.picture ? profile.kind0.picture : '/img/default-profile.png';
+                    const img = document.createElement('img');
+                    img.src = picUrl;
+                    img.alt = 'Profile Picture';
+                    img.className = 'follow-rec-pic';
+                    card.appendChild(img);
+
+                    // Display name
+                    const name = document.createElement('div');
+                    name.className = 'follow-rec-name';
+                    name.textContent = profile.kind0 && profile.kind0.display_name
+                        ? profile.kind0.display_name
+                        : (profile.kind0 && profile.kind0.name) || profile.pubkey.substring(0, 12) + '...';
+                    card.appendChild(name);
+
+                    // Hops
+                    const hops = document.createElement('div');
+                    hops.className = 'follow-rec-hops';
+                    hops.textContent = `Hops: ${profile.hops ?? '-'} `;
+                    card.appendChild(hops);
+
+                    // Influence score
+                    const influence = document.createElement('div');
+                    influence.className = 'follow-rec-influence';
+                    influence.textContent = `Influence: ${profile.influence !== undefined ? Number(profile.influence).toFixed(4) : '-'}`;
+                    card.appendChild(influence);
+
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                container.innerHTML = '<div class="error">Error loading recommendations.</div>';
+            }
+        }
+        // Load header/footer and then recommendations
+        window.addEventListener('DOMContentLoaded', () => {
+            loadHeaderComponent();
+            loadFooterComponent();
+            loadFollowRecommendations();
+        });
+    </script>
 </body>
 </html>
