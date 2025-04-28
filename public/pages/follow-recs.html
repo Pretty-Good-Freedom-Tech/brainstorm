@@ -17,11 +17,10 @@
     <div class="page-content">
         <div class="container">
             <h1>Personalized Follow Recommendations</h1>
-            <p>Coming soon...</p>
-            <p>Top 20 profiles based on influence score that you do not already follow</p>
-            <p>(Coming soon: add requirement: who have been posting recently)</p>
+            <div id="follow-recs-container"></div>
+            <p>Top 50 profiles based on influence score that you do not already follow</p>
+            <p>TODO: incorporate recency and engagement score</p>
         </div>
-        <div id="follow-recs-container"></div>
     </div>
 
     <!-- Include the footer component -->
@@ -30,7 +29,7 @@
         /*
         Fetch an ordered list of pubkeys from this API endpoint:
         api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1
-        And displays the top 20 pubkeys in the element with id: follow-recs-container
+        And displays the top 50 pubkeys in the element with id: follow-recs-container
         Each profile displayed will be in the format of a profile card. It will contain:
         - A profile picture, which will be large enough to see clearly
         - A display name
@@ -43,7 +42,7 @@
             const container = document.getElementById('follow-recs-container');
             container.innerHTML = '<div class="loading">Loading recommendations...</div>';
             try {
-                // Fetch the top 100 by influence (we'll display only the top 20)
+                // Fetch the top 100 by influence (we'll display only the top 50)
                 const res = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1');
                 const data = await res.json();
                 if (!data.success || !Array.isArray(data.data.users)) {
@@ -51,7 +50,7 @@
                     return;
                 }
                 // Filter out profiles the user already follows (coming soon: use real follow list)
-                const profiles = data.data.users.slice(0, 20); // Top 20
+                const profiles = data.data.users.slice(0, 50); // Top 50
                 if (profiles.length === 0) {
                     container.innerHTML = '<div class="no-results">No recommendations found.</div>';
                     return;
