@@ -1,1 +1,80 @@
 @import "./common.css";
+
+#follow-recs-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.follow-rec-card {
+  background: var(--bs-surface, #fff);
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1.5px 4px rgba(0,0,0,0.07);
+  transition: box-shadow 0.2s, transform 0.2s;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  width: 260px;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid #eaeaea;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.follow-rec-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13), 0 3px 8px rgba(0,0,0,0.10);
+  transform: translateY(-4px) scale(1.025);
+  border-color: var(--bs-primary, #7b3fe4);
+}
+
+.follow-rec-pic {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--bs-primary, #7b3fe4);
+  margin-bottom: 1.1rem;
+  background: #f7f7fa;
+  box-shadow: 0 1px 8px rgba(123,63,228,0.08);
+}
+
+.follow-rec-name {
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: var(--bs-text, #222);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.01em;
+  word-break: break-word;
+}
+
+.follow-rec-hops, .follow-rec-influence {
+  font-size: 1.01rem;
+  margin-bottom: 0.25rem;
+  color: #666;
+}
+
+.follow-rec-influence {
+  color: var(--bs-primary, #7b3fe4);
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+.loading, .error, .no-results {
+  text-align: center;
+  font-size: 1.1rem;
+  margin: 2rem auto;
+  color: #888;
+}
+
+@media (max-width: 650px) {
+  #follow-recs-container {
+    gap: 1rem;
+  }
+  .follow-rec-card {
+    width: 96vw;
+    min-width: 0;
+    padding: 1.2rem 0.2rem 1.2rem 0.2rem;
+  }
+}
