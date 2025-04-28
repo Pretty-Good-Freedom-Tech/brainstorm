@@ -45,11 +45,11 @@ function handleGetNip56Profiles(req, res) {
     // Cypher query (main): return all profiles for this report type, with null/missing values defaulted to 0
     const cypher = `
       MATCH (n:NostrUser)
-      WHERE n.nip56_${reportType}_totalCount > 0
+      WHERE n.nip56_${reportType}_reportCount > 0
       RETURN n.pubkey AS pubkey,
-             coalesce(n.nip56_${reportType}_totalCount, 0) AS totalCount,
+             coalesce(n.nip56_${reportType}_reportCount, 0) AS totalCount,
              coalesce(n.nip56_${reportType}_grapeRankScore, 0) AS grapeRankScore,
-             coalesce(n.nip56_${reportType}_verifiedCount, 0) AS totalVerifiedCount,
+             coalesce(n.nip56_${reportType}_verifiedReportCount, 0) AS totalVerifiedCount,
              coalesce(n.influence, 0) AS influence,
              coalesce(n.verifiedFollowerCount, 0) AS verifiedFollowerCount
       ORDER BY grapeRankScore DESC
@@ -57,7 +57,7 @@ function handleGetNip56Profiles(req, res) {
     // Cypher query (count)
     const countCypher = `
       MATCH (n:NostrUser)
-      WHERE n.nip56_${reportType}_totalCount > 0
+      WHERE n.nip56_${reportType}_reportCount > 0
       RETURN count(n) AS total
     `;
 

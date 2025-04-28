@@ -48,32 +48,40 @@ echo "  BLACKLIST_ABSOLUTE_CUTOFF = $BLACKLIST_ABSOLUTE_CUTOFF"
 echo "  BLACKLIST_RELATIVE_CUTOFF = $BLACKLIST_RELATIVE_CUTOFF"
 
 # Cypher query to calculate followedInput, mutedInput, and reportedInput for all NostrUsers
-CALCULATE_INPUTS_QUERY=$(cat <<EOF
+CALCULATE_INPUTS_QUERY1=$(cat <<EOF
 // Reset all input values
 MATCH (n:NostrUser)
 SET n.followedInput = 0, n.mutedInput = 0, n.reportedInput = 0, n.blacklisted = 0;
-
+EOF
+)
+CALCULATE_INPUTS_QUERY2=$(cat <<EOF
 // Calculate followedInput
 MATCH (follower:NostrUser)-[f:FOLLOWS]->(followed:NostrUser)
 WITH followed, follower, follower.influence as influence
 WHERE influence IS NOT NULL
 WITH followed, SUM(influence * $WEIGHT_FOLLOWED) as followedInput
 SET followed.followedInput = followedInput;
-
+EOF
+)
+CALCULATE_INPUTS_QUERY3=$(cat <<EOF
 // Calculate mutedInput
 MATCH (muter:NostrUser)-[m:MUTES]->(muted:NostrUser)
 WITH muted, muter, muter.influence as influence
 WHERE influence IS NOT NULL
 WITH muted, SUM(influence * $WEIGHT_MUTED) as mutedInput
 SET muted.mutedInput = mutedInput;
-
+EOF
+)
+CALCULATE_INPUTS_QUERY4=$(cat <<EOF
 // Calculate reportedInput
 MATCH (reporter:NostrUser)-[r:REPORTS]->(reported:NostrUser)
 WITH reported, reporter, reporter.influence as influence
 WHERE influence IS NOT NULL
 WITH reported, SUM(influence * $WEIGHT_REPORTED) as reportedInput
 SET reported.reportedInput = reportedInput;
-
+EOF
+)
+CALCULATE_INPUTS_QUERY5=$(cat <<EOF
 // Calculate blacklisted status
 MATCH (n:NostrUser)
 WHERE (n.mutedInput + n.reportedInput) > $BLACKLIST_ABSOLUTE_CUTOFF
@@ -92,16 +100,40 @@ ORDER BY n.pubkey;
 EOF
 )
 
-echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation query"
-echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation query" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
+echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation queries"
+echo "$(date): Continuing exportBlacklist ... finished defining cypher queries; about to run calculation queries" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
-# Run the calculation query
+# Run the calculation queries
 echo "Calculating input values and blacklist status..."
-BLACKLISTED_COUNT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$CALCULATE_INPUTS_QUERY" | tail -n 1)
-echo "Blacklisted $BLACKLISTED_COUNT users."
+# Run each query in sequence
+CALCULATE_INPUTS_QUERY1_OUTPUT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$CALCULATE_INPUTS_QUERY1" | tail -n 1)
 
-echo "$(date): Continuing exportBlacklist ... finished running calculation query; about to get blacklisted pubkeys"
-echo "$(date): Continuing exportBlacklist ... finished running calculation query; about to get blacklisted pubkeys" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
+echo "CALCULATE_INPUTS_QUERY1_OUTPUT: $CALCULATE_INPUTS_QUERY1_OUTPUT."
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY1_OUTPUT"
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY1_OUTPUT" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
+
+CALCULATE_INPUTS_QUERY2_OUTPUT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$CALCULATE_INPUTS_QUERY2" | tail -n 1)
+
+echo "CALCULATE_INPUTS_QUERY2_OUTPUT: $CALCULATE_INPUTS_QUERY2_OUTPUT."
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY2_OUTPUT"
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY2_OUTPUT" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
+
+CALCULATE_INPUTS_QUERY3_OUTPUT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$CALCULATE_INPUTS_QUERY3" | tail -n 1)
+
+echo "CALCULATE_INPUTS_QUERY3_OUTPUT: $CALCULATE_INPUTS_QUERY3_OUTPUT."
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY3_OUTPUT"
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY3_OUTPUT" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
+
+CALCULATE_INPUTS_QUERY4_OUTPUT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$CALCULATE_INPUTS_QUERY4" | tail -n 1)
+
+echo "CALCULATE_INPUTS_QUERY4_OUTPUT: $CALCULATE_INPUTS_QUERY4_OUTPUT."
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY4_OUTPUT"
+echo "$(date): Continuing exportBlacklist ... finished CALCULATE_INPUTS_QUERY4_OUTPUT" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
+
+BLACKLISTED_COUNT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" --format plain "$CALCULATE_INPUTS_QUERY5" | tail -n 1)
+
+echo "$(date): Continuing exportBlacklist ... Blacklisted $BLACKLISTED_COUNT users; about to get blacklisted pubkeys"
+echo "$(date): Continuing exportBlacklist ... Blacklisted $BLACKLISTED_COUNT users; about to get blacklisted pubkeys" >> ${BRAINSTORM_LOG_DIR}/exportBlacklist.log  
 
 # Get the blacklisted pubkeys
 echo "Retrieving blacklisted pubkeys..."
