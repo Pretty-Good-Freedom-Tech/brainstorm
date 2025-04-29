@@ -34,7 +34,7 @@ Example:
 
 ```bash
 cd ~/brainstorm
-sudo npm run update -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=XXXXXXXXXX
+sudo npm run update -- --domainName=straycat.brainstorm.social --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=XXXXXXXXXX
 ```
 
 ### Manual update
@@ -77,7 +77,7 @@ cd ~
 git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git
 cd brainstorm
 npm install
-sudo npm run install-brainstorm -- --domainName=relay42.hasenpfeffr.com --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=XXXXXXXXXX
+sudo npm run install-brainstorm -- --domainName=straycat.brainstorm.social --ownerPubkey=e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --neo4jPassword=XXXXXXXXXX
 sudo npm run restore-from-backup
 ```
 
