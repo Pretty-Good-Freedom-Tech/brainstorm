@@ -18,6 +18,14 @@ const rl = require('readline').createInterface({
   terminal: false
 });
 
+/*
+function addToContentQueue(event) {
+    const QUEUE_DIR = "/var/lib/brainstorm/pipeline/stream/content/queue/";
+    const queueFile = `${QUEUE_DIR}${event.pubkey}_${event.kind}.json`;
+    fs.writeFileSync(queueFile, JSON.stringify(event));
+}
+*/
+
 rl.on('line', (line) => {
     let req = JSON.parse(line);
 
@@ -43,6 +51,10 @@ rl.on('line', (line) => {
     }
 
     if (universalWhitelist_pubkeys.includes(req.event.pubkey)) {
+        // Not yet implemented:
+        // add content event to content queue
+        // QUEUE_DIR="/var/lib/brainstorm/pipeline/stream/content/queue/"
+        // addToContentQueue(req.event)
         res.action = 'accept';
     }
 
