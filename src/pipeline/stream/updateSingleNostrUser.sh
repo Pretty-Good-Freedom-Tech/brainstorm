@@ -167,7 +167,7 @@ if [ "$add_count" -gt 0 ]; then
         MATCH (u1:NostrUser {pubkey:line.pk_follower})
         MATCH (u2:NostrUser {pubkey:line.pk_followee})
         MERGE (u1)-[r:FOLLOWS]->(u2)
-        SET r.timestamp = $CREATED_AT
+        SET r.timestamp = $CREATED_AT;
         \",
         {batchSize:100, parallel:false, retries:2}
     )
@@ -180,7 +180,7 @@ fi
 echo "Updating user metadata..."
 CYPHER_UPDATE_META="
 MATCH (u:NostrUser {pubkey:'$pk_follower'}) 
-SET u.kind3EventId='$EVENT_ID', u.kind3CreatedAt=$CREATED_AT
+SET u.kind3EventId='$EVENT_ID', u.kind3CreatedAt=$CREATED_AT;
 "
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_UPDATE_META"
 
