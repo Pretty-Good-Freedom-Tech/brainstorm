@@ -43,24 +43,15 @@
             const container = document.getElementById('follow-recs-container');
             container.innerHTML = '<div class="loading">Loading recommendations...</div>';
             try {
-                // Fetch the list of pubkeys that have posted content within the past 24 hours
-                const res1 = await fetch('/api/get-recently-active-pubkeys');
-                const results1 = await res1.json();
-                if (!results1.success || !Array.isArray(results1.pubkeys)) {
-                    container.innerHTML = '<div class="error">Failed to load recommendations.</div>';
-                    return;
-                }
-                const recentlyActivePubkeys = results1.pubkeys;
-
                 // Fetch the top 100 by influence (we'll display only the top 50)
-                const res2 = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1');
-                const data = await res2.json();
+                const res = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1');
+                const data = await res.json();
                 if (!data.success || !Array.isArray(data.data.users)) {
                     container.innerHTML = '<div class="error">Failed to load recommendations.</div>';
                     return;
                 }
-                // Only include profiles that are contained within recentlyActivePubkeys
-                const profiles = data.data.users.filter(profile => recentlyActivePubkeys.includes(profile.pubkey)).slice(0, 50); // Top 50
+                // Filter out profiles the user already follows (coming soon: use real follow list)
+                const profiles = data.data.users.slice(0, 50); // Top 50
                 if (profiles.length === 0) {
                     container.innerHTML = '<div class="no-results">No recommendations found.</div>';
                     return;
