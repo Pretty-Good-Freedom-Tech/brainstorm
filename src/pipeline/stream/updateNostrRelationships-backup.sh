@@ -10,12 +10,8 @@ path_to_queue="/var/lib/brainstorm/pipeline/stream/queue/"
 tmp_dir="/var/lib/brainstorm/pipeline/stream/queue_tmp"
 mkdir -p "$tmp_dir"
 
-# Accept queue file as argument, else pick oldest as fallback
-if [ -n "$1" ]; then
-  queue_file="$1"
-else
-  queue_file=$(find "$path_to_queue" -type f -print0 | xargs -0 stat -c "%Y %n" | sort -n | head -n 1 | cut -d " " -f 2-)
-fi
+# Get the next pubkey and event kind from the queue
+queue_file=$(find "$path_to_queue" -type f -print0 | xargs -0 stat -c "%Y %n" | sort -n | head -n 1 | cut -d " " -f 2-)
 
 # Extract pubkey and kind from the queue file
 num_chars_in_path_to_queue=$(echo -n "$path_to_queue" | wc -c)

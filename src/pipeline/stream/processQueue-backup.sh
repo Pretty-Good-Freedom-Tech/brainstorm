@@ -6,7 +6,6 @@ source /etc/brainstorm.conf
 # Path to queue directory
 QUEUE_DIR="/var/lib/brainstorm/pipeline/stream/queue/"
 LOCK_FILE="/var/lock/processQueue.lock"
-BATCH_SIZE=10
 
 # Ensure only one instance runs at a time
 exec {LOCK_FD}>${LOCK_FILE}
@@ -17,20 +16,16 @@ fi
 
 # Main processing loop
 while true; do
-    # List up to BATCH_SIZE files from the queue
-    queue_files=($(ls -1t ${QUEUE_DIR} 2>/dev/null | head -n $BATCH_SIZE))
-    NUM_FILES=${#queue_files[@]}
+    # Count files in queue
+    NUM_FILES=$(ls -1 ${QUEUE_DIR} 2>/dev/null | wc -l)
 
     if [[ "$NUM_FILES" -gt 0 ]]; then
-        echo "$(date): Processing $NUM_FILES events from the queue"
+        echo "$(date): There are $NUM_FILES events in the queue waiting to be processed"
 
-        for file in "${queue_files[@]}"; do
-            # Call the update script with the full path to the queue file
-            /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/updateNostrRelationships.sh "${QUEUE_DIR}${file}"
-            # (Assume the update script removes the file, as before)
-        done
+        # Process one event
+        /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/updateNostrRelationships.sh
 
-        # Optionally: short pause to avoid overloading
+        # Short pause between processing to avoid overloading the system
         # sleep 1
     else
         echo "$(date): No events in queue; sleeping 60 seconds and checking again"
