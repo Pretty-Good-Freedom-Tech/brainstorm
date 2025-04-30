@@ -5,10 +5,10 @@
  * return the entire list of pubkeys
  */
 
-const fs = require('fs');
+const { execSync } = require('child_process');
 
 /**
- * Handler for getting strfry plugin status
+ * Handler for getting recently active pubkeys
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
