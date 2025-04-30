@@ -20,6 +20,7 @@ const {
 const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
 const { handleSearchProfiles } = require('./search/profiles');
+const { handleGetRecentlyActivePubkeys } = require('./content/queries/recentlyActivePubkeys');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
@@ -201,6 +202,9 @@ function register(app) {
 
     // Search endpoint
     app.get('/api/search/profiles', handleSearchProfiles);
+
+    // Recently Active Pubkeys endpoint
+    app.get('/api/get-recently-active-pubkeys', handleGetRecentlyActivePubkeys);
 
     console.log('Registered all Brainstorm API endpoints');
 }
