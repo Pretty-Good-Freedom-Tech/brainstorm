@@ -17,19 +17,18 @@ fi
 
 # Main processing loop
 while true; do
-    # List up to BATCH_SIZE files from the queue
-    queue_files=($(ls -1t ${QUEUE_DIR} 2>/dev/null | head -n $BATCH_SIZE))
+    # List up to BATCH_SIZE files from the queue, oldest first
+    queue_files=($(ls -1tr ${QUEUE_DIR} 2>/dev/null | head -n $BATCH_SIZE))
     NUM_FILES=${#queue_files[@]}
 
     if [[ "$NUM_FILES" -gt 0 ]]; then
         echo "$(date): Processing $NUM_FILES events from the queue"
-
+        queue_file_paths=()
         for file in "${queue_files[@]}"; do
-            # Call the update script with the full path to the queue file
-            /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/updateNostrRelationships.sh "${QUEUE_DIR}${file}"
-            # (Assume the update script removes the file, as before)
+            queue_file_paths+=("${QUEUE_DIR}${file}")
         done
-
+        /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/updateNostrRelationships.sh "${queue_file_paths[@]}"
+        # (Assume updateNostrRelationships.sh removes the files on success)
         # Optionally: short pause to avoid overloading
         # sleep 1
     else
