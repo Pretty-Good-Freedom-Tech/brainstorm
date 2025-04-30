@@ -5,7 +5,7 @@
  * return the entire list of pubkeys
  */
 
-const { execSync } = require('child_process');
+const { exec } = require('child_process');
 
 /**
  * Handler for getting recently active pubkeys
@@ -16,16 +16,43 @@ const { execSync } = require('child_process');
 function handleGetRecentlyActivePubkeys(req, res) {
     try {
         const unixTime24HoursAgo = Math.floor(Date.now() / 1000) - (24 * 60 * 60);
-        const getEventsCmd = `sudo strfry scan '{"kinds":[1], "since": ${unixTime24HoursAgo}}'`;
-        const output = execSync(getEventsCmd).toString().trim();
-        if (output) {
-            const events = JSON.parse(output);
-            const pubkeys = events.map(event => event.pubkey);
-            return res.json({
-                success: true,
-                pubkeys: pubkeys
-            });
-        }
+        const getEventsCmd = `sudo strfry scan '{"kinds":[1], "since": ${unixTime24HoursAgo}, "limit": 5000}'`;
+        
+        exec(getEventsCmd, (error, stdout, stderr) => {
+            if (error) {
+              console.log(`Local strfry query failed ${stderr || error.message}`);
+              return;
+            }
+            
+            try {
+              // Parse the JSON output from the script
+              const events = stdout.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
+              
+              if (events.length > 0) {
+                // extract list of pubkeys
+                const pubkeys = events.map(event => event.pubkey);
+                return res.json({
+                  success: true,
+                  numPubkeys: pubkeys.length,
+                  getEventsCmd,
+                  pubkeys,
+                  source: 'local_strfry'
+                });
+              } else {
+                console.log('No events found via local strfry');
+                return res.json({
+                  success: false,
+                  message: 'No events found'
+                });
+              }
+            } catch (parseError) {
+              console.log('Error parsing strfry output:', parseError);
+              return res.json({
+                success: false,
+                message: 'Error parsing strfry output'
+              });
+            }
+          });
     } catch (error) {
         console.error('Error getting recently active pubkeys:', error);
         return res.status(500).json({ 
