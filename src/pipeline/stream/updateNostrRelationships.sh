@@ -144,10 +144,12 @@ done
 if [ -s "$cypher_script" ]; then
     sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" < "$cypher_script"
     status=$?
+    echo "Cypher transaction completed with status $status"
     if [ $status -eq 0 ]; then
         # Remove all processed queue files
         for queue_file in "$@"; do
             sudo rm "$queue_file"
+            echo "Removed $queue_file"
         done
         # Remove temporary files
         rm -f "$tmp_dir"/*
