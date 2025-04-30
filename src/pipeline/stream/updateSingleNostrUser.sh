@@ -179,8 +179,8 @@ fi
 # Step 6: Update the metadata for the user node
 echo "Updating user metadata..."
 CYPHER_UPDATE_META="
-MATCH (u:NostrUser {pubkey:'$pk_follower'}) 
-SET u.kind3EventId='$EVENT_ID', u.kind3CreatedAt=$CREATED_AT;
+MATCH (n:NostrUser {pubkey:'$pk_follower'}) 
+SET n.kind3EventId='$EVENT_ID', n.kind3CreatedAt=$CREATED_AT ;
 "
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_UPDATE_META"
 
