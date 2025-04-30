@@ -134,7 +134,7 @@ for queue_file in "$@"; do
     echo "Updating user metadata..."
     CYPHER_UPDATE_META="
     MATCH (u:NostrUser {pubkey:'$pk_author'}) 
-    SET u.kind${event_kind}EventId='$EVENT_ID', u.kind${event_kind}CreatedAt=$CREATED_AT
+    SET u.kind${event_kind}EventId='$EVENT_ID', u.kind${event_kind}CreatedAt=$CREATED_AT ;
     "
     echo "$CYPHER_UPDATE_META" >> "$cypher_script"
 
