@@ -29,7 +29,7 @@ while true; do
         for file in "${queue_files[@]}"; do
             queue_file_paths+=("${QUEUE_DIR}${file}")
         done
-        /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/updateNostrRelationships.sh "${queue_file_paths[@]}"
+        /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/wot/updateNostrRelationships.sh "${queue_file_paths[@]}"
         # (Assume updateNostrRelationships.sh removes the files on success)
         # Optionally: short pause to avoid overloading
         # sleep 1
