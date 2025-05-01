@@ -8,7 +8,7 @@ source /etc/brainstorm.conf
 # Path to queue directory
 QUEUE_DIR="/var/lib/brainstorm/pipeline/stream/queue/"
 LOCK_FILE="/var/lock/processQueue.lock"
-BATCH_SIZE=10
+BATCH_SIZE=20
 
 # Ensure only one instance runs at a time
 exec {LOCK_FD}>${LOCK_FILE}
