@@ -1155,6 +1155,8 @@ async function setupPipelineDirectories() {
     const pipelineDirs = [
       '/var/lib/brainstorm/pipeline/stream/queue',
       '/var/lib/brainstorm/pipeline/stream/queue_tmp',
+      '/var/lib/brainstorm/pipeline/stream/content/queue',
+      '/var/lib/brainstorm/pipeline/stream/content/queue_tmp',
       '/var/lib/brainstorm/pipeline/reconcile/queue',
       '/var/lib/brainstorm/pipeline/reconcile/queue_tmp'
     ];
@@ -1262,6 +1264,7 @@ async function finalSetup() {
   console.log('   CREATE INDEX nostrUser_kind10000CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind10000CreatedAt);');
   console.log('   CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);');
   console.log('   CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);');
+  console.log('   CREATE INDEX nostrUser_latestContentEventCreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.latestContentEventCreatedAt);');
 
   console.log('   CREATE INDEX nostrUser_influence IF NOT EXISTS FOR (n:NostrUser) ON (n.influence);');
   console.log('   CREATE INDEX nostrUser_average IF NOT EXISTS FOR (n:NostrUser) ON (n.average);');

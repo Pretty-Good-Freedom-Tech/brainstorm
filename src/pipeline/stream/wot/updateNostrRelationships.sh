@@ -4,6 +4,9 @@
 # Uses differential updates to minimize Neo4j operations
 # Only adds new relationships and removes obsolete ones
 
+# currently creates .cypher file with multiple cypher commands in tmp_dir
+# TODO: consider creating tmp csv file and process using APOC command rather than cypher commands temp file
+
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 path_to_queue="/var/lib/brainstorm/pipeline/stream/queue/"

@@ -153,6 +153,7 @@ fi
 log "Removing lock files..."
 LOCK_FILES=(
   "/var/lock/processQueue.lock"
+  "/var/lock/processContentQueue.lock"
   "/var/lock/brainstorm-*.lock"
 )
 

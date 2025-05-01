@@ -190,6 +190,7 @@ sudo rm /usr/local/bin/brainstorm-node
 sudo rm /usr/local/bin/brainstorm-publish
 
 sudo rm /var/lock/processQueue.lock
+sudo rm /var/lock/processContentQueue.lock
 
 # Remove home directory files
 sudo rm -r ~/brainstorm
