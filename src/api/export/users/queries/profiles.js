@@ -41,6 +41,8 @@ function handleGetProfiles(req, res) {
     const filterMaxNip56TotalVerifiedReportCount = req.query.filterMaxNip56TotalVerifiedReportCount || '';
     const filterMinNip56TotalReportCount = req.query.filterMinNip56TotalReportCount || '';
     const filterMaxNip56TotalReportCount = req.query.filterMaxNip56TotalReportCount || '';
+    const filterMinLatestContentEventCreatedAt = req.query.filterMinLatestContentEventCreatedAt || '';
+    const filterMaxLatestContentEventCreatedAt = req.query.filterMaxLatestContentEventCreatedAt || '';
     
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
@@ -139,6 +141,14 @@ function handleGetProfiles(req, res) {
     
     if (filterMaxNip56TotalVerifiedReportCount) {
       query += ` AND u.nip56_totalVerifiedReportCount <= ${parseFloat(filterMaxNip56TotalVerifiedReportCount)}`;
+    }
+
+    if (filterMinLatestContentEventCreatedAt) {
+      query += ` AND u.latestContentEventCreatedAt >= ${filterMinLatestContentEventCreatedAt}`;
+    }
+    
+    if (filterMaxLatestContentEventCreatedAt) {
+      query += ` AND u.latestContentEventCreatedAt <= ${filterMaxLatestContentEventCreatedAt}`;
     }
 
     if (filterPubkey) {

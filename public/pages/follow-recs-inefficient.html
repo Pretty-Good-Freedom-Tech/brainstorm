@@ -43,21 +43,31 @@
             const container = document.getElementById('follow-recs-container');
             container.innerHTML = '<div class="loading">Loading recommendations...</div>';
             try {
-                // Fetch the top 100 by influence (we'll display only the top 50)
-                const res = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1');
-                const data = await res.json();
+                // Fetch the list of pubkeys that have posted content within the past 24 hours
+                const res1 = await fetch('/api/get-recently-active-pubkeys');
+                const results1 = await res1.json();
+                if (!results1.success || !Array.isArray(results1.pubkeys)) {
+                    container.innerHTML = '<div class="error">Failed to load recommendations.</div>';
+                    return;
+                }
+                const recentlyActivePubkeys = results1.pubkeys;
+
+                // Fetch the top 10000 by influence
+                const res2 = await fetch('/api/get-profiles?page=1&limit=10000&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1');
+                const data = await res2.json();
                 if (!data.success || !Array.isArray(data.data.users)) {
                     container.innerHTML = '<div class="error">Failed to load recommendations.</div>';
                     return;
                 }
-                // Filter out profiles the user already follows (coming soon: use real follow list)
-                const profiles = data.data.users.slice(0, 50); // Top 50
-                if (profiles.length === 0) {
+                const allProfiles = data.data.users;
+                // Take the intersection of allProfiles and recentlyActivePubkeys and display the top 50
+                const topProfiles = allProfiles.filter(profile => recentlyActivePubkeys.includes(profile.pubkey)).slice(0, 50); // Top 50
+                if (topProfiles.length === 0) {
                     container.innerHTML = '<div class="no-results">No recommendations found.</div>';
                     return;
                 }
                 // Fetch kind0 profile data for each pubkey
-                const profilePromises = profiles.map(async (profile) => {
+                const profilePromises = topProfiles.map(async (profile) => {
                     try {
                         const resp = await fetch(`/api/get-kind0?pubkey=${profile.pubkey}`);
                         const foo = await resp.json();
@@ -68,11 +78,11 @@
                         return { ...profile, kind0: null };
                     }
                 });
-                const profilesWithKind0 = await Promise.all(profilePromises);
+                const topProfilesWithKind0 = await Promise.all(profilePromises);
 
                 // Render recommendations
                 container.innerHTML = '';
-                profilesWithKind0.forEach(profile => {
+                topProfilesWithKind0.forEach(profile => {
                     const card = document.createElement('div');
                     card.className = 'follow-rec-card';
                     card.onclick = () => window.location = `/profile.html?pubkey=${profile.pubkey}`;
