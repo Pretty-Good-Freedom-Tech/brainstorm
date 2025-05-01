@@ -7,7 +7,7 @@
 sudo /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/wot/processWotQueue.sh &
 
 # Start processContentQueue.sh
-# sudo /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/content/processContentQueue.sh &
+sudo /usr/local/lib/node_modules/brainstorm/src/pipeline/stream/content/processContentQueue.sh &
 
 # Wait for both processes to finish
 wait
