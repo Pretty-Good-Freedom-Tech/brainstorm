@@ -174,7 +174,8 @@ function handleGetProfiles(req, res) {
              u.verifiedFollowerCount as verifiedFollowerCount,
              u.nip56_totalGrapeRankScore as nip56_totalGrapeRankScore,
              u.nip56_totalReportCount as nip56_totalReportCount,
-             u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount
+             u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount,
+             u.latestContentEventCreatedAt as latestContentEventCreatedAt
       ORDER BY u.${sortBy} ${sortOrder}
       SKIP ${(page - 1) * limit}
       LIMIT ${limit}
@@ -209,7 +210,8 @@ function handleGetProfiles(req, res) {
                     verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
                     nip56_totalGrapeRankScore: record.get('nip56_totalGrapeRankScore') ? parseFloat(record.get('nip56_totalGrapeRankScore').toString()) : null,
                     nip56_totalReportCount: record.get('nip56_totalReportCount') ? parseInt(record.get('nip56_totalReportCount').toString()) : null,
-                    nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseFloat(record.get('nip56_totalVerifiedReportCount').toString()) : null
+                    nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseFloat(record.get('nip56_totalVerifiedReportCount').toString()) : null,
+                    latestContentEventCreatedAt: record.get('latestContentEventCreatedAt') ? parseInt(record.get('latestContentEventCreatedAt').toString()) : null
                   };
                 });
                 
