@@ -48,7 +48,7 @@
                 // 24 hours ago Unix timestamp
                 const now = Date.now() / 1000;
                 const filterMinLatestContentEventCreatedAt = now - 24 * 60 * 60;
-                const res = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1&filterMinLatestContentEventCreatedAt=' + filterMinLatestContentEventCreatedAt);
+                const res = await fetch('/api/get-profiles?page=1&limit=50&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMinLatestContentEventCreatedAt=' + filterMinLatestContentEventCreatedAt);
                 const data = await res.json();
                 if (!data.success || !Array.isArray(data.data.users)) {
                     container.innerHTML = '<div class="error">Failed to load recommendations.</div>';
