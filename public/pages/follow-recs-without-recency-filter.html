@@ -29,7 +29,7 @@
     <script>
         /*
         Fetch an ordered list of pubkeys from this API endpoint:
-        api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1&filterMinLatestContentEventCreatedAt
+        api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1
         And displays the top 50 pubkeys in the element with id: follow-recs-container
         Each profile displayed will be in the format of a profile card. It will contain:
         - A profile picture, which will be large enough to see clearly
@@ -44,11 +44,7 @@
             container.innerHTML = '<div class="loading">Loading recommendations...</div>';
             try {
                 // Fetch the top 100 by influence (we'll display only the top 50)
-                // filter filterMinLatestContentEventCreatedAt
-                // 24 hours ago Unix timestamp
-                const now = Date.now() / 1000;
-                const filterMinLatestContentEventCreatedAt = now - 24 * 60 * 60;
-                const res = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1&filterMinLatestContentEventCreatedAt=' + filterMinLatestContentEventCreatedAt);
+                const res = await fetch('/api/get-profiles?page=1&limit=100&sortBy=influence&sortOrder=desc&filterMinHops=2&filterMaxHops=20&filterMinInfluence=0.1');
                 const data = await res.json();
                 if (!data.success || !Array.isArray(data.data.users)) {
                     container.innerHTML = '<div class="error">Failed to load recommendations.</div>';
