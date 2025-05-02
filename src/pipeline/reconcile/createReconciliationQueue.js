@@ -121,8 +121,8 @@ async function processEventKind(kind, relationship, pubkeysBatch, batchIndex) {
   const pubkeysFile = `${config.tempDir}/pubkeys_${Date.now()}.txt`;
   await writeFile(pubkeysFile, pubkeysBatch.join('\n'));
 
-  // Format Cypher list for IN clause
-  const cypherList = pubkeysBatch.map(pk => `\"${pk}\"`).join(',');
+  // Ensure each pubkey is properly quoted for Cypher
+  const cypherList = pubkeysBatch.map(pk => `'${pk}'`).join(',');
 
   // Build Cypher query
   const cypherQuery = `
