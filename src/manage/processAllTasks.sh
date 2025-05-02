@@ -44,11 +44,12 @@ echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh complete
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconcile/runFullReconciliation.sh
-echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed"
-echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# Removing this step; in its place, using reconcile service to run it more frequently
+# sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconcile/runFullReconciliation.sh
+# echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed"
+# echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-sleep 5
+# sleep 5
 
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateHops.sh
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed"
@@ -95,6 +96,14 @@ sleep 5
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/nip85/publishNip85.sh
 echo "$(date): Continuing processAllTasks; publishNip85.sh completed"
 echo "$(date): Continuing processAllTasks; publishNip85.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+sleep 5
+
+# restart the reconcile service
+sudo systemctl restart reconcile.service
+
+echo "$(date): Continuing processAllTasks; reconcile.service restarted"
+echo "$(date): Continuing processAllTasks; reconcile.service restarted" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 

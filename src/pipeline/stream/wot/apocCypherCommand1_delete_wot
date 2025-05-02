@@ -1,0 +1,15 @@
+// deletes wot relationships
+// pk_rater, pk_ratee, relationship_type
+// relationship_type can be "FOLLOWS", "MUTES"
+
+// Finally delete the relationships
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///relationshipsToDeleteInNeo4j.json') YIELD value AS line",
+    "
+    MATCH (u1:NostrUser {pubkey:line.pk_rater})
+    MATCH (u2:NostrUser {pubkey:line.pk_ratee})
+    MATCH (u1)-[r:line.relationship_type {report_type: line.report_type}]->(u2)
+    DELETE r
+    ",
+    {batchSize:250, parallel:false, retries:5}
+);

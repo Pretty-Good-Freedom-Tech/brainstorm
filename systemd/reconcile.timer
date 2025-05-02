@@ -3,9 +3,9 @@ Description=Run Strfry to Neo4j Reconciliation Pipeline periodically
 After=network.target neo4j.service
 
 [Timer]
-# Run every 6 hours
+# Run every 5 minutes
 OnBootSec=5min
-OnUnitActiveSec=6h
+OnUnitActiveSec=5min
 RandomizedDelaySec=5min
 
 [Install]

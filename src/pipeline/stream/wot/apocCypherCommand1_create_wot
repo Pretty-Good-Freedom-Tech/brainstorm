@@ -1,0 +1,31 @@
+// creates wot relationships
+// pk_rater, pk_ratee, relationship_type, report_type, timestamp
+// relationship_type can be "FOLLOWS", "REPORTS", "MUTES"
+// report_type is NULL for follows and mutes (not sure if this will create an error)
+// timestamp is the timestamp of the event
+
+// First create all rater nodes
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///relationshipsToCreateInNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_rater AS pubkey",
+    "MERGE (u:NostrUser {pubkey: pubkey})",
+    {batchSize:500, parallel:false, retries:3}
+);
+
+// Then create all ratee nodes
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///relationshipsToCreateInNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_ratee AS pubkey",
+    "MERGE (u:NostrUser {pubkey: pubkey})",
+    {batchSize:500, parallel:false, retries:3}
+);
+
+// Finally create the relationships
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///relationshipsToCreateInNeo4j.json') YIELD value AS line",
+    "
+    MATCH (u1:NostrUser {pubkey:line.pk_rater})
+    MATCH (u2:NostrUser {pubkey:line.pk_ratee})
+    MERGE (u1)-[r:line.relationship_type {report_type: line.report_type}]->(u2)
+    ON CREATE SET r.timestamp = line.timestamp
+    ",
+    {batchSize:250, parallel:false, retries:5}
+);

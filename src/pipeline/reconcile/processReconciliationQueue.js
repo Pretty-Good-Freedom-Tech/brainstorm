@@ -231,6 +231,15 @@ async function main() {
       const batchSize = Math.min(config.maxConcurrent, queueFiles.length - i);
       await processBatch(queueFiles.slice(i, i + batchSize), batchSize);
     }
+
+    console.log(`${new Date().toISOString()}: Updating hops...`);
+
+    // Update hops
+    const updateHopsQuery = `
+      MATCH (a)-[r:FOLLOWS]->(b) WHERE b.hops - a.hops > 1 SET b.hops = a.hops + 1 RETURN count(r)
+    `;
+
+    execSync(`sudo cypher-shell -a "${config.neo4jUri}" -u "${config.neo4jUser}" -p "${config.neo4jPassword}" "${updateHopsQuery}"`);
     
     console.log(`${new Date().toISOString()}: Reconciliation queue processing completed successfully`);
   } catch (error) {
