@@ -86,8 +86,13 @@ async function processQueueFile(queueFile) {
     
     console.log(`${new Date().toISOString()}: Processing ${relationshipTypes[kind]} relationships for pubkey ${pubkey}`);
     
-    // Get the latest event from strfry
-    const eventJson = execSync(`sudo strfry scan "{ \\"kinds\\": [${kind}], \\"authors\\": [\\"${pubkey}\\"]}" | head -n 1`).toString().trim();
+    // Get the latest event from strfry, suppressing log output and only capturing JSON
+    const output = execSync(
+      `sudo strfry scan "{ \\\"kinds\\\": [${kind}], \\\"authors\\\": [\\\"${pubkey}\\\"]}" 2>/dev/null`,
+      { encoding: 'utf-8' }
+    );
+    // Find the first line that looks like JSON
+    const eventJson = output.split('\n').find(line => line.trim().startsWith('{'));
     
     if (!eventJson) {
       console.log(`${new Date().toISOString()}: No ${kind} event found for pubkey ${pubkey}`);
