@@ -150,8 +150,13 @@ async function processEventKind(kind, relationship, pubkeysBatch, batchIndex) {
   let strfryOutput = '';
   for (const pubkey of pubkeysBatch) {
     try {
-      // Get the latest event for this pubkey and kind
-      const eventJson = execSync(`sudo strfry scan "{ \\"kinds\\": [${kind}], \\"authors\\": [\\"${pubkey}\\"]}" | head -n 1`).toString().trim();
+      // Get the latest event for this pubkey and kind, suppressing log output
+      const output = execSync(
+        `sudo strfry scan "{ \\\"kinds\\\": [${kind}], \\\"authors\\\": [\\\"${pubkey}\\\"]}" 2>/dev/null`,
+        { encoding: 'utf-8' }
+      );
+      // Find the first line that looks like JSON
+      const eventJson = output.split('\n').find(line => line.trim().startsWith('{'));
       
       if (eventJson) {
         const event = JSON.parse(eventJson);
