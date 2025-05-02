@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { execSync } = require('child_process');
 const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
 const mkdir = promisify(fs.mkdir);
@@ -43,50 +43,28 @@ async function ensureDirectories() {
   }
 }
 
-// Get all pubkeys from Neo4j using streaming spawn
+// Get all pubkeys from Neo4j
 async function getAllPubkeys() {
-  return new Promise((resolve, reject) => {
-    const pubkeys = [];
-    const query = 'MATCH (u:NostrUser) RETURN u.pubkey AS pubkey';
-    const cypherArgs = [
-      '-a', config.neo4jUri,
-      '-u', config.neo4jUser,
-      '-p', config.neo4jPassword,
-      '--format', 'plain',
-      query
-    ];
-    const cypher = spawn('cypher-shell', cypherArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
-    let buffer = '';
-    cypher.stdout.on('data', (data) => {
-      buffer += data.toString();
-      let lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (let line of lines) {
-        if (line.trim() && !line.startsWith('pubkey')) {
-          pubkeys.push(line.trim().replace(/"/g, ''));
-        }
-      }
-    });
-    cypher.stdout.on('end', () => {
-      if (buffer.trim() && !buffer.startsWith('pubkey')) {
-        pubkeys.push(buffer.trim().replace(/"/g, ''));
-      }
-      console.log(`${new Date().toISOString()}: Found ${pubkeys.length} pubkeys in Neo4j`);
-      resolve(pubkeys);
-    });
-    cypher.stderr.on('data', (data) => {
-      console.error(`cypher-shell error: ${data}`);
-    });
-    cypher.on('error', (err) => {
-      console.error(`Error fetching pubkeys: ${err.message}`);
-      reject(err);
-    });
-    cypher.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`cypher-shell exited with code ${code}`));
-      }
-    });
-  });
+  try {
+    console.log(`${new Date().toISOString()}: Fetching all pubkeys from Neo4j...`);
+    
+    const query = `
+      MATCH (u:NostrUser)
+      RETURN u.pubkey AS pubkey
+    `;
+    
+    const result = execSync(`sudo cypher-shell -a "${config.neo4jUri}" -u "${config.neo4jUser}" -p "${config.neo4jPassword}" "${query}" --format plain`).toString();
+    
+    // Parse the result (skip header and footer)
+    const lines = result.split('\n');
+    const pubkeys = lines.slice(1, lines.length - 1).map(line => line.trim().replace(/"/g, ''));
+    
+    console.log(`${new Date().toISOString()}: Found ${pubkeys.length} pubkeys in Neo4j`);
+    return pubkeys;
+  } catch (error) {
+    console.error(`${new Date().toISOString()}: Error fetching pubkeys: ${error.message}`);
+    throw error;
+  }
 }
 
 // Process pubkeys in batches
