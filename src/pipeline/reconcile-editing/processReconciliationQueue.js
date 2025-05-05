@@ -86,8 +86,13 @@ async function processQueueFile(queueFile) {
     
     console.log(`${new Date().toISOString()}: Processing ${relationshipTypes[kind]} relationships for pubkey ${pubkey}`);
     
-    // Get the latest event from strfry
-    const eventJson = execSync(`sudo strfry scan "{ \\"kinds\\": [${kind}], \\"authors\\": [\\"${pubkey}\\"]}" | head -n 1`).toString().trim();
+    // Get the latest event from strfry, suppressing log output and only capturing JSON
+    const output = execSync(
+      `sudo strfry scan "{ \\\"kinds\\\": [${kind}], \\\"authors\\\": [\\\"${pubkey}\\\"]}" 2>/dev/null`,
+      { encoding: 'utf-8' }
+    );
+    // Find the first line that looks like JSON
+    const eventJson = output.split('\n').find(line => line.trim().startsWith('{'));
     
     if (!eventJson) {
       console.log(`${new Date().toISOString()}: No ${kind} event found for pubkey ${pubkey}`);
@@ -231,6 +236,15 @@ async function main() {
       const batchSize = Math.min(config.maxConcurrent, queueFiles.length - i);
       await processBatch(queueFiles.slice(i, i + batchSize), batchSize);
     }
+
+    console.log(`${new Date().toISOString()}: Updating hops...`);
+
+    // Update hops
+    const updateHopsQuery = `
+      MATCH (a)-[r:FOLLOWS]->(b) WHERE b.hops - a.hops > 1 SET b.hops = a.hops + 1 RETURN count(r)
+    `;
+
+    execSync(`sudo cypher-shell -a "${config.neo4jUri}" -u "${config.neo4jUser}" -p "${config.neo4jPassword}" "${updateHopsQuery}"`);
     
     console.log(`${new Date().toISOString()}: Reconciliation queue processing completed successfully`);
   } catch (error) {
