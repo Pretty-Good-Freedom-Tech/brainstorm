@@ -13,7 +13,7 @@
 # INFLUENCE_CUTOFF: include any users with influence above this threshold (0.00 to 1.00)
 # COMBINATION_LOGIC: combine INFLUENCE_CUTOFF and INCLUDE_HOPS ('AND' or 'OR')
 # HOPS_CUTOFF: include users whose hops are less than or equal to this value (nonnegative integer)
-# INCORPORATE_BLACKLIST: exclude users in the blacklist (true or false)\
+# INCORPORATE_BLACKLIST: exclude users in the blacklist (true or false)
 
 # ==========================================
 # DEFAULT PARAMETERS (lax)
