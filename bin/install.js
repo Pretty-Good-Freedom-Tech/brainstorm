@@ -420,6 +420,11 @@ async function createBrainstormConfigFile() {
 
   // Create brainstorm configuration content
   const BRAINSTORM_MODULE_BASE_DIR = '/usr/local/lib/node_modules/brainstorm/';
+  const STRFRY_PLUGINS_BASE = '/usr/local/lib/strfry/plugins/';
+  const BRAINSTORM_LOG_DIR = '/var/log/brainstorm';
+  const BRAINSTORM_BASE_DIR = '/var/lib/brainstorm';
+  const BRAINSTORM_NODE_BIN = '/usr/local/bin/brainstorm-node';
+  
   const brainstormConfigContent = `# Brainstorm Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
 # This file should be installed at /etc/brainstorm.conf
@@ -427,7 +432,7 @@ async function createBrainstormConfigFile() {
 # and ownership: chown root:brainstorm /etc/brainstorm.conf
 
 # Node.js configuration via NVM
-BRAINSTORM_NODE_BIN="/usr/local/bin/brainstorm-node"
+BRAINSTORM_NODE_BIN="${BRAINSTORM_NODE_BIN}"
 export BRAINSTORM_NODE_BIN
 
 # File paths
@@ -438,10 +443,10 @@ BRAINSTORM_EXPORT_DIR="${BRAINSTORM_MODULE_BASE_DIR}src/export"
 BRAINSTORM_MODULE_MANAGE_DIR="${BRAINSTORM_MODULE_BASE_DIR}src/manage"
 BRAINSTORM_NIP85_DIR="${BRAINSTORM_MODULE_BASE_DIR}src/algos/nip85"
 BRAINSTORM_MODULE_PIPELINE_DIR="${BRAINSTORM_MODULE_BASE_DIR}src/pipeline"
-STRFRY_PLUGINS_BASE="/usr/local/lib/strfry/plugins/"
+STRFRY_PLUGINS_BASE="${STRFRY_PLUGINS_BASE}"
 STRFRY_PLUGINS_DATA="${STRFRY_PLUGINS_BASE}/data/"
-BRAINSTORM_LOG_DIR="/var/log/brainstorm"
-BRAINSTORM_BASE_DIR="/var/lib/brainstorm"
+BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR}"
+BRAINSTORM_BASE_DIR="${BRAINSTORM_BASE_DIR}"
 
 export BRAINSTORM_MODULE_BASE_DIR
 export BRAINSTORM_MODULE_SRC_DIR
