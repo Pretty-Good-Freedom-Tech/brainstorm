@@ -419,6 +419,7 @@ async function createBrainstormConfigFile() {
   }
 
   // Create brainstorm configuration content
+  const BRAINSTORM_MODULE_BASE_DIR = '/usr/local/lib/node_modules/brainstorm/';
   const brainstormConfigContent = `# Brainstorm Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
 # This file should be installed at /etc/brainstorm.conf
@@ -430,7 +431,7 @@ BRAINSTORM_NODE_BIN="/usr/local/bin/brainstorm-node"
 export BRAINSTORM_NODE_BIN
 
 # File paths
-BRAINSTORM_MODULE_BASE_DIR="/usr/local/lib/node_modules/brainstorm/"
+BRAINSTORM_MODULE_BASE_DIR="${BRAINSTORM_MODULE_BASE_DIR}"
 BRAINSTORM_MODULE_SRC_DIR="${BRAINSTORM_MODULE_BASE_DIR}src/"
 BRAINSTORM_MODULE_ALGOS_DIR="${BRAINSTORM_MODULE_BASE_DIR}src/algos"
 BRAINSTORM_EXPORT_DIR="${BRAINSTORM_MODULE_BASE_DIR}src/export"
