@@ -135,10 +135,12 @@ function register(app) {
     app.post('/api/generate-blacklist', blacklist.handleGenerateBlacklist);
 
     // Whitelist endpoints
+    app.get('/api/get-whitelist', whitelist.handleGetWhitelist); // fetches whitelist from neo4j; default influence > default; will eventually accept params
+    // TODO: get whitelist from file (not from neo4j)
     app.get('/api/get-whitelist-config', whitelist.handleGetWhitelistConfig);
     app.post('/api/post-whitelist-config', whitelist.handleUpdateWhitelistConfig);
     app.post('/api/export-whitelist', whitelist.handleExportWhitelist);
-
+    
     // PageRank endpoints
     app.post('/api/generate-pagerank', algos.pagerank.handleGeneratePageRank);
 
