@@ -39,10 +39,7 @@ function handleGetWhitelist(req, res) {
       MATCH (u:NostrUser)
       WHERE u.pubkey IS NOT NULL
       AND u.influence > 0.01
-      RETURN u.pubkey as pubkey,
-             u.influence as influence,
-             u.personalizedPageRank as personalizedPageRank,
-             u.hops as hops
+      RETURN u.pubkey as pubkey
       ORDER BY u.${sortBy} ${sortOrder}
     `;
     
@@ -51,6 +48,7 @@ function handleGetWhitelist(req, res) {
     // Execute the query
     session.run(query)
       .then(result => {
+        /*
         const users = result.records.map(record => {
           return {
             pubkey: record.get('pubkey'),
@@ -59,6 +57,10 @@ function handleGetWhitelist(req, res) {
             hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null
           };
         });
+        */
+        const pubkeys = result.records.map(record => {
+          return record.get('pubkey');
+        });
         
         // Close the session
         session.close();
@@ -66,7 +68,11 @@ function handleGetWhitelist(req, res) {
         // Return the results
         return res.json({
           success: true,
-          users
+          data: {
+            query,
+            numPubkeys: pubkeys.length,
+            pubkeys
+          }
         });
       })
       .catch(error => {
