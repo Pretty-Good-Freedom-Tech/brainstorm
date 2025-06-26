@@ -294,6 +294,7 @@ function authMiddleware(req, res, next) {
             '/generate-nip85',
             '/systemd-services',
             '/toggle-strfry-filteredContent',
+            '/delete-all-relationships',
             '/batch-transfer',
             '/reconciliation',
             '/calculate-hops',
@@ -335,6 +336,7 @@ function authMiddleware(req, res, next) {
             '/systemd-services',
             '/brainstorm-control',
             '/toggle-strfry-filteredContent',  // New endpoint for enabling/disabling
+            '/delete-all-relationships',
             '/batch-transfer',
             '/reconciliation',
             '/calculate-hops',

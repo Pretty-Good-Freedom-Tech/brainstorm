@@ -175,6 +175,7 @@ function register(app) {
     app.get('/api/hops-count', algos.hops.handleGetHopsCount);
     
     // Pipeline endpoints
+    app.post('/api/delete-all-relationships', pipeline.handleDeleteAllRelationships);
     app.post('/api/batch-transfer', pipeline.handleBatchTransfer);
     app.post('/api/reconciliation', pipeline.handleReconciliation);
     app.post('/api/negentropy-sync', pipeline.handleNegentropySync);
