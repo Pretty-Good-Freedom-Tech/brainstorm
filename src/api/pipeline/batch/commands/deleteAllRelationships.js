@@ -23,7 +23,7 @@ function handleDeleteAllRelationships(req, res) {
     }, 120000); // 2 minutes timeout
     
     // Create a child process to run the delete script
-    const deleteProcess = exec('/usr/local/lib/node_modules/brainstorm/src/manage/deleteRels/deleteAllRels/deleteAllRels.sh');
+    const deleteProcess = exec('/usr/local/lib/node_modules/brainstorm/src/manage/deleteRels/deleteAllRelationships/deleteAllRelationships.sh');
     
     let output = '';
     deleteProcess.stdout.on('data', (data) => {

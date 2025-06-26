@@ -31,6 +31,7 @@ function handleCalculationStatus(req, res) {
             syncWoT: `${logDir}/syncWoT.log`,
             syncPersonal: `${logDir}/syncPersonal.log`,
             syncProfiles: `${logDir}/syncProfiles.log`,
+            deleteAllRelationships: `${logDir}/deleteAllRelationships.log`,
             batchTransfer: `${logDir}/batchTransfer.log`,
             reconciliation: `${logDir}/runFullReconciliation.log`
         };

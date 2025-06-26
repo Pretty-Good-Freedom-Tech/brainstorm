@@ -137,6 +137,15 @@
                             <p id="deleteAllRelationships-last-calculation-time" class="timestamp"></p>
                             <p id="deleteAllRelationships-last-calculation-duration" class="duration"></p>
                         </div>
+                        <div class="calculation-actions">
+                            <button class="action-btn">Run</button>
+                            <div class="progress-container">
+                                <div class="progress-bar"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                    </div>
+                    <div class="calculation-item">
                         <div class="calculation-item-content">
                             <h4>Batch Transfer <span class="info-icon">i</span><span class="tooltip">Batch transfer follows, mutes, reports and associated pubkeys from strfry to Neo4j. This is typically performed ONLY ONCE when setting up your relay for the first time. Thereafter, the Reconciliation task takes over routine transfers. May take 15-20 minutes when running this for the first time.</span></h4>
                             <p id="batchTransfer-last-calculation-time" class="timestamp"></p>

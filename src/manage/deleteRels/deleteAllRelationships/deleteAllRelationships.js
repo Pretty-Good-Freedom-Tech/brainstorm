@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * deleteAllRels.js
+ * deleteAllRelationships.js
  * 
  * This script deletes all relationships from Neo4j in batches
  * to avoid memory errors. It tracks progress and can be resumed if interrupted.
@@ -40,7 +40,7 @@ function log(message) {
   console.log(logMessage);
   
   // Append to log file
-  const logFile = path.join(config.logDir, 'deleteAllRels.log');
+  const logFile = path.join(config.logDir, 'deleteAllRelationships.log');
   fs.appendFileSync(logFile, logMessage + '\n');
 }
 
