@@ -4,6 +4,7 @@ After=network.target neo4j.service
 
 [Timer]
 # Run every 2 hours
+Unit=processAllTasks.service
 OnBootSec=5min
 OnUnitActiveSec=2h
 RandomizedDelaySec=5min
