@@ -862,6 +862,10 @@ async function setupProcessAllScoresService() {
     // Write the content to the destination file
     fs.writeFileSync(configPaths.processAllTasksTimerFileDestination, timerFileContent);
     console.log(`process all scores timer file created at ${configPaths.processAllTasksTimerFileDestination}`);
+
+    // enable the timer
+    execSync(`systemctl enable processAllTasks.timer`);
+    console.log('process all scores timer enabled');
   } catch (error) {
     console.error(`Error setting up process all scores timer: ${error.message}`);
     console.log(`Source file: ${configPaths.processAllTasksTimerFileSource}`);
@@ -918,6 +922,10 @@ async function setupCalculatePersonalizedPageRankService() {
     // Write the content to the destination file
     fs.writeFileSync(configPaths.calculatePersonalizedPageRankTimerFileDestination, timerFileContent);
     console.log(`calculate personalized PageRank timer file created at ${configPaths.calculatePersonalizedPageRankTimerFileDestination}`);
+    
+    // enable the timer
+    execSync(`systemctl enable calculatePersonalizedPageRank.timer`);
+    console.log('calculate personalized PageRank timer enabled');
   } catch (error) {
     console.error(`Error setting up calculate personalized PageRank timer: ${error.message}`);
     console.log(`Source file: ${configPaths.calculatePersonalizedPageRankTimerFileSource}`);
