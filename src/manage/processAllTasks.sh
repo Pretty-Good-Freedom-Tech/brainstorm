@@ -38,16 +38,30 @@ echo "$(date): Continuing processAllTasks; syncPersonal.sh completed" >> ${BRAIN
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransferIfNeeded.sh
-echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed"
-echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# In place of batch transfer only once at initialization, currently for each iteration:
+# 1. delete all relationships from neo4j
+# 2. call batch transfer
+
+# sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransferIfNeeded.sh
+# echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed"
+# echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+sudo $BRAINSTORM_MODULE_MANAGE_DIR/deleteRels/deleteAllRelationships/deleteAllRelationships.sh
+echo "$(date): Continuing processAllTasks; deleteAllRelationships.sh completed"
+echo "$(date): Continuing processAllTasks; deleteAllRelationships.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+sleep 5
+
+sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransfer.sh
+echo "$(date): Continuing processAllTasks; callBatchTransfer.sh completed"
+echo "$(date): Continuing processAllTasks; callBatchTransfer.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
 # May be removing this step; in its place, using reconcile service to run it more frequently
-sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconcile/runFullReconciliation.sh
-echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed"
-echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconcile/runFullReconciliation.sh
+# echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed"
+# echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 

@@ -12,7 +12,7 @@ Brainstorm is a _Personalized Webs of Trust Nostr relay_ that uses advanced tech
 ## Features
 
 - ✅ stream content filtered by your customizable and auto-generated whitelist
-- ✅ personalized WoT scores calculated every 6 hours, including:
+- ✅ personalized WoT scores calculated every N hours, including:
   - ✅ personalized GrapeRank
   - ✅ personalized PageRank
   - ✅ personalized hops (degrees of separation by follows)
@@ -35,7 +35,7 @@ I encourage discussion regarding [NIP-85](https://github.com/vitorpamplona/nips/
 
 See the [installation instructions](docs/INSTALLATION_INSTRUCTIONS.md) for detailed instructions.
 
-At installation, Brainstorm will generate a new nsec for your relay, and will store it in the configuration file. This nsec will be used to sign NIP-85 kind 30382 events, and you will publish kind 10040 event which effectively points clients to your new relay pubkey. In case your relay nsec is compromised or lost, not a big deal! You will simply need to republish your NIP-85 10040 event which will point to your new relay pubkey, and all 30382 events will need to be republished (which happens automatically every 6 hours)
+At installation, Brainstorm will generate a new nsec for your relay, and will store it in the configuration file. This nsec will be used to sign NIP-85 kind 30382 events, and you will publish kind 10040 event which effectively points clients to your new relay pubkey. In case your relay nsec is compromised or lost, not a big deal! You will simply need to republish your NIP-85 10040 event which will point to your new relay pubkey, and all 30382 events will need to be republished (which happens automatically every N hours)
 
 The installation script will:
 
@@ -85,7 +85,7 @@ and more!
 
 NIP-85 Trusted Assertions is a new feature of the Nostr protocol that allows you to publish your WoT scores to the network. This is a way to share your WoT scores with other relays and clients, and to make your WoT scores more accessible to the public.
 
-To export NIP-85 Trusted Assertions, go to https://myCoolDomain.com/nip85.html and publish a kind 10040 event. Your Brainstorm relay will automatically publish kind 30382 events, signed by your relay nsec, every 6 hours to your WoT relay. The kind 10040 event is how nostr clients know how to access your WoT scores (authored by your relay nsec, with a d-tag corresponding to the pubkey whose trust scores are sought).
+To export NIP-85 Trusted Assertions, go to https://myCoolDomain.com/nip85.html and publish a kind 10040 event. Your Brainstorm relay will automatically publish kind 30382 events, signed by your relay nsec, every N hours to your WoT relay. The kind 10040 event is how nostr clients know how to access your WoT scores (authored by your relay nsec, with a d-tag corresponding to the pubkey whose trust scores are sought).
 
 As of April 2025, NIP-85 is not yet supported by any nostr clients. Hopefully it will be soon!
 

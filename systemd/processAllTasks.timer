@@ -3,9 +3,9 @@ Description=Process all routine tasks periodically
 After=network.target neo4j.service
 
 [Timer]
-# Run every 6 hours
+# Run every 2 hours
 OnBootSec=5min
-OnUnitActiveSec=6h
+OnUnitActiveSec=2h
 RandomizedDelaySec=5min
 
 [Install]
