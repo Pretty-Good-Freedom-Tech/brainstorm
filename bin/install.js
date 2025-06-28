@@ -1269,6 +1269,7 @@ async function finalSetup() {
   console.log('5. set up Neo4j constraints and indexes at the Neo4j Control Panel or by running the following commands in the Neo4j Browser:');
 
   console.log('   CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;');
+  console.log('   CREATE INDEX nostrUser_npub IF NOT EXISTS FOR (n:NostrUser) ON (n.npub);');
   console.log('   CREATE INDEX nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) ON (n.pubkey);');
   console.log('   CREATE INDEX nostrUser_kind3EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3EventId);');
   console.log('   CREATE INDEX nostrUser_kind3CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3CreatedAt);');

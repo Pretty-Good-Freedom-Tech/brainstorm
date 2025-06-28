@@ -20,6 +20,7 @@ function handleGetProfiles(req, res) {
     const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
     
     // Get all filter parameters
+    const filterNpub = req.query.filterNpub || '';
     const filterPubkey = req.query.filterPubkey || '';
     const filterMinHops = req.query.filterMinHops || '';
     const filterMaxHops = req.query.filterMaxHops || '';
@@ -151,6 +152,10 @@ function handleGetProfiles(req, res) {
       query += ` AND u.latestContentEventCreatedAt <= ${filterMaxLatestContentEventCreatedAt}`;
     }
 
+    if (filterNpub) {
+      query += ` AND u.npub CONTAINS '${filterNpub}'`;
+    }
+
     if (filterPubkey) {
       query += ` AND u.pubkey CONTAINS '${filterPubkey}'`;
     }
@@ -161,6 +166,7 @@ function handleGetProfiles(req, res) {
     // Add sorting and pagination to the main query
     query += `
       RETURN u.pubkey as pubkey,
+             u.npub as npub,
              u.personalizedPageRank as personalizedPageRank,
              u.hops as hops,
              u.influence as influence,

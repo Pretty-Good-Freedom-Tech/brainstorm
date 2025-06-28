@@ -52,6 +52,7 @@
                     <thead>
                         <tr class="header-row">
                             <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
+                            <th data-sort="npub">Npub</th>
                             <th data-sort="pubkey">Pubkey</th>
                             <th data-sort="verifiedFollowerCount" class="sort-desc">🍇-Verified Followers</th>
                             <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
@@ -66,6 +67,9 @@
                         </tr>
                         <tr class="filter-row">
                             <th></th>
+                            <th>
+                                <input type="text" id="filterNpub" placeholder="Npub contains..." class="table-filter">
+                            </th>
                             <th>
                                 <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
                             </th>
@@ -146,6 +150,7 @@
         // Column definitions with display names and default visibility
         const columns = [
             { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
+            { id: 'npub', name: 'Npub', defaultVisible: true },
             { id: 'pubkey', name: 'Pubkey', defaultVisible: true },
             { id: 'verifiedFollowerCount', name: '🍇-Verified Followers', defaultVisible: true },
             { id: 'nip56TotalGrapeRankScore', name: '🍇-Report Score', defaultVisible: true },
@@ -234,7 +239,7 @@
         
         // Global DOM element references
         let tableBody, mainProfilesTable, loadingIndicator, paginationContainer, statusMessage;
-        let filterPubkey, filterMinHops, filterMaxHops, filterMinPersonalizedPageRank, filterMaxPersonalizedPageRank;
+        let filterNpub, filterPubkey, filterMinHops, filterMaxHops, filterMinPersonalizedPageRank, filterMaxPersonalizedPageRank;
         let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
         let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
@@ -253,6 +258,7 @@
             statusMessage = document.getElementById('statusMessage');
             
             // Filter elements
+            filterNpub = document.getElementById('filterNpub');
             filterPubkey = document.getElementById('filterPubkey');
             filterMinHops = document.getElementById('filterMinHops');
             filterMaxHops = document.getElementById('filterMaxHops');
@@ -287,6 +293,7 @@
             setupEventListeners();
             
             // Set the default filter values in UI
+            filterNpub.value = state.filters.npub;
             filterPubkey.value = state.filters.pubkey;
             filterMinHops.value = state.filters.minHops;
             filterMaxHops.value = state.filters.maxHops;
@@ -340,6 +347,7 @@
                 params.append('sortOrder', state.sorting.order);
                 
                 // Add filters if they exist
+                if (state.filters.npub) params.append('filterNpub', state.filters.npub);
                 if (state.filters.pubkey) params.append('filterPubkey', state.filters.pubkey);
                 if (state.filters.minHops) params.append('filterMinHops', state.filters.minHops);
                 if (state.filters.maxHops) params.append('filterMaxHops', state.filters.maxHops);
@@ -440,6 +448,7 @@
                 
                 // Filter buttons
                 applyFiltersBtn.addEventListener('click', () => {
+                    state.filters.npub = filterNpub.value.trim();
                     state.filters.pubkey = filterPubkey.value.trim();
                     state.filters.minHops = filterMinHops.value.trim();
                     state.filters.maxHops = filterMaxHops.value.trim();
@@ -467,6 +476,7 @@
                 });
                 
                 resetFiltersBtn.addEventListener('click', () => {
+                    filterNpub.value = '';
                     filterPubkey.value = '';
                     filterMinHops.value = '';
                     filterMaxHops.value = '';
