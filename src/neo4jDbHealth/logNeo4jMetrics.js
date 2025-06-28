@@ -18,7 +18,24 @@ const config = {
   neo4jUri: process.env.NEO4J_URI || "bolt://localhost:7687",
   neo4jUser: process.env.NEO4J_USER || "neo4j",
   neo4jPassword: process.env.NEO4J_PASSWORD || "neo4jneo4j",
-  logDir: process.env.BRAINSTORM_LOG_DIR || "/var/log/brainstorm",
+  // For EC2 server, prefer /var/log/brainstorm if it exists and is writable
+  // Otherwise fall back to a local logs directory
+  logDir: process.env.BRAINSTORM_LOG_DIR || (() => {
+    // Check if /var/log/brainstorm exists and is writable
+    try {
+      if (fs.existsSync('/var/log/brainstorm')) {
+        try {
+          fs.accessSync('/var/log/brainstorm', fs.constants.W_OK);
+          return '/var/log/brainstorm';
+        } catch (e) {
+          // Not writable, fall back to local logs
+        }
+      }
+    } catch (e) {
+      // Directory doesn't exist or other error, fall back to local logs
+    }
+    return path.join(process.cwd(), 'logs');
+  })(),
   metricsLogFile: "neo4j_metrics.log",
   metricsJsonFile: "neo4j_metrics.json"
 };
@@ -94,7 +111,7 @@ function collectJvmMemoryMetrics() {
   log('Collecting JVM memory metrics...');
   
   const query = `
-    CALL dbms.queryJmx("java.lang:type=Memory") YIELD attributes
+    CALL dbms.queryJmx('java.lang:type=Memory') YIELD attributes
     RETURN 
       attributes.HeapMemoryUsage.value.used AS heapUsed,
       attributes.HeapMemoryUsage.value.committed AS heapCommitted,
@@ -111,7 +128,7 @@ function collectGcMetrics() {
   log('Collecting garbage collection metrics...');
   
   const query = `
-    CALL dbms.queryJmx("java.lang:type=GarbageCollector,name=*") YIELD name, attributes
+    CALL dbms.queryJmx('java.lang:type=GarbageCollector,name=*') YIELD name, attributes
     RETURN 
       name,
       attributes.CollectionCount.value AS collectionCount,
@@ -126,7 +143,7 @@ function collectPageCacheMetrics() {
   log('Collecting page cache metrics...');
   
   const query = `
-    CALL dbms.queryJmx("org.neo4j:instance=kernel#0,name=Page cache") YIELD attributes
+    CALL dbms.queryJmx('org.neo4j:instance=kernel#0,name=Page cache') YIELD attributes
     RETURN 
       attributes.Hits.value AS hits,
       attributes.Misses.value AS misses,
@@ -144,7 +161,7 @@ function collectTransactionMetrics() {
   log('Collecting transaction metrics...');
   
   const query = `
-    CALL dbms.queryJmx("org.neo4j:instance=kernel#0,name=Transactions") YIELD attributes
+    CALL dbms.queryJmx('org.neo4j:instance=kernel#0,name=Transactions') YIELD attributes
     RETURN 
       attributes.NumberOfRolledBackTransactions.value AS rolledBackTxCount,
       attributes.NumberOfOpenTransactions.value AS openTxCount,
@@ -159,14 +176,42 @@ function collectTransactionMetrics() {
 function collectDatabaseSizeMetrics() {
   log('Collecting database size metrics...');
   
-  const query = `
-    CALL dbms.listFiles()
-    YIELD path, size
-    WHERE path CONTAINS 'databases/neo4j'
-    RETURN sum(size) AS totalDatabaseSizeBytes
-  `;
-  
-  return executeCypher(query);
+  try {
+    // Use node and relationship counts as a proxy for database size
+    const countQuery = `
+      MATCH (n)
+      RETURN
+        count(n) AS nodeCount,
+        size((MATCH ()-[r]->() RETURN count(r) AS relCount)) AS relationshipCount
+    `;
+    
+    const counts = executeCypher(countQuery);
+    
+    if (counts) {
+      // Calculate a very rough estimate of database size
+      // Assuming ~500 bytes per node and ~100 bytes per relationship on average
+      // This is just a rough approximation for tracking relative changes
+      const estimatedBytes = (counts.nodeCount * 500) + (counts.relationshipCount * 100);
+      
+      return {
+        estimatedSizeBytes: estimatedBytes,
+        nodeCount: counts.nodeCount,
+        relationshipCount: counts.relationshipCount,
+        sizeEstimationMessage: 'Size is estimated based on node and relationship counts'
+      };
+    } else {
+      return {
+        estimatedSizeBytes: null,
+        sizeEstimationMessage: 'Database size metrics unavailable'
+      };
+    }
+  } catch (error) {
+    log(`Error estimating database size: ${error.message}`);
+    return {
+      estimatedSizeBytes: null,
+      sizeEstimationMessage: 'Database size metrics unavailable'
+    };
+  }
 }
 
 // Collect relationship count metrics
@@ -297,7 +342,18 @@ async function main() {
     }
     
     if (databaseSizeMetrics) {
-      log(`Database Size: ${formatBytes(databaseSizeMetrics.totalDatabaseSizeBytes)}`);
+      if (databaseSizeMetrics.estimatedSizeBytes) {
+        log(`Estimated Database Size: ${formatBytes(databaseSizeMetrics.estimatedSizeBytes)} (estimated)`);
+      }
+      if (databaseSizeMetrics.nodeCount) {
+        log(`Node Count: ${databaseSizeMetrics.nodeCount.toLocaleString()}`);
+      }
+      if (databaseSizeMetrics.relationshipCount) {
+        log(`Relationship Count: ${databaseSizeMetrics.relationshipCount.toLocaleString()}`);
+      }
+      if (databaseSizeMetrics.sizeEstimationMessage && !databaseSizeMetrics.estimatedSizeBytes) {
+        log(`Database Size: ${databaseSizeMetrics.sizeEstimationMessage}`);
+      }
     }
     
     if (relationshipMetrics) {

@@ -18,7 +18,24 @@ const config = {
   neo4jUri: process.env.NEO4J_URI || "bolt://localhost:7687",
   neo4jUser: process.env.NEO4J_USER || "neo4j",
   neo4jPassword: process.env.NEO4J_PASSWORD || "neo4jneo4j",
-  logDir: process.env.BRAINSTORM_LOG_DIR || "/var/log/brainstorm"
+  // For EC2 server, prefer /var/log/brainstorm if it exists and is writable
+  // Otherwise fall back to a local logs directory
+  logDir: process.env.BRAINSTORM_LOG_DIR || (() => {
+    // Check if /var/log/brainstorm exists and is writable
+    try {
+      if (fs.existsSync('/var/log/brainstorm')) {
+        try {
+          fs.accessSync('/var/log/brainstorm', fs.constants.W_OK);
+          return '/var/log/brainstorm';
+        } catch (e) {
+          // Not writable, fall back to local logs
+        }
+      }
+    } catch (e) {
+      // Directory doesn't exist or other error, fall back to local logs
+    }
+    return path.join(process.cwd(), 'logs');
+  })()
 };
 
 // Ensure directories exist
@@ -155,28 +172,56 @@ async function checkDatabaseConsistency() {
   log('Checking database consistency...');
   
   try {
-    // This is a lightweight consistency check that can run on a live database
-    const query = `
-      CALL apoc.util.validate(
-        MATCH (n) WHERE n:NonExistentLabel RETURN count(n) > 0 AS result,
-        'Database appears consistent',
-        'Database inconsistency detected'
-      )
+    // Check for orphaned nodes (nodes without any relationships)
+    const orphanedNodesQuery = `
+      MATCH (n:NostrUser)
+      WHERE NOT (n)--() 
+      RETURN count(n) as orphanedNodes
     `;
     
-    try {
-      executeCypher(query);
-      log('Database consistency check passed');
-      return true;
-    } catch (error) {
-      // If APOC is not available, we'll just log that we can't check
-      if (error.message.includes('apoc')) {
-        log('Cannot check database consistency - APOC procedures not available');
-        return true;
-      } else {
-        throw error;
-      }
+    // Check for relationship integrity
+    const relationshipIntegrityQuery = `
+      MATCH ()-[r:FOLLOWS|MUTES|REPORTS]->() 
+      WHERE r.timestamp IS NULL 
+      RETURN count(r) as relsMissingTimestamp
+    `;
+    
+    // Check for duplicate relationships
+    const duplicateRelsQuery = `
+      MATCH (a)-[r:FOLLOWS]->(b)
+      WITH a, b, count(r) as relCount
+      WHERE relCount > 1
+      RETURN count(*) as duplicateRelPairs
+    `;
+    
+    const orphanedNodes = executeCypher(orphanedNodesQuery);
+    const relsMissingTimestamp = executeCypher(relationshipIntegrityQuery);
+    const duplicateRels = executeCypher(duplicateRelsQuery);
+    
+    let hasIssues = false;
+    
+    if (orphanedNodes && orphanedNodes.orphanedNodes > 0) {
+      log(`WARNING: Found ${orphanedNodes.orphanedNodes} orphaned NostrUser nodes without relationships`);
+      hasIssues = true;
     }
+    
+    if (relsMissingTimestamp && relsMissingTimestamp.relsMissingTimestamp > 0) {
+      log(`WARNING: Found ${relsMissingTimestamp.relsMissingTimestamp} relationships missing timestamp property`);
+      hasIssues = true;
+    }
+    
+    if (duplicateRels && duplicateRels.duplicateRelPairs > 0) {
+      log(`WARNING: Found ${duplicateRels.duplicateRelPairs} pairs of nodes with duplicate FOLLOWS relationships`);
+      hasIssues = true;
+    }
+    
+    if (!hasIssues) {
+      log('Database consistency check passed - no obvious issues detected');
+    } else {
+      log('Database consistency check completed with warnings');
+    }
+    
+    return !hasIssues;
   } catch (error) {
     log(`Error checking database consistency: ${error.message}`);
     return false;
