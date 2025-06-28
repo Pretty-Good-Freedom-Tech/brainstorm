@@ -75,10 +75,11 @@ EOF
 sed -i 's/#dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.export.*,gds.*/dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.periodic.*,apoc.export.json.query,gds.*/' "$NEO4J_CONF"
 
 # Step 5: Update memory settings
-echo "=== Updating Neo4j memory settings ==="
-sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=2g/' "$NEO4J_CONF"
-sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=2g/' "$NEO4J_CONF"
-sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
+# Jun 2025: removing defining heap size and transaction total
+echo "=== Updating Neo4j memory settings (commented out) ==="
+# sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=2g/' "$NEO4J_CONF"
+# sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=2g/' "$NEO4J_CONF"
+# sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
 
 # Step 6: Start Neo4j service
 echo "=== Starting Neo4j service ==="
