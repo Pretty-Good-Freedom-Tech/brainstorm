@@ -80,6 +80,8 @@ echo "=== Updating Neo4j memory settings (commented out) ==="
 # sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=2g/' "$NEO4J_CONF"
 # sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=2g/' "$NEO4J_CONF"
 # sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
+echo "=== Updating Neo4j tx log rotation settings ==="
+sed -i 's/# db.tx_log.rotation.retention_policy=2 days 2G/db.tx_log.rotation.retention_policy=1 hours 100M/' "$NEO4J_CONF"
 
 # Step 6: Start Neo4j service
 echo "=== Starting Neo4j service ==="
