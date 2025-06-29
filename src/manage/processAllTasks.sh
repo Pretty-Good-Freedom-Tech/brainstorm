@@ -85,7 +85,8 @@ check_disk_space "After deleting relationships, before neo4j restart"
 # restart neo4j to clear tx logs
 sudo systemctl restart neo4j
 
-sleep 5
+# wait 5 minutes to allow neo4j to clear tx logs
+sleep 300
 
 # Check disk space after deleting relationships
 check_disk_space "After deleting relationships, after neo4j restart"
@@ -100,9 +101,10 @@ check_disk_space "After batch transfer"
 sleep 5
 
 # restart neo4j to clear tx logs
-sudo systemctl restart neo4j
+# sudo systemctl restart neo4j
 
-sleep 5
+# wait 5 minutes to allow neo4j to clear tx logs
+# sleep 300
 
 # Final disk space check after restart
 check_disk_space "After final Neo4j restart"

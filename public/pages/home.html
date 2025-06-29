@@ -26,7 +26,7 @@
                         <div>1. Sign in using NIP-07 compatible extension (e.g. Alby or nos2x).</div>
                         <div>2. Change Neo4j password in the Neo4j Browser (see link above) to the one you provided during installation. Refresh this page. This will trigger a script to set up Neo4j Constraints and Indexes. You can verify successful execution in the Neo4j Browser, which will show about 20 Property keys.</div>
                         <div>3. Toggle ON the Turn on Databases, Stream WoT Events, and Sync & Calculate buttons (below).</div>
-                        <div>4. Monitor Routine Tasks (activated by Sync & Calculate) in the panel below. Wait for them to complete at least once. May take an hour or two the first time. Once completed, these will repeat every 2 hours. You can navigate away from this page while the tasks are running.</div>
+                        <div>4. Monitor Routine Tasks (activated by Sync & Calculate) in the panel below. Wait for them to complete at least once. May take an hour or two the first time. Once completed, these will repeat at a preset interval. You can navigate away from this page while the tasks are running.</div>
                         <div>5. While you're waiting, enable NIP-85 by publishing your kind 10040 event (see NIP-85 button in the navbar above). Learn more about making your personalized WoT scores available to clients in the About section.</div>
                         <div>6. Once Calculations have completed their first cycle, turn on the Stream Filtered Content toggle button. This will start streaming filtered content (kind 1 events, etc) to your relay!</div>
                     </div>
@@ -59,7 +59,7 @@
                     <div class="service-toggle-item">
                         <h4>Sync & Calculate <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly: <li>negentropy sync</li><li>calculate scores</li><li>update blacklist, whitelist, and NIP-85</li></span></span></h4>
                         <div class="toggle-container">
-                            <span class="toggle-label">Routine (every 2 hours) data synchronization, recalculation and export of GrapeRank and other scores, and redetermination/export ofblacklist, whitelist, and NIP-85.</span>
+                            <span class="toggle-label">Routine (every <span id="brainstormProcessAllTasksInterval">__insert interval__</span>) data synchronization, recalculation and export of GrapeRank and other scores, and redetermination/export ofblacklist, whitelist, and NIP-85.</span>
                             <label class="switch">
                                 <input type="checkbox" id="scoresToggle" onchange="toggleService('scores', this.checked)">
                                 <span class="slider round"></span>
@@ -80,7 +80,7 @@
                 </div>
             </div>
 
-            <h3>Routine Tasks <span style="position: relative; display: inline-block; text-align: left;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically every 2 when the Stream & Calculate (which controls the processAllTasks systemd service timer) is toggled on. Alternatively, you can run each task one at a time using the buttons below on the right.</span></span></h3>
+            <h3>Routine Tasks <span style="position: relative; display: inline-block; text-align: left;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically at preset intervals (every <span id="brainstormProcessAllTasksInterval">__insert interval__</span>) when the Stream & Calculate (which controls the processAllTasks systemd service timer) is toggled on. Alternatively, you can run each task one at a time using the buttons below on the right.</span></span></h3>
             <div class="calculation-status">
                 <button class="refresh-btn" onclick="refreshCalculationTimes()">Refresh Status</button>
                 <h3>Negentropy: download events in batch to strfry</h3>
@@ -325,6 +325,8 @@
     <div id="footerContainer"></div>
 
     <script>
+        const { getConfigFromFile } = require('../../src/utils/config');
+        const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = getConfigFromFile('BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL', '?hours');
         // Check services status on page load
         document.addEventListener('DOMContentLoaded', function() {
             refreshCalculationTimes();
@@ -339,6 +341,9 @@
             
             // Check content filter status
             checkFilteredContentStatus();
+
+            // update brainstormProcessAllTasksInterval
+            document.getElementById('brainstormProcessAllTasksInterval').textContent = BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL;
             
             // Set up periodic refresh
             setInterval(function() {
@@ -353,7 +358,7 @@
                 
                 // Also refresh content filter status
                 checkFilteredContentStatus();
-            }, 60000); // Refresh every minute
+            }, 30000); // Refresh every 30 seconds
         });
 
         // Define service groups and their member services

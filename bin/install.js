@@ -424,6 +424,7 @@ async function createBrainstormConfigFile() {
   const BRAINSTORM_LOG_DIR = '/var/log/brainstorm';
   const BRAINSTORM_BASE_DIR = '/var/lib/brainstorm';
   const BRAINSTORM_NODE_BIN = '/usr/local/bin/brainstorm-node';
+  const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = '3hours';
   
   const brainstormConfigContent = `# Brainstorm Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
@@ -488,6 +489,9 @@ export BRAINSTORM_OWNER_NPUB="${ownerNpub}"
 
 # Security settings
 export SESSION_SECRET="${sessionSecret}"
+
+# process all tasks interval
+export BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL="${BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL}"
 
 ######################### actions #########################
 
@@ -858,6 +862,8 @@ async function setupProcessAllScoresService() {
   try {
     // Read the content of the source file
     const timerFileContent = fs.readFileSync(configPaths.processAllTasksTimerFileSource, 'utf8');
+    // replace BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL with the value from the config file
+    timerFileContent = timerFileContent.replace('BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL', BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL);
     
     // Write the content to the destination file
     fs.writeFileSync(configPaths.processAllTasksTimerFileDestination, timerFileContent);
