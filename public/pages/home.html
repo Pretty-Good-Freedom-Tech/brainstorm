@@ -59,7 +59,7 @@
                     <div class="service-toggle-item">
                         <h4>Sync & Calculate <span style="position: relative; display: inline-block;"><span class="info-icon">i</span><span class="tooltip">Controls the timer service that regularly: <li>negentropy sync</li><li>calculate scores</li><li>update blacklist, whitelist, and NIP-85</li></span></span></h4>
                         <div class="toggle-container">
-                            <span class="toggle-label">Routine (every <span id="brainstormProcessAllTasksInterval">__insert interval__</span>) data synchronization, recalculation and export of GrapeRank and other scores, and redetermination/export ofblacklist, whitelist, and NIP-85.</span>
+                            <span class="toggle-label">Routine (every <span id="brainstormProcessAllTasksInterval">(need to update)</span>) data synchronization, recalculation and export of GrapeRank and other scores, and redetermination/export ofblacklist, whitelist, and NIP-85.</span>
                             <label class="switch">
                                 <input type="checkbox" id="scoresToggle" onchange="toggleService('scores', this.checked)">
                                 <span class="slider round"></span>
@@ -80,7 +80,7 @@
                 </div>
             </div>
 
-            <h3>Routine Tasks <span style="position: relative; display: inline-block; text-align: left;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically at preset intervals (every <span id="brainstormProcessAllTasksInterval">__insert interval__</span>) when the Stream & Calculate (which controls the processAllTasks systemd service timer) is toggled on. Alternatively, you can run each task one at a time using the buttons below on the right.</span></span></h3>
+            <h3>Routine Tasks <span style="position: relative; display: inline-block; text-align: left;"><span class="info-icon">i</span><span class="tooltip">These tasks are run automatically at preset intervals (every <span id="brainstormProcessAllTasksInterval">(need to update)</span>) when the Stream & Calculate (which controls the processAllTasks systemd service timer) is toggled on. Alternatively, you can run each task one at a time using the buttons below on the right.</span></span></h3>
             <div class="calculation-status">
                 <button class="refresh-btn" onclick="refreshCalculationTimes()">Refresh Status</button>
                 <h3>Negentropy: download events in batch to strfry</h3>
@@ -325,7 +325,8 @@
     <div id="footerContainer"></div>
 
     <script>
-        const { getConfigFromFile } = require('../../src/utils/config');
+        const { getConfigFromFile } = require('../../src/utils/config')
+        // import { getConfigFromFile } from '../../src/utils/config';
         const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = getConfigFromFile('BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL', '?hours');
         // Check services status on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -343,7 +344,7 @@
             checkFilteredContentStatus();
 
             // update brainstormProcessAllTasksInterval
-            document.getElementById('brainstormProcessAllTasksInterval').textContent = BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL;
+            // document.getElementById('brainstormProcessAllTasksInterval').textContent = BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL;
             
             // Set up periodic refresh
             setInterval(function() {

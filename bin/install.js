@@ -67,6 +67,8 @@ const packageRoot = path.resolve(__dirname, '..');
 // Define system directories
 const systemdServiceDir = '/etc/systemd/system';
 
+const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = '3hours';
+
 // Configuration paths
 const configPaths = {
   systemdServiceDir: systemdServiceDir,
@@ -424,7 +426,6 @@ async function createBrainstormConfigFile() {
   const BRAINSTORM_LOG_DIR = '/var/log/brainstorm';
   const BRAINSTORM_BASE_DIR = '/var/lib/brainstorm';
   const BRAINSTORM_NODE_BIN = '/usr/local/bin/brainstorm-node';
-  const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = '3hours';
   
   const brainstormConfigContent = `# Brainstorm Configuration
 # Created during ${isUpdateMode ? 'update' : 'installation'}
@@ -861,8 +862,8 @@ async function setupProcessAllScoresService() {
 
   try {
     // Read the content of the source file
-    const timerFileContent = fs.readFileSync(configPaths.processAllTasksTimerFileSource, 'utf8');
-    // replace BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL with the value from the config file
+    let timerFileContent = fs.readFileSync(configPaths.processAllTasksTimerFileSource, 'utf8');
+    // replace BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL with the value defined above
     timerFileContent = timerFileContent.replace('BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL', BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL);
     
     // Write the content to the destination file
