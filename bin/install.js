@@ -864,7 +864,7 @@ async function setupProcessAllScoresService() {
     // Read the content of the source file
     let timerFileContent = fs.readFileSync(configPaths.processAllTasksTimerFileSource, 'utf8');
     // replace BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL with the value defined above
-    timerFileContent = timerFileContent.replace('BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL', BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL);
+    timerFileContent = timerFileContent.replaceAll('BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL', BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL);
     
     // Write the content to the destination file
     fs.writeFileSync(configPaths.processAllTasksTimerFileDestination, timerFileContent);
