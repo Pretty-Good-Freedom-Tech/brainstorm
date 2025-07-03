@@ -1,6 +1,6 @@
 [Unit]
 Description=Process all routine tasks periodically
-After=network.target neo4j.service
+# After=network.target neo4j.service
 
 [Timer]
 # Run every BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL
