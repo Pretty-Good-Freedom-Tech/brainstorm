@@ -151,127 +151,213 @@ async function getRelationshipCounts() {
 }
 
 /**
- * Get all users with outgoing relationships in Neo4j in batches
- * @param {number} batchSize - Number of users to process in each batch
- * @param {number} totalUsers - Total number of users to process
- * @returns {Promise<Object>} Maps of users and their relationships
+ * Process a batch of users and write their relationships to temporary files
+ * @param {number} skip - Number of users to skip
+ * @param {number} batchSize - Number of users to process in this batch
+ * @returns {Promise<Object>} Batch statistics
  */
-async function getUserRelationships(batchSize, totalUsers) {
-  const relationshipMaps = {
-    userPubkeys: new Set(),
-    follows: new Map(),   // pubkey -> Set of pubkeys they follow
-    mutes: new Map(),     // pubkey -> Set of pubkeys they mute
-    reports: new Map()    // pubkey -> Set of pubkeys they report
+async function processUserBatch(skip, batchSize) {
+  const session = driver.session();
+  const batchStats = {
+    usersWithRelationships: 0,
+    followsCount: 0,
+    mutesCount: 0,
+    reportsCount: 0
   };
   
-  const session = driver.session();
+  const tempUserPubkeysFile = path.join(config.outputDir, `temp_userPubkeys_${skip}.json`);
+  const tempFollowsFile = path.join(config.outputDir, `temp_follows_${skip}.json`);
+  const tempMutesFile = path.join(config.outputDir, `temp_mutes_${skip}.json`);
+  const tempReportsFile = path.join(config.outputDir, `temp_reports_${skip}.json`);
   
   try {
-    let processed = 0;
-    let skip = 0;
+    // In-memory storage for this batch only
+    const batchUserPubkeys = new Set();
+    const batchFollows = {};
+    const batchMutes = {};
+    const batchReports = {};
     
-    while (processed < totalUsers) {
-      await log(`Processing users batch ${skip} to ${skip + batchSize} of ${totalUsers}...`);
+    await log(`Processing users batch ${skip} to ${skip + batchSize}...`);
+    
+    // Query users in batches
+    const userResult = await session.run(
+      'MATCH (u:NostrUser) RETURN u.pubkey AS pubkey ORDER BY u.pubkey SKIP ' + skip + ' LIMIT ' + batchSize
+    );
+    
+    // Process each user in the batch
+    for (const record of userResult.records) {
+      const pubkey = record.get('pubkey');
       
-      // Query users in batches
-      const userResult = await session.run(
-        'MATCH (u:NostrUser) RETURN u.pubkey AS pubkey ORDER BY u.pubkey SKIP $skip LIMIT $limit',
-        { skip, limit: batchSize }
+      // Get all relationships for this user
+      const relationshipResult = await session.run(
+        `MATCH (u:NostrUser {pubkey: $pubkey})-[r]->(target:NostrUser)
+         RETURN type(r) AS relType, target.pubkey AS targetPubkey, r.timestamp AS timestamp`,
+        { pubkey }
       );
       
-      // Process each user in the batch
-      for (const record of userResult.records) {
-        const pubkey = record.get('pubkey');
+      // Process relationships
+      if (relationshipResult.records.length > 0) {
+        batchUserPubkeys.add(pubkey);
+        batchStats.usersWithRelationships++;
         
-        // Get all relationships for this user
-        const relationshipResult = await session.run(
-          `MATCH (u:NostrUser {pubkey: $pubkey})-[r]->(target:NostrUser)
-           RETURN type(r) AS relType, target.pubkey AS targetPubkey, r.timestamp AS timestamp`,
-          { pubkey }
-        );
-        
-        // Process relationships
-        if (relationshipResult.records.length > 0) {
-          relationshipMaps.userPubkeys.add(pubkey);
+        // Process each relationship
+        for (const relRecord of relationshipResult.records) {
+          const relType = relRecord.get('relType');
+          const targetPubkey = relRecord.get('targetPubkey');
+          const timestamp = relRecord.get('timestamp');
           
-          // Process each relationship
-          for (const relRecord of relationshipResult.records) {
-            const relType = relRecord.get('relType');
-            const targetPubkey = relRecord.get('targetPubkey');
-            const timestamp = relRecord.get('timestamp');
-            
-            // Add to the appropriate relationship map
-            switch (relType) {
-              case 'FOLLOWS':
-                if (!relationshipMaps.follows.has(pubkey)) {
-                  relationshipMaps.follows.set(pubkey, new Map());
-                }
-                relationshipMaps.follows.get(pubkey).set(targetPubkey, timestamp);
-                break;
-              case 'MUTES':
-                if (!relationshipMaps.mutes.has(pubkey)) {
-                  relationshipMaps.mutes.set(pubkey, new Map());
-                }
-                relationshipMaps.mutes.get(pubkey).set(targetPubkey, timestamp);
-                break;
-              case 'REPORTS':
-                if (!relationshipMaps.reports.has(pubkey)) {
-                  relationshipMaps.reports.set(pubkey, new Map());
-                }
-                relationshipMaps.reports.get(pubkey).set(targetPubkey, timestamp);
-                break;
-            }
+          // Convert Neo4j integer to plain JavaScript number
+          // If timestamp is null/undefined, use 0 as default
+          const timestampValue = timestamp ? timestamp.toNumber() : 0;
+          
+          // Add to the appropriate relationship map
+          switch (relType) {
+            case 'FOLLOWS':
+              if (!batchFollows[pubkey]) batchFollows[pubkey] = {};
+              batchFollows[pubkey][targetPubkey] = timestampValue;
+              batchStats.followsCount++;
+              break;
+            case 'MUTES':
+              if (!batchMutes[pubkey]) batchMutes[pubkey] = {};
+              batchMutes[pubkey][targetPubkey] = timestampValue;
+              batchStats.mutesCount++;
+              break;
+            case 'REPORTS':
+              if (!batchReports[pubkey]) batchReports[pubkey] = {};
+              batchReports[pubkey][targetPubkey] = timestampValue;
+              batchStats.reportsCount++;
+              break;
           }
         }
       }
-      
-      processed += userResult.records.length;
-      skip += batchSize;
-      
-      // Break if we processed fewer records than the batch size
-      if (userResult.records.length < batchSize) break;
-      
-      // Release memory
-      global.gc && global.gc();
     }
     
-    return relationshipMaps;
+    // Write batch data to temporary files
+    await writeFile(tempUserPubkeysFile, JSON.stringify([...batchUserPubkeys]));
+    await writeFile(tempFollowsFile, JSON.stringify(batchFollows));
+    await writeFile(tempMutesFile, JSON.stringify(batchMutes));
+    await writeFile(tempReportsFile, JSON.stringify(batchReports));
+    
+    return {
+      batchStats,
+      processedCount: userResult.records.length,
+      tempFiles: {
+        userPubkeys: tempUserPubkeysFile,
+        follows: tempFollowsFile,
+        mutes: tempMutesFile,
+        reports: tempReportsFile
+      }
+    };
   } finally {
     await session.close();
   }
 }
 
 /**
- * Write relationship data to CSV files
- * @param {Object} relationshipMaps - Maps of users and their relationships
+ * Get all users with outgoing relationships in Neo4j in batches
+ * @param {number} batchSize - Number of users to process in each batch
+ * @param {number} totalUsers - Total number of users to process
+ * @returns {Promise<Object>} Statistics and temporary file paths
  */
-async function writeRelationshipData(relationshipMaps) {
+async function getUserRelationships(batchSize, totalUsers) {
+  const tempFiles = [];
+  const stats = {
+    totalUsersWithRelationships: 0,
+    totalFollows: 0,
+    totalMutes: 0,
+    totalReports: 0
+  };
+  
+  let processed = 0;
+  let skip = 0;
+  
+  try {
+    while (processed < totalUsers) {
+      // Process this batch and write to temp files
+      const result = await processUserBatch(skip, batchSize);
+      
+      // Update aggregated stats
+      stats.totalUsersWithRelationships += result.batchStats.usersWithRelationships;
+      stats.totalFollows += result.batchStats.followsCount;
+      stats.totalMutes += result.batchStats.mutesCount;
+      stats.totalReports += result.batchStats.reportsCount;
+      
+      // Add temp files to our list
+      tempFiles.push(result.tempFiles);
+      
+      processed += result.processedCount;
+      skip += batchSize;
+      
+      // Break if we processed fewer records than the batch size
+      if (result.processedCount < batchSize) break;
+      
+      // Force garbage collection if available
+      global.gc && global.gc();
+      
+      // Log progress
+      await log(`Processed ${processed}/${totalUsers} users (${Math.round((processed/totalUsers)*100)}%)`); 
+    }
+    
+    return { stats, tempFiles };
+  } catch (error) {
+    await log(`Error processing users: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Merge temporary batch files into a single output file
+ * @param {Array} tempFilesArray - Array of objects containing paths to temp files
+ */
+async function writeRelationshipData(tempFilesArray) {
   const neo4jRelationshipsFile = path.join(config.outputDir, 'currentRelationships_neo4j.json');
   
-  // Convert Sets to arrays for serialization
-  const serializable = {
-    userPubkeys: [...relationshipMaps.userPubkeys],
+  // Initialize the final data structure
+  const finalData = {
+    userPubkeys: [],
     follows: {},
     mutes: {},
     reports: {}
   };
   
-  // Convert Maps to objects for serialization
-  for (const [pubkey, followsMap] of relationshipMaps.follows.entries()) {
-    serializable.follows[pubkey] = Object.fromEntries(followsMap);
+  // Process each set of temp files
+  for (const tempFiles of tempFilesArray) {
+    try {
+      // Read and parse user pubkeys
+      const userPubkeysData = JSON.parse(fs.readFileSync(tempFiles.userPubkeys, 'utf8'));
+      finalData.userPubkeys.push(...userPubkeysData);
+      
+      // Read and parse follows relationships
+      const followsData = JSON.parse(fs.readFileSync(tempFiles.follows, 'utf8'));
+      Object.assign(finalData.follows, followsData);
+      
+      // Read and parse mutes relationships
+      const mutesData = JSON.parse(fs.readFileSync(tempFiles.mutes, 'utf8'));
+      Object.assign(finalData.mutes, mutesData);
+      
+      // Read and parse reports relationships
+      const reportsData = JSON.parse(fs.readFileSync(tempFiles.reports, 'utf8'));
+      Object.assign(finalData.reports, reportsData);
+      
+      // Remove temporary files to save disk space
+      fs.unlinkSync(tempFiles.userPubkeys);
+      fs.unlinkSync(tempFiles.follows);
+      fs.unlinkSync(tempFiles.mutes);
+      fs.unlinkSync(tempFiles.reports);
+    } catch (error) {
+      await log(`Error processing temporary files: ${error.message}`);
+      // Continue with other batches even if one fails
+    }
   }
   
-  for (const [pubkey, mutesMap] of relationshipMaps.mutes.entries()) {
-    serializable.mutes[pubkey] = Object.fromEntries(mutesMap);
-  }
+  // Remove duplicates from userPubkeys
+  finalData.userPubkeys = [...new Set(finalData.userPubkeys)];
   
-  for (const [pubkey, reportsMap] of relationshipMaps.reports.entries()) {
-    serializable.reports[pubkey] = Object.fromEntries(reportsMap);
-  }
-  
-  // Write the data to a JSON file
-  await writeFile(neo4jRelationshipsFile, JSON.stringify(serializable, null, 2));
+  // Write the final merged data
+  await writeFile(neo4jRelationshipsFile, JSON.stringify(finalData, null, 2));
   await log(`Wrote Neo4j relationship data to ${neo4jRelationshipsFile}`);
+  
+  return finalData;
 }
 
 /**
@@ -295,16 +381,18 @@ async function main() {
     const relCounts = await getRelationshipCounts();
     await log(`Found ${relCounts.follows} FOLLOWS, ${relCounts.mutes} MUTES, and ${relCounts.reports} REPORTS relationships`);
     
-    // Extract all relationships
-    const relationshipMaps = await getUserRelationships(config.batchSize, totalUsers);
+    // Process users in batches and get temporary files
+    await log('Processing users in batches and writing temporary files...');
+    const { stats, tempFiles } = await getUserRelationships(config.batchSize, totalUsers);
     
-    await log(`Processed ${relationshipMaps.userPubkeys.size} users with relationships`);
-    await log(`Found ${relationshipMaps.follows.size} users with FOLLOWS relationships`);
-    await log(`Found ${relationshipMaps.mutes.size} users with MUTES relationships`);
-    await log(`Found ${relationshipMaps.reports.size} users with REPORTS relationships`);
+    await log(`Processed ${stats.totalUsersWithRelationships} users with relationships`);
+    await log(`Found ${stats.totalFollows} FOLLOWS relationships`);
+    await log(`Found ${stats.totalMutes} MUTES relationships`);
+    await log(`Found ${stats.totalReports} REPORTS relationships`);
     
-    // Write relationship data to files
-    await writeRelationshipData(relationshipMaps);
+    // Merge temporary files into final output
+    await log('Merging batch files into final output...');
+    await writeRelationshipData(tempFiles);
     
     // Log completion time
     const endTime = Date.now();
