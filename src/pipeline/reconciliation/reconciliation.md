@@ -55,7 +55,8 @@ Logging:
 # Location of files
 - scripts will be located in src/pipeline/reconciliation
 - apocCypherCommands will be located in src/pipeline/reconciliation/apocCypherCommands
-- currentRelationships will be located in src/pipeline/reconciliation/currentRelationships (or should these be kept in memory?)
+- currentRelationshipsFromNeo4j will be located in src/pipeline/reconciliation/currentRelationshipsFromNeo4j
+- currentRelationshipsFromStrfry will be located in src/pipeline/reconciliation/currentRelationshipsFromStrfry
 - csv files will be located in src/pipeline/reconciliation/csv
 - logs will be located in /var/log/brainstorm/reconciliation.log
 

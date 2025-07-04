@@ -38,10 +38,10 @@ const argv = yargs(hideBin(process.argv))
     type: 'string',
     default: ''
   })
-  .option('csvDir', {
+  .option('outputDir', {
     describe: 'Directory for CSV output files',
     type: 'string',
-    default: path.join(__dirname, 'csv')
+    default: path.join(__dirname, 'currentRelationshipsFromNeo4j')
   })
   .option('logFile', {
     describe: 'Log file path',
@@ -63,7 +63,7 @@ const config = {
     user: argv.neo4jUser,
     password: argv.neo4jPassword
   },
-  outputDir: argv.csvDir,
+  outputDir: argv.outputDir,
   logFile: argv.logFile,
   batchSize: argv.batchSize
 };
