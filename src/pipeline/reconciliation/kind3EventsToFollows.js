@@ -6,7 +6,7 @@ const readline = require('readline');
 
 // Path configuration
 const inputPath = path.join(__dirname, 'allKind3EventsStripped.json');
-const outputPath = path.join(__dirname, 'followsToAddToNeo4j.json');
+const outputPath = path.join(__dirname, 'currentFollowsFromStrfry.json');
 
 // Clear the output file first
 fs.writeFileSync(outputPath, '');

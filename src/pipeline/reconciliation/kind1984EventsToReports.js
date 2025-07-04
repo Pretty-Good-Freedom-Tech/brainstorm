@@ -6,7 +6,7 @@ const readline = require('readline');
 
 // Path configuration
 const inputPath = path.join(__dirname, 'allKind1984EventsStripped.json');
-const outputPath = path.join(__dirname, 'reportsToAddToNeo4j.json');
+const outputPath = path.join(__dirname, 'currentReportsFromStrfry.json');
 
 // Clear the output file first
 fs.writeFileSync(outputPath, '');
