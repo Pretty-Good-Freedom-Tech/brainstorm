@@ -5,8 +5,8 @@ const path = require('path');
 const readline = require('readline');
 
 // Path configuration
-const inputPath = path.join(__dirname, 'allKind10000EventsStripped.json');
-const outputPath = path.join(__dirname, 'currentMutesFromStrfry.json');
+const inputPath = path.join(__dirname, 'allKind3EventsStripped.json');
+const outputPath = path.join(__dirname, 'followsToAddToNeo4j.json');
 
 // Clear the output file first
 fs.writeFileSync(outputPath, '');
@@ -54,17 +54,17 @@ async function processFile() {
     
     try {
       const oEvent = JSON.parse(line);
-      const pk_rater = oEvent.pubkey;
+      const pk_follower = oEvent.pubkey;
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
       
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
         if (tag[0] === 'p') {
-          const pk_ratee = tag[1];
+          const pk_followee = tag[1];
           const nextLine = {
-            pk_rater,
-            pk_ratee,
+            pk_follower,
+            pk_followee,
             timestamp: created_at
           };
           // Append to the file synchronously to ensure it's written

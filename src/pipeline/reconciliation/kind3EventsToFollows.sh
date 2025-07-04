@@ -6,8 +6,8 @@ source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 cd /usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/
 
 # Run the optimized Node.js script
-node kind10000EventsToMutes.js
+node kind3EventsToFollows.js
 
 # Move files to currentRelationshipsFromStrfry directory
-sudo mv currentMutesFromStrfry.json currentRelationshipsFromStrfry/currentMutesFromStrfry.json
-sudo mv allKind10000EventsStripped.json currentRelationshipsFromStrfry/allKind10000EventsStripped.json
+sudo mv followsToAddToNeo4j.json currentRelationshipsFromStrfry/followsToAddToNeo4j.json
+sudo mv allKind3EventsStripped.json currentRelationshipsFromStrfry/allKind3EventsStripped.json
