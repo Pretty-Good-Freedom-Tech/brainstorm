@@ -53,10 +53,10 @@ check_disk_space() {
 log "Starting reconciliation process"
 check_disk_space "Before reconciliation"
 
-# Step 1: Extract current mutes from Neo4j
-log "Step 1: Extracting current mutes from Neo4j"
+# Step 1: Extract current relationships from Neo4j
+log "Step 1: Extracting current relationships from Neo4j"
 START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentMutesFromNeo4j.js" \
+node "${BASE_DIR}/getCurrentRelationshipsFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
   --neo4jUser="${NEO4J_USER}" \
   --neo4jPassword="${NEO4J_PASSWORD}" \
@@ -64,25 +64,11 @@ node "${BASE_DIR}/getCurrentMutesFromNeo4j.js" \
   --logFile="${LOG_FILE}"
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
-log "Completed extracting Neo4j mutes in ${DURATION} seconds"
-check_disk_space "After Neo4j mutes extraction"
+log "Completed extracting Neo4j relationships in ${DURATION} seconds"
+check_disk_space "After Neo4j extraction"
 
-# Step 2: Extract current follows from Neo4j
-log "Step 2: Extracting current follows from Neo4j"
-START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
-  --neo4jUri="${NEO4J_URI}" \
-  --neo4jUser="${NEO4J_USER}" \
-  --neo4jPassword="${NEO4J_PASSWORD}" \
-  --csvDir="${CSV_DIR}" \
-  --logFile="${LOG_FILE}"
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed extracting Neo4j follows in ${DURATION} seconds"
-check_disk_space "After Neo4j follows extraction"
-
-# Step 3: Extract current relationships from Strfry
-log "Step 3: Extracting current relationships from Strfry"
+# Step 2: Extract current relationships from Strfry
+log "Step 2: Extracting current relationships from Strfry"
 START_TIME=$(date +%s)
 node "${BASE_DIR}/getCurrentRelationshipsFromStrfry.js" \
   --strfryDir="${STRFRY_DB_DIR}" \
