@@ -1,0 +1,26 @@
+// First create all nodes in a separate transaction
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///reportsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_rater AS pubkey",
+    "MERGE (u:NostrUser {pubkey: pubkey})",
+    {batchSize:500, parallel:false, retries:3}
+);
+
+// Then create all mutee nodes in a separate transaction
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///reportsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_ratee AS pubkey",
+    "MERGE (u:NostrUser {pubkey: pubkey})",
+    {batchSize:500, parallel:false, retries:3}
+);
+
+// Finally create the relationships with smaller batches and retries
+// Now including report_type property and using a composite relationship key to allow multiple report types
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///reportsToAddToNeo4j.json') YIELD value AS line",
+    "
+    MATCH (u1:NostrUser {pubkey:line.pk_rater})
+    MATCH (u2:NostrUser {pubkey:line.pk_ratee})
+    MERGE (u1)-[r:REPORTS {report_type: line.report_type}]->(u2)
+    ON CREATE SET r.timestamp = line.timestamp
+    ",
+    {batchSize:100, parallel:false, retries:3}
+);

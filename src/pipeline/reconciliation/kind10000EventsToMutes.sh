@@ -9,5 +9,5 @@ cd /usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/
 node kind10000EventsToMutes.js
 
 # Move files to currentRelationshipsFromStrfry directory
-sudo mv currentMutesFromStrfry.json currentRelationshipsFromStrfry/currentMutesFromStrfry.json
-sudo mv allKind10000EventsStripped.json currentRelationshipsFromStrfry/allKind10000EventsStripped.json
+sudo mv currentMutesFromStrfry.json currentRelationshipsFromStrfry/mutes/currentMutesFromStrfry.json
+sudo mv allKind10000EventsStripped.json currentRelationshipsFromStrfry/mutes/allKind10000EventsStripped.json

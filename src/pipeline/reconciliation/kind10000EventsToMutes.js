@@ -7,9 +7,11 @@ const readline = require('readline');
 // Path configuration
 const inputPath = path.join(__dirname, 'allKind10000EventsStripped.json');
 const outputPath = path.join(__dirname, 'currentMutesFromStrfry.json');
+const outputPath2 = path.join(__dirname,'currentRelationshipsFromStrfry/mutes/', 'currentMutesFromStrfry.json');
 
 // Clear the output file first
 fs.writeFileSync(outputPath, '');
+fs.writeFileSync(outputPath2, '');
 
 // Count total lines for progress reporting
 async function countLines() {
@@ -31,6 +33,7 @@ async function countLines() {
 }
 
 async function processFile() {
+  fs.appendFileSync(outputPath2, '{\n');
   const totalLines = await countLines();
   console.log(`Total events to process: ${totalLines}`);
   
@@ -57,6 +60,8 @@ async function processFile() {
       const pk_rater = oEvent.pubkey;
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
+
+      fs.appendFileSync(outputPath2, '"' + pk_rater + '": [' + '\n');
       
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
@@ -71,10 +76,16 @@ async function processFile() {
           fs.appendFileSync(outputPath, JSON.stringify(nextLine) + '\n');
         }
       }
+
+      fs.appendFileSync(outputPath2, ']' + '\n');
     } catch (e) {
       console.error(`Error processing line: ${e.message}`);
     }
   });
+
+  fs.appendFileSync(outputPath2, '"userPubkeys": []\n');
+
+  fs.appendFileSync(outputPath2, '}\n');
 
   // Return a promise that resolves when processing is complete
   return new Promise((resolve) => {

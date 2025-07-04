@@ -9,5 +9,5 @@ cd /usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/
 node kind3EventsToFollows.js
 
 # Move files to currentRelationshipsFromStrfry directory
-sudo mv followsToAddToNeo4j.json currentRelationshipsFromStrfry/followsToAddToNeo4j.json
-sudo mv allKind3EventsStripped.json currentRelationshipsFromStrfry/allKind3EventsStripped.json
+sudo mv currentFollowsFromStrfry.json currentRelationshipsFromStrfry/follows/currentFollowsFromStrfry.json
+sudo mv allKind3EventsStripped.json currentRelationshipsFromStrfry/follows/allKind3EventsStripped.json

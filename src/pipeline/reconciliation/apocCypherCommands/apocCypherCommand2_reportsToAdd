@@ -1,0 +1,9 @@
+CALL apoc.periodic.iterate(
+        "CALL apoc.load.json('file:///allKind1984EventsStripped.json') YIELD value AS event",
+        "
+        MERGE (u:NostrUser {pubkey:event.pubkey})
+        SET u.kind1984CreatedAt=event.created_at, u.kind1984EventId=event.id
+        ",
+        { batchSize:1000, parallel:true}
+)
+;

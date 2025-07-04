@@ -1,0 +1,1 @@
+This folder is used to store current mutes determined by data in neo4j

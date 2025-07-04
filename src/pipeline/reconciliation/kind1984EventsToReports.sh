@@ -9,5 +9,5 @@ cd /usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/
 node kind1984EventsToReports.js
 
 # Move files to currentRelationshipsFromStrfry directory
-sudo mv reportsToAddToNeo4j.json currentRelationshipsFromStrfry/reportsToAddToNeo4j.json
-sudo mv allKind1984EventsStripped.json currentRelationshipsFromStrfry/allKind1984EventsStripped.json
+sudo mv currentReportsFromStrfry.json currentRelationshipsFromStrfry/reports/currentReportsFromStrfry.json
+sudo mv allKind1984EventsStripped.json currentRelationshipsFromStrfry/reports/allKind1984EventsStripped.json

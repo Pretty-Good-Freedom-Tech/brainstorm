@@ -1,0 +1,1 @@
+This folder is used to store current follows determined by data in strfry
