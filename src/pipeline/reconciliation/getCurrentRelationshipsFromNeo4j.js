@@ -312,52 +312,149 @@ async function getUserRelationships(batchSize, totalUsers) {
 async function writeRelationshipData(tempFilesArray) {
   const neo4jRelationshipsFile = path.join(config.outputDir, 'currentRelationships_neo4j.json');
   
-  // Initialize the final data structure
-  const finalData = {
-    userPubkeys: [],
-    follows: {},
-    mutes: {},
-    reports: {}
-  };
+  // Process and write data in chunks to avoid memory limits
+  await log('Collecting and deduplicating user pubkeys...');
   
-  // Process each set of temp files
+  // First pass: collect all unique pubkeys
+  const userPubkeysSet = new Set();
   for (const tempFiles of tempFilesArray) {
     try {
       // Read and parse user pubkeys
       const userPubkeysData = JSON.parse(fs.readFileSync(tempFiles.userPubkeys, 'utf8'));
-      finalData.userPubkeys.push(...userPubkeysData);
-      
-      // Read and parse follows relationships
-      const followsData = JSON.parse(fs.readFileSync(tempFiles.follows, 'utf8'));
-      Object.assign(finalData.follows, followsData);
-      
-      // Read and parse mutes relationships
-      const mutesData = JSON.parse(fs.readFileSync(tempFiles.mutes, 'utf8'));
-      Object.assign(finalData.mutes, mutesData);
-      
-      // Read and parse reports relationships
-      const reportsData = JSON.parse(fs.readFileSync(tempFiles.reports, 'utf8'));
-      Object.assign(finalData.reports, reportsData);
-      
-      // Remove temporary files to save disk space
-      fs.unlinkSync(tempFiles.userPubkeys);
-      fs.unlinkSync(tempFiles.follows);
-      fs.unlinkSync(tempFiles.mutes);
-      fs.unlinkSync(tempFiles.reports);
+      for (const pubkey of userPubkeysData) {
+        userPubkeysSet.add(pubkey);
+      }
     } catch (error) {
-      await log(`Error processing temporary files: ${error.message}`);
-      // Continue with other batches even if one fails
+      await log(`Error processing user pubkeys: ${error.message}`);
     }
   }
   
-  // Remove duplicates from userPubkeys
-  finalData.userPubkeys = [...new Set(finalData.userPubkeys)];
+  // Create write stream for the output file
+  const outputStream = fs.createWriteStream(neo4jRelationshipsFile);
   
-  // Write the final merged data
-  await writeFile(neo4jRelationshipsFile, JSON.stringify(finalData, null, 2));
+  // Start the JSON object
+  outputStream.write('{\n');
+  
+  // Write user pubkeys array
+  await log(`Writing ${userPubkeysSet.size} unique user pubkeys...`);
+  outputStream.write('  "userPubkeys": ' + JSON.stringify([...userPubkeysSet]) + ',\n');
+  
+  // Write follows relationships
+  await log('Writing FOLLOWS relationships...');
+  outputStream.write('  "follows": {\n');
+  
+  let firstFollowUser = true;
+  for (const tempFiles of tempFilesArray) {
+    try {
+      const followsData = JSON.parse(fs.readFileSync(tempFiles.follows, 'utf8'));
+      const userKeys = Object.keys(followsData);
+      
+      for (let i = 0; i < userKeys.length; i++) {
+        const pubkey = userKeys[i];
+        // Add comma separator if not the first item
+        if (!firstFollowUser) {
+          outputStream.write(',\n');
+        }
+        firstFollowUser = false;
+        
+        // Write each user's follows as a separate chunk
+        outputStream.write(`    "${pubkey}": ${JSON.stringify(followsData[pubkey])}`);
+      }
+      
+      // Remove temporary file to save disk space
+      fs.unlinkSync(tempFiles.follows);
+    } catch (error) {
+      await log(`Error processing follows: ${error.message}`);
+    }
+  }
+  outputStream.write('\n  },\n');
+  
+  // Write mutes relationships
+  await log('Writing MUTES relationships...');
+  outputStream.write('  "mutes": {\n');
+  
+  let firstMuteUser = true;
+  for (const tempFiles of tempFilesArray) {
+    try {
+      const mutesData = JSON.parse(fs.readFileSync(tempFiles.mutes, 'utf8'));
+      const userKeys = Object.keys(mutesData);
+      
+      for (let i = 0; i < userKeys.length; i++) {
+        const pubkey = userKeys[i];
+        // Add comma separator if not the first item
+        if (!firstMuteUser) {
+          outputStream.write(',\n');
+        }
+        firstMuteUser = false;
+        
+        // Write each user's mutes as a separate chunk
+        outputStream.write(`    "${pubkey}": ${JSON.stringify(mutesData[pubkey])}`);
+      }
+      
+      // Remove temporary file to save disk space
+      fs.unlinkSync(tempFiles.mutes);
+    } catch (error) {
+      await log(`Error processing mutes: ${error.message}`);
+    }
+  }
+  outputStream.write('\n  },\n');
+  
+  // Write reports relationships
+  await log('Writing REPORTS relationships...');
+  outputStream.write('  "reports": {\n');
+  
+  let firstReportUser = true;
+  for (const tempFiles of tempFilesArray) {
+    try {
+      const reportsData = JSON.parse(fs.readFileSync(tempFiles.reports, 'utf8'));
+      const userKeys = Object.keys(reportsData);
+      
+      for (let i = 0; i < userKeys.length; i++) {
+        const pubkey = userKeys[i];
+        // Add comma separator if not the first item
+        if (!firstReportUser) {
+          outputStream.write(',\n');
+        }
+        firstReportUser = false;
+        
+        // Write each user's reports as a separate chunk
+        outputStream.write(`    "${pubkey}": ${JSON.stringify(reportsData[pubkey])}`);
+      }
+      
+      // Remove temporary file to save disk space
+      fs.unlinkSync(tempFiles.reports);
+    } catch (error) {
+      await log(`Error processing reports: ${error.message}`);
+    }
+  }
+  outputStream.write('\n  }\n');
+  
+  // Close the JSON object
+  outputStream.write('}');
+  
+  // Close the stream
+  outputStream.end();
+  
+  // Wait for the stream to finish
+  await new Promise((resolve, reject) => {
+    outputStream.on('finish', resolve);
+    outputStream.on('error', reject);
+  });
+  
   await log(`Wrote Neo4j relationship data to ${neo4jRelationshipsFile}`);
   
-  return finalData;
+  // Clean up remaining temporary files
+  for (const tempFiles of tempFilesArray) {
+    try {
+      if (fs.existsSync(tempFiles.userPubkeys)) {
+        fs.unlinkSync(tempFiles.userPubkeys);
+      }
+    } catch (error) {
+      await log(`Error removing temp file: ${error.message}`);
+    }
+  }
+  
+  return { filePath: neo4jRelationshipsFile };
 }
 
 /**
