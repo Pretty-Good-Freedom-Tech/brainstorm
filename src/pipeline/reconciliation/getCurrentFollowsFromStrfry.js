@@ -8,39 +8,30 @@
  * 
  * This script queries the Strfry database for kind 3 (contacts) events
  * and extracts the follows relationships, writing them to a JSON file
- * in a memory-efficient manner using batch processing and streaming writes.
+ * in a memory-efficient manner using streaming.
  */
 
 const fs = require('fs');
 const path = require('path');
-const { promisify } = require('util');
 const { execSync } = require('child_process');
+const readline = require('readline');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
-
-// Promisify fs functions
-const writeFile = promisify(fs.writeFile);
-const mkdir = promisify(fs.mkdir);
+const { Transform, Writable, pipeline } = require('stream');
 
 // Parse command line arguments
 const argv = yargs(hideBin(process.argv))
   .option('batch-size', {
     alias: 'b',
     type: 'number',
-    description: 'Number of events to process in each batch',
-    default: 10000
+    description: 'Number of pubkeys to process in each batch',
+    default: 1000
   })
   .option('output-dir', {
     alias: 'o',
     type: 'string',
     description: 'Directory to write output files',
     default: path.join(__dirname, 'output')
-  })
-  .option('strfry-dir', {
-    alias: 's',
-    type: 'string',
-    description: 'Directory containing Strfry database',
-    default: process.env.STRFRY_DIR || '/var/lib/strfry'
   })
   .option('log-file', {
     alias: 'l',
@@ -55,7 +46,6 @@ const argv = yargs(hideBin(process.argv))
 const config = {
   batchSize: argv['batch-size'],
   outputDir: argv['output-dir'],
-  strfryDir: argv['strfry-dir'],
   logFile: argv['log-file']
 };
 
@@ -77,7 +67,7 @@ if (!fs.existsSync(logDir)) {
  * Log a message to the log file and console
  * @param {string} message - Message to log
  */
-async function log(message) {
+function log(message) {
   const timestamp = new Date().toISOString();
   const logMessage = `${timestamp} - ${message}\n`;
   
@@ -93,197 +83,195 @@ async function log(message) {
 /**
  * Ensure the output directory exists
  */
-async function ensureOutputDirectory() {
+function ensureOutputDirectory() {
   try {
     if (!fs.existsSync(config.outputDir)) {
-      await mkdir(config.outputDir, { recursive: true });
-      await log(`Created output directory: ${config.outputDir}`);
+      fs.mkdirSync(config.outputDir, { recursive: true });
+      log(`Created output directory: ${config.outputDir}`);
     }
   } catch (error) {
-    await log(`ERROR: Failed to create output directory: ${error.message}`);
+    log(`ERROR: Failed to create output directory: ${error.message}`);
     throw error;
   }
 }
 
 /**
- * Get the total count of kind 3 events in Strfry
- * @returns {number} Total count of kind 3 events
+ * Get all distinct pubkeys that have kind 3 events
  */
-async function getKind3EventCount() {
+async function getAllPubkeys() {
   try {
-    // Use strfry-query to count kind 3 events
-    const command = `cd ${config.strfryDir} && ./strfry-query --count 'SELECT * FROM events WHERE kind = 3'`;
-    const output = execSync(command).toString().trim();
-    const count = parseInt(output, 10);
-    return count;
-  } catch (error) {
-    await log(`ERROR: Failed to get kind 3 event count: ${error.message}`);
-    throw error;
-  }
-}
-
-/**
- * Process a batch of kind 3 events and extract follows relationships
- * @param {number} offset - Offset for the batch
- * @param {number} limit - Limit for the batch
- * @returns {Object} Batch data and temporary file paths
- */
-async function processEventBatch(offset, limit) {
-  try {
-    // Create temporary files for this batch
-    const batchId = `batch_${offset}_${offset + limit}`;
-    const tempDir = path.join(config.outputDir, 'temp');
+    log('Getting list of unique pubkeys with kind 3 events...');
     
+    // Use strfry scan to list authors with kind 3 events
+    const command = 'sudo strfry scan "{\\"kinds\\":[3]}" --limit 0 | jq -r .pubkey | sort | uniq';
+    const pubkeysRaw = execSync(command).toString().trim();
+    
+    // Split into array and filter out any empty lines
+    const pubkeys = pubkeysRaw.split('\n').filter(Boolean);
+    
+    log(`Found ${pubkeys.length} unique pubkeys with kind 3 events`);
+    return pubkeys;
+  } catch (error) {
+    log(`ERROR: Failed to get pubkey list: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Process a batch of pubkeys and extract their follows relationships
+ */
+async function processPubkeyBatch(pubkeys, batchIndex, totalBatches) {
+  try {
+    log(`Processing batch ${batchIndex}/${totalBatches} (${pubkeys.length} pubkeys)...`);
+    
+    const tempDir = path.join(config.outputDir, 'temp');
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
     
-    const tempFiles = {
-      userPubkeys: path.join(tempDir, `users_${batchId}.json`),
-      follows: path.join(tempDir, `follows_${batchId}.json`)
-    };
+    const batchOutputFile = path.join(tempDir, `follows_batch_${batchIndex}.json`);
     
-    // Use strfry-query to get kind 3 events for this batch
-    const command = `cd ${config.strfryDir} && ./strfry-query 'SELECT * FROM events WHERE kind = 3 ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}'`;
-    const output = execSync(command).toString().trim();
+    // Create a write stream for the batch output
+    const batchOutputStream = fs.createWriteStream(batchOutputFile);
+    batchOutputStream.write('{\n');
     
-    // Parse the JSON output
-    const events = JSON.parse(output);
+    let firstPubkey = true;
     
-    // Process the events
-    const userPubkeys = new Set();
-    const follows = {};
-    
-    for (const event of events) {
-      const pubkey = event.pubkey;
-      userPubkeys.add(pubkey);
+    // Process each pubkey in the batch
+    for (let i = 0; i < pubkeys.length; i++) {
+      const pubkey = pubkeys[i];
       
-      // Parse the tags to find p tags (follows)
-      if (event.tags && Array.isArray(event.tags)) {
-        // Initialize follows map for this user if it doesn't exist
-        if (!follows[pubkey]) {
-          follows[pubkey] = {};
-        }
+      try {
+        // Get the latest kind 3 event for this pubkey
+        const eventJson = execSync(`sudo strfry scan "{\\"kinds\\":[3],\\"authors\\":[\\"${pubkey}\\"]}" --limit 1`).toString().trim();
         
-        // Extract p tags (follows)
-        for (const tag of event.tags) {
-          if (Array.isArray(tag) && tag[0] === 'p' && tag[1]) {
-            const targetPubkey = tag[1];
-            // Store the timestamp as the value
-            follows[pubkey][targetPubkey] = event.created_at;
+        if (eventJson) {
+          let event;
+          try {
+            event = JSON.parse(eventJson);
+          } catch (parseError) {
+            log(`WARNING: Failed to parse event for pubkey ${pubkey}: ${parseError.message}`);
+            continue;
+          }
+          
+          // Extract follows from the tags (p tags)
+          const follows = {};
+          if (event.tags && Array.isArray(event.tags)) {
+            for (const tag of event.tags) {
+              if (Array.isArray(tag) && tag[0] === 'p' && tag[1]) {
+                const followedPubkey = tag[1];
+                follows[followedPubkey] = event.created_at;
+              }
+            }
+          }
+          
+          // If there are follows, write to the batch output
+          if (Object.keys(follows).length > 0) {
+            if (!firstPubkey) {
+              batchOutputStream.write(',\n');
+            }
+            firstPubkey = false;
+            
+            batchOutputStream.write(`  "${pubkey}": ${JSON.stringify(follows)}`);
           }
         }
+      } catch (error) {
+        log(`WARNING: Failed to process pubkey ${pubkey}: ${error.message}`);
+      }
+      
+      // Log progress every 100 pubkeys
+      if ((i + 1) % 100 === 0 || i === pubkeys.length - 1) {
+        const progress = Math.round(((i + 1) / pubkeys.length) * 100);
+        log(`Batch ${batchIndex} progress: ${progress}% (${i + 1}/${pubkeys.length} pubkeys)`);
       }
     }
     
-    // Write batch data to temporary files
-    await writeFile(tempFiles.userPubkeys, JSON.stringify([...userPubkeys]));
-    await writeFile(tempFiles.follows, JSON.stringify(follows));
+    // Close the batch output
+    batchOutputStream.write('\n}');
+    batchOutputStream.end();
     
-    return {
-      stats: {
-        eventsProcessed: events.length,
-        usersWithFollows: Object.keys(follows).length,
-        totalFollows: Object.values(follows).reduce((sum, followMap) => sum + Object.keys(followMap).length, 0)
-      },
-      tempFiles
-    };
+    // Wait for the write to complete
+    await new Promise((resolve, reject) => {
+      batchOutputStream.on('finish', resolve);
+      batchOutputStream.on('error', reject);
+    });
+    
+    log(`Completed batch ${batchIndex} processing`);
+    return batchOutputFile;
   } catch (error) {
-    await log(`ERROR: Failed to process event batch ${offset}-${offset + limit}: ${error.message}`);
+    log(`ERROR: Failed to process pubkey batch ${batchIndex}: ${error.message}`);
     throw error;
   }
 }
 
 /**
- * Merge temporary batch files into a single output file
- * @param {Array} tempFilesArray - Array of objects containing paths to temp files
+ * Merge batch output files into a single output file
  */
-async function writeFollowsData(tempFilesArray) {
-  const strfryFollowsFile = path.join(config.outputDir, 'currentFollows_strfry.json');
-  
-  // Process and write data in chunks to avoid memory limits
-  await log('Collecting and deduplicating user pubkeys...');
-  
-  // First pass: collect all unique pubkeys
-  const userPubkeysSet = new Set();
-  for (const tempFiles of tempFilesArray) {
-    try {
-      // Read and parse user pubkeys
-      const userPubkeysData = JSON.parse(fs.readFileSync(tempFiles.userPubkeys, 'utf8'));
-      for (const pubkey of userPubkeysData) {
-        userPubkeysSet.add(pubkey);
-      }
-    } catch (error) {
-      await log(`Error processing user pubkeys: ${error.message}`);
-    }
-  }
-  
-  // Create write stream for the output file
-  const outputStream = fs.createWriteStream(strfryFollowsFile);
-  
-  // Start the JSON object
-  outputStream.write('{\n');
-  
-  // Write user pubkeys array
-  await log(`Writing ${userPubkeysSet.size} unique user pubkeys...`);
-  outputStream.write('  "userPubkeys": ' + JSON.stringify([...userPubkeysSet]) + ',\n');
-  
-  // Write follows relationships
-  await log('Writing FOLLOWS relationships...');
-  outputStream.write('  "follows": {\n');
-  
-  let firstFollowUser = true;
-  for (const tempFiles of tempFilesArray) {
-    try {
-      const followsData = JSON.parse(fs.readFileSync(tempFiles.follows, 'utf8'));
-      const userKeys = Object.keys(followsData);
+async function mergeBatchFiles(batchFiles) {
+  try {
+    log(`Merging ${batchFiles.length} batch files...`);
+    
+    const outputFile = path.join(config.outputDir, 'currentFollows_strfry.json');
+    const outputStream = fs.createWriteStream(outputFile);
+    
+    // Start the output JSON
+    outputStream.write('{\n');
+    
+    let isFirstBatch = true;
+    
+    // Process each batch file
+    for (let i = 0; i < batchFiles.length; i++) {
+      const batchFile = batchFiles[i];
       
-      for (let i = 0; i < userKeys.length; i++) {
-        const pubkey = userKeys[i];
-        // Add comma separator if not the first item
-        if (!firstFollowUser) {
-          outputStream.write(',\n');
-        }
-        firstFollowUser = false;
+      try {
+        // Read the batch file content
+        const batchContent = fs.readFileSync(batchFile, 'utf8');
         
-        // Write each user's follows as a separate chunk
-        outputStream.write(`    "${pubkey}": ${JSON.stringify(followsData[pubkey])}`);
+        // Parse the content to extract just the pubkeys and follows
+        const trimmedContent = batchContent.substring(1, batchContent.length - 1).trim();
+        
+        if (trimmedContent) {
+          if (!isFirstBatch) {
+            outputStream.write(',\n');
+          }
+          isFirstBatch = false;
+          
+          outputStream.write(trimmedContent);
+        }
+        
+        // Remove the temporary batch file
+        fs.unlinkSync(batchFile);
+        
+      } catch (error) {
+        log(`WARNING: Error processing batch file ${batchFile}: ${error.message}`);
       }
       
-      // Remove temporary file to save disk space
-      fs.unlinkSync(tempFiles.follows);
-    } catch (error) {
-      await log(`Error processing follows: ${error.message}`);
-    }
-  }
-  outputStream.write('\n  }\n');
-  
-  // Close the JSON object
-  outputStream.write('}');
-  
-  // Close the stream
-  outputStream.end();
-  
-  // Wait for the stream to finish
-  await new Promise((resolve, reject) => {
-    outputStream.on('finish', resolve);
-    outputStream.on('error', reject);
-  });
-  
-  await log(`Wrote Strfry follows data to ${strfryFollowsFile}`);
-  
-  // Clean up remaining temporary files
-  for (const tempFiles of tempFilesArray) {
-    try {
-      if (fs.existsSync(tempFiles.userPubkeys)) {
-        fs.unlinkSync(tempFiles.userPubkeys);
+      // Log progress
+      if ((i + 1) % 10 === 0 || i === batchFiles.length - 1) {
+        const progress = Math.round(((i + 1) / batchFiles.length) * 100);
+        log(`Merge progress: ${progress}% (${i + 1}/${batchFiles.length} files)`);
       }
-    } catch (error) {
-      await log(`Error removing temp file: ${error.message}`);
+      
+      // Trigger garbage collection if available
+      if (global.gc) global.gc();
     }
+    
+    // Close the output JSON
+    outputStream.write('\n}');
+    outputStream.end();
+    
+    // Wait for the write to complete
+    await new Promise((resolve, reject) => {
+      outputStream.on('finish', resolve);
+      outputStream.on('error', reject);
+    });
+    
+    log(`Merged batch files into ${outputFile}`);
+    return outputFile;
+  } catch (error) {
+    log(`ERROR: Failed to merge batch files: ${error.message}`);
+    throw error;
   }
-  
-  return { filePath: strfryFollowsFile };
 }
 
 /**
@@ -294,58 +282,54 @@ async function main() {
     // Start time tracking
     const startTime = Date.now();
     
-    await log('Starting extraction of current FOLLOWS relationships from Strfry');
+    log('Starting extraction of current FOLLOWS relationships from Strfry');
     
     // Ensure output directory exists
-    await ensureOutputDirectory();
+    ensureOutputDirectory();
     
-    // Get total event count for progress tracking
-    const totalEvents = await getKind3EventCount();
-    await log(`Found ${totalEvents} kind 3 events in Strfry`);
+    // Get all pubkeys with kind 3 events
+    const allPubkeys = await getAllPubkeys();
     
-    // Process events in batches
-    const tempFiles = [];
-    let totalEventsProcessed = 0;
-    let totalUsersWithFollows = 0;
-    let totalFollowsCount = 0;
+    // Process pubkeys in batches
+    const batchFiles = [];
+    const batchCount = Math.ceil(allPubkeys.length / config.batchSize);
     
-    for (let offset = 0; offset < totalEvents; offset += config.batchSize) {
-      const limit = Math.min(config.batchSize, totalEvents - offset);
-      await log(`Processing events batch ${offset} to ${offset + limit}...`);
+    for (let i = 0; i < allPubkeys.length; i += config.batchSize) {
+      const batchIndex = Math.floor(i / config.batchSize) + 1;
+      const batchPubkeys = allPubkeys.slice(i, i + config.batchSize);
       
-      const { stats, tempFiles: batchTempFiles } = await processEventBatch(offset, limit);
+      const batchFile = await processPubkeyBatch(batchPubkeys, batchIndex, batchCount);
+      batchFiles.push(batchFile);
       
-      tempFiles.push(batchTempFiles);
-      totalEventsProcessed += stats.eventsProcessed;
-      totalUsersWithFollows += stats.usersWithFollows;
-      totalFollowsCount += stats.totalFollows;
-      
-      // Log progress
-      const progress = Math.min(100, Math.round((offset + limit) / totalEvents * 100));
-      await log(`Processed ${offset + limit}/${totalEvents} events (${progress}%)`);
-      
-      // Force garbage collection if available
-      if (global.gc) {
-        global.gc();
-      }
+      // Trigger garbage collection if available
+      if (global.gc) global.gc();
     }
     
-    await log(`Processed ${totalEventsProcessed} kind 3 events`);
-    await log(`Found ${totalUsersWithFollows} users with FOLLOWS relationships`);
-    await log(`Found ${totalFollowsCount} total FOLLOWS relationships`);
+    // Merge batch files
+    const outputFile = await mergeBatchFiles(batchFiles);
     
-    // Merge temporary files into final output
-    await log('Merging batch files into final output...');
-    await writeFollowsData(tempFiles);
+    // Calculate stats from the output file
+    const outputContent = fs.readFileSync(outputFile, 'utf8');
+    const followsData = JSON.parse(outputContent);
+    
+    const userCount = Object.keys(followsData).length;
+    let followsCount = 0;
+    
+    for (const pubkey in followsData) {
+      followsCount += Object.keys(followsData[pubkey]).length;
+    }
+    
+    log(`Extracted FOLLOWS relationships for ${userCount} users`);
+    log(`Found a total of ${followsCount} FOLLOWS relationships`);
     
     // Log completion time
     const endTime = Date.now();
     const duration = (endTime - startTime) / 1000;
-    await log(`Completed extraction of Strfry follows in ${duration.toFixed(2)} seconds`);
+    log(`Completed extraction of Strfry follows in ${duration.toFixed(2)} seconds`);
     
     process.exit(0);
   } catch (error) {
-    await log(`ERROR: ${error.message}`);
+    log(`ERROR: ${error.message}`);
     console.error(error);
     process.exit(1);
   }
@@ -358,5 +342,8 @@ if (require.main === module) {
     global.gc = global.gc || function() {};
   }
   
-  main();
+  main().catch(error => {
+    console.error('Unhandled error:', error);
+    process.exit(1);
+  });
 }

@@ -43,55 +43,7 @@ async function ensureDirectories() {
   }
 }
 
-
-// Process pubkeys in batches
-async function processPubkeys(pubkeys) {
-  console.log(`${new Date().toISOString()}: Processing ${pubkeys.length} pubkeys in batches of ${config.batchSize}`);
-  
-  for (let i = 0; i < pubkeys.length; i += config.batchSize) {
-    const batch = pubkeys.slice(i, i + config.batchSize);
-    console.log(`${new Date().toISOString()}: Processing batch ${Math.floor(i/config.batchSize) + 1}/${Math.ceil(pubkeys.length/config.batchSize)}`);
-    
-    await processBatch(batch);
-  }
-}
-
-// Process a batch of pubkeys
-async function processBatch(pubkeys) {
-  try {
-    // Create a temporary file with the pubkeys
-    const pubkeysFile = path.join(config.tempDir, `pubkeys_${Date.now()}.txt`);
-    await writeFile(pubkeysFile, pubkeys.join('\n'));
-    
-    // Process each event kind
-    for (const eventType of eventKinds) {
-      await processEventKind(pubkeysFile, eventType.kind, eventType.relationship);
-    }
-    
-    // Clean up
-    fs.unlinkSync(pubkeysFile);
-  } catch (error) {
-    console.error(`${new Date().toISOString()}: Error processing batch: ${error.message}`);
-    throw error;
-  }
-}
-
-    console.error(`${new Date().toISOString()}: Error processing event kind ${eventKind}: ${error.message}`);
-    throw error;
-  }
-}
-
-// Main function
-async function main() {
-  try {
-    console.log(`${new Date().toISOString()}: Starting reconciliation queue creation...`);
-    
-    // Ensure directories exist
-    await ensureDirectories();
-    
-
-// Run the main function
-main();// Get all pubkeys from Neo4j using pagination to avoid memory issues
+// Get all pubkeys from Neo4j using pagination to avoid memory issues
 async function getAllPubkeys() {
   try {
     console.log(`${new Date().toISOString()}: Fetching pubkeys from Neo4j using pagination...`);
@@ -158,6 +110,39 @@ async function getAllPubkeys() {
     throw error;
   }
 }
+
+// Process pubkeys in batches
+async function processPubkeys(pubkeys) {
+  console.log(`${new Date().toISOString()}: Processing ${pubkeys.length} pubkeys in batches of ${config.batchSize}`);
+  
+  for (let i = 0; i < pubkeys.length; i += config.batchSize) {
+    const batch = pubkeys.slice(i, i + config.batchSize);
+    console.log(`${new Date().toISOString()}: Processing batch ${Math.floor(i/config.batchSize) + 1}/${Math.ceil(pubkeys.length/config.batchSize)}`);
+    
+    await processBatch(batch);
+  }
+}
+
+// Process a batch of pubkeys
+async function processBatch(pubkeys) {
+  try {
+    // Create a temporary file with the pubkeys
+    const pubkeysFile = path.join(config.tempDir, `pubkeys_${Date.now()}.txt`);
+    await writeFile(pubkeysFile, pubkeys.join('\n'));
+    
+    // Process each event kind
+    for (const eventType of eventKinds) {
+      await processEventKind(pubkeysFile, eventType.kind, eventType.relationship);
+    }
+    
+    // Clean up
+    fs.unlinkSync(pubkeysFile);
+  } catch (error) {
+    console.error(`${new Date().toISOString()}: Error processing batch: ${error.message}`);
+    throw error;
+  }
+}
+
 // Process a specific event kind for the batch of pubkeys
 async function processEventKind(pubkeysFile, eventKind, relationshipType) {
   try {
@@ -196,33 +181,21 @@ async function processEventKind(pubkeysFile, eventKind, relationshipType) {
     const strfryIdsFile = path.join(config.tempDir, `strfry_ids_kind${eventKind}_${Date.now()}.txt`);
     
     let strfryOutput = '';
-    console.log(`${new Date().toISOString()}: Processing ${pubkeyList.length} pubkeys with strfry for kind ${eventKind}...`);
-    
-    // Process in smaller batches to avoid overloading the system
-    const strfryBatchSize = 100;
-    for (let i = 0; i < pubkeyList.length; i += strfryBatchSize) {
-      const batchPubkeys = pubkeyList.slice(i, i + strfryBatchSize);
-      console.log(`${new Date().toISOString()}: Processing strfry batch ${Math.floor(i/strfryBatchSize) + 1}/${Math.ceil(pubkeyList.length/strfryBatchSize)}`);
-      
-      for (const pubkey of batchPubkeys) {
-        try {
-          // Get the latest event for this pubkey and kind
-          const eventJson = execSync(`sudo strfry scan "{ \\"kinds\\": [${eventKind}], \\"authors\\": [\\"${pubkey}\\"]}" | head -n 1`).toString().trim();
-          
-          if (eventJson) {
-            const event = JSON.parse(eventJson);
-            strfryOutput += `${pubkey},"${event.id}"\n`;
-          } else {
-            strfryOutput += `${pubkey},\n`;
-          }
-        } catch (error) {
-          console.error(`${new Date().toISOString()}: Error processing pubkey ${pubkey} with strfry: ${error.message}`);
+    for (const pubkey of pubkeyList) {
+      try {
+        // Get the latest event for this pubkey and kind
+        const eventJson = execSync(`sudo strfry scan "{ \\"kinds\\": [${eventKind}], \\"authors\\": [\\"${pubkey}\\"]}" | head -n 1`).toString().trim();
+        
+        if (eventJson) {
+          const event = JSON.parse(eventJson);
+          strfryOutput += `${pubkey},"${event.id}"\n`;
+        } else {
           strfryOutput += `${pubkey},\n`;
         }
+      } catch (error) {
+        console.error(`${new Date().toISOString()}: Error processing pubkey ${pubkey} with strfry: ${error.message}`);
+        strfryOutput += `${pubkey},\n`;
       }
-      
-      // Optional: free memory
-      if (global.gc) global.gc();
     }
     
     fs.writeFileSync(strfryIdsFile, strfryOutput);
@@ -268,3 +241,27 @@ async function processEventKind(pubkeysFile, eventKind, relationshipType) {
     throw error;
   }
 }
+
+// Main function
+async function main() {
+  try {
+    console.log(`${new Date().toISOString()}: Starting reconciliation queue creation...`);
+    
+    // Ensure directories exist
+    await ensureDirectories();
+    
+    // Get all pubkeys from Neo4j
+    const pubkeys = await getAllPubkeys();
+    
+    // Process pubkeys in batches
+    await processPubkeys(pubkeys);
+    
+    console.log(`${new Date().toISOString()}: Reconciliation queue creation completed successfully`);
+  } catch (error) {
+    console.error(`${new Date().toISOString()}: Error creating reconciliation queue: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+// Run the main function
+main();
