@@ -43,68 +43,24 @@ async function ensureDirectories() {
   }
 }
 
-// Get all pubkeys from Neo4j using pagination to avoid memory issues
+// Get all pubkeys from Neo4j
 async function getAllPubkeys() {
   try {
-    console.log(`${new Date().toISOString()}: Fetching pubkeys from Neo4j using pagination...`);
+    console.log(`${new Date().toISOString()}: Fetching all pubkeys from Neo4j...`);
     
-    const batchSize = 10000; // Number of pubkeys to fetch per batch
-    let skip = 0;
-    let hasMore = true;
-    let allPubkeys = [];
-    let totalPubkeys = 0;
-    
-    // Get the total count first
-    const countQuery = `
+    const query = `
       MATCH (u:NostrUser)
-      RETURN count(u) AS count
+      RETURN u.pubkey AS pubkey
     `;
     
-    const countResult = execSync(`sudo cypher-shell -a "${config.neo4jUri}" -u "${config.neo4jUser}" -p "${config.neo4jPassword}" "${countQuery}" --format plain`).toString();
-    const countLines = countResult.split('\n');
-    const totalCount = parseInt(countLines[1].trim(), 10);
+    const result = execSync(`sudo cypher-shell -a "${config.neo4jUri}" -u "${config.neo4jUser}" -p "${config.neo4jPassword}" "${query}" --format plain`).toString();
     
-    console.log(`${new Date().toISOString()}: Total pubkeys in Neo4j: ${totalCount}`);
+    // Parse the result (skip header and footer)
+    const lines = result.split('\n');
+    const pubkeys = lines.slice(1, lines.length - 1).map(line => line.trim().replace(/"/g, ''));
     
-    // Fetch pubkeys in batches
-    while (hasMore) {
-      const query = `
-        MATCH (u:NostrUser)
-        RETURN u.pubkey AS pubkey
-        ORDER BY u.pubkey
-        SKIP ${skip}
-        LIMIT ${batchSize}
-      `;
-      
-      console.log(`${new Date().toISOString()}: Fetching batch of pubkeys (${skip}-${skip + batchSize})...`);
-      
-      const result = execSync(`sudo cypher-shell -a "${config.neo4jUri}" -u "${config.neo4jUser}" -p "${config.neo4jPassword}" "${query}" --format plain`).toString();
-      
-      // Parse the result (skip header and footer)
-      const lines = result.split('\n');
-      const batchPubkeys = lines.slice(1, lines.length - 1)
-        .map(line => line.trim().replace(/"/g, ''))
-        .filter(Boolean); // Remove empty lines
-      
-      if (batchPubkeys.length === 0) {
-        hasMore = false;
-      } else {
-        allPubkeys = allPubkeys.concat(batchPubkeys);
-        totalPubkeys += batchPubkeys.length;
-        
-        // Log progress
-        const progress = Math.min(100, Math.round((totalPubkeys / totalCount) * 100));
-        console.log(`${new Date().toISOString()}: Progress: ${progress}% (${totalPubkeys}/${totalCount} pubkeys)`);
-        
-        skip += batchSize;
-        
-        // Optional: free memory by triggering garbage collection if available
-        if (global.gc) global.gc();
-      }
-    }
-    
-    console.log(`${new Date().toISOString()}: Completed fetching ${allPubkeys.length} pubkeys from Neo4j`);
-    return allPubkeys;
+    console.log(`${new Date().toISOString()}: Found ${pubkeys.length} pubkeys in Neo4j`);
+    return pubkeys;
   } catch (error) {
     console.error(`${new Date().toISOString()}: Error fetching pubkeys: ${error.message}`);
     throw error;
