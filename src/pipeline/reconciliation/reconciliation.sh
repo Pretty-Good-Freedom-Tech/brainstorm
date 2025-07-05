@@ -108,6 +108,7 @@ check_disk_space "After creating json files for adding and deleting follows"
 
 # Step 4: Apply changes to Neo4j
 log "Step 4: Applying changes to Neo4j"
+
 # Step 4A: Apply mutes to Neo4j
 log "Step 4A: Applying mutes to Neo4j"
 # add MUTES relationships from mutesToAddToNeo4j.json
