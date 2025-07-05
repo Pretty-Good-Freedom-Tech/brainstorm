@@ -57,6 +57,10 @@ async function processFile() {
       const pk_rater = oEvent.pubkey;
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
+      let oTemp = {};
+      oTemp[pk_rater] = {};
+
+      const outputPath3 = path.join(__dirname,'currentRelationshipsFromStrfry/reports/', pk_rater + '.json');
       
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
@@ -65,18 +69,22 @@ async function processFile() {
           let report_type = 'other'
           if (tag.length > 1) { pk_ratee = tag[1]; }
           if (tag.length > 2) { report_type = tag[2]; }
+          if (!report_type) { report_type = 'unspecified'; }
           const nextLine = {
             pk_rater,
             pk_ratee,
             report_type,
             timestamp: created_at
           };
+          if (!oTemp[pk_rater][report_type]) { oTemp[pk_rater][report_type] = {}; }
+          oTemp[pk_rater][report_type][pk_ratee] = true;
           // Append to the file synchronously to ensure it's written
           if (pk_ratee) {
             fs.appendFileSync(outputPath, JSON.stringify(nextLine) + '\n');
           }
         }
       }
+      fs.appendFileSync(outputPath3, JSON.stringify(oTemp, null, 2) + '\n');
     } catch (e) {
       console.error(`Error processing line: ${e.message}`);
     }

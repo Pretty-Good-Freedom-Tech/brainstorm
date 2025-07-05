@@ -47,6 +47,12 @@ check_disk_space() {
 log "Starting reconciliation process"
 check_disk_space "Before reconciliation"
 
+: <<'COMMENT_BLOCK'
+
+#############################################
+# A: PROCESS MUTES
+#############################################
+
 # Step 1A: Extract current mutes from Neo4j
 # populates currentRelationshipsFromNeo4j/mutes
 log "Step 1A: Extracting current mutes from Neo4j"
@@ -61,20 +67,6 @@ DURATION=$((END_TIME - START_TIME))
 log "Completed extracting Neo4j mutes in ${DURATION} seconds"
 check_disk_space "After Neo4j mutes extraction"
 
-# Step 1B: Extract current follows from Neo4j
-# populates currentRelationshipsFromNeo4j/follows
-log "Step 1B: Extracting current follows from Neo4j"
-START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
-  --neo4jUri="${NEO4J_URI}" \
-  --neo4jUser="${NEO4J_USER}" \
-  --neo4jPassword="${NEO4J_PASSWORD}" \
-  --logFile="${LOG_FILE}"
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed extracting Neo4j follows in ${DURATION} seconds"
-check_disk_space "After Neo4j follows extraction"
-
 # Step 2A: convert kind 10000 events to mutes
 # populates currentRelationshipsFromStrfry/mutes
 log "Step 2A: Converting kind 10000 events to mutes"
@@ -83,31 +75,12 @@ node "${BASE_DIR}/kind10000EventsToMutes.js"
 log "Completed converting kind 10000 events to mutes"
 check_disk_space "After kind 10000 events to mutes"
 
-# Step 2B: convert kind 3 events to follows
-# populates currentRelationshipsFromStrfry/follows
-log "Step 2B: Converting kind 3 events to follows"
-sudo bash ${BASE_DIR}/strfryToKind3Events.sh
-node "${BASE_DIR}/kind3EventsToFollows.js"
-log "Completed converting kind 3 events to follows"
-check_disk_space "After kind 3 events to follows"
-
-# Step 3: Compare relationships and create delta files
 # Step 3A: create json files for adding and deleting mutes
 # populates json/mutesToAddToNeo4j.json and json/mutesToDeleteFromNeo4j.json
 log "Step 3A: Creating json files for adding and deleting mutes"
 sudo node "${BASE_DIR}/calculateMutesUpdates.js"
 log "Completed creating json files for adding and deleting mutes"
 check_disk_space "After creating json files for adding and deleting mutes"
-
-# Step 3B: create json files for adding and deleting follows
-# populates json/followsToAddToNeo4j.json and json/followsToDeleteFromNeo4j.json
-log "Step 3B: Creating json files for adding and deleting follows"
-sudo node "${BASE_DIR}/calculateFollowsUpdates.js"
-log "Completed creating json files for adding and deleting follows"
-check_disk_space "After creating json files for adding and deleting follows"
-
-# Step 4: Apply changes to Neo4j
-log "Step 4: Applying changes to Neo4j"
 
 # Step 4A: Apply mutes to Neo4j
 log "Step 4A: Applying mutes to Neo4j"
@@ -123,6 +96,39 @@ sudo mv $BASE_DIR/allKind10000EventsStripped.json /var/lib/neo4j/import/allKind1
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_mutes" > /dev/null
 log "Step 4A completed applying mutes to Neo4j"
 
+#############################################
+# B: PROCESS FOLLOWS
+#############################################
+
+# Step 1B: Extract current follows from Neo4j
+# populates currentRelationshipsFromNeo4j/follows
+log "Step 1B: Extracting current follows from Neo4j"
+START_TIME=$(date +%s)
+node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
+  --neo4jUri="${NEO4J_URI}" \
+  --neo4jUser="${NEO4J_USER}" \
+  --neo4jPassword="${NEO4J_PASSWORD}" \
+  --logFile="${LOG_FILE}"
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+log "Completed extracting Neo4j follows in ${DURATION} seconds"
+check_disk_space "After Neo4j follows extraction"
+
+# Step 2B: convert kind 3 events to follows
+# populates currentRelationshipsFromStrfry/follows
+log "Step 2B: Converting kind 3 events to follows"
+sudo bash ${BASE_DIR}/strfryToKind3Events.sh
+node "${BASE_DIR}/kind3EventsToFollows.js"
+log "Completed converting kind 3 events to follows"
+check_disk_space "After kind 3 events to follows"
+
+# Step 3B: create json files for adding and deleting follows
+# populates json/followsToAddToNeo4j.json and json/followsToDeleteFromNeo4j.json
+log "Step 3B: Creating json files for adding and deleting follows"
+sudo node "${BASE_DIR}/calculateFollowsUpdates.js"
+log "Completed creating json files for adding and deleting follows"
+check_disk_space "After creating json files for adding and deleting follows"
+
 # Step 4B: Apply follows to Neo4j
 log "Step 4B: Applying follows to Neo4j"
 # add FOLLOWS relationships from followsToAddToNeo4j.json
@@ -137,6 +143,58 @@ sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3Even
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
 log "Step 4B completed applying follows to Neo4j"
 
+COMMENT_BLOCK
+
+#############################################
+# C: PROCESS REPORTS
+#############################################
+
+# Step 1C: Extract current reports from Neo4j
+# populates currentRelationshipsFromNeo4j/reports
+log "Step 1C: Extracting current reports from Neo4j"
+START_TIME=$(date +%s)
+node "${BASE_DIR}/getCurrentReportsFromNeo4j.js" \
+  --neo4jUri="${NEO4J_URI}" \
+  --neo4jUser="${NEO4J_USER}" \
+  --neo4jPassword="${NEO4J_PASSWORD}" \
+  --logFile="${LOG_FILE}"
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+log "Completed extracting Neo4j reports in ${DURATION} seconds"
+check_disk_space "After Neo4j reports extraction"
+
+# Step 2C: convert kind 1984 events to reports
+# populates currentRelationshipsFromStrfry/reports
+log "Step 2C: Converting kind 1984 events to reports"
+sudo bash ${BASE_DIR}/strfryToKind1984Events.sh
+node "${BASE_DIR}/kind1984EventsToReports.js"
+log "Completed converting kind 1984 events to reports"
+check_disk_space "After kind 1984 events to reports"
+
+: <<'COMMENT_BLOCK'
+
+# Step 3C: create json files for adding and deleting reports
+# populates json/reportsToAddToNeo4j.json and json/reportsToDeleteFromNeo4j.json
+log "Step 3C: Creating json files for adding and deleting reports"
+sudo node "${BASE_DIR}/calculateReportsUpdates.js"
+log "Completed creating json files for adding and deleting reports"
+check_disk_space "After creating json files for adding and deleting reports"
+
+# Step 4C: Apply reports to Neo4j
+log "Step 4C: Applying reports to Neo4j"
+# add REPORTS relationships from reportsToAddToNeo4j.json
+# move reportsToAddToNeo4j.json from json folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/json/reportsToAddToNeo4j.json /var/lib/neo4j/import/reportsToAddToNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_reportsToAddToNeo4j" > /dev/null
+# delete REPORTS relationships from reportsToDeleteFromNeo4j.json
+sudo mv $BASE_DIR/json/reportsToDeleteFromNeo4j.json /var/lib/neo4j/import/reportsToDeleteFromNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_reportsToDeleteFromNeo4j" > /dev/null
+# move allKind1984EventsStripped.json from base folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/allKind1984EventsStripped.json /var/lib/neo4j/import/allKind1984EventsStripped.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_reports" > /dev/null
+log "Step 4C completed applying reports to Neo4j"
+
+COMMENT_BLOCK
 
 : <<'COMMENT_BLOCK'
 # Step 5: clean up
