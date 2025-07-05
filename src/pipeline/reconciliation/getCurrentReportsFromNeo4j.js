@@ -183,7 +183,8 @@ async function getReportsForRater(raterPubkey) {
     const reports = {};
     result.records.forEach(record => {
       const ratee = record.get('ratee');
-      const report_type = record.get('report_type');
+      let report_type = record.get('report_type');
+      if (!report_type) report_type = 'unspecified';
       // Use boolean true instead of timestamp
       reports[report_type] = reports[report_type] || {};
       reports[report_type][ratee] = true;

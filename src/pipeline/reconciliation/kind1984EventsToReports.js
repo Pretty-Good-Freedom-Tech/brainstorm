@@ -30,6 +30,9 @@ async function countLines() {
   });
 }
 
+// Global object to store all reports
+let oReports = {};
+
 async function processFile() {
   const totalLines = await countLines();
   console.log(`Total events to process: ${totalLines}`);
@@ -41,7 +44,7 @@ async function processFile() {
     input: fs.createReadStream(inputPath),
     crlfDelay: Infinity
   });
-  
+
   // Process each line
   rl.on('line', (line) => {
     eventCounter++;
@@ -57,6 +60,9 @@ async function processFile() {
       const pk_rater = oEvent.pubkey;
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
+
+      if (!oReports[pk_rater]) { oReports[pk_rater] = {}; }
+
       let oTemp = {};
       oTemp[pk_rater] = {};
 
@@ -70,6 +76,7 @@ async function processFile() {
           if (tag.length > 1) { pk_ratee = tag[1]; }
           if (tag.length > 2) { report_type = tag[2]; }
           if (!report_type) { report_type = 'unspecified'; }
+          if (!oReports[pk_rater][report_type]) { oReports[pk_rater][report_type] = {}; }
           const nextLine = {
             pk_rater,
             pk_ratee,
@@ -78,13 +85,14 @@ async function processFile() {
           };
           if (!oTemp[pk_rater][report_type]) { oTemp[pk_rater][report_type] = {}; }
           oTemp[pk_rater][report_type][pk_ratee] = true;
+          oReports[pk_rater][report_type][pk_ratee] = true;
           // Append to the file synchronously to ensure it's written
           if (pk_ratee) {
             fs.appendFileSync(outputPath, JSON.stringify(nextLine) + '\n');
           }
         }
       }
-      fs.appendFileSync(outputPath3, JSON.stringify(oTemp, null, 2) + '\n');
+      // fs.appendFileSync(outputPath3, JSON.stringify(oTemp, null, 2) + '\n');
     } catch (e) {
       console.error(`Error processing line: ${e.message}`);
     }
@@ -101,6 +109,20 @@ async function processFile() {
 
 // Run the process and handle any errors
 processFile()
+  .then(() => {
+    // cycle through each key in oReports and create a json file for each
+    for (let x in oReports) {
+      let oTemp = {};
+      oTemp[x] = {};
+      for (let y in oReports[x]) {
+        oTemp[x][y] = {};
+        for (let z in oReports[x][y]) {
+          oTemp[x][y][z] = true;
+        }
+      }
+      fs.writeFileSync(path.join(__dirname,'currentRelationshipsFromStrfry/reports/', x + '.json'), JSON.stringify(oTemp, null, 2));
+    }
+  })
   .then(() => {
     console.log('Processing completed successfully');
   })

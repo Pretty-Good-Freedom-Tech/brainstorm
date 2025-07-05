@@ -47,8 +47,6 @@ check_disk_space() {
 log "Starting reconciliation process"
 check_disk_space "Before reconciliation"
 
-: <<'COMMENT_BLOCK'
-
 #############################################
 # A: PROCESS MUTES
 #############################################
@@ -143,8 +141,6 @@ sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3Even
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
 log "Step 4B completed applying follows to Neo4j"
 
-COMMENT_BLOCK
-
 #############################################
 # C: PROCESS REPORTS
 #############################################
@@ -171,8 +167,6 @@ node "${BASE_DIR}/kind1984EventsToReports.js"
 log "Completed converting kind 1984 events to reports"
 check_disk_space "After kind 1984 events to reports"
 
-: <<'COMMENT_BLOCK'
-
 # Step 3C: create json files for adding and deleting reports
 # populates json/reportsToAddToNeo4j.json and json/reportsToDeleteFromNeo4j.json
 log "Step 3C: Creating json files for adding and deleting reports"
@@ -193,8 +187,6 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 sudo mv $BASE_DIR/allKind1984EventsStripped.json /var/lib/neo4j/import/allKind1984EventsStripped.json
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_reports" > /dev/null
 log "Step 4C completed applying reports to Neo4j"
-
-COMMENT_BLOCK
 
 : <<'COMMENT_BLOCK'
 # Step 5: clean up

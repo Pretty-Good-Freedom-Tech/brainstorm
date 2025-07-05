@@ -6,12 +6,10 @@ const readline = require('readline');
 
 // Path configuration
 const inputPath = path.join(__dirname, 'allKind3EventsStripped.json');
-const outputPath = path.join(__dirname, 'currentFollowsFromStrfry.json');
-// const outputPath2 = path.join(__dirname,'currentRelationshipsFromStrfry/follows/', 'currentFollowsFromStrfry.json');
+const otptPathMaybeDeprecate = path.join(__dirname, 'currentFollowsFromStrfry.json');
 
 // Clear the output file first
-fs.writeFileSync(outputPath, '');
-// fs.writeFileSync(outputPath2, '');
+fs.writeFileSync(otptPathMaybeDeprecate, '');
 
 // Count total lines for progress reporting
 async function countLines() {
@@ -33,7 +31,6 @@ async function countLines() {
 }
 
 async function processFile() {
-  // fs.appendFileSync(outputPath2, '{\n');
   const totalLines = await countLines();
   console.log(`Total events to process: ${totalLines}`);
   
@@ -63,7 +60,7 @@ async function processFile() {
       let oTemp = {};
       oTemp[pk_rater] = {};
 
-      const outputPath3 = path.join(__dirname,'currentRelationshipsFromStrfry/follows/', pk_rater + '.json');
+      const outputPath = path.join(__dirname,'currentRelationshipsFromStrfry/follows/', pk_rater + '.json');
       
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
@@ -76,21 +73,15 @@ async function processFile() {
           };
           oTemp[pk_rater][pk_ratee] = true;
           // Append to the file synchronously to ensure it's written
-          fs.appendFileSync(outputPath, JSON.stringify(nextLine) + '\n');
+          // fs.appendFileSync(otptPathMaybeDeprecate, JSON.stringify(nextLine) + '\n');
         }
       }
 
-      // fs.appendFileSync(outputPath2, JSON.stringify(oTemp) + ',\n');
-
-      fs.appendFileSync(outputPath3, JSON.stringify(oTemp, null, 2) + '\n');
+      fs.appendFileSync(outputPath, JSON.stringify(oTemp, null, 2) + '\n');
     } catch (e) {
       console.error(`Error processing line: ${e.message}`);
     }
   });
-
-  // fs.appendFileSync(outputPath2, '"userPubkeys": []\n');
-
-  // fs.appendFileSync(outputPath2, '}\n');
 
   // Return a promise that resolves when processing is complete
   return new Promise((resolve) => {
