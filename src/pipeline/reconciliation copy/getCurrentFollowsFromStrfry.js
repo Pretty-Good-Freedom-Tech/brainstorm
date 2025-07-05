@@ -182,7 +182,7 @@ async function processPubkeyBatch(pubkeys, batchIndex, totalBatches) {
       // Log progress every 100 pubkeys
       if ((i + 1) % 100 === 0 || i === pubkeys.length - 1) {
         const progress = Math.round(((i + 1) / pubkeys.length) * 100);
-        log(`Batch ${batchIndex} progress: ${progress}% (${i + 1}/${pubkeys.length} pubkeys)`);
+        log(`Batch ${batchIndex} of ${totalBatches} follows from strfry progress: ${progress}% (${i + 1}/${pubkeys.length} pubkeys)`);
       }
     }
     

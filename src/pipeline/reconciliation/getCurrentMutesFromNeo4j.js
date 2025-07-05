@@ -219,7 +219,7 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
       // Log progress periodically
       if (processedCount % 10 === 0 || processedCount === raters.length) {
         const progress = Math.round((processedCount / raters.length) * 100);
-        await log(`Batch ${batchIndex} progress: ${progress}% (${processedCount}/${raters.length} raters)`);
+        await log(`Batch ${batchIndex} of ${totalBatches} progress: ${progress}% (${processedCount}/${raters.length} Neo4j muted users)`);
       }
     } catch (error) {
       await log(`WARNING: Failed to process rater ${raterPubkey}: ${error.message}`);
