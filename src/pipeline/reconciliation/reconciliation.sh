@@ -107,7 +107,7 @@ COMMENT_BLOCK
 # Step 3A: create json files for adding and deleting mutes
 # populates json/mutesToAddToNeo4j.json and json/mutesToDeleteFromNeo4j.json
 log "Step 3A: Creating json files for adding and deleting mutes"
-sudo bash ${BASE_DIR}/calculateMutesUpdates.sh
+sudo node "${BASE_DIR}/calculateMutesUpdates.js"
 log "Completed creating json files for adding and deleting mutes"
 check_disk_space "After creating json files for adding and deleting mutes"
 
@@ -120,76 +120,35 @@ log "Completed creating json files for adding and deleting follows"
 check_disk_space "After creating json files for adding and deleting follows"
 COMMENT_BLOCK
 
-
-log "Step 3: Comparing relationships and creating delta files"
-START_TIME=$(date +%s)
-node "${BASE_DIR}/compareRelationships.js" \
-  --csvDir="${CSV_DIR}" \
-  --logFile="${LOG_FILE}"
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed comparing relationships in ${DURATION} seconds"
-check_disk_space "After comparison"
-
 # Step 4: Apply changes to Neo4j
 log "Step 4: Applying changes to Neo4j"
+# Step 4A: Apply mutes to Neo4j
+log "Step 4A: Applying mutes to Neo4j"
+# add MUTES relationships from mutesToAddToNeo4j.json
+# move mutesToAddToNeo4j.json from json folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/json/mutesToAddToNeo4j.json /var/lib/neo4j/import/mutesToAddToNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_mutesToAddToNeo4j" > /dev/null
+# delete MUTES relationships from mutesToDeleteFromNeo4j.json
+sudo mv $BASE_DIR/json/mutesToDeleteFromNeo4j.json /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_mutesToDeleteFromNeo4j" > /dev/null
+# move allKind10000EventsStripped.json from base folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/allKind10000EventsStripped.json /var/lib/neo4j/import/allKind10000EventsStripped.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_mutes" > /dev/null
 
-# 4.1: Create new NostrUser nodes
-log "4.1: Creating new NostrUser nodes"
-START_TIME=$(date +%s)
-cat "${APOC_COMMANDS_DIR}/createNostrUsers.cypher" | \
-  cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" --format plain
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed creating NostrUser nodes in ${DURATION} seconds"
+: <<'COMMENT_BLOCK'
+# Step 5: clean up
+# clean up neo4j import folder
+# clean up mutes
+sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
+sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
+sudo rm /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
+# clean up reconciliation/json
+# clean up reconciliation/currentRelationshipsFromStrfry
+# clean up reconciliation/currentRelationshipsFromNeo4j
+COMMENT_BLOCK
 
-# 4.2: Create new FOLLOWS relationships
-log "4.2: Creating new FOLLOWS relationships"
-START_TIME=$(date +%s)
-cat "${APOC_COMMANDS_DIR}/createFollows.cypher" | \
-  cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" --format plain
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed creating FOLLOWS relationships in ${DURATION} seconds"
-
-# 4.3: Remove deprecated FOLLOWS relationships
-log "4.3: Removing deprecated FOLLOWS relationships"
-START_TIME=$(date +%s)
-cat "${APOC_COMMANDS_DIR}/deleteFollows.cypher" | \
-  cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" --format plain
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed removing FOLLOWS relationships in ${DURATION} seconds"
-
-# 4.4: Create new MUTES relationships
-log "4.4: Creating new MUTES relationships"
-START_TIME=$(date +%s)
-cat "${APOC_COMMANDS_DIR}/createMutes.cypher" | \
-  cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" --format plain
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed creating MUTES relationships in ${DURATION} seconds"
-
-# 4.5: Remove deprecated MUTES relationships
-log "4.5: Removing deprecated MUTES relationships"
-START_TIME=$(date +%s)
-cat "${APOC_COMMANDS_DIR}/deleteMutes.cypher" | \
-  cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" --format plain
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed removing MUTES relationships in ${DURATION} seconds"
-
-# 4.6: Create new REPORTS relationships
-log "4.6: Creating new REPORTS relationships"
-START_TIME=$(date +%s)
-cat "${APOC_COMMANDS_DIR}/createReports.cypher" | \
-  cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" --format plain
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed creating REPORTS relationships in ${DURATION} seconds"
-
-# Step 5: Log final stats
-log "Step 5: Logging final statistics"
+# Step 6: Log final stats
+log "Step 6: Logging final statistics"
 START_TIME=$(date +%s)
 node "${BASE_DIR}/logFinalStats.js" \
   --neo4jUri="${NEO4J_URI}" \

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Note: this script is being deprecated in favor of calculateMutesUpdates.js which is much faster
+
 # This script will calculate the number of mutes that need to be added and deleted
 # It will create two files: mutesToAddToNeo4j.json and mutesToDeleteFromNeo4j.json
 # It will use the files in currentRelationshipsFromStrfry and currentRelationshipsFromNeo4j directories
