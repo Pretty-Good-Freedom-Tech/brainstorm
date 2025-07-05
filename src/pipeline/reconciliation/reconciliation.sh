@@ -63,7 +63,6 @@ check_disk_space "After Neo4j mutes extraction"
 
 # Step 1B: Extract current follows from Neo4j
 # populates currentRelationshipsFromNeo4j/follows
-: <<'COMMENT_BLOCK'
 log "Step 1B: Extracting current follows from Neo4j"
 START_TIME=$(date +%s)
 node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
@@ -75,7 +74,6 @@ END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 log "Completed extracting Neo4j follows in ${DURATION} seconds"
 check_disk_space "After Neo4j follows extraction"
-COMMENT_BLOCK
 
 # Step 2A: convert kind 10000 events to mutes
 # populates currentRelationshipsFromStrfry/mutes
@@ -87,13 +85,11 @@ check_disk_space "After kind 10000 events to mutes"
 
 # Step 2B: convert kind 3 events to follows
 # populates currentRelationshipsFromStrfry/follows
-: <<'COMMENT_BLOCK'
 log "Step 2B: Converting kind 3 events to follows"
 sudo bash ${BASE_DIR}/strfryToKind3Events.sh
 node "${BASE_DIR}/kind3EventsToFollows.js"
 log "Completed converting kind 3 events to follows"
 check_disk_space "After kind 3 events to follows"
-COMMENT_BLOCK
 
 # Step 3: Compare relationships and create delta files
 # Step 3A: create json files for adding and deleting mutes
@@ -103,14 +99,12 @@ sudo node "${BASE_DIR}/calculateMutesUpdates.js"
 log "Completed creating json files for adding and deleting mutes"
 check_disk_space "After creating json files for adding and deleting mutes"
 
-: <<'COMMENT_BLOCK'
 # Step 3B: create json files for adding and deleting follows
 # populates json/followsToAddToNeo4j.json and json/followsToDeleteFromNeo4j.json
 log "Step 3B: Creating json files for adding and deleting follows"
-sudo bash ${BASE_DIR}/calculateFollowsUpdates.sh
+sudo node "${BASE_DIR}/calculateFollowsUpdates.js"
 log "Completed creating json files for adding and deleting follows"
 check_disk_space "After creating json files for adding and deleting follows"
-COMMENT_BLOCK
 
 # Step 4: Apply changes to Neo4j
 log "Step 4: Applying changes to Neo4j"
@@ -126,6 +120,22 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 # move allKind10000EventsStripped.json from base folder to /var/lib/neo4j/import
 sudo mv $BASE_DIR/allKind10000EventsStripped.json /var/lib/neo4j/import/allKind10000EventsStripped.json
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_mutes" > /dev/null
+log "Step 4A completed applying mutes to Neo4j"
+
+# Step 4B: Apply follows to Neo4j
+log "Step 4B: Applying follows to Neo4j"
+# add FOLLOWS relationships from followsToAddToNeo4j.json
+# move followsToAddToNeo4j.json from json folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/json/followsToAddToNeo4j.json /var/lib/neo4j/import/followsToAddToNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_followsToAddToNeo4j" > /dev/null
+# delete FOLLOWS relationships from followsToDeleteFromNeo4j.json
+sudo mv $BASE_DIR/json/followsToDeleteFromNeo4j.json /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_followsToDeleteFromNeo4j" > /dev/null
+# move allKind3EventsStripped.json from base folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3EventsStripped.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
+log "Step 4B completed applying follows to Neo4j"
+
 
 : <<'COMMENT_BLOCK'
 # Step 5: clean up
@@ -140,22 +150,5 @@ sudo rm $BASE_DIR/currentMutesFromStrfry.json
 # clean up reconciliation/currentRelationshipsFromStrfry
 # clean up reconciliation/currentRelationshipsFromNeo4j
 COMMENT_BLOCK
-
-# Step 6: Log final stats
-log "Step 6: Logging final statistics"
-START_TIME=$(date +%s)
-node "${BASE_DIR}/logFinalStats.js" \
-  --neo4jUri="${NEO4J_URI}" \
-  --neo4jUser="${NEO4J_USER}" \
-  --neo4jPassword="${NEO4J_PASSWORD}" \
-  --strfryDir="${STRFRY_DB_DIR}" \
-  --logFile="${LOG_FILE}"
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed logging final stats in ${DURATION} seconds"
-check_disk_space "After reconciliation"
-
-# Make script executable
-chmod +x "${BASE_DIR}/reconciliation.sh"
 
 log "Reconciliation process completed successfully"
