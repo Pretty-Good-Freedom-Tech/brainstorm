@@ -53,8 +53,9 @@ check_disk_space() {
 log "Starting reconciliation process"
 check_disk_space "Before reconciliation"
 
-# Step 1: Extract current mutes from Neo4j
-log "Step 1: Extracting current mutes from Neo4j"
+# Step 1A: Extract current mutes from Neo4j
+# populates currentRelationshipsFromNeo4j/mutes
+log "Step 1A: Extracting current mutes from Neo4j"
 START_TIME=$(date +%s)
 node "${BASE_DIR}/getCurrentMutesFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
@@ -67,8 +68,10 @@ DURATION=$((END_TIME - START_TIME))
 log "Completed extracting Neo4j mutes in ${DURATION} seconds"
 check_disk_space "After Neo4j mutes extraction"
 
-# Step 2: Extract current follows from Neo4j
-log "Step 2: Extracting current follows from Neo4j"
+# Step 1B: Extract current follows from Neo4j
+# populates currentRelationshipsFromNeo4j/follows
+: <<'COMMENT_BLOCK'
+log "Step 1B: Extracting current follows from Neo4j"
 START_TIME=$(date +%s)
 node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
@@ -80,20 +83,44 @@ END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 log "Completed extracting Neo4j follows in ${DURATION} seconds"
 check_disk_space "After Neo4j follows extraction"
+COMMENT_BLOCK
 
-# Step 3: Extract current relationships from Strfry
-log "Step 3: Extracting current relationships from Strfry"
-START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentRelationshipsFromStrfry.js" \
-  --strfryDir="${STRFRY_DB_DIR}" \
-  --csvDir="${CSV_DIR}" \
-  --logFile="${LOG_FILE}"
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed extracting Strfry relationships in ${DURATION} seconds"
-check_disk_space "After Strfry extraction"
+# Step 2A: convert kind 10000 events to mutes
+# populates currentRelationshipsFromStrfry/mutes
+log "Step 2A: Converting kind 10000 events to mutes"
+sudo bash ${BASE_DIR}/strfryToKind10000Events.sh
+node "${BASE_DIR}/kind10000EventsToMutes.js"
+log "Completed converting kind 10000 events to mutes"
+check_disk_space "After kind 10000 events to mutes"
+
+# Step 2B: convert kind 3 events to follows
+# populates currentRelationshipsFromStrfry/follows
+: <<'COMMENT_BLOCK'
+log "Step 2B: Converting kind 3 events to follows"
+sudo bash ${BASE_DIR}/strfryToKind3Events.sh
+node "${BASE_DIR}/kind3EventsToFollows.js"
+log "Completed converting kind 3 events to follows"
+check_disk_space "After kind 3 events to follows"
+COMMENT_BLOCK
 
 # Step 3: Compare relationships and create delta files
+# Step 3A: create json files for adding and deleting mutes
+# populates json/mutesToAddToNeo4j.json and json/mutesToDeleteFromNeo4j.json
+log "Step 3A: Creating json files for adding and deleting mutes"
+sudo bash ${BASE_DIR}/calculateMutesUpdates.sh
+log "Completed creating json files for adding and deleting mutes"
+check_disk_space "After creating json files for adding and deleting mutes"
+
+: <<'COMMENT_BLOCK'
+# Step 3B: create json files for adding and deleting follows
+# populates json/followsToAddToNeo4j.json and json/followsToDeleteFromNeo4j.json
+log "Step 3B: Creating json files for adding and deleting follows"
+sudo bash ${BASE_DIR}/calculateFollowsUpdates.sh
+log "Completed creating json files for adding and deleting follows"
+check_disk_space "After creating json files for adding and deleting follows"
+COMMENT_BLOCK
+
+
 log "Step 3: Comparing relationships and creating delta files"
 START_TIME=$(date +%s)
 node "${BASE_DIR}/compareRelationships.js" \
