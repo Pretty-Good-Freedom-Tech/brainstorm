@@ -1,11 +1,11 @@
-// First create all nodes in a separate transaction
+// First create all rater nodes in a separate transaction
 CALL apoc.periodic.iterate(
     "CALL apoc.load.json('file:///mutesToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_rater AS pubkey",
     "MERGE (u:NostrUser {pubkey: pubkey})",
     {batchSize:500, parallel:false, retries:3}
 );
 
-// Then create all mutee nodes in a separate transaction
+// Then create all ratee nodes in a separate transaction
 CALL apoc.periodic.iterate(
     "CALL apoc.load.json('file:///mutesToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_ratee AS pubkey",
     "MERGE (u:NostrUser {pubkey: pubkey})",

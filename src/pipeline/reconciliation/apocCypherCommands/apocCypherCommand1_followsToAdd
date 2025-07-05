@@ -1,13 +1,13 @@
 // First create all nodes in a separate transaction
 CALL apoc.periodic.iterate(
-    "CALL apoc.load.json('file:///followsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_follower AS pubkey",
+    "CALL apoc.load.json('file:///followsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_rater AS pubkey",
     "MERGE (u:NostrUser {pubkey: pubkey})",
     {batchSize:250, parallel:false, retries:3}
 );
 
-// Then create all followee nodes in a separate transaction
+// Then create all ratee nodes in a separate transaction
 CALL apoc.periodic.iterate(
-    "CALL apoc.load.json('file:///followsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_followee AS pubkey",
+    "CALL apoc.load.json('file:///followsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.pk_ratee AS pubkey",
     "MERGE (u:NostrUser {pubkey: pubkey})",
     {batchSize:250, parallel:false, retries:3}
 );
@@ -16,8 +16,8 @@ CALL apoc.periodic.iterate(
 CALL apoc.periodic.iterate(
     "CALL apoc.load.json('file:///followsToAddToNeo4j.json') YIELD value AS line",
     "
-    MATCH (u1:NostrUser {pubkey:line.pk_follower})
-    MATCH (u2:NostrUser {pubkey:line.pk_followee})
+    MATCH (u1:NostrUser {pubkey:line.pk_rater})
+    MATCH (u2:NostrUser {pubkey:line.pk_ratee})
     MERGE (u1)-[r:FOLLOWS]->(u2)
     SET r.timestamp = line.timestamp
     ",
