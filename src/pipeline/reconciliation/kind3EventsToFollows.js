@@ -6,10 +6,10 @@ const readline = require('readline');
 
 // Path configuration
 const inputPath = path.join(__dirname, 'allKind3EventsStripped.json');
-const otptPathMaybeDeprecate = path.join(__dirname, 'currentFollowsFromStrfry.json');
+// const otptPathMaybeDeprecate = path.join(__dirname, 'currentFollowsFromStrfry.json');
 
 // Clear the output file first
-fs.writeFileSync(otptPathMaybeDeprecate, '');
+// fs.writeFileSync(otptPathMaybeDeprecate, '');
 
 // Count total lines for progress reporting
 async function countLines() {
