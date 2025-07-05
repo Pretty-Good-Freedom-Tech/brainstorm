@@ -188,18 +188,42 @@ sudo mv $BASE_DIR/allKind1984EventsStripped.json /var/lib/neo4j/import/allKind19
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_reports" > /dev/null
 log "Step 4C completed applying reports to Neo4j"
 
-: <<'COMMENT_BLOCK'
 # Step 5: clean up
 # clean up neo4j import folder
 # clean up mutes
 sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
 sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
 sudo rm /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
-# clean up currentMutesFromStrfry.json from base directory
+# clean up follows
+sudo rm /var/lib/neo4j/import/followsToAddToNeo4j.json
+sudo rm /var/lib/neo4j/import/allKind3EventsStripped.json
+sudo rm /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
+# clean up reports
+sudo rm /var/lib/neo4j/import/reportsToAddToNeo4j.json
+sudo rm /var/lib/neo4j/import/allKind1984EventsStripped.json
+# sudo rm /var/lib/neo4j/import/reportsToDeleteFromNeo4j.json
+
+# clean up current relationships from base directory
 sudo rm $BASE_DIR/currentMutesFromStrfry.json
-# clean up reconciliation/json
+sudo rm $BASE_DIR/currentFollowsFromStrfry.json
+sudo rm $BASE_DIR/currentReportsFromStrfry.json
+
 # clean up reconciliation/currentRelationshipsFromStrfry
+sudo rm -rf $BASE_DIR/currentRelationshipsFromStrfry
+# recreate currentRelationshipsFromStrfry/follows, currentRelationshipsFromStrfry/mutes, and currentRelationshipsFromStrfry/reports
+sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/follows
+sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/mutes
+sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/reports
+
 # clean up reconciliation/currentRelationshipsFromNeo4j
+sudo rm -rf $BASE_DIR/currentRelationshipsFromNeo4j
+# recreate currentRelationshipsFromNeo4j/follows, currentRelationshipsFromNeo4j/mutes, and currentRelationshipsFromNeo4j/reports
+sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/follows
+sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/mutes
+sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/reports
+
+: <<'COMMENT_BLOCK'
+# foo
 COMMENT_BLOCK
 
 log "Reconciliation process completed successfully"

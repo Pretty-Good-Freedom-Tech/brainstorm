@@ -6,10 +6,6 @@ const readline = require('readline');
 
 // Path configuration
 const inputPath = path.join(__dirname, 'allKind3EventsStripped.json');
-// const otptPathMaybeDeprecate = path.join(__dirname, 'currentFollowsFromStrfry.json');
-
-// Clear the output file first
-// fs.writeFileSync(otptPathMaybeDeprecate, '');
 
 // Count total lines for progress reporting
 async function countLines() {
@@ -66,14 +62,7 @@ async function processFile() {
         const tag = aTags[x];
         if (tag[0] === 'p') {
           const pk_ratee = tag[1];
-          const nextLine = {
-            pk_rater,
-            pk_ratee,
-            timestamp: created_at
-          };
           oTemp[pk_rater][pk_ratee] = true;
-          // Append to the file synchronously to ensure it's written
-          // fs.appendFileSync(otptPathMaybeDeprecate, JSON.stringify(nextLine) + '\n');
         }
       }
 
