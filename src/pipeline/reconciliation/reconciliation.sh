@@ -9,12 +9,10 @@ source /etc/brainstorm.conf
 # Create necessary directory structure
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="${SCRIPT_DIR}"
-CSV_DIR="${BASE_DIR}/csv"
 LOG_DIR=${BRAINSTORM_LOG_DIR:-"/var/log/brainstorm"}
 APOC_COMMANDS_DIR="${BASE_DIR}/apocCypherCommands"
 
 # Make sure directories exist
-mkdir -p "${CSV_DIR}"
 mkdir -p "${LOG_DIR}"
 mkdir -p "${APOC_COMMANDS_DIR}"
 
@@ -43,10 +41,6 @@ check_disk_space() {
   # Neo4j transaction logs size
   log "${label} - Neo4j transaction logs size:"
   du -sh /var/lib/neo4j/data/transactions | tee -a "${LOG_FILE}"
-  
-  # CSV directory size
-  log "${label} - CSV directory size:"
-  du -sh "${CSV_DIR}" | tee -a "${LOG_FILE}"
 }
 
 # Start reconciliation process
@@ -61,7 +55,6 @@ node "${BASE_DIR}/getCurrentMutesFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
   --neo4jUser="${NEO4J_USER}" \
   --neo4jPassword="${NEO4J_PASSWORD}" \
-  --csvDir="${CSV_DIR}" \
   --logFile="${LOG_FILE}"
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
@@ -77,7 +70,6 @@ node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
   --neo4jUser="${NEO4J_USER}" \
   --neo4jPassword="${NEO4J_PASSWORD}" \
-  --csvDir="${CSV_DIR}" \
   --logFile="${LOG_FILE}"
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
@@ -142,6 +134,8 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
 sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
 sudo rm /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
+# clean up currentMutesFromStrfry.json from base directory
+sudo rm $BASE_DIR/currentMutesFromStrfry.json
 # clean up reconciliation/json
 # clean up reconciliation/currentRelationshipsFromStrfry
 # clean up reconciliation/currentRelationshipsFromNeo4j
