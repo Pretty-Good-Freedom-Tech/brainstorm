@@ -21,8 +21,7 @@ LOG_FILE="${LOG_DIR}/reconciliation.log"
 
 # Function for logging
 log() {
-  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-  echo "${timestamp} - $1" | tee -a "${LOG_FILE}"
+  echo "$(date): $1" | tee -a "${LOG_FILE}"
 }
 
 # Function to check disk space

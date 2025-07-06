@@ -92,7 +92,7 @@ async function processStrfryFile(strfryFile, outputStream) {
       }
       
       if (reportsAdded > 0) {
-        log(`Added ${reportsAdded} new reports for new rater ${raterPubkey}`);
+        // log(`Added ${reportsAdded} new reports for new rater ${raterPubkey}`);
       }
       return reportsAdded;
     }
@@ -126,7 +126,7 @@ async function processStrfryFile(strfryFile, outputStream) {
       }
       
       if (reportsAdded > 0) {
-        log(`Added ${reportsAdded} new reports for rater ${raterPubkey} with missing Neo4j data`);
+        // log(`Added ${reportsAdded} new reports for rater ${raterPubkey} with missing Neo4j data`);
       }
       return reportsAdded;
     }
@@ -178,7 +178,7 @@ async function processStrfryFile(strfryFile, outputStream) {
     }
     
     if (reportsAdded > 0) {
-      log(`Added ${reportsAdded} new reports for existing rater ${raterPubkey}`);
+      // log(`Added ${reportsAdded} new reports for existing rater ${raterPubkey}`);
     }
     
     return reportsAdded;

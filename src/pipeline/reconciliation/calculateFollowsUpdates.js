@@ -142,7 +142,7 @@ async function processStrfryFile(strfryFile, outputStream) {
         followsAdded++;
       }
       
-      log(`Added ${followsAdded} follows for new rater ${raterPubkey}`);
+      // log(`Added ${followsAdded} follows for new rater ${raterPubkey}`);
       return followsAdded;
     }
     
@@ -169,7 +169,7 @@ async function processStrfryFile(strfryFile, outputStream) {
         followsAdded++;
       }
       
-      log(`Added ${followsAdded} follows for rater ${raterPubkey} with invalid Neo4j data`);
+      // log(`Added ${followsAdded} follows for rater ${raterPubkey} with invalid Neo4j data`);
       return followsAdded;
     }
     
@@ -201,7 +201,7 @@ async function processStrfryFile(strfryFile, outputStream) {
     }
     
     if (followsAdded > 0) {
-      log(`Added ${followsAdded} new follows for existing rater ${raterPubkey}`);
+      // log(`Added ${followsAdded} new follows for existing rater ${raterPubkey}`);
     }
     
     return followsAdded;
@@ -293,7 +293,7 @@ async function processNeo4jFile(neo4jFile, outputStream) {
         followsDeleted++;
       }
       
-      log(`Added ${followsDeleted} follows to delete for missing rater ${raterPubkey}`);
+      // log(`Added ${followsDeleted} follows to delete for missing rater ${raterPubkey}`);
       return followsDeleted;
     }
     
@@ -320,7 +320,7 @@ async function processNeo4jFile(neo4jFile, outputStream) {
         followsDeleted++;
       }
       
-      log(`Added ${followsDeleted} follows to delete for rater ${raterPubkey} with invalid strfry data`);
+      // log(`Added ${followsDeleted} follows to delete for rater ${raterPubkey} with invalid strfry data`);
       return followsDeleted;
     }
     
@@ -352,7 +352,7 @@ async function processNeo4jFile(neo4jFile, outputStream) {
     }
     
     if (followsDeleted > 0) {
-      log(`Added ${followsDeleted} follows to delete for existing rater ${raterPubkey}`);
+      // log(`Added ${followsDeleted} follows to delete for existing rater ${raterPubkey}`);
     }
     
     return followsDeleted;

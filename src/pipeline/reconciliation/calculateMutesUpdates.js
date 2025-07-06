@@ -142,7 +142,7 @@ async function processStrfryFile(strfryFile, outputStream) {
         mutesAdded++;
       }
       
-      log(`Added ${mutesAdded} mutes for new rater ${raterPubkey}`);
+      // log(`Added ${mutesAdded} mutes for new rater ${raterPubkey}`);
       return mutesAdded;
     }
     
@@ -169,7 +169,7 @@ async function processStrfryFile(strfryFile, outputStream) {
         mutesAdded++;
       }
       
-      log(`Added ${mutesAdded} mutes for rater ${raterPubkey} with invalid Neo4j data`);
+      // log(`Added ${mutesAdded} mutes for rater ${raterPubkey} with invalid Neo4j data`);
       return mutesAdded;
     }
     
@@ -201,7 +201,7 @@ async function processStrfryFile(strfryFile, outputStream) {
     }
     
     if (mutesAdded > 0) {
-      log(`Added ${mutesAdded} new mutes for existing rater ${raterPubkey}`);
+      // log(`Added ${mutesAdded} new mutes for existing rater ${raterPubkey}`);
     }
     
     return mutesAdded;
@@ -293,7 +293,7 @@ async function processNeo4jFile(neo4jFile, outputStream) {
         mutesDeleted++;
       }
       
-      log(`Added ${mutesDeleted} mutes to delete for missing rater ${raterPubkey}`);
+      // log(`Added ${mutesDeleted} mutes to delete for missing rater ${raterPubkey}`);
       return mutesDeleted;
     }
     
@@ -320,7 +320,7 @@ async function processNeo4jFile(neo4jFile, outputStream) {
         mutesDeleted++;
       }
       
-      log(`Added ${mutesDeleted} mutes to delete for rater ${raterPubkey} with invalid strfry data`);
+      // og(`Added ${mutesDeleted} mutes to delete for rater ${raterPubkey} with invalid strfry data`);
       return mutesDeleted;
     }
     
@@ -352,7 +352,7 @@ async function processNeo4jFile(neo4jFile, outputStream) {
     }
     
     if (mutesDeleted > 0) {
-      log(`Added ${mutesDeleted} mutes to delete for existing rater ${raterPubkey}`);
+      // log(`Added ${mutesDeleted} mutes to delete for existing rater ${raterPubkey}`);
     }
     
     return mutesDeleted;
