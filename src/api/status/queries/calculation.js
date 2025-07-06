@@ -20,20 +20,21 @@ function handleCalculationStatus(req, res) {
         
         // Define log files to check
         const logFiles = {
-            verifiedFollowers: `${logDir}/calculateVerifiedFollowers.log`,
-            reports: `${logDir}/calculateReportScores.log`,
+            processAllTasks: `${logDir}/processAllTasks.log`,
+            syncWoT: `${logDir}/syncWoT.log`,
+            syncProfiles: `${logDir}/syncProfiles.log`,
+            syncPersonal: `${logDir}/syncPersonal.log`,
+            deleteAllRelationships: `${logDir}/deleteAllRelationships.log`,
+            batchTransfer: `${logDir}/batchTransfer.log`,
+            reconciliation: `${logDir}/reconciliation.log`,
             hops: `${logDir}/calculateHops.log`,
             pageRank: `${logDir}/calculatePersonalizedPageRank.log`,
             grapeRank: `${logDir}/calculatePersonalizedGrapeRank.log`,
-            whitelist: `${logDir}/exportWhitelist.log`,
+            verifiedFollowers: `${logDir}/calculateVerifiedFollowers.log`,
+            reports: `${logDir}/calculateReportScores.log`,
             blacklist: `${logDir}/exportBlacklist.log`,
-            nip85: `${logDir}/publishNip85.log`,
-            syncWoT: `${logDir}/syncWoT.log`,
-            syncPersonal: `${logDir}/syncPersonal.log`,
-            syncProfiles: `${logDir}/syncProfiles.log`,
-            deleteAllRelationships: `${logDir}/deleteAllRelationships.log`,
-            batchTransfer: `${logDir}/batchTransfer.log`,
-            reconciliation: `${logDir}/reconciliation.log`
+            whitelist: `${logDir}/exportWhitelist.log`,
+            nip85: `${logDir}/publishNip85.log`
         };
         
         // Function to get calculation status from log file
