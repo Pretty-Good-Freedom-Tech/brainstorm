@@ -23,17 +23,17 @@ const argv = yargs(hideBin(process.argv))
   .option('strfryDir', {
     describe: 'Directory containing strfry mutes files',
     type: 'string',
-    default: './currentRelationshipsFromStrfry/mutes'
+    default: '/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/currentRelationshipsFromStrfry/mutes'
   })
   .option('neo4jDir', {
     describe: 'Directory containing Neo4j mutes files',
     type: 'string',
-    default: './currentRelationshipsFromNeo4j/mutes'
+    default: '/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/currentRelationshipsFromNeo4j/mutes'
   })
   .option('outputDir', {
     describe: 'Directory for output files',
     type: 'string',
-    default: './json'
+    default: '/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/json'
   })
   .option('logFile', {
     describe: 'Log file path',

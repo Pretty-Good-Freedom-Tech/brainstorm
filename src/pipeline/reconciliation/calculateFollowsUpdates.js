@@ -23,17 +23,17 @@ const argv = yargs(hideBin(process.argv))
   .option('strfryDir', {
     describe: 'Directory containing strfry follows files',
     type: 'string',
-    default: './currentRelationshipsFromStrfry/follows'
+    default: '/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/currentRelationshipsFromStrfry/follows'
   })
   .option('neo4jDir', {
     describe: 'Directory containing Neo4j follows files',
     type: 'string',
-    default: './currentRelationshipsFromNeo4j/follows'
+    default: '/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/currentRelationshipsFromNeo4j/follows'
   })
   .option('outputDir', {
     describe: 'Directory for output files',
     type: 'string',
-    default: './json'
+    default: '/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/json'
   })
   .option('logFile', {
     describe: 'Log file path',

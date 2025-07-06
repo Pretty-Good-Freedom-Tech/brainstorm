@@ -9,7 +9,8 @@ source /etc/brainstorm.conf
 # Create necessary directory structure
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="${SCRIPT_DIR}"
-LOG_DIR=${BRAINSTORM_LOG_DIR:-"/var/log/brainstorm"}
+# LOG_DIR=${BRAINSTORM_LOG_DIR:-"/var/log/brainstorm"}
+LOG_DIR="/var/log/brainstorm"
 APOC_COMMANDS_DIR="${BASE_DIR}/apocCypherCommands"
 
 # Make sure directories exist
