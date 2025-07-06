@@ -86,8 +86,8 @@ if (!fs.existsSync(logDir)) {
  * @param {string} message - Message to log
  */
 async function log(message) {
-  const timestamp = new Date().toISOString();
-  const logMessage = `${timestamp} - getCurrentFollowsFromNeo4j - ${message}\n`;
+  const timestamp = new Date().toUTCString();
+  const logMessage = `${timestamp}: getCurrentFollowsFromNeo4j - ${message}\n`;
   
   console.log(message);
   

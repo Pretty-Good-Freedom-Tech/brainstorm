@@ -34,8 +34,8 @@ function ensureOutputDirectory() {
  * @param {string} message - Message to log
  */
 function log(message) {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${message}`);
+  const timestamp = new Date().toUTCString();
+  console.log(`[${timestamp}]: calculateReportsUpdates - ${message}`);
 }
 
 /**

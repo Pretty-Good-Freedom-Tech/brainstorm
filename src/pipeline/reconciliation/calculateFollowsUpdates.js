@@ -76,8 +76,8 @@ if (!fs.existsSync(logDir)) {
  * @param {string} message - Message to log
  */
 function log(message) {
-  const timestamp = new Date().toISOString();
-  const logMessage = `${timestamp} - calculateFollowsUpdates - ${message}\n`;
+  const timestamp = new Date().toUTCString();
+  const logMessage = `${timestamp}: calculateFollowsUpdates - ${message}\n`;
   
   console.log(message);
   
