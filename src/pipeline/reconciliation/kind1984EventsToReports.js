@@ -65,8 +65,6 @@ async function processFile() {
 
       let oTemp = {};
       oTemp[pk_rater] = {};
-
-      const outputPath3 = path.join(__dirname,'currentRelationshipsFromStrfry/reports/', pk_rater + '.json');
       
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
@@ -92,7 +90,6 @@ async function processFile() {
           }
         }
       }
-      // fs.appendFileSync(outputPath3, JSON.stringify(oTemp, null, 2) + '\n');
     } catch (e) {
       console.error(`Error processing line: ${e.message}`);
     }
