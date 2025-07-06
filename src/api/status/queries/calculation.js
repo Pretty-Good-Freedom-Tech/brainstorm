@@ -108,13 +108,17 @@ function handleCalculationStatus(req, res) {
                     } else {
                         formattedElapsed = `${elapsedSeconds}s ago`;
                     }
+
+                    // fetch timestamp from the last line of the log file
+                    const lastLine = fileContent.split('\n').pop().trim();
                     
                     return {
                         status: 'In Progress',
                         timestamp: lastStartTimestamp,
                         formattedTime: `Started ${formattedElapsed}`,
                         startTime: lastStartDate.toLocaleString(),
-                        duration: null
+                        duration: null,
+                        lastLine
                     };
                 } else {
                     // Completed
