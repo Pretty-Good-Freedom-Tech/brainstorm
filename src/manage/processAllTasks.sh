@@ -80,13 +80,16 @@ echo "$(date): Continuing processAllTasks; deleteAllRelationships.sh completed" 
 sleep 5
 
 # Check disk space after deleting relationships
-check_disk_space "After deleting relationships, before neo4j restart"
+check_disk_space "After deleting relationships"
+
+# Check disk space after deleting relationships
+# check_disk_space "After deleting relationships, before neo4j restart"
 
 # restart neo4j to clear tx logs
-sudo systemctl restart neo4j
+# sudo systemctl restart neo4j
 
 # wait 5 minutes to allow neo4j to clear tx logs
-sleep 300
+# sleep 300
 
 # Check disk space after deleting relationships
 check_disk_space "After deleting relationships, after neo4j restart"
@@ -107,12 +110,16 @@ sleep 5
 # sleep 300
 
 # Final disk space check after restart
-check_disk_space "After final Neo4j restart"
+# check_disk_space "After final Neo4j restart"
 
 # May be removing this step; in its place, using reconcile service to run it more frequently
 # sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconcile/runFullReconciliation.sh
 # echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed"
 # echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconciliation/reconciliation.sh
+echo "$(date): Continuing processAllTasks; reconciliation.sh completed"
+echo "$(date): Continuing processAllTasks; reconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 

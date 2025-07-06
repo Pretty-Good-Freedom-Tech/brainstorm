@@ -1,1 +1,0 @@
-This folder is to store current relationships determined by data in neo4j

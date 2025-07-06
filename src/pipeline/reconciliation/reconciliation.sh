@@ -44,7 +44,7 @@ check_disk_space() {
 }
 
 # Start reconciliation process
-log "Starting reconciliation process"
+log "Starting reconciliation"
 check_disk_space "Before reconciliation"
 
 #############################################
@@ -63,7 +63,7 @@ node "${BASE_DIR}/getCurrentMutesFromNeo4j.js" \
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 log "Completed extracting Neo4j mutes in ${DURATION} seconds"
-check_disk_space "After Neo4j mutes extraction"
+# check_disk_space "After Neo4j mutes extraction"
 
 # Step 2A: convert kind 10000 events to mutes
 # populates currentRelationshipsFromStrfry/mutes
@@ -71,14 +71,14 @@ log "Step 2A: Converting kind 10000 events to mutes"
 sudo bash ${BASE_DIR}/strfryToKind10000Events.sh
 node "${BASE_DIR}/kind10000EventsToMutes.js"
 log "Completed converting kind 10000 events to mutes"
-check_disk_space "After kind 10000 events to mutes"
+# check_disk_space "After kind 10000 events to mutes"
 
 # Step 3A: create json files for adding and deleting mutes
 # populates json/mutesToAddToNeo4j.json and json/mutesToDeleteFromNeo4j.json
 log "Step 3A: Creating json files for adding and deleting mutes"
 sudo node "${BASE_DIR}/calculateMutesUpdates.js"
 log "Completed creating json files for adding and deleting mutes"
-check_disk_space "After creating json files for adding and deleting mutes"
+# check_disk_space "After creating json files for adding and deleting mutes"
 
 # Step 4A: Apply mutes to Neo4j
 log "Step 4A: Applying mutes to Neo4j"
@@ -110,7 +110,7 @@ node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 log "Completed extracting Neo4j follows in ${DURATION} seconds"
-check_disk_space "After Neo4j follows extraction"
+# check_disk_space "After Neo4j follows extraction"
 
 # Step 2B: convert kind 3 events to follows
 # populates currentRelationshipsFromStrfry/follows
@@ -118,14 +118,14 @@ log "Step 2B: Converting kind 3 events to follows"
 sudo bash ${BASE_DIR}/strfryToKind3Events.sh
 node "${BASE_DIR}/kind3EventsToFollows.js"
 log "Completed converting kind 3 events to follows"
-check_disk_space "After kind 3 events to follows"
+# check_disk_space "After kind 3 events to follows"
 
 # Step 3B: create json files for adding and deleting follows
 # populates json/followsToAddToNeo4j.json and json/followsToDeleteFromNeo4j.json
 log "Step 3B: Creating json files for adding and deleting follows"
 sudo node "${BASE_DIR}/calculateFollowsUpdates.js"
 log "Completed creating json files for adding and deleting follows"
-check_disk_space "After creating json files for adding and deleting follows"
+# check_disk_space "After creating json files for adding and deleting follows"
 
 # Step 4B: Apply follows to Neo4j
 log "Step 4B: Applying follows to Neo4j"
@@ -157,7 +157,7 @@ node "${BASE_DIR}/getCurrentReportsFromNeo4j.js" \
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 log "Completed extracting Neo4j reports in ${DURATION} seconds"
-check_disk_space "After Neo4j reports extraction"
+# check_disk_space "After Neo4j reports extraction"
 
 # Step 2C: convert kind 1984 events to reports
 # populates currentRelationshipsFromStrfry/reports
@@ -165,14 +165,14 @@ log "Step 2C: Converting kind 1984 events to reports"
 sudo bash ${BASE_DIR}/strfryToKind1984Events.sh
 node "${BASE_DIR}/kind1984EventsToReports.js"
 log "Completed converting kind 1984 events to reports"
-check_disk_space "After kind 1984 events to reports"
+# check_disk_space "After kind 1984 events to reports"
 
 # Step 3C: create json files for adding and deleting reports
 # populates json/reportsToAddToNeo4j.json and json/reportsToDeleteFromNeo4j.json
 log "Step 3C: Creating json files for adding and deleting reports"
 sudo node "${BASE_DIR}/calculateReportsUpdates.js"
 log "Completed creating json files for adding and deleting reports"
-check_disk_space "After creating json files for adding and deleting reports"
+# check_disk_space "After creating json files for adding and deleting reports"
 
 # Step 4C: Apply reports to Neo4j
 log "Step 4C: Applying reports to Neo4j"
@@ -226,4 +226,6 @@ sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/reports
 # foo
 COMMENT_BLOCK
 
-log "Reconciliation process completed successfully"
+check_disk_space "At end of reconciliation"
+
+log "Finished reconciliation"

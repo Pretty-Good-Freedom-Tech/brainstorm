@@ -28,7 +28,7 @@ function handleReconciliation(req, res) {
     }, 120000); // 2 minutes timeout
     
     // Create a child process to run the reconciliation script
-    const reconciliationProcess = exec('/usr/local/lib/node_modules/brainstorm/src/pipeline/reconcile/runFullReconciliation.sh');
+    const reconciliationProcess = exec('/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/reconciliation.sh');
     
     let output = '';
     let errorOutput = '';

@@ -1,1 +1,0 @@
-This folder is for APOC neo4j cypher commands.

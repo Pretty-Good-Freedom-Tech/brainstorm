@@ -6,7 +6,7 @@ After=network.target neo4j.service
 Type=simple
 User=brainstorm
 EnvironmentFile=/etc/brainstorm.conf
-ExecStart=sudo /usr/local/lib/node_modules/brainstorm/src/pipeline/reconcile/runFullReconciliation.sh
+ExecStart=sudo /usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation/reconciliation.sh
 Restart=on-failure
 RestartSec=30
 # Set resource limits to prevent excessive resource usage

@@ -33,7 +33,7 @@ function handleCalculationStatus(req, res) {
             syncProfiles: `${logDir}/syncProfiles.log`,
             deleteAllRelationships: `${logDir}/deleteAllRelationships.log`,
             batchTransfer: `${logDir}/batchTransfer.log`,
-            reconciliation: `${logDir}/runFullReconciliation.log`
+            reconciliation: `${logDir}/reconciliation.log`
         };
         
         // Function to get calculation status from log file

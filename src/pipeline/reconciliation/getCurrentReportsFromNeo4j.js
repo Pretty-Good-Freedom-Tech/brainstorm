@@ -206,7 +206,7 @@ async function getReportsForRater(raterPubkey) {
  * @param {number} totalBatches - Total number of batches
  */
 async function processRaterBatch(raters, batchIndex, totalBatches) {
-  await log(`Processing batch ${batchIndex}/${totalBatches} (${raters.length} raters)...`);
+  // await log(`Processing batch ${batchIndex}/${totalBatches} (${raters.length} raters)...`);
   
   let processedCount = 0;
   let errorCount = 0;
@@ -222,7 +222,7 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
       // Log progress periodically
       if (processedCount % 10 === 0 || processedCount === raters.length) {
         const progress = Math.round((processedCount / raters.length) * 100);
-        await log(`Batch ${batchIndex} of ${totalBatches} progress: ${progress}% (${processedCount}/${raters.length} Neo4j reported users)`);
+        // await log(`Batch ${batchIndex} of ${totalBatches} progress: ${progress}% (${processedCount}/${raters.length} Neo4j reported users)`);
       }
     } catch (error) {
       await log(`WARNING: Failed to process rater ${raterPubkey}: ${error.message}`);
@@ -233,7 +233,7 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
     if (global.gc) global.gc();
   }
   
-  await log(`Completed batch ${batchIndex}. Processed: ${processedCount}, Errors: ${errorCount}`);
+  // await log(`Completed batch ${batchIndex}. Processed: ${processedCount}, Errors: ${errorCount}`);
 }
 
 /**
