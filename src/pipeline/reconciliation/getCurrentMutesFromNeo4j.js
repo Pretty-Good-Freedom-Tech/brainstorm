@@ -230,7 +230,7 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
     if (global.gc) global.gc();
   }
   
-  // await log(`Completed batch ${batchIndex}. Processed: ${processedCount}, Errors: ${errorCount}`);
+  await log(`Completed batch ${batchIndex}. Processed: ${processedCount}, Errors: ${errorCount}`);
 }
 
 /**
