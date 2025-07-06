@@ -71,16 +71,16 @@ sleep 5
 # echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 # Check disk space before deleting relationships
-check_disk_space "Before deleting relationships"
+# check_disk_space "Before deleting relationships"
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/deleteRels/deleteAllRelationships/deleteAllRelationships.sh
-echo "$(date): Continuing processAllTasks; deleteAllRelationships.sh completed"
-echo "$(date): Continuing processAllTasks; deleteAllRelationships.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# sudo $BRAINSTORM_MODULE_MANAGE_DIR/deleteRels/deleteAllRelationships/deleteAllRelationships.sh
+# echo "$(date): Continuing processAllTasks; deleteAllRelationships.sh completed"
+# echo "$(date): Continuing processAllTasks; deleteAllRelationships.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-sleep 5
+# sleep 5
 
 # Check disk space after deleting relationships
-check_disk_space "After deleting relationships"
+# check_disk_space "After deleting relationships"
 
 # Check disk space after deleting relationships
 # check_disk_space "After deleting relationships, before neo4j restart"
@@ -92,16 +92,16 @@ check_disk_space "After deleting relationships"
 # sleep 300
 
 # Check disk space after deleting relationships
-check_disk_space "After deleting relationships, after neo4j restart"
+# check_disk_space "After deleting relationships, after neo4j restart"
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransfer.sh
-echo "$(date): Continuing processAllTasks; callBatchTransfer.sh completed"
-echo "$(date): Continuing processAllTasks; callBatchTransfer.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransfer.sh
+# echo "$(date): Continuing processAllTasks; callBatchTransfer.sh completed"
+# echo "$(date): Continuing processAllTasks; callBatchTransfer.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 # Check disk space after batch transfer
-check_disk_space "After batch transfer"
+# check_disk_space "After batch transfer"
 
-sleep 5
+# sleep 5
 
 # restart neo4j to clear tx logs
 # sudo systemctl restart neo4j

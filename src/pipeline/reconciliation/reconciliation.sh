@@ -214,12 +214,16 @@ sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/follows
 sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/mutes
 sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/reports
 
+sudo chown -R brainstorm:brainstorm $BASE_DIR/currentRelationshipsFromStrfry
+
 # clean up reconciliation/currentRelationshipsFromNeo4j
 sudo rm -rf $BASE_DIR/currentRelationshipsFromNeo4j
 # recreate currentRelationshipsFromNeo4j/follows, currentRelationshipsFromNeo4j/mutes, and currentRelationshipsFromNeo4j/reports
 sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/follows
 sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/mutes
 sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/reports
+
+sudo chown -R brainstorm:brainstorm $BASE_DIR/currentRelationshipsFromNeo4j
 
 : <<'COMMENT_BLOCK'
 # foo
