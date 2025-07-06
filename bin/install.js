@@ -67,7 +67,7 @@ const packageRoot = path.resolve(__dirname, '..');
 // Define system directories
 const systemdServiceDir = '/etc/systemd/system';
 
-const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = '3hours';
+const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = '2hours';
 
 // Configuration paths
 const configPaths = {
