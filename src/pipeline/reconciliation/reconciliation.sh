@@ -7,10 +7,12 @@
 source /etc/brainstorm.conf
 
 # Create necessary directory structure
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-BASE_DIR="${SCRIPT_DIR}"
-# LOG_DIR=${BRAINSTORM_LOG_DIR:-"/var/log/brainstorm"}
-LOG_DIR="/var/log/brainstorm"
+# SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# BASE_DIR="${SCRIPT_DIR}"
+BASE_DIR_RECONCILIATION="/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation"
+# TODO: define BASE_DIR_RECONCILIATION in brainstorm.conf
+BASE_DIR=${BASE_DIR_RECONCILIATION:-"/usr/local/lib/node_modules/brainstorm/src/pipeline/reconciliation"}
+LOG_DIR=${BRAINSTORM_LOG_DIR:-"/var/log/brainstorm"}
 APOC_COMMANDS_DIR="${BASE_DIR}/apocCypherCommands"
 
 # Make sure directories exist
@@ -19,6 +21,10 @@ mkdir -p "${APOC_COMMANDS_DIR}"
 
 # Log file path
 LOG_FILE="${LOG_DIR}/reconciliation.log"
+
+# Create log file if it doesn't exist and set permissions
+touch $LOGFILE
+sudo chown brainstorm:brainstorm $LOGFILE 2>/dev/null || true
 
 # Function for logging
 log() {
