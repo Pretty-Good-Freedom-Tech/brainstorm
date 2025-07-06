@@ -148,8 +148,6 @@ sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3Even
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
 log "Step 4B completed applying follows to Neo4j"
 
-COMMENT_BLOCK
-
 #############################################
 # C: PROCESS REPORTS
 #############################################
@@ -196,6 +194,8 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 sudo mv $BASE_DIR/allKind1984EventsStripped.json /var/lib/neo4j/import/allKind1984EventsStripped.json
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_reports" > /dev/null
 log "Step 4C completed applying reports to Neo4j"
+
+COMMENT_BLOCK
 
 # Step 5: clean up
 # clean up neo4j import folder
