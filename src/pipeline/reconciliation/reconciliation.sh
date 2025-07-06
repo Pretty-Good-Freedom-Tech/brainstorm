@@ -16,15 +16,15 @@ LOG_DIR=${BRAINSTORM_LOG_DIR:-"/var/log/brainstorm"}
 APOC_COMMANDS_DIR="${BASE_DIR}/apocCypherCommands"
 
 # Make sure directories exist
-mkdir -p "${LOG_DIR}"
+# mkdir -p "${LOG_DIR}"
 mkdir -p "${APOC_COMMANDS_DIR}"
 
 # Log file path
 LOG_FILE="${LOG_DIR}/reconciliation.log"
 
-# Create log file if it doesn't exist and set permissions
-touch $LOGFILE
-sudo chown brainstorm:brainstorm $LOGFILE 2>/dev/null || true
+# Create log file and set permissions
+touch $LOG_FILE
+sudo chown brainstorm:brainstorm $LOG_DIR 2>/dev/null || true
 
 # Function for logging
 log() {
@@ -101,53 +101,6 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 log "Step 4A completed applying mutes to Neo4j"
 
 #############################################
-# B: PROCESS FOLLOWS
-#############################################
-
-# Step 1B: Extract current follows from Neo4j
-# populates currentRelationshipsFromNeo4j/follows
-log "Step 1B: Extracting current follows from Neo4j"
-START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
-  --neo4jUri="${NEO4J_URI}" \
-  --neo4jUser="${NEO4J_USER}" \
-  --neo4jPassword="${NEO4J_PASSWORD}" \
-  --logFile="${LOG_FILE}"
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-log "Completed extracting Neo4j follows in ${DURATION} seconds"
-# check_disk_space "After Neo4j follows extraction"
-
-# Step 2B: convert kind 3 events to follows
-# populates currentRelationshipsFromStrfry/follows
-log "Step 2B: Converting kind 3 events to follows"
-sudo bash ${BASE_DIR}/strfryToKind3Events.sh
-node "${BASE_DIR}/kind3EventsToFollows.js"
-log "Completed converting kind 3 events to follows"
-# check_disk_space "After kind 3 events to follows"
-
-# Step 3B: create json files for adding and deleting follows
-# populates json/followsToAddToNeo4j.json and json/followsToDeleteFromNeo4j.json
-log "Step 3B: Creating json files for adding and deleting follows"
-sudo node "${BASE_DIR}/calculateFollowsUpdates.js"
-log "Completed creating json files for adding and deleting follows"
-# check_disk_space "After creating json files for adding and deleting follows"
-
-# Step 4B: Apply follows to Neo4j
-log "Step 4B: Applying follows to Neo4j"
-# add FOLLOWS relationships from followsToAddToNeo4j.json
-# move followsToAddToNeo4j.json from json folder to /var/lib/neo4j/import
-sudo mv $BASE_DIR/json/followsToAddToNeo4j.json /var/lib/neo4j/import/followsToAddToNeo4j.json
-sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_followsToAddToNeo4j" > /dev/null
-# delete FOLLOWS relationships from followsToDeleteFromNeo4j.json
-sudo mv $BASE_DIR/json/followsToDeleteFromNeo4j.json /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
-sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_followsToDeleteFromNeo4j" > /dev/null
-# move allKind3EventsStripped.json from base folder to /var/lib/neo4j/import
-sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3EventsStripped.json
-sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
-log "Step 4B completed applying follows to Neo4j"
-
-#############################################
 # C: PROCESS REPORTS
 #############################################
 
@@ -194,7 +147,54 @@ sudo mv $BASE_DIR/allKind1984EventsStripped.json /var/lib/neo4j/import/allKind19
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_reports" > /dev/null
 log "Step 4C completed applying reports to Neo4j"
 
-# Step 5: clean up
+#############################################
+# B: PROCESS FOLLOWS
+#############################################
+
+# Step 1B: Extract current follows from Neo4j
+# populates currentRelationshipsFromNeo4j/follows
+log "Step 1B: Extracting current follows from Neo4j"
+START_TIME=$(date +%s)
+node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
+  --neo4jUri="${NEO4J_URI}" \
+  --neo4jUser="${NEO4J_USER}" \
+  --neo4jPassword="${NEO4J_PASSWORD}" \
+  --logFile="${LOG_FILE}"
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+log "Completed extracting Neo4j follows in ${DURATION} seconds"
+# check_disk_space "After Neo4j follows extraction"
+
+# Step 2B: convert kind 3 events to follows
+# populates currentRelationshipsFromStrfry/follows
+log "Step 2B: Converting kind 3 events to follows"
+sudo bash ${BASE_DIR}/strfryToKind3Events.sh
+node "${BASE_DIR}/kind3EventsToFollows.js"
+log "Completed converting kind 3 events to follows"
+# check_disk_space "After kind 3 events to follows"
+
+# Step 3B: create json files for adding and deleting follows
+# populates json/followsToAddToNeo4j.json and json/followsToDeleteFromNeo4j.json
+log "Step 3B: Creating json files for adding and deleting follows"
+sudo node "${BASE_DIR}/calculateFollowsUpdates.js"
+log "Completed creating json files for adding and deleting follows"
+# check_disk_space "After creating json files for adding and deleting follows"
+
+# Step 4B: Apply follows to Neo4j
+log "Step 4B: Applying follows to Neo4j"
+# add FOLLOWS relationships from followsToAddToNeo4j.json
+# move followsToAddToNeo4j.json from json folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/json/followsToAddToNeo4j.json /var/lib/neo4j/import/followsToAddToNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_followsToAddToNeo4j" > /dev/null
+# delete FOLLOWS relationships from followsToDeleteFromNeo4j.json
+sudo mv $BASE_DIR/json/followsToDeleteFromNeo4j.json /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand1_followsToDeleteFromNeo4j" > /dev/null
+# move allKind3EventsStripped.json from base folder to /var/lib/neo4j/import
+sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3EventsStripped.json
+sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
+log "Step 4B completed applying follows to Neo4j"
+
+# CLEAN UP
 # clean up neo4j import folder
 # clean up mutes
 sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
