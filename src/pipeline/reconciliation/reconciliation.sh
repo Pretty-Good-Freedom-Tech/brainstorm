@@ -94,6 +94,7 @@ sudo mv $BASE_DIR/allKind10000EventsStripped.json /var/lib/neo4j/import/allKind1
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_mutes" > /dev/null
 log "Step 4A completed applying mutes to Neo4j"
 
+: <<'COMMENT_BLOCK'
 #############################################
 # B: PROCESS FOLLOWS
 #############################################
@@ -140,6 +141,8 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3EventsStripped.json
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
 log "Step 4B completed applying follows to Neo4j"
+
+COMMENT_BLOCK
 
 #############################################
 # C: PROCESS REPORTS
