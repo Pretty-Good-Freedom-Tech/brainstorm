@@ -231,20 +231,43 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
   let processedCount = 0;
   let errorCount = 0;
   
+  // create new log file called reconciliation_currentRaterBatch.log
+  const currentRaterBatchLogFile = path.join(config.logFile, `reconciliation_currentRaterBatch.log`);
+  // delete log file if it exists
+  if (fs.existsSync(currentRaterBatchLogFile)) {
+    fs.unlinkSync(currentRaterBatchLogFile);
+  }
+  // now create it
+  fs.writeFileSync(currentRaterBatchLogFile, '');
+  
   for (const raterPubkey of raters) {
     try {
+      // log to log file
+      fs.appendFileSync(currentRaterBatchLogFile, `\n\nProcessing rater ${raterPubkey}; processedCount: ${processedCount}; errorCount: ${errorCount}\n`);
       const followsData = await getFollowsForRater(raterPubkey);
-      const filePath = path.join(config.outputDir, `${raterPubkey}.json`);
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; followsData successful\n`);
+      const filePath = path.join(config.outputDir, `${raterPubkey}.json`);    
       
-      await writeFile(filePath, JSON.stringify(followsData, null, 2));
-      processedCount++;
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; filePath successful\n`);
+
+      if (followsData) {
+        await writeFile(filePath, JSON.stringify(followsData, null, 2));
+        fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; writeFile successful\n`);
+        processedCount++;
+      } else {
+        fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; writeFile failed\n`);
+        await log(`WARNING: Empty data for rater ${raterPubkey}, skipping file write`);
+      }
       
       // Log progress periodically
       if (processedCount % 10 === 0 || processedCount === raters.length) {
         const progress = Math.round((processedCount / raters.length) * 100);
+        fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; progress ${progress}%\n`);
         // await log(`Batch ${batchIndex} of ${totalBatches} progress: ${progress}% (${processedCount}/${raters.length} Neo4j followers)`);
       }
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; completed\n`);
     } catch (error) {
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; error ${error.message}\n`);
       await log(`WARNING: Failed to process rater ${raterPubkey}: ${error.message}`);
       errorCount++;
     }
@@ -282,8 +305,11 @@ async function main() {
       
       await processRaterBatch(batchRaters, batchIndex, batchCount);
       
-      // Force garbage collection if available
-      if (global.gc) global.gc();
+      // Force garbage collection if available; log when garbage collection is about to be performed
+      if (global.gc) {
+        await log(`Garbage collection about to be performed`);
+        global.gc();
+      }
     }
     
     // Create a summary file with the count of extracted relationships
