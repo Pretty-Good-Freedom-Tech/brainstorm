@@ -232,7 +232,7 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
   let errorCount = 0;
   
   // create new log file called reconciliation_currentRaterBatch.log
-  const currentRaterBatchLogFile = path.join(config.logFile, `reconciliation_currentRaterBatch.log`);
+  const currentRaterBatchLogFile = path.join('/var/log/brainstorm/', `reconciliation_currentRaterBatch.log`);
   // delete log file if it exists
   if (fs.existsSync(currentRaterBatchLogFile)) {
     fs.unlinkSync(currentRaterBatchLogFile);
