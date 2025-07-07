@@ -113,12 +113,7 @@ function handleCalculationStatus(req, res) {
                     // fetch timestamp from the last line of the log file
                     const lastLine = fileContent.split('\n').filter(line => line.trim() !== '').pop().trim();
                     const lastLineDate = parseLogDate(lastLine.slice(0, 28));
-                    let lastLineTimestamp = Math.floor(lastLineDate.getTime() / 1000);
-                    const first13Chars = lastLine.slice(0, 13);
-                    if (/^[0-9]{13}$/.test(first13Chars)) {
-                        // if so, it's a timestamp in seconds; convert to milliseconds
-                        lastLineTimestamp = Math.floor(parseInt(first13Chars) / 1000);
-                    }
+                    const lastLineTimestamp = Math.floor(lastLineDate.getTime() / 1000);
                     const lastLineElapsedSeconds = Math.floor((nowInSeconds - lastLineTimestamp));
                     const lastLineElapsedMinutes = Math.floor(lastLineElapsedSeconds / 60);
                     const lastLineElapsedHours = Math.floor(lastLineElapsedMinutes / 60);
@@ -140,9 +135,8 @@ function handleCalculationStatus(req, res) {
                         duration: null,
                         inactivity: {
                             description: 'Based on log file; the amount of time since the last line',
-                            lastLineInLog: lastLine,
-                            mostRecentActivity: lastLineTimestamp,
-                            durationOfInactivity: formattedLastLineElapsed
+                            durationOfInactivity: formattedLastLineElapsed,
+                            mostRecentActivity: lastLineTimestamp
                         }
                     };
                 } else {

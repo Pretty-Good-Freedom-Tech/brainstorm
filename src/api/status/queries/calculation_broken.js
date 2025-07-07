@@ -38,7 +38,7 @@ function handleCalculationStatus(req, res) {
         };
         
         // Function to get calculation status from log file
-        const getCalculationStatus = (logFile) => {
+        const getCalculationStatus = (calculationName, logFile) => {
             try {
                 if (!fs.existsSync(logFile)) {
                     return { status: 'Never', timestamp: 0, formattedTime: 'Never', duration: null };
@@ -58,6 +58,12 @@ function handleCalculationStatus(req, res) {
                 // Parse the date strings
                 const parseLogDate = (dateStr) => {
                     try {
+                        // test whether the first 13 characters of dateStr are all integers
+                        const first13Chars = dateStr.slice(0, 13);
+                        if (/^[0-9]{13}$/.test(first13Chars)) {
+                            // if so, it's a timestamp in seconds; convert to milliseconds
+                            return new Date(parseInt(first13Chars) * 1000);
+                        }
                         // Convert the log date format to a standard format that JavaScript can parse
                         return new Date(dateStr.trim());
                     } catch (err) {
@@ -117,12 +123,12 @@ function handleCalculationStatus(req, res) {
                     const first13Chars = lastLine.slice(0, 13);
                     if (/^[0-9]{13}$/.test(first13Chars)) {
                         // if so, it's a timestamp in seconds; convert to milliseconds
-                        lastLineTimestamp = Math.floor(parseInt(first13Chars) / 1000);
-                    }
+                        lastLineTimestamp = parseInt(first13Chars) * 1000;
+                    }     
                     const lastLineElapsedSeconds = Math.floor((nowInSeconds - lastLineTimestamp));
                     const lastLineElapsedMinutes = Math.floor(lastLineElapsedSeconds / 60);
                     const lastLineElapsedHours = Math.floor(lastLineElapsedMinutes / 60);
-
+                    
                     let formattedLastLineElapsed;
                     if (lastLineElapsedHours > 0) {
                         formattedLastLineElapsed = `${lastLineElapsedHours}h ${lastLineElapsedMinutes % 60}m ago`;
@@ -132,17 +138,24 @@ function handleCalculationStatus(req, res) {
                         formattedLastLineElapsed = `${lastLineElapsedSeconds}s ago`;
                     }
 
+                    let status = 'In Progress';
+                    if (calculationName === 'reconciliation') {
+                        if (lastLineElapsedMinutes > 60) {
+                            status = 'Stalled';
+                        }
+                    }
+
                     return {
-                        status: 'In Progress',
+                        status,
                         timestamp: lastStartTimestamp,
                         formattedTime: `Started ${formattedElapsed}`,
                         startTime: lastStartDate.toLocaleString(),
                         duration: null,
                         inactivity: {
                             description: 'Based on log file; the amount of time since the last line',
-                            lastLineInLog: lastLine,
-                            mostRecentActivity: lastLineTimestamp,
-                            durationOfInactivity: formattedLastLineElapsed
+                            lastLine,
+                            durationOfInactivity: formattedLastLineElapsed,
+                            mostRecentActivity: lastLineTimestamp
                         }
                     };
                 } else {
@@ -197,7 +210,7 @@ function handleCalculationStatus(req, res) {
         // Get status for each calculation
         const result = {};
         Object.keys(logFiles).forEach(key => {
-            result[key] = getCalculationStatus(logFiles[key]);
+            result[key] = getCalculationStatus(key,logFiles[key]);
         });
         
         return res.json({
