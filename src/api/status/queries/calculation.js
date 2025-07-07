@@ -38,7 +38,7 @@ function handleCalculationStatus(req, res) {
         };
         
         // Function to get calculation status from log file
-        const getCalculationStatus = (logFile) => {
+        const getCalculationStatus = (key, logFile) => {
             try {
                 if (!fs.existsSync(logFile)) {
                     return { status: 'Never', timestamp: 0, formattedTime: 'Never', duration: null };
@@ -132,8 +132,16 @@ function handleCalculationStatus(req, res) {
                         formattedLastLineElapsed = `${lastLineElapsedSeconds}s ago`;
                     }
 
+                    let status = 'In Progress';
+
+                    if (key == 'reconciliation') {
+                        if (lastLineElapsedMinutes > 5) {
+                            status = 'Stalled';
+                        }
+                    }
+
                     return {
-                        status: 'In Progress',
+                        status,
                         timestamp: lastStartTimestamp,
                         formattedTime: `Started ${formattedElapsed}`,
                         startTime: lastStartDate.toLocaleString(),
@@ -141,7 +149,10 @@ function handleCalculationStatus(req, res) {
                         inactivity: {
                             description: 'Based on log file; the amount of time since the last line',
                             lastLineInLog: lastLine,
-                            mostRecentActivity: lastLineTimestamp,
+                            mostRecentActivityTimestamp: lastLineTimestamp,
+                            mostRecentActivitySecondsAgo: lastLineElapsedSeconds,
+                            mostRecentActivityMinutesAgo: lastLineElapsedMinutes,
+                            mostRecentActivityHoursAgo: lastLineElapsedHours,
                             durationOfInactivity: formattedLastLineElapsed
                         }
                     };
@@ -197,7 +208,7 @@ function handleCalculationStatus(req, res) {
         // Get status for each calculation
         const result = {};
         Object.keys(logFiles).forEach(key => {
-            result[key] = getCalculationStatus(logFiles[key]);
+            result[key] = getCalculationStatus(key, logFiles[key]);
         });
         
         return res.json({
