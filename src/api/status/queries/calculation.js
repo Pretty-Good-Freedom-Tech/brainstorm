@@ -142,6 +142,7 @@ function handleCalculationStatus(req, res) {
                         duration: null,
                         inactivity: {
                             description: 'Based on log file; the amount of time since the last line',
+                            lastLine,
                             durationOfInactivity: formattedLastLineElapsed,
                             mostRecentActivity: lastLineTimestamp
                         }
