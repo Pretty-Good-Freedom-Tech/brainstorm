@@ -50,7 +50,6 @@ echo "$(date): Continuing processAllTasks; syncWoT.sh completed" >> ${BRAINSTORM
 
 sleep 5
 
-: <<'COMMENT_BLOCK'
 sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncProfiles.sh
 echo "$(date): Continuing processAllTasks; syncProfiles.sh completed"
 echo "$(date): Continuing processAllTasks; syncProfiles.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
@@ -62,8 +61,6 @@ echo "$(date): Continuing processAllTasks; syncPersonal.sh completed"
 echo "$(date): Continuing processAllTasks; syncPersonal.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
-
-COMMENT_BLOCK
 
 # In place of batch transfer only once at initialization, currently for each iteration:
 # 1. delete all relationships from neo4j
@@ -126,23 +123,17 @@ echo "$(date): Continuing processAllTasks; reconciliation.sh completed" >> ${BRA
 
 sleep 5
 
-: <<'COMMENT_BLOCK'
-
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateHops.sh
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed"
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-COMMENT_BLOCK
-
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculatePersonalizedPageRank.sh
 echo "$(date): Continuing processAllTasks; calculatePersonalizedPageRank.sh completed"
 echo "$(date): Continuing processAllTasks; calculatePersonalizedPageRank.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
-
-: <<'COMMENT_BLOCK'
 
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
 echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRank.sh completed"
@@ -179,8 +170,6 @@ echo "$(date): Continuing processAllTasks; publishNip85.sh completed"
 echo "$(date): Continuing processAllTasks; publishNip85.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
-
-COMMENT_BLOCK
 
 # restart the reconcile service
 # sudo systemctl restart reconcile.service
