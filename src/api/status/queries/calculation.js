@@ -58,6 +58,11 @@ function handleCalculationStatus(req, res) {
                 // Parse the date strings
                 const parseLogDate = (dateStr) => {
                     try {
+                        // test whether the first 13 characters of dateStr are all integers
+                        if (!/^[0-9]{13}$/.test(dateStr.slice(0, 13))) {
+                            // if so, it's a timestamp in seconds; convert to milliseconds
+                            return new Date(parseInt(dateStr.slice(0, 13)) * 1000);
+                        }
                         // Convert the log date format to a standard format that JavaScript can parse
                         return new Date(dateStr.trim());
                     } catch (err) {
