@@ -195,6 +195,9 @@
 .status-completed {
     background-color: #2ecc71;
 }
+.status-stalled {
+    background-color: #e74c3c;
+}
 .status-error {
     background-color: #e74c3c;
 }

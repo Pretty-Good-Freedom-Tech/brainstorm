@@ -185,6 +185,9 @@
 .status-completed {
     background-color: #2ecc71;
 }
+.status-stalled {
+    background-color: #e74c3c;
+}
 .status-error {
     background-color: #e74c3c;
 }
@@ -410,6 +413,11 @@ input:checked + .slider:before {
     background-color: #f0fff5;
 }
 
+.calculation-item.status-stalled {
+    border-left-color: #e74c3c;
+    background-color: #fdedec;
+}
+
 .calculation-item.status-error {
     border-left-color: #e74c3c;
     background-color: #fdedec;
@@ -436,6 +444,10 @@ input:checked + .slider:before {
 
 .status-label.status-completed {
     background-color: #2ecc71;
+}
+
+.status-label.status-stalled {
+    background-color: #e74c3c;
 }
 
 .status-label.status-error {

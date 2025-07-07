@@ -38,7 +38,7 @@ function handleCalculationStatus(req, res) {
         };
         
         // Function to get calculation status from log file
-        const getCalculationStatus = (calculationName, logFile) => {
+        const getCalculationStatus = (logFile) => {
             try {
                 if (!fs.existsSync(logFile)) {
                     return { status: 'Never', timestamp: 0, formattedTime: 'Never', duration: null };
@@ -117,7 +117,7 @@ function handleCalculationStatus(req, res) {
                     const lastLineElapsedSeconds = Math.floor((nowInSeconds - lastLineTimestamp));
                     const lastLineElapsedMinutes = Math.floor(lastLineElapsedSeconds / 60);
                     const lastLineElapsedHours = Math.floor(lastLineElapsedMinutes / 60);
-                    
+
                     let formattedLastLineElapsed;
                     if (lastLineElapsedHours > 0) {
                         formattedLastLineElapsed = `${lastLineElapsedHours}h ${lastLineElapsedMinutes % 60}m ago`;
@@ -127,15 +127,8 @@ function handleCalculationStatus(req, res) {
                         formattedLastLineElapsed = `${lastLineElapsedSeconds}s ago`;
                     }
 
-                    let status = 'In Progress';
-                    if (calculationName === 'reconciliation') {
-                        if (lastLineElapsedMinutes > 60) {
-                            status = 'Stalled';
-                        }
-                    }
-
                     return {
-                        status,
+                        status: 'In Progress',
                         timestamp: lastStartTimestamp,
                         formattedTime: `Started ${formattedElapsed}`,
                         startTime: lastStartDate.toLocaleString(),
@@ -198,7 +191,7 @@ function handleCalculationStatus(req, res) {
         // Get status for each calculation
         const result = {};
         Object.keys(logFiles).forEach(key => {
-            result[key] = getCalculationStatus(key,logFiles[key]);
+            result[key] = getCalculationStatus(logFiles[key]);
         });
         
         return res.json({

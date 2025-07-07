@@ -676,13 +676,16 @@
                                     case 'Error':
                                         statusClass = 'status-error';
                                         break;
+                                    case 'Stalled':
+                                        statusClass = 'status-stalled';
+                                        break;
                                     default:
                                         statusClass = 'status-never';
                                         statusText = 'Never';
                                 }
                                 
                                 // Clear any existing status classes from the calculation item
-                                calculationItem.classList.remove('status-never', 'status-in-progress', 'status-completed', 'status-error');
+                                calculationItem.classList.remove('status-never', 'status-in-progress', 'status-completed', 'status-error', 'status-stalled');
                                 
                                 // Add the new status class to the calculation item
                                 calculationItem.classList.add(statusClass);
