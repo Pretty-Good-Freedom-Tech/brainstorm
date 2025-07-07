@@ -168,17 +168,36 @@ async function getRaters(skip, limit) {
 }
 
 /**
- * Get all FOLLOWS relationships for a specific rater
+ * Create a promise that rejects after specified timeout
+ * @param {number} ms - Timeout in milliseconds
+ * @returns {Promise} Promise that rejects after timeout
+ */
+function timeout(ms) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`function: getFollowsForRater timed out after ${ms}ms`)), ms);
+  });
+}
+
+/**
+ * Get all FOLLOWS relationships for a specific rater with timeout
  * @param {string} raterPubkey - Pubkey of the rater
+ * @param {number} timeoutMs - Timeout in milliseconds (default: 60000 - 60 seconds)
  * @returns {Object} Object containing the rater's FOLLOWS relationships
  */
-async function getFollowsForRater(raterPubkey) {
+async function getFollowsForRater(raterPubkey, timeoutMs = 60000) {
   const session = driver.session();
   try {
-    const result = await session.run(`
+    // Create the query promise
+    const queryPromise = session.run(`
       MATCH (u:NostrUser {pubkey: $pubkey})-[r:FOLLOWS]->(target:NostrUser)
       RETURN target.pubkey AS ratee
     `, { pubkey: raterPubkey });
+    
+    // Race between the query and a timeout
+    const result = await Promise.race([
+      queryPromise,
+      timeout(timeoutMs)
+    ]);
     
     const follows = {};
     result.records.forEach(record => {
@@ -189,7 +208,11 @@ async function getFollowsForRater(raterPubkey) {
     
     return { [raterPubkey]: follows };
   } catch (error) {
-    await log(`ERROR: Failed to get follows for rater ${raterPubkey}: ${error.message}`);
+    if (error.message.includes('timed out')) {
+      log(`TIMEOUT: Query for rater ${raterPubkey} exceeded ${timeoutMs}ms`);
+    } else {
+      log(`ERROR: Getting FOLLOWS for rater ${raterPubkey}: ${error.message}`);
+    }
     throw error;
   } finally {
     await session.close();
