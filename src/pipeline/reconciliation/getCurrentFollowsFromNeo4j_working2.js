@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * getCurrentReportsFromNeo4j.js
+ * getCurrentFollowsFromNeo4j.js
  * 
- * Extracts current REPORTS relationship data from Neo4j and creates individual JSON files
- * for each rater, stored in currentRelationshipsFromNeo4j/reports/
+ * Extracts current FOLLOWS relationship data from Neo4j and creates individual JSON files
+ * for each rater, stored in currentRelationshipsFromNeo4j/follows/
  * 
  * Each file is named after the pubkey of the rater and contains a JSON object with
  * the rater's pubkey as key and an object of ratee pubkeys as values.
@@ -40,7 +40,7 @@ const argv = yargs(hideBin(process.argv))
   .option('outputDir', {
     describe: 'Directory for output files',
     type: 'string',
-    default: path.join(__dirname, 'currentRelationshipsFromNeo4j/reports')
+    default: path.join(__dirname, 'currentRelationshipsFromNeo4j/follows')
   })
   .option('logFile', {
     describe: 'Log file path',
@@ -87,7 +87,7 @@ if (!fs.existsSync(logDir)) {
  */
 async function log(message) {
   const timestamp = new Date().getTime();
-  const logMessage = `${timestamp}: getCurrentReportsFromNeo4j - ${message}\n`;
+  const logMessage = `${timestamp}: getCurrentFollowsFromNeo4j - ${message}\n`;
   
   console.log(message);
   
@@ -121,18 +121,18 @@ async function ensureOutputDirectory() {
 }
 
 /**
- * Get count of raters (users who have REPORTS relationships)
+ * Get count of raters (users who have FOLLOWS relationships)
  */
 async function getRaterCount() {
   const session = driver.session();
   try {
     const result = await session.run(`
-      MATCH (u:NostrUser)-[r:REPORTS]->()
+      MATCH (u:NostrUser)-[r:FOLLOWS]->()
       RETURN COUNT(DISTINCT u) AS count
     `);
     
     const count = result.records[0].get('count').toInt();
-    await log(`Found ${count} users with REPORTS relationships`);
+    await log(`Found ${count} users with FOLLOWS relationships`);
     return count;
   } catch (error) {
     await log(`ERROR: Failed to get rater count: ${error.message}`);
@@ -143,7 +143,7 @@ async function getRaterCount() {
 }
 
 /**
- * Get all raters (users who have REPORTS relationships)
+ * Get all raters (users who have FOLLOWS relationships)
  * @param {number} skip - Number of raters to skip
  * @param {number} limit - Maximum number of raters to return
  * @returns {Array} Array of rater pubkeys
@@ -151,7 +151,7 @@ async function getRaterCount() {
 async function getRaters(skip, limit) {
   const session = driver.session();
   try {
-    const cypherQuery = ` MATCH (u:NostrUser)-[r:REPORTS]->(target:NostrUser)
+    const cypherQuery = ` MATCH (u:NostrUser)-[r:FOLLOWS]->(target:NostrUser)
       RETURN DISTINCT u.pubkey AS pubkey
       ORDER BY u.pubkey
       SKIP ${skip}
@@ -168,100 +168,64 @@ async function getRaters(skip, limit) {
 }
 
 /**
- * Get all REPORTS relationships for a specific rater
- * @param {string} raterPubkey - Pubkey of the rater
- * @returns {Object} Object containing the rater's REPORTS relationships
+ * Create a promise that rejects after specified timeout
+ * @param {number} ms - Timeout in milliseconds
+ * @returns {Promise} Promise that rejects after timeout
  */
-async function getReportsForRater(raterPubkey) {
+function timeout(ms) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`function: getFollowsForRater timed out after ${ms}ms`)), ms);
+  });
+}
+
+/**
+ * Get all FOLLOWS relationships for a specific rater with timeout
+ * @param {string} raterPubkey - Pubkey of the rater
+ * @param {number} timeoutMs - Timeout in milliseconds (default: 60000 - 60 seconds)
+ * @returns {Object} Object containing the rater's FOLLOWS relationships
+ */
+async function getFollowsForRater(raterPubkey, timeoutMs = 60000) {
   const session = driver.session();
   try {
-    const result = await session.run(`
-      MATCH (u:NostrUser {pubkey: $pubkey})-[r:REPORTS]->(target:NostrUser)
-      RETURN target.pubkey AS ratee, r.report_type AS report_type
+    // Create the query promise
+    const queryPromise = session.run(`
+      MATCH (u:NostrUser {pubkey: $pubkey})-[r:FOLLOWS]->(target:NostrUser)
+      RETURN target.pubkey AS ratee
     `, { pubkey: raterPubkey });
     
-    const reports = {};
+    // Race between the query and a timeout
+    const result = await Promise.race([
+      queryPromise,
+      timeout(timeoutMs)
+    ]);
+    
+    const follows = {};
     result.records.forEach(record => {
       const ratee = record.get('ratee');
-      let report_type = record.get('report_type');
-      if (!report_type) report_type = 'unspecified';
       // Use boolean true instead of timestamp
-      reports[report_type] = reports[report_type] || {};
-      reports[report_type][ratee] = true;
+      follows[ratee] = true;
     });
     
-    return { [raterPubkey]: reports };
+    return { [raterPubkey]: follows };
   } catch (error) {
-    await log(`ERROR: Failed to get reports for rater ${raterPubkey}: ${error.message}`);
+    if (error.message.includes('timed out')) {
+      log(`TIMEOUT: Query for rater ${raterPubkey} exceeded ${timeoutMs}ms`);
+    } else {
+      log(`ERROR: Getting FOLLOWS for rater ${raterPubkey}: ${error.message}`);
+    }
     throw error;
   } finally {
     await session.close();
   }
 }
 
-/**
- * Write file with timeout and retry logic
- * @param {string} filePath - Path to file to write
- * @param {string|Buffer} data - Data to write
- * @param {Object} options - Write file options
- * @param {number} timeoutMs - Timeout in milliseconds for each attempt
- * @param {number} maxRetries - Maximum number of retry attempts
- * @param {number} initialBackoffMs - Initial backoff time in milliseconds
- * @returns {Promise<void>}
- */
-async function writeFileWithTimeout(
-  filePath, 
-  data, 
-  options = {}, 
-  timeoutMs = 10000, 
-  maxRetries = 3, 
-  initialBackoffMs = 500
-) {
-  let lastError;
-  
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      // If not the first attempt, log the retry
-      if (attempt > 0) {
-        await log(`writeFileWithTimeout error: Retry ${attempt}/${maxRetries} for writing file ${filePath}`);
-      }
-      
-      // Try to write the file with timeout
-      await Promise.race([
-        writeFile(filePath, data, options),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error(`writeFileWithTimeout error: writeFile to ${filePath} timed out after ${timeoutMs}ms`)), timeoutMs)
-        )
-      ]);
-      
-      // If we get here, the write was successful
-      if (attempt > 0) {
-        await log(`writeFileWithTimeout success: Retry ${attempt} succeeded for ${filePath}`);
-      }
-      return;
-      
-    } catch (error) {
-      lastError = error;
-      
-      // If this was our last attempt, don't wait, just throw
-      if (attempt === maxRetries) {
-        break;
-      }
-      
-      // Log the error
-      await log(`writeFileWithTimeout error: Write attempt ${attempt + 1} failed for ${filePath}: ${error.message}`);
-      
-      // Calculate backoff with exponential delay (500ms, 1000ms, 2000ms...)
-      const backoffMs = initialBackoffMs * Math.pow(2, attempt);
-      await log(`writeFileWithTimeout error: Waiting ${backoffMs}ms before retry ${attempt + 1}`);
-      
-      // Wait before the next attempt
-      await new Promise(resolve => setTimeout(resolve, backoffMs));
-    }
-  }
-  
-  // If we've exhausted all retries, throw the last error
-  throw lastError;
+function writeFileWithTimeout(filePath, data, options = {}, timeoutMs = 10000) {
+  return Promise.race([
+    writeFile(filePath, data, options),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error(`writeFile to ${filePath} timed out after ${timeoutMs}ms`)), timeoutMs)
+    )
+  ]);
 }
 
 /**
@@ -276,30 +240,54 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
   let processedCount = 0;
   let errorCount = 0;
   
+  // create new log file called reconciliation_currentRaterBatch.log
+  const currentRaterBatchLogFile = path.join('/var/log/brainstorm/', `reconciliation_currentRaterBatch.log`);
+  // delete log file if it exists
+  if (fs.existsSync(currentRaterBatchLogFile)) {
+    fs.unlinkSync(currentRaterBatchLogFile);
+  }
+  // now create it
+  fs.writeFileSync(currentRaterBatchLogFile, '');
+  
   for (const raterPubkey of raters) {
     try {
-      const reportsData = await getReportsForRater(raterPubkey);
-      const filePath = path.join(config.outputDir, `${raterPubkey}.json`);
+      // log to log file
+      fs.appendFileSync(currentRaterBatchLogFile, `\n\nProcessing rater ${raterPubkey}; processedCount: ${processedCount}; errorCount: ${errorCount}\n`);
+      const followsData = await getFollowsForRater(raterPubkey);
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; followsData successful\n`);
+      const filePath = path.join(config.outputDir, `${raterPubkey}.json`);    
       
-      if (reportsData) {       
-        await writeFileWithTimeout(filePath, JSON.stringify(reportsData, null, 2));     
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; filePath successful\n`);
+
+      if (followsData) {
+        fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; filePath: ${filePath}; stringified followsData: ${JSON.stringify(followsData)}\n`);
+        // await writeFile(filePath, JSON.stringify(followsData, null, 2));
+        await writeFileWithTimeout(filePath, JSON.stringify(followsData, null, 2));
+        fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; writeFile successful\n`);
         processedCount++;
       } else {
+        fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; writeFile failed\n`);
         await log(`WARNING: Empty data for rater ${raterPubkey}, skipping file write`);
       }
-
+      
       // Log progress periodically
       if (processedCount % 10 === 0 || processedCount === raters.length) {
         const progress = Math.round((processedCount / raters.length) * 100);
-        // await log(`Batch ${batchIndex} of ${totalBatches} progress: ${progress}% (${processedCount}/${raters.length} Neo4j reported users)`);
+        fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; progress ${progress}%\n`);
+        // await log(`Batch ${batchIndex} of ${totalBatches} progress: ${progress}% (${processedCount}/${raters.length} Neo4j followers)`);
       }
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; completed\n`);
     } catch (error) {
+      fs.appendFileSync(currentRaterBatchLogFile, `Processing rater ${raterPubkey}; error ${error.message}\n`);
       await log(`WARNING: Failed to process rater ${raterPubkey}: ${error.message}`);
       errorCount++;
     }
     
-    // Force garbage collection if available
-    if (global.gc) global.gc();
+    // Force garbage collection if available; log when garbage collection is about to be performed
+    if (global.gc) {
+      await log(`Garbage collection about to be performed`);
+      global.gc();
+    }
   }
   
   await log(`Completed batch ${batchIndex} of ${totalBatches}. Processed: ${processedCount}, Errors: ${errorCount}`);
@@ -311,7 +299,7 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
 async function main() {
   try {
     const startTime = Date.now();
-    await log('Starting extraction of REPORTS relationships from Neo4j');
+    await log('Starting extraction of FOLLOWS relationships from Neo4j');
     
     // Ensure output directory exists
     await ensureOutputDirectory();
@@ -328,8 +316,11 @@ async function main() {
       
       await processRaterBatch(batchRaters, batchIndex, batchCount);
       
-      // Force garbage collection if available
-      if (global.gc) global.gc();
+      // Force garbage collection if available; log when garbage collection is about to be performed
+      if (global.gc) {
+        await log(`Garbage collection about to be performed`);
+        global.gc();
+      }
     }
     
     // Create a summary file with the count of extracted relationships
@@ -337,13 +328,13 @@ async function main() {
     await writeFile(summaryFile, JSON.stringify({
       extractedAt: new Date().toISOString(),
       raterCount,
-      type: 'REPORTS'
+      type: 'FOLLOWS'
     }, null, 2));
     
     // Log completion
     const endTime = Date.now();
     const duration = (endTime - startTime) / 1000;
-    await log(`Completed extraction of REPORTS relationships in ${duration.toFixed(2)} seconds`);
+    await log(`Completed extraction of FOLLOWS relationships in ${duration.toFixed(2)} seconds`);
     
     await driver.close();
     process.exit(0);

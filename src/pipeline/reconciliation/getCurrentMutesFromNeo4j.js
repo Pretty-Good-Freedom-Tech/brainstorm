@@ -197,6 +197,71 @@ async function getMutesForRater(raterPubkey) {
 }
 
 /**
+ * Write file with timeout and retry logic
+ * @param {string} filePath - Path to file to write
+ * @param {string|Buffer} data - Data to write
+ * @param {Object} options - Write file options
+ * @param {number} timeoutMs - Timeout in milliseconds for each attempt
+ * @param {number} maxRetries - Maximum number of retry attempts
+ * @param {number} initialBackoffMs - Initial backoff time in milliseconds
+ * @returns {Promise<void>}
+ */
+async function writeFileWithTimeout(
+  filePath, 
+  data, 
+  options = {}, 
+  timeoutMs = 10000, 
+  maxRetries = 3, 
+  initialBackoffMs = 500
+) {
+  let lastError;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      // If not the first attempt, log the retry
+      if (attempt > 0) {
+        await log(`writeFileWithTimeout error: Retry ${attempt}/${maxRetries} for writing file ${filePath}`);
+      }
+      
+      // Try to write the file with timeout
+      await Promise.race([
+        writeFile(filePath, data, options),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error(`writeFileWithTimeout error: writeFile to ${filePath} timed out after ${timeoutMs}ms`)), timeoutMs)
+        )
+      ]);
+      
+      // If we get here, the write was successful
+      if (attempt > 0) {
+        await log(`writeFileWithTimeout success: Retry ${attempt} succeeded for ${filePath}`);
+      }
+      return;
+      
+    } catch (error) {
+      lastError = error;
+      
+      // If this was our last attempt, don't wait, just throw
+      if (attempt === maxRetries) {
+        break;
+      }
+      
+      // Log the error
+      await log(`writeFileWithTimeout error: Write attempt ${attempt + 1} failed for ${filePath}: ${error.message}`);
+      
+      // Calculate backoff with exponential delay (500ms, 1000ms, 2000ms...)
+      const backoffMs = initialBackoffMs * Math.pow(2, attempt);
+      await log(`writeFileWithTimeout error: Waiting ${backoffMs}ms before retry ${attempt + 1}`);
+      
+      // Wait before the next attempt
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+    }
+  }
+  
+  // If we've exhausted all retries, throw the last error
+  throw lastError;
+}
+
+/**
  * Process a batch of raters and create individual JSON files
  * @param {Array} raters - Array of rater pubkeys
  * @param {number} batchIndex - Index of the current batch
@@ -213,8 +278,12 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
       const mutesData = await getMutesForRater(raterPubkey);
       const filePath = path.join(config.outputDir, `${raterPubkey}.json`);
       
-      await writeFile(filePath, JSON.stringify(mutesData, null, 2));
-      processedCount++;
+      if (mutesData) {       
+        await writeFileWithTimeout(filePath, JSON.stringify(mutesData, null, 2));     
+        processedCount++;
+      } else {
+        await log(`WARNING: Empty data for rater ${raterPubkey}, skipping file write`);
+      }
       
       // Log progress periodically
       if (processedCount % 10 === 0 || processedCount === raters.length) {
