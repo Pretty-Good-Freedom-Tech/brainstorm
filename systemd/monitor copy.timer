@@ -1,0 +1,12 @@
+[Unit]
+Description=Run monitor script every day at the designated times
+[Timer]
+OnCalendar=*-*-* 00:00:00 # midnight
+OnCalendar=*-*-* 02:00:00 # 2:00 am
+OnCalendar=*-*-* 12:00:00 # 12:00 pm
+OnCalendar=*-*-* 14:00:00 # 2:00 pm
+OnCalendar=*-*-* 22:00:00 # 10:00 pm
+Persistent=true
+
+[Install]
+WantedBy=timers.target

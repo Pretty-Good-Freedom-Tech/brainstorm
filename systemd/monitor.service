@@ -1,0 +1,5 @@
+[Unit]
+Description=My Daily Script
+
+[Service]
+ExecStart=/usr/local/lib/node_modules/brainstorm/src/manage/monitor/monitor.sh

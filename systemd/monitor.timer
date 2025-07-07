@@ -1,0 +1,8 @@
+[Unit]
+Description=Run monitor script every hour at half past the hour
+[Timer]
+OnCalendar=*-*-* *:30:00 # half past the hour
+Persistent=true
+
+[Install]
+WantedBy=timers.target

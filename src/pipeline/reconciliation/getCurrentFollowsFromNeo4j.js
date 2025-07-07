@@ -226,8 +226,11 @@ async function processRaterBatch(raters, batchIndex, totalBatches) {
       errorCount++;
     }
     
-    // Force garbage collection if available
-    if (global.gc) global.gc();
+    // Force garbage collection if available; log when garbage collection is about to be performed
+    if (global.gc) {
+      await log(`Garbage collection about to be performed`);
+      global.gc();
+    }
   }
   
   await log(`Completed batch ${batchIndex} of ${totalBatches}. Processed: ${processedCount}, Errors: ${errorCount}`);
