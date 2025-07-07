@@ -126,11 +126,15 @@ echo "$(date): Continuing processAllTasks; reconciliation.sh completed" >> ${BRA
 
 sleep 5
 
+: <<'COMMENT_BLOCK'
+
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateHops.sh
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed"
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
+
+COMMENT_BLOCK
 
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculatePersonalizedPageRank.sh
 echo "$(date): Continuing processAllTasks; calculatePersonalizedPageRank.sh completed"
