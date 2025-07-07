@@ -98,6 +98,8 @@ check_disk_space "Before reconciliation"
 # cleanup, to cover possibility that the prior reconciliation process was interrupted
 cleanup
 
+: <<'COMMENT_BLOCK'
+
 #############################################
 # A: PROCESS MUTES
 #############################################
@@ -191,6 +193,8 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 sudo mv $BASE_DIR/allKind1984EventsStripped.json /var/lib/neo4j/import/allKind1984EventsStripped.json
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_reports" > /dev/null
 log "Step 4C completed applying reports to Neo4j"
+
+COMMENT_BLOCK
 
 #############################################
 # B: PROCESS FOLLOWS

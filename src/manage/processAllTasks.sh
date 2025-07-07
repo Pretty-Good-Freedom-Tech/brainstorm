@@ -138,6 +138,8 @@ echo "$(date): Continuing processAllTasks; calculatePersonalizedPageRank.sh comp
 
 sleep 5
 
+: <<'COMMENT_BLOCK'
+
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
 echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRank.sh completed"
 echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRank.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
@@ -173,6 +175,8 @@ echo "$(date): Continuing processAllTasks; publishNip85.sh completed"
 echo "$(date): Continuing processAllTasks; publishNip85.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
+
+COMMENT_BLOCK
 
 # restart the reconcile service
 # sudo systemctl restart reconcile.service
