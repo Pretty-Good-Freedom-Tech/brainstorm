@@ -76,7 +76,7 @@ if (!fs.existsSync(logDir)) {
  * @param {string} message - Message to log
  */
 function log(message) {
-  const timestamp = new Date().toUTCString()
+  const timestamp = new Date().getTime()
   const logMessage = `${timestamp}: calculateMutesUpdates - ${message}\n`;
   
   console.log(message);
