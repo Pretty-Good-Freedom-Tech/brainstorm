@@ -24,7 +24,7 @@ LOG_FILE="${LOG_DIR}/reconciliation.log"
 
 # Create log file and set permissions
 touch $LOG_FILE
-sudo chown brainstorm:brainstorm $LOG_DIR 2>/dev/null || true
+sudo chown brainstorm:brainstorm $LOG_FILE
 
 # Function for logging
 log() {
@@ -49,9 +49,54 @@ check_disk_space() {
   du -sh /var/lib/neo4j/data/transactions | tee -a "${LOG_FILE}"
 }
 
+# create function for cleaning up
+function cleanup() {
+  # clean up neo4j import folder
+  # clean up mutes
+  sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
+  sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
+  sudo rm /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
+  # clean up follows
+  sudo rm /var/lib/neo4j/import/followsToAddToNeo4j.json
+  sudo rm /var/lib/neo4j/import/allKind3EventsStripped.json
+  sudo rm /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
+  # clean up reports
+  sudo rm /var/lib/neo4j/import/reportsToAddToNeo4j.json
+  sudo rm /var/lib/neo4j/import/allKind1984EventsStripped.json
+  # sudo rm /var/lib/neo4j/import/reportsToDeleteFromNeo4j.json
+
+  # clean up current relationships from base directory
+  sudo rm $BASE_DIR/currentMutesFromStrfry.json
+  sudo rm $BASE_DIR/currentFollowsFromStrfry.json
+  sudo rm $BASE_DIR/currentReportsFromStrfry.json
+
+  # clean up reconciliation/currentRelationshipsFromStrfry
+  sudo rm -rf $BASE_DIR/currentRelationshipsFromStrfry
+  # recreate currentRelationshipsFromStrfry/follows, currentRelationshipsFromStrfry/mutes, and currentRelationshipsFromStrfry/reports
+  sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/follows
+  sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/mutes
+  sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/reports
+
+  sudo chown -R brainstorm:brainstorm $BASE_DIR/currentRelationshipsFromStrfry
+
+  # clean up reconciliation/currentRelationshipsFromNeo4j
+  sudo rm -rf $BASE_DIR/currentRelationshipsFromNeo4j
+  # recreate currentRelationshipsFromNeo4j/follows, currentRelationshipsFromNeo4j/mutes, and currentRelationshipsFromNeo4j/reports
+  sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/follows
+  sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/mutes
+  sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/reports
+
+  sudo chown -R brainstorm:brainstorm $BASE_DIR/currentRelationshipsFromNeo4j
+
+  log "Completed cleanup"
+}
+
 # Start reconciliation process
 log "Starting reconciliation"
 check_disk_space "Before reconciliation"
+
+# cleanup, to cover possibility that the prior reconciliation process was interrupted
+cleanup
 
 #############################################
 # A: PROCESS MUTES
@@ -195,42 +240,8 @@ sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BAS
 log "Step 4B completed applying follows to Neo4j"
 
 # CLEAN UP
-# clean up neo4j import folder
-# clean up mutes
-sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
-sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
-sudo rm /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
-# clean up follows
-sudo rm /var/lib/neo4j/import/followsToAddToNeo4j.json
-sudo rm /var/lib/neo4j/import/allKind3EventsStripped.json
-sudo rm /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
-# clean up reports
-sudo rm /var/lib/neo4j/import/reportsToAddToNeo4j.json
-sudo rm /var/lib/neo4j/import/allKind1984EventsStripped.json
-# sudo rm /var/lib/neo4j/import/reportsToDeleteFromNeo4j.json
 
-# clean up current relationships from base directory
-sudo rm $BASE_DIR/currentMutesFromStrfry.json
-sudo rm $BASE_DIR/currentFollowsFromStrfry.json
-sudo rm $BASE_DIR/currentReportsFromStrfry.json
-
-# clean up reconciliation/currentRelationshipsFromStrfry
-sudo rm -rf $BASE_DIR/currentRelationshipsFromStrfry
-# recreate currentRelationshipsFromStrfry/follows, currentRelationshipsFromStrfry/mutes, and currentRelationshipsFromStrfry/reports
-sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/follows
-sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/mutes
-sudo mkdir -p $BASE_DIR/currentRelationshipsFromStrfry/reports
-
-sudo chown -R brainstorm:brainstorm $BASE_DIR/currentRelationshipsFromStrfry
-
-# clean up reconciliation/currentRelationshipsFromNeo4j
-sudo rm -rf $BASE_DIR/currentRelationshipsFromNeo4j
-# recreate currentRelationshipsFromNeo4j/follows, currentRelationshipsFromNeo4j/mutes, and currentRelationshipsFromNeo4j/reports
-sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/follows
-sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/mutes
-sudo mkdir -p $BASE_DIR/currentRelationshipsFromNeo4j/reports
-
-sudo chown -R brainstorm:brainstorm $BASE_DIR/currentRelationshipsFromNeo4j
+cleanup
 
 : <<'COMMENT_BLOCK'
 # foo
