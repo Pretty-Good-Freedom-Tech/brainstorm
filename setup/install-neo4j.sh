@@ -97,6 +97,9 @@ else
   exit 1
 fi
 
+# set initial password as neo4jneo4j
+sudo neo4j-admin dbms set-initial-password neo4jneo4j
+
 # Step 7: Set up Neo4j constraints and indexes
 echo "=== Setting up Neo4j constraints and indexes ==="
 # Wait for Neo4j to fully start

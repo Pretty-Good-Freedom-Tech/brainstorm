@@ -1,6 +1,10 @@
 /**
  * Whitelist Queries
  * Handles retrieval of whitelist directly from Neo4j
+ * if no pubkey is provided, return the whitelist as an array of pubkeys
+ * api/get-whitelist
+ * if pubkey is provided, return whether it is in the whitelist
+ * api/get-whitelist?pubkey=<pubkey>
  * default criteria: influence > 0.01
  * TODO: accept params:
  * - minInfluence
@@ -21,6 +25,9 @@ const { getConfigFromFile } = require('../../../../utils/config');
  */
 function handleGetWhitelist(req, res) {
   try {
+    // look for pubkey as a query parameter
+    const queryPubkey = req.query.pubkey;
+
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
     const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
@@ -35,7 +42,7 @@ function handleGetWhitelist(req, res) {
     const sortBy = req.query.sortBy || 'influence';
     const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
 
-    let query = `
+    let cypherQuery = `
       MATCH (u:NostrUser)
       WHERE u.pubkey IS NOT NULL
       AND u.influence > 0.01
@@ -46,7 +53,7 @@ function handleGetWhitelist(req, res) {
     const session = driver.session();
     
     // Execute the query
-    session.run(query)
+    session.run(cypherQuery)
       .then(result => {
         /*
         const users = result.records.map(record => {
@@ -65,15 +72,30 @@ function handleGetWhitelist(req, res) {
         // Close the session
         session.close();
         
-        // Return the results
-        return res.json({
-          success: true,
-          data: {
-            query,
-            numPubkeys: pubkeys.length,
-            pubkeys
-          }
-        });
+        // If queryPubkey was not provided:
+        if (!queryPubkey) {
+          return res.json({
+            success: true,
+            data: {
+              query: cypherQuery,
+              numPubkeys: pubkeys.length,
+              pubkeys
+            }
+          });
+        }
+        // If queryPubkey was provided, determine if it is in the whitelist
+        else {
+          const isWhitelisted = pubkeys.includes(queryPubkey);
+          return res.json({
+            success: true,
+            data: {
+              query: cypherQuery,
+              queryPubkey,
+              isWhitelisted
+            }
+          });
+        }
+        
       })
       .catch(error => {
         console.error('Error executing query:', error);
