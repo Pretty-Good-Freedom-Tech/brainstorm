@@ -1,24 +1,13 @@
 [Unit]
-Description=Process all routine tasks
+Description=Process all routine tasks periodically
 # After=network.target neo4j.service
 
 [Timer]
-# Previously: run every BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL
-# Now: run every 2 hours
+# Run every BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL
 Unit=processAllTasks.service
-OnCalendar=*-*-* 00:00:00 # midnight
-OnCalendar=*-*-* 02:00:00 # 2:00 am
-OnCalendar=*-*-* 04:00:00 # 4:00 am
-OnCalendar=*-*-* 06:00:00 # 6:00 am
-OnCalendar=*-*-* 08:00:00 # 8:00 am
-OnCalendar=*-*-* 10:00:00 # 10:00 am
-OnCalendar=*-*-* 12:00:00 # 12:00 pm
-OnCalendar=*-*-* 14:00:00 # 2:00 pm
-OnCalendar=*-*-* 16:00:00 # 4:00 pm
-OnCalendar=*-*-* 18:00:00 # 6:00 pm
-OnCalendar=*-*-* 20:00:00 # 8:00 pm
-OnCalendar=*-*-* 22:00:00 # 10:00 pm
-Persistent=true
+OnBootSec=5min
+OnUnitActiveSec=BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL
+RandomizedDelaySec=5min
 
 [Install]
 WantedBy=timers.target
