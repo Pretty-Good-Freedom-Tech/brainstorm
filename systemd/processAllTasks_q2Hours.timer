@@ -1,0 +1,13 @@
+[Unit]
+Description=Process all routine tasks periodically
+# After=network.target neo4j.service
+
+[Timer]
+# Run every BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL
+Unit=processAllTasks.service
+OnBootSec=5min
+OnUnitActiveSec=BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

@@ -19,9 +19,15 @@
             <h2>Profile Search</h2>
             <h3>Search by npub</h3>
             <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="npub...">
+                <input type="text" id="searchInput1" class="search-input" placeholder="npub...">
                 <button id="searchButton">Search</button>
             </div>
+            <h3>Search by pubkey</h3>
+            <div class="search-container">
+                <input type="text" id="searchInput2" class="search-input" placeholder="pubkey... (this search is not yet implemented)">
+                <button id="searchButton2">Search</button>
+            </div>
+            
             <div id="searchResultsPubkey" class="search-results"  style="display: none;">
                 <!-- Search results (pubkey) will be dynamically added here -->
             </div>
@@ -42,17 +48,23 @@
         document.getElementById('searchButton').addEventListener('click', () => {
             searchResultsPubkey.innerHTML = '';
             searchResultsProfileCard.innerHTML = '';
-            const searchInput = document.getElementById('searchInput').value;
+            const searchInput1 = document.getElementById('searchInput1').value;
+            const searchInput2 = document.getElementById('searchInput2').value;
+
+            // TODO: handle searchInput2
+            const searchPubkey = searchInput2;
 
             // Check if the input is a valid npub
-            if (!searchInput.startsWith('npub1')) {
+            if (!searchInput1.startsWith('npub1')) {
                 alert('Please enter a valid npub');
                 return;
             }
-            const searchNpub = searchInput;
+            const searchNpub = searchInput1;
+
+            const apiEndpoint = `/api/search/profiles?searchType=npub&searchString=${searchNpub}`;
             
             // Send a GET request to the API endpoint
-            fetch(`/api/search/profiles?searchType=npub&searchString=${searchNpub}`)
+            fetch(apiEndpoint)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
