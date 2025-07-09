@@ -1,0 +1,1 @@
+ALgo scripts were written originally with the Brainstorm owner as the observer. These will be modified to pass an <observer_id> as a parameter. Preferences will be read from `/var/lib/brainstorm/customers/<observer_id>/preferences`, and results will be written to `/var/lib/brainstorm/customers/<observer_id>/results`.

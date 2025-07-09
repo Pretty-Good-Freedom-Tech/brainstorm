@@ -89,7 +89,6 @@ function handleGetWhitelist(req, res) {
           return res.json({
             success: true,
             data: {
-              query: cypherQuery,
               queryPubkey,
               isWhitelisted
             }
