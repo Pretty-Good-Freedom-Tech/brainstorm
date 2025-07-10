@@ -11,7 +11,6 @@ sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexe
 echo "$(date): Starting neo4jConstraintsAndIndexes"
 echo "$(date): Starting neo4jConstraintsAndIndexes" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
-
 NEO4J_URI="bolt://localhost:7687"
 NEO4J_USER="neo4j"
 # Get the Neo4j password from the Brainstorm configuration
@@ -35,6 +34,7 @@ CREATE INDEX nostrUser_kind1984EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kin
 CREATE INDEX nostrUser_kind1984CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind1984CreatedAt);
 CREATE INDEX nostrUser_kind10000EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind10000EventId);
 CREATE INDEX nostrUser_kind10000CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind10000CreatedAt);
+
 CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);
 CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);
 
@@ -57,6 +57,20 @@ CREATE INDEX nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) ON (n.event_id
 CREATE INDEX nostrEvent_kind IF NOT EXISTS FOR (n:NostrEvent) ON (n.kind);
 CREATE INDEX nostrEvent_created_at IF NOT EXISTS FOR (n:NostrEvent) ON (n.created_at);
 CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);
+
+CREATE INDEX nostrUserWotMetricsCard_customer_id IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.customer_id);
+CREATE INDEX nostrUserWotMetricsCard_observer_pubkey IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.observer_pubkey);
+CREATE INDEX nostrUserWotMetricsCard_observee_pubkey IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.observee_pubkey);
+
+CREATE INDEX nostrUserWotMetricsCard_hops IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.hops);
+CREATE INDEX nostrUserWotMetricsCard_personalizedPageRank IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.personalizedPageRank);
+CREATE INDEX nostrUserWotMetricsCard_influence IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.influence);
+CREATE INDEX nostrUserWotMetricsCard_average IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.average);
+CREATE INDEX nostrUserWotMetricsCard_confidence IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.confidence);
+CREATE INDEX nostrUserWotMetricsCard_input IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.input);
+CREATE INDEX nostrUserWotMetricsCard_totalVerifiedReportCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.totalVerifiedReportCount);
+CREATE INDEX nostrUserWotMetricsCard_whitelisted IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.whitelisted);
+CREATE INDEX nostrUserWotMetricsCard_blacklisted IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.blacklisted);
 "
 
 # Run Cypher commands with stored password

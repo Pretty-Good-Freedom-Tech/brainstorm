@@ -124,7 +124,7 @@ function loadNavbar() {
     if (
         currentPath === '/personalized-recommendations.html'
     ) {
-        navbarPath = '/components/header/navbars/nav4.html';
+        navbarPath = '/components/header/navbars/personalized-recommendations.html';
     }
 
     if (
@@ -326,6 +326,7 @@ function highlightCurrentPage() {
         '/subscribe.html': '/subscribe',
         '/search.html': '/search',
         '/follow-recs.html': '/follow-recs',
+        '/customers.html': '/customers',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
