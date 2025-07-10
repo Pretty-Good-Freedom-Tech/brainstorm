@@ -84,6 +84,7 @@ const configPaths = {
   createNostrIdentityScript: path.join(packageRoot, 'setup','create_nostr_identity.sh'),
   apocConf: path.join(packageRoot, 'setup', 'apoc.conf'),
 
+  customersInstallScript: path.join(packageRoot, 'setup', 'install-customers.sh'),
   pipelineInstallScript: path.join(packageRoot, 'setup', 'install-pipeline.sh'),
   sudoPrivilegesScript: path.join(packageRoot, 'setup', 'configure-sudo-privileges.sh'),
   controlPanelSudoScript: path.join(packageRoot, 'setup', 'configure-control-panel-sudo.sh'),
@@ -222,8 +223,11 @@ async function install() {
 
     // Step 7: Setup Strfry Neo4j Pipeline
     await installPipeline();
+
+    // Step 8: Install customers
+    await installCustomers();
     
-    // Step 8: Configure sudo privileges
+    // Step 9: Configure sudo privileges
     await configureSudoPrivileges();
 
     // make sure brainstorm-control-panel is running
@@ -622,6 +626,34 @@ async function installPipeline() {
     throw new Error('Pipeline installation failed');
   }
 }
+
+// Install customers
+async function installCustomers() {
+  console.log('\x1b[36m=== Installing Customers ===\x1b[0m');
+  
+  if (!isRoot) {
+    console.log('\x1b[33mCannot install customers without root privileges.\x1b[0m');
+    console.log(`Please manually run the installation script: sudo ${configPaths.customersInstallScript}`);
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+  
+  try {
+    // Make script executable
+    execSync(`sudo chmod +x ${configPaths.customersInstallScript}`);
+    
+    // Run customers installation script
+    console.log('Installing customers (this may take a few minutes)...');
+    execSync(`script -q -c "${configPaths.customersInstallScript}" /dev/null`, { stdio: 'inherit' });
+    
+    console.log('Customers installation completed successfully.');
+  } catch (error) {
+    console.error('\x1b[31mError installing customers:\x1b[0m', error.message);
+    throw new Error('Customers installation failed');
+  }
+} 
 
 // Install Strfry Nostr relay
 async function installStrfry() {
