@@ -128,6 +128,12 @@ function loadNavbar() {
     }
 
     if (
+        currentPath === '/customers.html'
+    ) {
+        navbarPath = '/components/header/navbars/customers.html';
+    }
+
+    if (
         currentPath === ''
         || currentPath === '/'
         || currentPath === '/index.html'
