@@ -11,7 +11,11 @@ sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/syncPersonal.log
 
 echo "$(date): Starting syncPersonal" >> ${BRAINSTORM_LOG_DIR}/syncPersonal.log
 
-sudo strfry sync wss://relay.primal.net --filter '{"authors": ["${BRAINSTORM_OWNER_PUBKEY}"]}' --dir down
+# Create filter with proper variable substitution
+FILTER="{\"authors\": [\"${BRAINSTORM_OWNER_PUBKEY}\"]}"
+
+# Run strfry with the filter
+sudo strfry sync wss://relay.primal.net --filter "$FILTER" --dir down
 
 # Log end
 

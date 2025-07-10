@@ -111,6 +111,7 @@ function serveHtmlFile(filename, res) {
     
     try {
         // Build all possible file paths to check
+        const customersPath = path.join(__dirname, '../public/pages/customers', filename);
         const pagesPath = path.join(__dirname, '../public/pages', filename);
         const originalPath = path.join(__dirname, '../public', filename);
         
