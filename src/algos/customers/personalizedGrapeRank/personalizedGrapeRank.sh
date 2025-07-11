@@ -17,11 +17,19 @@ CUSTOMER_ID="$2"
 # Get customer_name
 CUSTOMER_NAME="$3"
 
-touch ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
-sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
+# Get log directory
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
+
+# Create log directory if it doesn't exist
+mkdir -p "$LOG_DIR"
+
+# Log file
+LOG_FILE="$LOG_DIR/personalizedGrapeRank.log"
+touch ${LOG_FILE}
+sudo chown brainstorm:brainstorm ${LOG_FILE}
 
 echo "$(date): Starting personalizedGrapeRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY"
-echo "$(date): Starting personalizedGrapeRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
+echo "$(date): Starting personalizedGrapeRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${LOG_FILE}
 
 # initialize raw data csv files. Note that this step is not customer-specific, i.e. it is the same for all customers
 # First determine whether the csv files already exist in location: /var/lib/brainstorm/algos/personalizedGrapeRank/tmp
@@ -30,11 +38,11 @@ if [ ! -f /var/lib/brainstorm/algos/personalizedGrapeRank/tmp/follows.csv ] && [
     sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/initializeRawDataCsv.sh
 else
     echo "$(date): Skipping initializeRawDataCsv because csv files already exist"
-    echo "$(date): Skipping initializeRawDataCsv because csv files already exist" >> ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
+    echo "$(date): Skipping initializeRawDataCsv because csv files already exist" >> ${LOG_FILE}
 fi
 
 # Interpret ratings. Pass CUSTOMER_PUBKEY, CUSTOMER_ID, and CUSTOMER_NAME as arguments to interpretRatings.js
 node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/interpretRatings.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
 echo "$(date): Finished personalizedGrapeRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY"
-echo "$(date): Finished personalizedGrapeRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
+echo "$(date): Finished personalizedGrapeRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${LOG_FILE}

@@ -23,7 +23,7 @@ CUSTOMER_ID="$2"
 CUSTOMER_NAME="$3"
 
 # Get log directory
-LOG_DIR="$BRAINSTORM_LOG_DIR"
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 
 # Create log directory if it doesn't exist
 mkdir -p "$LOG_DIR"
@@ -36,13 +36,16 @@ echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and custome
 echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
 
 # Run calculateHops.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" >> "$LOG_FILE" 2>&1
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
 
 # Run personalizedPageRank.sh
 sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
 
 # Run personalizedGrapeRank.sh
 sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
+
+# Run calculateVerifiedFollowers.sh
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateVerifiedFollowers.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
 
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"

@@ -2,8 +2,19 @@
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_OWNER_PUBKEY, BRAINSTORM_LOG_DIR, BRAINSTORM_MODULE_ALGOS_DIR
 
-echo "$(date): Continuing personalizedGrapeRank ... starting initializeRawDataCsv"
-echo "$(date): Continuing personalizedGrapeRank ... starting initializeRawDataCsv" >> ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
+# Get log directory
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers"
+
+# Create log directory if it doesn't exist
+mkdir -p "$LOG_DIR"
+
+# Log file
+LOG_FILE="$LOG_DIR/initializeRawDataCsv.log"
+touch ${LOG_FILE}
+sudo chown brainstorm:brainstorm ${LOG_FILE}
+
+echo "$(date): Starting initializeRawDataCsv"
+echo "$(date): Starting initializeRawDataCsv" >> ${LOG_FILE}
 
 CYPHER0="
 MATCH (user:NostrUser)
@@ -45,8 +56,5 @@ cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1" > 
 cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2" > $TEMP_DIR/mutes.csv
 cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3" > $TEMP_DIR/reports.csv
 
-echo "$(date): Continuing personalizedGrapeRank, initializeRawDataCsv ... finished cypher queries"
-echo "$(date): Continuing personalizedGrapeRank, initializeRawDataCsv ... finished cypher queries" >> ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
-
-echo "$(date): Continuing personalizedGrapeRank ... finished initializeRawDataCsv"
-echo "$(date): Continuing personalizedGrapeRank ... finished initializeRawDataCsv" >> ${BRAINSTORM_LOG_DIR}/personalizedGrapeRank.log
+echo "$(date): Finished initializeRawDataCsv"
+echo "$(date): Finished initializeRawDataCsv" >> ${LOG_FILE}
