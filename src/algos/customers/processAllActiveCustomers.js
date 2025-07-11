@@ -78,7 +78,7 @@ async function main() {
       
       try {
         // Construct the command
-        const command = `sudo bash ${SCRIPTS_DIR}/processCustomer.sh ${customerPubkey} ${customerId}`;
+        const command = `sudo bash ${SCRIPTS_DIR}/processCustomer.sh ${customerPubkey} ${customerId} ${customerName}`;
         log(`Executing: ${command}`);
         
         // Execute the command

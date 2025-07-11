@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Call this script prior to (or at the beginning of) calculateAllScores.sh for a given customer.
+# Call this script prior to (or at the beginning of) updateAllScoresForSingleCustomer.sh for a given customer.
 # This script prepares neo4j for storage of WoT metrics using a given customer as observer.
 # It updates the neo4j database to ensure two properties:
 # 1. every NostrUser has a single associated SetOfNostrUserWotMetricsCards node.

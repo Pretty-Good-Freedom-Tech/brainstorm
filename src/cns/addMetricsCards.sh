@@ -31,13 +31,19 @@ MERGE (s) -[:SPECIFIC_INSTANCE]-> (c:NostrUserWotMetricsCard {customer_id: $CUST
 SET c.observer_pubkey = '$CUSTOMER_PUBKEY', c.observee_pubkey = s.observee_pubkey
 RETURN count(s) as numSets"
 
+echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID"
 echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
 
 # Iterate CYPHER1 until numSets is zero or for a maximum of 20 iterations
 numSets=1
-while [[ "$numSets" -gt 0 ]] && [[ "$numSets" -lt 20 ]]; do
+iterations=1
+while [[ "$numSets" -gt 0 ]] && [[ "$iterations" -lt 20 ]]; do
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
-    numSets="${cypherResults:11}"
+    echo "$(date): cypherResults = $cypherResults"
+    echo "$(date): cypherResults = $cypherResults" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
+    numSets="${cypherResults:8}"
+    echo "$(date): numSets = $numSets"
     echo "$(date): numSets = $numSets" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
     sleep 1
+    ((iterations++))
 done

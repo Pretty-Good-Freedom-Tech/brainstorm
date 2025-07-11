@@ -25,6 +25,15 @@ fi
 # Get customer_id
 CUSTOMER_ID="$2"
 
+# Check if CUSTOMER_NAME is provided
+if [ -z "$3" ]; then
+    echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
+    exit 1
+fi
+
+# Get customer_name
+CUSTOMER_NAME="$3"  
+
 # Get log directory
 LOG_DIR="$BRAINSTORM_LOG_DIR"
 
@@ -35,14 +44,14 @@ mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/processCustomer.log"
 
 # Log start time
-echo "$(date): Starting processCustomer for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
-echo "$(date): Starting processCustomer for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"
+echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
+echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"
 
 # TODO: run all scripts required for processing
-sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/prepareNeo4jForCustomerData.sh $CUSTOMER_PUBKEY $CUSTOMER_ID
+sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/prepareNeo4jForCustomerData.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 # do preliminary steps for GrapeRank that are common to all customers, i.e. generate all ratings
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateAllScores.sh
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/updateAllScoresForSingleCustomer.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
 # Log end time
-echo "$(date): Finished processCustomer for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
-echo "$(date): Finished processCustomer for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"
+echo "$(date): Finished processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
+echo "$(date): Finished processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"

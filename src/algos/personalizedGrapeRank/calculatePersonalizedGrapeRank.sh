@@ -36,6 +36,7 @@ MATCH (rater:NostrUser)-[r:REPORTS]->(ratee:NostrUser)
 WHERE ratee.hops < 20
 RETURN rater.pubkey AS pk_rater, ratee.pubkey AS pk_ratee
 "
+
 # Create the base directory structure
 USERNAME="brainstorm"
 BASE_DIR="/var/lib/brainstorm"
