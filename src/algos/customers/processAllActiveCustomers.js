@@ -70,11 +70,11 @@ async function main() {
     
     // Process each active customer
     for (const customer of activeCustomers) {
-      // Use directory as the customerId since that's how the filesystem will be organized
-      const customerId = customer.directory || customer.name;
+      const customerId = customer.id;
       const customerPubkey = customer.pubkey;
+      const customerName = customer.name;
       
-      log(`Processing customer: ${customer.name} (${customerId}) with pubkey ${customerPubkey}`);
+      log(`Processing customer: ${customerName} (id: ${customerId}) with pubkey ${customerPubkey}`);
       
       try {
         // Construct the command
