@@ -21,8 +21,8 @@ numSets=1
 iterations=1
 while [[ "$numSets" -gt 0 ]] && [[ "$iterations" -lt 20 ]]; do
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
-    echo "$(date): cypherResults = $cypherResults"
-    echo "$(date): cypherResults = $cypherResults" >> ${BRAINSTORM_LOG_DIR}/addSetsOfMetricsCards.log
+    # echo "$(date): cypherResults = $cypherResults"
+    # echo "$(date): cypherResults = $cypherResults" >> ${BRAINSTORM_LOG_DIR}/addSetsOfMetricsCards.log
     numSets="${cypherResults:8}"
     echo "$(date): numSets = $numSets"
     echo "$(date): numSets = $numSets" >> ${BRAINSTORM_LOG_DIR}/addSetsOfMetricsCards.log

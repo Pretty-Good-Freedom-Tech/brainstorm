@@ -29,21 +29,21 @@ WHERE NOT (s) -[:SPECIFIC_INSTANCE]-> (:NostrUserWotMetricsCard {customer_id: $C
 LIMIT 100000
 MERGE (s) -[:SPECIFIC_INSTANCE]-> (c:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
 SET c.observer_pubkey = '$CUSTOMER_PUBKEY', c.observee_pubkey = s.observee_pubkey
-RETURN count(s) as numSets"
+RETURN count(c) as numCards"
 
 echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID"
 echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
 
-# Iterate CYPHER1 until numSets is zero or for a maximum of 20 iterations
-numSets=1
+# Iterate CYPHER1 until numCards is zero or for a maximum of 20 iterations
+numCards=1
 iterations=1
-while [[ "$numSets" -gt 0 ]] && [[ "$iterations" -lt 20 ]]; do
+while [[ "$numCards" -gt 0 ]] && [[ "$iterations" -lt 20 ]]; do
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
-    echo "$(date): cypherResults = $cypherResults"
-    echo "$(date): cypherResults = $cypherResults" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-    numSets="${cypherResults:8}"
-    echo "$(date): numSets = $numSets"
-    echo "$(date): numSets = $numSets" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
+    # echo "$(date): cypherResults = $cypherResults"
+    # echo "$(date): cypherResults = $cypherResults" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
+    numCards="${cypherResults:9}"
+    echo "$(date): numCards = $numCards"
+    echo "$(date): numCards = $numCards" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
     sleep 1
     ((iterations++))
 done

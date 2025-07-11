@@ -300,7 +300,7 @@ function countEntries(ratings) {
 // Main function
 async function main() {
   try {
-    console.log('Initializing ratings...');
+    console.log('Interpreting ratings for CUSTOMER_PUBKEY: ' + CUSTOMER_PUBKEY + ' CUSTOMER_ID: ' + CUSTOMER_ID + ' CUSTOMER_NAME: ' + CUSTOMER_NAME);
     
     // Get configuration
     const config = getConfig();

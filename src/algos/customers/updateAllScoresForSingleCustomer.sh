@@ -45,7 +45,7 @@ sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTO
 sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
 
 # Run calculateVerifiedFollowers.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateVerifiedFollowers.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
+# sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateVerifiedFollowers.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
 
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
