@@ -8,6 +8,15 @@ source "$CONFIG_FILE" # BRAINSTORM_MODULE_ALGOS_DIR
 
 SCRIPTS_DIR="$BRAINSTORM_MODULE_ALGOS_DIR/customers/"
 
+CUSTOMERS_DIR="/var/lib/brainstorm/customers"
+
+CUSTOMERS_JSON="$CUSTOMERS_DIR/customers.json"
+
+# cycle through each customer in customers.json
+# determine which customers are active
+# for each active customer, run calculateAllScores.sh <customer_name>
+
+
 # cycle through cloudfodder
 sudo bash $SCRIPTS_DIR/calculateAllScores.sh cloudfodder
 
