@@ -35,11 +35,16 @@ echo "$(date): Starting personalizedGrapeRank for CUSTOMER_NAME: $CUSTOMER_NAME 
 # First determine whether the csv files already exist in location: /var/lib/brainstorm/algos/personalizedGrapeRank/tmp
 # If files already exist, echo that we are skipping this step
 if [ ! -f /var/lib/brainstorm/algos/personalizedGrapeRank/tmp/follows.csv ] && [ ! -f /var/lib/brainstorm/algos/personalizedGrapeRank/tmp/mutes.csv ] && [ ! -f /var/lib/brainstorm/algos/personalizedGrapeRank/tmp/reports.csv ] && [ ! -f /var/lib/brainstorm/algos/personalizedGrapeRank/tmp/ratees.csv ]; then
+    echo "$(date): Continuing personalizedGrapeRank; starting initializeRawDataCsv.sh"
+    echo "$(date): Continuing personalizedGrapeRank; starting initializeRawDataCsv.sh" >> ${LOG_FILE}
     sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/initializeRawDataCsv.sh
 else
-    echo "$(date): Skipping initializeRawDataCsv because csv files already exist"
-    echo "$(date): Skipping initializeRawDataCsv because csv files already exist" >> ${LOG_FILE}
+    echo "$(date): Continuing personalizedGrapeRank; skipping initializeRawDataCsv because csv files already exist"
+    echo "$(date): Continuing personalizedGrapeRank; skipping initializeRawDataCsv because csv files already exist" >> ${LOG_FILE}
 fi
+
+echo "$(date): Continuing personalizedGrapeRank; starting interpretRatings.js"
+echo "$(date): Continuing personalizedGrapeRank; starting interpretRatings.js" >> ${LOG_FILE}
 
 # Interpret ratings. Pass CUSTOMER_PUBKEY, CUSTOMER_ID, and CUSTOMER_NAME as arguments to interpretRatings.js
 sudo node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/interpretRatings.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
