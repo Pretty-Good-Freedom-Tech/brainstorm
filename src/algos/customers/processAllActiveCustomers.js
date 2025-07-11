@@ -72,12 +72,13 @@ async function main() {
     for (const customer of activeCustomers) {
       // Use directory as the customerId since that's how the filesystem will be organized
       const customerId = customer.directory || customer.name;
+      const customerPubkey = customer.pubkey;
       
-      log(`Processing customer: ${customer.name} (${customerId})`);
+      log(`Processing customer: ${customer.name} (${customerId}) with pubkey ${customerPubkey}`);
       
       try {
         // Construct the command
-        const command = `sudo bash ${SCRIPTS_DIR}/processCustomer.sh ${customerId}`;
+        const command = `sudo bash ${SCRIPTS_DIR}/processCustomer.sh ${customerPubkey} ${customerId}`;
         log(`Executing: ${command}`);
         
         // Execute the command

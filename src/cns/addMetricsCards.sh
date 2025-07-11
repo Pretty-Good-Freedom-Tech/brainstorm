@@ -6,23 +6,23 @@
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_LOG_DIR
 
-# Check if CUSTOMER_ID is provided
-if [ -z "$1" ]; then
-    echo "Usage: $0 <customer_id>"
-    exit 1
-fi
-
-# Get customer_id
-CUSTOMER_ID="$1"
-
 # Check if CUSTOMER_PUBKEY is provided
-if [ -z "$2" ]; then
-    echo "Usage: $0 <customer_id> <customer_pubkey>"
+if [ -z "$1" ]; then
+    echo "Usage: $0 <customer_pubkey> <customer_id>"
     exit 1
 fi
 
 # Get customer_pubkey
-CUSTOMER_PUBKEY="$2"
+CUSTOMER_PUBKEY="$1"
+
+# Check if CUSTOMER_ID is provided
+if [ -z "$2" ]; then
+    echo "Usage: $0 <customer_pubkey> <customer_id>"
+    exit 1
+fi
+
+# Get customer_id
+CUSTOMER_ID="$2"
 
 CYPHER1="MATCH (s:Set:SetOfNostrUserWotMetricsCards)
 WHERE NOT (s) -[:SPECIFIC_INSTANCE]-> (:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
