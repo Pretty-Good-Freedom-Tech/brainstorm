@@ -180,30 +180,37 @@ function handleGetProfiles(req, res) {
     // Add sorting and pagination to the main query
     if (observerPubkey == ownerPubkey) {
       query += `
-        RETURN u.pubkey as pubkey, `;
+        RETURN u.pubkey as pubkey, 
+            u.npub as npub,
+            u.personalizedPageRank as personalizedPageRank,
+            u.hops as hops,
+            u.influence as influence,
+            u.average as average,
+            u.confidence as confidence,
+            u.input as input,
+            u.mutingCount as mutingCount,
+            u.muterCount as muterCount,
+            u.reportingCount as reportingCount,
+            u.reporterCount as reporterCount,
+            u.verifiedFollowerCount as verifiedFollowerCount,
+            u.nip56_totalGrapeRankScore as nip56_totalGrapeRankScore,
+            u.nip56_totalReportCount as nip56_totalReportCount,
+            u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount,
+            u.latestContentEventCreatedAt as latestContentEventCreatedAt
+        `;
     } else {
       query += `
         RETURN u.observee_pubkey as pubkey,
+            u.personalizedPageRank as personalizedPageRank,
+            u.hops as hops,
+            u.influence as influence,
+            u.average as average,
+            u.confidence as confidence,
+            u.input as input
       `;
     }
 
     query += `
-             u.npub as npub,
-             u.personalizedPageRank as personalizedPageRank,
-             u.hops as hops,
-             u.influence as influence,
-             u.average as average,
-             u.confidence as confidence,
-             u.input as input,
-             u.mutingCount as mutingCount,
-             u.muterCount as muterCount,
-             u.reportingCount as reportingCount,
-             u.reporterCount as reporterCount,
-             u.verifiedFollowerCount as verifiedFollowerCount,
-             u.nip56_totalGrapeRankScore as nip56_totalGrapeRankScore,
-             u.nip56_totalReportCount as nip56_totalReportCount,
-             u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount,
-             u.latestContentEventCreatedAt as latestContentEventCreatedAt
       ORDER BY u.${sortBy} ${sortOrder}
       SKIP ${(page - 1) * limit}
       LIMIT ${limit}
@@ -250,14 +257,15 @@ function handleGetProfiles(req, res) {
                 res.json({
                   success: true,
                   data: {
-                    users,
+                    cypherQuery: query,
                     pagination: {
                       total,
                       page,
                       limit,
                       pages
                     },
-                    totalProfiles: totalProfiles
+                    totalProfiles: totalProfiles,
+                    users
                   }
                 });
               });
