@@ -73,7 +73,7 @@ function handleGetProfiles(req, res) {
     } else {
       query = `
         MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})
-        WHERE u.pubkey IS NOT NULL
+        WHERE u.observee_pubkey IS NOT NULL
       `;
     }
     
