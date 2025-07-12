@@ -39,22 +39,22 @@ echo "$(date): Continuing calculateAllScores; starting calculateHops.sh"
 echo "$(date): Continuing calculateAllScores; starting calculateHops.sh" >> "$LOG_FILE"
 
 # Run calculateHops.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
 
 echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh" >> "$LOG_FILE"
 
 # Run personalizedPageRank.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
 
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh" >> "$LOG_FILE"
 
 # Run personalizedGrapeRank.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
 
 # Run calculateVerifiedFollowers.sh
-# sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateVerifiedFollowers.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME" >> "$LOG_FILE" 2>&1
+# sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateVerifiedFollowers.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
 
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"

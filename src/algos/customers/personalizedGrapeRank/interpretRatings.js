@@ -330,6 +330,9 @@ async function main() {
     const entryCount = countEntries(ratings);
     console.log(`Writing ratings.json with ${entryCount} ratings...`);
     
+    // Create ratings directory if it doesn't exist
+    execSync(`mkdir -p ${path.dirname(ratingsFile)}`);
+    
     // Write ratings to file using streaming approach
     await writeRatingsToFile(ratingsFile, ratings);
     

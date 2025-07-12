@@ -39,6 +39,7 @@ CYPHER3="MATCH (c1:NostrUserWotMetricsCard {observer_pubkey:'$CUSTOMER_PUBKEY'})
 
 numHops=1
 
+echo "$(date): Starting calculateHops"
 echo "$(date): Starting calculateHops" >> ${LOG_FILE}
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1"
@@ -46,11 +47,17 @@ sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
 numUpdates="${cypherResults:11}"
 
+echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops"
+echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
+
 while [[ "$numUpdates" -gt 0 ]] && [[ "$numHops" -lt 12 ]];
 do
     ((numHops++))
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
     numUpdates="${cypherResults:11}"
+    echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops"
+    echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
 done
 
+echo "$(date): Finished calculateHops for observer_pubkey $CUSTOMER_PUBKEY"
 echo "$(date): Finished calculateHops for observer_pubkey $CUSTOMER_PUBKEY" >> ${LOG_FILE}

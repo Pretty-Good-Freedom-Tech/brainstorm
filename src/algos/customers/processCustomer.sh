@@ -38,7 +38,13 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
 echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"
 
+echo "$(date): Continuing processCustomer; starting prepareNeo4jForCustomerData.sh"
+echo "$(date): Continuing processCustomer; starting prepareNeo4jForCustomerData.sh" >> "$LOG_FILE"
+
 sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/prepareNeo4jForCustomerData.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME# do preliminary steps for GrapeRank that are common to all customers, i.e. generate all ratings
+
+echo "$(date): Continuing processCustomer; starting updateAllScoresForSingleCustomer.sh"
+echo "$(date): Continuing processCustomer; starting updateAllScoresForSingleCustomer.sh" >> "$LOG_FILE"
 
 sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/updateAllScoresForSingleCustomer.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
