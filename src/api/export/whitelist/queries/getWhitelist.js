@@ -26,6 +26,7 @@ const { getConfigFromFile } = require('../../../../utils/config');
 function handleGetWhitelist(req, res) {
   try {
     // look for pubkey as a query parameter
+    const observerPubkey = req.query.observerPubkey || 'owner';
     const queryPubkey = req.query.pubkey;
 
     // Create Neo4j driver
@@ -42,13 +43,24 @@ function handleGetWhitelist(req, res) {
     const sortBy = req.query.sortBy || 'influence';
     const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
 
-    let cypherQuery = `
+    let cypherQuery = '';
+    if (observerPubkey == 'owner') {
+      cypherQuery = `
       MATCH (u:NostrUser)
       WHERE u.pubkey IS NOT NULL
       AND u.influence > 0.01
       RETURN u.pubkey as pubkey
       ORDER BY u.${sortBy} ${sortOrder}
     `;
+    } else {
+      cypherQuery = `
+      MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})
+      WHERE u.observee_pubkey IS NOT NULL
+      AND u.influence > 0.01
+      RETURN u.observee_pubkey as pubkey
+      ORDER BY u.${sortBy} ${sortOrder}
+    `;
+    }
     
     const session = driver.session();
     
@@ -77,6 +89,8 @@ function handleGetWhitelist(req, res) {
           return res.json({
             success: true,
             data: {
+              observerPubkey,
+              queryPubkey,
               query: cypherQuery,
               numPubkeys: pubkeys.length,
               pubkeys

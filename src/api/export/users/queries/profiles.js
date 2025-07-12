@@ -251,7 +251,7 @@ function handleGetProfiles(req, res) {
                     };
                   } else {
                     return {
-                      pubkey: record.get('observee_pubkey'),
+                      pubkey: record.get('pubkey'),
                       personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
                       hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
                       influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
