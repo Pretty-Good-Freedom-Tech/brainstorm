@@ -230,24 +230,45 @@ function handleGetProfiles(req, res) {
             return session.run(query)
               .then(result => {
                 const users = result.records.map(record => {
-                  return {
-                    pubkey: record.get('pubkey'),
-                    personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
-                    hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
-                    influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
-                    average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
-                    confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
-                    input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
-                    mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
-                    muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
-                    reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
-                    reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0,
-                    verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
-                    nip56_totalGrapeRankScore: record.get('nip56_totalGrapeRankScore') ? parseFloat(record.get('nip56_totalGrapeRankScore').toString()) : null,
-                    nip56_totalReportCount: record.get('nip56_totalReportCount') ? parseInt(record.get('nip56_totalReportCount').toString()) : null,
-                    nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseFloat(record.get('nip56_totalVerifiedReportCount').toString()) : null,
-                    latestContentEventCreatedAt: record.get('latestContentEventCreatedAt') ? parseInt(record.get('latestContentEventCreatedAt').toString()) : null
-                  };
+                  if (observerPubkey == ownerPubkey) {
+                    return {
+                      pubkey: record.get('pubkey'),
+                      personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
+                      hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
+                      influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
+                      average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
+                      confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
+                      input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
+                      mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
+                      muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
+                      reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
+                      reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0,
+                      verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
+                      nip56_totalGrapeRankScore: record.get('nip56_totalGrapeRankScore') ? parseFloat(record.get('nip56_totalGrapeRankScore').toString()) : null,
+                      nip56_totalReportCount: record.get('nip56_totalReportCount') ? parseInt(record.get('nip56_totalReportCount').toString()) : null,
+                      nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseFloat(record.get('nip56_totalVerifiedReportCount').toString()) : null,
+                      latestContentEventCreatedAt: record.get('latestContentEventCreatedAt') ? parseInt(record.get('latestContentEventCreatedAt').toString()) : null
+                    };
+                  } else {
+                    return {
+                      pubkey: record.get('observee_pubkey'),
+                      personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
+                      hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
+                      influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
+                      average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
+                      confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
+                      input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
+                      mutingCount: null,
+                      muterCount: null,
+                      reportingCount: null,
+                      reporterCount: null,
+                      verifiedFollowerCount: null,
+                      nip56_totalGrapeRankScore: null,
+                      nip56_totalReportCount: null,
+                      nip56_totalVerifiedReportCount: null,
+                      latestContentEventCreatedAt: null
+                    };
+                  }
                 });
                 
                 // Calculate pagination metadata
