@@ -164,6 +164,9 @@ async function writeRatingsToFile(ratingsFile, ratings) {
       // Create a writable stream
       const stream = fs.createWriteStream(ratingsFile);
       
+      // Increase max listeners to avoid warnings (default is 10)
+      stream.setMaxListeners(100); // Adjust based on batch size and processing needs
+      
       // Get all contexts (should only be 'verifiedUsers' in this case)
       const contexts = Object.keys(ratings);
       let contextIndex = 0;

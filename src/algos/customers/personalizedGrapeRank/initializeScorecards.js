@@ -14,51 +14,28 @@ const path = require('path');
 const readline = require('readline');
 const { execSync } = require('child_process');
 
-// Get BRAINSTORM_OWNER_PUBKEY from environment or config file
-function getOwnerPubkey() {
-  try {
-    // Try to read from config file
-    const configOutput = execSync('source /etc/brainstorm.conf && echo $BRAINSTORM_OWNER_PUBKEY', { 
-      shell: '/bin/bash',
-      encoding: 'utf8' 
-    }).trim();
-    
-    if (configOutput && configOutput.length > 0) {
-      return configOutput;
-    }
-    
-    // Fall back to environment variable
-    if (process.env.BRAINSTORM_OWNER_PUBKEY) {
-      return process.env.BRAINSTORM_OWNER_PUBKEY;
-    }
-    
-    console.error('BRAINSTORM_OWNER_PUBKEY not found in config or environment');
-    process.exit(1);
-  } catch (error) {
-    console.error(`Error getting BRAINSTORM_OWNER_PUBKEY: ${error.message}`);
-    process.exit(1);
-  }
-}
+// Extract CUSTOMER_PUBKEY, CUSTOMER_ID, and CUSTOMER_NAME which are passed as arguments
+const CUSTOMER_PUBKEY = process.argv[2];
+const CUSTOMER_ID = process.argv[3];
+const CUSTOMER_NAME = process.argv[4];
 
 // Main function
 async function main() {
   try {
-    console.log('Initializing scorecards...');
+    console.log('Initializing scorecards for CUSTOMER_PUBKEY: ' + CUSTOMER_PUBKEY + ' CUSTOMER_ID: ' + CUSTOMER_ID + ' CUSTOMER_NAME: ' + CUSTOMER_NAME);
     
     // Define paths
     const tempDir = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
     const rateesFile = path.join(tempDir, 'ratees.csv');
-    const scorecardsFile = path.join(tempDir, 'scorecards_init.json');
+    const scorecardsFile = path.join(tempDir, CUSTOMER_NAME, 'scorecards_init.json');
     
-    // Get owner pubkey
-    const ownerPubkey = getOwnerPubkey();
-    console.log(`BRAINSTORM_OWNER_PUBKEY: ${ownerPubkey}`);
+    const observerPubkey = CUSTOMER_PUBKEY
     
     // Initialize scorecards object
     const scorecards = {};
     
-    // Set default value for owner pubkey
-    scorecards[ownerPubkey] = [1, 1, 1, 9999];
+    // Set default value for observer pubkey
+    scorecards[observerPubkey] = [1, 1, 1, 9999];
     
     // Check if ratees.csv exists
     if (!fs.existsSync(rateesFile)) {

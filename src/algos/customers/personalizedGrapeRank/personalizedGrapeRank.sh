@@ -49,5 +49,19 @@ echo "$(date): Continuing personalizedGrapeRank; starting interpretRatings.js" >
 # Interpret ratings. Pass CUSTOMER_PUBKEY, CUSTOMER_ID, and CUSTOMER_NAME as arguments to interpretRatings.js
 sudo node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/interpretRatings.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
+echo "$(date): Continuing personalizedGrapeRank; starting initializeScorecards.js"
+echo "$(date): Continuing personalizedGrapeRank; starting initializeScorecards.js" >> ${LOG_FILE}
+
+# Initialize scorecards
+# TODO: edit test changes to this file. scorecards_init.json should be in the customer-specific directory
+sudo node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/initializeScorecards.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+
+echo "$(date): Continuing personalizedGrapeRank; starting calculateGrapeRank.js"
+echo "$(date): Continuing personalizedGrapeRank; starting calculateGrapeRank.js" >> ${LOG_FILE}
+
+# Calculate GrapeRank
+# TODO: update this file to be customer-specific
+sudo node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/calculateGrapeRank.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+
 echo "$(date): Finished personalizedGrapeRank for CUSTOMER_NAME: $CUSTOMER_NAME CUSTOMER_ID: $CUSTOMER_ID CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY"
 echo "$(date): Finished personalizedGrapeRank for CUSTOMER_NAME: $CUSTOMER_NAME CUSTOMER_ID: $CUSTOMER_ID CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${LOG_FILE}
