@@ -46,7 +46,7 @@ const MAX_ITERATIONS = 60;
 const CONVERGENCE_THRESHOLD = 0.001; // Threshold for determining convergence; for any iteration, the change in influence score for every profile must be less than this threshold.
 const CONTEXT = 'verifiedUsers';
 const CONFIG_FILES = {
-  graperank: '/etc/graperank.conf',
+  graperank: '/var/lib/brainstorm/customers/' + CUSTOMER_NAME + '/preferences/graperank.conf',
   brainstorm: '/etc/brainstorm.conf'
 };
 

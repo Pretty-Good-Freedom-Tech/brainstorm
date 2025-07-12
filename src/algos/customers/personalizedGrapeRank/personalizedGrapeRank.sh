@@ -60,8 +60,13 @@ echo "$(date): Continuing personalizedGrapeRank; starting calculateGrapeRank.js"
 echo "$(date): Continuing personalizedGrapeRank; starting calculateGrapeRank.js" >> ${LOG_FILE}
 
 # Calculate GrapeRank
-# TODO: update this file to be customer-specific
 sudo node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/calculateGrapeRank.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+
+echo "$(date): Continuing personalizedGrapeRank; starting updateNeo4j.js"
+echo "$(date): Continuing personalizedGrapeRank; starting updateNeo4j.js" >> ${LOG_FILE}
+
+# update Neo4j
+sudo node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/updateNeo4j.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
 echo "$(date): Finished personalizedGrapeRank for CUSTOMER_NAME: $CUSTOMER_NAME CUSTOMER_ID: $CUSTOMER_ID CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY"
 echo "$(date): Finished personalizedGrapeRank for CUSTOMER_NAME: $CUSTOMER_NAME CUSTOMER_ID: $CUSTOMER_ID CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${LOG_FILE}
