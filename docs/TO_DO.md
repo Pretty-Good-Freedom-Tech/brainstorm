@@ -1,3 +1,10 @@
+## TODO 12 JULY 2025
+- update get-profiles endpoint to display scores from customers on profiles page
+- (optional): initialize scorecards from neo4j if scores already exist
+- update get-user-date to support customer scores
+- update get-whitelist to support customer scores
+- add pagerank endpoint to compare to Vertex
+
 ## TODO 21 Apr 2025
 - MIP-87: curate mints
 - add npub to tables

@@ -13,6 +13,12 @@ const { getConfigFromFile } = require('../../../../utils/config');
  */
 function handleGetProfiles(req, res) {
   try {
+    const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
+
+    // optional get observer pubkey from query parameter
+    const source = req.query.source || 'owner'; // 'owner' or 'NostrUserWotMetricsCards'
+    const observerPubkey = req.query.observerPubkey || ownerPubkey;
+    
     // Get query parameters for filtering and pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 100;
@@ -57,11 +63,19 @@ function handleGetProfiles(req, res) {
     
     const session = driver.session();
     
+    let query = '';
     // Build the Cypher query with filters
-    let query = `
-      MATCH (u:NostrUser)
-      WHERE u.pubkey IS NOT NULL
-    `;
+    if (observerPubkey == ownerPubkey) {
+      query = `
+        MATCH (u:NostrUser)
+        WHERE u.pubkey IS NOT NULL
+      `;
+    } else {
+      query = `
+        MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})
+        WHERE u.pubkey IS NOT NULL
+      `;
+    }
     
     // Add filters if provided
     if (filterMinHops) {
@@ -164,8 +178,16 @@ function handleGetProfiles(req, res) {
     const countQuery = query + ` RETURN count(u) as total`;
     
     // Add sorting and pagination to the main query
+    if (observerPubkey == ownerPubkey) {
+      query += `
+        RETURN u.pubkey as pubkey, `;
+    } else {
+      query += `
+        RETURN u.observee_pubkey as pubkey,
+      `;
+    }
+
     query += `
-      RETURN u.pubkey as pubkey,
              u.npub as npub,
              u.personalizedPageRank as personalizedPageRank,
              u.hops as hops,

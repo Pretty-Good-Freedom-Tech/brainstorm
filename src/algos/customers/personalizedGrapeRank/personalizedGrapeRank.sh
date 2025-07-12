@@ -53,6 +53,7 @@ echo "$(date): Continuing personalizedGrapeRank; starting initializeScorecards.j
 echo "$(date): Continuing personalizedGrapeRank; starting initializeScorecards.js" >> ${LOG_FILE}
 
 # Initialize scorecards
+# TODO: initialize from neo4j if scores already exist
 # TODO: edit test changes to this file. scorecards_init.json should be in the customer-specific directory
 sudo node $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/initializeScorecards.js $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
