@@ -152,7 +152,7 @@ async function updateNeo4j(scorecards, neo4jConfig) {
       // Update Neo4j
       const result = await session.run(`
         UNWIND $updates AS update
-        MATCH (u:NostrUserWotMetricsCard {observer_pubkey: ${CUSTOMER_PUBKEY}, observee_pubkey: update.pubkey})
+        MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${CUSTOMER_PUBKEY}', observee_pubkey: update.pubkey})
         SET u.influence = update.influence,
             u.average = update.average,
             u.confidence = update.confidence,
