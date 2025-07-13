@@ -6,7 +6,8 @@
             "directory": "straycat",
             "name": "straycat",
             "pubkey": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
-            "observer_id": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f"
+            "observer_id": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
+            "comments": "rigorous"
         },
         "cloudfodder": {
             "id": 1,
@@ -14,7 +15,8 @@
             "directory": "cloudfodder",
             "name": "cloudfodder",
             "pubkey": "7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e",
-            "observer_id": "7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e"
+            "observer_id": "7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e",
+            "comments": "default"
         },
         "dawn": {
             "id": 2,
@@ -22,7 +24,8 @@
             "directory": "dawn",
             "name": "dawn",
             "pubkey": "c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712",
-            "observer_id": "c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712"
+            "observer_id": "c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712",
+            "comments": "rigorous"
         },
         "manime": {
             "id": 3,
@@ -30,39 +33,53 @@
             "directory": "manime",
             "name": "manime",
             "pubkey": "df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200",
-            "observer_id": "df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200"
+            "observer_id": "df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200",
+            "comments": "lax"
         },
-        "Tekkadan": {
+        "tekkadan": {
             "id": 4,
-            "status": "inactive",
+            "status": "active",
             "directory": "tekkadan",
             "name": "Tekkadan",
-            "pubkey": "",
-            "observer_id": ""
+            "pubkey": "50809a53fef95904513a840d4082a92b45cd5f1b9e436d9d2b92a89ce091f164",
+            "observer_id": "50809a53fef95904513a840d4082a92b45cd5f1b9e436d9d2b92a89ce091f164",
+            "comments": "default"
         },
-        "Vinney": {
+        "vinney": {
             "id": 5,
             "status": "inactive",
             "directory": "vinney",
             "name": "Vinney",
-            "pubkey": "",
-            "observer_id": ""
+            "pubkey": "2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331",
+            "observer_id": "2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331",
+            "comments": "default"
         },
-        "Shawn": {
+        "shawn": {
             "id": 6,
             "status": "inactive",
             "directory": "shawn",
             "name": "Shawn",
-            "pubkey": "",
-            "observer_id": ""
+            "pubkey": "c7eda660a6bc8270530e82b4a7712acdea2e31dc0a56f8dc955ac009efd97c86",
+            "observer_id": "c7eda660a6bc8270530e82b4a7712acdea2e31dc0a56f8dc955ac009efd97c86",
+            "comments": "default"
+        },
+        "bitcoinerrorlog": {
+            "id": 7,
+            "status": "active",
+            "directory": "bitcoinerrorlog",
+            "name": "bitcoinerrorlog",
+            "pubkey": "8cda1daafb2df8daf4500533cba69b645afa0caf7136e341be1b66a2e9e5bdd8",
+            "observer_id": "8cda1daafb2df8daf4500533cba69b645afa0caf7136e341be1b66a2e9e5bdd8",
+            "comments": "default"
         },
         "fiatjaf": {
-            "id": 7,
+            "id": 8,
             "status": "inactive",
             "directory": "fiatjaf",
             "name": "fiatjaf",
-            "pubkey": "",
-            "observer_id": ""
+            "pubkey": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
+            "observer_id": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
+            "comments": "default"
         }
     }
 }

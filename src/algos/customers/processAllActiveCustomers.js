@@ -28,6 +28,7 @@ function getConfigFromFile(key, defaultValue = '') {
 
 // Configuration
 const BRAINSTORM_MODULE_ALGOS_DIR = getConfigFromFile('BRAINSTORM_MODULE_ALGOS_DIR', '/opt/brainstorm/src/algos');
+const BRAINSTORM_LOG_DIR = getConfigFromFile('BRAINSTORM_LOG_DIR', '/var/log/brainstorm');
 const SCRIPTS_DIR = path.join(BRAINSTORM_MODULE_ALGOS_DIR, 'customers');
 const CUSTOMERS_DIR = '/var/lib/brainstorm/customers';
 const CUSTOMERS_JSON = path.join(CUSTOMERS_DIR, 'customers.json');
@@ -38,7 +39,9 @@ const CUSTOMERS_JSON = path.join(CUSTOMERS_DIR, 'customers.json');
  */
 function log(message) {
   const timestamp = new Date().toISOString();
-  console.log(`${timestamp} - ${message}`);
+  const logMessage = `${timestamp}: processAllActiveCustomers - ${message}`;
+  console.log(logMessage);
+  fs.appendFileSync(path.join(BRAINSTORM_LOG_DIR, 'processAllActiveCustomers.log'), logMessage + '\n');
 }
 
 /**
