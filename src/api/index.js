@@ -37,6 +37,7 @@ const graperank = require('./export/graperank');
 const manage = require('./manage');
 const lists = require('./lists');
 const status = require('./status');
+const customers = require('./customers');
 
 const { handleNeo4jSetupConstraintsAndIndexes } = require('./neo4j/commands/setupConstraintsAndIndexes.js');
 
@@ -205,6 +206,9 @@ function register(app) {
 
     // Search endpoint
     app.get('/api/search/profiles', handleSearchProfiles);
+
+    // Process All Active Customers endpoint
+    app.post('/api/process-all-active-customers', customers.handleProcessAllActiveCustomers);
 
     // Recently Active Pubkeys endpoint
     app.get('/api/get-recently-active-pubkeys', handleGetRecentlyActivePubkeys);

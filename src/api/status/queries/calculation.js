@@ -34,7 +34,8 @@ function handleCalculationStatus(req, res) {
             reports: `${logDir}/calculateReportScores.log`,
             blacklist: `${logDir}/exportBlacklist.log`,
             whitelist: `${logDir}/exportWhitelist.log`,
-            nip85: `${logDir}/publishNip85.log`
+            nip85: `${logDir}/publishNip85.log`,
+            processAllActiveCustomers: `${logDir}/processAllActiveCustomers.log`
         };
         
         // Function to get calculation status from log file

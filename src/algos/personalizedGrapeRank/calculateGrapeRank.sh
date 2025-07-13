@@ -6,6 +6,7 @@
 # Source configuration
 source /etc/brainstorm.conf # BRAINSTORM_OWNER_PUBKEY
 source /etc/graperank.conf   # ATTENUATION_FACTOR, RIGOR
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... starting calculateGrapeRank"
 echo "$(date): Continuing calculatePersonalizedGrapeRank ... starting calculateGrapeRank" >> ${BRAINSTORM_LOG_DIR}/calculatePersonalizedGrapeRank.log
 
 # Create the base directory structure if it doesn't exist
@@ -21,4 +22,5 @@ chmod -R 755 "$TEMP_DIR"
 # Run the JavaScript script
 node $ALGOS_DIR/personalizedGrapeRank/calculateGrapeRank.js
 
+echo "$(date): Continuing calculatePersonalizedGrapeRank ... finished calculateGrapeRank"
 echo "$(date): Continuing calculatePersonalizedGrapeRank ... finished calculateGrapeRank" >> ${BRAINSTORM_LOG_DIR}/calculatePersonalizedGrapeRank.log
