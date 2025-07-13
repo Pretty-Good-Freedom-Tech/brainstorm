@@ -171,6 +171,12 @@ echo "$(date): Continuing processAllTasks; publishNip85.sh completed" >> ${BRAIN
 
 sleep 5
 
+sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/processAllActiveCustomers.sh
+echo "$(date): Continuing processAllTasks; processAllActiveCustomers.sh completed"
+echo "$(date): Continuing processAllTasks; processAllActiveCustomers.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+sleep 5
+
 # restart the reconcile service
 # sudo systemctl restart reconcile.service
 # echo "$(date): Continuing processAllTasks; reconcile.service restarted"
