@@ -23,7 +23,7 @@
  * 2. Iterate until convergence or max iterations
  * 
  * Special cases:
- * - BRAINSTORM_OWNER_PUBKEY scorecard is fixed at [1,1,1,9999] and never recalculated
+ * - CUSTOMER_PUBKEY scorecard is fixed at [1,1,1,9999] and never recalculated
  */
 
 const fs = require('fs');
@@ -71,6 +71,7 @@ function getConfig() {
     return {
       ATTENUATION_FACTOR: parseFloat(graperankConfig[0]),
       RIGOR: parseFloat(graperankConfig[1]),
+      CUSTOMER_PUBKEY: CUSTOMER_PUBKEY,
       BRAINSTORM_OWNER_PUBKEY: ownerPubkey
     };
   } catch (error) {
@@ -272,8 +273,8 @@ async function writeScorecards(scorecardsFile, scorecards) {
 
 // Calculate GrapeRank parameters for a single ratee
 function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
-  // Special case: BRAINSTORM_OWNER_PUBKEY always has fixed values
-  if (pk_ratee === config.BRAINSTORM_OWNER_PUBKEY) {
+  // Special case: CUSTOMER_PUBKEY always has fixed values
+  if (pk_ratee === config.CUSTOMER_PUBKEY) {
     return [1, 1, 1, 9999];
   }
   
@@ -305,7 +306,7 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
       let rating_weight = rater_influence * rating_confidence;
       
       // Apply attenuation factor if rater is not the owner
-      if (pk_rater !== config.BRAINSTORM_OWNER_PUBKEY) {
+      if (pk_rater !== config.CUSTOMER_PUBKEY) {
         rating_weight *= config.ATTENUATION_FACTOR;
       }
       
@@ -398,6 +399,7 @@ async function main() {
     // Get configuration
     const config = getConfig();
     console.log(`BRAINSTORM_OWNER_PUBKEY: ${config.BRAINSTORM_OWNER_PUBKEY}`);
+    console.log(`CUSTOMER_PUBKEY: ${config.CUSTOMER_PUBKEY}`);
     console.log(`ATTENUATION_FACTOR: ${config.ATTENUATION_FACTOR}`);
     console.log(`RIGOR: ${config.RIGOR}`);
     
@@ -440,9 +442,9 @@ async function main() {
       process.exit(1);
     }
     
-    // Ensure BRAINSTORM_OWNER_PUBKEY has fixed scorecard values
-    scorecards[config.BRAINSTORM_OWNER_PUBKEY] = [1, 1, 1, 9999];
-    console.log(`Set fixed scorecard for BRAINSTORM_OWNER_PUBKEY: [1, 1, 1, 9999]`);
+    // Ensure CUSTOMER_PUBKEY has fixed scorecard values
+    scorecards[config.CUSTOMER_PUBKEY] = [1, 1, 1, 9999];
+    console.log(`Set fixed scorecard for CUSTOMER_PUBKEY: [1, 1, 1, 9999]`);
     
     // Iterate until convergence or max iterations
     let iterations = 0;
@@ -477,8 +479,8 @@ async function main() {
         console.log(`Processing chunk ${Math.floor(i/CHUNK_SIZE) + 1}/${Math.ceil(rateeArray.length/CHUNK_SIZE)} (${chunk.length} ratees)...`);
         
         for (const pk_ratee of chunk) {
-          // Skip recalculation for BRAINSTORM_OWNER_PUBKEY as it has fixed values
-          if (pk_ratee === config.BRAINSTORM_OWNER_PUBKEY) {
+          // Skip recalculation for CUSTOMER_PUBKEY as it has fixed values
+          if (pk_ratee === config.CUSTOMER_PUBKEY) {
             continue;
           }
 
@@ -491,8 +493,8 @@ async function main() {
         }
       }
       
-      // Ensure BRAINSTORM_OWNER_PUBKEY still has fixed scorecard values
-      scorecards[config.BRAINSTORM_OWNER_PUBKEY] = [1, 1, 1, 9999];
+      // Ensure CUSTOMER_PUBKEY still has fixed scorecard values
+      scorecards[config.CUSTOMER_PUBKEY] = [1, 1, 1, 9999];
       
       // Check for convergence
       [max_diff, pubkey_max_diff] = calculateMaxDifference(scorecards, previous_scorecards);
