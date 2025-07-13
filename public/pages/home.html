@@ -296,6 +296,24 @@
                         </div>
                     </div>
                 </div>
+                <br/>
+                <h3>Customer Personalized Calculations</h3>
+                <div class="calculation-grid">
+                    <div class="calculation-item">
+                        <div class="calculation-item-content">
+                            <h4>Process All Active Customers <span class="info-icon">i</span><span class="tooltip">Cycle through all active customers, calculate personalized PageRank, GrapeRank, Hops and Verified Follower counts, and save data to Neo4j in nodes of type:NostrUserWotMetricsCard.</span></h4>
+                            <p id="processAllActiveCustomers-last-calculation-time" class="timestamp"></p>
+                            <p id="processAllActiveCustomers-last-calculation-duration" class="duration"></p>
+                        </div>
+                        <div class="calculation-actions">
+                            <button class="action-btn">Run</button>
+                            <div class="progress-container">
+                                <div class="progress-bar"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="section">
@@ -633,7 +651,7 @@
         
         function loadCalculationTimes() {
             // Show loading state for all calculation items
-            const calculationItems = ['verifiedFollowers', 'reports', 'hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'deleteAllRelationships', 'batchTransfer', 'reconciliation'];
+            const calculationItems = ['verifiedFollowers', 'reports', 'hops', 'pageRank', 'grapeRank', 'whitelist', 'blacklist', 'nip85', 'syncWoT', 'syncPersonal', 'syncProfiles', 'deleteAllRelationships', 'batchTransfer', 'reconciliation', 'processAllActiveCustomers'];
             
             calculationItems.forEach(item => {
                 const element = document.getElementById(`${item}-last-calculation-time`);
@@ -1043,6 +1061,11 @@
                     endpoint: '/control/api/generate-nip85',
                     method: 'POST',
                     buttonText: 'Export NIP-85'
+                },
+                'processAllActiveCustomers': {
+                    endpoint: '/control/api/process-all-active-customers',
+                    method: 'POST',
+                    buttonText: 'Process All Active Customers'
                 }
             };
 
