@@ -207,6 +207,9 @@ function register(app) {
     // Search endpoint
     app.get('/api/search/profiles', handleSearchProfiles);
 
+    // Get Customers endpoint
+    app.get('/api/get-customers', customers.handleGetCustomers);
+    
     // Process All Active Customers endpoint
     app.post('/api/process-all-active-customers', customers.handleProcessAllActiveCustomers);
 

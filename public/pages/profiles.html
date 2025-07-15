@@ -6,6 +6,7 @@
     <title>Brainstorm</title>
     <link rel="stylesheet" href="/control/css/profiles.css">
     <script src="./components/header/header.js"></script>
+    <script src="/components/observerSelector/observerSelector.js"></script>
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
 </head>
 <body>
@@ -36,6 +37,9 @@
             </div>
 
             <div id="statusMessage" style="display: none;"></div>
+
+            <!-- Observer Selector Component -->
+            <div id="observerSelectorContainer"></div>
 
             <!-- Column settings panel -->
             <div id="columnSettingsPanel" class="panel" style="display: none; margin-bottom: 10px;">
@@ -197,22 +201,22 @@
         let state = {
             profiles: [],
             pagination: {
-                total: 0,
                 page: 1,
-                limit: 100,
-                pages: 0
-            },
-            counts: {
-                filtered: 0,
+                limit: 50,
                 total: 0
             },
+            sorting: {
+                column: 'hops',
+                order: 'asc'
+            },
             filters: {
+                npub: '',
                 pubkey: '',
                 minHops: '',
-                maxHops: '20',
+                maxHops: '',
                 minPersonalizedPageRank: '',
                 maxPersonalizedPageRank: '',
-                minInfluence: '0.1',
+                minInfluence: '',
                 maxInfluence: '',
                 minAverage: '',
                 maxAverage: '',
@@ -229,13 +233,17 @@
                 minNip56TotalReportCount: '',
                 maxNip56TotalReportCount: ''
             },
-            sorting: {
-                column: 'influence',
-                order: 'desc'
+            counts: {
+                total: 0,
+                filtered: 0
             },
+            observerPubkey: 'owner', // Default to global/owner view
             profileCache: {}, // Cache for profile data to avoid duplicate API calls
             columnVisibility: loadColumnVisibility()
         };
+        
+        // Observer selector instance
+        let observerSelector;
         
         // Global DOM element references
         let tableBody, mainProfilesTable, loadingIndicator, paginationContainer, statusMessage;
@@ -316,6 +324,9 @@
             filterMinNip56TotalVerifiedReportCount.value = state.filters.minNip56TotalVerifiedReportCount;
             filterMaxNip56TotalVerifiedReportCount.value = state.filters.maxNip56TotalVerifiedReportCount;
             
+            // Initialize observer selector
+            initializeObserverSelector();
+            
             // Load initial data
             fetchProfiles();
             
@@ -369,6 +380,11 @@
                 if (state.filters.maxNip56TotalVerifiedReportCount) params.append('filterMaxNip56TotalVerifiedReportCount', state.filters.maxNip56TotalVerifiedReportCount);
                 if (state.filters.minNip56TotalReportCount) params.append('filterMinNip56TotalReportCount', state.filters.minNip56TotalReportCount);
                 if (state.filters.maxNip56TotalReportCount) params.append('filterMaxNip56TotalReportCount', state.filters.maxNip56TotalReportCount);
+                
+                // Add observer pubkey parameter
+                if (state.observerPubkey) {
+                    params.append('observerPubkey', state.observerPubkey);
+                }
                 
                 // Fetch data from API
                 fetch(`/control/api/get-profiles?${params.toString()}`)
@@ -1012,12 +1028,34 @@
             
             // Toggle column settings panel visibility
             function toggleColumnSettingsPanel() {
-                if (columnSettingsPanel.style.display === 'block') {
-                    columnSettingsPanel.style.display = 'none';
-                    applyFiltersBtn.click();
+                const panel = document.getElementById('columnSettingsPanel');
+                if (panel.style.display === 'none' || panel.style.display === '') {
+                    panel.style.display = 'block';
                 } else {
-                    columnSettingsPanel.style.display = 'block';
+                    panel.style.display = 'none';
                 }
+            }
+            
+            // Initialize observer selector component
+            function initializeObserverSelector() {
+                observerSelector = new ObserverSelector('observerSelectorContainer', {
+                    defaultValue: 'owner',
+                    customersEndpoint: '/control/api/get-customers',
+                    onChange: function(selectedPubkey, customerData) {
+                        // Update state
+                        state.observerPubkey = selectedPubkey;
+                        
+                        // Reset pagination to first page when changing observer
+                        state.pagination.page = 1;
+                        
+                        // Refresh data with new observer
+                        fetchProfiles();
+                        
+                        // Show status message
+                        const observerName = customerData.isOwner ? 'Global' : customerData.customerName;
+                        showStatusMessage(`Switched to ${observerName} perspective`, 'success');
+                    }
+                });
             }
         });
     </script>
