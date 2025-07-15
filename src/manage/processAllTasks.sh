@@ -135,9 +135,10 @@ echo "$(date): Continuing processAllTasks; calculatePersonalizedPageRank.sh comp
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh
-echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRank.sh completed"
-echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRank.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# The controller script handles the timeout and retry logic
+sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh
+echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRankController.sh completed"
+echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRankController.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
