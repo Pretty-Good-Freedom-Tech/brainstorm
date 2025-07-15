@@ -65,7 +65,7 @@ function handleGetProfiles(req, res) {
     
     let query = '';
     // Build the Cypher query with filters
-    if (observerPubkey == ownerPubkey) {
+    if (observerPubkey == "owner") {
       query = `
         MATCH (u:NostrUser)
         WHERE u.pubkey IS NOT NULL
@@ -178,7 +178,7 @@ function handleGetProfiles(req, res) {
     const countQuery = query + ` RETURN count(u) as total`;
     
     // Add sorting and pagination to the main query
-    if (observerPubkey == ownerPubkey) {
+    if (observerPubkey == "owner") {
       query += `
         RETURN u.pubkey as pubkey, 
             u.npub as npub,
@@ -230,7 +230,7 @@ function handleGetProfiles(req, res) {
             return session.run(query)
               .then(result => {
                 const users = result.records.map(record => {
-                  if (observerPubkey == ownerPubkey) {
+                  if (observerPubkey == "owner") {
                     return {
                       pubkey: record.get('pubkey'),
                       personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
