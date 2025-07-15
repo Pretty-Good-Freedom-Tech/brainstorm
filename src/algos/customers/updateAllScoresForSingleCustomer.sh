@@ -2,7 +2,7 @@
 
 # This script will calculate all scores for a given customer.
 # It will pass the customer_id as an argument to updateAllScoresForSingleCustomer.sh
-# Progress will be logged to /var/log/brainstorm/updateAllScoresForSingleCustomerlog
+# Progress will be logged to /var/log/brainstorm/updateAllScoresForSingleCustomer.log
 
 CONFIG_FILE="/etc/brainstorm.conf"
 source "$CONFIG_FILE" # BRAINSTORM_LOG_DIR
@@ -29,7 +29,7 @@ LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 mkdir -p "$LOG_DIR"
 
 # Log file
-LOG_FILE="$LOG_DIR/updateAllScoresForSingleCustomerlog"
+LOG_FILE="$LOG_DIR/updateAllScoresForSingleCustomer.log"
 
 # Log start time
 echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
