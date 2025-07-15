@@ -6,6 +6,8 @@
 - update get-user-data endpoint to support nip85 scores for observerPubkey
 - update profile page so that it displays scores from customers when ?observerPubkey is specified in url
 - add wot.brainstorm.social to negentropy sync scripts
+- add social graph page to display number of connections by hop number
+- edit profiles.page to select global view vs individual customer view
 
 TO FIX;
 when running processCustomer, when doing graperank, it recreates follows.csv, mutes.csv, reports.csv and ratings.json even when these have already been created. Also: MaxListenersExceededWarning when creating ratings.json; in interpretRatings.js , increase stream.setMaxListeners(100); above 100 ? Error: `(node:1245413) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 101 drain listeners added to [WriteStream]. Use emitter.setMaxListeners() to increase limit` (note 101 drain listeners)
