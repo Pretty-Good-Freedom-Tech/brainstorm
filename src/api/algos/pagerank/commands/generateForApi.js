@@ -63,7 +63,7 @@ function handleGenerateForApiPageRank(req, res) {
         metaData: {
           pubkey: pubkey,
           about: 'PageRank scores for the given pubkey',
-          use: '<Brainstorm base url>/api/personalized-pagerank?pubkey=<pubkey>'
+          use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...'
         },
         data: {
           pageRankScores: fileContentJson

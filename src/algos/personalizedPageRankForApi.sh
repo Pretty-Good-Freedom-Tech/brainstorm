@@ -37,7 +37,6 @@ CALL gds.pageRank.stream('followsGraph', {
 YIELD nodeId, score
 WHERE score > 0
 ORDER BY score DESC
-LIMIT 10000
 RETURN gds.util.asNode(nodeId).pubkey AS pubkey, score
 "
 
