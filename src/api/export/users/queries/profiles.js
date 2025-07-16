@@ -201,6 +201,7 @@ function handleGetProfiles(req, res) {
     } else {
       query += `
         RETURN u.observee_pubkey as pubkey,
+            u.npub as npub,
             u.personalizedPageRank as personalizedPageRank,
             u.hops as hops,
             u.influence as influence,
@@ -233,6 +234,7 @@ function handleGetProfiles(req, res) {
                   if (observerPubkey == "owner") {
                     return {
                       pubkey: record.get('pubkey'),
+                      npub: record.get('npub'),
                       personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
                       hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
                       influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
@@ -252,6 +254,7 @@ function handleGetProfiles(req, res) {
                   } else {
                     return {
                       pubkey: record.get('pubkey'),
+                      npub: record.get('npub'),
                       personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
                       hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
                       influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
