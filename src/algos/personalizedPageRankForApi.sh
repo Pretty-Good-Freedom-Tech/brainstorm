@@ -37,7 +37,7 @@ CALL gds.pageRank.stream('followsGraph', {
 YIELD nodeId, score
 WHERE score > 0
 ORDER BY score DESC
-LIMIT 100
+LIMIT 10000
 RETURN gds.util.asNode(nodeId).pubkey AS pubkey, score
 "
 
@@ -48,7 +48,7 @@ echo "$CYPHER0_RESULTS"
 echo "$CYPHER0_RESULTS" > /tmp/personalizedPageRankForApi_${REF_PUBKEY}.txt
 
 # call javascript file to process CYPHER0_RESULTS into json format
-sudo node ${BRAINSTORM_MODULE_ALGOS_DIR}/personalizedPageRankForApi/convertPersonalizedPageRankForApiToJSON.js ${REF_PUBKEY}
+sudo node ${BRAINSTORM_MODULE_ALGOS_DIR}/convertPersonalizedPageRankForApiToJSON.js ${REF_PUBKEY}
 
 echo "$(date): Continuing personalizedPageRankForApi ... finished CYPHER0"
 echo "$(date): Continuing personalizedPageRankForApi ... finished CYPHER0" >> ${BRAINSTORM_LOG_DIR}/personalizedPageRankForApi.log
