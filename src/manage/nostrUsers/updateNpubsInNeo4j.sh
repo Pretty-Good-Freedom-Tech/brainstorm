@@ -4,7 +4,7 @@
 # This script uses APOC to read the JSON file and update nodes in batches
 
 # Source configuration
-source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD, BRAINSTORM_LOG_DIR
+source /etc/brainstorm.conf # NEO4J_URI, NEO4j_USER, NEO4J_PASSWORD, BRAINSTORM_LOG_DIR
 
 # Neo4j import file path
 NEO4J_IMPORT_FILE="/var/lib/neo4j/import/npub_updates.json"
@@ -57,7 +57,7 @@ RETURN batches, total, timeTaken, committedOperations, failedOperations, failedB
 log_message "Executing APOC batch update query"
 
 # Execute the update query
-RESULT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" \
+RESULT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4j_USER" -p "$NEO4J_PASSWORD" \
     --format json \
     "$CYPHER_QUERY" 2>&1)
 
@@ -99,7 +99,7 @@ RETURN count(u) as users_with_npub
 LIMIT 1
 "
 
-VERIFICATION_RESULT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" \
+VERIFICATION_RESULT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4j_USER" -p "$NEO4J_PASSWORD" \
     --format plain \
     "$VERIFICATION_QUERY" 2>/dev/null | tail -n 1 | tr -d '"' || echo "0")
 

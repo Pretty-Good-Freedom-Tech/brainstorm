@@ -4,7 +4,7 @@
 # This script coordinates the workflow to query, generate, and update npub values in Neo4j
 
 # Source configuration
-source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
+source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, NEO4J_URI, NEO4j_USER, NEO4J_PASSWORD
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -109,7 +109,7 @@ fi
 
 # Step 5: Verify updates
 log_message "Step 5: Verifying updates were successful"
-UPDATED_COUNT=$(cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" \
+UPDATED_COUNT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4j_USER" -p "$NEO4J_PASSWORD" \
     "MATCH (u:NostrUser) WHERE u.npub IS NOT NULL AND u.pubkey IS NOT NULL RETURN count(u) as total" \
     --format plain 2>/dev/null | tail -n 1 | tr -d '"' || echo "0")
 
