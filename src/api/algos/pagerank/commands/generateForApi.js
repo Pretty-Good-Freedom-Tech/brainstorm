@@ -76,15 +76,27 @@ function handleGenerateForApiPageRank(req, res) {
       console.log(`Generated file size: ${fileSizeMB} MB`);
 
       try {
-        // For large files, stream the response instead of loading into memory
+        // For large files, stream the response with API structure
         if (stats.size > 5 * 1024 * 1024) { // If file is larger than 5MB
-          console.log('File is large, streaming response...');
+          console.log('File is large, streaming structured response...');
           
           // Set appropriate headers for JSON streaming
           res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Content-Length', stats.size);
           
-          // Stream the file directly to the response
+          // Start streaming the API response structure
+          res.write('{\n');
+          res.write('  "success": true,\n');
+          res.write('  "metaData": {\n');
+          res.write(`    "pubkey": "${pubkey}",\n`);
+          res.write('    "about": "PageRank scores for the given pubkey",\n');
+          res.write('    "use": "(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...",\n');
+          res.write(`    "fileSizeMB": "${fileSizeMB}",\n`);
+          res.write('    "streamedResponse": true\n');
+          res.write('  },\n');
+          res.write('  "data": {\n');
+          res.write('    "pageRankScores": ');
+          
+          // Stream the file content as the pageRankScores value
           const readStream = fs.createReadStream(filePath);
           
           readStream.on('error', (streamError) => {
@@ -97,7 +109,13 @@ function handleGenerateForApiPageRank(req, res) {
             }
           });
           
-          readStream.pipe(res);
+          readStream.on('end', () => {
+            // Close the JSON structure
+            res.write('\n  }\n');
+            res.end('}');
+          });
+          
+          readStream.pipe(res, { end: false }); // Don't end the response when stream ends
           
         } else {
           // For smaller files, load into memory and send as JSON response
