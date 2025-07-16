@@ -41,7 +41,7 @@ RETURN gds.util.asNode(nodeId).pubkey AS pubkey, score
 "
 
 CYPHER0_RESULTS=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER0")
-echo "$CYPHER0_RESULTS"
+# echo "$CYPHER0_RESULTS"
 
 # store CYPHER0_RESULTS in a tmp file; name of file includes pubkey
 echo "$CYPHER0_RESULTS" > /tmp/personalizedPageRankForApi_${REF_PUBKEY}.txt

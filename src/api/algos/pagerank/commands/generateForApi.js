@@ -34,10 +34,10 @@ function handleGenerateForApiPageRank(req, res) {
   const filePath = '/var/lib/brainstorm/api/personalizedPageRankForApi/' + pubkey + '/scores.json';
 
   try {
-    // Use exec with timeout options
+    // Use exec with timeout and maxBuffer options to handle large outputs
     const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ' + pubkey, {
       timeout: 170000, // slightly less than the HTTP timeout
-      maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
+      maxBuffer: 50 * 1024 * 1024 // 50MB buffer to handle large outputs (default is 1MB)
     }, (error, stdout, stderr) => {
       console.log('PageRank calculation completed');        
       if (error) {
