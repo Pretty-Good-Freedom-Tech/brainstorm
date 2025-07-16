@@ -8,6 +8,8 @@
  */
 
 const { exec, execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Generate PageRank data
@@ -54,34 +56,96 @@ function handleGenerateForApiPageRank(req, res) {
       }
       console.log('PageRank data generated successfully');
 
-      // const fileContent = fs.readFileSync(filePath, 'utf8');
-      const fileContent = execSync('cat ' + filePath);
-      const fileContentJson = JSON.parse(fileContent);
+      // Check if the generated file exists
+      if (!fs.existsSync(filePath)) {
+        console.error('Generated file not found:', filePath);
+        return res.json({
+          success: false,
+          metaData: {
+            pubkey: pubkey,
+            about: 'PageRank scores for the given pubkey',
+            use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...'
+          },
+          error: 'Generated file not found'
+        });
+      }
 
-      return res.json({
-        success: true,
-        metaData: {
-          pubkey: pubkey,
-          about: 'PageRank scores for the given pubkey',
-          use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...'
-        },
-        data: {
-          pageRankScores: fileContentJson
+      // Get file stats to check size
+      const stats = fs.statSync(filePath);
+      const fileSizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+      console.log(`Generated file size: ${fileSizeMB} MB`);
+
+      try {
+        // For large files, stream the response instead of loading into memory
+        if (stats.size > 5 * 1024 * 1024) { // If file is larger than 5MB
+          console.log('File is large, streaming response...');
+          
+          // Set appropriate headers for JSON streaming
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Content-Length', stats.size);
+          
+          // Stream the file directly to the response
+          const readStream = fs.createReadStream(filePath);
+          
+          readStream.on('error', (streamError) => {
+            console.error('Error streaming file:', streamError);
+            if (!res.headersSent) {
+              res.status(500).json({
+                success: false,
+                error: 'Error streaming file'
+              });
+            }
+          });
+          
+          readStream.pipe(res);
+          
+        } else {
+          // For smaller files, load into memory and send as JSON response
+          console.log('File is small, loading into memory...');
+          
+          const fileContent = fs.readFileSync(filePath, 'utf8');
+          const fileContentJson = JSON.parse(fileContent);
+          
+          return res.json({
+            success: true,
+            metaData: {
+              pubkey: pubkey,
+              about: 'PageRank scores for the given pubkey',
+              use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...',
+              fileSizeMB: fileSizeMB,
+              recordCount: Object.keys(fileContentJson).length
+            },
+            data: {
+              pageRankScores: fileContentJson
+            }
+          });
         }
-      });
+        
+      } catch (fileError) {
+        console.error('Error processing generated file:', fileError);
+        return res.json({
+          success: false,
+          metaData: {
+            pubkey: pubkey,
+            about: 'PageRank scores for the given pubkey',
+            use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...'
+          },
+          error: 'Error processing generated file: ' + fileError.message
+        });
+      }
     });
-  } catch (error) {
-    console.error('Error generating PageRank data:', error);
+  } catch (e) {
+    console.error('Error generating PageRank data:', e);
     return res.json({
       success: false,
       metaData: {
         pubkey: pubkey,
-          about: 'PageRank scores for the given pubkey',
-          use: '<Brainstorm base url>/api/personalized-pagerank?pubkey=<pubkey>'
-        },
-        error
-      });
-    }
+        about: 'PageRank scores for the given pubkey',
+        use: '<Brainstorm base url>/api/personalized-pagerank?pubkey=<pubkey>'
+      },
+      e
+    });
+  }
 }
 
 module.exports = {
