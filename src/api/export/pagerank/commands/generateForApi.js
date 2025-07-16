@@ -3,6 +3,8 @@
  * Handles triggering the calculation of personalized PageRank data
  * The reference user is supplied as a query parameter
  * Results are returned as a JSON object
+ * to call: 
+ * <brainstorm url>/api/personalized-pagerank?pubkey=<pubkey>
  */
 
 const { exec } = require('child_process');
@@ -28,19 +30,36 @@ function handleGenerateForApiPageRank(req, res) {
     maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
   }, (error, stdout, stderr) => {
     console.log('PageRank calculation completed');
+
+    // fetch json file from /var/lib/brainstorm/api/personalizedPageRankForApi/<pubkey>/scores.json
+    const filePath = '/var/lib/brainstorm/api/personalizedPageRankForApi/' + pubkey + '/scores.json';
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const fileContentJson = JSON.parse(fileContent);
     
     if (error) {
       console.error('Error generating PageRank data:', error);
       return res.json({
         success: false,
-        output: stderr || stdout || error.message
+        metaData: {
+          pubkey: pubkey,
+          about: 'PageRank scores for the given pubkey',
+          use: '<Brainstorm base url>/api/personalized-pagerank?pubkey=<pubkey>'
+        },
+        error
       });
     }
     
     console.log('PageRank data generated successfully');
     return res.json({
       success: true,
-      output: stdout || stderr
+      metaData: {
+        pubkey: pubkey,
+        about: 'PageRank scores for the given pubkey',
+        use: '<Brainstorm base url>/api/personalized-pagerank?pubkey=<pubkey>'
+      },
+      data: {
+        pageRankScores: fileContentJson
+      }
     });
   });
 }

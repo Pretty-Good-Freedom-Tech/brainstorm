@@ -44,6 +44,10 @@ while IFS=',' read -r graphName creationTime modificationTime; do
             RUN_GRAPH_PROJECT=true
             echo "$(date): followsGraph exists and was modified more than 4 hours ago; need to reproject it"
             echo "$(date): followsGraph exists and was modified more than 4 hours ago; need to reproject it" >> ${BRAINSTORM_LOG_DIR}/projectFollowsGraphIntoMemory.log
+            # run CYPHER2 to drop the old followsGraph if it exists
+            sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2"
+            echo "$(date): old followsGraph dropped"
+            echo "$(date): old followsGraph dropped" >> ${BRAINSTORM_LOG_DIR}/projectFollowsGraphIntoMemory.log
         else
             RUN_GRAPH_PROJECT=false
             echo "$(date): followsGraph exists and was modified less than 4 hours ago; no need to reproject it"
@@ -53,8 +57,6 @@ while IFS=',' read -r graphName creationTime modificationTime; do
 done <<< "$CYPHER0_RESULTS"
 
 if [ "$RUN_GRAPH_PROJECT" = true ]; then
-    # run CYPHER2 to drop the old followsGraph if it exists
-    sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2"
     echo "$(date): followsGraph dropped"
     echo "$(date): followsGraph dropped" >> ${BRAINSTORM_LOG_DIR}/projectFollowsGraphIntoMemory.log
     # run CYPHER1 to project the new followsGraph into memory
