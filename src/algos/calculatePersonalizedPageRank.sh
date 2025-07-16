@@ -1,4 +1,6 @@
 #!/bin/bash
+# Calculates personalized PageRank using BRAINSTORM_OWNER_PUBKEY as the reference user
+# Results are written to neo4j database and stored in each NostrUser node using the personalizedPageRank property
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_OWNER_PUBKEY, BRAINSTORM_LOG_DIR, BRAINSTORM_MODULE_ALGOS_DIR
 

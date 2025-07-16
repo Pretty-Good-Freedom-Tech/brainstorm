@@ -244,6 +244,11 @@ log "Step 5B: Running completeAllNpubs until all npubs are processed"
 sudo bash $BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/completeAllNpubs.sh
 log "Step 5B completed running completeAllNpubs until all npubs are processed"
 
+# Step 6B: Project followsGraph into memory
+log "Step 6B: Projecting followsGraph into memory"
+sudo bash $BRAINSTORM_MODULE_SRC_DIR/algos/projectFollowsGraphIntoMemory.sh
+log "Step 6B completed projecting followsGraph into memory"
+
 # CLEAN UP
 
 cleanup

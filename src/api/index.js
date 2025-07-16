@@ -144,6 +144,7 @@ function register(app) {
     
     // PageRank endpoints
     app.post('/api/generate-pagerank', algos.pagerank.handleGeneratePageRank);
+    app.get('/api/personalized-pagerank', algos.pagerank.handleGenerateForApiPageRank);
 
     // Verified Followers endpoints
     app.post('/api/generate-verified-followers', algos.verifiedFollowers.handleGenerateVerifiedFollowers);

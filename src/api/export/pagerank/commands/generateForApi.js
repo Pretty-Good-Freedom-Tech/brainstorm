@@ -1,7 +1,8 @@
 /**
- * PageRank Generation Command
- * Handles triggering the calculation of personalized PageRank data, using the BRAINSTORM_OWNER_PUBKEY as the reference user
- * Results are written to neo4j database and stored in each NostrUser node using the personalizedPageRank property
+ * PageRank Generation and Return Command
+ * Handles triggering the calculation of personalized PageRank data
+ * The reference user is supplied as a query parameter
+ * Results are returned as a JSON object
  */
 
 const { exec } = require('child_process');
@@ -11,16 +12,19 @@ const { exec } = require('child_process');
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleGeneratePageRank(req, res) {
+function handleGenerateForApiPageRank(req, res) {
   console.log('Generating PageRank data...');
   
-  // Set a longer timeout for the response (10 minutes)
-  req.setTimeout(600000); // 10 minutes in milliseconds
-  res.setTimeout(600000);
-  
+  // Set a longer timeout for the response (3 minutes)
+  req.setTimeout(180000); // 3 minutes in milliseconds
+  res.setTimeout(180000);
+
+  // retreive pubkey as an argument
+  const pubkey = req.query.pubkey;
+
   // Use exec with timeout options
-  const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/algos/calculatePersonalizedPageRank.sh', {
-    timeout: 590000, // slightly less than the HTTP timeout
+  const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ' + pubkey, {
+    timeout: 170000, // slightly less than the HTTP timeout
     maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
   }, (error, stdout, stderr) => {
     console.log('PageRank calculation completed');
@@ -39,13 +43,8 @@ function handleGeneratePageRank(req, res) {
       output: stdout || stderr
     });
   });
-  
-  // Log when the process starts
-  child.on('spawn', () => {
-    console.log('PageRank calculation process started');
-  });
 }
 
 module.exports = {
-  handleGeneratePageRank
+  handleGenerateForApiPageRank
 };
