@@ -49,7 +49,7 @@ CALL apoc.periodic.iterate(
   \"MATCH (u:NostrUser {pubkey: value.pubkey}) 
    SET u.npub = value.npub
    RETURN u.pubkey as updated_pubkey\",
-  {batchSize: 100, parallel: false}
+  {batchSize: 250, parallel: false}
 ) YIELD batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages
 RETURN batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages
 "
@@ -57,9 +57,7 @@ RETURN batches, total, timeTaken, committedOperations, failedOperations, failedB
 log_message "Executing APOC batch update query"
 
 # Execute the update query
-RESULT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" \
-    --format json \
-    "$CYPHER_QUERY" 2>&1)
+RESULT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_QUERY" 2>&1)
 
 # Check if query was successful
 if [ $? -ne 0 ]; then
@@ -99,9 +97,7 @@ RETURN count(u) as users_with_npub
 LIMIT 1
 "
 
-VERIFICATION_RESULT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" \
-    --format plain \
-    "$VERIFICATION_QUERY" 2>/dev/null | tail -n 1 | tr -d '"' || echo "0")
+VERIFICATION_RESULT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$VERIFICATION_QUERY" 2>/dev/null | tail -n 1 | tr -d '"' || echo "0")
 
 log_message "Verification: $VERIFICATION_RESULT NostrUsers now have npub property"
 log_message "Neo4j npub update process completed successfully"

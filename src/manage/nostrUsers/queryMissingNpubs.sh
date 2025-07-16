@@ -26,13 +26,13 @@ log_message() {
 
 log_message "Querying Neo4j for NostrUsers missing npub property"
 
-# Cypher query to find NostrUsers with pubkey but no npub (limit 100)
+# Cypher query to find NostrUsers with pubkey but no npub (limit 1000)
 CYPHER_QUERY="
 MATCH (u:NostrUser) 
 WHERE u.pubkey IS NOT NULL 
   AND (u.npub IS NULL OR u.npub = '') 
 RETURN u.pubkey as pubkey
-LIMIT 100
+LIMIT 1000
 "
 
 # Execute query and save results
