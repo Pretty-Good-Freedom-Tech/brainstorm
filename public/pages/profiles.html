@@ -631,7 +631,16 @@
                         if (col.id === 'profile-pic-col') return; // already handled
                         if (state.columnVisibility && state.columnVisibility[col.id] === false) return;
 
-                        if (col.id === 'pubkey') {
+                        // if col.id == 'npub', then display only the first 12 characters
+                        if (col.id === 'npub') {
+                            const npubCell = document.createElement('td');
+                            npubCell.className = 'npub-cell';
+                            npubCell.dataset.column = 'npub';
+                            npubCell.setAttribute('data-label', col.name);
+                            npubCell.textContent = profile.npub.substring(0, 12) + '...';
+                            npubCell.title = profile.npub;
+                            row.appendChild(npubCell);
+                        } else if (col.id === 'pubkey') {
                             const pubkeyCell = document.createElement('td');
                             pubkeyCell.className = 'pubkey-cell';
                             pubkeyCell.dataset.column = 'pubkey';
