@@ -40,7 +40,10 @@ function handleGenerateForApiPageRank(req, res) {
 
   try {
     // Use exec with timeout and maxBuffer options to handle large outputs
-    const personalizedPageRankForApiCommand = `sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ${pubkey} ${limit}`;
+    let personalizedPageRankForApiCommand = `sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ${pubkey}`;
+    if (limit) {
+      personalizedPageRankForApiCommand += ` ${limit}`;
+    }
     const child = exec(personalizedPageRankForApiCommand, {
       timeout: 170000, // slightly less than the HTTP timeout
       maxBuffer: 50 * 1024 * 1024 // 50MB buffer to handle large outputs (default is 1MB)

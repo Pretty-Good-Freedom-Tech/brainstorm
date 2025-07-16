@@ -23,8 +23,8 @@ if [ -z "$LIMIT" ]; then
     LIMIT=500000
 fi
 
-echo "$(date): Starting personalizedPageRankForApi"
-echo "$(date): Starting personalizedPageRankForApi" >> ${BRAINSTORM_LOG_DIR}/personalizedPageRankForApi.log
+echo "$(date): Starting personalizedPageRankForApi for $REF_PUBKEY with limit $LIMIT"
+echo "$(date): Starting personalizedPageRankForApi for $REF_PUBKEY with limit $LIMIT" >> ${BRAINSTORM_LOG_DIR}/personalizedPageRankForApi.log
 
 # make sure followsGraph has been projected into memory
 sudo bash ${BRAINSTORM_MODULE_ALGOS_DIR}/projectFollowsGraphIntoMemory.sh
