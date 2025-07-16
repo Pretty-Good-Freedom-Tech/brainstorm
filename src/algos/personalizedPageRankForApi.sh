@@ -20,6 +20,12 @@ fi
 echo "$(date): Starting personalizedPageRankForApi"
 echo "$(date): Starting personalizedPageRankForApi" >> ${BRAINSTORM_LOG_DIR}/personalizedPageRankForApi.log
 
+# make sure followsGraph has been projected into memory
+sudo bash ${BRAINSTORM_MODULE_ALGOS_DIR}/projectFollowsGraphIntoMemory.sh
+
+echo "$(date): Continuing personalizedPageRankForApi ... projectFollowsGraphIntoMemory.sh completed"
+echo "$(date): Continuing personalizedPageRankForApi ... projectFollowsGraphIntoMemory.sh completed" >> ${BRAINSTORM_LOG_DIR}/personalizedPageRankForApi.log
+
 CYPHER0="
 MATCH (refUser:NostrUser {pubkey: '$REF_PUBKEY'})
 CALL gds.pageRank.stream('followsGraph', {
@@ -42,7 +48,7 @@ echo "$CYPHER0_RESULTS"
 echo "$CYPHER0_RESULTS" > /tmp/personalizedPageRankForApi_${REF_PUBKEY}.txt
 
 # call javascript file to process CYPHER0_RESULTS into json format
-# node /usr/local/bin/convertPersonalizedPageRankForApiToJSON.js ${REF_PUBKEY}
+sudo node ${BRAINSTORM_MODULE_ALGOS_DIR}/personalizedPageRankForApi/convertPersonalizedPageRankForApiToJSON.js ${REF_PUBKEY}
 
 echo "$(date): Continuing personalizedPageRankForApi ... finished CYPHER0"
 echo "$(date): Continuing personalizedPageRankForApi ... finished CYPHER0" >> ${BRAINSTORM_LOG_DIR}/personalizedPageRankForApi.log

@@ -7,7 +7,7 @@
  * <brainstorm url>/api/personalized-pagerank?pubkey=<pubkey>
  */
 
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 
 /**
  * Generate PageRank data
@@ -21,22 +21,56 @@ function handleGenerateForApiPageRank(req, res) {
   req.setTimeout(180000); // 3 minutes in milliseconds
   res.setTimeout(180000);
 
-  // retreive pubkey as an argument
+  // retrieve pubkey as an argument
   const pubkey = req.query.pubkey;
 
-  // Use exec with timeout options
-  const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ' + pubkey, {
-    timeout: 170000, // slightly less than the HTTP timeout
-    maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
-  }, (error, stdout, stderr) => {
-    console.log('PageRank calculation completed');
+  if (!pubkey) {
+    return res.json({
+      success: false,
+      error: 'No pubkey provided'
+    });
+  }
 
-    // fetch json file from /var/lib/brainstorm/api/personalizedPageRankForApi/<pubkey>/scores.json
-    const filePath = '/var/lib/brainstorm/api/personalizedPageRankForApi/' + pubkey + '/scores.json';
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    const fileContentJson = JSON.parse(fileContent);
-    
-    if (error) {
+  try {
+    // Use exec with timeout options
+    const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ' + pubkey, {
+      timeout: 170000, // slightly less than the HTTP timeout
+      maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
+    }, (error, stdout, stderr) => {
+    console.log('PageRank calculation completed');
+        // fetch json file from /var/lib/brainstorm/api/personalizedPageRankForApi/<pubkey>/scores.json
+        const filePath = '/var/lib/brainstorm/api/personalizedPageRankForApi/' + pubkey + '/scores.json';
+        // const fileContent = fs.readFileSync(filePath, 'utf8');
+        const fileContent = execSync('cat ' + filePath);
+        const fileContentJson = JSON.parse(fileContent);
+        
+        if (error) {
+          console.error('Error generating PageRank data:', error);
+          return res.json({
+            success: false,
+            metaData: {
+              pubkey: pubkey,
+              about: 'PageRank scores for the given pubkey',
+              use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...'
+            },
+            error
+          });
+        }
+        
+        console.log('PageRank data generated successfully');
+        return res.json({
+          success: true,
+          metaData: {
+            pubkey: pubkey,
+            about: 'PageRank scores for the given pubkey',
+            use: '<Brainstorm base url>/api/personalized-pagerank?pubkey=<pubkey>'
+          },
+          data: {
+            pageRankScores: fileContentJson
+          }
+        });
+      });
+    } catch (error) {
       console.error('Error generating PageRank data:', error);
       return res.json({
         success: false,
@@ -48,20 +82,6 @@ function handleGenerateForApiPageRank(req, res) {
         error
       });
     }
-    
-    console.log('PageRank data generated successfully');
-    return res.json({
-      success: true,
-      metaData: {
-        pubkey: pubkey,
-        about: 'PageRank scores for the given pubkey',
-        use: '<Brainstorm base url>/api/personalized-pagerank?pubkey=<pubkey>'
-      },
-      data: {
-        pageRankScores: fileContentJson
-      }
-    });
-  });
 }
 
 module.exports = {
