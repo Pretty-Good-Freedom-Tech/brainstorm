@@ -26,6 +26,9 @@ function handleGenerateForApiPageRank(req, res) {
   // retrieve pubkey as an argument
   const pubkey = req.query.pubkey;
 
+  // retrieve limit as an argument
+  const limit = req.query.limit;
+
   if (!pubkey) {
     return res.json({
       success: false,
@@ -37,7 +40,8 @@ function handleGenerateForApiPageRank(req, res) {
 
   try {
     // Use exec with timeout and maxBuffer options to handle large outputs
-    const child = exec('sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ' + pubkey, {
+    const personalizedPageRankForApiCommand = `sudo /usr/local/lib/node_modules/brainstorm/src/algos/personalizedPageRankForApi.sh ${pubkey} ${limit}`;
+    const child = exec(personalizedPageRankForApiCommand, {
       timeout: 170000, // slightly less than the HTTP timeout
       maxBuffer: 50 * 1024 * 1024 // 50MB buffer to handle large outputs (default is 1MB)
     }, (error, stdout, stderr) => {
@@ -49,7 +53,8 @@ function handleGenerateForApiPageRank(req, res) {
           metaData: {
               pubkey: pubkey,
               about: 'PageRank scores for the given pubkey',
-              use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...'
+              use: '(Brainstorm base url)/api/personalized-pagerank?pubkey=abc123...',
+              optional: 'limit=123'
             },
             error
         });

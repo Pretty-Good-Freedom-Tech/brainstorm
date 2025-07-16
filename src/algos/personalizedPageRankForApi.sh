@@ -17,6 +17,12 @@ if [ -z "$REF_PUBKEY" ]; then
     REF_PUBKEY=$BRAINSTORM_OWNER_PUBKEY
 fi
 
+LIMIT=$2
+# if no LIMIT, then set LIMIT to 500000
+if [ -z "$LIMIT" ]; then
+    LIMIT=500000
+fi
+
 echo "$(date): Starting personalizedPageRankForApi"
 echo "$(date): Starting personalizedPageRankForApi" >> ${BRAINSTORM_LOG_DIR}/personalizedPageRankForApi.log
 
@@ -37,6 +43,7 @@ CALL gds.pageRank.stream('followsGraph', {
 YIELD nodeId, score
 WHERE score > 0
 ORDER BY score DESC
+LIMIT $LIMIT
 RETURN gds.util.asNode(nodeId).pubkey AS pubkey, score
 "
 
