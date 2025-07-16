@@ -4,7 +4,7 @@
 # Usage: ./queryMissingNpubs.sh <output_file>
 
 # Source configuration
-source /etc/brainstorm.conf # NEO4J_URI, NEO4j_USER, NEO4J_PASSWORD
+source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 # Check arguments
 if [ $# -ne 1 ]; then
@@ -36,9 +36,9 @@ LIMIT 100
 "
 
 # Execute query and save results as JSON
-sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4j_USER" -p "$NEO4J_PASSWORD" \
-    --format json \
-    "$CYPHER_QUERY" > "$OUTPUT_FILE" 2>/dev/null
+cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_QUERY")
+echo "$cypherResults"
+echo "$cypherResults" > "$OUTPUT_FILE"
 
 # Check if query was successful
 if [ $? -ne 0 ]; then
