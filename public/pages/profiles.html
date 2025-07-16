@@ -637,7 +637,7 @@
                             npubCell.className = 'npub-cell';
                             npubCell.dataset.column = 'npub';
                             npubCell.setAttribute('data-label', col.name);
-                            npubCell.textContent = profile.npub.substring(0, 12) + '...';
+                            if (profile.npub) { npubCell.textContent = profile.npub.substring(0, 12) + '...'; } else { npubCell.textContent = ''; }
                             npubCell.title = profile.npub;
                             row.appendChild(npubCell);
                         } else if (col.id === 'pubkey') {
