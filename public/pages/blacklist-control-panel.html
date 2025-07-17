@@ -45,17 +45,17 @@
                             <div class="form-group">
                                 <label for="WEIGHT_FOLLOWED">Follow Weight:</label>
                                 <input type="number" id="WEIGHT_FOLLOWED" step="0.1" min="-1" max="1" placeholder="1.0">
-                                <small>Weight assigned to follows when calculating followedInput.</small>
+                                <small>Weight assigned to follows when calculating followerInput.</small>
                             </div>
                             <div class="form-group">
                                 <label for="WEIGHT_MUTED">Mute Weight:</label>
                                 <input type="number" id="WEIGHT_MUTED" step="0.1" min="-1" max="1" placeholder="1.0">
-                                <small>Weight assigned to mutes when calculating mutedInput.</small>
+                                <small>Weight assigned to mutes when calculating muterInput.</small>
                             </div>
                             <div class="form-group">
                                 <label for="WEIGHT_REPORTED">Report Weight:</label>
                                 <input type="number" id="WEIGHT_REPORTED" step="0.1" min="-1" max="1" placeholder="1.0">
-                                <small>Weight assigned to reports when calculating reportedInput.</small>
+                                <small>Weight assigned to reports when calculating reporterInput.</small>
                             </div>
                         </div>
                         
@@ -104,15 +104,15 @@
                             <ol>
                                 <li>For each NostrUser in the database, calculate three input values:
                                     <ul>
-                                        <li><strong>followedInput</strong>: Weighted sum of influence scores from users who FOLLOW this user</li>
-                                        <li><strong>mutedInput</strong>: Weighted sum of influence scores from users who MUTE this user</li>
-                                        <li><strong>reportedInput</strong>: Weighted sum of influence scores from users who REPORT this user</li>
+                                        <li><strong>followerInput</strong>: Weighted sum of influence scores from users who FOLLOW this user</li>
+                                        <li><strong>muterInput</strong>: Weighted sum of influence scores from users who MUTE this user</li>
+                                        <li><strong>reporterInput</strong>: Weighted sum of influence scores from users who REPORT this user</li>
                                     </ul>
                                 </li>
                                 <li>A user is blacklisted if both of these conditions are met:
                                     <ul>
-                                        <li>The sum of mutedInput and reportedInput exceeds the BLACKLIST_ABSOLUTE_CUTOFF</li>
-                                        <li>The followedInput is less than BLACKLIST_RELATIVE_CUTOFF times the sum of mutedInput and reportedInput</li>
+                                        <li>The sum of muterInput and reporterInput exceeds the BLACKLIST_ABSOLUTE_CUTOFF</li>
+                                        <li>The followerInput is less than BLACKLIST_RELATIVE_CUTOFF times the sum of muterInput and reporterInput</li>
                                     </ul>
                                 </li>
                                 <li>The blacklist is saved to a JSON file used by the strfry plugin to filter content.</li>

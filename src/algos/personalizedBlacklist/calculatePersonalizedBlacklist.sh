@@ -47,46 +47,46 @@ echo "  WEIGHT_REPORTED = $WEIGHT_REPORTED"
 echo "  BLACKLIST_ABSOLUTE_CUTOFF = $BLACKLIST_ABSOLUTE_CUTOFF"
 echo "  BLACKLIST_RELATIVE_CUTOFF = $BLACKLIST_RELATIVE_CUTOFF"
 
-# Cypher query to calculate followedInput, mutedInput, and reportedInput for all NostrUsers
+# Cypher query to calculate followerInput, muterInput, and reporterInput for all NostrUsers
 CALCULATE_INPUTS_QUERY1=$(cat <<EOF
 // Reset all input values
 MATCH (n:NostrUser)
-SET n.followedInput = 0, n.mutedInput = 0, n.reportedInput = 0, n.blacklisted = 0;
+SET n.followerInput = 0, n.muterInput = 0, n.reporterInput = 0, n.blacklisted = 0;
 EOF
 )
 CALCULATE_INPUTS_QUERY2=$(cat <<EOF
-// Calculate followedInput
+// Calculate followerInput
 MATCH (follower:NostrUser)-[f:FOLLOWS]->(followed:NostrUser)
 WITH followed, follower, follower.influence as influence
 WHERE influence IS NOT NULL
-WITH followed, SUM(influence * $WEIGHT_FOLLOWED) as followedInput
-SET followed.followedInput = followedInput;
+WITH followed, SUM(influence * $WEIGHT_FOLLOWED) as followerInput
+SET followed.followerInput = followerInput;
 EOF
 )
 CALCULATE_INPUTS_QUERY3=$(cat <<EOF
-// Calculate mutedInput
+// Calculate muterInput
 MATCH (muter:NostrUser)-[m:MUTES]->(muted:NostrUser)
 WITH muted, muter, muter.influence as influence
 WHERE influence IS NOT NULL
-WITH muted, SUM(influence * $WEIGHT_MUTED) as mutedInput
-SET muted.mutedInput = mutedInput;
+WITH muted, SUM(influence * $WEIGHT_MUTED) as muterInput
+SET muted.muterInput = muterInput;
 EOF
 )
 CALCULATE_INPUTS_QUERY4=$(cat <<EOF
-// Calculate reportedInput
+// Calculate reporterInput
 MATCH (reporter:NostrUser)-[r:REPORTS]->(reported:NostrUser)
 WITH reported, reporter, reporter.influence as influence
 WHERE influence IS NOT NULL
-WITH reported, SUM(influence * $WEIGHT_REPORTED) as reportedInput
-SET reported.reportedInput = reportedInput;
+WITH reported, SUM(influence * $WEIGHT_REPORTED) as reporterInput
+SET reported.reporterInput = reporterInput;
 EOF
 )
 
 CALCULATE_INPUTS_QUERY5=$(cat <<EOF
 // Calculate blacklisted status
 MATCH (n:NostrUser)
-WHERE (n.mutedInput + n.reportedInput) > $BLACKLIST_ABSOLUTE_CUTOFF
-  AND n.followedInput < $BLACKLIST_RELATIVE_CUTOFF * (n.mutedInput + n.reportedInput)
+WHERE (n.muterInput + n.reporterInput) > $BLACKLIST_ABSOLUTE_CUTOFF
+  AND n.followerInput < $BLACKLIST_RELATIVE_CUTOFF * (n.muterInput + n.reporterInput)
 SET n.blacklisted = 1
 RETURN COUNT(n) as blacklistedCount;
 EOF

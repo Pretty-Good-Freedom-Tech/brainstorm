@@ -42,6 +42,39 @@ function handleGetProfiles(req, res) {
     const filterMaxInput = req.query.filterMaxInput || '';
     const filterMinVerifiedFollowers = req.query.filterMinVerifiedFollowers || '';
     const filterMaxVerifiedFollowers = req.query.filterMaxVerifiedFollowers || '';
+
+    // follower/muter/reporter counts
+    const filterMinFollowerCount = req.query.filterMinFollowerCount || '';
+    const filterMaxFollowerCount = req.query.filterMaxFollowerCount || '';
+    const filterMinFollowingCount = req.query.filterMinFollowingCount || '';
+    const filterMaxFollowingCount = req.query.filterMaxFollowingCount || '';
+
+    const filterMinMuterCount = req.query.filterMinMuterCount || '';
+    const filterMaxMuterCount = req.query.filterMaxMuterCount || '';
+    const filterMinMutingCount = req.query.filterMinMutingCount || '';
+    const filterMaxMutingCount = req.query.filterMaxMutingCount || '';
+
+    const filterMinReporterCount = req.query.filterMinReporterCount || '';
+    const filterMaxReporterCount = req.query.filterMaxReporterCount || '';
+    const filterMinReportingCount = req.query.filterMinReportingCount || '';
+    const filterMaxReportingCount = req.query.filterMaxReportingCount || '';
+
+    // verified follower/muter/reporter counts
+    const filterMinVerifiedFollowerCount = req.query.filterMinVerifiedFollowerCount || '';
+    const filterMaxVerifiedFollowerCount = req.query.filterMaxVerifiedFollowerCount || '';
+    const filterMinVerifiedMuterCount = req.query.filterMinVerifiedMuterCount || '';
+    const filterMaxVerifiedMuterCount = req.query.filterMaxVerifiedMuterCount || '';
+    const filterMinVerifiedReporterCount = req.query.filterMinVerifiedReporterCount || '';
+    const filterMaxVerifiedReporterCount = req.query.filterMaxVerifiedReporterCount || '';
+    
+    // input filters
+    const filterMinFollowerInput = req.query.filterMinFollowerInput || '';
+    const filterMaxFollowerInput = req.query.filterMaxFollowerInput || '';
+    const filterMinMuterInput = req.query.filterMinMuterInput || '';
+    const filterMaxMuterInput = req.query.filterMaxMuterInput || '';
+    const filterMinReporterInput = req.query.filterMinReporterInput || '';
+    const filterMaxReporterInput = req.query.filterMaxReporterInput || '';
+
     const filterMinNip56TotalGrapeRankScore = req.query.filterMinNip56TotalGrapeRankScore || '';
     const filterMaxNip56TotalGrapeRankScore = req.query.filterMaxNip56TotalGrapeRankScore || '';
     const filterMinNip56TotalVerifiedReportCount = req.query.filterMinNip56TotalVerifiedReportCount || '';
@@ -80,6 +113,106 @@ function handleGetProfiles(req, res) {
     }
     
     // Add filters if provided
+
+    // Add follower/muter/reporter filters
+    if (filterMinFollowerCount) {
+      query += ` AND u.followerCount >= ${parseInt(filterMinFollowerCount)}`;
+    }
+    
+    if (filterMaxFollowerCount) {
+      query += ` AND u.followerCount <= ${parseInt(filterMaxFollowerCount)}`;
+    }
+    
+    if (filterMinFollowingCount) {
+      query += ` AND u.followingCount >= ${parseInt(filterMinFollowingCount)}`;
+    }
+    
+    if (filterMaxFollowingCount) {
+      query += ` AND u.followingCount <= ${parseInt(filterMaxFollowingCount)}`;
+    }
+    
+    if (filterMinMuterCount) {
+      query += ` AND u.muterCount >= ${parseInt(filterMinMuterCount)}`;
+    }
+    
+    if (filterMaxMuterCount) {
+      query += ` AND u.muterCount <= ${parseInt(filterMaxMuterCount)}`;
+    }
+    
+    if (filterMinMutingCount) {
+      query += ` AND u.mutingCount >= ${parseInt(filterMinMutingCount)}`;
+    }
+    
+    if (filterMaxMutingCount) {
+      query += ` AND u.mutingCount <= ${parseInt(filterMaxMutingCount)}`;
+    }
+    
+    if (filterMinReporterCount) {
+      query += ` AND u.reporterCount >= ${parseInt(filterMinReporterCount)}`;
+    }
+    
+    if (filterMaxReporterCount) {
+      query += ` AND u.reporterCount <= ${parseInt(filterMaxReporterCount)}`;
+    }
+    
+    if (filterMinReportingCount) {
+      query += ` AND u.reportingCount >= ${parseInt(filterMinReportingCount)}`;
+    }
+    
+    if (filterMaxReportingCount) {
+      query += ` AND u.reportingCount <= ${parseInt(filterMaxReportingCount)}`;
+    }
+
+    if (filterMinVerifiedFollowerCount) {
+      query += ` AND u.verifiedFollowerCount >= ${parseInt(filterMinVerifiedFollowerCount)}`;
+    }
+    
+    if (filterMaxVerifiedFollowerCount) {
+      query += ` AND u.verifiedFollowerCount <= ${parseInt(filterMaxVerifiedFollowerCount)}`;
+    }
+    
+    if (filterMinVerifiedMuterCount) {
+      query += ` AND u.verifiedMuterCount >= ${parseInt(filterMinVerifiedMuterCount)}`;
+    }
+    
+    if (filterMaxVerifiedMuterCount) {
+      query += ` AND u.verifiedMuterCount <= ${parseInt(filterMaxVerifiedMuterCount)}`;
+    }
+    
+    if (filterMinVerifiedReporterCount) {
+      query += ` AND u.verifiedReporterCount >= ${parseInt(filterMinVerifiedReporterCount)}`;
+    }
+    
+    if (filterMaxVerifiedReporterCount) {
+      query += ` AND u.verifiedReporterCount <= ${parseInt(filterMaxVerifiedReporterCount)}`;
+    }
+
+    // add input filters
+    if (filterMinFollowerInput) {
+      query += ` AND u.followerInput >= ${parseFloat(filterMinFollowerInput)}`;
+    }
+    
+    if (filterMaxFollowerInput) {
+      query += ` AND u.followerInput <= ${parseFloat(filterMaxFollowerInput)}`;
+    }
+    
+    if (filterMinMuterInput) {
+      query += ` AND u.muterInput >= ${parseFloat(filterMinMuterInput)}`;
+    }
+    
+    if (filterMaxMuterInput) {
+      query += ` AND u.muterInput <= ${parseFloat(filterMaxMuterInput)}`;
+    }
+    
+    if (filterMinReporterInput) {
+      query += ` AND u.reporterInput >= ${parseFloat(filterMinReporterInput)}`;
+    }
+    
+    if (filterMaxReporterInput) {
+      query += ` AND u.reporterInput <= ${parseFloat(filterMaxReporterInput)}`;
+    }
+
+
     if (filterMinHops) {
       query += ` AND u.hops >= ${parseInt(filterMinHops)}`;
     }
@@ -190,11 +323,18 @@ function handleGetProfiles(req, res) {
             u.average as average,
             u.confidence as confidence,
             u.input as input,
-            u.mutingCount as mutingCount,
+            u.followerCount as followerCount,
+            u.followingCount as followingCount,
+            u.verifiedFollowerCount as verifiedFollowerCount,
+            u.followerInput as followerInput,
             u.muterCount as muterCount,
+            u.mutingCount as mutingCount,
+            u.verifiedMuterCount as verifiedMuterCount,
+            u.muterInput as muterInput,
             u.reportingCount as reportingCount,
             u.reporterCount as reporterCount,
-            u.verifiedFollowerCount as verifiedFollowerCount,
+            u.verifiedReporterCount as verifiedReporterCount,
+            u.reporterInput as reporterInput,
             u.nip56_totalGrapeRankScore as nip56_totalGrapeRankScore,
             u.nip56_totalReportCount as nip56_totalReportCount,
             u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount,
@@ -204,13 +344,24 @@ function handleGetProfiles(req, res) {
       query += `
         RETURN u.observee_pubkey as pubkey,
             n.npub as npub,
-            u.personalizedPageRank as personalizedPageRank,
             u.hops as hops,
             u.influence as influence,
             u.average as average,
             u.confidence as confidence,
             u.input as input,
-            u.verifiedFollowerCount as verifiedFollowerCount
+            u.personalizedPageRank as personalizedPageRank,
+            n.followerCount as followerCount,
+            n.followingCount as followingCount,
+            n.muterCount as muterCount,
+            n.mutingCount as mutingCount,
+            n.reporterCount as reporterCount,
+            n.reportingCount as reportingCount,
+            u.verifiedFollowerCount as verifiedFollowerCount,
+            u.verifiedMuterCount as verifiedMuterCount,
+            u.verifiedReporterCount as verifiedReporterCount,
+            u.followerInput as followerInput,
+            u.muterInput as muterInput,
+            u.reporterInput as reporterInput
       `;
     }
 
@@ -244,11 +395,18 @@ function handleGetProfiles(req, res) {
                       average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
                       confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
                       input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
-                      mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
+                      followerCount: record.get('followerCount') ? parseInt(record.get('followerCount').toString()) : 0,
+                      followingCount: record.get('followingCount') ? parseInt(record.get('followingCount').toString()) : 0,
                       muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
-                      reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
+                      mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
                       reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0,
+                      reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
                       verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
+                      verifiedMuterCount: record.get('verifiedMuterCount') ? parseInt(record.get('verifiedMuterCount').toString()) : 0,
+                      verifiedReporterCount: record.get('verifiedReporterCount') ? parseInt(record.get('verifiedReporterCount').toString()) : 0,
+                      followerInput: record.get('followerInput') ? parseFloat(record.get('followerInput').toString()) : null,
+                      muterInput: record.get('muterInput') ? parseFloat(record.get('muterInput').toString()) : null,
+                      reporterInput: record.get('reporterInput') ? parseFloat(record.get('reporterInput').toString()) : null,
                       nip56_totalGrapeRankScore: record.get('nip56_totalGrapeRankScore') ? parseFloat(record.get('nip56_totalGrapeRankScore').toString()) : null,
                       nip56_totalReportCount: record.get('nip56_totalReportCount') ? parseInt(record.get('nip56_totalReportCount').toString()) : null,
                       nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseFloat(record.get('nip56_totalVerifiedReportCount').toString()) : null,
@@ -264,15 +422,18 @@ function handleGetProfiles(req, res) {
                       average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
                       confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
                       input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
-                      mutingCount: null,
-                      muterCount: null,
-                      reportingCount: null,
-                      reporterCount: null,
+                      followerCount: record.get('followerCount') ? parseInt(record.get('followerCount').toString()) : 0,
+                      followingCount: record.get('followingCount') ? parseInt(record.get('followingCount').toString()) : 0,
+                      muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
+                      mutingCount: record.get('mutingCount') ? parseInt(record.get('mutingCount').toString()) : 0,
+                      reporterCount: record.get('reporterCount') ? parseInt(record.get('reporterCount').toString()) : 0,
+                      reportingCount: record.get('reportingCount') ? parseInt(record.get('reportingCount').toString()) : 0,
                       verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
-                      nip56_totalGrapeRankScore: null,
-                      nip56_totalReportCount: null,
-                      nip56_totalVerifiedReportCount: null,
-                      latestContentEventCreatedAt: null
+                      verifiedMuterCount: record.get('verifiedMuterCount') ? parseInt(record.get('verifiedMuterCount').toString()) : 0,
+                      verifiedReporterCount: record.get('verifiedReporterCount') ? parseInt(record.get('verifiedReporterCount').toString()) : 0,
+                      followerInput: record.get('followerInput') ? parseFloat(record.get('followerInput').toString()) : null,
+                      muterInput: record.get('muterInput') ? parseFloat(record.get('muterInput').toString()) : null,
+                      reporterInput: record.get('reporterInput') ? parseFloat(record.get('reporterInput').toString()) : null
                     };
                   }
                 });

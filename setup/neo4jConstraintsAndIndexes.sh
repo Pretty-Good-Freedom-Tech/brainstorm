@@ -54,9 +54,9 @@ CREATE INDEX nostrUser_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUser) ON 
 CREATE INDEX nostrUser_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedMuterCount);
 CREATE INDEX nostrUser_verifiedReporterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedReporterCount);
 
-CREATE INDEX nostrUser_followedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followedInput);
-CREATE INDEX nostrUser_mutedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.mutedInput);
-CREATE INDEX nostrUser_reportedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reportedInput);
+CREATE INDEX nostrUser_followerInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followerInput);
+CREATE INDEX nostrUser_muterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.muterInput);
+CREATE INDEX nostrUser_reporterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reporterInput);
 
 CREATE INDEX nostrUser_nip56_totalGrapeRankScore IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalGrapeRankScore);
 CREATE INDEX nostrUser_nip56_totalReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalReportCount);

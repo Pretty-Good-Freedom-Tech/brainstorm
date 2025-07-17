@@ -1325,9 +1325,9 @@ async function finalSetup() {
   console.log('   CREATE INDEX nostrUser_confidence IF NOT EXISTS FOR (n:NostrUser) ON (n.confidence);');
   console.log('   CREATE INDEX nostrUser_input IF NOT EXISTS FOR (n:NostrUser) ON (n.input);');
 
-  console.log('   CREATE INDEX nostrUser_followedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followedInput);');
-  console.log('   CREATE INDEX nostrUser_mutedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.mutedInput);');
-  console.log('   CREATE INDEX nostrUser_reportedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reportedInput);');
+  console.log('   CREATE INDEX nostrUser_followerInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followerInput);');
+  console.log('   CREATE INDEX nostrUser_muterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.muterInput);');
+  console.log('   CREATE INDEX nostrUser_reporterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reporterInput);');
   console.log('   CREATE INDEX nostrUser_blacklisted IF NOT EXISTS FOR (n:NostrUser) ON (n.blacklisted);');
 
   console.log('   CREATE CONSTRAINT nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) REQUIRE n.event_id IS UNIQUE;');
