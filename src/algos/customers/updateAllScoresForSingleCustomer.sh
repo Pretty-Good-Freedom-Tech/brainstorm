@@ -53,8 +53,11 @@ echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh"
 # Run personalizedGrapeRank.sh
 sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
 
+echo "$(date): Continuing calculateAllScores; starting calculateVerifiedFollowers.sh"
+echo "$(date): Continuing calculateAllScores; starting calculateVerifiedFollowers.sh" >> "$LOG_FILE"
+
 # Run calculateVerifiedFollowers.sh
-# sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateVerifiedFollowers.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateVerifiedFollowers.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
 
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
