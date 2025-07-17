@@ -46,7 +46,7 @@ CREATE INDEX nostrUser_input IF NOT EXISTS FOR (n:NostrUser) ON (n.input);
 CREATE INDEX nostrUser_followingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.followingCount);
 CREATE INDEX nostrUser_followerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.followerCount);
 CREATE INDEX nostrUser_mutingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.mutingCount);
-CREATE INDEX nostrUser_mutedCount IF NOT EXISTS FOR (n:NostrUser) ON (n.mutedCount);
+CREATE INDEX nostrUser_muterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.muterCount);
 CREATE INDEX nostrUser_reportingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.reportingCount);
 CREATE INDEX nostrUser_reporterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.reporterCount);
 

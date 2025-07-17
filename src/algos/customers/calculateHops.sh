@@ -7,9 +7,9 @@
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_LOG_DIR
 
-# Check if customer_pubkey is provided
-if [ -z "$1" ]; then
-    echo "Usage: $0 <customer_pubkey>"
+# Check if customer_pubkey, customer_id, customer_name are provided
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+    echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
     exit 1
 fi
 
@@ -25,8 +25,9 @@ CUSTOMER_NAME="$3"
 # Get log directory
 LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 
-# Create log directory if it doesn't exist
+# Create log directory if it doesn't exist; chown to brainstorm user
 mkdir -p "$LOG_DIR"
+sudo chown brainstorm:brainstorm "$LOG_DIR"
 
 # Log file
 LOG_FILE="$LOG_DIR/calculateHops.log"
