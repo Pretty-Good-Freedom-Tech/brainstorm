@@ -355,8 +355,24 @@ function handleGetProfiles(req, res) {
       `;
     }
 
+    // Define numeric columns that need to be cast for proper sorting
+    const numericColumns = [
+      'followingCount', 'mutingCount', 'reportingCount',
+      'followerCount', 'muterCount', 'reporterCount',
+      'verifiedFollowerCount', 'verifiedMuterCount', 'verifiedReporterCount',
+      'followerInput', 'muterInput', 'reporterInput',
+      'personalizedPageRank', 'hops', 'influence', 'average', 'confidence', 'input',
+      'nip56_totalGrapeRankScore', 'nip56_totalVerifiedReportCount', 'nip56_totalReportCount',
+      'latestContentEventCreatedAt'
+    ];
+    
+    // Use proper casting for numeric columns in ORDER BY
+    const orderByClause = numericColumns.includes(sortBy) 
+      ? `toFloat(u.${sortBy})` 
+      : `u.${sortBy}`;
+    
     query += `
-      ORDER BY u.${sortBy} ${sortOrder}
+      ORDER BY ${orderByClause} ${sortOrder}
       SKIP ${(page - 1) * limit}
       LIMIT ${limit}
     `;
