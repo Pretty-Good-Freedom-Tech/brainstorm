@@ -75,7 +75,6 @@
                             <th data-sort="muterInput" class="sort-desc">🍇-Muters Input</th>
                             <th data-sort="reporterInput" class="sort-desc">🍇-Reporters Input</th>
 
-                            <th data-sort="verifiedFollowers" class="sort-desc">Verified Followers</th>
                             <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
                             <th data-sort="nip56TotalVerifiedReportCount" class="sort-desc">🍇-Verified Reports</th>
                             <th data-sort="nip56TotalReportCount" class="sort-desc">Total Reports</th>  
@@ -173,12 +172,6 @@
 
                             <th>
                                 <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinVerifiedFollowers" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
                                     <input type="number" id="filterMinNip56TotalGrapeRankScore" placeholder="Min" min="0" class="table-filter small-input">
                                     <input type="number" id="filterMaxNip56TotalGrapeRankScore" placeholder="Max" min="0" class="table-filter small-input">
                                 </div>
@@ -266,8 +259,6 @@
             { id: 'followerInput', name: 'Follower Input', defaultVisible: true },
             { id: 'muterInput', name: 'Muter Input', defaultVisible: true },
             { id: 'reporterInput', name: 'Reporter Input', defaultVisible: true },
-
-            { id: 'verifiedFollowers', name: 'Verified Followers', defaultVisible: true },
             
             { id: 'nip56TotalGrapeRankScore', name: '🍇-Report Score', defaultVisible: true },
             { id: 'nip56TotalVerifiedReportCount', name: '🍇-Verified Reports', defaultVisible: true },
@@ -364,8 +355,6 @@
                 minReporterInput: '',
                 maxReporterInput: '',
 
-                minVerifiedFollowers: '',
-                maxVerifiedFollowers: '',
                 minNip56TotalGrapeRankScore: '',
                 maxNip56TotalGrapeRankScore: '',
                 minNip56TotalVerifiedReportCount: '',
@@ -406,7 +395,6 @@
         let filterMinMuterInput, filterMaxMuterInput;
         let filterMinReporterInput, filterMaxReporterInput;
 
-        let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
         let filterMinNip56TotalGrapeRankScore, filterMaxNip56TotalGrapeRankScore;
         let filterMinNip56TotalVerifiedReportCount, filterMaxNip56TotalVerifiedReportCount;
         let filterMinNip56TotalReportCount, filterMaxNip56TotalReportCount;
@@ -464,8 +452,6 @@
             filterMinReporterInput = document.getElementById('filterMinReporterInput');
             filterMaxReporterInput = document.getElementById('filterMaxReporterInput');
 
-            filterMinVerifiedFollowers = document.getElementById('filterMinVerifiedFollowers');
-            filterMaxVerifiedFollowers = document.getElementById('filterMaxVerifiedFollowers');
             filterMinNip56TotalGrapeRankScore = document.getElementById('filterMinNip56TotalGrapeRankScore');
             filterMaxNip56TotalGrapeRankScore = document.getElementById('filterMaxNip56TotalGrapeRankScore');
             filterMinNip56TotalVerifiedReportCount = document.getElementById('filterMinNip56TotalVerifiedReportCount');
@@ -527,8 +513,6 @@
             filterMinReporterInput.value = state.filters.minReporterInput;
             filterMaxReporterInput.value = state.filters.maxReporterInput;
 
-            filterMinVerifiedFollowers.value = state.filters.minVerifiedFollowers;
-            filterMaxVerifiedFollowers.value = state.filters.maxVerifiedFollowers;
             filterMinNip56TotalGrapeRankScore.value = state.filters.minNip56TotalGrapeRankScore;
             filterMaxNip56TotalGrapeRankScore.value = state.filters.maxNip56TotalGrapeRankScore;
             filterMinNip56TotalReportCount.value = state.filters.minNip56TotalReportCount;
@@ -612,8 +596,6 @@
                 if (state.filters.minReporterInput) params.append('filterMinReporterInput', state.filters.minReporterInput);
                 if (state.filters.maxReporterInput) params.append('filterMaxReporterInput', state.filters.maxReporterInput);
 
-                if (state.filters.minVerifiedFollowers) params.append('filterMinVerifiedFollowers', state.filters.minVerifiedFollowers);
-                if (state.filters.maxVerifiedFollowers) params.append('filterMaxVerifiedFollowers', state.filters.maxVerifiedFollowers);
                 if (state.filters.minNip56TotalGrapeRankScore) params.append('filterMinNip56TotalGrapeRankScore', state.filters.minNip56TotalGrapeRankScore);
                 if (state.filters.maxNip56TotalGrapeRankScore) params.append('filterMaxNip56TotalGrapeRankScore', state.filters.maxNip56TotalGrapeRankScore);
                 if (state.filters.minNip56TotalVerifiedReportCount) params.append('filterMinNip56TotalVerifiedReportCount', state.filters.minNip56TotalVerifiedReportCount);
@@ -732,12 +714,12 @@
                     state.filters.minReportingCount = filterMinReportingCount.value.trim();
                     state.filters.maxReportingCount = filterMaxReportingCount.value.trim();
 
-                    state.filters.minVerifiedFollowerInput = filterMinVerifiedFollowerInput.value.trim();
-                    state.filters.maxVerifiedFollowerInput = filterMaxVerifiedFollowerInput.value.trim();
-                    state.filters.minVerifiedMuterInput = filterMinVerifiedMuterInput.value.trim();
-                    state.filters.maxVerifiedMuterInput = filterMaxVerifiedMuterInput.value.trim();
-                    state.filters.minVerifiedReporterInput = filterMinVerifiedReporterInput.value.trim();
-                    state.filters.maxVerifiedReporterInput = filterMaxVerifiedReporterInput.value.trim();
+                    state.filters.minVerifiedFollowerCount = filterMinVerifiedFollowerCount.value.trim();
+                    state.filters.maxVerifiedFollowerCount = filterMaxVerifiedFollowerCount.value.trim();
+                    state.filters.minVerifiedMuterCount = filterMinVerifiedMuterCount.value.trim();
+                    state.filters.maxVerifiedMuterCount = filterMaxVerifiedMuterCount.value.trim();
+                    state.filters.minVerifiedReporterCount = filterMinVerifiedReporterCount.value.trim();
+                    state.filters.maxVerifiedReporterCount = filterMaxVerifiedReporterCount.value.trim();
 
                     state.filters.minFollowerInput = filterMinFollowerInput.value.trim();
                     state.filters.maxFollowerInput = filterMaxFollowerInput.value.trim();
@@ -746,8 +728,6 @@
                     state.filters.minReporterInput = filterMinReporterInput.value.trim();
                     state.filters.maxReporterInput = filterMaxReporterInput.value.trim();
 
-                    state.filters.minVerifiedFollowers = filterMinVerifiedFollowers.value.trim();
-                    state.filters.maxVerifiedFollowers = filterMaxVerifiedFollowers.value.trim();
                     state.filters.minNip56TotalGrapeRankScore = filterMinNip56TotalGrapeRankScore.value.trim();
                     state.filters.maxNip56TotalGrapeRankScore = filterMaxNip56TotalGrapeRankScore.value.trim();
                     state.filters.minNip56TotalVerifiedReportCount = filterMinNip56TotalVerifiedReportCount.value.trim();
@@ -802,8 +782,6 @@
                     filterMinReporterInput.value = '';
                     filterMaxReporterInput.value = '';
 
-                    filterMinVerifiedFollowers.value = '';
-                    filterMaxVerifiedFollowers.value = '';
                     filterMinNip56TotalGrapeRankScore.value = '';
                     filterMaxNip56TotalGrapeRankScore.value = '';
                     filterMinNip56TotalVerifiedReportCount.value = '';
@@ -824,8 +802,6 @@
                     state.filters.maxConfidence = '';
                     state.filters.minInput = '';
                     state.filters.maxInput = '';
-                    state.filters.minVerifiedFollowers = '';
-                    state.filters.maxVerifiedFollowers = '';
                     state.filters.minNip56TotalGrapeRankScore = '';
                     state.filters.maxNip56TotalGrapeRankScore = '';
                     state.filters.minNip56TotalVerifiedReportCount = '';

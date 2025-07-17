@@ -40,8 +40,6 @@ function handleGetProfiles(req, res) {
     const filterMaxConfidence = req.query.filterMaxConfidence || '';
     const filterMinInput = req.query.filterMinInput || '';
     const filterMaxInput = req.query.filterMaxInput || '';
-    const filterMinVerifiedFollowers = req.query.filterMinVerifiedFollowers || '';
-    const filterMaxVerifiedFollowers = req.query.filterMaxVerifiedFollowers || '';
 
     // follower/muter/reporter counts
     const filterMinFollowerCount = req.query.filterMinFollowerCount || '';
@@ -259,14 +257,6 @@ function handleGetProfiles(req, res) {
     
     if (filterMaxInput) {
       query += ` AND u.input <= ${parseFloat(filterMaxInput)}`;
-    }
-    
-    if (filterMinVerifiedFollowers) {
-      query += ` AND u.verifiedFollowerCount >= ${parseInt(filterMinVerifiedFollowers)}`;
-    }
-    
-    if (filterMaxVerifiedFollowers) {
-      query += ` AND u.verifiedFollowerCount <= ${parseInt(filterMaxVerifiedFollowers)}`;
     }
 
     if (filterMinNip56TotalGrapeRankScore) {
