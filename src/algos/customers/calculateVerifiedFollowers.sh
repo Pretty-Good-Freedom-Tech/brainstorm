@@ -1,4 +1,7 @@
 #!/bin/bash
+# to run:
+# sudo bash calculateVerifiedFollowers.sh e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f 0 straycat
+# sudo bash calculateVerifiedFollowers.sh  7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e 1 cloudfodder
 
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
@@ -45,7 +48,7 @@ RETURN count(u) AS numUsersUpdated
 CYPHER2="
 MATCH (c1:NostrUserWotMetricsCard {customer_id: '$CUSTOMER_ID'})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(f:NostrUser)
 WHERE c1.observee_pubkey = f.pubkey
-WITH c1, count(f) AS verifiedFollowerCount
+WITH f, c1, count(f) AS verifiedFollowerCount
 SET c1.verifiedFollowerCount=f.customer_verifiedFollowerCount
 RETURN count(c1) AS numCardsUpdated
 "

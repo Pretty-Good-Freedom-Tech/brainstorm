@@ -1,6 +1,9 @@
 /**
  * PageRank Generation and Return Command
  * Handles triggering the calculation of personalized PageRank data
+ * The limit parameter is optional and defaults to 500000
+ ***** PageRank calculations are performed in real time. *****
+ * This makes this endpoint distinct from another endpoint that fetches scores from Neo4j that have been calculated previously.
  * The reference user is supplied as a query parameter
  * Results are returned as a JSON object
  * to call: 
