@@ -38,18 +38,30 @@ CREATE INDEX nostrUser_kind10000CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.
 CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);
 CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);
 
-CREATE INDEX nostrUser_nip56_totalGrapeRankScore IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalGrapeRankScore);
-CREATE INDEX nostrUser_nip56_totalReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalReportCount);
-CREATE INDEX nostrUser_nip56_totalVerifiedReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalVerifiedReportCount);
-
 CREATE INDEX nostrUser_influence IF NOT EXISTS FOR (n:NostrUser) ON (n.influence);
 CREATE INDEX nostrUser_average IF NOT EXISTS FOR (n:NostrUser) ON (n.average);
 CREATE INDEX nostrUser_confidence IF NOT EXISTS FOR (n:NostrUser) ON (n.confidence);
 CREATE INDEX nostrUser_input IF NOT EXISTS FOR (n:NostrUser) ON (n.input);
 
+CREATE INDEX nostrUser_followingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.followingCount);
+CREATE INDEX nostrUser_followerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.followerCount);
+CREATE INDEX nostrUser_mutingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.mutingCount);
+CREATE INDEX nostrUser_mutedCount IF NOT EXISTS FOR (n:NostrUser) ON (n.mutedCount);
+CREATE INDEX nostrUser_reportingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.reportingCount);
+CREATE INDEX nostrUser_reporterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.reporterCount);
+
+CREATE INDEX nostrUser_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedFollowerCount);
+CREATE INDEX nostrUser_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedMuterCount);
+CREATE INDEX nostrUser_verifiedReporterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedReporterCount);
+
 CREATE INDEX nostrUser_followedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followedInput);
 CREATE INDEX nostrUser_mutedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.mutedInput);
 CREATE INDEX nostrUser_reportedInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reportedInput);
+
+CREATE INDEX nostrUser_nip56_totalGrapeRankScore IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalGrapeRankScore);
+CREATE INDEX nostrUser_nip56_totalReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalReportCount);
+CREATE INDEX nostrUser_nip56_totalVerifiedReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalVerifiedReportCount);
+
 CREATE INDEX nostrUser_blacklisted IF NOT EXISTS FOR (n:NostrUser) ON (n.blacklisted);
 
 CREATE CONSTRAINT nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) REQUIRE n.event_id IS UNIQUE;
@@ -59,6 +71,8 @@ CREATE INDEX nostrEvent_created_at IF NOT EXISTS FOR (n:NostrEvent) ON (n.create
 CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);
 
 CREATE INDEX nostrUser_customer_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_personalizedPageRank);
+CREATE INDEX nostrUser_customer_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_verifiedFollowerCount);
+CREATE INDEX nostrUser_customer_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_verifiedMuterCount);
 
 CREATE INDEX nostrUserWotMetricsCard_customer_id IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.customer_id);
 CREATE INDEX nostrUserWotMetricsCard_observer_pubkey IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.observer_pubkey);
@@ -71,6 +85,8 @@ CREATE INDEX nostrUserWotMetricsCard_average IF NOT EXISTS FOR (n:NostrUserWotMe
 CREATE INDEX nostrUserWotMetricsCard_confidence IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.confidence);
 CREATE INDEX nostrUserWotMetricsCard_input IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.input);
 CREATE INDEX nostrUserWotMetricsCard_totalVerifiedReportCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.totalVerifiedReportCount);
+CREATE INDEX nostrUserWotMetricsCard_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.verifiedMuterCount);
+CREATE INDEX nostrUserWotMetricsCard_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.verifiedFollowerCount);
 CREATE INDEX nostrUserWotMetricsCard_whitelisted IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.whitelisted);
 CREATE INDEX nostrUserWotMetricsCard_blacklisted IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.blacklisted);
 "

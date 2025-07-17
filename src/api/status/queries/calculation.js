@@ -30,7 +30,7 @@ function handleCalculationStatus(req, res) {
             hops: `${logDir}/calculateHops.log`,
             pageRank: `${logDir}/calculatePersonalizedPageRank.log`,
             grapeRank: `${logDir}/calculatePersonalizedGrapeRank.log`,
-            verifiedFollowers: `${logDir}/calculateVerifiedFollowers.log`,
+            verifiedFollowers: `${logDir}/calculateVerifiedFollowerCounts.log`,
             reports: `${logDir}/calculateReportScores.log`,
             blacklist: `${logDir}/exportBlacklist.log`,
             whitelist: `${logDir}/exportWhitelist.log`,

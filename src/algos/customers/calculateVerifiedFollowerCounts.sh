@@ -1,7 +1,7 @@
 #!/bin/bash
 # to run:
-# sudo bash calculateVerifiedFollowers.sh e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f 0 straycat
-# sudo bash calculateVerifiedFollowers.sh  7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e 1 cloudfodder
+# sudo bash calculateVerifiedFollowerCounts.sh e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f 0 straycat
+# sudo bash calculateVerifiedFollowerCounts.sh  7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e 1 cloudfodder
 
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
@@ -27,12 +27,12 @@ LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 mkdir -p "$LOG_DIR"
 
 # Log file
-LOG_FILE="$LOG_DIR/calculateVerifiedFollowers.log"
+LOG_FILE="$LOG_DIR/calculateVerifiedFollowerCounts.log"
 touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
-echo "$(date): Starting calculateVerifiedFollowers"
-echo "$(date): Starting calculateVerifiedFollowers" >> ${LOG_FILE}
+echo "$(date): Starting calculateVerifiedFollowerCounts"
+echo "$(date): Starting calculateVerifiedFollowerCounts" >> ${LOG_FILE}
 
 # calculate verified followers for a given customer and store temporarily in NostrUser node
 CYPHER1="
@@ -63,18 +63,18 @@ RETURN count(u) AS numUsersUpdated
 
 cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 
-echo "$(date): continuing calculateVerifiedFollowers; cypherResults1: $cypherResults1"
-echo "$(date): continuing calculateVerifiedFollowers; cypherResults1: $cypherResults1" >> ${LOG_FILE}
+echo "$(date): continuing calculateVerifiedFollowerCounts; cypherResults1: $cypherResults1"
+echo "$(date): continuing calculateVerifiedFollowerCounts; cypherResults1: $cypherResults1" >> ${LOG_FILE}
 
 cypherResults2=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
 
-echo "$(date): continuing calculateVerifiedFollowers; cypherResults2: $cypherResults2"
-echo "$(date): continuing calculateVerifiedFollowers; cypherResults2: $cypherResults2" >> ${LOG_FILE}
+echo "$(date): continuing calculateVerifiedFollowerCounts; cypherResults2: $cypherResults2"
+echo "$(date): continuing calculateVerifiedFollowerCounts; cypherResults2: $cypherResults2" >> ${LOG_FILE}
 
 cypherResults3=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
 
-echo "$(date): continuing calculateVerifiedFollowers; cypherResults3: $cypherResults3"
-echo "$(date): continuing calculateVerifiedFollowers; cypherResults3: $cypherResults3" >> ${LOG_FILE}
+echo "$(date): continuing calculateVerifiedFollowerCounts; cypherResults3: $cypherResults3"
+echo "$(date): continuing calculateVerifiedFollowerCounts; cypherResults3: $cypherResults3" >> ${LOG_FILE}
 
-echo "$(date): Finished calculateVerifiedFollowers"
-echo "$(date): Finished calculateVerifiedFollowers" >> ${LOG_FILE}
+echo "$(date): Finished calculateVerifiedFollowerCounts"
+echo "$(date): Finished calculateVerifiedFollowerCounts" >> ${LOG_FILE}

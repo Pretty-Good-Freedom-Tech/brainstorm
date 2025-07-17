@@ -142,9 +142,9 @@ echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRankControl
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateVerifiedFollowers.sh
-echo "$(date): Continuing processAllTasks; calculateVerifiedFollowers.sh completed"
-echo "$(date): Continuing processAllTasks; calculateVerifiedFollowers.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+sudo $BRAINSTORM_MODULE_ALGOS_DIR/follows-mutes-reports/processFollowsMutesReports.sh
+echo "$(date): Continuing processAllTasks; processFollowsMutesReports.sh completed"
+echo "$(date): Continuing processAllTasks; processFollowsMutesReports.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
@@ -154,9 +154,10 @@ echo "$(date): Continuing processAllTasks; calculateReportScores.sh completed" >
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedBlacklist/calculatePersonalizedBlacklist.sh
-echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed"
-echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# temporarily disabled while we move calculation of follows, mutes, and reports inputs to a separate script
+# sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedBlacklist/calculatePersonalizedBlacklist.sh
+# echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed"
+# echo "$(date): Continuing processAllTasks; calculatePersonalizedBlacklist.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 

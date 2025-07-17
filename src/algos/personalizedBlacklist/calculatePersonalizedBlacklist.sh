@@ -81,6 +81,7 @@ WITH reported, SUM(influence * $WEIGHT_REPORTED) as reportedInput
 SET reported.reportedInput = reportedInput;
 EOF
 )
+
 CALCULATE_INPUTS_QUERY5=$(cat <<EOF
 // Calculate blacklisted status
 MATCH (n:NostrUser)
