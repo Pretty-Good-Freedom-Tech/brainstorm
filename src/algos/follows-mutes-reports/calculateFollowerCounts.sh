@@ -14,24 +14,24 @@ WITH n, count(f) AS followerCount
 SET n.followerCount = followerCount
 RETURN COUNT(n) AS numUsersUpdated"
 
-# set followerCount to NULL for users with no followers
+# set followerCount to 0 for users with no followers
 CYPHER2="
 MATCH (n:NostrUser)
 OPTIONAL MATCH (n)<-[f:FOLLOWS]-(m:NostrUser)
 WITH n, count(f) as followerCount
 WHERE followerCount = 0
-SET n.followerCount = NULL
+SET n.followerCount = 0
 RETURN count(n) AS numUsersUpdated
 "
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
-numUsersUpdated="${cypherResults:11}"
+numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero followerCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero followerCount)" >> ${BRAINSTORM_LOG_DIR}/calculateFollowerCounts.log
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
-numUsersUpdated="${cypherResults:11}"
+numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero followerCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero followerCount)" >> ${BRAINSTORM_LOG_DIR}/calculateFollowerCounts.log

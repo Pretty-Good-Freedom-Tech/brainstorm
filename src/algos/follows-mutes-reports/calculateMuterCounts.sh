@@ -14,24 +14,24 @@ WITH n, count(f) AS muterCount
 SET n.muterCount = muterCount
 RETURN COUNT(n) AS numUsersUpdated"
 
-# set muterCount to NULL for users with no mutes
+# set muterCount to 0 for users with no mutes
 CYPHER2="
 MATCH (n:NostrUser)
 OPTIONAL MATCH (n)<-[f:MUTES]-(m:NostrUser)
 WITH n, count(f) as muterCount
 WHERE muterCount = 0
-SET n.muterCount = NULL
+SET n.muterCount = 0
 RETURN count(n) AS numUsersUpdated
 "
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
-numUsersUpdated="${cypherResults:11}"
+numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero muterCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero muterCount)" >> ${BRAINSTORM_LOG_DIR}/calculateMuterCounts.log
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
-numUsersUpdated="${cypherResults:11}"
+numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero muterCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero muterCount)" >> ${BRAINSTORM_LOG_DIR}/calculateMuterCounts.log
