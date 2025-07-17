@@ -207,7 +207,8 @@ function handleGetProfiles(req, res) {
             u.influence as influence,
             u.average as average,
             u.confidence as confidence,
-            u.input as input
+            u.input as input,
+            u.verifiedFollowerCount as verifiedFollowerCount
       `;
     }
 
@@ -265,7 +266,7 @@ function handleGetProfiles(req, res) {
                       muterCount: null,
                       reportingCount: null,
                       reporterCount: null,
-                      verifiedFollowerCount: null,
+                      verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
                       nip56_totalGrapeRankScore: null,
                       nip56_totalReportCount: null,
                       nip56_totalVerifiedReportCount: null,
