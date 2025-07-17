@@ -58,23 +58,7 @@
                             <th class="profile-pic-col" data-sort="profile-pic-col">Pic</th>
                             <th data-sort="npub">Npub</th>
                             <th data-sort="pubkey">Pubkey</th>
-
-                            <th data-sort="followingCount" class="sort-desc"> Following</th>
-                            <th data-sort="mutingCount" class="sort-desc"> Muting</th>
-                            <th data-sort="reportingCount" class="sort-desc"> Reporting</th>
-
-                            <th data-sort="followerCount" class="sort-desc"> Followers</th>
-                            <th data-sort="muterCount" class="sort-desc"> Muters</th>
-                            <th data-sort="reporterCount" class="sort-desc"> Reporters</th>
-
                             <th data-sort="verifiedFollowerCount" class="sort-desc">🍇-Verified Followers</th>
-                            <th data-sort="verifiedMuterCount" class="sort-desc">🍇-Verified Muters</th>
-                            <th data-sort="verifiedReporterCount" class="sort-desc">🍇-Verified Reporters</th>
-
-                            <th data-sort="followerInput" class="sort-desc">🍇-Followers Input</th>
-                            <th data-sort="muterInput" class="sort-desc">🍇-Muters Input</th>
-                            <th data-sort="reporterInput" class="sort-desc">🍇-Reporters Input</th>
-
                             <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
                             <th data-sort="nip56TotalVerifiedReportCount" class="sort-desc">🍇-Verified Reports</th>
                             <th data-sort="nip56TotalReportCount" class="sort-desc">Total Reports</th>  
@@ -93,83 +77,12 @@
                             <th>
                                 <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
                             </th>
-
                             <th>
                                 <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinFollowingCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxFollowingCount" placeholder="Max" min="0" class="table-filter small-input">
+                                    <input type="number" id="filterMinVerifiedFollowers" placeholder="Min" min="0" class="table-filter small-input">
+                                    <input type="number" id="filterMaxVerifiedFollowers" placeholder="Max" min="0" class="table-filter small-input">
                                 </div>
                             </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinMutingCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxMutingCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinReportingCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxReportingCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinFollowerCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxFollowerCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinMuterCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxMuterCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinReporterCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxReporterCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinVerifiedFollowerCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxVerifiedFollowerCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinVerifiedMuterCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxVerifiedMuterCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinVerifiedReporterCount" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxVerifiedReporterCount" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinFollowerInput" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxFollowerInput" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinMuterInput" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxMuterInput" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinReporterInput" placeholder="Min" min="0" class="table-filter small-input">
-                                    <input type="number" id="filterMaxReporterInput" placeholder="Max" min="0" class="table-filter small-input">
-                                </div>
-                            </th>
-
                             <th>
                                 <div class="filter-inputs filter-inputs-vertical">
                                     <input type="number" id="filterMinNip56TotalGrapeRankScore" placeholder="Min" min="0" class="table-filter small-input">
@@ -243,23 +156,7 @@
             { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
             { id: 'npub', name: 'Npub', defaultVisible: true },
             { id: 'pubkey', name: 'Pubkey', defaultVisible: true },
-
-            { id: 'followingCount', name: 'Following Count', defaultVisible: true},
-            { id: 'mutingCount', name: 'Muting Count', defaultVisible: true },
-            { id: 'reportingCount', name: 'Reporting Count', defaultVisible: true },
-
-            { id: 'followerCount', name: 'Follower Count', defaultVisible: true },
-            { id: 'muterCount', name: 'Muter Count', defaultVisible: true },
-            { id: 'reporterCount', name: 'Reporter Count', defaultVisible: true },
-
-            { id: 'verifiedFollowerCount', name: 'Verified Followers Count', defaultVisible: true },
-            { id: 'verifiedMuterCount', name: 'Verified Muters Count', defaultVisible: true },
-            { id: 'verifiedReporterCount', name: 'Verified Reporters Count', defaultVisible: true },
-
-            { id: 'followerInput', name: 'Follower Input', defaultVisible: true },
-            { id: 'muterInput', name: 'Muter Input', defaultVisible: true },
-            { id: 'reporterInput', name: 'Reporter Input', defaultVisible: true },
-
+            { id: 'verifiedFollowerCount', name: '🍇-Verified Followers', defaultVisible: true },
             { id: 'nip56TotalGrapeRankScore', name: '🍇-Report Score', defaultVisible: true },
             { id: 'nip56TotalVerifiedReportCount', name: '🍇-Verified Reports', defaultVisible: true },
             { id: 'nip56TotalReportCount', name: 'Total Reports', defaultVisible: true },
@@ -327,34 +224,6 @@
                 maxConfidence: '',
                 minInput: '',
                 maxInput: '',
-
-                minFollowerCount: '',
-                maxFollowerCount: '',
-                minFollowingCount: '',
-                maxFollowingCount: '',
-                minMuterCount: '',
-                maxMuterCount: '',
-                minMutingCount: '',
-                maxMutingCount: '',
-                minReporterCount: '',
-                maxReporterCount: '',
-                minReportingCount: '',
-                maxReportingCount: '',
-
-                minVerifiedFollowerCount: '',
-                maxVerifiedFollowerCount: '',
-                minVerifiedMuterCount: '',
-                maxVerifiedMuterCount: '',
-                minVerifiedReporterCount: '',
-                maxVerifiedReporterCount: '',
-
-                minFollowerInput: '',
-                maxFollowerInput: '',
-                minMuterInput: '',
-                maxMuterInput: '',
-                minReporterInput: '',
-                maxReporterInput: '',
-
                 minVerifiedFollowers: '',
                 maxVerifiedFollowers: '',
                 minNip56TotalGrapeRankScore: '',
@@ -381,22 +250,6 @@
         let filterNpub, filterPubkey, filterMinHops, filterMaxHops, filterMinPersonalizedPageRank, filterMaxPersonalizedPageRank;
         let filterMinInfluence, filterMaxInfluence, filterMinAverage, filterMaxAverage;
         let filterMinConfidence, filterMaxConfidence, filterMinInput, filterMaxInput;
-
-        let filterMinFollowerCount, filterMaxFollowerCount;
-        let filterMinFollowingCount, filterMaxFollowingCount;
-        let filterMinMuterCount, filterMaxMuterCount;
-        let filterMinMutingCount, filterMaxMutingCount;
-        let filterMinReporterCount, filterMaxReporterCount;
-        let filterMinReportingCount, filterMaxReportingCount;
-
-        let filterMinVerifiedFollowerCount, filterMaxVerifiedFollowerCount;
-        let filterMinVerifiedMuterCount, filterMaxVerifiedMuterCount;
-        let filterMinVerifiedReporterCount, filterMaxVerifiedReporterCount;
-
-        let filterMinFollowerInput, filterMaxFollowerInput;
-        let filterMinMuterInput, filterMaxMuterInput;
-        let filterMinReporterInput, filterMaxReporterInput;
-
         let filterMinVerifiedFollowers, filterMaxVerifiedFollowers;
         let filterMinNip56TotalGrapeRankScore, filterMaxNip56TotalGrapeRankScore;
         let filterMinNip56TotalVerifiedReportCount, filterMaxNip56TotalVerifiedReportCount;
@@ -427,34 +280,6 @@
             filterMaxConfidence = document.getElementById('filterMaxConfidence');
             filterMinInput = document.getElementById('filterMinInput');
             filterMaxInput = document.getElementById('filterMaxInput');
-
-            filterMinFollowerCount = document.getElementById('filterMinFollowerCount');
-            filterMaxFollowerCount = document.getElementById('filterMaxFollowerCount');
-            filterMinFollowingCount = document.getElementById('filterMinFollowingCount');
-            filterMaxFollowingCount = document.getElementById('filterMaxFollowingCount');
-            filterMinMuterCount = document.getElementById('filterMinMuterCount');
-            filterMaxMuterCount = document.getElementById('filterMaxMuterCount');
-            filterMinMutingCount = document.getElementById('filterMinMutingCount');
-            filterMaxMutingCount = document.getElementById('filterMaxMutingCount');
-            filterMinReporterCount = document.getElementById('filterMinReporterCount');
-            filterMaxReporterCount = document.getElementById('filterMaxReporterCount');
-            filterMinReportingCount = document.getElementById('filterMinReportingCount');
-            filterMaxReportingCount = document.getElementById('filterMaxReportingCount');
-
-            filterMinVerifiedFollowerCount = document.getElementById('filterMinVerifiedFollowerCount');
-            filterMaxVerifiedFollowerCount = document.getElementById('filterMaxVerifiedFollowerCount');
-            filterMinVerifiedMuterCount = document.getElementById('filterMinVerifiedMuterCount');
-            filterMaxVerifiedMuterCount = document.getElementById('filterMaxVerifiedMuterCount');
-            filterMinVerifiedReporterCount = document.getElementById('filterMinVerifiedReporterCount');
-            filterMaxVerifiedReporterCount = document.getElementById('filterMaxVerifiedReporterCount');
-
-            filterMinFollowerInput = document.getElementById('filterMinFollowerInput');
-            filterMaxFollowerInput = document.getElementById('filterMaxFollowerInput');
-            filterMinMuterInput = document.getElementById('filterMinMuterInput');
-            filterMaxMuterInput = document.getElementById('filterMaxMuterInput');
-            filterMinReporterInput = document.getElementById('filterMinReporterInput');
-            filterMaxReporterInput = document.getElementById('filterMaxReporterInput');
-
             filterMinVerifiedFollowers = document.getElementById('filterMinVerifiedFollowers');
             filterMaxVerifiedFollowers = document.getElementById('filterMaxVerifiedFollowers');
             filterMinNip56TotalGrapeRankScore = document.getElementById('filterMinNip56TotalGrapeRankScore');
@@ -490,34 +315,6 @@
             filterMaxConfidence.value = state.filters.maxConfidence;
             filterMinInput.value = state.filters.minInput;
             filterMaxInput.value = state.filters.maxInput;
-
-            filterMinFollowerCount.value = state.filters.minFollowerCount;
-            filterMaxFollowerCount.value = state.filters.maxFollowerCount;
-            filterMinFollowingCount.value = state.filters.minFollowingCount;
-            filterMaxFollowingCount.value = state.filters.maxFollowingCount;
-            filterMinMuterCount.value = state.filters.minMuterCount;
-            filterMaxMuterCount.value = state.filters.maxMuterCount;
-            filterMinMutingCount.value = state.filters.minMutingCount;
-            filterMaxMutingCount.value = state.filters.maxMutingCount;
-            filterMinReporterCount.value = state.filters.minReporterCount;
-            filterMaxReporterCount.value = state.filters.maxReporterCount;
-            filterMinReportingCount.value = state.filters.minReportingCount;
-            filterMaxReportingCount.value = state.filters.maxReportingCount;
-
-            filterMinVerifiedFollowerCount.value = state.filters.minVerifiedFollowerCount;
-            filterMaxVerifiedFollowerCount.value = state.filters.maxVerifiedFollowerCount;
-            filterMinVerifiedMuterCount.value = state.filters.minVerifiedMuterCount;
-            filterMaxVerifiedMuterCount.value = state.filters.maxVerifiedMuterCount;
-            filterMinVerifiedReporterCount.value = state.filters.minVerifiedReporterCount;
-            filterMaxVerifiedReporterCount.value = state.filters.maxVerifiedReporterCount;
-
-            filterMinFollowerInput.value = state.filters.minFollowerInput;
-            filterMaxFollowerInput.value = state.filters.maxFollowerInput;
-            filterMinMuterInput.value = state.filters.minMuterInput;
-            filterMaxMuterInput.value = state.filters.maxMuterInput;
-            filterMinReporterInput.value = state.filters.minReporterInput;
-            filterMaxReporterInput.value = state.filters.maxReporterInput;
-
             filterMinVerifiedFollowers.value = state.filters.minVerifiedFollowers;
             filterMaxVerifiedFollowers.value = state.filters.maxVerifiedFollowers;
             filterMinNip56TotalGrapeRankScore.value = state.filters.minNip56TotalGrapeRankScore;
@@ -575,34 +372,6 @@
                 if (state.filters.maxConfidence) params.append('filterMaxConfidence', state.filters.maxConfidence);
                 if (state.filters.minInput) params.append('filterMinInput', state.filters.minInput);
                 if (state.filters.maxInput) params.append('filterMaxInput', state.filters.maxInput);
-
-                if (state.filters.minFollowerCount) params.append('filterMinFollowerCount', state.filters.minFollowerCount);
-                if (state.filters.maxFollowerCount) params.append('filterMaxFollowerCount', state.filters.maxFollowerCount);
-                if (state.filters.minFollowingCount) params.append('filterMinFollowingCount', state.filters.minFollowingCount);
-                if (state.filters.maxFollowingCount) params.append('filterMaxFollowingCount', state.filters.maxFollowingCount);
-                if (state.filters.minMuterCount) params.append('filterMinMuterCount', state.filters.minMuterCount);
-                if (state.filters.maxMuterCount) params.append('filterMaxMuterCount', state.filters.maxMuterCount);
-                if (state.filters.minMutingCount) params.append('filterMinMutingCount', state.filters.minMutingCount);
-                if (state.filters.maxMutingCount) params.append('filterMaxMutingCount', state.filters.maxMutingCount);
-                if (state.filters.minReporterCount) params.append('filterMinReporterCount', state.filters.minReporterCount);
-                if (state.filters.maxReporterCount) params.append('filterMaxReporterCount', state.filters.maxReporterCount);
-                if (state.filters.minReportingCount) params.append('filterMinReportingCount', state.filters.minReportingCount);
-                if (state.filters.maxReportingCount) params.append('filterMaxReportingCount', state.filters.maxReportingCount);
-
-                if (state.filters.minVerifiedFollowerCount) params.append('filterMinVerifiedFollowerCount', state.filters.minVerifiedFollowerCount);
-                if (state.filters.maxVerifiedFollowerCount) params.append('filterMaxVerifiedFollowerCount', state.filters.maxVerifiedFollowerCount);
-                if (state.filters.minVerifiedMuterCount) params.append('filterMinVerifiedMuterCount', state.filters.minVerifiedMuterCount);
-                if (state.filters.maxVerifiedMuterCount) params.append('filterMaxVerifiedMuterCount', state.filters.maxVerifiedMuterCount);
-                if (state.filters.minVerifiedReporterCount) params.append('filterMinVerifiedReporterCount', state.filters.minVerifiedReporterCount);
-                if (state.filters.maxVerifiedReporterCount) params.append('filterMaxVerifiedReporterCount', state.filters.maxVerifiedReporterCount);
-
-                if (state.filters.minFollowerInput) params.append('filterMinFollowerInput', state.filters.minFollowerInput);
-                if (state.filters.maxFollowerInput) params.append('filterMaxFollowerInput', state.filters.maxFollowerInput);
-                if (state.filters.minMuterInput) params.append('filterMinMuterInput', state.filters.minMuterInput);
-                if (state.filters.maxMuterInput) params.append('filterMaxMuterInput', state.filters.maxMuterInput);
-                if (state.filters.minReporterInput) params.append('filterMinReporterInput', state.filters.minReporterInput);
-                if (state.filters.maxReporterInput) params.append('filterMaxReporterInput', state.filters.maxReporterInput);
-
                 if (state.filters.minVerifiedFollowers) params.append('filterMinVerifiedFollowers', state.filters.minVerifiedFollowers);
                 if (state.filters.maxVerifiedFollowers) params.append('filterMaxVerifiedFollowers', state.filters.maxVerifiedFollowers);
                 if (state.filters.minNip56TotalGrapeRankScore) params.append('filterMinNip56TotalGrapeRankScore', state.filters.minNip56TotalGrapeRankScore);
@@ -709,34 +478,6 @@
                     state.filters.maxConfidence = filterMaxConfidence.value.trim();
                     state.filters.minInput = filterMinInput.value.trim();
                     state.filters.maxInput = filterMaxInput.value.trim();
-
-                    state.filters.minFollowerCount = filterMinFollowerCount.value.trim();
-                    state.filters.maxFollowerCount = filterMaxFollowerCount.value.trim();
-                    state.filters.minFollowingCount = filterMinFollowingCount.value.trim();
-                    state.filters.maxFollowingCount = filterMaxFollowingCount.value.trim();
-                    state.filters.minMuterCount = filterMinMuterCount.value.trim();
-                    state.filters.maxMuterCount = filterMaxMuterCount.value.trim();
-                    state.filters.minMutingCount = filterMinMutingCount.value.trim();
-                    state.filters.maxMutingCount = filterMaxMutingCount.value.trim();
-                    state.filters.minReporterCount = filterMinReporterCount.value.trim();
-                    state.filters.maxReporterCount = filterMaxReporterCount.value.trim();
-                    state.filters.minReportingCount = filterMinReportingCount.value.trim();
-                    state.filters.maxReportingCount = filterMaxReportingCount.value.trim();
-
-                    state.filters.minVerifiedFollowerInput = filterMinVerifiedFollowerInput.value.trim();
-                    state.filters.maxVerifiedFollowerInput = filterMaxVerifiedFollowerInput.value.trim();
-                    state.filters.minVerifiedMuterInput = filterMinVerifiedMuterInput.value.trim();
-                    state.filters.maxVerifiedMuterInput = filterMaxVerifiedMuterInput.value.trim();
-                    state.filters.minVerifiedReporterInput = filterMinVerifiedReporterInput.value.trim();
-                    state.filters.maxVerifiedReporterInput = filterMaxVerifiedReporterInput.value.trim();
-
-                    state.filters.minFollowerInput = filterMinFollowerInput.value.trim();
-                    state.filters.maxFollowerInput = filterMaxFollowerInput.value.trim();
-                    state.filters.minMuterInput = filterMinMuterInput.value.trim();
-                    state.filters.maxMuterInput = filterMaxMuterInput.value.trim();
-                    state.filters.minReporterInput = filterMinReporterInput.value.trim();
-                    state.filters.maxReporterInput = filterMaxReporterInput.value.trim();
-
                     state.filters.minVerifiedFollowers = filterMinVerifiedFollowers.value.trim();
                     state.filters.maxVerifiedFollowers = filterMaxVerifiedFollowers.value.trim();
                     state.filters.minNip56TotalGrapeRankScore = filterMinNip56TotalGrapeRankScore.value.trim();
@@ -765,34 +506,6 @@
                     filterMaxConfidence.value = '';
                     filterMinInput.value = '';
                     filterMaxInput.value = '';
-
-                    filterMinFollowerCount.value = '';
-                    filterMaxFollowerCount.value = '';
-                    filterMinFollowingCount.value = '';
-                    filterMaxFollowingCount.value = '';
-                    filterMinMuterCount.value = '';
-                    filterMaxMuterCount.value = '';
-                    filterMinMutingCount.value = '';
-                    filterMaxMutingCount.value = '';
-                    filterMinReporterCount.value = '';
-                    filterMaxReporterCount.value = '';
-                    filterMinReportingCount.value = '';
-                    filterMaxReportingCount.value = '';
-
-                    filterMinVerifiedFollowerCount.value = '';
-                    filterMaxVerifiedFollowerCount.value = '';
-                    filterMinVerifiedMuterCount.value = '';
-                    filterMaxVerifiedMuterCount.value = '';
-                    filterMinVerifiedReporterCount.value = '';
-                    filterMaxVerifiedReporterCount.value = '';
-
-                    filterMinFollowerInput.value = '';
-                    filterMaxFollowerInput.value = '';
-                    filterMinMuterInput.value = '';
-                    filterMaxMuterInput.value = '';
-                    filterMinReporterInput.value = '';
-                    filterMaxReporterInput.value = '';
-
                     filterMinVerifiedFollowers.value = '';
                     filterMaxVerifiedFollowers.value = '';
                     filterMinNip56TotalGrapeRankScore.value = '';
