@@ -36,8 +36,8 @@ echo "$(date): Starting calculateVerifiedFollowers" >> ${LOG_FILE}
 
 # calculate verified followers for a given customer and store temporarily in NostrUser node
 CYPHER1="
-MATCH (c1:NostrUserWotMetricsCard {customer_id: '$CUSTOMER_ID'})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(f:NostrUser)-[:FOLLOWS]->(u:NostrUser)
-WHERE c1.observee_pubkey = f.pubkey AND c1.influence > 0.1
+MATCH (c1:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(f:NostrUser)-[:FOLLOWS]->(u:NostrUser)
+WHERE c1.observee_pubkey = f.pubkey AND c1.influence > 0.01
 WITH u, count(f) AS verifiedFollowerCount
 SET u.customer_verifiedFollowerCount=verifiedFollowerCount
 RETURN count(u) AS numUsersUpdated
@@ -46,7 +46,7 @@ RETURN count(u) AS numUsersUpdated
 
 # update NostrUserWotMetricsCard node with verified followers count
 CYPHER2="
-MATCH (c1:NostrUserWotMetricsCard {customer_id: '$CUSTOMER_ID'})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(f:NostrUser)
+MATCH (c1:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(f:NostrUser)
 WHERE c1.observee_pubkey = f.pubkey
 WITH f, c1, count(f) AS verifiedFollowerCount
 SET c1.verifiedFollowerCount=f.customer_verifiedFollowerCount
