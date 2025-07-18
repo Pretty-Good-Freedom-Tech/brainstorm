@@ -31,6 +31,7 @@ ORDER BY toFloat(u.influence) DESC
 SKIP 0
 LIMIT 50
 
+- Figure out why sudo strfry sync hangs in some cases but not in others, e.g. wss://wot.brainstorm.social (hangs), wss://relay.hasenpfeffr.com (does not hang); need to add timeout? or listen for eof?
 
 
 TO FIX;

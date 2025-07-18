@@ -10,13 +10,14 @@ echo "$(date): Starting syncWoT; first with relay.hasenpfeffr.com, then with wot
 
 sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
 
-echo "$(date): Finished syncWoT with relay.hasenpfeffr.com"
-echo "$(date): Finished syncWoT with relay.hasenpfeffr.com" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
+echo "$(date): Completed syncWoT with relay.hasenpfeffr.com"
+echo "$(date): Completed syncWoT with relay.hasenpfeffr.com" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
 
-sudo strfry sync wss://wot.brainstorm.social --filter '{"kinds":[3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
+# for some reason, it hangs when I try to sync with wot.brainstorm.social
+# sudo strfry sync wss://wot.brainstorm.social --filter '{"kinds":[3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
 
-echo "$(date): Finished syncWoT with wot.brainstorm.social"
-echo "$(date): Finished syncWoT with wot.brainstorm.social" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
+# echo "$(date): Completed syncWoT with wot.brainstorm.social"
+# echo "$(date): Completed syncWoT with wot.brainstorm.social" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
 
 echo "$(date): Finished syncWoT"
 echo "$(date): Finished syncWoT" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
