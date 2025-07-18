@@ -44,7 +44,10 @@ sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateVerif
 echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified follower, muter, and reporter counts"
 echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified follower, muter, and reporter counts" >> ${LOG_FILE}
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateFollowerMuterReporterInputs.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+# temp disabled
+# sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateFollowerInput.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+# sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateMuterInput.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+# sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateReporterInput.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
 echo "$(date): Continuing processFollowsMutesReports ... finished calculating follower, muter, and reporter inputs"
 echo "$(date): Continuing processFollowsMutesReports ... finished calculating follower, muter, and reporter inputs" >> ${LOG_FILE}
