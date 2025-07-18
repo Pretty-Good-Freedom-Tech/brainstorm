@@ -15,7 +15,7 @@ fi
 OUTPUT_FILE="$1"
 
 # Log file
-LOG_FILE="$BRAINSTORM_LOG_DIR/npubManager.log"
+LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsOneBlock.log"
 
 # Function to log messages
 log_message() {

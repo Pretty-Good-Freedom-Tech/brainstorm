@@ -56,19 +56,18 @@ echo "$(date): Continuing processAllTasks; syncProfiles.sh completed" >> ${BRAIN
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncPersonal.sh
-echo "$(date): Continuing processAllTasks; syncPersonal.sh completed"
-echo "$(date): Continuing processAllTasks; syncPersonal.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# temporarily disable
+# sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncPersonal.sh
+# echo "$(date): Continuing processAllTasks; syncPersonal.sh completed"
+# echo "$(date): Continuing processAllTasks; syncPersonal.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-sleep 5
+# sleep 5
 
-# In place of batch transfer only once at initialization, currently for each iteration:
-# 1. delete all relationships from neo4j
-# 2. call batch transfer
+sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransferIfNeeded.sh
+echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed"
+echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-# sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransferIfNeeded.sh
-# echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed"
-# echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# DEPRECATED: delete relationships followed by repeat batch transfer
 
 # Check disk space before deleting relationships
 # check_disk_space "Before deleting relationships"

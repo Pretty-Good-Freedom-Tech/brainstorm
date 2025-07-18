@@ -67,7 +67,7 @@ const packageRoot = path.resolve(__dirname, '..');
 // Define system directories
 const systemdServiceDir = '/etc/systemd/system';
 
-const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = '4hours';
+const BRAINSTORM_PROCESS_ALL_TASKS_INTERVAL = '6hours';
 
 // Configuration paths
 const configPaths = {
@@ -1305,36 +1305,8 @@ async function finalSetup() {
   console.log('3. You will be prompted to change the default password');
   console.log('4. After changing the password, update it in your Brainstorm configuration:');
   console.log('   Edit /etc/brainstorm.conf and update the NEO4J_PASSWORD value');
-  console.log('5. set up Neo4j constraints and indexes at the Neo4j Control Panel or by running the following commands in the Neo4j Browser:');
-
-  console.log('   CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;');
-  console.log('   CREATE INDEX nostrUser_npub IF NOT EXISTS FOR (n:NostrUser) ON (n.npub);');
-  console.log('   CREATE INDEX nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) ON (n.pubkey);');
-  console.log('   CREATE INDEX nostrUser_kind3EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3EventId);');
-  console.log('   CREATE INDEX nostrUser_kind3CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3CreatedAt);');
-  console.log('   CREATE INDEX nostrUser_kind1984EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind1984EventId);');
-  console.log('   CREATE INDEX nostrUser_kind1984CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind1984CreatedAt);');
-  console.log('   CREATE INDEX nostrUser_kind10000EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind10000EventId);');
-  console.log('   CREATE INDEX nostrUser_kind10000CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind10000CreatedAt);');
-  console.log('   CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);');
-  console.log('   CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);');
-  console.log('   CREATE INDEX nostrUser_latestContentEventCreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.latestContentEventCreatedAt);');
-
-  console.log('   CREATE INDEX nostrUser_influence IF NOT EXISTS FOR (n:NostrUser) ON (n.influence);');
-  console.log('   CREATE INDEX nostrUser_average IF NOT EXISTS FOR (n:NostrUser) ON (n.average);');
-  console.log('   CREATE INDEX nostrUser_confidence IF NOT EXISTS FOR (n:NostrUser) ON (n.confidence);');
-  console.log('   CREATE INDEX nostrUser_input IF NOT EXISTS FOR (n:NostrUser) ON (n.input);');
-
-  console.log('   CREATE INDEX nostrUser_followerInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followerInput);');
-  console.log('   CREATE INDEX nostrUser_muterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.muterInput);');
-  console.log('   CREATE INDEX nostrUser_reporterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reporterInput);');
-  console.log('   CREATE INDEX nostrUser_blacklisted IF NOT EXISTS FOR (n:NostrUser) ON (n.blacklisted);');
-
-  console.log('   CREATE CONSTRAINT nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) REQUIRE n.event_id IS UNIQUE;');
-  console.log('   CREATE INDEX nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) ON (n.event_id);');
-  console.log('   CREATE INDEX nostrEvent_kind IF NOT EXISTS FOR (n:NostrEvent) ON (n.kind);');
-  console.log('   CREATE INDEX nostrEvent_created_at IF NOT EXISTS FOR (n:NostrEvent) ON (n.created_at);');
-  console.log('   CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);');
+  console.log('5. set up Neo4j constraints and indexes at the Neo4j Control Panel.');
+  console.log('UPDATE July 2025: neo4j password change and constraints and indexes setup are now handled automatically at installation.')
   
   // Nginx configuration instructions
   console.log('\nNginx Configuration:');

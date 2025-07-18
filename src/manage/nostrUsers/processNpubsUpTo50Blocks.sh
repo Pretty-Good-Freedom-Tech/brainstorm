@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# completeAllNpubs.sh - Repeatedly run npubManager.sh until all NostrUser nodes have npub property
-# This script ensures complete coverage by running npubManager in a loop until no more npubs need to be generated
+# processNpubsUpTo50Blocks.sh - Repeatedly run processNpubsOneBlock.sh until all NostrUser nodes have npub property
+# This script ensures complete coverage by running processNpubsOneBlock in a loop until no more npubs need to be generated
 
 # Source configuration
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
@@ -10,7 +10,7 @@ source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, NEO4J_URI, NEO4J_USER, NEO4J_P
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Log file for complete npubs operations
-LOG_FILE="$BRAINSTORM_LOG_DIR/completeAllNpubs.log"
+LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsUpTo50Blocks.log"
 
 # Maximum number of iterations to prevent infinite loops
 MAX_ITERATIONS=50
@@ -56,7 +56,7 @@ count_total_users() {
 }
 
 # Start processing
-log_message "Starting completeAllNpubs workflow"
+log_message "Starting processNpubsUpTo50Blocks workflow"
 
 # Get initial counts
 TOTAL_USERS=$(count_total_users)
@@ -77,13 +77,13 @@ while [ "$MISSING_NPUBS" -gt 0 ] && [ "$ITERATION" -le "$MAX_ITERATIONS" ]; do
     log_message "=== Iteration $ITERATION of $MAX_ITERATIONS ==="
     log_message "Processing $MISSING_NPUBS remaining NostrUsers missing npub property"
     
-    # Run npubManager.sh
-    log_message "Running npubManager.sh (iteration $ITERATION)"
+    # Run processNpubsOneBlock.sh
+    log_message "Running processNpubsOneBlock.sh (iteration $ITERATION)"
     
-    if "$SCRIPT_DIR/npubManager.sh"; then
-        log_message "npubManager.sh completed successfully (iteration $ITERATION)"
+    if "$SCRIPT_DIR/processNpubsOneBlock.sh"; then
+        log_message "processNpubsOneBlock.sh completed successfully (iteration $ITERATION)"
     else
-        log_message "ERROR: npubManager.sh failed on iteration $ITERATION"
+        log_message "ERROR: processNpubsOneBlock.sh failed on iteration $ITERATION"
         exit 1
     fi
     
@@ -143,7 +143,7 @@ else
     fi
 fi
 
-log_message "completeAllNpubs workflow finished"
+log_message "processNpubsUpTo50Blocks workflow finished"
 
 # Exit with appropriate code
 if [ "$FINAL_MISSING" -eq 0 ]; then

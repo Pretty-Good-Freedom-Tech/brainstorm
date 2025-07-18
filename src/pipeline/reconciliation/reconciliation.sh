@@ -239,10 +239,10 @@ sudo mv $BASE_DIR/allKind3EventsStripped.json /var/lib/neo4j/import/allKind3Even
 sudo cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" -a "$NEO4J_URI" -f "$BASE_DIR/apocCypherCommands/apocCypherCommand2_follows" > /dev/null
 log "Step 4B completed applying follows to Neo4j"
 
-# Step 5B: Run completeAllNpubs until all npubs are processed
-log "Step 5B: Running completeAllNpubs until all npubs are processed"
-sudo bash $BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/completeAllNpubs.sh
-log "Step 5B completed running completeAllNpubs until all npubs are processed"
+# Step 5B: Run processNpubsUpTo50Blocks until all npubs are processed
+log "Step 5B: Running processNpubsUpTo50Blocks until all npubs are processed"
+sudo bash $BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpTo50Blocks.sh
+log "Step 5B completed running processNpubsUpTo50Blocks until all npubs are processed"
 
 # Step 6B: Project followsGraph into memory
 log "Step 6B: Projecting followsGraph into memory"

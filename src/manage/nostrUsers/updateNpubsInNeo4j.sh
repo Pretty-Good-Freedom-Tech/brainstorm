@@ -10,7 +10,7 @@ source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_
 NEO4J_IMPORT_FILE="/var/lib/neo4j/import/npub_updates.json"
 
 # Log file
-LOG_FILE="$BRAINSTORM_LOG_DIR/npubManager.log"
+LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsOneBlock.log"
 
 # Function to log messages
 log_message() {

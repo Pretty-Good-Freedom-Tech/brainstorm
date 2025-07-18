@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# npubManager.sh - Main orchestrator for ensuring all NostrUser nodes have npub property
+# processNpubsOneBlock.sh - Main orchestrator for ensuring all NostrUser nodes have npub property
 # This script coordinates the workflow to query, generate, and update npub values in Neo4j
 
 # Source configuration
@@ -10,7 +10,7 @@ source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, NEO4J_URI, NEO4J_USER, NEO4J_P
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Log file for npub manager operations
-LOG_FILE="$BRAINSTORM_LOG_DIR/npubManager.log"
+LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsOneBlock.log"
 
 # Temporary files
 TEMP_DIR="/tmp/npub_manager_$$"
@@ -43,7 +43,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Start processing
-log_message "Starting npubManager workflow"
+log_message "Starting processNpubsOneBlock workflow"
 
 # Step 1: Query Neo4j for NostrUsers missing npub property
 log_message "Step 1: Querying Neo4j for users missing npub property"
@@ -114,6 +114,6 @@ UPDATED_COUNT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PA
     --format plain 2>/dev/null | tail -n 1 | tr -d '"' || echo "0")
 
 log_message "Total NostrUsers with npub property: $UPDATED_COUNT"
-log_message "npubManager workflow completed successfully"
+log_message "processNpubsOneBlock workflow completed successfully"
 
 exit 0
