@@ -273,7 +273,8 @@ function restartServices() {
   log('Restarting services...', colors.cyan);
   
   try {
-    let reinstallStrfryServiceCommand = "sudo cp /usr/local/lib/node_modules/brainstorm/systemd/strfry.service /etc/systemd/system/strfry.service"
+    // reinstall strfry.service
+    const reinstallStrfryServiceCommand = "sudo cp /usr/local/lib/node_modules/brainstorm/systemd/strfry.service /etc/systemd/system/strfry.service"
     execSync(reinstallStrfryServiceCommand, { stdio: 'inherit' })
     execSync('systemctl restart strfry.service', { stdio: 'inherit' });
     log('Strfry service restarted', colors.green);

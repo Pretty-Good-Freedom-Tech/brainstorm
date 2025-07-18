@@ -48,6 +48,21 @@ SERVICES=(
   "calculatePersonalizedGrapeRank.timer"
 )
 
+# same as SERVICES minue strfry
+# don't remove strfry.service; for some reason it does not seem to get properly restored
+# (also added step in update.js to cp this file from brainstorm)
+SYSTEMD_SERVICES_TO_REMOVE=(
+  "brainstorm-control-panel"
+  "addToQueue"
+  "processQueue"
+  "strfry-router"
+  "processAllTasks.timer"
+  "reconcile.timer"
+  "calculateHops.timer"
+  "calculatePersonalizedPageRank.timer"
+  "calculatePersonalizedGrapeRank.timer"
+)
+
 # Stop services
 log "Stopping services..."
 for service in "${SERVICES[@]}"; do
@@ -72,7 +87,7 @@ done
 
 # Remove systemd service files
 log "Removing systemd service files..."
-for service in "${SERVICES[@]}"; do
+for service in "${SYSTEMD_SERVICES_TO_REMOVE[@]}"; do
   SERVICE_PATH="/etc/systemd/system/$service"
   if [ -f "$SERVICE_PATH" ] || [ -f "$SERVICE_PATH.service" ]; then
     log "Removing $SERVICE_PATH..."
