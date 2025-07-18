@@ -242,33 +242,33 @@
         const columns = [
             { id: 'profile-pic-col', name: 'Profile Picture', defaultVisible: true, alwaysVisible: true },
             { id: 'npub', name: 'Npub', defaultVisible: true },
-            { id: 'pubkey', name: 'Pubkey', defaultVisible: true },
+            { id: 'pubkey', name: 'Pubkey', defaultVisible: false },
 
             { id: 'followingCount', name: 'Following Count', defaultVisible: true},
-            { id: 'mutingCount', name: 'Muting Count', defaultVisible: true },
-            { id: 'reportingCount', name: 'Reporting Count', defaultVisible: true },
+            { id: 'mutingCount', name: 'Muting Count', defaultVisible: false },
+            { id: 'reportingCount', name: 'Reporting Count', defaultVisible: false },
 
             { id: 'followerCount', name: 'Follower Count', defaultVisible: true },
-            { id: 'muterCount', name: 'Muter Count', defaultVisible: true },
-            { id: 'reporterCount', name: 'Reporter Count', defaultVisible: true },
+            { id: 'muterCount', name: 'Muter Count', defaultVisible: false },
+            { id: 'reporterCount', name: 'Reporter Count', defaultVisible: false },
 
             { id: 'verifiedFollowerCount', name: 'Verified Followers Count', defaultVisible: true },
-            { id: 'verifiedMuterCount', name: 'Verified Muters Count', defaultVisible: true },
-            { id: 'verifiedReporterCount', name: 'Verified Reporters Count', defaultVisible: true },
+            { id: 'verifiedMuterCount', name: 'Verified Muters Count', defaultVisible: false },
+            { id: 'verifiedReporterCount', name: 'Verified Reporters Count', defaultVisible: false },
 
-            { id: 'followerInput', name: 'Follower Input', defaultVisible: true },
-            { id: 'muterInput', name: 'Muter Input', defaultVisible: true },
-            { id: 'reporterInput', name: 'Reporter Input', defaultVisible: true },
+            { id: 'followerInput', name: 'Followers (sum over 🍇-R)', defaultVisible: true },
+            { id: 'muterInput', name: 'Muters (sum over 🍇-R)', defaultVisible: true },
+            { id: 'reporterInput', name: 'Reporters (sum over 🍇-R)', defaultVisible: true },
             
-            { id: 'nip56TotalGrapeRankScore', name: '🍇-Report Score', defaultVisible: true },
-            { id: 'nip56TotalVerifiedReportCount', name: '🍇-Verified Reports', defaultVisible: true },
-            { id: 'nip56TotalReportCount', name: 'Total Reports', defaultVisible: true },
+            { id: 'nip56TotalGrapeRankScore', name: 'Report Input', defaultVisible: false },
+            { id: 'nip56TotalVerifiedReportCount', name: 'Verified Reports', defaultVisible: false },
+            { id: 'nip56TotalReportCount', name: 'Total Reports', defaultVisible: false },
             { id: 'hops', name: 'Hops', defaultVisible: true },
             { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
-            { id: 'influence', name: 'Influence', defaultVisible: true },
-            { id: 'average', name: 'Average', defaultVisible: true },
-            { id: 'confidence', name: 'Confidence', defaultVisible: true },
-            { id: 'input', name: 'Input', defaultVisible: true }
+            { id: 'influence', name: '🍇-Rank', defaultVisible: true },
+            { id: 'average', name: 'Average', defaultVisible: false },
+            { id: 'confidence', name: 'Confidence', defaultVisible: false },
+            { id: 'input', name: 'Input', defaultVisible: false }
         ];
 
         // Load column visibility settings from localStorage

@@ -372,8 +372,8 @@ function handleGetProfiles(req, res) {
     
     // Use proper casting for numeric columns in ORDER BY
     const orderByClause = numericColumns.includes(sortBy) 
-      ? `toFloat(u.${sortBy})` 
-      : `u.${sortBy}`;
+      ? `toFloat(${sortBy})` 
+      : `${sortBy}`;
     
     query += `
       ORDER BY ${orderByClause} ${sortOrder}
@@ -455,7 +455,7 @@ function handleGetProfiles(req, res) {
                 res.json({
                   success: true,
                   data: {
-                    cypherQuery: query,
+                    cypherQuery: query.replaceAll("\n", " ").replaceAll("\t", " ").replaceAll("  ", " "),
                     pagination: {
                       total,
                       page,

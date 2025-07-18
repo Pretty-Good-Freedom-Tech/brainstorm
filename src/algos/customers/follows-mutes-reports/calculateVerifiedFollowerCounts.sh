@@ -46,6 +46,14 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 echo "$(date): Starting calculateVerifiedFollowerCounts"
 echo "$(date): Starting calculateVerifiedFollowerCounts" >> ${LOG_FILE}
 
+CYPHER1_TEST="
+MATCH (followee:NostrUser)<-[f:FOLLOWS]-(follower:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(followerCard:NostrUserWotMetricsCard {customer_id: 1})
+WHERE followerCard.observee_pubkey = follower.pubkey AND followerCard.influence > 0.01
+OPTIONAL MATCH (followee)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(followeeCard:NostrUserWotMetricsCard {customer_id: 1})
+WITH followeeCard, count(f) AS verifiedFollowerCount
+RETURN COUNT(followeeCard) AS numCardsUpdated
+"
+
 CYPHER1="
 MATCH (followee:NostrUser)<-[f:FOLLOWS]-(follower:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(followerCard:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
 WHERE followerCard.observee_pubkey = follower.pubkey AND followerCard.influence > $VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF

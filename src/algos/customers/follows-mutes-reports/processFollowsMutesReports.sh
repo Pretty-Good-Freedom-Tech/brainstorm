@@ -34,23 +34,38 @@ LOG_FILE="$LOG_DIR/processFollowsMutesReports.log"
 touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
-echo "$(date): Starting processFollowsMutesReports"
-echo "$(date): Starting processFollowsMutesReports" >> ${LOG_FILE}
+echo "$(date): Starting processFollowsMutesReports for $CUSTOMER_PUBKEY ($CUSTOMER_ID) ($CUSTOMER_NAME)"
+echo "$(date): Starting processFollowsMutesReports for $CUSTOMER_PUBKEY ($CUSTOMER_ID) ($CUSTOMER_NAME)" >> ${LOG_FILE}
 
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified follower counts"
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified follower counts" >> ${LOG_FILE}
+
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified muter counts"
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified muter counts" >> ${LOG_FILE}
+
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
-echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified follower, muter, and reporter counts"
-echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified follower, muter, and reporter counts" >> ${LOG_FILE}
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified reporter counts"
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating verified reporter counts" >> ${LOG_FILE}
 
-# temp disabled
-# sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateFollowerInput.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
-# sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateMuterInput.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
-# sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateReporterInput.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateFollowerInputs.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
-echo "$(date): Continuing processFollowsMutesReports ... finished calculating follower, muter, and reporter inputs"
-echo "$(date): Continuing processFollowsMutesReports ... finished calculating follower, muter, and reporter inputs" >> ${LOG_FILE}
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating follower inputs"
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating follower inputs" >> ${LOG_FILE}
 
-echo "$(date): Finished processFollowsMutesReports"
-echo "$(date): Finished processFollowsMutesReports" >> ${LOG_FILE}
+sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateMuterInputs.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating muter inputs"
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating muter inputs" >> ${LOG_FILE}
+
+sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/calculateReporterInputs.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating reporter inputs"
+echo "$(date): Continuing processFollowsMutesReports ... finished calculating reporter inputs" >> ${LOG_FILE}
+
+echo "$(date): Finished processFollowsMutesReports for $CUSTOMER_PUBKEY ($CUSTOMER_ID) ($CUSTOMER_NAME)"
+echo "$(date): Finished processFollowsMutesReports for $CUSTOMER_PUBKEY ($CUSTOMER_ID) ($CUSTOMER_NAME)" >> ${LOG_FILE}
