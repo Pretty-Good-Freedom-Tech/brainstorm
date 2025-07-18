@@ -9,6 +9,29 @@
 - add social graph page to display number of connections by hop number
 - edit profiles.page to select global view vs individual customer view
 - remove verifiedFollowers from all remaining pages; has been replaced with verifiedFollowerCount and removed from some but not all pages
+- make sure that no properties with numeric values in Neo4j are null; either that, or make sure that neo4j queries handle null values properly; currently, null values throw a monkey wrench into cypher queries when sorting on a property that has null values. Properties that are currently not handled properly: 
+  - influence, average, input, confidence
+- profiles.js: for customer queries, need to add WHERE clause before OPTIONAL MATCH to exclude null values; eg this is not problematic: 
+MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e'})
+WHERE u.influence > 0.01
+OPTIONAL MATCH (u)<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
+RETURN u.observee_pubkey as pubkey,
+u.influence as influence
+ORDER BY toFloat(u.influence) DESC
+SKIP 0
+LIMIT 50
+
+But this is problematic:
+MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e'})
+OPTIONAL MATCH (u)<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
+WHERE u.influence > 0.01
+RETURN u.observee_pubkey as pubkey,
+u.influence as influence
+ORDER BY toFloat(u.influence) DESC
+SKIP 0
+LIMIT 50
+
+
 
 TO FIX;
 when running processCustomer, when doing graperank, it recreates follows.csv, mutes.csv, reports.csv and ratings.json even when these have already been created. Also: MaxListenersExceededWarning when creating ratings.json; in interpretRatings.js , increase stream.setMaxListeners(100); above 100 ? Error: `(node:1245413) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 101 drain listeners added to [WriteStream]. Use emitter.setMaxListeners() to increase limit` (note 101 drain listeners)

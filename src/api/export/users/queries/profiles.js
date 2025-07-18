@@ -96,6 +96,8 @@ function handleGetProfiles(req, res) {
     
     let query = '';
     // Build the Cypher query with filters
+    // TODO: option to exclude null values for influence, etc.
+    // Maybe add a checkbox for each filter to exclude null values
     if (observerPubkey == "owner") {
       query = `
         MATCH (u:NostrUser)
@@ -111,6 +113,40 @@ function handleGetProfiles(req, res) {
     }
     
     // Add filters if provided
+
+    if (filterMinInfluence) {
+      query += ` AND u.influence >= ${parseFloat(filterMinInfluence)}`;
+    }
+    
+    if (filterMaxInfluence) {
+      query += ` AND u.influence <= ${parseFloat(filterMaxInfluence)}`;
+    }
+    
+    if (filterMinAverage) {
+      query += ` AND u.average >= ${parseFloat(filterMinAverage)}`;
+    }
+    
+    if (filterMaxAverage) {
+      query += ` AND u.average <= ${parseFloat(filterMaxAverage)}`;
+    }
+    
+    if (filterMinConfidence) {
+      query += ` AND u.confidence >= ${parseFloat(filterMinConfidence)}`;
+    }
+    
+    if (filterMaxConfidence) {
+      query += ` AND u.confidence <= ${parseFloat(filterMaxConfidence)}`;
+    }
+    
+    if (filterMinInput) {
+      query += ` AND u.input >= ${parseFloat(filterMinInput)}`;
+    }
+    
+    if (filterMaxInput) {
+      query += ` AND u.input <= ${parseFloat(filterMaxInput)}`;
+    }
+    
+    
 
     // Add follower/muter/reporter filters
     if (filterMinFollowerCount) {
@@ -225,38 +261,6 @@ function handleGetProfiles(req, res) {
     
     if (filterMaxRank) {
       query += ` AND u.personalizedPageRank <= ${parseFloat(filterMaxRank)}`;
-    }
-    
-    if (filterMinInfluence) {
-      query += ` AND u.influence >= ${parseFloat(filterMinInfluence)}`;
-    }
-    
-    if (filterMaxInfluence) {
-      query += ` AND u.influence <= ${parseFloat(filterMaxInfluence)}`;
-    }
-    
-    if (filterMinAverage) {
-      query += ` AND u.average >= ${parseFloat(filterMinAverage)}`;
-    }
-    
-    if (filterMaxAverage) {
-      query += ` AND u.average <= ${parseFloat(filterMaxAverage)}`;
-    }
-    
-    if (filterMinConfidence) {
-      query += ` AND u.confidence >= ${parseFloat(filterMinConfidence)}`;
-    }
-    
-    if (filterMaxConfidence) {
-      query += ` AND u.confidence <= ${parseFloat(filterMaxConfidence)}`;
-    }
-    
-    if (filterMinInput) {
-      query += ` AND u.input >= ${parseFloat(filterMinInput)}`;
-    }
-    
-    if (filterMaxInput) {
-      query += ` AND u.input <= ${parseFloat(filterMaxInput)}`;
     }
 
     if (filterMinNip56TotalGrapeRankScore) {
