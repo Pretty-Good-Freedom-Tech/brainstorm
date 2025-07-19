@@ -111,7 +111,15 @@ function handleGetProfiles(req, res) {
         WHERE n.pubkey = u.observee_pubkey
       `;
     }
-    
+
+    // exclude null values of sorted metrics if sortBy is set
+    // try COALESCE first
+    /*
+    if (sortBy) {
+      query += ` AND u.${sortBy} IS NOT NULL`;
+    }
+    */
+   
     // Add filters if provided
 
     if (filterMinInfluence) {
@@ -313,10 +321,10 @@ function handleGetProfiles(req, res) {
             u.npub as npub,
             u.personalizedPageRank as personalizedPageRank,
             u.hops as hops,
-            u.influence as influence,
-            u.average as average,
-            u.confidence as confidence,
-            u.input as input,
+            COALESCE(u.influence, 0) as influence,
+            COALESCE(u.average, 0) as average,
+            COALESCE(u.confidence, 0) as confidence,
+            COALESCE(u.input, 0) as input,
             u.followerCount as followerCount,
             u.followingCount as followingCount,
             u.verifiedFollowerCount as verifiedFollowerCount,
