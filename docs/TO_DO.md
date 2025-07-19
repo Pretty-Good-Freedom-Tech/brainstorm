@@ -32,6 +32,7 @@ SKIP 0
 LIMIT 50
 
 - Figure out why sudo strfry sync hangs in some cases but not in others, e.g. wss://wot.brainstorm.social (hangs), wss://relay.hasenpfeffr.com (does not hang); need to add timeout? or listen for eof?
+- set all null scores to zero for most if not all metrics. More performant than calculating all of them which should be zero. However, note this EDGE CASE: user gets followed, has nonzero scores; then gets unfollowed. In this case, the score changes to zero but might not get overwritten, so the old (incorrect) score would remain. ALTERNATIVE PLAN: Set all scores to zero for hops=999. Everyone else will be calculated (this is true for graperank; unsure if true for all other metrics.)
 
 
 TO FIX;

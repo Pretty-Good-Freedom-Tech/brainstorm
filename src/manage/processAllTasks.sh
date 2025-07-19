@@ -50,11 +50,12 @@ echo "$(date): Continuing processAllTasks; syncWoT.sh completed" >> ${BRAINSTORM
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncProfiles.sh
-echo "$(date): Continuing processAllTasks; syncProfiles.sh completed"
-echo "$(date): Continuing processAllTasks; syncProfiles.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+# temporarily disable; perform manually for now
+# sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncProfiles.sh
+# echo "$(date): Continuing processAllTasks; syncProfiles.sh completed"
+# echo "$(date): Continuing processAllTasks; syncProfiles.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-sleep 5
+# sleep 5
 
 # temporarily disable
 # sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncPersonal.sh

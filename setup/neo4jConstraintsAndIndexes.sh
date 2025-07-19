@@ -74,6 +74,9 @@ CREATE INDEX nostrUser_customer_personalizedPageRank IF NOT EXISTS FOR (n:NostrU
 CREATE INDEX nostrUser_customer_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_verifiedFollowerCount);
 CREATE INDEX nostrUser_customer_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_verifiedMuterCount);
 
+CREATE CONSTRAINT SetOfNostrUserWotMetricsCards_observee_pubkey IF NOT EXISTS FOR (n:SetOfNostrUserWotMetricsCards) REQUIRE n.observee_pubkey IS UNIQUE;
+CREATE CONSTRAINT nostrUserWotMetricsCard_unique_combination_1 IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) REQUIRE (n.customer_id, n.observee_pubkey) IS UNIQUE;
+CREATE CONSTRAINT nostrUserWotMetricsCard_unique_combination_2 IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) REQUIRE (n.observer_pubkey, n.observee_pubkey) IS UNIQUE;
 CREATE INDEX nostrUserWotMetricsCard_customer_id IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.customer_id);
 CREATE INDEX nostrUserWotMetricsCard_observer_pubkey IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.observer_pubkey);
 CREATE INDEX nostrUserWotMetricsCard_observee_pubkey IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.observee_pubkey);
