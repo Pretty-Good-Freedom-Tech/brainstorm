@@ -25,19 +25,20 @@ fi
 CUSTOMER_ID="$2"
 
 # Batch size for ID-based processing
-BATCH_SIZE=10000
+BATCH_SIZE=50000
 
 # Query to get the min and max node IDs to determine batching range
 # Using elementId() instead of deprecated id() function
 # Removed WHERE NOT clause since MERGE handles create-if-not-exists
-CYPHER_GET_RANGE="MATCH (s:Set:SetOfNostrUserWotMetricsCards)
+CYPHER_GET_RANGE="MATCH (s:SetOfNostrUserWotMetricsCards)
+WHERE NOT (s)-[:SPECIFIC_INSTANCE]->(:NostrUserWotMetricsCard {observer_pubkey: '$CUSTOMER_PUBKEY'})
 WITH toInteger(split(elementId(s), ':')[2]) AS numericId
 RETURN min(numericId) as minId, max(numericId) as maxId"
 
 # Batch query: Create NostrUserWotMetricsCard for nodes in ID range
 # Using elementId() instead of deprecated id() function
 # Removed WHERE NOT clause since MERGE handles create-if-not-exists and constraint prevents duplicates
-CYPHER_CREATE_BATCH="MATCH (s:Set:SetOfNostrUserWotMetricsCards)
+CYPHER_CREATE_BATCH="MATCH (s:SetOfNostrUserWotMetricsCards)
 WHERE toInteger(split(elementId(s), ':')[2]) >= \$minId 
   AND toInteger(split(elementId(s), ':')[2]) < \$maxId
 MERGE (s) -[:SPECIFIC_INSTANCE]-> (c:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
@@ -63,6 +64,13 @@ fi
 # Parse min and max IDs (cypher-shell returns comma-separated values)
 minId=$(echo "$rangeData" | cut -d',' -f1 | tr -d ' ')
 maxId=$(echo "$rangeData" | cut -d',' -f2 | tr -d ' ')
+
+# Check if minId or maxId are null (no cards need to be created)
+if [[ "$minId" == "null" ]] || [[ "$maxId" == "null" ]] || [[ -z "$minId" ]] || [[ -z "$maxId" ]]; then
+    echo "$(date): No cards need to be created for customer_id $CUSTOMER_ID (minId=$minId, maxId=$maxId)"
+    echo "$(date): No cards need to be created for customer_id $CUSTOMER_ID (minId=$minId, maxId=$maxId)" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
+    exit 0
+fi
 
 echo "$(date): Processing nodes with IDs from $minId to $maxId"
 echo "$(date): Processing nodes with IDs from $minId to $maxId" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
