@@ -108,6 +108,7 @@ function handleGetProfiles(req, res) {
         MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})
         WHERE u.observee_pubkey IS NOT NULL
         OPTIONAL MATCH (u)<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
+        WITH u, n.pubkey AS pubkey, n.npub AS npub
         WHERE n.pubkey = u.observee_pubkey
       `;
     }
@@ -319,51 +320,52 @@ function handleGetProfiles(req, res) {
       query += `
         RETURN u.pubkey as pubkey, 
             u.npub as npub,
-            u.personalizedPageRank as personalizedPageRank,
-            u.hops as hops,
+            u.latestContentEventCreatedAt as latestContentEventCreatedAt,
+            COALESCE(u.personalizedPageRank, 0) as personalizedPageRank,
+            COALESCE(u.hops, 999) as hops,
             COALESCE(u.influence, 0) as influence,
             COALESCE(u.average, 0) as average,
             COALESCE(u.confidence, 0) as confidence,
             COALESCE(u.input, 0) as input,
-            u.followerCount as followerCount,
-            u.followingCount as followingCount,
-            u.verifiedFollowerCount as verifiedFollowerCount,
-            u.followerInput as followerInput,
-            u.muterCount as muterCount,
-            u.mutingCount as mutingCount,
-            u.verifiedMuterCount as verifiedMuterCount,
-            u.muterInput as muterInput,
-            u.reportingCount as reportingCount,
-            u.reporterCount as reporterCount,
-            u.verifiedReporterCount as verifiedReporterCount,
-            u.reporterInput as reporterInput,
+            COALESCE(u.followerCount, 0) as followerCount,
+            COALESCE(u.followingCount, 0) as followingCount,
+            COALESCE(u.verifiedFollowerCount, 0) as verifiedFollowerCount,
+            COALESCE(u.followerInput, 0) as followerInput,
+            COALESCE(u.muterCount, 0) as muterCount,
+            COALESCE(u.mutingCount, 0) as mutingCount,
+            COALESCE(u.verifiedMuterCount, 0) as verifiedMuterCount,
+            COALESCE(u.muterInput, 0) as muterInput,
+            COALESCE(u.reportingCount, 0) as reportingCount,
+            COALESCE(u.reporterCount, 0) as reporterCount,
+            COALESCE(u.verifiedReporterCount, 0) as verifiedReporterCount,
+            COALESCE(u.reporterInput, 0) as reporterInput,
             u.nip56_totalGrapeRankScore as nip56_totalGrapeRankScore,
             u.nip56_totalReportCount as nip56_totalReportCount,
-            u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount,
-            u.latestContentEventCreatedAt as latestContentEventCreatedAt
+            u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount
         `;
     } else {
       query += `
         RETURN u.observee_pubkey as pubkey,
             n.npub as npub,
-            u.hops as hops,
-            u.influence as influence,
-            u.average as average,
-            u.confidence as confidence,
-            u.input as input,
-            u.personalizedPageRank as personalizedPageRank,
-            n.followerCount as followerCount,
-            n.followingCount as followingCount,
-            n.muterCount as muterCount,
-            n.mutingCount as mutingCount,
-            n.reporterCount as reporterCount,
-            n.reportingCount as reportingCount,
-            u.verifiedFollowerCount as verifiedFollowerCount,
-            u.verifiedMuterCount as verifiedMuterCount,
-            u.verifiedReporterCount as verifiedReporterCount,
-            u.followerInput as followerInput,
-            u.muterInput as muterInput,
-            u.reporterInput as reporterInput
+            n.latestContentEventCreatedAt as latestContentEventCreatedAt,
+            COALESCE(u.hops, 999) as hops,
+            COALESCE(u.influence, 0) as influence,
+            COALESCE(u.average, 0) as average,
+            COALESCE(u.confidence, 0) as confidence,
+            COALESCE(u.input, 0) as input,
+            COALESCE(u.personalizedPageRank, 0) as personalizedPageRank,
+            COALESCE(n.followerCount, 0) as followerCount,
+            COALESCE(n.followingCount, 0) as followingCount,
+            COALESCE(n.muterCount, 0) as muterCount,
+            COALESCE(n.mutingCount, 0) as mutingCount,
+            COALESCE(n.reporterCount, 0) as reporterCount,
+            COALESCE(n.reportingCount, 0) as reportingCount,
+            COALESCE(u.verifiedFollowerCount, 0) as verifiedFollowerCount,
+            COALESCE(u.verifiedMuterCount, 0) as verifiedMuterCount,
+            COALESCE(u.verifiedReporterCount, 0) as verifiedReporterCount,
+            COALESCE(u.followerInput, 0) as followerInput,
+            COALESCE(u.muterInput, 0) as muterInput,
+            COALESCE(u.reporterInput, 0) as reporterInput
       `;
     }
 
