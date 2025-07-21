@@ -129,232 +129,244 @@ function handleGetProfiles(req, res) {
     }
     
     if (filterMinAverage) {
-      query += ` AND u.average >= ${parseFloat(filterMinAverage)}`;
+      query += ` AND COALESCE(u.average, 0) >= ${parseFloat(filterMinAverage)}`;
     }
     
     if (filterMaxAverage) {
-      query += ` AND u.average <= ${parseFloat(filterMaxAverage)}`;
+      query += ` AND COALESCE(u.average, 0) <= ${parseFloat(filterMaxAverage)}`;
     }
     
     if (filterMinConfidence) {
-      query += ` AND u.confidence >= ${parseFloat(filterMinConfidence)}`;
+      query += ` AND COALESCE(u.confidence, 0) >= ${parseFloat(filterMinConfidence)}`;
     }
     
     if (filterMaxConfidence) {
-      query += ` AND u.confidence <= ${parseFloat(filterMaxConfidence)}`;
+      query += ` AND COALESCE(u.confidence, 0) <= ${parseFloat(filterMaxConfidence)}`;
     }
     
     if (filterMinInput) {
-      query += ` AND u.input >= ${parseFloat(filterMinInput)}`;
+      query += ` AND COALESCE(u.input, 0) >= ${parseFloat(filterMinInput)}`;
     }
     
     if (filterMaxInput) {
-      query += ` AND u.input <= ${parseFloat(filterMaxInput)}`;
+      query += ` AND COALESCE(u.input, 0) <= ${parseFloat(filterMaxInput)}`;
     }
 
     // Add follower/muter/reporter filters
     if (observerPubkey == "owner") {
       if (filterMinFollowerCount) {
-        query += ` AND u.followerCount >= ${parseInt(filterMinFollowerCount)}`;
+        query += ` AND COALESCE(u.followerCount, 0) >= ${parseInt(filterMinFollowerCount)}`;
       }
       
       if (filterMaxFollowerCount) {
-        query += ` AND u.followerCount <= ${parseInt(filterMaxFollowerCount)}`;
+        query += ` AND COALESCE(u.followerCount, 0) <= ${parseInt(filterMaxFollowerCount)}`;
       }
       
       if (filterMinFollowingCount) {
-        query += ` AND u.followingCount >= ${parseInt(filterMinFollowingCount)}`;
+        query += ` AND COALESCE(u.followingCount, 0) >= ${parseInt(filterMinFollowingCount)}`;
       }
       
       if (filterMaxFollowingCount) {
-        query += ` AND u.followingCount <= ${parseInt(filterMaxFollowingCount)}`;
+        query += ` AND COALESCE(u.followingCount, 0) <= ${parseInt(filterMaxFollowingCount)}`;
       }
       
       if (filterMinMuterCount) {
-        query += ` AND u.muterCount >= ${parseInt(filterMinMuterCount)}`;
+        query += ` AND COALESCE(u.muterCount, 0) >= ${parseInt(filterMinMuterCount)}`;
       }
       
       if (filterMaxMuterCount) {
-        query += ` AND u.muterCount <= ${parseInt(filterMaxMuterCount)}`;
+        query += ` AND COALESCE(u.muterCount, 0) <= ${parseInt(filterMaxMuterCount)}`;
       }
       
       if (filterMinMutingCount) {
-        query += ` AND u.mutingCount >= ${parseInt(filterMinMutingCount)}`;
+        query += ` AND COALESCE(u.mutingCount, 0) >= ${parseInt(filterMinMutingCount)}`;
       }
       
       if (filterMaxMutingCount) {
-        query += ` AND u.mutingCount <= ${parseInt(filterMaxMutingCount)}`;
+        query += ` AND COALESCE(u.mutingCount, 0) <= ${parseInt(filterMaxMutingCount)}`;
       }
       
       if (filterMinReporterCount) {
-        query += ` AND u.reporterCount >= ${parseInt(filterMinReporterCount)}`;
+        query += ` AND COALESCE(u.reporterCount, 0) >= ${parseInt(filterMinReporterCount)}`;
       }
       
       if (filterMaxReporterCount) {
-        query += ` AND u.reporterCount <= ${parseInt(filterMaxReporterCount)}`;
+        query += ` AND COALESCE(u.reporterCount, 0) <= ${parseInt(filterMaxReporterCount)}`;
       }
       
       if (filterMinReportingCount) {
-        query += ` AND u.reportingCount >= ${parseInt(filterMinReportingCount)}`;
+        query += ` AND COALESCE(u.reportingCount, 0) >= ${parseInt(filterMinReportingCount)}`;
       }
       
       if (filterMaxReportingCount) {
-        query += ` AND u.reportingCount <= ${parseInt(filterMaxReportingCount)}`;
+        query += ` AND COALESCE(u.reportingCount, 0) <= ${parseInt(filterMaxReportingCount)}`;
+      }
+
+      if (filterMinLatestContentEventCreatedAt) {
+        query += ` AND COALESCE(u.latestContentEventCreatedAt, 0) >= ${filterMinLatestContentEventCreatedAt}`;
+      }
+      
+      if (filterMaxLatestContentEventCreatedAt) {
+        query += ` AND COALESCE(u.latestContentEventCreatedAt, 0) <= ${filterMaxLatestContentEventCreatedAt}`;
+      }
+  
+      if (filterNpub) {
+        query += ` AND COALESCE(u.npub, '') CONTAINS '${filterNpub}'`;
       }
     } else {
       if (filterMinFollowerCount) {
-        query += ` AND n.followerCount >= ${parseInt(filterMinFollowerCount)}`;
+        query += ` AND COALESCE(n.followerCount, 0) >= ${parseInt(filterMinFollowerCount)}`;
       }
       
       if (filterMaxFollowerCount) {
-        query += ` AND n.followerCount <= ${parseInt(filterMaxFollowerCount)}`;
+        query += ` AND COALESCE(n.followerCount, 0) <= ${parseInt(filterMaxFollowerCount)}`;
       }
       
       if (filterMinFollowingCount) {
-        query += ` AND n.followingCount >= ${parseInt(filterMinFollowingCount)}`;
+        query += ` AND COALESCE(n.followingCount, 0) >= ${parseInt(filterMinFollowingCount)}`;
       }
       
       if (filterMaxFollowingCount) {
-        query += ` AND n.followingCount <= ${parseInt(filterMaxFollowingCount)}`;
+        query += ` AND COALESCE(n.followingCount, 0) <= ${parseInt(filterMaxFollowingCount)}`;
       }
       
       if (filterMinMuterCount) {
-        query += ` AND n.muterCount >= ${parseInt(filterMinMuterCount)}`;
+        query += ` AND COALESCE(n.muterCount, 0) >= ${parseInt(filterMinMuterCount)}`;
       }
       
       if (filterMaxMuterCount) {
-        query += ` AND n.muterCount <= ${parseInt(filterMaxMuterCount)}`;
+        query += ` AND COALESCE(n.muterCount, 0) <= ${parseInt(filterMaxMuterCount)}`;
       }
       
       if (filterMinMutingCount) {
-        query += ` AND n.mutingCount >= ${parseInt(filterMinMutingCount)}`;
+        query += ` AND COALESCE(n.mutingCount, 0) >= ${parseInt(filterMinMutingCount)}`;
       }
       
       if (filterMaxMutingCount) {
-        query += ` AND n.mutingCount <= ${parseInt(filterMaxMutingCount)}`;
+        query += ` AND COALESCE(n.mutingCount, 0) <= ${parseInt(filterMaxMutingCount)}`;
       }
       
       if (filterMinReporterCount) {
-        query += ` AND n.reporterCount >= ${parseInt(filterMinReporterCount)}`;
+        query += ` AND COALESCE(n.reporterCount, 0) >= ${parseInt(filterMinReporterCount)}`;
       }
       
       if (filterMaxReporterCount) {
-        query += ` AND n.reporterCount <= ${parseInt(filterMaxReporterCount)}`;
+        query += ` AND COALESCE(n.reporterCount, 0) <= ${parseInt(filterMaxReporterCount)}`;
       }
       
       if (filterMinReportingCount) {
-        query += ` AND n.reportingCount >= ${parseInt(filterMinReportingCount)}`;
+        query += ` AND COALESCE(n.reportingCount, 0) >= ${parseInt(filterMinReportingCount)}`;
       }
       
       if (filterMaxReportingCount) {
-        query += ` AND n.reportingCount <= ${parseInt(filterMaxReportingCount)}`;
+        query += ` AND COALESCE(n.reportingCount, 0) <= ${parseInt(filterMaxReportingCount)}`;
+      }
+
+      if (filterMinLatestContentEventCreatedAt) {
+        query += ` AND COALESCE(n.latestContentEventCreatedAt, 0) >= ${filterMinLatestContentEventCreatedAt}`;
+      }
+      
+      if (filterMaxLatestContentEventCreatedAt) {
+        query += ` AND COALESCE(n.latestContentEventCreatedAt, 0) <= ${filterMaxLatestContentEventCreatedAt}`;
+      }
+  
+      if (filterNpub) {
+        query += ` AND COALESCE(n.npub, '') CONTAINS '${filterNpub}'`;
       }
     }
 
     if (filterMinVerifiedFollowerCount) {
-      query += ` AND u.verifiedFollowerCount >= ${parseInt(filterMinVerifiedFollowerCount)}`;
+      query += ` AND COALESCE(u.verifiedFollowerCount, 0) >= ${parseInt(filterMinVerifiedFollowerCount)}`;
     }
     
     if (filterMaxVerifiedFollowerCount) {
-      query += ` AND u.verifiedFollowerCount <= ${parseInt(filterMaxVerifiedFollowerCount)}`;
+      query += ` AND COALESCE(u.verifiedFollowerCount, 0) <= ${parseInt(filterMaxVerifiedFollowerCount)}`;
     }
     
     if (filterMinVerifiedMuterCount) {
-      query += ` AND u.verifiedMuterCount >= ${parseInt(filterMinVerifiedMuterCount)}`;
+      query += ` AND COALESCE(u.verifiedMuterCount, 0) >= ${parseInt(filterMinVerifiedMuterCount)}`;
     }
     
     if (filterMaxVerifiedMuterCount) {
-      query += ` AND u.verifiedMuterCount <= ${parseInt(filterMaxVerifiedMuterCount)}`;
+      query += ` AND COALESCE(u.verifiedMuterCount, 0) <= ${parseInt(filterMaxVerifiedMuterCount)}`;
     }
     
     if (filterMinVerifiedReporterCount) {
-      query += ` AND u.verifiedReporterCount >= ${parseInt(filterMinVerifiedReporterCount)}`;
+      query += ` AND COALESCE(u.verifiedReporterCount, 0) >= ${parseInt(filterMinVerifiedReporterCount)}`;
     }
     
     if (filterMaxVerifiedReporterCount) {
-      query += ` AND u.verifiedReporterCount <= ${parseInt(filterMaxVerifiedReporterCount)}`;
+      query += ` AND COALESCE(u.verifiedReporterCount, 0) <= ${parseInt(filterMaxVerifiedReporterCount)}`;
     }
 
     // add input filters
     if (filterMinFollowerInput) {
-      query += ` AND u.followerInput >= ${parseFloat(filterMinFollowerInput)}`;
+      query += ` AND COALESCE(u.followerInput, 0) >= ${parseFloat(filterMinFollowerInput)}`;
     }
     
     if (filterMaxFollowerInput) {
-      query += ` AND u.followerInput <= ${parseFloat(filterMaxFollowerInput)}`;
+      query += ` AND COALESCE(u.followerInput, 0) <= ${parseFloat(filterMaxFollowerInput)}`;
     }
     
     if (filterMinMuterInput) {
-      query += ` AND u.muterInput >= ${parseFloat(filterMinMuterInput)}`;
+      query += ` AND COALESCE(u.muterInput, 0) >= ${parseFloat(filterMinMuterInput)}`;
     }
     
     if (filterMaxMuterInput) {
-      query += ` AND u.muterInput <= ${parseFloat(filterMaxMuterInput)}`;
+      query += ` AND COALESCE(u.muterInput, 0) <= ${parseFloat(filterMaxMuterInput)}`;
     }
     
     if (filterMinReporterInput) {
-      query += ` AND u.reporterInput >= ${parseFloat(filterMinReporterInput)}`;
+      query += ` AND COALESCE(u.reporterInput, 0) >= ${parseFloat(filterMinReporterInput)}`;
     }
     
     if (filterMaxReporterInput) {
-      query += ` AND u.reporterInput <= ${parseFloat(filterMaxReporterInput)}`;
+      query += ` AND COALESCE(u.reporterInput, 0) <= ${parseFloat(filterMaxReporterInput)}`;
     }
 
 
     if (filterMinHops) {
-      query += ` AND u.hops >= ${parseInt(filterMinHops)}`;
+      query += ` AND COALESCE(u.hops, 999) >= ${parseInt(filterMinHops)}`;
     }
     
     if (filterMaxHops) {
-      query += ` AND u.hops <= ${parseInt(filterMaxHops)}`;
+      query += ` AND COALESCE(u.hops, 999) <= ${parseInt(filterMaxHops)}`;
     }
     
     if (filterMinRank) {
-      query += ` AND u.personalizedPageRank >= ${parseFloat(filterMinRank)}`;
+      query += ` AND COALESCE(u.personalizedPageRank, 0) >= ${parseFloat(filterMinRank)}`;
     }
     
     if (filterMaxRank) {
-      query += ` AND u.personalizedPageRank <= ${parseFloat(filterMaxRank)}`;
+      query += ` AND COALESCE(u.personalizedPageRank, 0) <= ${parseFloat(filterMaxRank)}`;
     }
 
     if (filterMinNip56TotalGrapeRankScore) {
-      query += ` AND u.nip56_totalGrapeRankScore >= ${parseFloat(filterMinNip56TotalGrapeRankScore)}`;
+      query += ` AND COALESCE(u.nip56_totalGrapeRankScore, 0) >= ${parseFloat(filterMinNip56TotalGrapeRankScore)}`;
     }
     
     if (filterMaxNip56TotalGrapeRankScore) {
-      query += ` AND u.nip56_totalGrapeRankScore <= ${parseFloat(filterMaxNip56TotalGrapeRankScore)}`;
+      query += ` AND COALESCE(u.nip56_totalGrapeRankScore, 0) <= ${parseFloat(filterMaxNip56TotalGrapeRankScore)}`;
     }
 
     if (filterMinNip56TotalReportCount) {
-      query += ` AND u.nip56_totalReportCount >= ${parseFloat(filterMinNip56TotalReportCount)}`;
+      query += ` AND COALESCE(u.nip56_totalReportCount, 0) >= ${parseFloat(filterMinNip56TotalReportCount)}`;
     }
     
     if (filterMaxNip56TotalReportCount) {
-      query += ` AND u.nip56_totalReportCount <= ${parseFloat(filterMaxNip56TotalReportCount)}`;
+      query += ` AND COALESCE(u.nip56_totalReportCount, 0) <= ${parseFloat(filterMaxNip56TotalReportCount)}`;
     }
 
     if (filterMinNip56TotalVerifiedReportCount) {
-      query += ` AND u.nip56_totalVerifiedReportCount >= ${parseFloat(filterMinNip56TotalVerifiedReportCount)}`;
+      query += ` AND COALESCE(u.nip56_totalVerifiedReportCount, 0) >= ${parseFloat(filterMinNip56TotalVerifiedReportCount)}`;
     }
     
     if (filterMaxNip56TotalVerifiedReportCount) {
-      query += ` AND u.nip56_totalVerifiedReportCount <= ${parseFloat(filterMaxNip56TotalVerifiedReportCount)}`;
-    }
-
-    if (filterMinLatestContentEventCreatedAt) {
-      query += ` AND u.latestContentEventCreatedAt >= ${filterMinLatestContentEventCreatedAt}`;
-    }
-    
-    if (filterMaxLatestContentEventCreatedAt) {
-      query += ` AND u.latestContentEventCreatedAt <= ${filterMaxLatestContentEventCreatedAt}`;
-    }
-
-    if (filterNpub) {
-      query += ` AND u.npub CONTAINS '${filterNpub}'`;
+      query += ` AND COALESCE(u.nip56_totalVerifiedReportCount, 0) <= ${parseFloat(filterMaxNip56TotalVerifiedReportCount)}`;
     }
 
     if (filterPubkey) {
-      query += ` AND u.pubkey CONTAINS '${filterPubkey}'`;
+      query += ` AND COALESCE(u.pubkey, '') CONTAINS '${filterPubkey}'`;
     }
     
     // Add count query for pagination
@@ -364,8 +376,8 @@ function handleGetProfiles(req, res) {
     if (observerPubkey == "owner") {
       query += `
         RETURN u.pubkey as pubkey, 
-            u.npub as npub,
-            u.latestContentEventCreatedAt as latestContentEventCreatedAt,
+            COALESCE(u.npub, '') as npub,
+            COALESCE(u.latestContentEventCreatedAt, 0) as latestContentEventCreatedAt,
             COALESCE(u.personalizedPageRank, 0) as personalizedPageRank,
             COALESCE(u.hops, 999) as hops,
             COALESCE(u.influence, 0) as influence,
@@ -384,15 +396,15 @@ function handleGetProfiles(req, res) {
             COALESCE(u.reporterCount, 0) as reporterCount,
             COALESCE(u.verifiedReporterCount, 0) as verifiedReporterCount,
             COALESCE(u.reporterInput, 0) as reporterInput,
-            u.nip56_totalGrapeRankScore as nip56_totalGrapeRankScore,
-            u.nip56_totalReportCount as nip56_totalReportCount,
-            u.nip56_totalVerifiedReportCount as nip56_totalVerifiedReportCount
+            COALESCE(u.nip56_totalGrapeRankScore, 0) as nip56_totalGrapeRankScore,
+            COALESCE(u.nip56_totalReportCount, 0) as nip56_totalReportCount,
+            COALESCE(u.nip56_totalVerifiedReportCount, 0) as nip56_totalVerifiedReportCount
         `;
     } else {
       query += `
         RETURN u.observee_pubkey as pubkey,
-            n.npub as npub,
-            n.latestContentEventCreatedAt as latestContentEventCreatedAt,
+            COALESCE(n.npub, '') as npub,
+            COALESCE(n.latestContentEventCreatedAt, 0) as latestContentEventCreatedAt,
             COALESCE(u.hops, 999) as hops,
             COALESCE(u.influence, 0) as influence,
             COALESCE(u.average, 0) as average,
