@@ -124,6 +124,12 @@ echo "$(date): Continuing processAllTasks; reconciliation.sh completed" >> ${BRA
 
 sleep 5
 
+sudo $BRAINSTORM_MODULE_MANAGE_DIR/nostrUsers/processNpubsUpToMaxNumBlocks.sh 1000
+echo "$(date): Continuing processAllTasks; processNpubsUpToMaxNumBlocks.sh 1000 completed"
+echo "$(date): Continuing processAllTasks; processNpubsUpToMaxNumBlocks.sh 1000 completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+sleep 5
+
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateHops.sh
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed"
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log

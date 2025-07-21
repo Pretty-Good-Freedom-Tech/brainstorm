@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# processNpubsUpTo50Blocks.sh - Repeatedly run processNpubsOneBlock.sh until all NostrUser nodes have npub property
+# processNpubsUpToMaxNumBlocks.sh - Repeatedly run processNpubsOneBlock.sh until all NostrUser nodes have npub property
 # This script ensures complete coverage by running processNpubsOneBlock in a loop until no more npubs need to be generated
 
 # Source configuration
@@ -10,10 +10,15 @@ source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, NEO4J_URI, NEO4J_USER, NEO4J_P
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Log file for complete npubs operations
-LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsUpTo50Blocks.log"
+LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsUpToMaxNumBlocks.log"
 
-# Maximum number of iterations to prevent infinite loops
+# Default MAX_ITERATIONS
 MAX_ITERATIONS=50
+
+# allow MAX_ITERATIONS as an optional parameter
+if [ "$1" ]; then
+    MAX_ITERATIONS=$1
+fi
 
 # Create log directory if it doesn't exist
 mkdir -p "$(dirname "$LOG_FILE")"
@@ -56,7 +61,7 @@ count_total_users() {
 }
 
 # Start processing
-log_message "Starting processNpubsUpTo50Blocks workflow"
+log_message "Starting processNpubsUpToMaxNumBlocks workflow"
 
 # Get initial counts
 TOTAL_USERS=$(count_total_users)
@@ -143,7 +148,7 @@ else
     fi
 fi
 
-log_message "processNpubsUpTo50Blocks workflow finished"
+log_message "processNpubsUpToMaxNumBlocks workflow finished"
 
 # Exit with appropriate code
 if [ "$FINAL_MISSING" -eq 0 ]; then

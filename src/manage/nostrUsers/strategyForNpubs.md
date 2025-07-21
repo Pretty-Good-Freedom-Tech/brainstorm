@@ -1,6 +1,6 @@
 
 ## processNpubsOneBlock.sh 
-This script is called by processNpubsUpTo50Blocks.sh
+This script is called by processNpubsUpToMaxNumBlocks.sh
 
 It will first query neo4j for NostrUsers whose pubkey is not null but whose npub is null, with a limit of 1000.
 
