@@ -123,11 +123,11 @@ function handleGetProfiles(req, res) {
     // Add filters if provided
 
     if (filterMinInfluence) {
-      query += ` AND u.influence >= ${parseFloat(filterMinInfluence)}`;
+      query += ` AND COALESCE(u.influence, 0) >= ${parseFloat(filterMinInfluence)}`;
     }
     
     if (filterMaxInfluence) {
-      query += ` AND u.influence <= ${parseFloat(filterMaxInfluence)}`;
+      query += ` AND COALESCE(u.influence, 0) <= ${parseFloat(filterMaxInfluence)}`;
     }
     
     if (filterMinAverage) {

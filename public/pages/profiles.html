@@ -59,9 +59,9 @@
                             <th data-sort="npub">Npub</th>
                             <th data-sort="pubkey">Pubkey</th>
 
-                            <th data-sort="followingCount" class="sort-desc"> Following</th>
-                            <th data-sort="mutingCount" class="sort-desc"> Muting</th>
-                            <th data-sort="reportingCount" class="sort-desc"> Reporting</th>
+                            <th data-sort="followingCount" class="sort-desc"> Follows</th>
+                            <th data-sort="mutingCount" class="sort-desc"> Mutes</th>
+                            <th data-sort="reportingCount" class="sort-desc"> Reports</th>
 
                             <th data-sort="followerCount" class="sort-desc"> Followers</th>
                             <th data-sort="muterCount" class="sort-desc"> Muters</th>
@@ -655,7 +655,7 @@
                 // Estimate minimum table width: 44px for pic + 120px per visible column + 32px padding
                 const minTableWidth = 44 + visibleCols.length * 120 + 32;
                 // Only use compact mode if screen is narrow AND table won't fit
-                console.log(`isCompactTableMode: ${window.innerWidth <= 700 && window.innerWidth < minTableWidth}`)
+                // console.log(`isCompactTableMode: ${window.innerWidth <= 700 && window.innerWidth < minTableWidth}`)
                 return window.innerWidth <= 700 && window.innerWidth < minTableWidth;
             }
 
@@ -887,7 +887,7 @@
             }
             
             function renderTable() {
-                console.log(`renderTable`);
+                // console.log(`renderTable`);
                 // Clear the table body
                 tableBody.innerHTML = '';
                 
