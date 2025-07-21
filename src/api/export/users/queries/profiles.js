@@ -151,56 +151,104 @@ function handleGetProfiles(req, res) {
     if (filterMaxInput) {
       query += ` AND u.input <= ${parseFloat(filterMaxInput)}`;
     }
-    
-    
 
     // Add follower/muter/reporter filters
-    if (filterMinFollowerCount) {
-      query += ` AND u.followerCount >= ${parseInt(filterMinFollowerCount)}`;
-    }
-    
-    if (filterMaxFollowerCount) {
-      query += ` AND u.followerCount <= ${parseInt(filterMaxFollowerCount)}`;
-    }
-    
-    if (filterMinFollowingCount) {
-      query += ` AND u.followingCount >= ${parseInt(filterMinFollowingCount)}`;
-    }
-    
-    if (filterMaxFollowingCount) {
-      query += ` AND u.followingCount <= ${parseInt(filterMaxFollowingCount)}`;
-    }
-    
-    if (filterMinMuterCount) {
-      query += ` AND u.muterCount >= ${parseInt(filterMinMuterCount)}`;
-    }
-    
-    if (filterMaxMuterCount) {
-      query += ` AND u.muterCount <= ${parseInt(filterMaxMuterCount)}`;
-    }
-    
-    if (filterMinMutingCount) {
-      query += ` AND u.mutingCount >= ${parseInt(filterMinMutingCount)}`;
-    }
-    
-    if (filterMaxMutingCount) {
-      query += ` AND u.mutingCount <= ${parseInt(filterMaxMutingCount)}`;
-    }
-    
-    if (filterMinReporterCount) {
-      query += ` AND u.reporterCount >= ${parseInt(filterMinReporterCount)}`;
-    }
-    
-    if (filterMaxReporterCount) {
-      query += ` AND u.reporterCount <= ${parseInt(filterMaxReporterCount)}`;
-    }
-    
-    if (filterMinReportingCount) {
-      query += ` AND u.reportingCount >= ${parseInt(filterMinReportingCount)}`;
-    }
-    
-    if (filterMaxReportingCount) {
-      query += ` AND u.reportingCount <= ${parseInt(filterMaxReportingCount)}`;
+    if (observerPubkey == "owner") {
+      if (filterMinFollowerCount) {
+        query += ` AND u.followerCount >= ${parseInt(filterMinFollowerCount)}`;
+      }
+      
+      if (filterMaxFollowerCount) {
+        query += ` AND u.followerCount <= ${parseInt(filterMaxFollowerCount)}`;
+      }
+      
+      if (filterMinFollowingCount) {
+        query += ` AND u.followingCount >= ${parseInt(filterMinFollowingCount)}`;
+      }
+      
+      if (filterMaxFollowingCount) {
+        query += ` AND u.followingCount <= ${parseInt(filterMaxFollowingCount)}`;
+      }
+      
+      if (filterMinMuterCount) {
+        query += ` AND u.muterCount >= ${parseInt(filterMinMuterCount)}`;
+      }
+      
+      if (filterMaxMuterCount) {
+        query += ` AND u.muterCount <= ${parseInt(filterMaxMuterCount)}`;
+      }
+      
+      if (filterMinMutingCount) {
+        query += ` AND u.mutingCount >= ${parseInt(filterMinMutingCount)}`;
+      }
+      
+      if (filterMaxMutingCount) {
+        query += ` AND u.mutingCount <= ${parseInt(filterMaxMutingCount)}`;
+      }
+      
+      if (filterMinReporterCount) {
+        query += ` AND u.reporterCount >= ${parseInt(filterMinReporterCount)}`;
+      }
+      
+      if (filterMaxReporterCount) {
+        query += ` AND u.reporterCount <= ${parseInt(filterMaxReporterCount)}`;
+      }
+      
+      if (filterMinReportingCount) {
+        query += ` AND u.reportingCount >= ${parseInt(filterMinReportingCount)}`;
+      }
+      
+      if (filterMaxReportingCount) {
+        query += ` AND u.reportingCount <= ${parseInt(filterMaxReportingCount)}`;
+      }
+    } else {
+      if (filterMinFollowerCount) {
+        query += ` AND n.followerCount >= ${parseInt(filterMinFollowerCount)}`;
+      }
+      
+      if (filterMaxFollowerCount) {
+        query += ` AND n.followerCount <= ${parseInt(filterMaxFollowerCount)}`;
+      }
+      
+      if (filterMinFollowingCount) {
+        query += ` AND n.followingCount >= ${parseInt(filterMinFollowingCount)}`;
+      }
+      
+      if (filterMaxFollowingCount) {
+        query += ` AND n.followingCount <= ${parseInt(filterMaxFollowingCount)}`;
+      }
+      
+      if (filterMinMuterCount) {
+        query += ` AND n.muterCount >= ${parseInt(filterMinMuterCount)}`;
+      }
+      
+      if (filterMaxMuterCount) {
+        query += ` AND n.muterCount <= ${parseInt(filterMaxMuterCount)}`;
+      }
+      
+      if (filterMinMutingCount) {
+        query += ` AND n.mutingCount >= ${parseInt(filterMinMutingCount)}`;
+      }
+      
+      if (filterMaxMutingCount) {
+        query += ` AND n.mutingCount <= ${parseInt(filterMaxMutingCount)}`;
+      }
+      
+      if (filterMinReporterCount) {
+        query += ` AND n.reporterCount >= ${parseInt(filterMinReporterCount)}`;
+      }
+      
+      if (filterMaxReporterCount) {
+        query += ` AND n.reporterCount <= ${parseInt(filterMaxReporterCount)}`;
+      }
+      
+      if (filterMinReportingCount) {
+        query += ` AND n.reportingCount >= ${parseInt(filterMinReportingCount)}`;
+      }
+      
+      if (filterMaxReportingCount) {
+        query += ` AND n.reportingCount <= ${parseInt(filterMaxReportingCount)}`;
+      }
     }
 
     if (filterMinVerifiedFollowerCount) {
