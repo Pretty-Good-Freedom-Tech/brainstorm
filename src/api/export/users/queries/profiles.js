@@ -409,12 +409,12 @@ function handleGetProfiles(req, res) {
                     return {
                       pubkey: record.get('pubkey'),
                       npub: record.get('npub'),
-                      personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
-                      hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
-                      influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
-                      average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
-                      confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
-                      input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
+                      personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : 0,
+                      hops: record.get('hops') ? parseInt(record.get('hops').toString()) : 999,
+                      influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : 0,
+                      average: record.get('average') ? parseFloat(record.get('average').toString()) : 0,
+                      confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : 0,
+                      input: record.get('input') ? parseFloat(record.get('input').toString()) : 0,
                       followerCount: record.get('followerCount') ? parseInt(record.get('followerCount').toString()) : 0,
                       followingCount: record.get('followingCount') ? parseInt(record.get('followingCount').toString()) : 0,
                       muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
@@ -424,24 +424,24 @@ function handleGetProfiles(req, res) {
                       verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
                       verifiedMuterCount: record.get('verifiedMuterCount') ? parseInt(record.get('verifiedMuterCount').toString()) : 0,
                       verifiedReporterCount: record.get('verifiedReporterCount') ? parseInt(record.get('verifiedReporterCount').toString()) : 0,
-                      followerInput: record.get('followerInput') ? parseFloat(record.get('followerInput').toString()) : null,
-                      muterInput: record.get('muterInput') ? parseFloat(record.get('muterInput').toString()) : null,
-                      reporterInput: record.get('reporterInput') ? parseFloat(record.get('reporterInput').toString()) : null,
-                      nip56_totalGrapeRankScore: record.get('nip56_totalGrapeRankScore') ? parseFloat(record.get('nip56_totalGrapeRankScore').toString()) : null,
-                      nip56_totalReportCount: record.get('nip56_totalReportCount') ? parseInt(record.get('nip56_totalReportCount').toString()) : null,
-                      nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseFloat(record.get('nip56_totalVerifiedReportCount').toString()) : null,
-                      latestContentEventCreatedAt: record.get('latestContentEventCreatedAt') ? parseInt(record.get('latestContentEventCreatedAt').toString()) : null
+                      followerInput: record.get('followerInput') ? parseFloat(record.get('followerInput').toString()) : 0,
+                      muterInput: record.get('muterInput') ? parseFloat(record.get('muterInput').toString()) : 0,
+                      reporterInput: record.get('reporterInput') ? parseFloat(record.get('reporterInput').toString()) : 0,
+                      nip56_totalGrapeRankScore: record.get('nip56_totalGrapeRankScore') ? parseFloat(record.get('nip56_totalGrapeRankScore').toString()) : 0,
+                      nip56_totalReportCount: record.get('nip56_totalReportCount') ? parseInt(record.get('nip56_totalReportCount').toString()) : 0,
+                      nip56_totalVerifiedReportCount: record.get('nip56_totalVerifiedReportCount') ? parseFloat(record.get('nip56_totalVerifiedReportCount').toString()) : 0,
+                      latestContentEventCreatedAt: record.get('latestContentEventCreatedAt') ? parseInt(record.get('latestContentEventCreatedAt').toString()) : 0
                     };
                   } else {
                     return {
                       pubkey: record.get('pubkey'),
                       npub: record.get('npub'),
-                      personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : null,
-                      hops: record.get('hops') ? parseInt(record.get('hops').toString()) : null,
-                      influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : null,
-                      average: record.get('average') ? parseFloat(record.get('average').toString()) : null,
-                      confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : null,
-                      input: record.get('input') ? parseFloat(record.get('input').toString()) : null,
+                      personalizedPageRank: record.get('personalizedPageRank') ? parseFloat(record.get('personalizedPageRank').toString()) : 0,
+                      hops: record.get('hops') ? parseInt(record.get('hops').toString()) : 999,
+                      influence: record.get('influence') ? parseFloat(record.get('influence').toString()) : 0,
+                      average: record.get('average') ? parseFloat(record.get('average').toString()) : 0,
+                      confidence: record.get('confidence') ? parseFloat(record.get('confidence').toString()) : 0,
+                      input: record.get('input') ? parseFloat(record.get('input').toString()) : 0,
                       followerCount: record.get('followerCount') ? parseInt(record.get('followerCount').toString()) : 0,
                       followingCount: record.get('followingCount') ? parseInt(record.get('followingCount').toString()) : 0,
                       muterCount: record.get('muterCount') ? parseInt(record.get('muterCount').toString()) : 0,
@@ -451,9 +451,9 @@ function handleGetProfiles(req, res) {
                       verifiedFollowerCount: record.get('verifiedFollowerCount') ? parseInt(record.get('verifiedFollowerCount').toString()) : 0,
                       verifiedMuterCount: record.get('verifiedMuterCount') ? parseInt(record.get('verifiedMuterCount').toString()) : 0,
                       verifiedReporterCount: record.get('verifiedReporterCount') ? parseInt(record.get('verifiedReporterCount').toString()) : 0,
-                      followerInput: record.get('followerInput') ? parseFloat(record.get('followerInput').toString()) : null,
-                      muterInput: record.get('muterInput') ? parseFloat(record.get('muterInput').toString()) : null,
-                      reporterInput: record.get('reporterInput') ? parseFloat(record.get('reporterInput').toString()) : null
+                      followerInput: record.get('followerInput') ? parseFloat(record.get('followerInput').toString()) : 0,
+                      muterInput: record.get('muterInput') ? parseFloat(record.get('muterInput').toString()) : 0,
+                      reporterInput: record.get('reporterInput') ? parseFloat(record.get('reporterInput').toString()) : 0
                     };
                   }
                 });
