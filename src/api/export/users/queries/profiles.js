@@ -108,7 +108,6 @@ function handleGetProfiles(req, res) {
         MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})
         WHERE u.observee_pubkey IS NOT NULL
         OPTIONAL MATCH (u)<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
-        WITH u, n.pubkey AS pubkey, n.npub AS npub
         WHERE n.pubkey = u.observee_pubkey
       `;
     }
