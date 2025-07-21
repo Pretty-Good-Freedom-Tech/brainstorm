@@ -105,9 +105,7 @@ function handleGetProfiles(req, res) {
       `;
     } else {
       query = `
-        MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})
-        WHERE u.observee_pubkey IS NOT NULL
-        OPTIONAL MATCH (u)<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
+        MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
         WHERE n.pubkey = u.observee_pubkey
       `;
     }
