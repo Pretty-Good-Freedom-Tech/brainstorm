@@ -40,6 +40,13 @@ const CUSTOMER_ID = process.argv[3];
 const CUSTOMER_NAME = process.argv[4];
 
 // Configuration
+const LOG_DIR  = '/var/log/brainstorm/customers/' + CUSTOMER_NAME;
+execSync(`touch ${LOG_DIR}`);
+execSync(`sudo chown brainstorm:brainstorm ${LOG_DIR}`);
+const LOG_FILE = path.join(LOG_DIR, 'calculateGrapeRank.log');
+execSync(`touch ${LOG_FILE}`);
+execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
+
 const TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
 const CUSTOMER_TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp/' + CUSTOMER_NAME;
 const MAX_ITERATIONS = 60;
@@ -313,10 +320,6 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
       // Add to sums
       products_sum += rating * rating_weight;
       weights_sum += rating_weight;
-
-      if (pk_ratee === "0b9e8ebda2508ea3972d81aa0fad559cea1f70719520c1a80dfc9847de71fced") {
-        console.log(`rater: ${pk_rater}, rating: ${rating}, rating_confidence: ${rating_confidence}, rater_influence: ${rater_influence}, rating_weight: ${rating_weight}`);
-      }
     }
     
     // Calculate GRAPERANK_INPUT
@@ -336,13 +339,6 @@ function calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config) {
 
   if (graperank_influence < 0) {
     graperank_influence = 0;
-  }
-
-  if (pk_ratee === "0b9e8ebda2508ea3972d81aa0fad559cea1f70719520c1a80dfc9847de71fced") {
-    console.log('GRAPERANK_INFLUENCE:', graperank_influence);
-    console.log('GRAPERANK_AVERAGE:', graperank_average);
-    console.log('GRAPERANK_CONFIDENCE:', graperank_confidence);
-    console.log('GRAPERANK_INPUT:', graperank_input);
   }
   
   return [graperank_influence, graperank_average, graperank_confidence, graperank_input];
@@ -390,18 +386,24 @@ function generateMetadata(config, iterations, converged, max_diff, start_time, s
   };
 }
 
+// Function that logs to LOG_FILE and console
+function log(message) {
+  console.log(message);
+  fs.appendFileSync(LOG_FILE, message + '\n');
+}
+
 // Main function
 async function main() {
   try {
     const start_time = new Date();
-    console.log('Starting GrapeRank calculation...');
+    log('Starting GrapeRank calculation...');
     
     // Get configuration
     const config = getConfig();
-    console.log(`BRAINSTORM_OWNER_PUBKEY: ${config.BRAINSTORM_OWNER_PUBKEY}`);
-    console.log(`CUSTOMER_PUBKEY: ${config.CUSTOMER_PUBKEY}`);
-    console.log(`ATTENUATION_FACTOR: ${config.ATTENUATION_FACTOR}`);
-    console.log(`RIGOR: ${config.RIGOR}`);
+    log(`BRAINSTORM_OWNER_PUBKEY: ${config.BRAINSTORM_OWNER_PUBKEY}`);
+    log(`CUSTOMER_PUBKEY: ${config.CUSTOMER_PUBKEY}`);
+    log(`ATTENUATION_FACTOR: ${config.ATTENUATION_FACTOR}`);
+    log(`RIGOR: ${config.RIGOR}`);
     
     // Define file paths
     const ratingsFile = path.join(CUSTOMER_TEMP_DIR, 'ratings.json');
@@ -413,11 +415,11 @@ async function main() {
     let debug = `${new Date().toISOString()}: Starting GrapeRank calculation\n`;
     
     // Load ratings using streaming approach
-    console.log(`Loading ratings from ${ratingsFile}...`);
+    log(`Loading ratings from ${ratingsFile}...`);
     let ratings;
     try {
       ratings = await loadRatings(ratingsFile);
-      console.log(`Loaded ratings for ${Object.keys(ratings[CONTEXT] || {}).length} ratees`);
+      log(`Loaded ratings for ${Object.keys(ratings[CONTEXT] || {}).length} ratees`);
     } catch (error) {
       console.error(`Error loading ratings: ${error.message}`);
       process.exit(1);
@@ -427,16 +429,16 @@ async function main() {
     let scorecards;
     try {
       if (fs.existsSync(scorecardsFile)) {
-        console.log(`Loading existing scorecards from ${scorecardsFile}...`);
+        log(`Loading existing scorecards from ${scorecardsFile}...`);
         scorecards = await loadScorecards(scorecardsFile);
       } else if (fs.existsSync(scorecardsInitFile)) {
-        console.log(`Loading initial scorecards from ${scorecardsInitFile}...`);
+        log(`Loading initial scorecards from ${scorecardsInitFile}...`);
         scorecards = await loadScorecards(scorecardsInitFile);
       } else {
         console.error(`Neither ${scorecardsFile} nor ${scorecardsInitFile} found`);
         process.exit(1);
       }
-      console.log(`Loaded scorecards for ${Object.keys(scorecards).length} pubkeys`);
+      log(`Loaded scorecards for ${Object.keys(scorecards).length} pubkeys`);
     } catch (error) {
       console.error(`Error loading scorecards: ${error.message}`);
       process.exit(1);
@@ -444,7 +446,7 @@ async function main() {
     
     // Ensure CUSTOMER_PUBKEY has fixed scorecard values
     scorecards[config.CUSTOMER_PUBKEY] = [1, 1, 1, 9999];
-    console.log(`Set fixed scorecard for CUSTOMER_PUBKEY: [1, 1, 1, 9999]`);
+    log(`Set fixed scorecard for CUSTOMER_PUBKEY: [1, 1, 1, 9999]`);
     
     // Iterate until convergence or max iterations
     let iterations = 0;
@@ -452,7 +454,7 @@ async function main() {
     let max_diff = Infinity;
     
     while (iterations < MAX_ITERATIONS && !converged) {
-      console.log(`Iteration ${iterations + 1}/${MAX_ITERATIONS}`);
+      log(`Iteration ${iterations + 1}/${MAX_ITERATIONS}`);
       
       // Create a copy of current scorecards for comparison
       const previous_scorecards = JSON.parse(JSON.stringify(scorecards));
@@ -470,22 +472,18 @@ async function main() {
       
       // Calculate GrapeRank for each ratee
       const rateeArray = Array.from(ratees);
-      console.log(`Calculating GrapeRank for ${rateeArray.length} ratees...`);
+      log(`Calculating GrapeRank for ${rateeArray.length} ratees...`);
       
       // Process ratees in chunks to avoid memory issues
       const CHUNK_SIZE = 1000;
       for (let i = 0; i < rateeArray.length; i += CHUNK_SIZE) {
         const chunk = rateeArray.slice(i, i + CHUNK_SIZE);
-        console.log(`Processing chunk ${Math.floor(i/CHUNK_SIZE) + 1}/${Math.ceil(rateeArray.length/CHUNK_SIZE)} (${chunk.length} ratees)...`);
+        log(`Processing chunk ${Math.floor(i/CHUNK_SIZE) + 1}/${Math.ceil(rateeArray.length/CHUNK_SIZE)} (${chunk.length} ratees)...`);
         
         for (const pk_ratee of chunk) {
           // Skip recalculation for CUSTOMER_PUBKEY as it has fixed values
           if (pk_ratee === config.CUSTOMER_PUBKEY) {
             continue;
-          }
-
-          if (pk_ratee === "0b9e8ebda2508ea3972d81aa0fad559cea1f70719520c1a80dfc9847de71fced") {
-            console.log(`============================================ iterations: ${iterations}`)
           }
           
           const graperank_params = calculateGrapeRankForRatee(pk_ratee, ratings, scorecards, config);
@@ -498,19 +496,18 @@ async function main() {
       
       // Check for convergence
       [max_diff, pubkey_max_diff] = calculateMaxDifference(scorecards, previous_scorecards);
-      console.log(`Maximum difference: ${max_diff}`);
+      log(`Maximum difference: ${max_diff}`);
 
 
       if (max_diff < CONVERGENCE_THRESHOLD) {
         converged = true;
-        console.log(`Converged after ${iterations + 1} iterations`);
+        log(`Converged after ${iterations + 1} iterations`);
       }
 
       // Debug: Track calculations for each iteration
       if (pubkey_debug) {
         const scorecard_current = scorecards[pubkey_debug];
         const scorecard_previous = previous_scorecards[pubkey_debug];
-        console.log(`Debug pubkey ${pubkey_debug}: scorecard_previous: ${JSON.stringify(scorecard_previous)}, scorecard_current: ${JSON.stringify(scorecard_current)}`);
         debug += `${new Date().toISOString()}: Debug pubkey ${pubkey_debug}; iteration: ${iterations}, scorecard_previous: ${JSON.stringify(scorecard_previous)}, scorecard_current: ${JSON.stringify(scorecard_current)}\n`;
       }
 
@@ -523,21 +520,21 @@ async function main() {
     const metadata = generateMetadata(config, iterations, converged, max_diff, start_time, scorecards);
     
     // Write scorecards to file using streaming approach
-    console.log(`Writing scorecards to ${scorecardsFile}...`);
+    log(`Writing scorecards to ${scorecardsFile}...`);
     await writeScorecards(scorecardsFile, scorecards);
     
     // Write metadata to file
     fs.writeFileSync(metadataFile, JSON.stringify(metadata, null, 2));
-    console.log(`Wrote metadata to ${metadataFile}`);
+    log(`Wrote metadata to ${metadataFile}`);
     
     debug += `${new Date().toISOString()}: GrapeRank calculation completed\n`;
     // Write debug log
     fs.writeFileSync(debugFile, debug);
-    console.log(`Wrote debug log to ${debugFile}`);
+    log(`Wrote debug log to ${debugFile}`);
     
-    console.log(`GrapeRank calculation completed in ${metadata.calculation_time_ms}ms`);
+    log(`GrapeRank calculation completed in ${metadata.calculation_time_ms}ms`);
   } catch (error) {
-    console.error(`Error calculating GrapeRank: ${error.message}`);
+    log(`Error calculating GrapeRank: ${error.message}`);
     console.error(error.stack);
     process.exit(1);
   }

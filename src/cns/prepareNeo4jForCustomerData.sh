@@ -39,5 +39,12 @@ echo "$(date): Starting prepareNeo4jForCustomerData for customer_pubkey $CUSTOME
 # Add SetOfNostrUserWotMetricsCards nodes to the neo4j database. This does not require customer_id or customer_pubkey.
 sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addSetsOfMetricsCards.sh
 
+echo "$(date): Continuing prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
+echo "$(date): Continuing prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/prepareNeo4jForCustomerData.log
+
 # Add NostrUserWotMetricsCard nodes to the neo4j database for the given customer
 sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addMetricsCards.sh $CUSTOMER_PUBKEY $CUSTOMER_ID
+
+echo "$(date): Finished prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
+echo "$(date): Finished prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/prepareNeo4jForCustomerData.log
+
