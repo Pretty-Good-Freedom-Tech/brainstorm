@@ -47,10 +47,10 @@ echo "$(date): Starting calculateVerifiedMuterCounts"
 echo "$(date): Starting calculateVerifiedMuterCounts" >> ${LOG_FILE}
 
 CYPHER1="
-MATCH (mutee:NostrUser)<-[:MUTES]-(muter:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(muterCard:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
+MATCH (mutee:NostrUser)<-[m:MUTES]-(muter:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(muterCard:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
 WHERE muterCard.observee_pubkey = muter.pubkey AND muterCard.influence > $VERIFIED_MUTERS_INFLUENCE_CUTOFF
 OPTIONAL MATCH (mutee)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(muteeCard:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
-WITH muteeCard, count(f) AS verifiedMuterCount
+WITH muteeCard, count(m) AS verifiedMuterCount
 SET muteeCard.verifiedMuterCount = verifiedMuterCount
 RETURN COUNT(muteeCard) AS numCardsUpdated"
 
