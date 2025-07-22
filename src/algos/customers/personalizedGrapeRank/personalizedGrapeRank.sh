@@ -22,8 +22,7 @@ LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 
 # Create log directory if it doesn't exist; chown to brainstorm:brainstorm
 mkdir -p "$LOG_DIR"
-touch ${LOG_FILE}
-sudo chown brainstorm:brainstorm ${LOG_FILE}
+sudo chown brainstorm:brainstorm "$LOG_DIR"
 
 # Log file
 LOG_FILE="$LOG_DIR/personalizedGrapeRank.log"

@@ -23,8 +23,9 @@ CUSTOMER_NAME="$3"
 # Get log directory
 LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 
-# Create log directory if it doesn't exist
+# Create log directory if it doesn't exist; chown to brainstorm user
 mkdir -p "$LOG_DIR"
+sudo chown brainstorm:brainstorm "$LOG_DIR"
 
 # Log file
 LOG_FILE="$LOG_DIR/calculateVerifiedReporterCounts.log"

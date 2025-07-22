@@ -5,8 +5,9 @@ source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_
 # Get log directory
 LOG_DIR="$BRAINSTORM_LOG_DIR/customers"
 
-# Create log directory if it doesn't exist
+# Create log directory if it doesn't exist; chown to brainstorm:brainstorm
 mkdir -p "$LOG_DIR"
+sudo chown brainstorm:brainstorm "$LOG_DIR"
 
 # Log file
 LOG_FILE="$LOG_DIR/initializeRawDataCsv.log"
