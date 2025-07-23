@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# example commands:
+# sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processCustomer.sh e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f 0 straycat
+# sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processCustomer.sh 7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e 1 cloudfodder
+# sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processCustomer.sh c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712 2 dawn
+# sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processCustomer.sh df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200 3 manime
+
 CONFIG_FILE="/etc/brainstorm.conf"
 source "$CONFIG_FILE" # BRAINSTORM_MODULE_ALGOS_DIR
 

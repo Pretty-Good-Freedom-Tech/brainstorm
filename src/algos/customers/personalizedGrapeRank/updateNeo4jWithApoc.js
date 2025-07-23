@@ -144,6 +144,8 @@ CALL apoc.periodic.iterate(
 ) YIELD batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages
 RETURN batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages;
   `.trim();
+
+  log(`Cypher command: ${cypherCommand}`);
   
   // Write Cypher command to temporary file
   const cypherFile = path.join(TEMP_DIR, 'updateNeo4j.cypher');
@@ -181,7 +183,7 @@ RETURN batches, total, timeTaken, committedOperations, failedOperations, failedB
 // Function that logs to LOG_FILE and console
 function log(message) {
   const date = new Date();
-  console.log(message);
+  console.log(`${date.toISOString()}: ${message}`);
   fs.appendFileSync(LOG_FILE, `${date.toISOString()}: ${message}\n`);
 }
 

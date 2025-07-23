@@ -2,7 +2,7 @@
 
 # processAllActiveCustomers.sh
 # Consolidated script to process all active customers
-# Replaces the processAllActiveCustomers.sh + processAllActiveCustomers.js combination
+# Replaces the processAllActiveCustomers.sh (deprecated) + processAllActiveCustomers.js combination
 
 # Source configuration
 source /etc/brainstorm.conf # BRAINSTORM_MODULE_ALGOS_DIR, BRAINSTORM_LOG_DIR
