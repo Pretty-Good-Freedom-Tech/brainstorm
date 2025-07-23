@@ -13,14 +13,13 @@ const { exec } = require('child_process');
 function handleProcessAllActiveCustomers(req, res) {
   console.log('Processing all active customers...');
   
-  // Set a longer timeout for the response (10 minutes)
-  req.setTimeout(600000); // 10 minutes in milliseconds
-  res.setTimeout(600000);
+  // Remove all timeouts to allow long-running process (2+ hours)
+  req.setTimeout(0); // 0 = no timeout
+  res.setTimeout(0); // 0 = no timeout
   
-  // Use exec with timeout options - calling the consolidated controller script
+  // Use exec without timeout - allowing unlimited execution time
   const child = exec('sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processAllActiveCustomers.sh', {
-    timeout: 590000, // slightly less than the HTTP timeout
-    maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
+    maxBuffer: 1024 * 1024 * 10 // 10MB buffer for stdout/stderr (increased for long output)
   }, (error, stdout, stderr) => {
     console.log('Processing all active customers completed');
     
