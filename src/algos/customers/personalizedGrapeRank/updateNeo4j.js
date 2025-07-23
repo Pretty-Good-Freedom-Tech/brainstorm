@@ -30,6 +30,12 @@ const CONFIG_FILES = {
   brainstorm: '/etc/brainstorm.conf'
 };
 const BATCH_SIZE = 500; // Number of users to update in a single batch
+const LOG_DIR  = '/var/log/brainstorm/customers/' + CUSTOMER_NAME;
+execSync(`touch ${LOG_DIR}`);
+execSync(`sudo chown brainstorm:brainstorm ${LOG_DIR}`);
+const LOG_FILE = path.join(LOG_DIR, 'updateNeo4j.log');
+execSync(`touch ${LOG_FILE}`);
+execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
 
 // Get Neo4j configuration from brainstorm.conf
 function getNeo4jConfig() {
@@ -123,17 +129,17 @@ async function updateNeo4j(scorecards, neo4jConfig) {
   );
   
   try {
-    console.log('Connected to Neo4j');
+    log('Connected to Neo4j');
     const session = driver.session();
     
     // Get all pubkeys
     const pubkeys = Object.keys(scorecards);
-    console.log(`Updating ${pubkeys.length} users in Neo4j...`);
+    log(`Updating ${pubkeys.length} users in Neo4j...`);
     
     // Process in batches to avoid overwhelming the database
     for (let i = 0; i < pubkeys.length; i += BATCH_SIZE) {
       const batch = pubkeys.slice(i, i + BATCH_SIZE);
-      console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(pubkeys.length/BATCH_SIZE)} (${batch.length} users)...`);
+      log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(pubkeys.length/BATCH_SIZE)} (${batch.length} users)...`);
       
       // Create parameters for batch update
       const params = {
@@ -161,11 +167,11 @@ async function updateNeo4j(scorecards, neo4jConfig) {
       `, params);
       
       const updatedCount = result.records[0].get('updatedCount').toNumber();
-      console.log(`Updated ${updatedCount} users in this batch`);
+      log(`Updated ${updatedCount} users in this batch`);
     }
     
     await session.close();
-    console.log('Neo4j update completed successfully');
+    log('Neo4j update completed successfully');
   } catch (error) {
     console.error(`Error updating Neo4j: ${error.message}`);
     process.exit(1);
@@ -174,31 +180,37 @@ async function updateNeo4j(scorecards, neo4jConfig) {
   }
 }
 
+// Function that logs to LOG_FILE and console
+function log(message) {
+  console.log(message);
+  fs.appendFileSync(LOG_FILE, message + '\n');
+}
+
 // Main function
 async function main() {
   try {
-    console.log('Starting Neo4j update with GrapeRank scores...');
+    log('Starting Neo4j update with GrapeRank scores...');
     
     // Get Neo4j configuration
     const neo4jConfig = getNeo4jConfig();
-    console.log(`Using Neo4j URI: ${neo4jConfig.uri}`);
-    console.log(`Using Neo4j username: ${neo4jConfig.username}`);
+    log(`Using Neo4j URI: ${neo4jConfig.uri}`);
+    log(`Using Neo4j username: ${neo4jConfig.username}`);
     
     // Define file paths
     const scorecardsFile = path.join(TEMP_DIR, 'scorecards.json');
     
     // Load scorecards
-    console.log(`Loading scorecards from ${scorecardsFile}...`);
+    log(`Loading scorecards from ${scorecardsFile}...`);
     const scorecards = await loadScorecards(scorecardsFile);
-    console.log(`Loaded scorecards for ${Object.keys(scorecards).length} pubkeys`);
+    log(`Loaded scorecards for ${Object.keys(scorecards).length} pubkeys`);
     
     // Update Neo4j
     await updateNeo4j(scorecards, neo4jConfig);
     
-    console.log('Neo4j update completed');
+    log('Neo4j update completed');
   } catch (error) {
-    console.error(`Error updating Neo4j: ${error.message}`);
-    console.error(error.stack);
+    log(`Error updating Neo4j: ${error.message}`);
+    log(error.stack);
     process.exit(1);
   }
 }
