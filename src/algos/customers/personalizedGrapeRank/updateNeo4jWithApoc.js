@@ -153,7 +153,7 @@ RETURN batches, total, timeTaken, committedOperations, failedOperations, failedB
   
   try {
     // Execute the Cypher command using cypher-shell
-    const command = `cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" -f "${cypherFile}"`;
+    const command = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" -f "${cypherFile}"`;
     
     const result = execSync(command, { 
       encoding: 'utf8',
