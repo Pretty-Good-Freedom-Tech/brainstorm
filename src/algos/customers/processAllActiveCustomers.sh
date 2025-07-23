@@ -90,7 +90,7 @@ log_message "Processing summary: $processed_count successful, $failed_count fail
 log_message "Cleaning up personalizedGrapeRank tmp files"
 sudo rm -rf /var/lib/brainstorm/algos/personalizedGrapeRank/tmp
 
-log_message "Completed processAllActiveCustomers"
+log_message "Finished processAllActiveCustomers"
 
 # Exit with error if any customers failed
 if [ $failed_count -gt 0 ]; then
