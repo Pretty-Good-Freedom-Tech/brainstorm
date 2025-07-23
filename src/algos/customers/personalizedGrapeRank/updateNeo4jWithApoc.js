@@ -126,20 +126,21 @@ function createApocUpdateFile(scorecards, outputPath) {
 
 // Update Neo4j using APOC periodic iterate
 async function updateNeo4jWithApoc(neo4jConfig, apocFilePath, totalRecords) {
-  log('Starting Neo4j update using APOC periodic iterate...');
+  log(`Starting Neo4j update using APOC periodic iterate for ${CUSTOMER_NAME} using apocFilePath: ${apocFilePath} and file: ${path.basename(apocFilePath)}...`);
   
   // Construct the APOC Cypher command
   const cypherCommand = `
 CALL apoc.periodic.iterate(
   "CALL apoc.load.json('file:///${path.basename(apocFilePath)}') YIELD value AS update RETURN update",
   "
-  MATCH (u:NostrUserWotMetricsCard {observer_pubkey: '${CUSTOMER_PUBKEY}', observee_pubkey: update.pubkey})
+  MATCH (u:NostrUserWotMetricsCard {customer_id: ${CUSTOMER_ID}})
+  WHERE u.observee_pubkey = update.pubkey
   SET u.influence = update.influence,
       u.average = update.average,
       u.confidence = update.confidence,
       u.input = update.input
   ",
-  {batchSize: 1000, parallel: false, retries: 3, errorHandler: 'IGNORE_AND_LOG'}
+  {batchSize: 250, parallel: false, retries: 3, errorHandler: 'IGNORE_AND_LOG'}
 ) YIELD batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages
 RETURN batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages;
   `.trim();
