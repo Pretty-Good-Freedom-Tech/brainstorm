@@ -5,8 +5,9 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // Get command line arguments
-const CUSTOMER_NAME = process.argv[2];
-const CUSTOMER_PUBKEY = process.argv[3];
+const CUSTOMER_PUBKEY = process.argv[2];
+const CUSTOMER_ID = process.argv[3];
+const CUSTOMER_NAME = process.argv[4];
 
 if (!CUSTOMER_NAME || !CUSTOMER_PUBKEY) {
   console.error('Usage: node updateNeo4jWithApoc.js <customer_name> <customer_pubkey>');
