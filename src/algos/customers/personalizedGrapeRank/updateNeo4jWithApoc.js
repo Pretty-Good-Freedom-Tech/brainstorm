@@ -30,7 +30,7 @@ execSync(`touch ${LOG_FILE}`);
 execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
 
 // Get Neo4j configuration from brainstorm.conf
-function getNeo4jConfig() {
+function getNeo4jConfig_deprecated() {
   const configContent = fs.readFileSync(CONFIG_FILES.brainstorm, 'utf8');
   const lines = configContent.split('\n');
   
@@ -50,6 +50,40 @@ function getNeo4jConfig() {
     username: config.NEO4J_USER || 'neo4j',
     password: config.NEO4J_PASSWORD || 'password'
   };
+}
+
+// Get Neo4j configuration from brainstorm.conf
+function getNeo4jConfig() {
+  try {
+    // Load Neo4j connection details from brainstorm.conf
+    const neo4jUri = execSync(`source ${CONFIG_FILES.brainstorm} && echo $NEO4J_URI`, { 
+      shell: '/bin/bash',
+      encoding: 'utf8' 
+    }).trim();
+    
+    const neo4jUsername = execSync(`source ${CONFIG_FILES.brainstorm} && echo $NEO4J_USER`, { 
+      shell: '/bin/bash',
+      encoding: 'utf8' 
+    }).trim();
+    
+    const neo4jPassword = execSync(`source ${CONFIG_FILES.brainstorm} && echo $NEO4J_PASSWORD`, { 
+      shell: '/bin/bash',
+      encoding: 'utf8' 
+    }).trim();
+    
+    if (!neo4jUri || !neo4jUsername || !neo4jPassword) {
+      throw new Error('Missing Neo4j connection details in brainstorm.conf. Please ensure NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD are defined.');
+    }
+    
+    return {
+      uri: neo4jUri,
+      username: neo4jUsername,
+      password: neo4jPassword
+    };
+  } catch (error) {
+    console.error(`Error loading Neo4j configuration: ${error.message}`);
+    process.exit(1);
+  }
 }
 
 // Load scorecards from JSON file
