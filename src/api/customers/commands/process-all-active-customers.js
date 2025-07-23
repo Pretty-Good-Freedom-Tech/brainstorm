@@ -17,8 +17,8 @@ function handleProcessAllActiveCustomers(req, res) {
   req.setTimeout(600000); // 10 minutes in milliseconds
   res.setTimeout(600000);
   
-  // Use exec with timeout options
-  const child = exec('sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processAllActiveCustomers.sh', {
+  // Use exec with timeout options - calling the consolidated controller script
+  const child = exec('sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processAllActiveCustomersController.sh', {
     timeout: 590000, // slightly less than the HTTP timeout
     maxBuffer: 1024 * 1024 // 1MB buffer for stdout/stderr
   }, (error, stdout, stderr) => {
