@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# processAllActiveCustomersController.sh
+# processAllActiveCustomers.sh
 # Consolidated script to process all active customers
 # Replaces the processAllActiveCustomers.sh + processAllActiveCustomers.js combination
 
@@ -12,7 +12,7 @@ mkdir -p "$BRAINSTORM_LOG_DIR"
 sudo chown brainstorm:brainstorm "$BRAINSTORM_LOG_DIR"
 
 # Log file
-LOG_FILE="$BRAINSTORM_LOG_DIR/processAllActiveCustomersController.log"
+LOG_FILE="$BRAINSTORM_LOG_DIR/processAllActiveCustomers.log"
 touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
@@ -22,11 +22,12 @@ log_message() {
     echo "$(date): $1" >> ${LOG_FILE}
 }
 
-log_message "Starting processAllActiveCustomersController"
+log_message "Starting processAllActiveCustomers"
 
 # Define paths
 ALGOS_DIR="${BRAINSTORM_MODULE_ALGOS_DIR}"
-CUSTOMERS_JSON="${BRAINSTORM_MODULE_ALGOS_DIR}/customers/customers.json"
+CUSTOMERS_DIR='/var/lib/brainstorm/customers';
+CUSTOMERS_JSON="${CUSTOMERS_DIR}/customers.json";
 PROCESS_CUSTOMER_SCRIPT="${ALGOS_DIR}/customers/processCustomer.sh"
 
 # Check if customers.json exists
@@ -89,7 +90,7 @@ log_message "Processing summary: $processed_count successful, $failed_count fail
 log_message "Cleaning up personalizedGrapeRank tmp files"
 sudo rm -rf /var/lib/brainstorm/algos/personalizedGrapeRank/tmp
 
-log_message "Completed processAllActiveCustomersController"
+log_message "Completed processAllActiveCustomers"
 
 # Exit with error if any customers failed
 if [ $failed_count -gt 0 ]; then
