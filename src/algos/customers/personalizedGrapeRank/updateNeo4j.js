@@ -182,8 +182,9 @@ async function updateNeo4j(scorecards, neo4jConfig) {
 
 // Function that logs to LOG_FILE and console
 function log(message) {
+  const date = new Date();
   console.log(message);
-  fs.appendFileSync(LOG_FILE, message + '\n');
+  fs.appendFileSync(LOG_FILE, `${date.toISOString()}: ${message}\n`);
 }
 
 // Main function
