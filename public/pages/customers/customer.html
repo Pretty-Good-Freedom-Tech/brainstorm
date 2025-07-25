@@ -304,17 +304,25 @@
         
         async function checkAuthenticationStatus() {
             try {
-                // Check if user has Nostr extension and can get public key
-                if (!window.nostr) {
-                    console.log('No Nostr extension found');
+                // Check authentication status with the server
+                const response = await fetch('/api/auth/status');
+                if (!response.ok) {
+                    console.log('Failed to check auth status:', response.status);
                     return null;
                 }
                 
-                const pubkey = await window.nostr.getPublicKey();
-                console.log('User pubkey:', pubkey);
-                return pubkey;
+                const data = await response.json();
+                console.log('Auth status response:', data);
+                
+                if (data && data.authenticated && data.pubkey) {
+                    console.log('User is authenticated with pubkey:', data.pubkey);
+                    return data.pubkey;
+                } else {
+                    console.log('User is not authenticated');
+                    return null;
+                }
             } catch (error) {
-                console.log('Error getting public key:', error);
+                console.log('Error checking authentication status:', error);
                 return null;
             }
         }

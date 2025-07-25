@@ -136,7 +136,7 @@ function loadNavbar() {
     if (
         currentPath === '/customer.html'
     ) {
-        navbarPath = '/components/header/navbars/customer.html';
+        navbarPath = '/components/header/navbars/customers.html';
     }
 
     if (
