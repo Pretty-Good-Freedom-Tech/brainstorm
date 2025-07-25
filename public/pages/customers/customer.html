@@ -3,11 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainstorm</title>
+    <title>Customer Status - Brainstorm</title>
     <link rel="stylesheet" href="/control/css/common.css">
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
+    <style>
+        .customer-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .status-card.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .status-card.warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        .status-card.info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .user-info {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .user-info h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .pubkey {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 5px 8px;
+            border-radius: 4px;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+        
+        .action-buttons {
+            margin: 20px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: 1px solid #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+            border-color: #545b62;
+        }
+        
+        .customer-details {
+            background: #ffffff;
+            border: 1px solid #28a745;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .customer-details h3 {
+            color: #28a745;
+            margin-top: 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .detail-value {
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body>
     <!-- Include the header component -->
@@ -15,13 +161,264 @@
 
     <!-- Main content wrapper -->
     <div class="page-content">
-        <div class="container">
-            <h1>Customer</h1>
-            <p>Customer</p>
+        <div class="customer-container">
+            <h1>Customer Status</h1>
+            
+            <!-- Loading state -->
+            <div id="loadingState" class="loading">
+                <div class="loader"></div>
+                <p>Checking authentication status...</p>
+            </div>
+            
+            <!-- Not logged in state -->
+            <div id="notLoggedInState" class="status-card warning" style="display: none;">
+                <h2>🔐 Authentication Required</h2>
+                <p>You need to be logged in to view your customer status.</p>
+                <div class="action-buttons">
+                    <a href="/sign-in.html" class="btn btn-primary">Sign In</a>
+                </div>
+            </div>
+            
+            <!-- Not a customer state -->
+            <div id="notCustomerState" class="status-card info" style="display: none;">
+                <h2>👋 Welcome!</h2>
+                <div id="userInfo" class="user-info"></div>
+                <p>You're not currently a customer. Would you like to sign up for our services?</p>
+                <div class="action-buttons">
+                    <a href="/sign-up.html" class="btn btn-primary">Sign Up</a>
+                    <a href="/home.html" class="btn btn-secondary">Back to Home</a>
+                </div>
+            </div>
+            
+            <!-- Customer state -->
+            <div id="customerState" class="status-card success" style="display: none;">
+                <h2>✅ Customer Status</h2>
+                <div id="customerUserInfo" class="user-info"></div>
+                <div id="customerDetails" class="customer-details"></div>
+                <div class="action-buttons">
+                    <a href="/home.html" class="btn btn-secondary">Back to Home</a>
+                </div>
+            </div>
+            
+            <!-- Error state -->
+            <div id="errorState" class="status-card warning" style="display: none;">
+                <h2>⚠️ Error</h2>
+                <p id="errorMessage">An error occurred while checking your status.</p>
+                <div class="action-buttons">
+                    <button onclick="checkCustomerStatus()" class="btn btn-primary">Try Again</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Include the footer component -->
     <div id="footerContainer"></div>
+    
+    <script>
+        // Get base URL for API calls
+        const baseUrl = window.location.origin;
+        
+        // State management
+        const states = {
+            loading: document.getElementById('loadingState'),
+            notLoggedIn: document.getElementById('notLoggedInState'),
+            notCustomer: document.getElementById('notCustomerState'),
+            customer: document.getElementById('customerState'),
+            error: document.getElementById('errorState')
+        };
+        
+        function showState(stateName) {
+            // Hide all states
+            Object.values(states).forEach(state => {
+                if (state) state.style.display = 'none';
+            });
+            
+            // Show the requested state
+            if (states[stateName]) {
+                states[stateName].style.display = 'block';
+            }
+        }
+        
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            if (errorMessage) {
+                errorMessage.textContent = message;
+            }
+            showState('error');
+        }
+        
+        function formatPubkey(pubkey) {
+            if (!pubkey) return 'N/A';
+            return `${pubkey.substring(0, 8)}...${pubkey.substring(pubkey.length - 8)}`;
+        }
+        
+        function createUserInfoHTML(userData) {
+            return `
+                <h3>User Information</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Display Name:</span>
+                    <span class="detail-value">${userData.display_name || 'Not set'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Username:</span>
+                    <span class="detail-value">${userData.name || 'Not set'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Public Key:</span>
+                    <span class="detail-value pubkey">${formatPubkey(userData.pubkey)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">About:</span>
+                    <span class="detail-value">${userData.about ? userData.about.substring(0, 100) + (userData.about.length > 100 ? '...' : '') : 'Not set'}</span>
+                </div>
+            `;
+        }
+        
+        function createCustomerDetailsHTML(customerData) {
+            return `
+                <h3>Customer Details</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Customer ID:</span>
+                    <span class="detail-value">${customerData.id || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">${customerData.name || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value" style="color: #28a745; font-weight: 600;">${customerData.status || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Directory:</span>
+                    <span class="detail-value">${customerData.directory || 'N/A'}</span>
+                </div>
+                ${customerData.comments ? `
+                <div class="detail-row">
+                    <span class="detail-label">Comments:</span>
+                    <span class="detail-value">${customerData.comments}</span>
+                </div>
+                ` : ''}
+            `;
+        }
+        
+        async function checkAuthenticationStatus() {
+            try {
+                // Check if user has Nostr extension and can get public key
+                if (!window.nostr) {
+                    console.log('No Nostr extension found');
+                    return null;
+                }
+                
+                const pubkey = await window.nostr.getPublicKey();
+                console.log('User pubkey:', pubkey);
+                return pubkey;
+            } catch (error) {
+                console.log('Error getting public key:', error);
+                return null;
+            }
+        }
+        
+        async function fetchUserData(pubkey) {
+            try {
+                const response = await fetch(`${baseUrl}/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                throw error;
+            }
+        }
+        
+        async function fetchCustomersData() {
+            try {
+                const response = await fetch(`${baseUrl}/api/get-customers`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching customers data:', error);
+                throw error;
+            }
+        }
+        
+        function findCustomerByPubkey(customersData, pubkey) {
+            if (!customersData.success || !customersData.customers) {
+                return null;
+            }
+            
+            return customersData.customers.find(customer => customer.pubkey === pubkey);
+        }
+        
+        async function checkCustomerStatus() {
+            try {
+                showState('loading');
+                
+                // Step 1: Check authentication status
+                const pubkey = await checkAuthenticationStatus();
+                
+                if (!pubkey) {
+                    showState('notLoggedIn');
+                    return;
+                }
+                
+                // Step 2: Fetch user data
+                const userData = await fetchUserData(pubkey);
+                
+                // Step 3: Fetch customers data
+                const customersData = await fetchCustomersData();
+                
+                // Step 4: Check if user is a customer
+                const customerInfo = findCustomerByPubkey(customersData, pubkey);
+                
+                if (customerInfo) {
+                    // User is a customer - show customer status
+                    const customerUserInfo = document.getElementById('customerUserInfo');
+                    const customerDetails = document.getElementById('customerDetails');
+                    
+                    if (customerUserInfo) {
+                        customerUserInfo.innerHTML = createUserInfoHTML(userData);
+                    }
+                    
+                    if (customerDetails) {
+                        customerDetails.innerHTML = createCustomerDetailsHTML(customerInfo);
+                    }
+                    
+                    showState('customer');
+                } else {
+                    // User is not a customer - show signup prompt
+                    const userInfo = document.getElementById('userInfo');
+                    if (userInfo) {
+                        userInfo.innerHTML = createUserInfoHTML(userData);
+                    }
+                    
+                    showState('notCustomer');
+                }
+                
+            } catch (error) {
+                console.error('Error checking customer status:', error);
+                showError(`Failed to check customer status: ${error.message}`);
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a bit for Nostr extension to load
+            setTimeout(checkCustomerStatus, 500);
+        });
+        
+        // Also check when window loads (fallback)
+        window.addEventListener('load', function() {
+            // Only run if we're still in loading state
+            if (states.loading && states.loading.style.display !== 'none') {
+                setTimeout(checkCustomerStatus, 1000);
+            }
+        });
+    </script>
 </body>
 </html>
