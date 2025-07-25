@@ -373,7 +373,7 @@ async function main() {
       
       for (const user of batchUsers) {
         try {
-          console.log(`Creating event for user: ${user.pubkey} personalizedPageRank: ${user.personalizedPageRank} hops: ${user.hops} influence: ${user.influence} average: ${user.average} confidence: ${user.confidence} input: ${user.input}`);
+          console.log(`Creating event for user: ${user.pubkey} personalizedPageRank: ${user.personalizedPageRank} hops: ${user.hops} influence: ${user.influence} average: ${user.average} confidence: ${user.confidence} input: ${user.input} verifiedFollowerCount: ${user.verifiedFollowerCount} verifiedMuterCount: ${user.verifiedMuterCount} verifiedReporterCount: ${user.verifiedReporterCount}`);
           
           // Create the event
           const event = createEvent(
@@ -383,7 +383,10 @@ async function main() {
             user.influence,
             user.average,
             user.confidence,
-            user.input
+            user.input,
+            user.verifiedFollowerCount,
+            user.verifiedMuterCount,
+            user.verifiedReporterCount
           );
           
           // Save the event to a file
