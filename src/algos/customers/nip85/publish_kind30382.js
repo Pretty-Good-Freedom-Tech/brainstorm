@@ -173,12 +173,24 @@ function processUserRecord(record) {
   if (user.input === null || user.input === undefined) {
     user.input = 0;
   }
+
+  if (user.verifiedFollowerCount === null || user.verifiedFollowerCount === undefined) {
+    user.verifiedFollowerCount = 0;
+  }
+
+  if (user.verifiedMuterCount === null || user.verifiedMuterCount === undefined) {
+    user.verifiedMuterCount = 0;
+  }
+
+  if (user.verifiedReporterCount === null || user.verifiedReporterCount === undefined) {
+    user.verifiedReporterCount = 0;
+  }
   
   return user;
 }
 
 // Create and sign a kind 30382 event
-function createEvent(userPubkey, personalizedPageRank, hops, influence, average, confidence, input) {
+function createEvent(userPubkey, personalizedPageRank, hops, influence, average, confidence, input, verifiedFollowerCount, verifiedMuterCount, verifiedReporterCount) {
   // Create the event object
   const rankValue = Math.round(parseFloat(influence) * 100).toString();
   const event = {
