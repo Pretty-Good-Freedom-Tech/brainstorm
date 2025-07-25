@@ -106,7 +106,7 @@ cleanup
 # populates currentRelationshipsFromNeo4j/mutes
 log "Step 1A: Extracting current mutes from Neo4j"
 START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentMutesFromNeo4j.js" \
+sudo node "${BASE_DIR}/getCurrentMutesFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
   --neo4jUser="${NEO4J_USER}" \
   --neo4jPassword="${NEO4J_PASSWORD}" \
@@ -118,10 +118,11 @@ log "Completed extracting Neo4j mutes in ${DURATION} seconds"
 
 # Step 2A: convert kind 10000 events to mutes
 # populates currentRelationshipsFromStrfry/mutes
-log "Step 2A: Converting kind 10000 events to mutes"
+log "Step 2Aa: Converting kind 10000 events to mutes"
 sudo bash ${BASE_DIR}/strfryToKind10000Events.sh
-node "${BASE_DIR}/kind10000EventsToMutes.js"
-log "Completed converting kind 10000 events to mutes"
+log "Step 2Ab: Completed strfry to kind 10000 events"
+sudo node "${BASE_DIR}/kind10000EventsToMutes.js"
+log "Step 2Ac: Completed kind 10000 events to mutes"
 # check_disk_space "After kind 10000 events to mutes"
 
 # Step 3A: create json files for adding and deleting mutes
@@ -153,7 +154,7 @@ log "Step 4A completed applying mutes to Neo4j"
 # populates currentRelationshipsFromNeo4j/reports
 log "Step 1C: Extracting current reports from Neo4j"
 START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentReportsFromNeo4j.js" \
+sudo node "${BASE_DIR}/getCurrentReportsFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
   --neo4jUser="${NEO4J_USER}" \
   --neo4jPassword="${NEO4J_PASSWORD}" \
@@ -165,10 +166,11 @@ log "Completed extracting Neo4j reports in ${DURATION} seconds"
 
 # Step 2C: convert kind 1984 events to reports
 # populates currentRelationshipsFromStrfry/reports
-log "Step 2C: Converting kind 1984 events to reports"
+log "Step 2Ca: Converting kind 1984 events to reports"
 sudo bash ${BASE_DIR}/strfryToKind1984Events.sh
-node "${BASE_DIR}/kind1984EventsToReports.js"
-log "Completed converting kind 1984 events to reports"
+log "Step 2Cb: Completed strfry to kind 1984 events"
+sudo node "${BASE_DIR}/kind1984EventsToReports.js"
+log "Step 2Cc: Completed kind 1984 events to reports"
 # check_disk_space "After kind 1984 events to reports"
 
 # Step 3C: create json files for adding and deleting reports
@@ -200,7 +202,7 @@ log "Step 4C completed applying reports to Neo4j"
 # populates currentRelationshipsFromNeo4j/follows
 log "Step 1B: Extracting current follows from Neo4j"
 START_TIME=$(date +%s)
-node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
+sudo node "${BASE_DIR}/getCurrentFollowsFromNeo4j.js" \
   --neo4jUri="${NEO4J_URI}" \
   --neo4jUser="${NEO4J_USER}" \
   --neo4jPassword="${NEO4J_PASSWORD}" \
@@ -212,10 +214,11 @@ log "Completed extracting Neo4j follows in ${DURATION} seconds"
 
 # Step 2B: convert kind 3 events to follows
 # populates currentRelationshipsFromStrfry/follows
-log "Step 2B: Converting kind 3 events to follows"
+log "Step 2Ba: Converting kind 3 events to follows"
 sudo bash ${BASE_DIR}/strfryToKind3Events.sh
-node "${BASE_DIR}/kind3EventsToFollows.js"
-log "Completed converting kind 3 events to follows"
+log "Step 2Bb: Completed strfry to kind 3 events"
+sudo node "${BASE_DIR}/kind3EventsToFollows.js"
+log "Step 2Bc: Completed kind 3 events to follows"
 # check_disk_space "After kind 3 events to follows"
 
 # Step 3B: create json files for adding and deleting follows

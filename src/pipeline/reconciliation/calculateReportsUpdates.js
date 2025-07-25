@@ -212,7 +212,7 @@ async function processFilesInBatches(files, outputStream, concurrency) {
     
     // Report progress
     const progress = Math.round((processedFiles / totalFiles) * 100);
-    // log(`Progress: ${progress}% (${processedFiles}/${totalFiles}) - Added ${batchReportsAdded} reports in this batch`);
+    log(`Progress: ${progress}% (${processedFiles}/${totalFiles}) - Added ${batchReportsAdded} reports in this batch`);
     
     // Force garbage collection if available
     if (global.gc) global.gc();

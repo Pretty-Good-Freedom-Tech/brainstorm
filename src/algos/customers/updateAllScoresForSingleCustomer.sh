@@ -62,6 +62,12 @@ echo "$(date): Continuing calculateAllScores; starting processFollowsMutesReport
 # Run processFollowsMutesReports.sh
 sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFollowsMutesReports.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
 
+# TODO:
+# process nip-56 reports by reportType
+# create blacklist
+# create whitelist
+# generate nip-85 exports
+
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
