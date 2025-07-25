@@ -71,12 +71,13 @@ if [ -f "/etc/brainstorm.conf" ]; then
         echo "export ${NSEC_VAR_NAME}='$CUSTOMER_RELAY_NSEC'" | sudo tee -a /etc/brainstorm.conf
         echo "# keys added by createCustomerRelayPubkeyIfNeeded.sh" | sudo tee -a /etc/brainstorm.conf
         echo "#############################################################" | sudo tee -a /etc/brainstorm.conf
+        echo "Nostr identity created successfully!"
+        echo "PUBKEY: $CUSTOMER_RELAY_PUBKEY"
+        echo "NPUB: $CUSTOMER_RELAY_NPUB"
+        echo "Keys have been added to /etc/brainstorm.conf (if it exists)"
     fi
 else
     echo "Warning: /etc/brainstorm.conf not found."
 fi
 
-echo "Nostr identity created successfully!"
-echo "PUBKEY: $CUSTOMER_RELAY_PUBKEY"
-echo "NPUB: $CUSTOMER_RELAY_NPUB"
-echo "Keys have been added to /etc/brainstorm.conf (if it exists)"
+

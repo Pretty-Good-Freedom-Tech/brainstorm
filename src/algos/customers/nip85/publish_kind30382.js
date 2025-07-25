@@ -22,9 +22,6 @@ const CUSTOMER_PUBKEY = process.argv[2];
 const CUSTOMER_ID = process.argv[3];
 const CUSTOMER_NAME = process.argv[4];
 
-// Get customer private key from config file
-const CUSTOMER_RELAY_PRIVKEY = getConfigFromFile('CUSTOMER_' + CUSTOMER_PUBKEY + '_RELAY_PRIVKEY', '');
-
 // Get log directory
 const LOG_DIR = '/var/log/brainstorm/customers/' + CUSTOMER_NAME;
 execSync(`touch ${LOG_DIR}`);
@@ -38,7 +35,7 @@ execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
 // Get relay configuration
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
 // const relayNsec = getConfigFromFile('BRAINSTORM_RELAY_PRIVKEY', '');
-const relayNsec = getConfigFromFile(CUSTOMER_RELAY_PRIVKEY, '');
+const relayNsec = getConfigFromFile('CUSTOMER_' + CUSTOMER_PUBKEY + '_RELAY_PRIVKEY', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
