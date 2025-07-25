@@ -86,7 +86,7 @@ const driver = neo4j.driver(
 );
 
 // Function to get users with WoT scores from Neo4j
-async function getUsers(limit = null) {
+async function getUsers() {
   const session = driver.session();
   
   try {
@@ -115,12 +115,7 @@ async function getUsers(limit = null) {
              u.verifiedReporterCount AS verifiedReporterCount
       ORDER BY u.influence DESC
       LIMIT 1000
-    `;
-    
-    if (limit !== null && !isNaN(parseInt(limit))) {
-      query += ` LIMIT ${parseInt(limit)}`;
-    }
-    
+    `;    
     const result = await session.run(query);
     
     // Process the records
@@ -322,18 +317,8 @@ function publishEventToRelay(event, targetRelayUrl = relayUrl) {
 // Main function
 async function main() {
   try {
-    // Check if a limit was provided as a command-line argument
-    const args = process.argv.slice(2);
-    let limit = null;
-    
-    if (args.length > 0 && !isNaN(parseInt(args[0]))) {
-      limit = parseInt(args[0]);
-      console.log(`Using limit: ${limit}`);
-      execSync(`echo "$(date): Using limit: ${limit}" >> ${LOG_FILE}`);
-    }
-    
     // Fetch users with personalizedPageRank
-    const users = await getUsers(limit);
+    const users = await getUsers();
     
     if (users.length === 0) {
       console.log('No users found with WoT scores');
