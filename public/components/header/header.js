@@ -134,6 +134,12 @@ function loadNavbar() {
     }
 
     if (
+        currentPath === '/customer.html'
+    ) {
+        navbarPath = '/components/header/navbars/customer.html';
+    }
+
+    if (
         currentPath === ''
         || currentPath === '/'
         || currentPath === '/index.html'
@@ -327,6 +333,7 @@ function highlightCurrentPage() {
         '/search.html': '/search',
         '/follow-recs.html': '/follow-recs',
         '/customers.html': '/customers',
+        '/customer.html': '/customer',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
