@@ -66,7 +66,12 @@ sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFo
 # process nip-56 reports by reportType
 # create blacklist
 # create whitelist
+
 # generate nip-85 exports
+sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
+
+echo "$(date): Continuing calculateAllScores; starting publishNip85.sh"
+echo "$(date): Continuing calculateAllScores; starting publishNip85.sh" >> "$LOG_FILE"
 
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
