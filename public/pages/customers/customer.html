@@ -237,6 +237,59 @@
             color: #6c757d;
         }
         
+        .event-status-section {
+            border-top: 1px solid #dee2e6;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+        
+        .event-status-section h4 {
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+        
+        .info-container {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .info-value {
+            color: #007bff;
+            font-weight: 500;
+        }
+        
+        .event-json {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 0.85em;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
         .event-management {
             border-top: 1px solid #dee2e6;
             margin-top: 20px;
@@ -400,6 +453,34 @@
                     
                     <div id="nip85Content" style="display: none;">
                         <div id="nip85EventDetails" class="event-details"></div>
+                        
+                        <!-- Kind 30382 Event Status Section -->
+                        <div class="event-status-section">
+                            <h4>📊 Kind 30382 Event Status</h4>
+                            <p>View information about existing Kind 30382 events for your customer profile.</p>
+                            
+                            <div class="button-group">
+                                <button id="refreshKind30382InfoBtn" class="event-btn primary">Refresh Event Info</button>
+                            </div>
+                            
+                            <div id="kind30382InfoContainer" class="info-container">
+                                <div class="info-row">
+                                    <span class="info-label">Total Events:</span>
+                                    <span id="kind30382Count" class="info-value">Loading...</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Last Published:</span>
+                                    <span id="kind30382Timestamp" class="info-value">Loading...</span>
+                                </div>
+                            </div>
+                            
+                            <div id="kind30382InfoStatus" class="status-message" style="display: none;"></div>
+                            
+                            <div id="kind30382EventContainer" class="event-details" style="display: none;">
+                                <h5>Latest Event:</h5>
+                                <pre id="kind30382LatestEvent" class="event-json"></pre>
+                            </div>
+                        </div>
                         
                         <!-- Event Management Section -->
                         <div class="event-management">
@@ -853,6 +934,82 @@
             }
         }
         
+        function showKind30382Status(message, type) {
+            const kind30382InfoStatus = document.getElementById('kind30382InfoStatus');
+            if (kind30382InfoStatus) {
+                kind30382InfoStatus.textContent = message;
+                kind30382InfoStatus.className = `status-message ${type}`;
+                kind30382InfoStatus.style.display = 'block';
+                
+                // Clear status message after a delay for success messages
+                if (type === 'success') {
+                    setTimeout(() => {
+                        kind30382InfoStatus.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+        
+        async function fetchKind30382Info(customerPubkey) {
+            const kind30382Count = document.getElementById('kind30382Count');
+            const kind30382Timestamp = document.getElementById('kind30382Timestamp');
+            const kind30382EventContainer = document.getElementById('kind30382EventContainer');
+            const kind30382LatestEvent = document.getElementById('kind30382LatestEvent');
+            
+            try {
+                // Set loading state
+                kind30382Count.textContent = 'Loading...';
+                kind30382Timestamp.textContent = 'Loading...';
+                showKind30382Status('Fetching event information...', 'info');
+                
+                // Make API request with customer pubkey
+                const response = await fetch(`/api/get-kind30382-info?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update count
+                    kind30382Count.textContent = data.count || '0';
+                    
+                    // Update timestamp
+                    if (data.timestamp) {
+                        const date = new Date(data.timestamp * 1000);
+                        kind30382Timestamp.textContent = date.toLocaleString();
+                    } else {
+                        kind30382Timestamp.textContent = 'No events found';
+                    }
+                    
+                    // Update latest event
+                    if (data.latestEvent) {
+                        kind30382EventContainer.style.display = 'block';
+                        kind30382LatestEvent.textContent = JSON.stringify(data.latestEvent, null, 2);
+                    } else {
+                        kind30382EventContainer.style.display = 'none';
+                    }
+                    
+                    showKind30382Status('Event information updated successfully!', 'success');
+                } else {
+                    showKind30382Status(`Error: ${data.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching Kind 30382 info:', error);
+                showKind30382Status(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function setupKind30382EventStatus(customerPubkey) {
+            const refreshBtn = document.getElementById('refreshKind30382InfoBtn');
+            
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    fetchKind30382Info(customerPubkey);
+                });
+            }
+            
+            // Fetch info on initial setup
+            fetchKind30382Info(customerPubkey);
+        }
+        
         function setupEventManagement(customerPubkey) {
             const createBtn = document.getElementById('createKind10040Btn');
             const publishBtn = document.getElementById('publishKind10040Btn');
@@ -920,6 +1077,9 @@
                     
                     // Load NIP-85 information for the customer
                     loadNip85Info(pubkey);
+                    
+                    // Setup Kind 30382 event status for the customer
+                    setupKind30382EventStatus(pubkey);
                     
                     // Setup event management for the customer
                     setupEventManagement(pubkey);
