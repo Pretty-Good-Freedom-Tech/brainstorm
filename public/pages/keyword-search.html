@@ -219,9 +219,9 @@
                     // Create npub for display (truncated)
                     const npubDisplay = pubkey.length > 12 ? `${pubkey.substring(0, 8)}...${pubkey.substring(pubkey.length - 4)}` : pubkey;
                     
-                    // Create the profile panel HTML
+                    // Create the profile panel HTML with trust score hover functionality
                     const profileHTML = `
-                        <div class="profile-card">
+                        <div class="profile-card" data-pubkey="${pubkey}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
                             <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
                                 <div class="profile-image">
                                     <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
@@ -245,6 +245,168 @@
                 console.error('Error getting profile data for pubkey:', pubkey, error);
                 return null;
             }
+        }
+        
+        // Trust score tooltip functionality
+        let currentTooltip = null;
+        let tooltipTimeout = null;
+        const trustScoreCache = new Map();
+        
+        function showTrustScoreTooltip(event, pubkey) {
+            // Clear any existing timeout
+            if (tooltipTimeout) {
+                clearTimeout(tooltipTimeout);
+            }
+            
+            // Remove existing tooltip
+            hideTrustScoreTooltip();
+            
+            // Create tooltip element
+            currentTooltip = document.createElement('div');
+            currentTooltip.className = 'trust-score-tooltip';
+            currentTooltip.innerHTML = '<div class="trust-score-loading">Loading trust scores...</div>';
+            
+            // Position tooltip
+            document.body.appendChild(currentTooltip);
+            positionTooltip(event, currentTooltip);
+            
+            // Show tooltip with animation
+            setTimeout(() => {
+                if (currentTooltip) {
+                    currentTooltip.classList.add('show');
+                }
+            }, 10);
+            
+            // Fetch trust score data
+            fetchTrustScoreData(pubkey);
+        }
+        
+        function hideTrustScoreTooltip() {
+            if (currentTooltip) {
+                currentTooltip.classList.remove('show');
+                setTimeout(() => {
+                    if (currentTooltip && currentTooltip.parentNode) {
+                        currentTooltip.parentNode.removeChild(currentTooltip);
+                    }
+                    currentTooltip = null;
+                }, 300);
+            }
+        }
+        
+        function positionTooltip(event, tooltip) {
+            const rect = event.target.closest('.profile-card').getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+            let top = rect.top - tooltipRect.height - 10;
+            
+            // Adjust if tooltip goes off screen
+            if (left < 10) left = 10;
+            if (left + tooltipRect.width > window.innerWidth - 10) {
+                left = window.innerWidth - tooltipRect.width - 10;
+            }
+            if (top < 10) {
+                top = rect.bottom + 10;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+        
+        async function fetchTrustScoreData(pubkey) {
+            try {
+                // Check cache first
+                if (trustScoreCache.has(pubkey)) {
+                    displayTrustScoreData(trustScoreCache.get(pubkey));
+                    return;
+                }
+                
+                const response = await fetch(`/api/get-user-data?pubkey=${pubkey}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const trustData = {
+                        hops: result.data.hops,
+                        influence: result.data.influence,
+                        personalizedPageRank: result.data.personalizedPageRank,
+                        verifiedFollowerCount: result.data.verifiedFollowerCount,
+                        verifiedMuterCount: result.data.verifiedMuterCount,
+                        verifiedReporterCount: result.data.verifiedReporterCount
+                    };
+                    
+                    // Cache the data
+                    trustScoreCache.set(pubkey, trustData);
+                    
+                    // Display the data
+                    displayTrustScoreData(trustData);
+                } else {
+                    displayTrustScoreError('Trust data not available');
+                }
+            } catch (error) {
+                console.error('Error fetching trust score data:', error);
+                displayTrustScoreError('Failed to load trust data');
+            }
+        }
+        
+        function displayTrustScoreData(data) {
+            if (!currentTooltip) return;
+            
+            const formatNumber = (num) => {
+                if (num === null || num === undefined) return 'N/A';
+                if (typeof num === 'number') {
+                    if (num < 0.001 && num > 0) {
+                        return num.toExponential(2);
+                    }
+                    return num.toLocaleString(undefined, { maximumFractionDigits: 4 });
+                }
+                return num.toString();
+            };
+            
+            const formatHops = (hops) => {
+                if (hops === null || hops === undefined) return 'N/A';
+                if (hops === 0) return 'Owner';
+                if (hops === 1) return '1 hop';
+                return `${hops} hops`;
+            };
+            
+            currentTooltip.innerHTML = `
+                <h4>🔒 Trust Scores</h4>
+                <div class="trust-metrics">
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">Distance:</span>
+                        <span class="trust-metric-value">${formatHops(data.hops)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">Influence:</span>
+                        <span class="trust-metric-value">${formatNumber(data.influence)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">PageRank:</span>
+                        <span class="trust-metric-value">${formatNumber(data.personalizedPageRank)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">✅ Followers:</span>
+                        <span class="trust-metric-value">${formatNumber(data.verifiedFollowerCount)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">🔇 Muters:</span>
+                        <span class="trust-metric-value">${formatNumber(data.verifiedMuterCount)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">🚨 Reporters:</span>
+                        <span class="trust-metric-value">${formatNumber(data.verifiedReporterCount)}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayTrustScoreError(message) {
+            if (!currentTooltip) return;
+            
+            currentTooltip.innerHTML = `
+                <h4>🔒 Trust Scores</h4>
+                <div class="trust-score-error">${message}</div>
+            `;
         }
     </script>
 </body>

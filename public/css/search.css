@@ -28,3 +28,84 @@
 .search-button:hover {
     background-color: #2980b9;
 }
+
+/* Trust Score Tooltip Styles */
+.trust-score-tooltip {
+    position: absolute;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000;
+    min-width: 250px;
+    font-size: 12px;
+    line-height: 1.4;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.trust-score-tooltip.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.trust-score-tooltip h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+    padding-bottom: 4px;
+}
+
+.trust-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.trust-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.trust-metric-label {
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+}
+
+.trust-metric-value {
+    font-weight: bold;
+    color: #fff;
+    font-family: monospace;
+}
+
+.trust-score-loading {
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    font-style: italic;
+}
+
+.trust-score-error {
+    text-align: center;
+    color: #ffcccb;
+    font-style: italic;
+}
+
+/* Profile card hover enhancement */
+.profile-card {
+    position: relative;
+}
+
+.profile-card.trust-loading {
+    cursor: wait;
+}
+
+.profile-card.trust-loaded {
+    cursor: pointer;
+}
