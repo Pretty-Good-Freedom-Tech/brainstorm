@@ -201,6 +201,8 @@ function handleGetUserData(req, res) {
       WHERE follower.influence > 0.05
       WITH u, owner, followingCount, followerCount, count(follower) as verifiedFollowerCount
 
+
+
       // Count users that this user mutes
       OPTIONAL MATCH (u)-[m:MUTES]->(muted:NostrUser)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, count(muted) as mutingCount
@@ -214,6 +216,8 @@ function handleGetUserData(req, res) {
       WHERE muter.influence > 0.05
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, count(muter) as verifiedMuterCount
 
+
+
       // Count users that this user reports
       OPTIONAL MATCH (u)-[r:REPORTS]->(reported:NostrUser)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, count(reported) as reportingCount
@@ -222,20 +226,25 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
       WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, count(reporter) as reporterCount
 
+      // Count verified users that report this user
+      OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
+      WHERE reporter.influence > 0.05
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, count(reporter) as verifiedReporterCount
+      
       ////////// Grapevine Analysis
       // frens FRENS (profiles that follow AND are followed by this user)
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, count(fren) as frenCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, count(fren) as frenCount
 
       // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
       OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
       WHERE NOT (u)-[:FOLLOWS]->(groupie)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, count(groupie) as groupieCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, count(groupie) as groupieCount
 
       // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
       WHERE NOT (idol)-[:FOLLOWS]->(u)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, count(idol) as idolCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, count(idol) as idolCount
 
       //////// RECOMMENDATIONS:
       // calculated as:
@@ -250,7 +259,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(u)
       WHERE (recommendation)-[:FOLLOWS]->(owner)
       AND NOT (owner)-[:FOLLOWS]->(recommendation)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, count(recommendation) as recommendationsToOwnerCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, count(recommendation) as recommendationsToOwnerCount
 
       // Intersection of this user's frens and the groupies of the owner
       // followRecommendationsFromOwnerToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by owner)
@@ -259,37 +268,37 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (owner)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(owner)
       WHERE (recommendation)-[:FOLLOWS]->(u)
       AND NOT (u)-[:FOLLOWS]->(recommendation)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
 
       // mutualFrens MUTUAL FRENDS
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
       WHERE (fren)-[:FOLLOWS]->(owner)
       AND (owner)-[:FOLLOWS]->(fren)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, count(fren) as mutualFrenCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, count(fren) as mutualFrenCount
 
       // mutualGroupies MUTUAL GROUPIES
       OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
       WHERE NOT (u)-[:FOLLOWS]->(groupie)
       AND (groupie)-[:FOLLOWS]->(owner)
       AND NOT (owner)-[:FOLLOWS]->(groupie)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, count(groupie) as mutualGroupieCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, count(groupie) as mutualGroupieCount
 
       // mutualIdols MUTUAL IDOLS
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
       WHERE NOT (idol)-[:FOLLOWS]->(u)
       AND (owner)-[:FOLLOWS]->(idol)
       AND NOT (idol)-[:FOLLOWS]->(owner)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, count(idol) as mutualIdolCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, count(idol) as mutualIdolCount
 
       // mutualFollowers MUTUAL FOLLOWERS
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE (follower)-[:FOLLOWS]->(owner)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, count(follower) as mutualFollowerCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, count(follower) as mutualFollowerCount
 
       // mutualFollows MUTUAL FOLLOWS
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(followee:NostrUser)
       WHERE (owner)-[:FOLLOWS]->(followee)
-      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, count(followee) as mutualFollowCount
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, count(followee) as mutualFollowCount
     `
     const query_return1_owner = `
         RETURN u.pubkey as pubkey,
