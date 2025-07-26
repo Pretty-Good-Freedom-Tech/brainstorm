@@ -100,6 +100,7 @@
 /* Profile card hover enhancement */
 .profile-card {
     position: relative;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
 }
 
 .profile-card.trust-loading {
@@ -108,4 +109,24 @@
 
 .profile-card.trust-loaded {
     cursor: pointer;
+}
+
+/* Visual trust cues */
+.profile-card.verified {
+    background-color: rgba(76, 175, 80, 0.1) !important;
+    border: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.profile-card.low-influence {
+    /* Opacity will be set dynamically based on influence score */
+    position: relative;
+}
+
+.profile-card.low-influence:hover {
+    opacity: 1 !important;
+}
+
+/* Keep profile handle always visible */
+.profile-handle {
+    opacity: 1 !important;
 }

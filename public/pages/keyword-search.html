@@ -254,9 +254,23 @@
                         influenceScore = parseFloat(trustResult.data.influence) || 0;
                     }
                     
-                    // Create the profile panel HTML with trust score hover functionality
+                    // Determine visual trust cues based on influence score
+                    const isVerified = influenceScore > 0.1;
+                    const isLowInfluence = influenceScore < 1.0;
+                    const opacityValue = Math.max(0.1, influenceScore); // Minimum 0.1 opacity for visibility
+                    
+                    // Build CSS classes for visual cues
+                    let cssClasses = 'profile-card';
+                    if (isVerified) {
+                        cssClasses += ' verified';
+                    }
+                    if (isLowInfluence) {
+                        cssClasses += ' low-influence';
+                    }
+                    
+                    // Create the profile panel HTML with trust score hover functionality and visual cues
                     const profileHTML = `
-                        <div class="profile-card" data-pubkey="${pubkey}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
+                        <div class="${cssClasses}" data-pubkey="${pubkey}" data-influence="${influenceScore}" style="opacity: ${opacityValue};" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
                             <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
                                 <div class="profile-image">
                                     <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
