@@ -16,14 +16,11 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h2><center>Profile Search</center></h2>
-
             <div class="search-container">
-                <input type="text" id="searchInput2" class="search-input" placeholder="Enter kind 0 search string (name, display_name, about, etc)">
-                <button id="searchButton2">Search</button>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search profiles by name, display name, about, etc. (Press Enter or pause typing to search)">
             </div>
             <br />
-            <div id="searchResults2" class="search-results"  style="display: none;">
+            <div id="searchResults" class="search-results"  style="display: none;">
                 <!-- Search results will be dynamically added here -->
             </div>
 
@@ -41,36 +38,72 @@
 
     <script>
         // Get DOM element references
-        const searchResults2 = document.getElementById('searchResults2');
+        const searchResults = document.getElementById('searchResults');
+        const searchInput = document.getElementById('searchInput');
         
-        // Search by kind0 profile data
-        document.getElementById('searchButton2').addEventListener('click', () => {
-            searchResults2.innerHTML = '';
-            const searchInput2 = document.getElementById('searchInput2').value;
+        // Debounce timer for input events
+        let debounceTimer = null;
+        
+        // Main search function
+        function performSearch() {
+            const searchValue = searchInput.value.trim();
+            
+            // Don't search if input is empty or too short
+            if (searchValue.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            searchResults.innerHTML = '';
             
             // Show loading message
-            searchResults2.innerHTML = '<div class="loading-message">Searching profiles...</div>';
-            searchResults2.style.display = 'block';
+            searchResults.innerHTML = '<div class="loading-message">Searching profiles...</div>';
+            searchResults.style.display = 'block';
             
             // Send a GET request to the API endpoint
-            fetch(`/api/search/profiles?searchType=kind0&searchString=${searchInput2}`)
+            fetch(`/api/search/profiles?searchType=kind0&searchString=${encodeURIComponent(searchValue)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.pubkeys && data.pubkeys.length > 0) {
                         // Clear loading message
-                        searchResults2.innerHTML = '';
+                        searchResults.innerHTML = '';
                         
                         // Create profile panels for each pubkey
-                        createProfilePanels(data.pubkeys, searchResults2);
+                        createProfilePanels(data.pubkeys, searchResults);
                     } else {
-                        searchResults2.innerHTML = '<div class="no-results">No profiles found matching your search criteria.</div>';
+                        searchResults.innerHTML = '<div class="no-results">No profiles found matching your search criteria.</div>';
                         console.error('Search failed:', data.error);
                     }
                 })
                 .catch(error => {
-                    searchResults2.innerHTML = '<div class="error-message">Error during search. Please try again.</div>';
+                    searchResults.innerHTML = '<div class="error-message">Error during search. Please try again.</div>';
                     console.error('Error during search:', error);
                 });
+        }
+        
+        // Debounced input event listener
+        searchInput.addEventListener('input', () => {
+            // Clear existing timer
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+            
+            // Set new timer for 500ms delay
+            debounceTimer = setTimeout(() => {
+                performSearch();
+            }, 500);
+        });
+        
+        // Enter key event listener for immediate search
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                // Clear debounce timer if Enter is pressed
+                if (debounceTimer) {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = null;
+                }
+                performSearch();
+            }
         });
         
         // Function to create profile panels for multiple pubkeys
