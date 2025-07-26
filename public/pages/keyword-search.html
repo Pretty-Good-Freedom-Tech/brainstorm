@@ -202,12 +202,18 @@
         // Function to create a single profile panel
         async function createSingleProfilePanel(pubkey) {
             try {
-                const response = await fetch(`/api/get-kind0?pubkey=${pubkey}`);
-                const result = await response.json();
+                // Fetch both profile data and trust score data in parallel
+                const [profileResponse, trustResponse] = await Promise.all([
+                    fetch(`/api/get-kind0?pubkey=${pubkey}`),
+                    fetch(`/api/get-user-data?pubkey=${pubkey}`)
+                ]);
                 
-                if (result.success && result.data) {
+                const profileResult = await profileResponse.json();
+                const trustResult = await trustResponse.json();
+                
+                if (profileResult.success && profileResult.data) {
                     // Parse the kind 0 event content
-                    const event = result.data;
+                    const event = profileResult.data;
                     const content = JSON.parse(event.content);
                     
                     // Extract profile details
@@ -218,6 +224,22 @@
                     
                     // Create npub for display (truncated)
                     const npubDisplay = pubkey.length > 12 ? `${pubkey.substring(0, 8)}...${pubkey.substring(pubkey.length - 4)}` : pubkey;
+                    
+                    // Store trust score data in cache if available
+                    if (trustResult.success && trustResult.data) {
+                        const trustData = {
+                            hops: trustResult.data.hops,
+                            influence: trustResult.data.influence,
+                            personalizedPageRank: trustResult.data.personalizedPageRank,
+                            verifiedFollowerCount: trustResult.data.verifiedFollowerCount,
+                            verifiedMuterCount: trustResult.data.verifiedMuterCount,
+                            verifiedReporterCount: trustResult.data.verifiedReporterCount
+                        };
+                        trustScoreCache.set(pubkey, trustData);
+                    } else {
+                        // Store null to indicate trust data is not available
+                        trustScoreCache.set(pubkey, null);
+                    }
                     
                     // Create the profile panel HTML with trust score hover functionality
                     const profileHTML = `
@@ -238,7 +260,7 @@
                     
                     return profileHTML;
                 } else {
-                    console.error('Failed to get profile data for pubkey:', pubkey, result.error);
+                    console.error('Failed to get profile data for pubkey:', pubkey, profileResult.error);
                     return null;
                 }
             } catch (error) {
@@ -313,38 +335,18 @@
             tooltip.style.top = top + 'px';
         }
         
-        async function fetchTrustScoreData(pubkey) {
-            try {
-                // Check cache first
-                if (trustScoreCache.has(pubkey)) {
-                    displayTrustScoreData(trustScoreCache.get(pubkey));
-                    return;
-                }
-                
-                const response = await fetch(`/api/get-user-data?pubkey=${pubkey}`);
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    const trustData = {
-                        hops: result.data.hops,
-                        influence: result.data.influence,
-                        personalizedPageRank: result.data.personalizedPageRank,
-                        verifiedFollowerCount: result.data.verifiedFollowerCount,
-                        verifiedMuterCount: result.data.verifiedMuterCount,
-                        verifiedReporterCount: result.data.verifiedReporterCount
-                    };
-                    
-                    // Cache the data
-                    trustScoreCache.set(pubkey, trustData);
-                    
-                    // Display the data
-                    displayTrustScoreData(trustData);
-                } else {
+        function fetchTrustScoreData(pubkey) {
+            // Trust data is now pre-loaded during profile panel creation
+            if (trustScoreCache.has(pubkey)) {
+                const trustData = trustScoreCache.get(pubkey);
+                if (trustData === null) {
                     displayTrustScoreError('Trust data not available');
+                } else {
+                    displayTrustScoreData(trustData);
                 }
-            } catch (error) {
-                console.error('Error fetching trust score data:', error);
-                displayTrustScoreError('Failed to load trust data');
+            } else {
+                // Fallback: this shouldn't happen since data is pre-loaded
+                displayTrustScoreError('Trust data not loaded');
             }
         }
         
