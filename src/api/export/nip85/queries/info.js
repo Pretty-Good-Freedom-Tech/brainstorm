@@ -13,7 +13,7 @@ const { getConfigFromFile } = require('../../../../utils/config');
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleKind10040Info(req, res) {
+function handleGetKind10040Info(req, res) {
   try {
     // Get pubkey from request
     const requestPubkey = req.query.pubkey;
@@ -34,13 +34,13 @@ function handleKind10040Info(req, res) {
     }
     
     // Get most recent kind 10040 event
-    const latestCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${pubkey}"], "limit": 1}'`;
+    const strfryScanCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${pubkey}"], "limit": 1}'`;
     let latestEvent = null;
     let timestamp = null;
     let eventId = null;
     
     try {
-      const output = execSync(latestCmd).toString().trim();
+      const output = execSync(strfryScanCmd).toString().trim();
       if (output) {
         latestEvent = JSON.parse(output);
         timestamp = latestEvent.created_at;
@@ -53,6 +53,7 @@ function handleKind10040Info(req, res) {
     return res.json({
       success: true,
       pubkey: pubkey,
+      strfryScanCmd: strfryScanCmd,
       timestamp: timestamp,
       eventId: eventId,
       latestEvent: latestEvent,
@@ -85,21 +86,21 @@ function handleKind30382Info(req, res) {
     }
     
     // Get count of kind 30382 events
-    const countCmd = `sudo strfry scan --count '{"kinds":[30382], "authors":["${relayPubkey}"]}'`;
+    const strfryScanCountCmd = `sudo strfry scan --count '{"kinds":[30382], "authors":["${relayPubkey}"]}'`;
     let count = 0;
     try {
-      count = parseInt(execSync(countCmd).toString().trim(), 10);
+      count = parseInt(execSync(strfryScanCountCmd).toString().trim(), 10);
     } catch (error) {
       console.error('Error getting event count:', error);
     }
     
     // Get most recent kind 30382 event
-    const latestCmd = `sudo strfry scan '{"kinds":[30382], "authors":["${relayPubkey}"], "limit": 1}'`;
+    const strfryScanCmd = `sudo strfry scan '{"kinds":[30382], "authors":["${relayPubkey}"], "limit": 1}'`;
     let latestEvent = null;
     let timestamp = null;
     
     try {
-      const output = execSync(latestCmd).toString().trim();
+      const output = execSync(strfryScanCmd).toString().trim();
       if (output) {
         latestEvent = JSON.parse(output);
         timestamp = latestEvent.created_at;
@@ -110,6 +111,8 @@ function handleKind30382Info(req, res) {
     
     return res.json({
       success: true,
+      strfryScanCountCmd: strfryScanCountCmd,
+      strfryScanCmd: strfryScanCmd,
       count: count,
       timestamp: timestamp,
       latestEvent: latestEvent,
@@ -124,6 +127,6 @@ function handleKind30382Info(req, res) {
 }
 
 module.exports = {
-  handleKind10040Info,
+  handleGetKind10040Info,
   handleKind30382Info
 };

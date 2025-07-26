@@ -538,7 +538,7 @@
                 kind10040InfoStatus.className = 'status-message info';
                 kind10040InfoStatus.textContent = 'Fetching event information...';
                 
-                fetch('/control/api/kind10040-info')
+                fetch('/control/api/get-kind10040-info')
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {

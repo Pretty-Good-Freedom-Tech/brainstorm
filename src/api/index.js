@@ -109,7 +109,7 @@ function register(app) {
     
     // Query endpoints (read operations)
     app.get('/api/get-kind10040-event', nip85.handleGetKind10040Event);
-    app.get('/api/kind10040-info', nip85.handleKind10040Info);
+    app.get('/api/get-kind10040-info', nip85.handleGetKind10040Info);
     app.get('/api/kind30382-info', nip85.handleKind30382Info);
 
     // Profiles endpoint

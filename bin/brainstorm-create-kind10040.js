@@ -59,6 +59,21 @@ const event = {
       relayUrl
     ],
     [
+      "30382:verifiedFollowersCount",
+      relayPubkey,
+      relayUrl
+    ],
+    [
+      "30382:verifiedMutersCount",
+      relayPubkey,
+      relayUrl
+    ],
+    [
+      "30382:verifiedReportersCount",
+      relayPubkey,
+      relayUrl
+    ],
+    [
       "30382:hops",
       relayPubkey,
       relayUrl

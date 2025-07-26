@@ -8,7 +8,7 @@ const { handleCreateKind10040, handlePublishKind10040 } = require('./commands/ki
 const { handlePublishKind30382 } = require('./commands/kind30382');
 const { handlePublish } = require('./commands/publish');
 const { handleGetKind10040Event } = require('./queries/kind10040');
-const { handleKind10040Info, handleKind30382Info } = require('./queries/info');
+const { handleGetKind10040Info, handleKind30382Info } = require('./queries/info');
 
 // Export handlers directly - this allows the central router 
 // to register endpoints without creating multiple routers
@@ -22,6 +22,6 @@ module.exports = {
     
     // Queries (read operations)
     handleGetKind10040Event,
-    handleKind10040Info,
+    handleGetKind10040Info,
     handleKind30382Info
 };
