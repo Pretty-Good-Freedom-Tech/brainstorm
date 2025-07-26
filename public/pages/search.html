@@ -16,27 +16,23 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h2>Profile Search</h2>
-            <h3>Search by npub</h3>
+            <h2><center>Profile Search</center></h2>
+
             <div class="search-container">
-                <input type="text" id="searchInput1" class="search-input" placeholder="npub...">
-                <button id="searchButton">Search</button>
-            </div>
-            <h3>Search by pubkey</h3>
-            <div class="search-container">
-                <input type="text" id="searchInput2" class="search-input" placeholder="pubkey... (this search is not yet implemented)">
+                <input type="text" id="searchInput2" class="search-input" placeholder="Enter kind 0 search string (name, display_name, about, etc)">
                 <button id="searchButton2">Search</button>
             </div>
-            
-            <div id="searchResultsPubkey" class="search-results"  style="display: none;">
-                <!-- Search results (pubkey) will be dynamically added here -->
-            </div>
-            <div id="searchResultsProfileCard" class="search-results"  style="display: none;">
-                <!-- Search results (full profile) will be dynamically added here -->
-            </div>
             <br />
-            <h2>Keyword Search (coming soon)</h2>
-            <br />
+            <div id="searchResults2" class="search-results"  style="display: none;">
+                <!-- Search results will be dynamically added here -->
+            </div>
+
+            <hr />
+
+            <div id="profileCard" class="profile-card"  style="display: none;">
+                <!-- Profile card will be dynamically added here
+                 will contain profile information includig picture, displayName, username, about, and will link to profile page -->
+            </div>
         </div>
     </div>
 
@@ -44,82 +40,365 @@
     <div id="footerContainer"></div>
 
     <script>
-        // Search by npub
-        document.getElementById('searchButton').addEventListener('click', () => {
-            searchResultsPubkey.innerHTML = '';
-            searchResultsProfileCard.innerHTML = '';
-            const searchInput1 = document.getElementById('searchInput1').value;
+        // Get DOM element references
+        const searchResults2 = document.getElementById('searchResults2');
+        
+        // Search by kind0 profile data
+        document.getElementById('searchButton2').addEventListener('click', () => {
+            searchResults2.innerHTML = '';
             const searchInput2 = document.getElementById('searchInput2').value;
-
-            // TODO: handle searchInput2
-            const searchPubkey = searchInput2;
-
-            // Check if the input is a valid npub
-            if (!searchInput1.startsWith('npub1')) {
-                alert('Please enter a valid npub');
-                return;
-            }
-            const searchNpub = searchInput1;
-
-            const apiEndpoint = `/api/search/profiles?searchType=npub&searchString=${searchNpub}`;
+            
+            // Show loading message
+            searchResults2.innerHTML = '<div class="loading-message">Searching profiles...</div>';
+            searchResults2.style.display = 'block';
             
             // Send a GET request to the API endpoint
-            fetch(apiEndpoint)
+            fetch(`/api/search/profiles?searchType=kind0&searchString=${searchInput2}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        // Display search results
-                        const searchResultPubkey = data.pubkey;
-                        const searchResultsPubkeyElem = document.getElementById('searchResultsPubkey');
-                        searchResultsPubkeyElem.innerHTML = searchResultPubkey;
-                        // turn this element off for now; may deprecate
-                        // searchResultsPubkeyElem.style.display = 'block';
-                        // Now use the get-kind0 endpoint to get the profile data
-                        fetch(`/api/get-kind0?pubkey=${searchResultPubkey}`)
-                            .then(response => response.json())
-                            .then(result => {
-                                if (result.success && result.data) {
-                                    // Parse the kind 0 event content
-                                    const event = result.data;
-                                    const content = JSON.parse(event.content);
-                                    // Extract profile details
-                                    const picture = content.picture || '/control/img/default-avatar.svg';
-                                    const name = content.name || 'Unknown';
-                                    const displayName = content.display_name || content.displayName || name;
-                                    // Display the profile card
-                                    const profileCard = document.getElementById('searchResultsProfileCard');
-                                    // style profile card similarly to the landing page (index.html)
-                                    const profileHTML = `
-                                        <div class="profile-card">
-                                            <a href="/profile.html?pubkey=${searchResultPubkey}" target="_blank" class="profile-link">
-                                                <div class="profile-image">
-                                                    <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/control/img/default-avatar.svg'">
-                                                </div>
-                                                <div class="profile-info">
-                                                    <h3 class="profile-name">${displayName}</h3>
-                                                    <p class="profile-handle">@${name}</p>
-                                                    <p class="profile-npub">${searchNpub.substring(0, 8)}...${searchNpub.substring(searchNpub.length - 4)}</p>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    `;
-                                    profileCard.innerHTML = profileHTML;
-                                    profileCard.style.display = 'block';
-                                } else {
-                                    console.error('Failed to get profile data:', data.error);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error getting profile data:', error);
-                            });
+                    if (data.success && data.pubkeys && data.pubkeys.length > 0) {
+                        // Clear loading message
+                        searchResults2.innerHTML = '';
+                        
+                        // Create profile panels for each pubkey
+                        createProfilePanels(data.pubkeys, searchResults2);
                     } else {
-                        console.error('Search failed:', 'No profile data found');
+                        searchResults2.innerHTML = '<div class="no-results">No profiles found matching your search criteria.</div>';
+                        console.error('Search failed:', data.error);
                     }
                 })
                 .catch(error => {
+                    searchResults2.innerHTML = '<div class="error-message">Error during search. Please try again.</div>';
                     console.error('Error during search:', error);
                 });
         });
+        
+        // Function to create profile panels for multiple pubkeys
+        async function createProfilePanels(pubkeys, container) {
+            const profileData = [];
+            
+            // Process pubkeys in batches to avoid overwhelming the API
+            const batchSize = 5;
+            for (let i = 0; i < pubkeys.length; i += batchSize) {
+                const batch = pubkeys.slice(i, i + batchSize);
+                const batchPromises = batch.map(pubkey => createSingleProfilePanel(pubkey));
+                
+                try {
+                    const batchResults = await Promise.all(batchPromises);
+                    profileData.push(...batchResults.filter(data => data !== null));
+                    
+                    // Sort by influence score (descending) and update display
+                    const sortedProfiles = profileData.sort((a, b) => {
+                        const influenceA = a.influence || 0;
+                        const influenceB = b.influence || 0;
+                        return influenceB - influenceA; // Descending order
+                    });
+                    
+                    // Update the display with sorted results
+                    container.innerHTML = sortedProfiles.map(data => data.html).join('');
+                    
+                    // Add a small delay between batches to be respectful to the API
+                    if (i + batchSize < pubkeys.length) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                } catch (error) {
+                    console.error('Error processing batch:', error);
+                }
+            }
+            
+            // Final update
+            if (profileData.length === 0) {
+                container.innerHTML = '<div class="no-results">No profile data could be retrieved for the found pubkeys.</div>';
+            }
+        }
+        
+        // Function to create a single profile panel
+        async function createSingleProfilePanel(pubkey) {
+            try {
+                // Fetch both profile data and trust score data in parallel
+                const [profileResponse, trustResponse] = await Promise.all([
+                    fetch(`/api/get-kind0?pubkey=${pubkey}`),
+                    fetch(`/api/get-user-data?pubkey=${pubkey}`)
+                ]);
+                
+                const profileResult = await profileResponse.json();
+                const trustResult = await trustResponse.json();
+                
+                if (profileResult.success && profileResult.data) {
+                    // Parse the kind 0 event content
+                    const event = profileResult.data;
+                    const content = JSON.parse(event.content);
+                    
+                    // Extract profile details
+                    const picture = content.picture || '/control/img/default-avatar.svg';
+                    const name = content.name || 'Unknown';
+                    const displayName = content.display_name || content.displayName || name;
+                    const about = content.about || '';
+                    
+                    // Create npub for display (truncated)
+                    const npubDisplay = pubkey.length > 12 ? `${pubkey.substring(0, 8)}...${pubkey.substring(pubkey.length - 4)}` : pubkey;
+                    
+                    // Store trust score data in cache if available
+                    if (trustResult.success && trustResult.data) {
+                        const trustData = {
+                            hops: trustResult.data.hops,
+                            influence: trustResult.data.influence,
+                            personalizedPageRank: trustResult.data.personalizedPageRank,
+                            verifiedFollowerCount: trustResult.data.verifiedFollowerCount,
+                            verifiedMuterCount: trustResult.data.verifiedMuterCount,
+                            verifiedReporterCount: trustResult.data.verifiedReporterCount
+                        };
+                        trustScoreCache.set(pubkey, trustData);
+                    } else {
+                        // Store null to indicate trust data is not available
+                        trustScoreCache.set(pubkey, null);
+                    }
+                    
+                    // Extract influence score for sorting (default to 0 if not available)
+                    let influenceScore = 0;
+                    if (trustResult.success && trustResult.data && trustResult.data.influence !== undefined) {
+                        influenceScore = parseFloat(trustResult.data.influence) || 0;
+                    }
+                    
+                    // Extract verifiedReporterCount and verifiedFollowerCount for report visual cues
+                    let verifiedReporterCount = 0;
+                    let verifiedFollowerCount = 0;
+                    if (trustResult.success && trustResult.data) {
+                        verifiedReporterCount = parseInt(trustResult.data.verifiedReporterCount) || 0;
+                        verifiedFollowerCount = parseInt(trustResult.data.verifiedFollowerCount) || 0;
+                    }
+                    
+                    // Calculate effectiveReporterCount with follower correction factor
+                    const correctionFactor = Math.round((verifiedFollowerCount / 1000) * 10) / 10; // Round to 1 decimal place
+                    const effectiveReporterCount = Math.max(0, verifiedReporterCount - correctionFactor);
+                    
+                    // Determine visual trust cues based on influence score
+                    const isVerified = influenceScore > 0.1;
+                    const isLowInfluence = influenceScore < 1.0;
+                    const opacityValue = Math.max(0.1, influenceScore); // Minimum 0.1 opacity for visibility
+                    
+                    // Determine visual report cues based on effectiveReporterCount
+                    const isReported = effectiveReporterCount > 0;
+                    const borderThickness = Math.min(2 + (effectiveReporterCount * 2), 10); // 2px base + 2px per effective report, max 10px
+                    
+                    // Build CSS classes for visual cues
+                    let cssClasses = 'profile-card';
+                    if (isVerified) {
+                        cssClasses += ' verified';
+                    }
+                    if (isLowInfluence) {
+                        cssClasses += ' low-influence';
+                    }
+                    if (isReported) {
+                        cssClasses += ' reported';
+                    }
+                    
+                    // Build dynamic styles for reported profiles
+                    let dynamicStyles = `opacity: ${opacityValue};`;
+                    if (isReported) {
+                        dynamicStyles += ` border-width: ${borderThickness}px; border-style: solid;`;
+                    }
+                    
+                    // Create the profile panel HTML with trust score hover functionality and visual cues
+                    const profileHTML = `
+                        <div class="${cssClasses}" data-pubkey="${pubkey}" data-influence="${influenceScore}" data-reporter-count="${verifiedReporterCount}" data-effective-reporter-count="${effectiveReporterCount}" data-follower-count="${verifiedFollowerCount}" data-correction-factor="${correctionFactor}" style="${dynamicStyles}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
+                            <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                                <div class="profile-image">
+                                    <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
+                                </div>
+                                <div class="profile-info">
+                                    <h3 class="profile-name">${displayName}</h3>
+                                    <p class="profile-handle">@${name}</p>
+                                    <p class="profile-npub">${npubDisplay}</p>
+                                    ${about ? `<p class="profile-about">${about.length > 100 ? about.substring(0, 100) + '...' : about}</p>` : ''}
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                    
+                    // Return object with both HTML and influence score for sorting
+                    return {
+                        html: profileHTML,
+                        influence: influenceScore,
+                        pubkey: pubkey
+                    };
+                } else {
+                    console.error('Failed to get profile data for pubkey:', pubkey, profileResult.error);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error getting profile data for pubkey:', pubkey, error);
+                return null;
+            }
+        }
+        
+        // Trust score tooltip functionality
+        let currentTooltip = null;
+        let tooltipTimeout = null;
+        const trustScoreCache = new Map();
+        
+        function showTrustScoreTooltip(event, pubkey) {
+            // Clear any existing timeout
+            if (tooltipTimeout) {
+                clearTimeout(tooltipTimeout);
+            }
+            
+            // Remove existing tooltip
+            hideTrustScoreTooltip();
+            
+            // Create tooltip element
+            currentTooltip = document.createElement('div');
+            currentTooltip.className = 'trust-score-tooltip';
+            currentTooltip.innerHTML = '<div class="trust-score-loading">Loading trust scores...</div>';
+            
+            // Add tooltip to DOM first (but keep it invisible)
+            document.body.appendChild(currentTooltip);
+            
+            // Use requestAnimationFrame to ensure DOM is updated before positioning
+            requestAnimationFrame(() => {
+                if (currentTooltip) {
+                    // Position tooltip after DOM update
+                    positionTooltip(event, currentTooltip);
+                    
+                    // Show tooltip with animation after positioning
+                    requestAnimationFrame(() => {
+                        if (currentTooltip) {
+                            currentTooltip.classList.add('show');
+                            // Fetch trust score data after tooltip is positioned and shown
+                            fetchTrustScoreData(pubkey);
+                        }
+                    });
+                }
+            });
+        }
+        
+        function hideTrustScoreTooltip() {
+            if (currentTooltip) {
+                const tooltipToRemove = currentTooltip;
+                currentTooltip = null; // Clear reference immediately to prevent race conditions
+                
+                tooltipToRemove.classList.remove('show');
+                setTimeout(() => {
+                    if (tooltipToRemove && tooltipToRemove.parentNode) {
+                        tooltipToRemove.parentNode.removeChild(tooltipToRemove);
+                    }
+                }, 300);
+            }
+        }
+        
+        function positionTooltip(event, tooltip) {
+            const rect = event.target.closest('.profile-card').getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            // Account for page scroll position
+            const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Calculate position relative to the document (not viewport)
+            let left = rect.left + scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+            let top = rect.top + scrollY - tooltipRect.height - 15; // Increased gap to 15px
+            
+            // Adjust if tooltip goes off screen horizontally
+            const minLeft = scrollX + 10;
+            const maxLeft = scrollX + window.innerWidth - tooltipRect.width - 10;
+            if (left < minLeft) left = minLeft;
+            if (left > maxLeft) left = maxLeft;
+            
+            // Adjust if tooltip goes off screen vertically (place below instead of above)
+            const minTop = scrollY + 10;
+            if (top < minTop) {
+                top = rect.bottom + scrollY + 15; // Increased gap to 15px when below
+            }
+            
+            // Ensure tooltip doesn't overlap with the profile card area
+            // Add extra safety margin to prevent any mouse event interference
+            const cardBottom = rect.bottom + scrollY;
+            const cardTop = rect.top + scrollY;
+            
+            // If positioning above, ensure there's sufficient clearance
+            if (top + tooltipRect.height + 5 > cardTop) {
+                top = cardBottom + 15;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+        
+        function fetchTrustScoreData(pubkey) {
+            // Trust data is now pre-loaded during profile panel creation
+            if (trustScoreCache.has(pubkey)) {
+                const trustData = trustScoreCache.get(pubkey);
+                if (trustData === null) {
+                    displayTrustScoreError('Trust data not available');
+                } else {
+                    displayTrustScoreData(trustData);
+                }
+            } else {
+                // Fallback: this shouldn't happen since data is pre-loaded
+                displayTrustScoreError('Trust data not loaded');
+            }
+        }
+        
+        function displayTrustScoreData(data) {
+            if (!currentTooltip) return;
+            
+            const formatNumber = (num) => {
+                if (num === null || num === undefined) return 'N/A';
+                if (typeof num === 'number') {
+                    if (num < 0.001 && num > 0) {
+                        return num.toExponential(2);
+                    }
+                    return num.toLocaleString(undefined, { maximumFractionDigits: 4 });
+                }
+                return num.toString();
+            };
+            
+            const formatHops = (hops) => {
+                if (hops === null || hops === undefined) return 'N/A';
+                if (hops === 0) return 'Owner';
+                if (hops === 1) return '1 hop';
+                return `${hops} hops`;
+            };
+            
+            currentTooltip.innerHTML = `
+                <h4>🔒 Trust Scores</h4>
+                <div class="trust-metrics">
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">Distance:</span>
+                        <span class="trust-metric-value">${formatHops(data.hops)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">Influence:</span>
+                        <span class="trust-metric-value">${formatNumber(data.influence)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">PageRank:</span>
+                        <span class="trust-metric-value">${formatNumber(data.personalizedPageRank)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">✅ Followers:</span>
+                        <span class="trust-metric-value">${formatNumber(data.verifiedFollowerCount)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">🔇 Muters:</span>
+                        <span class="trust-metric-value">${formatNumber(data.verifiedMuterCount)}</span>
+                    </div>
+                    <div class="trust-metric">
+                        <span class="trust-metric-label">🚨 Reporters:</span>
+                        <span class="trust-metric-value">${formatNumber(data.verifiedReporterCount)}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayTrustScoreError(message) {
+            if (!currentTooltip) return;
+            
+            currentTooltip.innerHTML = `
+                <h4>🔒 Trust Scores</h4>
+                <div class="trust-score-error">${message}</div>
+            `;
+        }
     </script>
 </body>
 </html>
