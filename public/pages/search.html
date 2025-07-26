@@ -16,8 +16,17 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search profiles by name, display name, about, etc. (Press Enter or pause typing to search)">
+            <div class="search-controls">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search profiles by name, display name, about, etc. (Press Enter to search)">
+                </div>
+                <div class="toggle-wrapper">
+                    <label class="toggle-container">
+                        <input type="checkbox" id="verifiedOnlyToggle" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Show verified only</span>
+                    </label>
+                </div>
             </div>
             <br />
             <div id="searchResults" class="search-results"  style="display: none;">
@@ -40,9 +49,7 @@
         // Get DOM element references
         const searchResults = document.getElementById('searchResults');
         const searchInput = document.getElementById('searchInput');
-        
-        // Debounce timer for input events
-        let debounceTimer = null;
+        const verifiedOnlyToggle = document.getElementById('verifiedOnlyToggle');
         
         // Main search function
         function performSearch() {
@@ -81,30 +88,42 @@
                 });
         }
         
-        // Debounced input event listener
-        searchInput.addEventListener('input', () => {
-            // Clear existing timer
-            if (debounceTimer) {
-                clearTimeout(debounceTimer);
-            }
-            
-            // Set new timer for 500ms delay
-            debounceTimer = setTimeout(() => {
-                performSearch();
-            }, 500);
-        });
-        
         // Enter key event listener for immediate search
         searchInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                // Clear debounce timer if Enter is pressed
-                if (debounceTimer) {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = null;
-                }
                 performSearch();
             }
         });
+        
+        // Toggle event listener for verified-only filter
+        verifiedOnlyToggle.addEventListener('change', () => {
+            // Re-filter existing results if any are displayed
+            if (searchResults.style.display !== 'none' && searchResults.children.length > 0) {
+                filterDisplayedProfiles();
+            }
+        });
+        
+        // Function to filter displayed profiles based on verified-only toggle
+        function filterDisplayedProfiles() {
+            const showVerifiedOnly = verifiedOnlyToggle.checked;
+            const profileCards = searchResults.querySelectorAll('.profile-card');
+            
+            profileCards.forEach(card => {
+                const influenceScore = parseFloat(card.dataset.influence) || 0;
+                
+                if (showVerifiedOnly && influenceScore < 0.01) {
+                    card.style.display = 'none';
+                } else {
+                    card.style.display = 'block';
+                }
+            });
+            
+            // Check if any profiles are visible after filtering
+            const visibleProfiles = Array.from(profileCards).filter(card => card.style.display !== 'none');
+            if (visibleProfiles.length === 0 && profileCards.length > 0) {
+                searchResults.innerHTML = '<div class="no-results">No verified profiles found matching your search criteria.</div>';
+            }
+        }
         
         // Function to create profile panels for multiple pubkeys
         async function createProfilePanels(pubkeys, container) {
@@ -120,15 +139,18 @@
                     const batchResults = await Promise.all(batchPromises);
                     profileData.push(...batchResults.filter(data => data !== null));
                     
-                    // Sort by influence score (descending) and update display
+                    // Sort profiles by influence score (descending)
                     const sortedProfiles = profileData.sort((a, b) => {
                         const influenceA = a.influence || 0;
                         const influenceB = b.influence || 0;
                         return influenceB - influenceA; // Descending order
                     });
                     
-                    // Update the display with sorted results
+                    // Display sorted profiles
                     container.innerHTML = sortedProfiles.map(data => data.html).join('');
+                    
+                    // Apply verified-only filter if enabled
+                    filterDisplayedProfiles();
                     
                     // Add a small delay between batches to be respectful to the API
                     if (i + batchSize < pubkeys.length) {
