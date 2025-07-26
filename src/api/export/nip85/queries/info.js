@@ -1,6 +1,8 @@
 /**
  * NIP-85 Information Queries
  * Handlers for retrieving information about NIP-85 events
+ * accepts parameter: pubkey
+ * If no pubkey is provided, it will use the owner pubkey from config
  */
 
 const { execSync } = require('child_process');
@@ -13,6 +15,8 @@ const { getConfigFromFile } = require('../../../../utils/config');
  */
 function handleKind10040Info(req, res) {
   try {
+    // Get pubkey from request
+    const requestPubkey = req.query.pubkey;
     // Get owner pubkey from config
     const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
     const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
@@ -23,9 +27,14 @@ function handleKind10040Info(req, res) {
         message: 'Owner pubkey not found in configuration'
       });
     }
+
+    let pubkey = ownerPubkey;
+    if (requestPubkey) {
+      pubkey = requestPubkey;
+    }
     
     // Get most recent kind 10040 event
-    const latestCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${ownerPubkey}"], "limit": 1}'`;
+    const latestCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${pubkey}"], "limit": 1}'`;
     let latestEvent = null;
     let timestamp = null;
     let eventId = null;
@@ -43,6 +52,7 @@ function handleKind10040Info(req, res) {
     
     return res.json({
       success: true,
+      pubkey: pubkey,
       timestamp: timestamp,
       eventId: eventId,
       latestEvent: latestEvent,
