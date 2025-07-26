@@ -169,7 +169,7 @@
         
         // Function to create profile panels for multiple pubkeys
         async function createProfilePanels(pubkeys, container) {
-            const profilePanels = [];
+            const profileData = [];
             
             // Process pubkeys in batches to avoid overwhelming the API
             const batchSize = 5;
@@ -179,10 +179,17 @@
                 
                 try {
                     const batchResults = await Promise.all(batchPromises);
-                    profilePanels.push(...batchResults.filter(panel => panel !== null));
+                    profileData.push(...batchResults.filter(data => data !== null));
                     
-                    // Update the display with current results
-                    container.innerHTML = profilePanels.join('');
+                    // Sort by influence score (descending) and update display
+                    const sortedProfiles = profileData.sort((a, b) => {
+                        const influenceA = a.influence || 0;
+                        const influenceB = b.influence || 0;
+                        return influenceB - influenceA; // Descending order
+                    });
+                    
+                    // Update the display with sorted results
+                    container.innerHTML = sortedProfiles.map(data => data.html).join('');
                     
                     // Add a small delay between batches to be respectful to the API
                     if (i + batchSize < pubkeys.length) {
@@ -194,7 +201,7 @@
             }
             
             // Final update
-            if (profilePanels.length === 0) {
+            if (profileData.length === 0) {
                 container.innerHTML = '<div class="no-results">No profile data could be retrieved for the found pubkeys.</div>';
             }
         }
@@ -241,6 +248,12 @@
                         trustScoreCache.set(pubkey, null);
                     }
                     
+                    // Extract influence score for sorting (default to 0 if not available)
+                    let influenceScore = 0;
+                    if (trustResult.success && trustResult.data && trustResult.data.influence !== undefined) {
+                        influenceScore = parseFloat(trustResult.data.influence) || 0;
+                    }
+                    
                     // Create the profile panel HTML with trust score hover functionality
                     const profileHTML = `
                         <div class="profile-card" data-pubkey="${pubkey}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
@@ -258,7 +271,12 @@
                         </div>
                     `;
                     
-                    return profileHTML;
+                    // Return object with both HTML and influence score for sorting
+                    return {
+                        html: profileHTML,
+                        influence: influenceScore,
+                        pubkey: pubkey
+                    };
                 } else {
                     console.error('Failed to get profile data for pubkey:', pubkey, profileResult.error);
                     return null;
