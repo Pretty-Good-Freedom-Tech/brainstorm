@@ -254,20 +254,26 @@
                         influenceScore = parseFloat(trustResult.data.influence) || 0;
                     }
                     
-                    // Extract verifiedReporterCount for report visual cues
+                    // Extract verifiedReporterCount and verifiedFollowerCount for report visual cues
                     let verifiedReporterCount = 0;
-                    if (trustResult.success && trustResult.data && trustResult.data.verifiedReporterCount !== undefined) {
+                    let verifiedFollowerCount = 0;
+                    if (trustResult.success && trustResult.data) {
                         verifiedReporterCount = parseInt(trustResult.data.verifiedReporterCount) || 0;
+                        verifiedFollowerCount = parseInt(trustResult.data.verifiedFollowerCount) || 0;
                     }
+                    
+                    // Calculate effectiveReporterCount with follower correction factor
+                    const correctionFactor = Math.round((verifiedFollowerCount / 1000) * 10) / 10; // Round to 1 decimal place
+                    const effectiveReporterCount = Math.max(0, verifiedReporterCount - correctionFactor);
                     
                     // Determine visual trust cues based on influence score
                     const isVerified = influenceScore > 0.1;
                     const isLowInfluence = influenceScore < 1.0;
                     const opacityValue = Math.max(0.1, influenceScore); // Minimum 0.1 opacity for visibility
                     
-                    // Determine visual report cues based on verifiedReporterCount
-                    const isReported = verifiedReporterCount > 0;
-                    const borderThickness = Math.min(2 + (verifiedReporterCount * 2), 10); // 2px base + 2px per report, max 10px
+                    // Determine visual report cues based on effectiveReporterCount
+                    const isReported = effectiveReporterCount > 0;
+                    const borderThickness = Math.min(2 + (effectiveReporterCount * 2), 10); // 2px base + 2px per effective report, max 10px
                     
                     // Build CSS classes for visual cues
                     let cssClasses = 'profile-card';
@@ -289,7 +295,7 @@
                     
                     // Create the profile panel HTML with trust score hover functionality and visual cues
                     const profileHTML = `
-                        <div class="${cssClasses}" data-pubkey="${pubkey}" data-influence="${influenceScore}" data-reporter-count="${verifiedReporterCount}" style="${dynamicStyles}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
+                        <div class="${cssClasses}" data-pubkey="${pubkey}" data-influence="${influenceScore}" data-reporter-count="${verifiedReporterCount}" data-effective-reporter-count="${effectiveReporterCount}" data-follower-count="${verifiedFollowerCount}" data-correction-factor="${correctionFactor}" style="${dynamicStyles}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
                             <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
                                 <div class="profile-image">
                                     <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
