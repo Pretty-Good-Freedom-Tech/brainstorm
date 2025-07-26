@@ -58,6 +58,11 @@
     <div id="footerContainer"></div>
 
     <script>
+        // Get DOM element references
+        const searchResultsPubkey = document.getElementById('searchResultsPubkey');
+        const searchResultsProfileCard = document.getElementById('searchResultsProfileCard');
+        const searchResults2 = document.getElementById('searchResults2');
+        
         // Search by npub
         document.getElementById('searchButton1').addEventListener('click', () => {
             searchResultsPubkey.innerHTML = '';
@@ -138,7 +143,6 @@
             const searchInput2 = document.getElementById('searchInput2').value;
             
             // Show loading message
-            const searchResults2 = document.getElementById('searchResults2');
             searchResults2.innerHTML = '<div class="loading-message">Searching profiles...</div>';
             searchResults2.style.display = 'block';
             
