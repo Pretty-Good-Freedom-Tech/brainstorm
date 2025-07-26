@@ -16,30 +16,12 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h2>Profile Search</h2>
-            <h3>Search by npub</h3>
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="npub...">
-                <button id="searchButton1">Search</button>
-            </div>
-            <div id="searchResultsPubkey" class="search-results"  style="display: none;">
-                <!-- Search results (pubkey) will be dynamically added here -->
-            </div>
-            <div id="searchResultsProfileCard" class="search-results"  style="display: none;">
-                <!-- Search results (full profile) will be dynamically added here -->
-            </div>
-            
-            <br />
-            
-            <h3>Search kind 0 notes by keyword</h3>
-            <p>(keyword search is currently very slow; timeout set to 3 minutes; optimizations pending)</p>
+            <h2><center>Profile Search</center></h2>
 
             <div class="search-container">
                 <input type="text" id="searchInput2" class="search-input" placeholder="Enter kind 0 search string (name, display_name, about, etc)">
                 <button id="searchButton2">Search</button>
             </div>
-            <br />
-            <p>TODO: stratify results by WoT score</p>
             <br />
             <div id="searchResults2" class="search-results"  style="display: none;">
                 <!-- Search results will be dynamically added here -->
@@ -59,86 +41,10 @@
 
     <script>
         // Get DOM element references
-        const searchResultsPubkey = document.getElementById('searchResultsPubkey');
-        const searchResultsProfileCard = document.getElementById('searchResultsProfileCard');
         const searchResults2 = document.getElementById('searchResults2');
         
-        // Search by npub
-        document.getElementById('searchButton1').addEventListener('click', () => {
-            searchResultsPubkey.innerHTML = '';
-            searchResultsProfileCard.innerHTML = '';
-            searchResults2.innerHTML = '';
-            const searchInput = document.getElementById('searchInput').value;
-
-            // Check if the input is a valid npub
-            if (!searchInput.startsWith('npub1')) {
-                alert('Please enter a valid npub');
-                return;
-            }
-            const searchNpub = searchInput;
-            
-            // Send a GET request to the API endpoint
-            fetch(`/api/search/profiles?searchType=npub&searchString=${searchNpub}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Display search results
-                        const searchResultPubkey = data.pubkey;
-                        const searchResultsPubkeyElem = document.getElementById('searchResultsPubkey');
-                        searchResultsPubkeyElem.innerHTML = searchResultPubkey;
-                        // turn this element off for now; may deprecate
-                        // searchResultsPubkeyElem.style.display = 'block';
-                        // Now use the get-kind0 endpoint to get the profile data
-                        fetch(`/api/get-kind0?pubkey=${searchResultPubkey}`)
-                            .then(response => response.json())
-                            .then(result => {
-                                if (result.success && result.data) {
-                                    // Parse the kind 0 event content
-                                    const event = result.data;
-                                    const content = JSON.parse(event.content);
-                                    // Extract profile details
-                                    const picture = content.picture || '/control/img/default-avatar.svg';
-                                    const name = content.name || 'Unknown';
-                                    const displayName = content.display_name || content.displayName || name;
-                                    // Display the profile card
-                                    const profileCard = document.getElementById('searchResultsProfileCard');
-                                    // style profile card similarly to the landing page (index.html)
-                                    const profileHTML = `
-                                        <div class="profile-card">
-                                            <a href="/profile.html?pubkey=${searchResultPubkey}" target="_blank" class="profile-link">
-                                                <div class="profile-image">
-                                                    <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/control/img/default-avatar.svg'">
-                                                </div>
-                                                <div class="profile-info">
-                                                    <h3 class="profile-name">${displayName}</h3>
-                                                    <p class="profile-handle">@${name}</p>
-                                                    <p class="profile-npub">${searchNpub.substring(0, 8)}...${searchNpub.substring(searchNpub.length - 4)}</p>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    `;
-                                    profileCard.innerHTML = profileHTML;
-                                    profileCard.style.display = 'block';
-                                } else {
-                                    console.error('Failed to get profile data:', data.error);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error getting profile data:', error);
-                            });
-                    } else {
-                        console.error('Search failed:', 'No profile data found');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error during search:', error);
-                });
-        });
-
         // Search by kind0 profile data
         document.getElementById('searchButton2').addEventListener('click', () => {
-            searchResultsPubkey.innerHTML = '';
-            searchResultsProfileCard.innerHTML = '';
             searchResults2.innerHTML = '';
             const searchInput2 = document.getElementById('searchInput2').value;
             
