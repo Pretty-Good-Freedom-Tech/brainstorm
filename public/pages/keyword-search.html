@@ -319,16 +319,24 @@
             const rect = event.target.closest('.profile-card').getBoundingClientRect();
             const tooltipRect = tooltip.getBoundingClientRect();
             
-            let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-            let top = rect.top - tooltipRect.height - 10;
+            // Account for page scroll position
+            const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
             
-            // Adjust if tooltip goes off screen
-            if (left < 10) left = 10;
-            if (left + tooltipRect.width > window.innerWidth - 10) {
-                left = window.innerWidth - tooltipRect.width - 10;
-            }
-            if (top < 10) {
-                top = rect.bottom + 10;
+            // Calculate position relative to the document (not viewport)
+            let left = rect.left + scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+            let top = rect.top + scrollY - tooltipRect.height - 10;
+            
+            // Adjust if tooltip goes off screen horizontally
+            const minLeft = scrollX + 10;
+            const maxLeft = scrollX + window.innerWidth - tooltipRect.width - 10;
+            if (left < minLeft) left = minLeft;
+            if (left > maxLeft) left = maxLeft;
+            
+            // Adjust if tooltip goes off screen vertically (place below instead of above)
+            const minTop = scrollY + 10;
+            if (top < minTop) {
+                top = rect.bottom + scrollY + 10;
             }
             
             tooltip.style.left = left + 'px';
