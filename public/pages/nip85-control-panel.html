@@ -409,7 +409,7 @@
             
             // Function to check the status of Kind 30382 publishing
             function checkKind30382Status() {
-                fetch('/control/api/kind30382-info')
+                fetch('/control/api/get-kind30382-info')
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -547,7 +547,7 @@
                 kind30382InfoStatus.className = 'status-message info';
                 kind30382InfoStatus.textContent = 'Fetching event information...';
                 
-                fetch('/control/api/kind30382-info')
+                fetch('/control/api/get-kind30382-info')
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {

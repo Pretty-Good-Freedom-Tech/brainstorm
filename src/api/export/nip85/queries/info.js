@@ -72,10 +72,19 @@ function handleGetKind10040Info(req, res) {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleKind30382Info(req, res) {
+function handleGetKind30382Info(req, res) {
   try {
-    // Get relay pubkey from config
-    const relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
+    // Get pubkey from request if available
+    const customerPubkey = req.query.pubkey;
+
+    let relayPubkey = null;
+    if (customerPubkey) {
+      relayPubkey = getConfigFromFile(`CUSTOMER_${customerPubkey}_RELAY_PUBKEY`, '');
+    } else {
+      relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
+    }
+    
+    // Get relay url from config
     const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
     
     if (!relayPubkey) {
@@ -128,5 +137,5 @@ function handleKind30382Info(req, res) {
 
 module.exports = {
   handleGetKind10040Info,
-  handleKind30382Info
+  handleGetKind30382Info
 };
