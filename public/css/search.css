@@ -117,6 +117,19 @@
     border: 2px solid rgba(76, 175, 80, 0.3);
 }
 
+/* Visual report cues - red borders for reported profiles */
+.profile-card.reported {
+    /* Border will be set dynamically based on verifiedReporterCount */
+    border-color: #f44336 !important;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.3);
+}
+
+.profile-card.reported.verified {
+    /* When both verified and reported, use a gradient border effect */
+    background: linear-gradient(45deg, rgba(76, 175, 80, 0.1), rgba(244, 67, 54, 0.1));
+    border-color: #f44336 !important;
+}
+
 .profile-card.low-influence {
     /* Opacity will be set dynamically based on influence score */
     position: relative;

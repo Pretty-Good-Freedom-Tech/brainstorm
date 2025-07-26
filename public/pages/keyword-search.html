@@ -254,10 +254,20 @@
                         influenceScore = parseFloat(trustResult.data.influence) || 0;
                     }
                     
+                    // Extract verifiedReporterCount for report visual cues
+                    let verifiedReporterCount = 0;
+                    if (trustResult.success && trustResult.data && trustResult.data.verifiedReporterCount !== undefined) {
+                        verifiedReporterCount = parseInt(trustResult.data.verifiedReporterCount) || 0;
+                    }
+                    
                     // Determine visual trust cues based on influence score
                     const isVerified = influenceScore > 0.1;
                     const isLowInfluence = influenceScore < 1.0;
                     const opacityValue = Math.max(0.1, influenceScore); // Minimum 0.1 opacity for visibility
+                    
+                    // Determine visual report cues based on verifiedReporterCount
+                    const isReported = verifiedReporterCount > 0;
+                    const borderThickness = Math.min(2 + (verifiedReporterCount * 2), 10); // 2px base + 2px per report, max 10px
                     
                     // Build CSS classes for visual cues
                     let cssClasses = 'profile-card';
@@ -267,10 +277,19 @@
                     if (isLowInfluence) {
                         cssClasses += ' low-influence';
                     }
+                    if (isReported) {
+                        cssClasses += ' reported';
+                    }
+                    
+                    // Build dynamic styles for reported profiles
+                    let dynamicStyles = `opacity: ${opacityValue};`;
+                    if (isReported) {
+                        dynamicStyles += ` border-width: ${borderThickness}px; border-style: solid;`;
+                    }
                     
                     // Create the profile panel HTML with trust score hover functionality and visual cues
                     const profileHTML = `
-                        <div class="${cssClasses}" data-pubkey="${pubkey}" data-influence="${influenceScore}" style="opacity: ${opacityValue};" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
+                        <div class="${cssClasses}" data-pubkey="${pubkey}" data-influence="${influenceScore}" data-reporter-count="${verifiedReporterCount}" style="${dynamicStyles}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
                             <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
                                 <div class="profile-image">
                                     <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
