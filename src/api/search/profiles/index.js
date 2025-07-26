@@ -68,6 +68,7 @@ async function handleSearchProfiles(req, res) {
 
     // Function to return list of pubkeys whose kind 0 events contain the search Strings 
     function getAllMatchingKind0Profiles(searchString) {
+        const searchString_lowercase = searchString.toLowerCase();
         return new Promise((resolve) => {
             const args = ['strfry', 'scan', '{"kinds":[0]}'];
             const strfryProcess = spawn('sudo', args);
@@ -79,7 +80,8 @@ async function handleSearchProfiles(req, res) {
                 buffer = lines.pop(); // Save incomplete line for next chunk
                 for (const line of lines) {
                     if (!line) continue;
-                    if (!line.includes(searchString)) continue;
+                    const line_lowercase = line.toLowerCase();
+                    if (!line_lowercase.includes(searchString_lowercase)) continue;
                     try {
                         const oEvent = JSON.parse(line);
                         if (oEvent && oEvent.pubkey) {
