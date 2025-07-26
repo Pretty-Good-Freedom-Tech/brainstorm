@@ -311,12 +311,14 @@
         
         function hideTrustScoreTooltip() {
             if (currentTooltip) {
-                currentTooltip.classList.remove('show');
+                const tooltipToRemove = currentTooltip;
+                currentTooltip = null; // Clear reference immediately to prevent race conditions
+                
+                tooltipToRemove.classList.remove('show');
                 setTimeout(() => {
-                    if (currentTooltip && currentTooltip.parentNode) {
-                        currentTooltip.parentNode.removeChild(currentTooltip);
+                    if (tooltipToRemove && tooltipToRemove.parentNode) {
+                        tooltipToRemove.parentNode.removeChild(tooltipToRemove);
                     }
-                    currentTooltip = null;
                 }, 300);
             }
         }
