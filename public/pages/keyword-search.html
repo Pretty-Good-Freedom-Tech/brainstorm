@@ -20,7 +20,7 @@
             <h3>Search by npub</h3>
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="npub...">
-                <button id="searchButton">Search</button>
+                <button id="searchButton1">Search</button>
             </div>
             <div id="searchResultsPubkey" class="search-results"  style="display: none;">
                 <!-- Search results (pubkey) will be dynamically added here -->
@@ -45,11 +45,12 @@
                 <!-- Search results will be dynamically added here -->
             </div>
 
+            <hr />
+
             <div id="profileCard" class="profile-card"  style="display: none;">
                 <!-- Profile card will be dynamically added here
                  will contain profile information includig picture, displayName, username, about, and will link to profile page -->
             </div>
-            <h2>Content Search (coming soon)</h2>
         </div>
     </div>
 
@@ -58,7 +59,7 @@
 
     <script>
         // Search by npub
-        document.getElementById('searchButton').addEventListener('click', () => {
+        document.getElementById('searchButton1').addEventListener('click', () => {
             searchResultsPubkey.innerHTML = '';
             searchResultsProfileCard.innerHTML = '';
             searchResults2.innerHTML = '';
@@ -136,23 +137,111 @@
             searchResults2.innerHTML = '';
             const searchInput2 = document.getElementById('searchInput2').value;
             
+            // Show loading message
+            const searchResults2 = document.getElementById('searchResults2');
+            searchResults2.innerHTML = '<div class="loading-message">Searching profiles...</div>';
+            searchResults2.style.display = 'block';
+            
             // Send a GET request to the API endpoint
             fetch(`/api/search/profiles?searchType=kind0&searchString=${searchInput2}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.pubkeys && data.pubkeys.length > 0) {
-                        // Display search results
-                        const searchResults2 = document.getElementById('searchResults2');
-                        searchResults2.innerHTML = data.pubkeys.map(pubkey => `<div><a href="/profile.html?pubkey=${pubkey}" target="_blank">${pubkey}</a></div>`).join('');
-                        searchResults2.style.display = 'block';
+                        // Clear loading message
+                        searchResults2.innerHTML = '';
+                        
+                        // Create profile panels for each pubkey
+                        createProfilePanels(data.pubkeys, searchResults2);
                     } else {
+                        searchResults2.innerHTML = '<div class="no-results">No profiles found matching your search criteria.</div>';
                         console.error('Search failed:', data.error);
                     }
                 })
                 .catch(error => {
+                    searchResults2.innerHTML = '<div class="error-message">Error during search. Please try again.</div>';
                     console.error('Error during search:', error);
                 });
         });
+        
+        // Function to create profile panels for multiple pubkeys
+        async function createProfilePanels(pubkeys, container) {
+            const profilePanels = [];
+            
+            // Process pubkeys in batches to avoid overwhelming the API
+            const batchSize = 5;
+            for (let i = 0; i < pubkeys.length; i += batchSize) {
+                const batch = pubkeys.slice(i, i + batchSize);
+                const batchPromises = batch.map(pubkey => createSingleProfilePanel(pubkey));
+                
+                try {
+                    const batchResults = await Promise.all(batchPromises);
+                    profilePanels.push(...batchResults.filter(panel => panel !== null));
+                    
+                    // Update the display with current results
+                    container.innerHTML = profilePanels.join('');
+                    
+                    // Add a small delay between batches to be respectful to the API
+                    if (i + batchSize < pubkeys.length) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                } catch (error) {
+                    console.error('Error processing batch:', error);
+                }
+            }
+            
+            // Final update
+            if (profilePanels.length === 0) {
+                container.innerHTML = '<div class="no-results">No profile data could be retrieved for the found pubkeys.</div>';
+            }
+        }
+        
+        // Function to create a single profile panel
+        async function createSingleProfilePanel(pubkey) {
+            try {
+                const response = await fetch(`/api/get-kind0?pubkey=${pubkey}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    // Parse the kind 0 event content
+                    const event = result.data;
+                    const content = JSON.parse(event.content);
+                    
+                    // Extract profile details
+                    const picture = content.picture || '/control/img/default-avatar.svg';
+                    const name = content.name || 'Unknown';
+                    const displayName = content.display_name || content.displayName || name;
+                    const about = content.about || '';
+                    
+                    // Create npub for display (truncated)
+                    const npubDisplay = pubkey.length > 12 ? `${pubkey.substring(0, 8)}...${pubkey.substring(pubkey.length - 4)}` : pubkey;
+                    
+                    // Create the profile panel HTML
+                    const profileHTML = `
+                        <div class="profile-card">
+                            <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                                <div class="profile-image">
+                                    <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
+                                </div>
+                                <div class="profile-info">
+                                    <h3 class="profile-name">${displayName}</h3>
+                                    <p class="profile-handle">@${name}</p>
+                                    <p class="profile-npub">${npubDisplay}</p>
+                                    ${about ? `<p class="profile-about">${about.length > 100 ? about.substring(0, 100) + '...' : about}</p>` : ''}
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                    
+                    return profileHTML;
+                } else {
+                    console.error('Failed to get profile data for pubkey:', pubkey, result.error);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error getting profile data for pubkey:', pubkey, error);
+                return null;
+            }
+        }
     </script>
 </body>
 </html>
