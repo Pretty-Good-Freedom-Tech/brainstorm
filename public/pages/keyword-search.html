@@ -288,19 +288,25 @@
             currentTooltip.className = 'trust-score-tooltip';
             currentTooltip.innerHTML = '<div class="trust-score-loading">Loading trust scores...</div>';
             
-            // Position tooltip
+            // Add tooltip to DOM first (but keep it invisible)
             document.body.appendChild(currentTooltip);
-            positionTooltip(event, currentTooltip);
             
-            // Show tooltip with animation
-            setTimeout(() => {
+            // Use requestAnimationFrame to ensure DOM is updated before positioning
+            requestAnimationFrame(() => {
                 if (currentTooltip) {
-                    currentTooltip.classList.add('show');
+                    // Position tooltip after DOM update
+                    positionTooltip(event, currentTooltip);
+                    
+                    // Show tooltip with animation after positioning
+                    requestAnimationFrame(() => {
+                        if (currentTooltip) {
+                            currentTooltip.classList.add('show');
+                            // Fetch trust score data after tooltip is positioned and shown
+                            fetchTrustScoreData(pubkey);
+                        }
+                    });
                 }
-            }, 10);
-            
-            // Fetch trust score data
-            fetchTrustScoreData(pubkey);
+            });
         }
         
         function hideTrustScoreTooltip() {
@@ -325,7 +331,7 @@
             
             // Calculate position relative to the document (not viewport)
             let left = rect.left + scrollX + (rect.width / 2) - (tooltipRect.width / 2);
-            let top = rect.top + scrollY - tooltipRect.height - 10;
+            let top = rect.top + scrollY - tooltipRect.height - 15; // Increased gap to 15px
             
             // Adjust if tooltip goes off screen horizontally
             const minLeft = scrollX + 10;
@@ -336,7 +342,17 @@
             // Adjust if tooltip goes off screen vertically (place below instead of above)
             const minTop = scrollY + 10;
             if (top < minTop) {
-                top = rect.bottom + scrollY + 10;
+                top = rect.bottom + scrollY + 15; // Increased gap to 15px when below
+            }
+            
+            // Ensure tooltip doesn't overlap with the profile card area
+            // Add extra safety margin to prevent any mouse event interference
+            const cardBottom = rect.bottom + scrollY;
+            const cardTop = rect.top + scrollY;
+            
+            // If positioning above, ensure there's sufficient clearance
+            if (top + tooltipRect.height + 5 > cardTop) {
+                top = cardBottom + 15;
             }
             
             tooltip.style.left = left + 'px';
