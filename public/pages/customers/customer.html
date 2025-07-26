@@ -153,6 +153,89 @@
         .detail-value {
             color: #6c757d;
         }
+        
+        .nip85-panel {
+            background: #ffffff;
+            border: 1px solid #007bff;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .nip85-panel h3 {
+            color: #007bff;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nip85-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .nip85-status.available {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .nip85-status.unavailable {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .event-details {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .event-id {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 5px 8px;
+            border-radius: 4px;
+            word-break: break-all;
+            font-size: 0.85em;
+        }
+        
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .tags-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .tag-item {
+            font-family: monospace;
+            font-size: 0.8em;
+            padding: 2px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .tag-item:last-child {
+            border-bottom: none;
+        }
+        
+        .nip85-loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -195,6 +278,24 @@
                 <h2>✅ Customer Status</h2>
                 <div id="customerUserInfo" class="user-info"></div>
                 <div id="customerDetails" class="customer-details"></div>
+                
+                <!-- NIP-85 Panel -->
+                <div id="nip85Panel" class="nip85-panel">
+                    <h3>
+                        🔗 NIP-85 Relay Information
+                        <span id="nip85Status" class="nip85-status">Checking...</span>
+                    </h3>
+                    
+                    <div id="nip85Loading" class="nip85-loading">
+                        <div class="loader"></div>
+                        <p>Loading NIP-85 information...</p>
+                    </div>
+                    
+                    <div id="nip85Content" style="display: none;">
+                        <div id="nip85EventDetails" class="event-details"></div>
+                    </div>
+                </div>
+                
                 <div class="action-buttons">
                     <a href="/home.html" class="btn btn-secondary">Back to Home</a>
                 </div>
@@ -343,15 +444,130 @@
         
         async function fetchCustomersData() {
             try {
-                const response = await fetch(`${baseUrl}/api/get-customers`);
+                const response = await fetch('/api/get-customers');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
+                console.log('Customers data:', data);
                 return data;
             } catch (error) {
                 console.error('Error fetching customers data:', error);
                 throw error;
+            }
+        }
+        
+        async function fetchNip85Info(pubkey) {
+            try {
+                const response = await fetch(`/api/get-kind10040-info?pubkey=${pubkey}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('NIP-85 info:', data);
+                return data;
+            } catch (error) {
+                console.error('Error fetching NIP-85 info:', error);
+                throw error;
+            }
+        }
+        
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString();
+        }
+        
+        function createNip85EventHTML(nip85Data) {
+            if (!nip85Data.latestEvent) {
+                return `
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">No Kind 10040 event found for this customer</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Relay URL:</span>
+                        <span class="detail-value">${nip85Data.relayUrl || 'N/A'}</span>
+                    </div>
+                `;
+            }
+            
+            const event = nip85Data.latestEvent;
+            const tagsHtml = event.tags && event.tags.length > 0 
+                ? event.tags.map(tag => `<div class="tag-item">[${tag.map(t => `"${t}"`).join(', ')}]</div>`).join('')
+                : '<div class="tag-item">No tags</div>';
+            
+            return `
+                <div class="detail-row">
+                    <span class="detail-label">Event ID:</span>
+                    <div class="event-id">${event.id}</div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Created:</span>
+                    <span class="detail-value timestamp">${formatTimestamp(event.created_at)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind:</span>
+                    <span class="detail-value">${event.kind}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Relay URL:</span>
+                    <span class="detail-value">${nip85Data.relayUrl || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tags (${event.tags ? event.tags.length : 0}):</span>
+                    <div class="tags-list">${tagsHtml}</div>
+                </div>
+            `;
+        }
+        
+        async function loadNip85Info(pubkey) {
+            const nip85Loading = document.getElementById('nip85Loading');
+            const nip85Content = document.getElementById('nip85Content');
+            const nip85Status = document.getElementById('nip85Status');
+            const nip85EventDetails = document.getElementById('nip85EventDetails');
+            
+            try {
+                // Show loading state
+                nip85Loading.style.display = 'block';
+                nip85Content.style.display = 'none';
+                nip85Status.textContent = 'Loading...';
+                nip85Status.className = 'nip85-status';
+                
+                // Fetch NIP-85 information
+                const nip85Data = await fetchNip85Info(pubkey);
+                
+                // Update status
+                if (nip85Data.latestEvent) {
+                    nip85Status.textContent = 'Available';
+                    nip85Status.className = 'nip85-status available';
+                } else {
+                    nip85Status.textContent = 'Not Available';
+                    nip85Status.className = 'nip85-status unavailable';
+                }
+                
+                // Create and display event details
+                nip85EventDetails.innerHTML = createNip85EventHTML(nip85Data);
+                
+                // Show content, hide loading
+                nip85Loading.style.display = 'none';
+                nip85Content.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading NIP-85 info:', error);
+                
+                // Show error state
+                nip85Status.textContent = 'Error';
+                nip85Status.className = 'nip85-status unavailable';
+                nip85EventDetails.innerHTML = `
+                    <div class="detail-row">
+                        <span class="detail-label">Error:</span>
+                        <span class="detail-value">Failed to load NIP-85 information: ${error.message}</span>
+                    </div>
+                `;
+                
+                nip85Loading.style.display = 'none';
+                nip85Content.style.display = 'block';
             }
         }
         
@@ -398,6 +614,9 @@
                     }
                     
                     showState('customer');
+                    
+                    // Load NIP-85 information for the customer
+                    loadNip85Info(pubkey);
                 } else {
                     // User is not a customer - show signup prompt
                     const userInfo = document.getElementById('userInfo');
