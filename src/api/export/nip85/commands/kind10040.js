@@ -19,9 +19,12 @@ function handleCreateKind10040(req, res) {
     if (!req.session.authenticated) {
         return res.status(401).json({ 
             success: false, 
-            message: 'Authentication required. Only the owner can perform this action.' 
+            message: 'Authentication required.' 
         });
     }
+
+    // Get the customer pubkey from the request
+    const customerPubkey = req.body.pubkey;
     
     console.log('Creating kind 10040 events...');
     
@@ -32,7 +35,12 @@ function handleCreateKind10040(req, res) {
     const baseDir = getConfigFromFile('BRAINSTORM_MODULE_BASE_DIR', '/usr/local/lib/node_modules/brainstorm');
     
     // Get the full path to the script
-    const scriptPath = path.join(baseDir, 'bin', 'brainstorm-create-kind10040.js');
+    let scriptName = 'brainstorm-create-kind10040.js';
+    // if customerPubkey is provided, then include customerPubkey as an argument
+    if (customerPubkey) {
+        scriptName = `brainstorm-create-kind10040.js ${customerPubkey}`;
+    }
+    const scriptPath = path.join(baseDir, 'bin', scriptName);
     console.log('Using script path:', scriptPath);
     
     // Set a timeout to ensure the response doesn't hang

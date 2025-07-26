@@ -15,7 +15,15 @@ const { getConfigFromFile } = require('../src/utils/config');
 
 // Get relay configuration
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
-const relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
+let relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
+
+// get customer pubkey if one is provided as an argument
+const customerPubkey = process.argv[2];
+
+// if customerPubkey is provided, then use CUSTOMER_<customerPubkey>_RELAY_PUBKEY instead of relayPubkey
+if (customerPubkey) {
+  relayPubkey = getConfigFromFile(`CUSTOMER_${customerPubkey}_RELAY_PUBKEY`, '');
+}
 
 if (!relayUrl || !relayPubkey) {
   console.error('Error: Relay URL or pubkey not found in configuration');
