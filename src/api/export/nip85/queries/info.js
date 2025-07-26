@@ -15,7 +15,7 @@ const { getConfigFromFile } = require('../../../../utils/config');
  */
 function handleGetKind10040Info(req, res) {
   try {
-    // Get pubkey from request
+    // Get pubkey from request if available
     const requestPubkey = req.query.pubkey;
     // Get owner pubkey from config
     const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
