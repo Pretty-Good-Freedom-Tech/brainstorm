@@ -8,6 +8,7 @@
     <link rel="shortcut icon" href="/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
+    <script src="/components/observerSelector/observerSelector.js"></script>
 </head>
 <body>
     <!-- Include the header component -->
@@ -28,6 +29,10 @@
                     </label>
                 </div>
             </div>
+            
+            <!-- Observer Selector -->
+            <div id="observerSelectorContainer"></div>
+            
             <br />
             <div id="searchResults" class="search-results"  style="display: none;">
                 <!-- Search results will be dynamically added here -->
@@ -51,6 +56,10 @@
         const searchInput = document.getElementById('searchInput');
         const verifiedOnlyToggle = document.getElementById('verifiedOnlyToggle');
         
+        // Observer selector and state management
+        let observerSelector;
+        let currentObserverPubkey = 'owner'; // Default to global/owner view
+        
         // Main search function
         function performSearch() {
             const searchValue = searchInput.value.trim();
@@ -68,7 +77,9 @@
             searchResults.style.display = 'block';
             
             // Send a GET request to the API endpoint
-            fetch(`/api/search/profiles?searchType=kind0&searchString=${encodeURIComponent(searchValue)}`)
+            const searchUrl = `/api/search/profiles?searchType=kind0&searchString=${encodeURIComponent(searchValue)}`;
+            const urlWithObserver = currentObserverPubkey !== 'owner' ? `${searchUrl}&observerPubkey=${encodeURIComponent(currentObserverPubkey)}` : searchUrl;
+            fetch(urlWithObserver)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.pubkeys && data.pubkeys.length > 0) {
@@ -171,9 +182,12 @@
         async function createSingleProfilePanel(pubkey) {
             try {
                 // Fetch both profile data and trust score data in parallel
+                const trustUrl = `/api/get-user-data?pubkey=${pubkey}`;
+                const trustUrlWithObserver = currentObserverPubkey !== 'owner' ? `${trustUrl}&observerPubkey=${encodeURIComponent(currentObserverPubkey)}` : trustUrl;
+                
                 const [profileResponse, trustResponse] = await Promise.all([
                     fetch(`/api/get-kind0?pubkey=${pubkey}`),
-                    fetch(`/api/get-user-data?pubkey=${pubkey}`)
+                    fetch(trustUrlWithObserver)
                 ]);
                 
                 const profileResult = await profileResponse.json();
@@ -454,6 +468,21 @@
                 <div class="trust-score-error">${message}</div>
             `;
         }
+        
+        // Initialize observer selector when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            observerSelector = new ObserverSelector('observerSelectorContainer', {
+                defaultValue: 'owner',
+                onChange: function(selectedPubkey) {
+                    currentObserverPubkey = selectedPubkey;
+                    
+                    // If there are existing search results, refresh them with the new observer perspective
+                    if (searchResults.style.display !== 'none' && searchInput.value.trim().length >= 2) {
+                        performSearch();
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
