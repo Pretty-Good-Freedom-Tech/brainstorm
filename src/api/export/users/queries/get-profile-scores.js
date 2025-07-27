@@ -47,12 +47,12 @@ function handleGetProfileScores(req, res) {
     // Maybe add a checkbox for each filter to exclude null values
     if (observer == "owner") {
       query = `
-        MATCH (u:NostrUser)
+        MATCH (u:NostrUser {pubkey: '${pubkey}'})
         WHERE u.pubkey IS NOT NULL
       `;
     } else {
       query = `
-        MATCH (c:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}'})<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
+        MATCH (c:NostrUserWotMetricsCard {observee_pubkey: '${pubkey}', observer_pubkey: '${observerPubkey}'})<-[:SPECIFIC_INSTANCE]-(f:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(n:NostrUser)
         WHERE n.pubkey = c.observee_pubkey
       `;
     }
