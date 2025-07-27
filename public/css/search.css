@@ -8,6 +8,39 @@
     gap: 10px;
 }
 
+/* Search results container styling */
+.search-results {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Space between profile cards */
+    padding: 1rem 0;
+}
+
+/* Responsive spacing adjustments */
+@media (max-width: 767px) {
+    .search-results {
+        gap: 1rem; /* Tighter spacing on mobile */
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .search-results {
+        gap: 1.75rem; /* More generous spacing on larger screens */
+        padding: 1.25rem 0;
+    }
+}
+
+@media (min-width: 1200px) {
+    .search-results {
+        gap: 2rem; /* Maximum spacing on desktop */
+        max-width: 900px;
+    }
+}
+
 .search-input {
     padding: 10px;
     border: 1px solid #ccc;
