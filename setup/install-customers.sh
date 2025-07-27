@@ -18,4 +18,4 @@ sudo chmod -R 644 ${targetCustomersDir}/*.*;
 # create a default relay pubkey for each customer
 # run createAllCustomerRelays.js
 echo "Creating default relay pubkey for each customer (if not already done)..."
-sudo node /usr/local/lib/node_modules/brainstorm/manage/customers/createAllCustomerRelays.js
+sudo node /usr/local/lib/node_modules/brainstorm/src/manage/customers/createAllCustomerRelays.js
