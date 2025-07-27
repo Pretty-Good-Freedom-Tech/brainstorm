@@ -78,6 +78,7 @@ export CUSTOMER_${customer_pubkey}_RELAY_NSEC='${keys.nsec}'
         // Add keys to brainstorm.conf
         const brainstormConf = getBrainstormConfFile();
         const newBrainstormConf = brainstormConf + newBrainstormConfString;
+        console.log(`newBrainstormConf: ${newBrainstormConf}`);
         fs.writeFileSync('/etc/brainstorm.conf', newBrainstormConf);
 
     } catch (error) {
