@@ -4,6 +4,7 @@
  */
 
 const { handleGetProfiles } = require('./queries/profiles');
+const { handleGetProfileScores } = require('./queries/profile-scores');
 const { handleGetNip56Profiles } = require('./queries/nip56-profiles');
 const { handleGetUserData } = require('./queries/userdata');
 const { handleGetNetworkProximity } = require('./queries/proximity');
@@ -13,6 +14,7 @@ const { handleGetNetworkProximity } = require('./queries/proximity');
 module.exports = {
     // Queries (read operations)
     handleGetProfiles,
+    handleGetProfileScores,
     handleGetNip56Profiles,
     handleGetUserData,
     handleGetNetworkProximity

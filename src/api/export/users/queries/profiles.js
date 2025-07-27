@@ -16,7 +16,7 @@ function handleGetProfiles(req, res) {
     const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
 
     // optional get observer pubkey from query parameter
-    const source = req.query.source || 'owner'; // 'owner' or 'NostrUserWotMetricsCards'
+    // const source = req.query.source || 'owner'; // 'owner' or 'NostrUserWotMetricsCards'
     const observerPubkey = req.query.observerPubkey || ownerPubkey;
     
     // Get query parameters for filtering and pagination
