@@ -51,8 +51,8 @@
                 const authResponse = await fetch('/api/auth/status');
                 const authData = await authResponse.json();
                 
-                if (!authData.success || !authData.isOwner) {
-                    showStatus('error', 'Authentication required. Please sign in as the owner to perform this operation.');
+                if (!authData.authenticated) {
+                    showStatus('error', 'Authentication required. Please sign in to perform this operation.');
                     return;
                 }
                 
