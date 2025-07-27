@@ -277,6 +277,16 @@
 
                     const verifiedReporterCountText = verifiedReporterCount > 0 ? `${verifiedReporterCount} 🍇 reporters` : '';
                     
+                    // Format influence score for display
+                    function formatInfluenceScore(score) {
+                        if (score === 1 || score === 0) {
+                            return score.toString();
+                        }
+                        return score.toFixed(2);
+                    }
+                    
+                    const formattedInfluenceScore = formatInfluenceScore(influenceScore);
+                    
                     // Create the profile panel HTML with trust score hover functionality and visual cues
                     const profileHTML = `
                         <div class="${cssClasses}" data-pubkey="${pubkey}" data-influence="${influenceScore}" data-reporter-count="${verifiedReporterCount}" data-effective-reporter-count="${effectiveReporterInput}" data-follower-count="${verifiedFollowerCount}" data-correction-factor="${correctionFactor}" style="${dynamicStyles}" onmouseenter="showTrustScoreTooltip(event, '${pubkey}')" onmouseleave="hideTrustScoreTooltip()">
@@ -289,6 +299,9 @@
                                     <h3 class="profile-handle">@${name}</h3>
                                     <h3 class="profile-followers">${verifiedFollowerCount} 🍇 followers</h3>
                                     <h3 class="profile-reporters">${verifiedReporterCountText}</h3>
+                                </div>
+                                <div class="influence-score-circle">
+                                    <span class="influence-score-value">${formattedInfluenceScore}</span>
                                 </div>
                             </a>
                         </div>
