@@ -55,7 +55,7 @@
                             <p id="hopsValue">-</p>
                         </div>
                         <div class="stat-box">
-                            <h3>🍇-Influence</h3>
+                            <h3>🍇-Rank</h3>
                             <p id="influenceValue">-</p>
                             <p class="stat-link"><a href="#" id="grapeRankReviewLink">Review Calculations</a></p>
                         </div>
@@ -118,7 +118,7 @@
                     <!-- End Trust Scores Panel -->
                     
                     <div class="profile-section social-connections-section">
-                        <h3 class="section-title">Social Graph Overview</h3>
+                        <h3 class="section-title">Following/Followers</h3>
                         <div class="connections-table-wrapper">
                             <table class="connections-table styled-table">
                                 <tbody>
@@ -134,6 +134,63 @@
                                         <th>🍇-Verified Followers</th>
                                         <td id="verifiedFollowerCountValue2">-</td>
                                     </tr>
+                                    <tr>
+                                        <th>🍇-Followers Input</th>
+                                        <td id="followerInputValue">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h3 class="section-title">Mutings/Muters</h3>
+                        <div class="connections-table-wrapper">
+                            <table class="connections-table styled-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Muting</th>
+                                        <td id="mutingCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Muters</th>
+                                        <td id="muterCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>🍇-Verified Muters</th>
+                                        <td id="verifiedMuterCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>🍇-Muters Input</th>
+                                        <td id="muterInputValue">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h3 class="section-title">Reporting/Reporters</h3>
+                        <div class="connections-table-wrapper">
+                            <table class="connections-table styled-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Reporting</th>
+                                        <td id="reportingCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Reporters</th>
+                                        <td id="reporterCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>🍇-Verified Reporters</th>
+                                        <td id="verifiedReporterCountValue">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>🍇-Reporters Input</th>
+                                        <td id="reporterInputValue">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h3 class="section-title">Social Graph Overview</h3>
+                        <div class="connections-table-wrapper">
+                            <table class="connections-table styled-table">
+                                <tbody>
                                     <tr>
                                         <th>Frens</th>
                                         <td id="frenCountValue">-</td>
@@ -350,11 +407,24 @@
             if (data.mutualIdolCount !== undefined) document.querySelector('#mutualIdolCountValue a').textContent = data.mutualIdolCount;
             if (data.mutualFollowerCount !== undefined) document.querySelector('#mutualFollowerCountValue a').textContent = data.mutualFollowerCount;
             if (data.mutualFollowCount !== undefined) document.querySelector('#mutualFollowCountValue a').textContent = data.mutualFollowCount;
-            // Social graph panel
+
+            // Following/followers
             document.getElementById('followingCountValue').textContent = data.followingCount ?? 0;
             document.getElementById('followerCountValue').textContent = data.followerCount ?? 0;
             document.getElementById('verifiedFollowerCountValue1').textContent = data.verifiedFollowerCount ?? 0;
             document.getElementById('verifiedFollowerCountValue2').textContent = data.verifiedFollowerCount ?? 0;
+            document.getElementById('followerInputValue').textContent = data.followerInput ?? 0;
+            // Muting/muters
+            document.getElementById('mutingCountValue').textContent = data.mutingCount ?? 0;
+            document.getElementById('muterCountValue').textContent = data.muterCount ?? 0;
+            document.getElementById('verifiedMuterCountValue').textContent = data.verifiedMuterCount ?? 0;
+            document.getElementById('muterInputValue').textContent = data.muterInput ?? 0;
+            // Reporting/reporters
+            document.getElementById('reportingCountValue').textContent = data.reportingCount ?? 0;
+            document.getElementById('reporterCountValue').textContent = data.reporterCount ?? 0;
+            document.getElementById('verifiedReporterCountValue').textContent = data.verifiedReporterCount ?? 0;
+            document.getElementById('reporterInputValue').textContent = data.reporterInput ?? 0;
+            // Social graph panel
             document.getElementById('frenCountValue').textContent = data.frenCount ?? 0;
             document.getElementById('groupieCountValue').textContent = data.groupieCount ?? 0;
             document.getElementById('idolCountValue').textContent = data.idolCount ?? 0;
@@ -365,9 +435,7 @@
             document.getElementById('mutualFollowCountValue').textContent = data.mutualFollowCount ?? 0;
             document.getElementById('recommendationsToOwnerCountValue').textContent = data.recommendationsToOwnerCount ?? 0;
             document.getElementById('recommendationsFromOwnerCountValue').textContent = data.recommendationsFromOwnerCount ?? 0;
-            // Muting/muters
-            document.getElementById('mutingCountValue').textContent = data.mutingCount ?? 0;
-            document.getElementById('muterCountValue').textContent = data.muterCount ?? 0;
+
             // NIP-56 Reports Table
             const nip56 = data.nip56;
             const nip56ReportsTable = document.getElementById('nip56ReportsTableBody');

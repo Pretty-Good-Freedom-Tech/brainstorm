@@ -27,8 +27,9 @@ function handleGetUserData(req, res) {
     }
 
     // Use nip19 to validate pubkey
-    const { type, data } = nip19.decode(pubkey);
-    if (type !== 'npub') {
+    const npub1 = nip19.npubEncode(pubkey);
+    // if string does not start with 'npub'
+    if (!npub1.startsWith('npub')) {
       return res.status(400).json({ error: 'Invalid pubkey parameter' });
     }
 
@@ -36,13 +37,13 @@ function handleGetUserData(req, res) {
 
     // If observerPubkey is set and is not owner, validate it
     if (observerPubkey && observerPubkey !== 'owner') {
-      const { type, data } = nip19.decode(observerPubkey);
-      if (type !== 'npub') {
+      const npub2 = nip19.npubEncode(observerPubkey);
+      if (!npub2.startsWith('npub')) {
         return res.status(400).json({ error: 'Invalid observerPubkey parameter' });
       }
       source = 'NostrUserWotMetricsCard'
     }
-
+    
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
     const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
@@ -60,15 +61,14 @@ function handleGetUserData(req, res) {
     if (source === 'NostrUser') {
       nodeTrustScoreSource = 'u'
       cypherQuery = `
-      MATCH (u:NostrUser {pubkey: ${pubkey}})
-      MATCH (owner:NostrUser {pubkey: ${ownerPubkey}})
+      MATCH (u:NostrUser {pubkey: '${pubkey}'})
       `
     }
     if (source === 'NostrUserWotMetricsCard') {
       nodeTrustScoreSource = 'observeeCard'
       cypherQuery = `
-      MATCH (u:NostrUser {pubkey: ${pubkey}})
-      MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: ${observerPubkey}, observee_pubkey: ${pubkey}})
+      MATCH (u:NostrUser {pubkey: '${pubkey}'})
+      MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}', observee_pubkey: '${pubkey}'})
       `
     }
     cypherQuery += `
@@ -102,7 +102,7 @@ function handleGetUserData(req, res) {
         let isUserInNeo4j = true
         let userData = {}
         if (!user) {
-          isUserInNeo4j = false
+          isUserInNeo4j = false;
           userData = {
             pubkey: pubkey,
             npub: npub,
@@ -128,8 +128,8 @@ function handleGetUserData(req, res) {
         }
 
         userData = {
-          pubkey: user.get('pubkey'),
-          npub: npub,
+          pubkey: user.get('pubkey') ? user.get('pubkey') : null,
+          npub: user.get('npub') ? user.get('npub') : null,
           followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0,
           muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
           reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
@@ -156,7 +156,6 @@ function handleGetUserData(req, res) {
           metaData: {
             pubkey: pubkey,
             observerPubkey: observerPubkey,
-            ownerPubkey: ownerPubkey,
             query: cypherQuery
           },
           data: userData
