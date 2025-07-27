@@ -182,7 +182,7 @@
         async function createSingleProfilePanel(pubkey) {
             try {
                 // Fetch both profile data and trust score data in parallel
-                const trustUrl = `/api/get-user-data?pubkey=${pubkey}`;
+                const trustUrl = `/api/get-profile-scores?pubkey=${pubkey}`;
                 const trustUrlWithObserver = currentObserverPubkey !== 'owner' ? `${trustUrl}&observerPubkey=${encodeURIComponent(currentObserverPubkey)}` : trustUrl;
                 
                 const [profileResponse, trustResponse] = await Promise.all([
@@ -210,12 +210,12 @@
                     // Store trust score data in cache if available
                     if (trustResult.success && trustResult.data) {
                         const trustData = {
-                            hops: trustResult.data.hops,
-                            influence: trustResult.data.influence,
-                            personalizedPageRank: trustResult.data.personalizedPageRank,
-                            verifiedFollowerCount: trustResult.data.verifiedFollowerCount,
-                            verifiedMuterCount: trustResult.data.verifiedMuterCount,
-                            verifiedReporterCount: trustResult.data.verifiedReporterCount
+                            hops: trustResult.data.profileData.hops,
+                            influence: trustResult.data.profileData.influence,
+                            personalizedPageRank: trustResult.data.profileData.personalizedPageRank,
+                            verifiedFollowerCount: trustResult.data.profileData.verifiedFollowerCount,
+                            verifiedMuterCount: trustResult.data.profileData.verifiedMuterCount,
+                            verifiedReporterCount: trustResult.data.profileData.verifiedReporterCount
                         };
                         trustScoreCache.set(pubkey, trustData);
                     } else {
@@ -225,16 +225,16 @@
                     
                     // Extract influence score for sorting (default to 0 if not available)
                     let influenceScore = 0;
-                    if (trustResult.success && trustResult.data && trustResult.data.influence !== undefined) {
-                        influenceScore = parseFloat(trustResult.data.influence) || 0;
+                    if (trustResult.success && trustResult.data && trustResult.data.profileData.influence !== undefined) {
+                        influenceScore = parseFloat(trustResult.data.profileData.influence) || 0;
                     }
                     
                     // Extract verifiedReporterCount and verifiedFollowerCount for report visual cues
                     let verifiedReporterCount = 0;
                     let verifiedFollowerCount = 0;
                     if (trustResult.success && trustResult.data) {
-                        verifiedReporterCount = parseInt(trustResult.data.verifiedReporterCount) || 0;
-                        verifiedFollowerCount = parseInt(trustResult.data.verifiedFollowerCount) || 0;
+                        verifiedReporterCount = parseInt(trustResult.data.profileData.verifiedReporterCount) || 0;
+                        verifiedFollowerCount = parseInt(trustResult.data.profileData.verifiedFollowerCount) || 0;
                     }
                     
                     // Calculate effectiveReporterCount with follower correction factor
