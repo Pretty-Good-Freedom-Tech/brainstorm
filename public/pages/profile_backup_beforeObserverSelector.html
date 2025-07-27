@@ -11,83 +11,11 @@
     <style>
         .sg-link { color: #3b54b7; text-decoration: underline; font-weight: 500; cursor: pointer; }
         .sg-link:hover { color: #5a2bb6; text-decoration: underline dotted; }
-        
-        /* Observer Selector Styles */
-        .observer-selector-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .observer-selector {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .observer-label {
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        
-        .observer-dropdown {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            background: white;
-            color: #333;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            min-width: 200px;
-        }
-        
-        .observer-dropdown:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-            transform: translateY(-1px);
-        }
-        
-        .observer-dropdown:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
-        }
-        
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .observer-selector {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-            
-            .observer-dropdown {
-                width: 100%;
-                min-width: unset;
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Include the header component -->
     <div id="headerContainer"></div>
-    
-    <!-- Observer Selector -->
-    <div class="observer-selector-container">
-        <div class="observer-selector">
-            <label for="observerSelect" class="observer-label">Observer:</label>
-            <select id="observerSelect" class="observer-dropdown">
-                <option value="owner">Global (Owner)</option>
-                <!-- Options will be populated dynamically -->
-            </select>
-        </div>
-    </div>
     
     <!-- Main content wrapper -->
     <div class="page-content">
@@ -314,13 +242,6 @@
             // Base URL for API calls
             const baseUrl = '/api';
             
-            // Observer selector functionality
-            let currentObserverPubkey = 'owner'; // Default to global (owner)
-            const observerSelect = document.getElementById('observerSelect');
-            
-            // Initialize observer selector
-            initializeObserverSelector();
-            
             // Load data
             // deprecating this line -- this function is called below; here it causes an error with a broken api call
             // loadProfileDataSequentially(pubkey, baseUrl);
@@ -359,55 +280,10 @@
             showError('No pubkey provided');
         }
         
-        // Initialize observer selector with customer options
-        function initializeObserverSelector() {
-            fetch('/api/get-customers')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.customers) {
-                        // Clear existing options except the default
-                        const defaultOption = observerSelect.querySelector('option[value="owner"]');
-                        observerSelect.innerHTML = '';
-                        observerSelect.appendChild(defaultOption);
-                        
-                        // Add customer options
-                        data.customers.forEach(customer => {
-                            if (customer.status === 'active' && customer.pubkey) {
-                                const option = document.createElement('option');
-                                option.value = customer.pubkey;
-                                option.textContent = customer.name || customer.pubkey.substring(0, 16) + '...';
-                                observerSelect.appendChild(option);
-                            }
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading customers for observer selector:', error);
-                });
-            
-            // Add change event listener
-            observerSelect.addEventListener('change', function() {
-                currentObserverPubkey = this.value;
-                console.log('Observer changed to:', currentObserverPubkey);
-                
-                // Reload profile data with new observer
-                if (pubkey) {
-                    // Show loading indicator
-                    loadingIndicator.style.display = 'flex';
-                    profileContainer.style.display = 'none';
-                    
-                    // Reload data
-                    loadProfileDataSequentially(pubkey, baseUrl);
-                }
-            });
-        }
-        
         // Function to load profile data sequentially
         function loadProfileDataSequentially(pubkey, baseUrl) {
             // Step 1: Load Neo4j data
-            const getUserDataUrl = `${baseUrl}/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`;
-            const urlWithObserver = currentObserverPubkey !== 'owner' ? `${getUserDataUrl}&observerPubkey=${encodeURIComponent(currentObserverPubkey)}` : getUserDataUrl;
-            fetch(urlWithObserver)
+            fetch(`${baseUrl}/api/get-user-data?pubkey=${encodeURIComponent(pubkey)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
