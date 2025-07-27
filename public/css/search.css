@@ -177,16 +177,6 @@
     opacity: 1 !important;
 }
 
-/* Follower count */
-.profile-followers {
-    color: green !important;
-}
-
-/* Reporter count */
-.profile-reporters {
-    color: red !important;
-}
-
 /* Responsive search controls */
 .search-controls {
     display: flex;
