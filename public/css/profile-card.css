@@ -111,6 +111,33 @@
 
 /* Responsive adjustments for mobile */
 @media (max-width: 767px) {
+    .profile-image img {
+        width: 80px;
+        height: 80px;
+        border: 2px solid #b234bd;
+    }
+    .profile-name {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        line-height: 1.1;
+    }
+    
+    .profile-handle {
+        margin: 0 0 4px 0;
+        font-size: 12px;
+        line-height: 1.0;
+    }
+    
+    .profile-followers {
+        margin: 0 0 4px 0;
+        font-size: 12px;
+        line-height: 1.0;
+    }
+    .profile-reporters {
+        margin: 0 0 4px 0;
+        font-size: 12px;
+        line-height: 1.0;
+    }
     .influence-score-circle {
         width: 80px;
         height: 80px;

@@ -275,8 +275,24 @@
                         dynamicStyles += ` border-width: ${borderThickness}px; border-style: solid;`;
                     }
 
-                    const verifiedReporterCountText = verifiedReporterCount > 0 ? `${verifiedReporterCount} 🍇 reporters` : '';
-                    
+                    let verifiedReporterCountText = '';
+
+                    if (effectiveReporterInput > 0 && verifiedReporterCount > 0 ) {
+                        if (verifiedReporterCount == 1) {
+                            verifiedReporterCountText = `${verifiedReporterCount} 🍇 reporter`;
+                        } else {
+                            verifiedReporterCountText = `${verifiedReporterCount} 🍇 reporters`;
+                        }
+                    }
+
+                    let verifiedFollowerCountText = '';
+
+                    if (verifiedFollowerCount == 1) {
+                        verifiedFollowerCountText = `${verifiedFollowerCount} 🍇 follower`;
+                    } else {
+                        verifiedFollowerCountText = `${verifiedFollowerCount} 🍇 followers`;
+                    }
+
                     // Format influence score for display
                     function formatInfluenceScore(score) {
                         if (score === 1 || score === 0) {
@@ -297,7 +313,7 @@
                                 <div class="profile-info">
                                     <h3 class="profile-name">${displayName}</h3>
                                     <h3 class="profile-handle">@${name}</h3>
-                                    <h3 class="profile-followers">${verifiedFollowerCount} 🍇 followers</h3>
+                                    <h3 class="profile-followers">${verifiedFollowerCountText}</h3>
                                     <h3 class="profile-reporters">${verifiedReporterCountText}</h3>
                                 </div>
                                 <div class="influence-score-circle">
