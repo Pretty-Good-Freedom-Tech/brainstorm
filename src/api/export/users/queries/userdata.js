@@ -56,21 +56,37 @@ function handleGetUserData(req, res) {
     
     const session = driver.session();
 
-    let cypherQuery = ''
+    let cypherQuery = `
+    MATCH (u:NostrUser {pubkey: '${pubkey}'})
+    `
     let nodeTrustScoreSource = ''
     if (source === 'NostrUser') {
       nodeTrustScoreSource = 'u'
-      cypherQuery = `
-      MATCH (u:NostrUser {pubkey: '${pubkey}'})
-      `
     }
     if (source === 'NostrUserWotMetricsCard') {
       nodeTrustScoreSource = 'observeeCard'
-      cypherQuery = `
-      MATCH (u:NostrUser {pubkey: '${pubkey}'})
+      cypherQuery += `
       MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}', observee_pubkey: '${pubkey}'})
       `
     }
+    ////////// Grapevine Analysis
+    cypherQuery += `
+      // frens FRENS (profiles that follow AND are followed by this user)
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
+      WITH u, observeeCard, count(fren) as frenCount
+
+      // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
+      WITH u, observeeCard, frenCount, count(groupie) as groupieCount
+
+      // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
+      WHERE NOT (idol)-[:FOLLOWS]->(u)
+      WITH u, observeeCard, frenCount, groupieCount, count(idol) as idolCount
+
+    `
+    
     cypherQuery += `
     RETURN u.pubkey as pubkey,
     u.npub as npub,
@@ -91,7 +107,10 @@ function handleGetUserData(req, res) {
     ${nodeTrustScoreSource}.verifiedReporterCount as verifiedReporterCount,
     ${nodeTrustScoreSource}.followerInput as followerInput,
     ${nodeTrustScoreSource}.muterInput as muterInput,
-    ${nodeTrustScoreSource}.reporterInput as reporterInput
+    ${nodeTrustScoreSource}.reporterInput as reporterInput,
+    frenCount,
+    groupieCount,
+    idolCount
     `
     
     // Execute the query
@@ -123,7 +142,10 @@ function handleGetUserData(req, res) {
             verifiedReporterCount: null,
             followerInput: null,
             muterInput: null,
-            reporterInput: null
+            reporterInput: null,
+            frenCount: null,
+            groupieCount: null,
+            idolCount: null
           }
         }
 
@@ -147,7 +169,10 @@ function handleGetUserData(req, res) {
           verifiedReporterCount: user.get('verifiedReporterCount') ? parseInt(user.get('verifiedReporterCount').toString()) : null,
           followerInput: user.get('followerInput') ? parseFloat(user.get('followerInput').toString()) : null,
           muterInput: user.get('muterInput') ? parseFloat(user.get('muterInput').toString()) : null,
-          reporterInput: user.get('reporterInput') ? parseFloat(user.get('reporterInput').toString()) : null
+          reporterInput: user.get('reporterInput') ? parseFloat(user.get('reporterInput').toString()) : null,
+          frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : null,
+          groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : null,
+          idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : null
         }
 
         const apiResponse = {
