@@ -4,6 +4,7 @@
  */
 
 const { handleProcessAllActiveCustomers } = require('./commands/process-all-active-customers');
+const { handleCreateAllCustomerRelays } = require('./commands/create-all-customer-relays');
 const { handleGetCustomers } = require('./getCustomers');
 
 // Export handlers directly - this allows the central router 
@@ -13,5 +14,6 @@ module.exports = {
     handleGetCustomers,
     
     // Commands (write operations)
-    handleProcessAllActiveCustomers
+    handleProcessAllActiveCustomers,
+    handleCreateAllCustomerRelays
 };

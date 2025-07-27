@@ -211,8 +211,11 @@ function register(app) {
 
     // Get Customers endpoint
     app.get('/api/get-customers', customers.handleGetCustomers);
+
+    // Create All Customer Relays endpoint; creates all relays for all customers
+    app.post('/api/create-all-customer-relays', customers.handleCreateAllCustomerRelays);
     
-    // Process All Active Customers endpoint
+    // Process All Active Customers endpoint; creates all scores for all active customers
     app.post('/api/process-all-active-customers', customers.handleProcessAllActiveCustomers);
 
     // Recently Active Pubkeys endpoint

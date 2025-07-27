@@ -305,7 +305,8 @@ function authMiddleware(req, res, next) {
             '/negentropy-sync',
             '/neo4j-setup-constraints-and-indexes',
             '/run-script',
-            '/process-all-active-customers'
+            '/process-all-active-customers',
+            '/create-all-customer-relays'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -349,7 +350,8 @@ function authMiddleware(req, res, next) {
             '/negentropy-sync',
             '/neo4j-setup-constraints-and-indexes',
             '/run-script',
-            '/process-all-active-customers'
+            '/process-all-active-customers',
+            '/create-all-customer-relays'
         ];
         
         // Check if the current path is a write endpoint
