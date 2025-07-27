@@ -274,6 +274,8 @@
                     if (isReported) {
                         dynamicStyles += ` border-width: ${borderThickness}px; border-style: solid;`;
                     }
+
+                    const verifiedReporterCountText = verifiedReporterCount > 0 ? `${verifiedReporterCount} 🍇 reporters` : '';
                     
                     // Create the profile panel HTML with trust score hover functionality and visual cues
                     const profileHTML = `
@@ -284,8 +286,9 @@
                                 </div>
                                 <div class="profile-info">
                                     <h3 class="profile-name">${displayName}</h3>
-                                    <p class="profile-handle">@${name}</p>
-                                    <p class="profile-followers">${verifiedFollowerCount} verified followers</p>
+                                    <h3 class="profile-handle">@${name}</h3>
+                                    <h3 class="profile-followers">${verifiedFollowerCount} 🍇 followers</h3>
+                                    <h3 class="profile-reporters">${verifiedReporterCountText}</h3>
                                 </div>
                             </a>
                         </div>
