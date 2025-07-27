@@ -22,6 +22,21 @@ CUSTOMER_ID="$2"
 # Get customer_name
 CUSTOMER_NAME="$3"
 
+# Get log directory
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
+
+# Create log directory if it doesn't exist; chown to brainstorm user
+mkdir -p "$LOG_DIR"
+sudo chown brainstorm:brainstorm "$LOG_DIR"
+
+# Log file
+LOG_FILE="$LOG_DIR/createCustomerRelayPubkeyIfNeeded.log"
+touch ${LOG_FILE}
+sudo chown brainstorm:brainstorm ${LOG_FILE}
+
+echo "$(date): Starting createCustomerRelayPubkeyIfNeeded for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
+echo "$(date): Starting createCustomerRelayPubkeyIfNeeded for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> ${LOG_FILE}
+
 # generate names of environment variables
 PRIVKEY_VAR_NAME="CUSTOMER_${CUSTOMER_PUBKEY}_RELAY_PRIVKEY"
 NSEC_VAR_NAME="CUSTOMER_${CUSTOMER_PUBKEY}_RELAY_NSEC"
@@ -34,10 +49,13 @@ if [ -f "/etc/brainstorm.conf" ]; then
     # Check if keys already exist in the config
     if grep -q "${PUBKEY_VAR_NAME}" /etc/brainstorm.conf; then
         echo "Keys already exist in config."
+        echo "$(date): Keys already exist in config." >> ${LOG_FILE}
     else
         echo "Adding new keys to config..."
+        echo "$(date): Adding new keys to config." >> ${LOG_FILE}
         # Generate Nostr keys using Node.js
         echo "Generating new Nostr identity..."
+        echo "$(date): Generating new Nostr identity..." >> ${LOG_FILE}
         KEYS_JSON=$(node -e "
         const nostrTools = require('nostr-tools');
         const privateKey = nostrTools.generateSecretKey();
@@ -72,12 +90,14 @@ if [ -f "/etc/brainstorm.conf" ]; then
         echo "# keys added by createCustomerRelayPubkeyIfNeeded.sh" | sudo tee -a /etc/brainstorm.conf
         echo "#############################################################" | sudo tee -a /etc/brainstorm.conf
         echo "Nostr identity created successfully!"
-        echo "PUBKEY: $CUSTOMER_RELAY_PUBKEY"
-        echo "NPUB: $CUSTOMER_RELAY_NPUB"
-        echo "Keys have been added to /etc/brainstorm.conf (if it exists)"
+        echo "CUSTOMER_RELAY_PUBKEY: $CUSTOMER_RELAY_PUBKEY"
+        echo "CUSTOMER_RELAY_NPUB: $CUSTOMER_RELAY_NPUB"
+        echo "Customer relay keys have been added to /etc/brainstorm.conf (if it exists)"
+        echo "$(date): Nostr identity created successfully! CUSTOMER_RELAY_PUBKEY: $CUSTOMER_RELAY_PUBKEY CUSTOMER_RELAY_NPUB: $CUSTOMER_RELAY_NPUB" >> ${LOG_FILE}
     fi
 else
     echo "Warning: /etc/brainstorm.conf not found."
+    echo "$(date): Warning: /etc/brainstorm.conf not found." >> ${LOG_FILE}
 fi
 
 
