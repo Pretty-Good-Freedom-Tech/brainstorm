@@ -137,13 +137,47 @@ function handleGetProfileScores(req, res) {
         });
         
         // Send the response
-        res.json({
-          success: true,
-          data: {
-            cypherQuery: query.replaceAll("\n", " ").replaceAll("\t", " ").replaceAll("  ", " "),
-            profileData
-          }
-        });
+        if (profileData && profileData.length > 0) {
+          res.json({
+            success: true,
+            profileFound: true,
+            data: {
+              cypherQuery: query.replaceAll("\n", " ").replaceAll("\t", " ").replaceAll("  ", " "),
+              profileData: profileData[0]
+            }
+          });
+        } else {
+          res.json({
+            success: true,
+            profileFound: false,
+            data: {
+              cypherQuery: query.replaceAll("\n", " ").replaceAll("\t", " ").replaceAll("  ", " "),
+              profileData: {
+                "pubkey": pubkey,
+                "npub": "",
+                "personalizedPageRank": 0,
+                "hops": 999,
+                "influence": 0,
+                "average": 0,
+                "confidence": 0,
+                "input": 0,
+                "followerCount": 0,
+                "followingCount": 0,
+                "muterCount": 0,
+                "mutingCount": 0,
+                "reporterCount": 0,
+                "reportingCount": 0,
+                "verifiedFollowerCount": 0,
+                "verifiedMuterCount": 0,
+                "verifiedReporterCount": 0,
+                "followerInput": 0,
+                "muterInput": 0,
+                "reporterInput": 0,
+                "latestContentEventCreatedAt": 0
+              }
+            }
+          });
+        }
       })
       .catch(error => {
         console.error('Error fetching profiles:', error);
