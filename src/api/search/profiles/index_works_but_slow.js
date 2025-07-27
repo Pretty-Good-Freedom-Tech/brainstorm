@@ -66,82 +66,25 @@ async function handleSearchProfiles(req, res) {
         }
     }
 
-    // Cache for search results
-    const searchCache = new Map();
-    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-    const MAX_RESULTS = 200; // Limit results for performance
-    const MAX_GREP_LINES = 500; // Limit grep output lines
-
-    // Function to get cached search results
-    function getCachedSearch(searchString) {
-        const cached = searchCache.get(searchString.toLowerCase());
-        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-            console.log(`Cache hit for search: ${searchString}`);
-            return cached.results;
-        }
-        return null;
-    }
-
-    // Function to cache search results
-    function setCachedSearch(searchString, results) {
-        searchCache.set(searchString.toLowerCase(), {
-            results,
-            timestamp: Date.now()
-        });
-        
-        // Clean up old cache entries to prevent memory leaks
-        if (searchCache.size > 100) {
-            const oldestKey = searchCache.keys().next().value;
-            searchCache.delete(oldestKey);
-        }
-    }
-
-    // Optimized function to return list of pubkeys whose kind 0 events contain the search strings
+    // Function to return list of pubkeys whose kind 0 events contain the search Strings 
     function getAllMatchingKind0Profiles(searchString) {
-        return new Promise((resolve, reject) => {
-            // Check cache first
-            const cachedResults = getCachedSearch(searchString);
-            if (cachedResults) {
-                return resolve(cachedResults);
-            }
-
-            console.log(`Starting optimized search for: ${searchString}`);
-            const startTime = Date.now();
-            
-            // Use grep to pre-filter before JSON parsing for much better performance
-            // This reduces the data we need to process by orders of magnitude
-            const escapedSearchString = searchString.replace(/["'\\]/g, '\\$&');
-            const args = [
-                'bash', '-c', 
-                `strfry scan '{"kinds":[0]}' | grep -i "${escapedSearchString}" | head -${MAX_GREP_LINES}`
-            ];
-            
-            const grepProcess = spawn('sudo', args);
+        const searchString_lowercase = searchString.toLowerCase();
+        return new Promise((resolve) => {
+            const args = ['strfry', 'scan', '{"kinds":[0]}'];
+            const strfryProcess = spawn('sudo', args);
             let buffer = '';
             const pubkeys = [];
-            const seenPubkeys = new Set(); // Deduplicate pubkeys
-            let processedLines = 0;
-            
-            grepProcess.stdout.on('data', (data) => {
+            strfryProcess.stdout.on('data', (data) => {
                 buffer += data.toString();
                 let lines = buffer.split('\n');
                 buffer = lines.pop(); // Save incomplete line for next chunk
-                
                 for (const line of lines) {
-                    if (!line.trim()) continue;
-                    processedLines++;
-                    
-                    // Early termination if we have enough results
-                    if (pubkeys.length >= MAX_RESULTS) {
-                        console.log(`Early termination: reached ${MAX_RESULTS} results`);
-                        grepProcess.kill('SIGTERM');
-                        break;
-                    }
-                    
+                    if (!line) continue;
+                    const line_lowercase = line.toLowerCase();
+                    if (!line_lowercase.includes(searchString_lowercase)) continue;
                     try {
                         const oEvent = JSON.parse(line);
-                        if (oEvent && oEvent.pubkey && !seenPubkeys.has(oEvent.pubkey)) {
-                            seenPubkeys.add(oEvent.pubkey);
+                        if (oEvent && oEvent.pubkey) {
                             pubkeys.push(oEvent.pubkey);
                         }
                     } catch (e) {
@@ -150,37 +93,24 @@ async function handleSearchProfiles(req, res) {
                     }
                 }
             });
-            
-            grepProcess.stderr.on('data', (data) => {
-                console.error(`Optimized search error: ${data}`);
+            strfryProcess.stderr.on('data', (data) => {
+                console.error(`strfry error: ${data}`);
             });
-            
-            grepProcess.on('close', (code) => {
-                // Process any remaining buffered line
-                if (buffer.trim() && pubkeys.length < MAX_RESULTS) {
+            strfryProcess.on('close', (code) => {
+                // Optionally process any remaining buffered line
+                if (buffer) {
                     try {
-                        const oEvent = JSON.parse(buffer);
-                        if (oEvent && oEvent.pubkey && !seenPubkeys.has(oEvent.pubkey)) {
-                            pubkeys.push(oEvent.pubkey);
+                        if (buffer.includes(searchString)) {
+                            const oEvent = JSON.parse(buffer);
+                            if (oEvent && oEvent.pubkey) {
+                                pubkeys.push(oEvent.pubkey);
+                            }
                         }
                     } catch (e) {
                         // Ignore malformed last line
                     }
                 }
-                
-                const endTime = Date.now();
-                const duration = endTime - startTime;
-                console.log(`Optimized search completed in ${duration}ms. Processed ${processedLines} lines, found ${pubkeys.length} unique pubkeys`);
-                
-                // Cache the results
-                setCachedSearch(searchString, pubkeys);
-                
                 resolve(pubkeys);
-            });
-            
-            grepProcess.on('error', (error) => {
-                console.error(`Optimized search process error: ${error}`);
-                reject(error);
             });
         });
     }
