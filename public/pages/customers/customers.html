@@ -19,15 +19,15 @@
             <h1>Customers</h1>
             <p>Manage customer data and processing operations.</p>
             
-            <!-- Process All Active Customers Section -->
+            <!-- Create Customer Relays Section -->
             <div class="admin-section">
-                <h2>Customer Processing</h2>
-                <p>Process scores and data for all active customers. This operation may take several hours to complete.</p>
+                <h2>Customer Relay Setup</h2>
+                <p>Create default relay pubkeys for all customers. This ensures each customer has a relay identity for NIP-85 operations.</p>
                 
                 <div class="button-container">
-                    <button id="processAllCustomersBtn" class="action-button primary" onclick="processAllActiveCustomers()">
-                        <span class="button-text">Process All Active Customers</span>
-                        <span class="button-spinner" style="display: none;">⏳ Processing...</span>
+                    <button id="createAllRelaysBtn" class="action-button primary" onclick="createAllCustomerRelays()">
+                        <span class="button-text">Create All Customer Relays</span>
+                        <span class="button-spinner" style="display: none;">⏳ Creating...</span>
                     </button>
                 </div>
                 
@@ -40,8 +40,8 @@
     <div id="footerContainer"></div>
     
     <script>
-        async function processAllActiveCustomers() {
-            const button = document.getElementById('processAllCustomersBtn');
+        async function createAllCustomerRelays() {
+            const button = document.getElementById('createAllRelaysBtn');
             const buttonText = button.querySelector('.button-text');
             const buttonSpinner = button.querySelector('.button-spinner');
             const statusDiv = document.getElementById('processStatus');
@@ -61,10 +61,10 @@
                 buttonText.style.display = 'none';
                 buttonSpinner.style.display = 'inline';
                 
-                showStatus('info', 'Starting customer processing operation. This may take several hours to complete...');
+                showStatus('info', 'Creating relay pubkeys for all customers. This may take a few minutes...');
                 
                 // Make the API call
-                const response = await fetch('/api/process-all-active-customers', {
+                const response = await fetch('/api/create-all-customer-relays', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -74,9 +74,9 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showStatus('success', 'Customer processing completed successfully! ' + (result.message || ''));
+                    showStatus('success', 'Customer relay creation completed successfully! ' + (result.message || ''));
                 } else {
-                    showStatus('error', 'Customer processing failed: ' + (result.error || 'Unknown error'));
+                    showStatus('error', 'Customer relay creation failed: ' + (result.error || 'Unknown error'));
                 }
                 
             } catch (error) {
