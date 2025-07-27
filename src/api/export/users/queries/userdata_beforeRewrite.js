@@ -1,0 +1,516 @@
+/**
+ * NostrUser Data Queries
+ * Handles retrieval of individual NostrUser data from Neo4j
+ */
+
+const neo4j = require('neo4j-driver');
+const { getConfigFromFile } = require('../../../../utils/config');
+const fs = require('fs');
+const path = require('path');
+const { nip19 } = require('nostr-tools');
+
+function getNpub(pubkey) {
+  try {
+    if (!pubkey) return null;
+    // If pubkey is already npub, return as-is
+    if (pubkey.startsWith('npub')) return pubkey;
+    // Use nostr-tools nip19
+    return nip19.npubEncode(pubkey);
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Get detailed data for a specific user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+function handleGetUserData(req, res) {
+  try {
+    // TODO: Remove this when BRAINSTORM_MODULE_ALGOS_DIR is implemented
+    // const BRAINSTORM_MODULE_ALGOS_DIR = getConfigFromFile('BRAINSTORM_MODULE_ALGOS_DIR', '');
+    const reportTypesPath = "/usr/local/lib/node_modules/brainstorm/src/algos/reports/reportTypes.txt"
+    const reportTypes = fs.readFileSync(reportTypesPath, 'utf-8')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    const observerPubkey = req.query.observerPubkey || 'owner';
+    
+    // Get query parameters for filtering
+    const pubkey = req.query.pubkey;
+
+    const npub = getNpub(pubkey);
+    
+    if (!pubkey) {
+      return res.status(400).json({ error: 'Missing pubkey parameter' });
+    }
+
+    // Get pubkey of the owner from brainstorm.conf
+    const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
+
+    // Create Neo4j driver
+    const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
+    const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
+    const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+    
+    const driver = neo4j.driver(
+      neo4jUri,
+      neo4j.auth.basic(neo4jUser, neo4jPassword)
+    );
+    
+    const session = driver.session();
+    
+    // Build the Cypher query to get user data and counts
+
+    const query_match_owner = `
+        MATCH (u:NostrUser {pubkey: $pubkey}) // This works fine
+        MATCH (owner:NostrUser {pubkey: $ownerPubkey}) // This causes an error!
+      `;
+
+    const query_match_observer = `
+        MATCH (u:NostrUser {pubkey: $pubkey})
+        MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: $observerPubkey, observee_pubkey: $pubkey})
+        MATCH (observer:NostrUser {pubkey: $observerPubkey})
+      `;
+
+    const query_optionalMatches_observer = `
+        // Count users that this user follows
+      OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)
+      WITH u, observeeCard, observer, count(following) as followingCount
+      
+      // Count users that follow this user
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WITH u, observeeCard, observer, followingCount, count(follower) as followerCount
+
+      // Count verified users (influence > 0.05) that follow this user
+      OPTIONAL MATCH (c:NostrUserWotMetricsCard {observer_pubkey: $observerPubkey})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE c.influence > 0.05
+      WITH u, observeeCard, observer, followingCount, followerCount, count(c) as verifiedFollowerCount
+
+      // Count users that this user mutes
+      OPTIONAL MATCH (u)-[m:MUTES]->(muted:NostrUser)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, count(muted) as mutingCount
+      
+      // Count users that mute this user
+      OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(u)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, count(muter) as muterCount
+
+      // Count verified users (influence > 0.05) that mute this user
+      OPTIONAL MATCH (c:NostrUserWotMetricsCard {observer_pubkey: $observerPubkey})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(muter:NostrUser)-[f2:MUTES]->(u)
+      WHERE c.influence > 0.05
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, count(c) as verifiedMuterCount
+
+      // Count users that this user reports
+      OPTIONAL MATCH (u)-[m:REPORTS]->(reported:NostrUser)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, count(reported) as reportingCount
+      
+      // Count users that report this user
+      OPTIONAL MATCH (reporter:NostrUser)-[m2:REPORTS]->(u)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, count(reporter) as reporterCount
+
+      // Count verified users (influence > 0.05) that report this user
+      OPTIONAL MATCH (c:NostrUserWotMetricsCard {observer_pubkey: $observerPubkey})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(reporter:NostrUser)-[f2:REPORTS]->(u)
+      WHERE c.influence > 0.05
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, count(c) as verifiedReporterCount
+
+
+
+      ////////// Grapevine Analysis
+      // frens FRENS (profiles that follow AND are followed by this user)
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, count(fren) as frenCount
+
+      // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, count(groupie) as groupieCount
+
+      // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
+      WHERE NOT (idol)-[:FOLLOWS]->(u)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, count(idol) as idolCount
+
+      //////// RECOMMENDATIONS:
+      // calculated as:
+      // frens of the recommender
+      // who also follow the recommendee
+      // but whom the recommendee does not already follow
+
+      // Intersection of observer frens and the groupies of this user
+      // followRecommendationsToObserverFromThisUser RECOMMENDED FOLLOWS A: (for observer to follow, recommended by this user)
+      // Recommender: this user
+      // Recommendee: observer
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(u)
+      WHERE (recommendation)-[:FOLLOWS]->(observer)
+      AND NOT (observer)-[:FOLLOWS]->(recommendation)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, count(recommendation) as recommendationsToObserverCount
+
+      // Intersection of this user's frens and the groupies of the observer
+      // followRecommendationsFromObserverToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by observer)
+      // Recommender: observer
+      // Recommendee: this user
+      OPTIONAL MATCH (observer)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(observer)
+      WHERE (recommendation)-[:FOLLOWS]->(u)
+      AND NOT (u)-[:FOLLOWS]->(recommendation)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToObserverCount, count(recommendation) as recommendationsFromObserverCount
+
+      // mutualFrens MUTUAL FRENDS
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
+      WHERE (fren)-[:FOLLOWS]->(observer)
+      AND (observer)-[:FOLLOWS]->(fren)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToObserverCount, recommendationsFromObserverCount, count(fren) as mutualFrenCount
+
+      // mutualGroupies MUTUAL GROUPIES
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
+      AND (groupie)-[:FOLLOWS]->(observer)
+      AND NOT (observer)-[:FOLLOWS]->(groupie)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToObserverCount, recommendationsFromObserverCount, mutualFrenCount, count(groupie) as mutualGroupieCount
+
+      // mutualIdols MUTUAL IDOLS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
+      WHERE NOT (idol)-[:FOLLOWS]->(u)
+      AND (observer)-[:FOLLOWS]->(idol)
+      AND NOT (idol)-[:FOLLOWS]->(observer)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToObserverCount, recommendationsFromObserverCount, mutualFrenCount, mutualGroupieCount, count(idol) as mutualIdolCount
+
+      // mutualFollowers MUTUAL FOLLOWERS
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE (follower)-[:FOLLOWS]->(observer)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToObserverCount, recommendationsFromObserverCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, count(follower) as mutualFollowerCount
+
+      // mutualFollows MUTUAL FOLLOWS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(followee:NostrUser)
+      WHERE (observer)-[:FOLLOWS]->(followee)
+      WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToObserverCount, recommendationsFromObserverCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, count(followee) as mutualFollowCount
+      `
+
+    const query_optionalMatches_owner = `
+        // Count users that this user follows
+      OPTIONAL MATCH (u)-[f:FOLLOWS]->(following:NostrUser)
+      WITH u, owner, count(following) as followingCount
+      
+      // Count users that follow this user
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WITH u, owner, followingCount, count(follower) as followerCount
+
+      // Count verified users (influence > 0.05) that follow this user
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE follower.influence > 0.05
+      WITH u, owner, followingCount, followerCount, count(follower) as verifiedFollowerCount
+
+
+
+      // Count users that this user mutes
+      OPTIONAL MATCH (u)-[m:MUTES]->(muted:NostrUser)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, count(muted) as mutingCount
+      
+      // Count users that mute this user
+      OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(u)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, count(muter) as muterCount
+
+      // Count verified users that mute this user
+      OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(u)
+      WHERE muter.influence > 0.05
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, count(muter) as verifiedMuterCount
+
+
+
+      // Count users that this user reports
+      OPTIONAL MATCH (u)-[r:REPORTS]->(reported:NostrUser)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, count(reported) as reportingCount
+      
+      // Count users that report this user
+      OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, count(reporter) as reporterCount
+
+      // Count verified users that report this user
+      OPTIONAL MATCH (reporter:NostrUser)-[r2:REPORTS]->(u)
+      WHERE reporter.influence > 0.05
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, count(reporter) as verifiedReporterCount
+      
+      ////////// Grapevine Analysis
+      // frens FRENS (profiles that follow AND are followed by this user)
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, count(fren) as frenCount
+
+      // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, count(groupie) as groupieCount
+
+      // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
+      WHERE NOT (idol)-[:FOLLOWS]->(u)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, count(idol) as idolCount
+
+      //////// RECOMMENDATIONS:
+      // calculated as:
+      // frens of the recommender
+      // who also follow the recommendee
+      // but whom the recommendee does not already follow
+
+      // Intersection of owner frens and the groupies of this user
+      // followRecommendationsToOwnerFromThisUser RECOMMENDED FOLLOWS A: (for owner to follow, recommended by this user)
+      // Recommender: this user
+      // Recommendee: owner
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(u)
+      WHERE (recommendation)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(recommendation)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, count(recommendation) as recommendationsToOwnerCount
+
+      // Intersection of this user's frens and the groupies of the owner
+      // followRecommendationsFromOwnerToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by owner)
+      // Recommender: owner
+      // Recommendee: this user
+      OPTIONAL MATCH (owner)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(owner)
+      WHERE (recommendation)-[:FOLLOWS]->(u)
+      AND NOT (u)-[:FOLLOWS]->(recommendation)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, count(recommendation) as recommendationsFromOwnerCount
+
+      // mutualFrens MUTUAL FRENDS
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
+      WHERE (fren)-[:FOLLOWS]->(owner)
+      AND (owner)-[:FOLLOWS]->(fren)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, count(fren) as mutualFrenCount
+
+      // mutualGroupies MUTUAL GROUPIES
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
+      AND (groupie)-[:FOLLOWS]->(owner)
+      AND NOT (owner)-[:FOLLOWS]->(groupie)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, count(groupie) as mutualGroupieCount
+
+      // mutualIdols MUTUAL IDOLS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
+      WHERE NOT (idol)-[:FOLLOWS]->(u)
+      AND (owner)-[:FOLLOWS]->(idol)
+      AND NOT (idol)-[:FOLLOWS]->(owner)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, count(idol) as mutualIdolCount
+
+      // mutualFollowers MUTUAL FOLLOWERS
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE (follower)-[:FOLLOWS]->(owner)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, count(follower) as mutualFollowerCount
+
+      // mutualFollows MUTUAL FOLLOWS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(followee:NostrUser)
+      WHERE (owner)-[:FOLLOWS]->(followee)
+      WITH u, owner, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, idolCount, recommendationsToOwnerCount, recommendationsFromOwnerCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, count(followee) as mutualFollowCount
+    `
+    const query_return1_owner = `
+        RETURN u.pubkey as pubkey,
+               u.personalizedPageRank as personalizedPageRank,
+               u.hops as hops,
+               u.influence as influence,
+               u.average as average,
+               u.confidence as confidence,
+               u.input as input,
+               u.nip56_totalGrapeRankScore as nip56TotalGrapeRankScore,
+               u.nip56_totalVerifiedReportCount as nip56TotalVerifiedReportCount,
+               u.nip56_totalReportCount as nip56TotalReportCount,
+    `
+    
+    const query_return1_observer = `
+        RETURN u.observee_pubkey as pubkey,
+               u.personalizedPageRank as personalizedPageRank,
+               u.hops as hops,
+               u.influence as influence,
+               u.average as average,
+               u.confidence as confidence,
+               u.input as input,
+    `
+
+    let query_return2 = ``
+    reportTypes.forEach(reportType => {
+      query_return2 += `
+               u.nip56_${reportType}_grapeRankScore as nip56${reportType}GrapeRankScore,
+               u.nip56_${reportType}_verifiedReportCount as nip56${reportType}VerifiedReportCount,
+               u.nip56_${reportType}_reportCount as nip56${reportType}ReportCount,`
+    });
+
+    const query_return3_owner = `
+        followingCount,
+        followerCount,
+        verifiedFollowerCount,
+        mutingCount,
+        muterCount,
+        verifiedMuterCount,
+        reportingCount,
+        reporterCount,
+        verifiedReporterCount,
+        frenCount,
+        groupieCount,
+        idolCount,
+        recommendationsToOwnerCount,
+        recommendationsFromOwnerCount,
+        mutualFrenCount,
+        mutualGroupieCount,
+        mutualIdolCount,
+        mutualFollowerCount,
+        mutualFollowCount
+    `;
+
+    const query_return3_observer = `
+        followingCount,
+        followerCount,
+        verifiedFollowerCount,
+        mutingCount,
+        muterCount,
+        verifiedMuterCount,
+        reportingCount,
+        reporterCount,
+        verifiedReporterCount,
+        frenCount,
+        groupieCount,
+        idolCount,
+        recommendationsToObserverCount,
+        recommendationsFromObserverCount,
+        mutualFrenCount,
+        mutualGroupieCount,
+        mutualIdolCount,
+        mutualFollowerCount,
+        mutualFollowCount
+    `;
+
+    let query = '';
+    if (observerPubkey == 'owner') {
+      query = `${query_match_owner} ${query_optionalMatches_owner} ${query_return1_owner} ${query_return2} ${query_return3_owner}`
+    } else {
+      query = `${query_match_observer} ${query_optionalMatches_observer} ${query_return1_observer} ${query_return3_observer}`
+    }
+    
+    // Execute the query
+    session.run(query, { pubkey, observerPubkey, ownerPubkey })
+      .then(result => {
+        const user = result.records[0];
+        
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        if (observerPubkey == 'owner') {
+            res.json({
+                success: true,
+                metaData: {
+                    ownerPubkey: ownerPubkey,
+                    query,
+                },
+                data: {
+                  pubkey: user.get('pubkey'),
+                  npub: npub,
+                  personalizedPageRank: user.get('personalizedPageRank') ? parseFloat(user.get('personalizedPageRank').toString()) : null,
+                  hops: user.get('hops') ? parseInt(user.get('hops').toString()) : null,
+                  influence: user.get('influence') ? parseFloat(user.get('influence').toString()) : null,
+                  average: user.get('average') ? parseFloat(user.get('average').toString()) : null,
+                  confidence: user.get('confidence') ? parseFloat(user.get('confidence').toString()) : null,
+                  input: user.get('input') ? parseFloat(user.get('input').toString()) : null,
+                  followingCount: user.get('followingCount') ? parseInt(user.get('followingCount').toString()) : 0,
+                  followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0,
+                  verifiedFollowerCount: user.get('verifiedFollowerCount') ? parseInt(user.get('verifiedFollowerCount').toString()) : 0,
+                  mutingCount: user.get('mutingCount') ? parseInt(user.get('mutingCount').toString()) : 0,
+                  muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
+                  verifiedMuterCount: user.get('verifiedMuterCount') ? parseInt(user.get('verifiedMuterCount').toString()) : 0,
+                  reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
+                  reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
+                  verifiedReporterCount: user.get('verifiedReporterCount') ? parseInt(user.get('verifiedReporterCount').toString()) : 0,
+                  frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : 0,
+                  groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : 0,
+                  idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : 0,
+                  recommendationsToOwnerCount: user.get('recommendationsToOwnerCount') ? parseInt(user.get('recommendationsToOwnerCount').toString()) : 0,
+                  recommendationsFromOwnerCount: user.get('recommendationsFromOwnerCount') ? parseInt(user.get('recommendationsFromOwnerCount').toString()) : 0,
+                  mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : 0,
+                  mutualGroupieCount: user.get('mutualGroupieCount') ? parseInt(user.get('mutualGroupieCount').toString()) : 0,
+                  mutualIdolCount: user.get('mutualIdolCount') ? parseInt(user.get('mutualIdolCount').toString()) : 0,
+                  mutualFollowerCount: user.get('mutualFollowerCount') ? parseInt(user.get('mutualFollowerCount').toString()) : 0,
+                  mutualFollowCount: user.get('mutualFollowCount') ? parseInt(user.get('mutualFollowCount').toString()) : 0,
+                  nip56: {
+                    totals: {
+                      nip56TotalGrapeRankScore: user.get('nip56TotalGrapeRankScore') ? parseFloat(user.get('nip56TotalGrapeRankScore').toString()) : null,
+                      nip56TotalVerifiedReportCount: user.get('nip56TotalVerifiedReportCount') ? parseInt(user.get('nip56TotalVerifiedReportCount').toString()) : 0,
+                      nip56TotalReportCount: user.get('nip56TotalReportCount') ? parseInt(user.get('nip56TotalReportCount').toString()) : 0
+                    },
+                    byReportType: Object.fromEntries(
+                        reportTypes.map(reportType => [
+                        reportType,
+                        {
+                            grapeRankScore: user.get(`nip56${reportType}GrapeRankScore`)
+                            ? parseFloat(user.get(`nip56${reportType}GrapeRankScore`).toString())
+                            : null,
+                            verifiedReportCount: user.get(`nip56${reportType}VerifiedReportCount`)
+                            ? parseInt(user.get(`nip56${reportType}VerifiedReportCount`).toString())
+                            : 0,
+                            reportCount: user.get(`nip56${reportType}ReportCount`)
+                            ? parseInt(user.get(`nip56${reportType}ReportCount`).toString())
+                            : 0
+                        }
+                        ])
+                    )
+                  }
+                }
+              });
+        } else {
+            res.json({
+                success: true,
+                metaData: {
+                    observerPubkey: observerPubkey,
+                    query,
+                },
+                data: {
+                  pubkey: user.get('pubkey'),
+                  npub: npub,
+                  personalizedPageRank: user.get('personalizedPageRank') ? parseFloat(user.get('personalizedPageRank').toString()) : null,
+                  hops: user.get('hops') ? parseInt(user.get('hops').toString()) : null,
+                  influence: user.get('influence') ? parseFloat(user.get('influence').toString()) : null,
+                  average: user.get('average') ? parseFloat(user.get('average').toString()) : null,
+                  confidence: user.get('confidence') ? parseFloat(user.get('confidence').toString()) : null,
+                  input: user.get('input') ? parseFloat(user.get('input').toString()) : null,
+                  followingCount: user.get('followingCount') ? parseInt(user.get('followingCount').toString()) : 0,
+                  followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0,
+                  verifiedFollowerCount: user.get('verifiedFollowerCount') ? parseInt(user.get('verifiedFollowerCount').toString()) : 0,
+                  mutingCount: user.get('mutingCount') ? parseInt(user.get('mutingCount').toString()) : 0,
+                  muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
+                  verifiedMuterCount: user.get('verifiedMuterCount') ? parseInt(user.get('verifiedMuterCount').toString()) : 0,
+                  reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
+                  reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
+                  verifiedReporterCount: user.get('verifiedReporterCount') ? parseInt(user.get('verifiedReporterCount').toString()) : 0,
+                  frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : 0,
+                  groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : 0,
+                  idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : 0,
+                  recommendationsToObserverCount: user.get('recommendationsToObserverCount') ? parseInt(user.get('recommendationsToObserverCount').toString()) : 0,
+                  recommendationsFromObserverCount: user.get('recommendationsFromObserverCount') ? parseInt(user.get('recommendationsFromObserverCount').toString()) : 0,
+                  mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : 0,
+                  mutualGroupieCount: user.get('mutualGroupieCount') ? parseInt(user.get('mutualGroupieCount').toString()) : 0,
+                  mutualIdolCount: user.get('mutualIdolCount') ? parseInt(user.get('mutualIdolCount').toString()) : 0,
+                  mutualFollowerCount: user.get('mutualFollowerCount') ? parseInt(user.get('mutualFollowerCount').toString()) : 0,
+                  mutualFollowCount: user.get('mutualFollowCount') ? parseInt(user.get('mutualFollowCount').toString()) : 0
+                }
+              });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({
+          success: false,
+          query,
+          message: `Error fetching user data: ${error.message}`
+        });
+      })
+      .finally(() => {
+        session.close();
+        driver.close();
+      });
+  } catch (error) {
+    console.error('Error in handleGetUserData:', error);
+    res.status(500).json({
+      success: false,
+      message: `Server error: ${error.message}`
+    });
+  }
+}
+
+module.exports = {
+  handleGetUserData
+};
