@@ -40,7 +40,8 @@ echo "$(date): Continuing publishNip85 ... making sure the relay pubkey has been
 echo "$(date): Continuing publishNip85 ... making sure the relay pubkey has been created for this customer" >> ${LOG_FILE}
 
 # Make sure the relay pubkey is created for this customer
-sudo bash ${BRAINSTORM_MODULE_ALGOS_DIR}/customers/nip85/relayPubkey/createCustomerRelayPubkeyIfNeeded.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
+# being deprecated in favor of createAllCustomerRelays.js which is run on install by install-customers.sh
+# sudo bash ${BRAINSTORM_MODULE_ALGOS_DIR}/customers/nip85/relayPubkey/createCustomerRelayPubkeyIfNeeded.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME
 
 echo "$(date): Continuing publishNip85 ... calling script to publish kind 30382 events"
 echo "$(date): Continuing publishNip85 ... calling script to publish kind 30382 events" >> ${LOG_FILE}

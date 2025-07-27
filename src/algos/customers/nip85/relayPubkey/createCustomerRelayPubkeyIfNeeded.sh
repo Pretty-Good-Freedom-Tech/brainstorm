@@ -56,7 +56,7 @@ if [ -f "/etc/brainstorm.conf" ]; then
         # Generate Nostr keys using Node.js
         echo "Generating new Nostr identity..."
         echo "$(date): Generating new Nostr identity..." >> ${LOG_FILE}
-        KEYS_JSON=$(node -e "
+        KEYS_JSON=$(/usr/local/bin/brainstorm-node /usr/local/lib/node_modules/brainstorm/node_modules/nostr-tools/index.js -e "
         const nostrTools = require('nostr-tools');
         const privateKey = nostrTools.generateSecretKey();
         const pubkey = nostrTools.getPublicKey(privateKey);
