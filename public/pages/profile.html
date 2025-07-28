@@ -375,7 +375,7 @@
                         profileContainer.style.display = 'flex';
                         
                         // Add click handlers for mutual links
-                        setupMutualLinks(pubkey, data.data.ownerPubkey);
+                        setupMutualLinks(pubkey, data.metaData.observerPubkey);
                     } else {
                         // If we can't get kind 0 data, still show what we have
                         console.warn('Could not fetch kind 0 data:', data.message);
@@ -473,7 +473,7 @@
             }
             
             // Add dynamic linking for Social Graph Analysis panel values
-            const observer = metaData.ownerPubkey;
+            const observer = metaData.observerPubkey;
             const observee = metaData.pubkey;
             const socialLinks = [
                 { id: 'followingCountValue', type: 'follows' },
@@ -674,13 +674,13 @@
         }
         
         // Function to setup mutual links
-        function setupMutualLinks(pubkey, ownerPubkey) {
+        function setupMutualLinks(pubkey, observerPubkey) {
             document.querySelectorAll('.mutual-link').forEach(link => {
                 const type = link.getAttribute('data-type');
                 link.onclick = function(e) {
                     e.preventDefault();
                     // observer = owner, observee = this profile
-                    let observer = ownerPubkey;
+                    let observer = observerPubkey;
                     let observee = pubkey;
                     // For mutualIdols, mutualFollowers, mutualFollows, observer/observee order may not matter, but keep it consistent
                     window.open(`grapevine-analysis.html?observer=${encodeURIComponent(observer)}&observee=${encodeURIComponent(observee)}&interactionType=${encodeURIComponent(type)}`, '_blank');
