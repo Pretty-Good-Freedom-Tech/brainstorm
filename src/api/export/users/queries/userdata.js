@@ -83,72 +83,55 @@ function handleGetUserData(req, res) {
     }
     ////////// Social Graph Analysis
     cypherQuery += `
-      // frens FRENS (profiles that follow AND are followed by this user)
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
       WITH ${nodesToCarryWith} observer, count(fren) as frenCount
 
-      // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
       OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
       WHERE NOT (u)-[:FOLLOWS]->(groupie)
       WITH ${nodesToCarryWith} observer, frenCount, count(groupie) as groupieCount
 
-      // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
       WHERE NOT (idol)-[:FOLLOWS]->(u)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, count(idol) as idolCount
     `
     ////////// Mutuals: Social Graph Overlaps & Interactions
     cypherQuery += `
-      // mutualFrens MUTUAL FRENDS
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
       WHERE (fren)-[:FOLLOWS]->(observer)
       AND (observer)-[:FOLLOWS]->(fren)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, count(fren) as mutualFrenCount
 
-      // mutualGroupies MUTUAL GROUPIES
       OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
       WHERE NOT (u)-[:FOLLOWS]->(groupie)
       AND (groupie)-[:FOLLOWS]->(observer)
       AND NOT (observer)-[:FOLLOWS]->(groupie)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, count(groupie) as mutualGroupieCount
 
-      // mutualIdols MUTUAL IDOLS
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
       WHERE NOT (idol)-[:FOLLOWS]->(u)
       AND (observer)-[:FOLLOWS]->(idol)
       AND NOT (idol)-[:FOLLOWS]->(observer)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, count(idol) as mutualIdolCount
 
-      // mutualFollowers MUTUAL FOLLOWERS
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE (follower)-[:FOLLOWS]->(observer)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, count(follower) as mutualFollowerCount
 
-      // mutualFollows MUTUAL FOLLOWS
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(followee:NostrUser)
       WHERE (observer)-[:FOLLOWS]->(followee)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, count(followee) as mutualFollowCount
     `
     ////////// Recommendations 
     cypherQuery += `
-      // Intersection of observer frens and the groupies of this user
-      // followRecommendationsToObserverFromThisUser RECOMMENDED FOLLOWS A: (for observer to follow, recommended by this user)
-      // Recommender: this user
-      // Recommendee: observer
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(u)
       WHERE (recommendation)-[:FOLLOWS]->(observer)
       AND NOT (observer)-[:FOLLOWS]->(recommendation)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount, count(recommendation) as recommendationsToObserverCount
 
-      // Intersection of this user's frens and the groupies of the observer
-      // followRecommendationsFromObserverToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by observer)
-      // Recommender: observer
-      // Recommendee: this user
       OPTIONAL MATCH (observer)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(observer)
       WHERE (recommendation)-[:FOLLOWS]->(u)
       AND NOT (u)-[:FOLLOWS]->(recommendation)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount, recommendationsToObserverCount, count(recommendation) as recommendationsFromObserverCount
-
     `
     
     cypherQuery += `
@@ -259,14 +242,15 @@ function handleGetUserData(req, res) {
           recommendationsToObserverCount: user.get('recommendationsToObserverCount') ? parseInt(user.get('recommendationsToObserverCount').toString()) : null,
           recommendationsFromObserverCount: user.get('recommendationsFromObserverCount') ? parseInt(user.get('recommendationsFromObserverCount').toString()) : null
         }
-
+        // clean up cypherQuery = cypherQuery.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+        const cypherQueryCleaned = cypherQuery.replace(/\n/g, ' ').replace(/\s+/g, ' ').replaceAll('\u003E', '>').replaceAll('\u003C', '<');
         const apiResponse = {
           success: true,
           isUserInNeo4j,
           metaData: {
             pubkey: pubkey,
             observerPubkey: observerPubkey,
-            query: cypherQuery
+            query: cypherQueryCleaned
           },
           data: userData
         };
