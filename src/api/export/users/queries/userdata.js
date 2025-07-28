@@ -138,7 +138,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(u)
       WHERE (recommendation)-[:FOLLOWS]->(observer)
       AND NOT (observer)-[:FOLLOWS]->(recommendation)
-      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount count(recommendation) as recommendationsToObserverCount
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount, count(recommendation) as recommendationsToObserverCount
 
       // Intersection of this user's frens and the groupies of the observer
       // followRecommendationsFromObserverToThisUser RECOMMENDED FOLLOWS B: (for this user to follow, recommended by observer)
@@ -147,7 +147,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (observer)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(observer)
       WHERE (recommendation)-[:FOLLOWS]->(u)
       AND NOT (u)-[:FOLLOWS]->(recommendation)
-      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount recommendationsToObserverCount count(recommendation) as recommendationsFromObserverCount
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount, recommendationsToObserverCount count(recommendation) as recommendationsFromObserverCount
 
     `
     
