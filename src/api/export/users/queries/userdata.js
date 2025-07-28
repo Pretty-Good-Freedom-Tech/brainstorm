@@ -76,7 +76,7 @@ function handleGetUserData(req, res) {
     }
     if (source === 'NostrUserWotMetricsCard') {
       nodeTrustScoreSource = 'observeeCard'
-      nodesToCarryWith = '${nodesToCarryWith}'
+      nodesToCarryWith = 'u, observeeCard, '
       cypherQuery += `
       MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}', observee_pubkey: '${pubkey}'})
       `
