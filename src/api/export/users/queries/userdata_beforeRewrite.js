@@ -132,6 +132,8 @@ function handleGetUserData(req, res) {
       WHERE NOT (idol)-[:FOLLOWS]->(u)
       WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, verifiedReporterCount, frenCount, groupieCount, count(idol) as idolCount
 
+
+      
       //////// RECOMMENDATIONS:
       // calculated as:
       // frens of the recommender

@@ -33,6 +33,9 @@ function handleGetUserData(req, res) {
       return res.status(400).json({ error: 'Invalid pubkey parameter' });
     }
 
+    // Get pubkey of the owner from brainstorm.conf
+    const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
+
     let source = 'NostrUser'
 
     // If observerPubkey is set and is not owner, validate it
@@ -42,6 +45,11 @@ function handleGetUserData(req, res) {
         return res.status(400).json({ error: 'Invalid observerPubkey parameter' });
       }
       source = 'NostrUserWotMetricsCard'
+    }
+
+    // if no observerPubkey or if observerPubkey is 'owner', use owner pubkey
+    if (!observerPubkey || observerPubkey === 'owner') {
+      observerPubkey = ownerPubkey
     }
     
     // Create Neo4j driver
@@ -58,6 +66,7 @@ function handleGetUserData(req, res) {
 
     let cypherQuery = `
     MATCH (u:NostrUser {pubkey: '${pubkey}'})
+    MATCH (observer:NostrUser {pubkey: '${observerPubkey}'})
     `
     let nodeTrustScoreSource = ''
     let nodesToCarryWith = ''
@@ -72,21 +81,29 @@ function handleGetUserData(req, res) {
       MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}', observee_pubkey: '${pubkey}'})
       `
     }
-    ////////// Grapevine Analysis
+    ////////// Social Graph Analysis
     cypherQuery += `
       // frens FRENS (profiles that follow AND are followed by this user)
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
-      WITH ${nodesToCarryWith} count(fren) as frenCount
+      WITH ${nodesToCarryWith} observer, count(fren) as frenCount
 
       // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
       OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
       WHERE NOT (u)-[:FOLLOWS]->(groupie)
-      WITH ${nodesToCarryWith} frenCount, count(groupie) as groupieCount
+      WITH ${nodesToCarryWith} observer, frenCount, count(groupie) as groupieCount
 
       // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
       WHERE NOT (idol)-[:FOLLOWS]->(u)
-      WITH ${nodesToCarryWith} frenCount, groupieCount, count(idol) as idolCount
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, count(idol) as idolCount
+    `
+    ////////// Mutuals: Social Graph Overlaps & Interactions
+    cypherQuery += `
+      // mutualFrens MUTUAL FRENDS
+      OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
+      WHERE (fren)-[:FOLLOWS]->(observer)
+      AND (observer)-[:FOLLOWS]->(fren)
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, count(fren) as mutualFrenCount
 
     `
     
@@ -113,7 +130,8 @@ function handleGetUserData(req, res) {
     ${nodeTrustScoreSource}.reporterInput as reporterInput,
     frenCount,
     groupieCount,
-    idolCount
+    idolCount,
+    mutualFrenCount
     `
     
     // Execute the query
@@ -148,7 +166,8 @@ function handleGetUserData(req, res) {
             reporterInput: null,
             frenCount: null,
             groupieCount: null,
-            idolCount: null
+            idolCount: null,
+            mutualFrenCount: null
           }
         }
 
@@ -175,7 +194,8 @@ function handleGetUserData(req, res) {
           reporterInput: user.get('reporterInput') ? parseFloat(user.get('reporterInput').toString()) : null,
           frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : null,
           groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : null,
-          idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : null
+          idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : null,
+          mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : null
         }
 
         const apiResponse = {

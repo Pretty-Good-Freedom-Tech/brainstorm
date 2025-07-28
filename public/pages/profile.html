@@ -187,7 +187,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <h3 class="section-title">Social Graph Overview</h3>
+                        <h3 class="section-title">Social Graph Analysis</h3>
                         <div class="connections-table-wrapper">
                             <table class="connections-table styled-table">
                                 <tbody>
@@ -203,6 +203,13 @@
                                         <th>Idols</th>
                                         <td id="idolCountValue">-</td>
                                     </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h3 class="section-title">Mutuals: Social Graph Overlaps & Interactions</h3>
+                        <div class="connections-table-wrapper">
+                            <table class="connections-table styled-table">
+                                <tbody>
                                     <tr>
                                         <th>Mutual Frens</th>
                                         <td id="mutualFrenCountValue"><a href="#" class="mutual-link" data-type="mutualFrens">-</a></td>
@@ -470,7 +477,7 @@
                 document.getElementById('npubDisplay').textContent = data.npub;
             }
             
-            // Add dynamic linking for Social Graph Overview panel values
+            // Add dynamic linking for Social Graph Analysis panel values
             const observer = data.ownerPubkey;
             const observee = data.pubkey;
             const socialLinks = [
