@@ -60,11 +60,14 @@ function handleGetUserData(req, res) {
     MATCH (u:NostrUser {pubkey: '${pubkey}'})
     `
     let nodeTrustScoreSource = ''
+    let nodesToCarryWith = ''
     if (source === 'NostrUser') {
       nodeTrustScoreSource = 'u'
+      nodesToCarryWith = 'u,'
     }
     if (source === 'NostrUserWotMetricsCard') {
       nodeTrustScoreSource = 'observeeCard'
+      nodesToCarryWith = 'u, observeeCard,'
       cypherQuery += `
       MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}', observee_pubkey: '${pubkey}'})
       `
@@ -73,17 +76,17 @@ function handleGetUserData(req, res) {
     cypherQuery += `
       // frens FRENS (profiles that follow AND are followed by this user)
       OPTIONAL MATCH (u)-[m3:FOLLOWS]->(fren:NostrUser)-[m4:FOLLOWS]->(u)
-      WITH u, observeeCard, count(fren) as frenCount
+      WITH ${nodesToCarryWith} count(fren) as frenCount
 
       // groupies GROUPIES (profiles that follow but ARE NOT FOLLOWED BY this user)
       OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
       WHERE NOT (u)-[:FOLLOWS]->(groupie)
-      WITH u, observeeCard, frenCount, count(groupie) as groupieCount
+      WITH ${nodesToCarryWith} frenCount, count(groupie) as groupieCount
 
       // idols IDOLS (profiles that are followed by but DO NOT FOLLOW this user)
       OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
       WHERE NOT (idol)-[:FOLLOWS]->(u)
-      WITH u, observeeCard, frenCount, groupieCount, count(idol) as idolCount
+      WITH ${nodesToCarryWith} frenCount, groupieCount, count(idol) as idolCount
 
     `
     
