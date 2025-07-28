@@ -147,7 +147,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (observer)-[m3:FOLLOWS]->(recommendation:NostrUser)-[m4:FOLLOWS]->(observer)
       WHERE (recommendation)-[:FOLLOWS]->(u)
       AND NOT (u)-[:FOLLOWS]->(recommendation)
-      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount, recommendationsToObserverCount count(recommendation) as recommendationsFromObserverCount
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, mutualFollowCount, recommendationsToObserverCount, count(recommendation) as recommendationsFromObserverCount
 
     `
     
