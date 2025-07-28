@@ -375,7 +375,12 @@
                         profileContainer.style.display = 'flex';
                         
                         // Add click handlers for mutual links
-                        setupMutualLinks(pubkey, data.metaData.observerPubkey);
+                        let observerPubkey = 'foo';
+                        if (data && data.metaData && data.metaData.observerPubkey) {
+                            observerPubkey = data.metaData.observerPubkey;
+                        }
+                        console.log('observerPubkey', observerPubkey);
+                        setupMutualLinks(pubkey, observerPubkey);
                     } else {
                         // If we can't get kind 0 data, still show what we have
                         console.warn('Could not fetch kind 0 data:', data.message);
@@ -479,6 +484,12 @@
                 { id: 'followingCountValue', type: 'follows' },
                 { id: 'followerCountValue', type: 'followers' },
                 { id: 'verifiedFollowerCountValue2', type: 'verifiedFollowers' },
+                { id: 'mutingCountValue', type: 'mutes' },
+                { id: 'muterCountValue', type: 'muters' },
+                { id: 'verifiedMuterCountValue', type: 'verifiedMuters' },
+                { id: 'reportingCountValue', type: 'reports' },
+                { id: 'reporterCountValue', type: 'reporters' },
+                { id: 'verifiedReporterCountValue', type: 'verifiedReporters' },
                 { id: 'frenCountValue', type: 'frens' },
                 { id: 'groupieCountValue', type: 'groupies' },
                 { id: 'idolCountValue', type: 'idols' },

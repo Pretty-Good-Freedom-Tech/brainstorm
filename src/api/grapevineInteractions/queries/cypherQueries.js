@@ -65,6 +65,17 @@ RETURN muter.pubkey AS pubkey, muter.hops AS hops, muter.influence AS influence
             `
         },
         {
+            interactionType: 'verifiedMuters',
+            title: 'Verified Muters',
+            description: `All verified (influence > 0.05) profiles muting {{observee}}.`,
+            cypherQuery: `
+MATCH (observee:NostrUser {pubkey: $observee})
+OPTIONAL MATCH (muter:NostrUser)-[m:MUTES]->(observee)
+WHERE muter.influence > 0.05
+RETURN muter.pubkey AS pubkey, muter.hops AS hops, muter.influence AS influence
+            `
+        },
+        {
             interactionType: 'reports',
             title: 'Reports',
             description: 'lorem ipsum',
@@ -81,6 +92,17 @@ RETURN reportee.pubkey AS pubkey, reportee.hops AS hops, reportee.influence AS i
             cypherQuery: `
 MATCH (observee:NostrUser {pubkey: $observee})
 OPTIONAL MATCH (reporter:NostrUser)-[r:REPORTS]->(observee)
+RETURN reporter.pubkey AS pubkey, reporter.hops AS hops, reporter.influence AS influence
+            `
+        },
+        {
+            interactionType: 'verifiedReporters',
+            title: 'Verified Reporters',
+            description: `All verified (influence > 0.05) profiles reporting {{observee}}.`,
+            cypherQuery: `
+MATCH (observee:NostrUser {pubkey: $observee})
+OPTIONAL MATCH (reporter:NostrUser)-[r:REPORTS]->(observee)
+WHERE reporter.influence > 0.05
 RETURN reporter.pubkey AS pubkey, reporter.hops AS hops, reporter.influence AS influence
             `
         },
