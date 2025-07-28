@@ -89,7 +89,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WITH u, observeeCard, observer, followingCount, count(follower) as followerCount
 
-      // Count verified users (influence > 0.05) that follow this user
+      // Count verified users (🍇-Rank > 0.05) that follow this user
       OPTIONAL MATCH (c:NostrUserWotMetricsCard {observer_pubkey: $observerPubkey})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE c.influence > 0.05
       WITH u, observeeCard, observer, followingCount, followerCount, count(c) as verifiedFollowerCount
@@ -102,7 +102,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (muter:NostrUser)-[m2:MUTES]->(u)
       WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, count(muter) as muterCount
 
-      // Count verified users (influence > 0.05) that mute this user
+      // Count verified users (🍇-Rank > 0.05) that mute this user
       OPTIONAL MATCH (c:NostrUserWotMetricsCard {observer_pubkey: $observerPubkey})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(muter:NostrUser)-[f2:MUTES]->(u)
       WHERE c.influence > 0.05
       WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, count(c) as verifiedMuterCount
@@ -115,7 +115,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (reporter:NostrUser)-[m2:REPORTS]->(u)
       WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, count(reporter) as reporterCount
 
-      // Count verified users (influence > 0.05) that report this user
+      // Count verified users (🍇-Rank > 0.05) that report this user
       OPTIONAL MATCH (c:NostrUserWotMetricsCard {observer_pubkey: $observerPubkey})<-[:SPECIFIC_INSTANCE]-(:SetOfNostrUserWotMetricsCards)<-[:WOT_METRICS_CARDS]-(reporter:NostrUser)-[f2:REPORTS]->(u)
       WHERE c.influence > 0.05
       WITH u, observeeCard, observer, followingCount, followerCount, verifiedFollowerCount, mutingCount, muterCount, verifiedMuterCount, reportingCount, reporterCount, count(c) as verifiedReporterCount
@@ -201,7 +201,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WITH u, owner, followingCount, count(follower) as followerCount
 
-      // Count verified users (influence > 0.05) that follow this user
+      // Count verified users (🍇-Rank > 0.05) that follow this user
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE follower.influence > 0.05
       WITH u, owner, followingCount, followerCount, count(follower) as verifiedFollowerCount

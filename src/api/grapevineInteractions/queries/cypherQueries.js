@@ -15,7 +15,7 @@ RETURN followee.pubkey AS pubkey, followee.hops AS hops, followee.influence AS i
         {
             interactionType: 'verifiedFollows',
             title: 'Verified Follows',
-            description: `All verified (influence > 0.05) profiles followed by {{observee}}.`,
+            description: `All verified (🍇-Rank > 0.05) profiles followed by {{observee}}.`,
             cypherQuery: `
 MATCH (observee:NostrUser {pubkey: $observee})
 OPTIONAL MATCH (observee)-[f:FOLLOWS]->(followee:NostrUser)
@@ -36,7 +36,7 @@ RETURN follower.pubkey AS pubkey, follower.hops AS hops, follower.influence AS i
         {
             interactionType: 'verifiedFollowers',
             title: 'Verified Followers',
-            description: `All verified (influence > 0.05) profiles following {{observee}}.`,
+            description: `All verified (🍇-Rank > 0.05) profiles following {{observee}}.`,
             cypherQuery: `
 MATCH (observee:NostrUser {pubkey: $observee})
 OPTIONAL MATCH (follower:NostrUser)-[f:FOLLOWS]->(observee)
@@ -67,7 +67,7 @@ RETURN muter.pubkey AS pubkey, muter.hops AS hops, muter.influence AS influence
         {
             interactionType: 'verifiedMuters',
             title: 'Verified Muters',
-            description: `All verified (influence > 0.05) profiles muting {{observee}}.`,
+            description: `All verified (🍇-Rank > 0.05) profiles muting {{observee}}.`,
             cypherQuery: `
 MATCH (observee:NostrUser {pubkey: $observee})
 OPTIONAL MATCH (muter:NostrUser)-[m:MUTES]->(observee)
@@ -78,7 +78,7 @@ RETURN muter.pubkey AS pubkey, muter.hops AS hops, muter.influence AS influence
         {
             interactionType: 'reports',
             title: 'Reports',
-            description: 'lorem ipsum',
+            description: 'All profiles reported by {{observee}}.',
             cypherQuery: `
 MATCH (observee:NostrUser {pubkey: $observee})
 OPTIONAL MATCH (observee)-[r:REPORTS]->(reportee:NostrUser)
@@ -98,7 +98,7 @@ RETURN reporter.pubkey AS pubkey, reporter.hops AS hops, reporter.influence AS i
         {
             interactionType: 'verifiedReporters',
             title: 'Verified Reporters',
-            description: `All verified (influence > 0.05) profiles reporting {{observee}}.`,
+            description: `All verified (🍇-Rank > 0.05) profiles reporting {{observee}}.`,
             cypherQuery: `
 MATCH (observee:NostrUser {pubkey: $observee})
 OPTIONAL MATCH (reporter:NostrUser)-[r:REPORTS]->(observee)

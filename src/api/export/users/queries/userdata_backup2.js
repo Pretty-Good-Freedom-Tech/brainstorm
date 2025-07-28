@@ -73,7 +73,7 @@ function handleGetUserData(req, res) {
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WITH u, owner, followingCount, count(follower) as followerCount
 
-      // Count verified users (influence > 0.05) that follow this user
+      // Count verified users (🍇-Rank > 0.05) that follow this user
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
       WHERE follower.influence > 0.05
       WITH u, owner, followingCount, followerCount, count(follower) as verifiedFollowerCount
