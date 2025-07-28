@@ -232,11 +232,11 @@
                                     </tr>
                                     <tr>
                                         <th>Recommended Follows (to Owner by this profile)</th>
-                                        <td id="recommendationsToOwnerCountValue">-</td>
+                                        <td id="recommendationsToObserverCountValue">-</td>
                                     </tr>
                                     <tr>
                                         <th>Recommended Follows (to this profile by Owner)</th>
-                                        <td id="recommendationsFromOwnerCountValue">-</td>
+                                        <td id="recommendationsFromObserverCountValue">-</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -435,8 +435,8 @@
             document.getElementById('mutualIdolCountValue').textContent = data.mutualIdolCount ?? 0;
             document.getElementById('mutualFollowerCountValue').textContent = data.mutualFollowerCount ?? 0;
             document.getElementById('mutualFollowCountValue').textContent = data.mutualFollowCount ?? 0;
-            document.getElementById('recommendationsToOwnerCountValue').textContent = data.recommendationsToOwnerCount ?? 0;
-            document.getElementById('recommendationsFromOwnerCountValue').textContent = data.recommendationsFromOwnerCount ?? 0;
+            document.getElementById('recommendationsToObserverCountValue').textContent = data.recommendationsToObserverCount ?? 0;
+            document.getElementById('recommendationsFromObserverCountValue').textContent = data.recommendationsFromObserverCount ?? 0;
 
             // NIP-56 Reports Table
             const nip56 = data.nip56;
@@ -487,8 +487,8 @@
                 { id: 'mutualIdolCountValue', type: 'mutualIdols' },
                 { id: 'mutualFollowerCountValue', type: 'mutualFollowers' },
                 { id: 'mutualFollowCountValue', type: 'mutualFollows' },
-                { id: 'recommendationsToOwnerCountValue', type: 'recommendedToObserver' },
-                { id: 'recommendationsFromOwnerCountValue', type: 'recommendedToObservee' }
+                { id: 'recommendationsToObserverCountValue', type: 'recommendedToObserver' },
+                { id: 'recommendationsFromObserverCountValue', type: 'recommendedToObservee' }
             ];
             socialLinks.forEach(({id, type}) => {
                 const el = document.getElementById(id);
