@@ -20,7 +20,7 @@ function handleGetUserData(req, res) {
     // Get query parameters for filtering
     const pubkey = req.query.pubkey;
 
-    const observerPubkey = req.query.observerPubkey || 'owner';
+    let observerPubkey = req.query.observerPubkey || 'owner';
 
     if (!pubkey) {
       return res.status(400).json({ error: 'Missing pubkey parameter' });
@@ -76,7 +76,7 @@ function handleGetUserData(req, res) {
     }
     if (source === 'NostrUserWotMetricsCard') {
       nodeTrustScoreSource = 'observeeCard'
-      nodesToCarryWith = 'u, observeeCard,'
+      nodesToCarryWith = '${nodesToCarryWith}'
       cypherQuery += `
       MATCH (observeeCard:NostrUserWotMetricsCard {observer_pubkey: '${observerPubkey}', observee_pubkey: '${pubkey}'})
       `
@@ -105,6 +105,31 @@ function handleGetUserData(req, res) {
       AND (observer)-[:FOLLOWS]->(fren)
       WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, count(fren) as mutualFrenCount
 
+      // mutualGroupies MUTUAL GROUPIES
+      OPTIONAL MATCH (groupie:NostrUser)-[m5:FOLLOWS]->(u)
+      WHERE NOT (u)-[:FOLLOWS]->(groupie)
+      AND (groupie)-[:FOLLOWS]->(observer)
+      AND NOT (observer)-[:FOLLOWS]->(groupie)
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, count(groupie) as mutualGroupieCount
+
+      // mutualIdols MUTUAL IDOLS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(idol:NostrUser)
+      WHERE NOT (idol)-[:FOLLOWS]->(u)
+      AND (observer)-[:FOLLOWS]->(idol)
+      AND NOT (idol)-[:FOLLOWS]->(observer)
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, count(idol) as mutualIdolCount
+
+      // mutualFollowers MUTUAL FOLLOWERS
+      OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(u)
+      WHERE (follower)-[:FOLLOWS]->(observer)
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, count(follower) as mutualFollowerCount
+
+      // mutualFollows MUTUAL FOLLOWS
+      OPTIONAL MATCH (u)-[f2:FOLLOWS]->(followee:NostrUser)
+      WHERE (observer)-[:FOLLOWS]->(followee)
+      WITH ${nodesToCarryWith} observer, frenCount, groupieCount, idolCount, mutualFrenCount, mutualGroupieCount, mutualIdolCount, mutualFollowerCount, count(followee) as mutualFollowCount
+
+
     `
     
     cypherQuery += `
@@ -131,7 +156,11 @@ function handleGetUserData(req, res) {
     frenCount,
     groupieCount,
     idolCount,
-    mutualFrenCount
+    mutualFrenCount,
+    mutualGroupieCount,
+    mutualIdolCount,
+    mutualFollowerCount,
+    mutualFollowCount
     `
     
     // Execute the query
@@ -167,7 +196,11 @@ function handleGetUserData(req, res) {
             frenCount: null,
             groupieCount: null,
             idolCount: null,
-            mutualFrenCount: null
+            mutualFrenCount: null,
+            mutualGroupieCount: null,
+            mutualIdolCount: null,
+            mutualFollowerCount: null,
+            mutualFollowCount: null
           }
         }
 
@@ -195,7 +228,11 @@ function handleGetUserData(req, res) {
           frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : null,
           groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : null,
           idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : null,
-          mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : null
+          mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : null,
+          mutualGroupieCount: user.get('mutualGroupieCount') ? parseInt(user.get('mutualGroupieCount').toString()) : null,
+          mutualIdolCount: user.get('mutualIdolCount') ? parseInt(user.get('mutualIdolCount').toString()) : null,
+          mutualFollowerCount: user.get('mutualFollowerCount') ? parseInt(user.get('mutualFollowerCount').toString()) : null,
+          mutualFollowCount: user.get('mutualFollowCount') ? parseInt(user.get('mutualFollowCount').toString()) : null
         }
 
         const apiResponse = {
