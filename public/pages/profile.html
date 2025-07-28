@@ -356,7 +356,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        displayNeo4jData(data.data);
+                        displayNeo4jData(data.data, data.metaData);
                         updateProfileStats(data.data);
                         
                         // Step 2: Only after Neo4j data is loaded, fetch kind 0 data
@@ -392,7 +392,7 @@
         }
         
         // Function to display Neo4j data
-        function displayNeo4jData(data) {
+        function displayNeo4jData(data, metaData) {
             // Influence, hops, confidence, pagerank
             // if (data.personalizedPageRank !== null && data.personalizedPageRank !== undefined) {
             //     pageRankValue.textContent = parseFloat(data.personalizedPageRank).toFixed(4);
@@ -473,8 +473,8 @@
             }
             
             // Add dynamic linking for Social Graph Analysis panel values
-            const observer = data.ownerPubkey;
-            const observee = data.pubkey;
+            const observer = metaData.ownerPubkey;
+            const observee = metaData.pubkey;
             const socialLinks = [
                 { id: 'followingCountValue', type: 'follows' },
                 { id: 'followerCountValue', type: 'followers' },
