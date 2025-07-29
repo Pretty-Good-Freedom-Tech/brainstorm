@@ -11,6 +11,7 @@ const express = require('express');
 const https = require('https');
 const http = require('http');
 const session = require('express-session');
+const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const WebSocket = require('ws');
@@ -79,6 +80,14 @@ const app = express();
 const port = process.env.CONTROL_PANEL_PORT || 7778;
 
 // Middleware
+// Configure CORS to allow cross-origin requests
+app.use(cors({
+    origin: true, // Allow all origins
+    credentials: true, // Allow credentials
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
