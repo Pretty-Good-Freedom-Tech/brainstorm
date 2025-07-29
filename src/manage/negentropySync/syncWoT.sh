@@ -9,6 +9,9 @@ echo "$(date): Starting syncWoT; first with relay.hasenpfeffr.com, then with wot
 echo "$(date): Starting syncWoT; first with relay.hasenpfeffr.com, then with wot.brainstorm.social" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
 
 sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
+# wss://relay.hasenpfeffr.com 
+# wss://wot.brainstorm.social
+# wss://profiles.nostr1.com
 
 echo "$(date): Completed syncWoT with relay.hasenpfeffr.com"
 echo "$(date): Completed syncWoT with relay.hasenpfeffr.com" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log

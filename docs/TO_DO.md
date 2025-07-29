@@ -35,6 +35,12 @@ LIMIT 50
 - set all null scores to zero for most if not all metrics. More performant than calculating all of them which should be zero. However, note this EDGE CASE: user gets followed, has nonzero scores; then gets unfollowed. In this case, the score changes to zero but might not get overwritten, so the old (incorrect) score would remain. ALTERNATIVE PLAN: Set all scores to zero for hops=999. Everyone else will be calculated (this is true for graperank; unsure if true for all other metrics.)
 - replace updateNeo4j.js with updateNeo4jWithApoc.js in personalizedGrapeRank.sh for owner (as is already implemented for customers)
 
+TODO: SCRAPE OLD REPORTS
+- use nak 
+- use since in filter
+try all major relays including:
+- wss://nostr-pub.wellorder.net
+
 TO FIX;
 when running processCustomer, when doing graperank, it recreates follows.csv, mutes.csv, reports.csv and ratings.json even when these have already been created. Also: MaxListenersExceededWarning when creating ratings.json; in interpretRatings.js , increase stream.setMaxListeners(100); above 100 ? Error: `(node:1245413) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 101 drain listeners added to [WriteStream]. Use emitter.setMaxListeners() to increase limit` (note 101 drain listeners)
 

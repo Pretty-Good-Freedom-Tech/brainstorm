@@ -94,11 +94,11 @@ async function getUsers() {
     execSync(`echo "$(date): Querying Neo4j for users with WoT scores..." >> ${LOG_FILE}`);
     
     // Build the query
-    // limit temporarily set to 20 for testing
     let query = `
       MATCH (u:NostrUserWotMetricsCard)
       WHERE u.personalizedPageRank IS NOT NULL 
       AND u.influence IS NOT NULL
+      AND (u.influence > 0.01 OR muterInput > 0.1 OR reporterInput > 0.1)
       AND u.hops IS NOT NULL 
       AND u.hops < 20
       AND u.observer_pubkey IS NOT NULL
@@ -115,7 +115,7 @@ async function getUsers() {
              u.verifiedMuterCount AS verifiedMuterCount,
              u.verifiedReporterCount AS verifiedReporterCount
       ORDER BY u.influence DESC
-      LIMIT 20
+      LIMIT 20000
     `;    
     const result = await session.run(query);
     
