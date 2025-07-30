@@ -28,6 +28,13 @@ function handleGetWhitelist(req, res) {
     // look for pubkey as a query parameter
     const observerPubkey = req.query.observerPubkey || 'owner';
     const queryPubkey = req.query.pubkey;
+    const getListOfAvailableWhitelists = req.query.getListOfAvailableWhitelists;
+
+    if (getListOfAvailableWhitelists) {
+      // return list of all active customers
+      getCustomers(req, res);
+      return;
+    }
 
     // Create Neo4j driver
     const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
@@ -118,6 +125,50 @@ function handleGetWhitelist(req, res) {
           error: error.message
         });
       });
+  } catch (error) {
+    console.error('Error getting whitelist:', error);
+    return res.json({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+function getCustomers(req, res) {
+  try {
+    // Path to customers.json file
+    const customersPath = '/var/lib/brainstorm/customers/customers.json';
+    
+    // Fallback path for development
+    const fallbackPath = path.join(__dirname, '../../../customers/customers.json');
+    
+    let customersData;
+    
+    try {
+        // Try production path first
+        const data = fs.readFileSync(customersPath, 'utf8');
+        customersData = JSON.parse(data);
+    } catch (error) {
+        try {
+            // Try fallback path for development
+            const data = fs.readFileSync(fallbackPath, 'utf8');
+            customersData = JSON.parse(data);
+        } catch (fallbackError) {
+            console.error('Failed to read customers.json from both paths:', error, fallbackError);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to load customers data'
+            });
+        }
+    }
+    
+    // Extract customers and filter active ones
+    const activeCustomers = customersData.filter(customer => customer.active);
+    
+    return res.json({
+        success: true,
+        data: activeCustomers
+    });
   } catch (error) {
     console.error('Error getting whitelist:', error);
     return res.json({
