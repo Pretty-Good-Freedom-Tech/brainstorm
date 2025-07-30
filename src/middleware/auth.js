@@ -368,12 +368,117 @@ function authMiddleware(req, res, next) {
     }
 }
 
+/**
+ * Verify any valid Nostr user (not just owner)
+ * This endpoint allows any user with a valid pubkey to authenticate
+ */
+function handleAuthVerifyUser(req, res) {
+    try {
+        const { pubkey } = req.body;
+        
+        if (!pubkey) {
+            return res.status(400).json({ error: 'Missing pubkey parameter' });
+        }
+        
+        console.log(`Received user authentication request from pubkey: ${pubkey}`);
+        
+        // Basic validation - check if pubkey looks like a valid hex string
+        if (!/^[0-9a-fA-F]{64}$/.test(pubkey)) {
+            return res.json({
+                authorized: false,
+                message: 'Invalid pubkey format. Must be 64-character hex string.'
+            });
+        }
+        
+        // For general user authentication, we accept any valid pubkey
+        // Generate a random challenge for the client to sign
+        const challenge = crypto.randomBytes(32).toString('hex');
+        req.session.challenge = challenge;
+        req.session.pubkey = pubkey;
+        
+        // Check if this user is the owner for role information
+        const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
+        const isOwnerUser = pubkey === ownerPubkey;
+        
+        return res.json({ 
+            authorized: true, 
+            challenge,
+            isOwner: isOwnerUser,
+            message: isOwnerUser ? 'Owner authentication successful' : 'User authentication successful'
+        });
+        
+    } catch (error) {
+        console.error('Error in handleAuthVerifyUser:', error);
+        return res.status(500).json({ error: 'Internal server error during authentication' });
+    }
+}
+
+/**
+ * Login endpoint for general users (not just owner)
+ * Processes the signed challenge from any authenticated user
+ */
+function handleAuthLoginUser(req, res) {
+    try {
+        const { event } = req.body;
+        
+        if (!event) {
+            return res.status(400).json({ success: false, message: 'Missing signed event' });
+        }
+        
+        // Verify the event signature and challenge
+        const sessionChallenge = req.session.challenge;
+        const sessionPubkey = req.session.pubkey;
+        
+        if (!sessionChallenge || !sessionPubkey) {
+            return res.status(400).json({ success: false, message: 'No active authentication session' });
+        }
+        
+        // Verify the event pubkey matches session
+        if (event.pubkey !== sessionPubkey) {
+            return res.status(400).json({ success: false, message: 'Event pubkey does not match session' });
+        }
+        
+        // Verify the challenge tag
+        const challengeTag = event.tags.find(tag => tag[0] === 'challenge');
+        if (!challengeTag || challengeTag[1] !== sessionChallenge) {
+            return res.status(400).json({ success: false, message: 'Invalid challenge in signed event' });
+        }
+        
+        // If we get here, authentication is successful
+        req.session.authenticated = true;
+        req.session.userPubkey = sessionPubkey;
+        
+        // Check if user is owner
+        const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
+        const isOwnerUser = sessionPubkey === ownerPubkey;
+        req.session.isOwner = isOwnerUser;
+        
+        // Clear the challenge
+        delete req.session.challenge;
+        
+        console.log(`User authentication successful for pubkey: ${sessionPubkey} (owner: ${isOwnerUser})`);
+        
+        return res.json({ 
+            success: true, 
+            message: 'Authentication successful',
+            isOwner: isOwnerUser,
+            pubkey: sessionPubkey
+        });
+        
+    } catch (error) {
+        console.error('Error in handleAuthLoginUser:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error during login' });
+    }
+}
+
 module.exports = {
     handleAuthVerify,
     handleAuthLogin,
     handleAuthLogout,
     handleAuthStatus,
     handleAuthTest,
+    handleAuthVerifyUser,
+    handleAuthLoginUser,
     authMiddleware,
     isOwner
 };

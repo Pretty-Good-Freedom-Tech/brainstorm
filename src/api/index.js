@@ -15,7 +15,9 @@ const {
     handleAuthLogin, 
     handleAuthLogout, 
     handleAuthStatus,
-    handleAuthTest 
+    handleAuthTest,
+    handleAuthVerifyUser,
+    handleAuthLoginUser
 } = require('../middleware/auth');
 const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
@@ -86,6 +88,11 @@ function register(app) {
     app.post('/api/auth/verify', handleAuthVerify);
     
     app.post('/api/auth/login', handleAuthLogin);
+    
+    // User authentication endpoints (for any user, not just owner)
+    app.post('/api/auth/verify-user', handleAuthVerifyUser);
+    
+    app.post('/api/auth/login-user', handleAuthLoginUser);
     
     app.post('/api/auth/logout', handleAuthLogout);
     

@@ -16,9 +16,18 @@
         <div class="container">
             <div class="sign-in-box">
                 <h2>Sign In with Nostr</h2>
-                <p>Please sign in using your Nostr extension (NIP-07). Anyone can sign in to access personalized features. Administrative actions are restricted to the owner.</p>
+                <p>Please sign in using your Nostr extension (NIP-07). Only the authorized owner can perform administrative actions.</p>
                 
                 <button id="signInBtn" class="btn" disabled>Sign In with Nostr</button>
+                
+                <div class="nsec-input-container" style="margin-top: 20px;">
+                    <p><strong>Optional:</strong> Provide your nsec (private key) for signing events. This is required for publishing kind 10040 events.</p>
+                    <p><small>Note: Your private key will only be stored in your browser session and used for signing events. It will not be stored on the server permanently.</small></p>
+                    <input type="password" id="nsecInput" placeholder="nsec1..." style="width: 100%; padding: 10px; margin-bottom: 10px;" />
+                    <label style="display: flex; align-items: center; margin-bottom: 20px;">
+                        <input type="checkbox" id="showNsec" style="margin-right: 5px;"> Show private key
+                    </label>
+                </div>
                 
                 <div id="signInStatus" class="status">Checking for Nostr extension...</div>
                 
@@ -41,6 +50,15 @@
             
             const signInBtn = document.getElementById('signInBtn');
             const signInStatus = document.getElementById('signInStatus');
+            const nsecInput = document.getElementById('nsecInput');
+            const showNsec = document.getElementById('showNsec');
+            
+            // Toggle nsec visibility
+            if (showNsec && nsecInput) {
+                showNsec.addEventListener('change', function() {
+                    nsecInput.type = this.checked ? 'text' : 'password';
+                });
+            }
             
             // Set up the sign-in button click handler
             signInBtn.addEventListener('click', async function() {
@@ -58,8 +76,11 @@
                     // Get public key from NIP-07 extension
                     const pubkey = await window.nostr.getPublicKey();
                     
-                    // Verify with server (using user auth endpoint)
-                    const response = await fetch('/api/auth/verify-user', {
+                    // Get nsec from input field (optional)
+                    const nsec = nsecInput ? nsecInput.value.trim() : '';
+                    
+                    // Verify with server
+                    const response = await fetch('/api/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -73,8 +94,7 @@
                     console.log('Auth verify response:', JSON.stringify(data, null, 2));
                     
                     if (data.authorized) {
-                        const userType = data.isOwner ? 'Owner' : 'User';
-                        signInStatus.textContent = `Authentication successful! ${userType} authenticated (${pubkey.substring(0, 8)}...). Creating signed event...`;
+                        signInStatus.textContent = `Authentication successful! Your public key (${pubkey.substring(0, 8)}...) matches the owner's key. Creating signed event...`;
                         
                         // If authorized, create a signed event for authentication
                         const event = {
@@ -89,22 +109,22 @@
                         // Sign the event
                         const signedEvent = await window.nostr.signEvent(event);
                         
-                        // Send the signed event to the server (using user login endpoint)
-                        const authResponse = await fetch('/api/auth/login-user', {
+                        // Send the signed event and nsec to the server
+                        const authResponse = await fetch('/api/auth/login', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({ 
                                 event: signedEvent,
+                                nsec: nsec // Include nsec if provided
                             })
                         });
                         
                         const authData = await authResponse.json();
                         
                         if (authData.success) {
-                            const userType = authData.isOwner ? 'Owner' : 'User';
-                            signInStatus.textContent = `${userType} authentication successful! Redirecting to home page...`;
+                            signInStatus.textContent = 'Authentication successful! Redirecting to home page...';
                             signInStatus.className = 'status success';
                             
                             // Redirect to home page
@@ -117,14 +137,32 @@
                             signInBtn.disabled = false;
                         }
                     } else {
-                        signInStatus.textContent = 'Authentication failed: ' + data.message;
+                        signInStatus.textContent = 'Unauthorized: ' + data.message;
                         signInStatus.className = 'status error';
                         signInBtn.disabled = false;
                         
-                        // Display the user's pubkey for debugging
+                        // Debug: Log the details object specifically
+                        console.log('Auth details:', data.details);
+                        
+                        // Display the user's pubkey and expected pubkey for debugging
                         const pubkeyInfo = document.createElement('div');
                         pubkeyInfo.className = 'pubkey-info';
-                        pubkeyInfo.innerHTML = `<strong>Your public key:</strong> <code>${pubkey}</code><br>Please ensure you have a valid Nostr extension installed and try again.`;
+                        
+                        let infoHtml = `<strong>Your public key:</strong> <code>${pubkey}</code>`;
+                        
+                        // Add expected key details if available
+                        if (data.details) {
+                            if (data.details.expectedKey) {
+                                infoHtml += `<br><strong>Expected owner key:</strong> <code>${data.details.expectedKey}</code>`;
+                            }
+                            if (data.details.keyComparison) {
+                                infoHtml += `<br><strong>Comparison:</strong> ${data.details.keyComparison}`;
+                            }
+                        } else {
+                            infoHtml += `<br>This key does not match the authorized owner key in the server configuration.`;
+                        }
+                        
+                        pubkeyInfo.innerHTML = infoHtml;
                         signInStatus.appendChild(pubkeyInfo);
                     }
                 } catch (error) {
