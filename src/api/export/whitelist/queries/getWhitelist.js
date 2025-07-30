@@ -17,6 +17,8 @@
 
 const neo4j = require('neo4j-driver');
 const { getConfigFromFile } = require('../../../../utils/config');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Get whitelist configuration
@@ -139,36 +141,38 @@ function getCustomers(req, res) {
     // Path to customers.json file
     const customersPath = '/var/lib/brainstorm/customers/customers.json';
     
-    // Fallback path for development
-    const fallbackPath = path.join(__dirname, '../../../customers/customers.json');
-    
     let customersData;
     
     try {
         // Try production path first
         const data = fs.readFileSync(customersPath, 'utf8');
         customersData = JSON.parse(data);
+        //extract active customers and place each pubkey in an array
+        const activeCustomers = Object.values(customersData.customers || {})
+            .filter(customer => customer.status === 'active')
+            .map(customer => customer.pubkey)
+            .sort((a, b) => a.localeCompare(b)); // Sort alphabetically by name
+        return res.status(200).json({
+          success: true,
+          data: {
+            ownerPubkey: getConfigFromFile('BRAINSTORM_OWNER_PUBKEY'),
+            activeCustomers: activeCustomers,
+            comments: {
+              whitelistOfOwner: `api/get-whitelist`,
+              whitelistOfCustomer: `api/get-whitelist?observerPubkey=foo`,
+              queryIsPubkeyInWhitelist: `api/get-whitelist?pubkey=bar[&observerPubkey=foo]`,
+              getListOfAvailableWhitelists: `api/get-whitelist?getListOfAvailableWhitelists=true`
+            }
+          } 
+        });
     } catch (error) {
-        try {
-            // Try fallback path for development
-            const data = fs.readFileSync(fallbackPath, 'utf8');
-            customersData = JSON.parse(data);
-        } catch (fallbackError) {
-            console.error('Failed to read customers.json from both paths:', error, fallbackError);
-            return res.status(500).json({
-                success: false,
-                error: 'Failed to load customers data'
-            });
-        }
+        console.error('Failed to read customers.json from path:', customersPath, error);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to load customers data'
+        });
     }
     
-    // Extract customers and filter active ones
-    const activeCustomers = customersData.filter(customer => customer.active);
-    
-    return res.json({
-        success: true,
-        data: activeCustomers
-    });
   } catch (error) {
     console.error('Error getting whitelist:', error);
     return res.json({
