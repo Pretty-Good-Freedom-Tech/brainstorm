@@ -144,14 +144,19 @@ function getCustomers(req, res) {
     let customersData;
     
     try {
-        // Try production path first
         const data = fs.readFileSync(customersPath, 'utf8');
         customersData = JSON.parse(data);
         //extract active customers and place each pubkey in an array
+        // in addition to pubkey, also extract name
         const activeCustomers = Object.values(customersData.customers || {})
             .filter(customer => customer.status === 'active')
-            .map(customer => customer.pubkey)
-            .sort((a, b) => a.localeCompare(b)); // Sort alphabetically by name
+            .map(customer => {
+              return {
+                pubkey: customer.pubkey,
+                name: customer.name
+              }
+            })
+            .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
         return res.status(200).json({
           success: true,
           data: {
