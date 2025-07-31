@@ -30,6 +30,29 @@ execSync(`touch ${LOG_FILE}`);
 execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
 
 // Get Neo4j configuration from brainstorm.conf
+function getNeo4jConfig_deprecated() {
+  const configContent = fs.readFileSync(CONFIG_FILES.brainstorm, 'utf8');
+  const lines = configContent.split('\n');
+  
+  const config = {};
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, value] = trimmed.split('=');
+      if (key && value) {
+        config[key.trim()] = value.trim().replace(/['"]/g, '');
+      }
+    }
+  });
+  
+  return {
+    uri: config.NEO4J_URI || 'bolt://localhost:7687',
+    username: config.NEO4J_USER || 'neo4j',
+    password: config.NEO4J_PASSWORD || 'password'
+  };
+}
+
+// Get Neo4j configuration from brainstorm.conf
 function getNeo4jConfig() {
   try {
     // Load Neo4j connection details from brainstorm.conf
@@ -101,82 +124,11 @@ function createApocUpdateFile(scorecards, outputPath) {
   return updates.length;
 }
 
-// Pre-flight checks before APOC update
-async function performPreflightChecks(neo4jConfig) {
-  log('=== PERFORMING PRE-FLIGHT CHECKS ===');
-  
-  try {
-    // Check Neo4j memory settings
-    const memoryCheckCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "CALL dbms.listConfig() YIELD name, value WHERE name CONTAINS 'memory' RETURN name, value ORDER BY name"`;
-    const memoryResult = execSync(memoryCheckCommand, { encoding: 'utf8' });
-    log('Neo4j Memory Configuration:');
-    log(memoryResult);
-    
-    // Check existing indexes
-    const indexCheckCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "SHOW INDEXES"`;
-    const indexResult = execSync(indexCheckCommand, { encoding: 'utf8' });
-    log('Neo4j Indexes:');
-    log(indexResult);
-    
-    // Check current transaction count
-    const txCheckCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "CALL dbms.listTransactions() YIELD transactionId, currentQuery, status RETURN count(*) as activeTransactions"`;
-    const txResult = execSync(txCheckCommand, { encoding: 'utf8' });
-    log('Active Transactions:');
-    log(txResult);
-    
-    // Check target node count
-    const nodeCountCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "MATCH (u:NostrUserWotMetricsCard {customer_id: ${CUSTOMER_ID}}) RETURN count(u) as targetNodes"`;
-    const nodeCountResult = execSync(nodeCountCommand, { encoding: 'utf8' });
-    log('Target Nodes for Update:');
-    log(nodeCountResult);
-    
-  } catch (error) {
-    log(`Warning: Pre-flight check failed: ${error.message}`);
-  }
-  
-  log('=== PRE-FLIGHT CHECKS COMPLETE ===');
-}
-
-// Monitor APOC progress in real-time
-async function monitorApocProgress(neo4jConfig, intervalMs = 30000) {
-  const monitorInterval = setInterval(async () => {
-    try {
-      // Check active transactions
-      const txCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "CALL dbms.listTransactions() YIELD transactionId, currentQuery, status, startTime WHERE currentQuery CONTAINS 'apoc.periodic.iterate' RETURN transactionId, status, startTime, currentQuery"`;
-      const txResult = execSync(txCommand, { encoding: 'utf8', timeout: 10000 });
-      
-      if (txResult.trim()) {
-        log('=== APOC PROGRESS MONITOR ===');
-        log('Active APOC Transactions:');
-        log(txResult);
-        
-        // Check memory usage
-        const memCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "CALL dbms.queryJvm('java.lang:type=Memory') YIELD attributes RETURN attributes.HeapMemoryUsage as heapUsage"`;
-        const memResult = execSync(memCommand, { encoding: 'utf8', timeout: 5000 });
-        log('JVM Memory Usage:');
-        log(memResult);
-      }
-    } catch (error) {
-      log(`Monitor check failed: ${error.message}`);
-    }
-  }, intervalMs);
-  
-  return monitorInterval;
-}
-
-// Update Neo4j using APOC periodic iterate with enhanced monitoring
+// Update Neo4j using APOC periodic iterate
 async function updateNeo4jWithApoc(neo4jConfig, apocFilePath, totalRecords) {
   log(`Starting Neo4j update using APOC periodic iterate for ${CUSTOMER_NAME} using apocFilePath: ${apocFilePath} and file: ${path.basename(apocFilePath)}...`);
   
-  // Perform pre-flight checks
-  await performPreflightChecks(neo4jConfig);
-  
-  // Optimized APOC parameters for large datasets
-  const batchSize = 100; // Smaller batches to reduce memory pressure
-  const parallel = false; // Keep sequential to avoid lock contention
-  const retries = 5; // More retries for resilience
-  
-  // Construct the APOC Cypher command with enhanced error handling
+  // Construct the APOC Cypher command
   const cypherCommand = `
 CALL apoc.periodic.iterate(
   "CALL apoc.load.json('file:///${path.basename(apocFilePath)}') YIELD value AS update RETURN update",
@@ -188,158 +140,44 @@ CALL apoc.periodic.iterate(
       u.confidence = update.confidence,
       u.input = update.input
   ",
-  {
-    batchSize: ${batchSize}, 
-    parallel: ${parallel}, 
-    retries: ${retries}, 
-    errorHandler: 'IGNORE_AND_LOG',
-    batchMode: 'BATCH_SINGLE',
-    concurrency: 1
-  }
+  {batchSize: 250, parallel: false, retries: 3, errorHandler: 'IGNORE_AND_LOG'}
 ) YIELD batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages
 RETURN batches, total, timeTaken, committedOperations, failedOperations, failedBatches, retries, errorMessages;
   `.trim();
 
-  log(`Optimized Cypher command: ${cypherCommand}`);
+  log(`Cypher command: ${cypherCommand}`);
   
   // Write Cypher command to temporary file
   const cypherFile = path.join(TEMP_DIR, 'updateNeo4j.cypher');
   fs.writeFileSync(cypherFile, cypherCommand);
   
   log(`Executing APOC update for ${totalRecords} records...`);
-  log(`Using optimized settings: batchSize=${batchSize}, parallel=${parallel}, retries=${retries}`);
-  
-  // Start progress monitoring
-  const monitorInterval = await monitorApocProgress(neo4jConfig, 30000); // Check every 30 seconds
-  
-  const startTime = Date.now();
+  log(`Using batch size: 1000, parallel: false, retries: 3`);
   
   try {
-    // Execute the Cypher command using cypher-shell with extended timeout
+    // Execute the Cypher command using cypher-shell
     const command = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" -f "${cypherFile}"`;
-    
-    log(`Executing command: ${command}`);
     
     const result = execSync(command, { 
       encoding: 'utf8',
-      maxBuffer: 1024 * 1024 * 50, // 50MB buffer for large results
-      timeout: 3600000 // 1 hour timeout
+      maxBuffer: 1024 * 1024 * 10 // 10MB buffer
     });
     
-    const endTime = Date.now();
-    const durationMinutes = ((endTime - startTime) / 1000 / 60).toFixed(2);
+    log('APOC update completed successfully');
+    log(`Result: ${result.trim()}`);
     
-    log(`APOC update completed successfully in ${durationMinutes} minutes`);
-    log(`Full result: ${result.trim()}`);
-    
-    // Parse and log detailed statistics
+    // Parse the result to extract statistics
     const lines = result.trim().split('\n');
-    const dataLine = lines[lines.length - 1];
+    const dataLine = lines[lines.length - 1]; // Last line contains the data
     
     if (dataLine && dataLine.includes('|')) {
-      log(`=== UPDATE STATISTICS ===`);
-      log(`Raw statistics: ${dataLine}`);
-      
-      // Try to parse the statistics
-      try {
-        const stats = dataLine.split('|').map(s => s.trim());
-        if (stats.length >= 7) {
-          log(`Batches processed: ${stats[1]}`);
-          log(`Total operations: ${stats[2]}`);
-          log(`Time taken: ${stats[3]}`);
-          log(`Committed operations: ${stats[4]}`);
-          log(`Failed operations: ${stats[5]}`);
-          log(`Failed batches: ${stats[6]}`);
-          if (stats.length > 7) {
-            log(`Retries: ${stats[7]}`);
-          }
-          if (stats.length > 8) {
-            log(`Error messages: ${stats[8]}`);
-          }
-        }
-      } catch (parseError) {
-        log(`Could not parse statistics: ${parseError.message}`);
-      }
+      log(`Update statistics: ${dataLine}`);
     }
     
-    // Post-update verification
-    await performPostUpdateVerification(neo4jConfig, totalRecords);
-    
   } catch (error) {
-    const endTime = Date.now();
-    const durationMinutes = ((endTime - startTime) / 1000 / 60).toFixed(2);
-    
-    log(`=== APOC UPDATE FAILED after ${durationMinutes} minutes ===`);
-    log(`Error: ${error.message}`);
-    
-    // Log additional debugging info on failure
-    await logFailureDebugInfo(neo4jConfig, error);
-    
+    log(`Error executing APOC update: ${error.message}`);
     throw error;
-  } finally {
-    // Stop progress monitoring
-    if (monitorInterval) {
-      clearInterval(monitorInterval);
-      log('Progress monitoring stopped');
-    }
   }
-}
-
-// Post-update verification
-async function performPostUpdateVerification(neo4jConfig, expectedRecords) {
-  log('=== PERFORMING POST-UPDATE VERIFICATION ===');
-  
-  try {
-    // Count updated records
-    const countCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "MATCH (u:NostrUserWotMetricsCard {customer_id: ${CUSTOMER_ID}}) WHERE u.influence IS NOT NULL RETURN count(u) as updatedNodes"`;
-    const countResult = execSync(countCommand, { encoding: 'utf8' });
-    log('Updated nodes count:');
-    log(countResult);
-    
-    // Sample some updated records
-    const sampleCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "MATCH (u:NostrUserWotMetricsCard {customer_id: ${CUSTOMER_ID}}) WHERE u.influence IS NOT NULL RETURN u.observee_pubkey, u.influence, u.average LIMIT 5"`;
-    const sampleResult = execSync(sampleCommand, { encoding: 'utf8' });
-    log('Sample updated records:');
-    log(sampleResult);
-    
-  } catch (error) {
-    log(`Post-update verification failed: ${error.message}`);
-  }
-  
-  log('=== POST-UPDATE VERIFICATION COMPLETE ===');
-}
-
-// Log debugging info on failure
-async function logFailureDebugInfo(neo4jConfig, error) {
-  log('=== FAILURE DEBUG INFORMATION ===');
-  
-  try {
-    // Check for any remaining transactions
-    const txCommand = `sudo cypher-shell -a "${neo4jConfig.uri}" -u "${neo4jConfig.username}" -p "${neo4jConfig.password}" "CALL dbms.listTransactions() YIELD transactionId, currentQuery, status RETURN *"`;
-    const txResult = execSync(txCommand, { encoding: 'utf8', timeout: 10000 });
-    log('Active transactions at failure:');
-    log(txResult);
-    
-    // Check Neo4j logs for recent errors
-    log('Checking Neo4j logs for recent errors...');
-    try {
-      const logCommand = 'sudo tail -50 /var/log/neo4j/neo4j.log | grep -i "error\|exception\|timeout\|memory"';
-      const logResult = execSync(logCommand, { encoding: 'utf8', timeout: 5000 });
-      if (logResult.trim()) {
-        log('Recent Neo4j log errors:');
-        log(logResult);
-      } else {
-        log('No recent errors found in Neo4j logs');
-      }
-    } catch (logError) {
-      log(`Could not read Neo4j logs: ${logError.message}`);
-    }
-    
-  } catch (debugError) {
-    log(`Debug info collection failed: ${debugError.message}`);
-  }
-  
-  log('=== END FAILURE DEBUG INFORMATION ===');
 }
 
 // Function that logs to LOG_FILE and console
