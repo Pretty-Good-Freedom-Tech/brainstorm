@@ -30,29 +30,6 @@ execSync(`touch ${LOG_FILE}`);
 execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
 
 // Get Neo4j configuration from brainstorm.conf
-function getNeo4jConfig_deprecated() {
-  const configContent = fs.readFileSync(CONFIG_FILES.brainstorm, 'utf8');
-  const lines = configContent.split('\n');
-  
-  const config = {};
-  lines.forEach(line => {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('#')) {
-      const [key, value] = trimmed.split('=');
-      if (key && value) {
-        config[key.trim()] = value.trim().replace(/['"]/g, '');
-      }
-    }
-  });
-  
-  return {
-    uri: config.NEO4J_URI || 'bolt://localhost:7687',
-    username: config.NEO4J_USER || 'neo4j',
-    password: config.NEO4J_PASSWORD || 'password'
-  };
-}
-
-// Get Neo4j configuration from brainstorm.conf
 function getNeo4jConfig() {
   try {
     // Load Neo4j connection details from brainstorm.conf
