@@ -42,7 +42,9 @@ sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 echo "$(date): Starting processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-# check_disk_space "Before batch transfer"
+sudo $BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh
+echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed"
+echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncWoT.sh
 echo "$(date): Continuing processAllTasks; syncWoT.sh completed"
