@@ -3,11 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainstorm</title>
+    <title>Brainstorm Customer Sign Up</title>
     <link rel="stylesheet" href="/control/css/common.css">
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
+    <style>
+        .sign-up-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sign-up-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .sign-up-header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sign-up-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .status-loading {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        
+        .status-unauthenticated {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .status-customer {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .status-owner {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .sign-up-invitation {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .sign-up-invitation h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .sign-up-invitation p {
+            color: #5a6c7d;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .sign-up-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .sign-up-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .sign-up-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+        
+        .success-message h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #155724;
+        }
+        
+        .customer-details {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+        
+        .customer-details .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .customer-details .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .customer-details .detail-value {
+            color: #6c757d;
+            font-family: monospace;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .features-list {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features-list li {
+            padding: 0.5rem 0;
+            color: #5a6c7d;
+        }
+        
+        .features-list li:before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Include the header component -->
@@ -16,12 +198,217 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h1>Customer</h1>
-            <p>Customer</p>
+            <div class="sign-up-container">
+                <div class="sign-up-header">
+                    <h1>🚀 Join Brainstorm</h1>
+                    <p>Calculate your personalized Web of Trust and connect with your network</p>
+                </div>
+                
+                <!-- Status messages for different user states -->
+                <div id="statusContainer">
+                    <div id="loadingStatus" class="status-message status-loading">
+                        <div class="loading-spinner"></div>
+                        Checking your account status...
+                    </div>
+                    
+                    <div id="unauthenticatedStatus" class="status-message status-unauthenticated" style="display: none;">
+                        <h3>🔐 Sign In Required</h3>
+                        <p>Please sign in with your Nostr extension to continue with the sign-up process.</p>
+                        <a href="/sign-in.html" class="btn">Go to Sign In</a>
+                    </div>
+                    
+                    <div id="ownerStatus" class="status-message status-owner" style="display: none;">
+                        <h3>👑 You're the Owner!</h3>
+                        <p>As the Brainstorm instance owner, you already have full access to all features.</p>
+                    </div>
+                    
+                    <div id="customerStatus" class="status-message status-customer" style="display: none;">
+                        <h3>🎉 You're Already a Customer!</h3>
+                        <p>Great news! You're already signed up as a Brainstorm customer with full access to personalized Web of Trust calculations.</p>
+                        <div id="existingCustomerDetails" class="customer-details"></div>
+                    </div>
+                    
+                    <div id="guestStatus" class="sign-up-invitation" style="display: none;">
+                        <h2>🌟 Welcome to Brainstorm!</h2>
+                        <p>Join our free service to calculate your personalized Web of Trust and discover your influence in the Nostr network.</p>
+                        
+                        <div class="features-list">
+                            <h3>What you'll get:</h3>
+                            <ul>
+                                <li>Personalized Web of Trust calculations</li>
+                                <li>Your influence score and network metrics</li>
+                                <li>Trust-based content filtering</li>
+                                <li>Access to your personalized Grapevine data</li>
+                                <li>Free relay access for your network</li>
+                            </ul>
+                        </div>
+                        
+                        <button id="signUpBtn" class="sign-up-btn">
+                            🚀 Sign Me Up - It's Free!
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Success message after sign-up -->
+                <div id="successMessage" class="success-message" style="display: none;">
+                    <h3>🎉 Welcome to Brainstorm!</h3>
+                    <p>Congratulations! Your customer account has been successfully created.</p>
+                    <div id="newCustomerDetails" class="customer-details"></div>
+                    <p style="margin-top: 1rem;"><strong>Next steps:</strong> Your Web of Trust calculations will begin processing shortly. You can check your progress on the <a href="/customer.html">customer dashboard</a>.</p>
+                </div>
+                
+                <!-- Error message -->
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+            </div>
         </div>
     </div>
 
     <!-- Include the footer component -->
     <div id="footerContainer"></div>
+    
+    <script>
+        // Initialize the page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSignUpPage();
+        });
+        
+        async function initializeSignUpPage() {
+            try {
+                // Check user classification
+                const response = await fetch('/api/auth/user-classification');
+                const data = await response.json();
+                
+                // Hide loading status
+                document.getElementById('loadingStatus').style.display = 'none';
+                
+                if (!data.success) {
+                    showError('Failed to check account status. Please try again.');
+                    return;
+                }
+                
+                // Show appropriate status based on classification
+                switch (data.classification) {
+                    case 'unauthenticated':
+                        document.getElementById('unauthenticatedStatus').style.display = 'block';
+                        break;
+                        
+                    case 'owner':
+                        document.getElementById('ownerStatus').style.display = 'block';
+                        break;
+                        
+                    case 'customer':
+                        document.getElementById('customerStatus').style.display = 'block';
+                        showExistingCustomerDetails(data);
+                        break;
+                        
+                    case 'guest':
+                        document.getElementById('guestStatus').style.display = 'block';
+                        setupSignUpButton();
+                        break;
+                        
+                    default:
+                        showError('Unknown account status. Please contact support.');
+                }
+                
+            } catch (error) {
+                console.error('Error checking user classification:', error);
+                document.getElementById('loadingStatus').style.display = 'none';
+                showError('Failed to load page. Please refresh and try again.');
+            }
+        }
+        
+        function showExistingCustomerDetails(data) {
+            const container = document.getElementById('existingCustomerDetails');
+            container.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Customer Name:</span>
+                    <span class="detail-value">${data.customerName || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Customer ID:</span>
+                    <span class="detail-value">${data.customerId || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Public Key:</span>
+                    <span class="detail-value">${data.pubkey ? data.pubkey.substring(0, 16) + '...' : 'Unknown'}</span>
+                </div>
+            `;
+        }
+        
+        function setupSignUpButton() {
+            const signUpBtn = document.getElementById('signUpBtn');
+            signUpBtn.addEventListener('click', handleSignUp);
+        }
+        
+        async function handleSignUp() {
+            const signUpBtn = document.getElementById('signUpBtn');
+            
+            // Disable button and show loading state
+            signUpBtn.disabled = true;
+            signUpBtn.innerHTML = '<div class="loading-spinner"></div>Processing your sign-up...';
+            
+            try {
+                const response = await fetch('/api/auth/sign-up-new-customer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Hide guest status and show success message
+                    document.getElementById('guestStatus').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                    showNewCustomerDetails(data);
+                } else {
+                    throw new Error(data.error || 'Sign-up failed');
+                }
+                
+            } catch (error) {
+                console.error('Sign-up error:', error);
+                showError(`Sign-up failed: ${error.message}`);
+                
+                // Re-enable button
+                signUpBtn.disabled = false;
+                signUpBtn.innerHTML = '🚀 Sign Me Up - It\'s Free!';
+            }
+        }
+        
+        function showNewCustomerDetails(data) {
+            const container = document.getElementById('newCustomerDetails');
+            container.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Customer Name:</span>
+                    <span class="detail-value">${data.customerName || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Customer ID:</span>
+                    <span class="detail-value">${data.customerId || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">${data.status || 'Unknown'}</span>
+                </div>
+                ${data.relayPubkey ? `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Public Key:</span>
+                    <span class="detail-value">${data.relayPubkey.substring(0, 16)}...</span>
+                </div>
+                ` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">Your Public Key:</span>
+                    <span class="detail-value">${data.pubkey ? data.pubkey.substring(0, 16) + '...' : 'Unknown'}</span>
+                </div>
+            `;
+        }
+        
+        function showError(message) {
+            const errorContainer = document.getElementById('errorMessage');
+            errorContainer.textContent = message;
+            errorContainer.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
