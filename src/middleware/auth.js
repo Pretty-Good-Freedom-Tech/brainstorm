@@ -454,6 +454,10 @@ function handleAuthLoginUser(req, res) {
         const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
         const isOwnerUser = sessionPubkey === ownerPubkey;
         req.session.isOwner = isOwnerUser;
+
+        // Check if user is customer
+        const isCustomerUser = false;
+        req.session.isCustomer = isCustomerUser;
         
         // Clear the challenge
         delete req.session.challenge;
@@ -464,6 +468,7 @@ function handleAuthLoginUser(req, res) {
             success: true, 
             message: 'Authentication successful',
             isOwner: isOwnerUser,
+            isCustomer: isCustomerUser,
             pubkey: sessionPubkey
         });
         

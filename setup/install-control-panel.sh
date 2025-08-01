@@ -139,7 +139,7 @@ if [ ! -f /etc/brainstorm.conf ]; then
     
     # Set secure permissions
     chown root:$BRAINSTORM_GROUP /etc/brainstorm.conf
-    chmod 644 /etc/brainstorm.conf
+    chmod 664 /etc/brainstorm.conf
     
     echo "Configuration file installed at /etc/brainstorm.conf"
     echo "Please update it with your specific settings using bin/update-config.sh"

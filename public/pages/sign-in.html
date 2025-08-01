@@ -104,12 +104,20 @@
                         
                         if (authData.success) {
                             // userType should be Owner, Customer, or Guest
-                            const userType = authData.isOwner ? 'Owner' : 'Guest';
+                            const userType = authData.isOwner ? 'Owner' : authData.isCustomer ? 'Customer' : 'Guest';
                             signInStatus.textContent = `${userType} authentication successful! Redirecting to about page...`;
                             signInStatus.className = 'status success';
                             
                             // Redirect to about page
-                            let redirectUrl = '/about.html';
+                            let redirectUrl = '/sign-up.html';
+                            // if authData.isOwner then redirect to home.html
+                            if (authData.isOwner) {
+                                redirectUrl = '/home.html';
+                            }
+                            // if authData.isCustomer then redirect to customer.html
+                            if (authData.isCustomer) {
+                                redirectUrl = '/customer.html';
+                            }
                             setTimeout(() => {
                                 window.location.href = redirectUrl;
                             }, 1500);
