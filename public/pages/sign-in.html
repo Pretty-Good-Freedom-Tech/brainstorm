@@ -104,23 +104,12 @@
                         
                         if (authData.success) {
                             // userType should be Owner, Customer, or Guest
-                            const userType = authData.classification.charAt(0).toUpperCase() + authData.classification.slice(1);
-                            signInStatus.textContent = `${userType} authentication successful! Redirecting to home page...`;
+                            const userType = authData.isOwner ? 'Owner' : 'Guest';
+                            signInStatus.textContent = `${userType} authentication successful! Redirecting to about page...`;
                             signInStatus.className = 'status success';
                             
-                            // Redirect to home page
-                            let redirectUrl = '/home.html';
-                            if (authData.classification === 'owner') {
-                                redirectUrl = '/home.html';
-                            }
-                            // redirect guest to sign-in.html
-                            if (authData.classification === 'guest') {
-                                redirectUrl = '/sign-in.html';
-                            }
-                            // redirect customer to customer.html
-                            if (authData.classification === 'customer') {
-                                redirectUrl = '/customer.html';
-                            }
+                            // Redirect to about page
+                            let redirectUrl = '/about.html';
                             setTimeout(() => {
                                 window.location.href = redirectUrl;
                             }, 1500);
