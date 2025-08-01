@@ -306,7 +306,8 @@ function authMiddleware(req, res, next) {
             '/neo4j-setup-constraints-and-indexes',
             '/run-script',
             '/process-all-active-customers',
-            '/create-all-customer-relays'
+            '/create-all-customer-relays',
+            '/sign-up-new-customer'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -351,7 +352,8 @@ function authMiddleware(req, res, next) {
             '/neo4j-setup-constraints-and-indexes',
             '/run-script',
             '/process-all-active-customers',
-            '/create-all-customer-relays'
+            '/create-all-customer-relays',
+            '/sign-up-new-customer'
         ];
         
         // Check if the current path is a write endpoint

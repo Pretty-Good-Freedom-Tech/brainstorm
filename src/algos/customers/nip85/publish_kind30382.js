@@ -115,7 +115,7 @@ async function getUsers() {
              u.verifiedMuterCount AS verifiedMuterCount,
              u.verifiedReporterCount AS verifiedReporterCount
       ORDER BY u.influence DESC
-      LIMIT 20000
+      LIMIT 200000
     `;    
     const result = await session.run(query);
     
