@@ -1,9 +1,11 @@
 const fs = require('fs');
 const path = require('path');
+const { getConfigFromFile } = require('../../utils/config');
 
 /**
  * Get user classification (owner/customer/regular user)
  * Returns the classification of the authenticated user
+ * to call: api/auth/user-classification
  */
 async function handleGetUserClassification(req, res) {
     try {
@@ -19,49 +21,24 @@ async function handleGetUserClassification(req, res) {
         const userPubkey = req.session.pubkey;
 
         // Get owner pubkey from brainstorm.conf
-        let ownerPubkey = null;
-        try {
-            const configPath = '/var/lib/brainstorm/brainstorm.conf';
-            const fallbackConfigPath = path.join(__dirname, '../../../brainstorm.conf');
-            
-            let configContent;
-            try {
-                configContent = fs.readFileSync(configPath, 'utf8');
-            } catch (error) {
-                configContent = fs.readFileSync(fallbackConfigPath, 'utf8');
-            }
-
-            const lines = configContent.split('\n');
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (trimmed && !trimmed.startsWith('#')) {
-                    const [key, value] = trimmed.split('=');
-                    if (key && key.trim() === 'BRAINSTORM_OWNER_PUBKEY' && value) {
-                        ownerPubkey = value.trim().replace(/['"]/g, '');
-                        break;
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error reading owner pubkey from config:', error);
-        }
+        let ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY');
 
         // Check if user is the owner
         if (ownerPubkey && userPubkey === ownerPubkey) {
             return res.json({
                 success: true,
+                ownerPubkey: ownerPubkey,
                 classification: 'owner',
                 pubkey: userPubkey,
-                ownerPubkey: ownerPubkey
             });
         }
 
         // Check if user is a customer
+        let customersData;
         try {
             const customersPath = '/var/lib/brainstorm/customers/customers.json';
             const fallbackPath = path.join(__dirname, '../../../customers/customers.json');
             
-            let customersData;
             try {
                 const data = fs.readFileSync(customersPath, 'utf8');
                 customersData = JSON.parse(data);
@@ -90,6 +67,8 @@ async function handleGetUserClassification(req, res) {
         // User is authenticated but not owner or customer
         return res.json({
             success: true,
+            ownerPubkey: ownerPubkey,
+            customersData: customersData,
             classification: 'regular_user',
             pubkey: userPubkey
         });
