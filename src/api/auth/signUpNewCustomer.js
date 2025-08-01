@@ -15,7 +15,7 @@ async function handleSignUpNewCustomer(req, res) {
         if (!req.session || !req.session.pubkey) {
             return res.json({
                 success: false,
-                error: 'Authentication required. Please sign in first.',
+                message: 'Authentication required. Please sign in first.',
                 classification: 'unauthenticated'
             });
         }
@@ -29,7 +29,7 @@ async function handleSignUpNewCustomer(req, res) {
         if (ownerPubkey && userPubkey === ownerPubkey) {
             return res.json({
                 success: false,
-                error: 'Owner account cannot sign up as customer',
+                message: 'Owner account cannot sign up as customer',
                 classification: 'owner'
             });
         }
@@ -59,7 +59,8 @@ async function handleSignUpNewCustomer(req, res) {
                 console.error('Error reading customers data from both paths:', error, fallbackError);
                 return res.json({
                     success: false,
-                    error: 'Failed to access customer database'
+                    message: 'Failed to access customer database',
+                    error
                 });
             }
         }
@@ -70,7 +71,7 @@ async function handleSignUpNewCustomer(req, res) {
             if (customerData.pubkey === userPubkey) {
                 return res.json({
                     success: false,
-                    error: 'You are already a customer',
+                    message: 'You are already a customer',
                     classification: 'customer',
                     customerName: customerName,
                     customerId: customerData.id
