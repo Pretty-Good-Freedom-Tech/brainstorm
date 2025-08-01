@@ -115,7 +115,7 @@ EOF
 
 # Set proper permissions
 sudo chown root:brainstorm "$CONFIG_FILE" 2>/dev/null || echo "Warning: Could not set ownership to root:brainstorm"
-sudo chmod 644 "$CONFIG_FILE"
+sudo chmod 664 "$CONFIG_FILE"
 
 echo ""
 echo "Configuration updated successfully!"

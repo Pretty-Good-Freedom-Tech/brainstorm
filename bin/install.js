@@ -514,7 +514,7 @@ export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=0
   // Write brainstorm configuration file
   if (isRoot) {
     fs.writeFileSync(configPaths.brainstormConfDestination, brainstormConfigContent);
-    execSync(`sudo chmod 644 ${configPaths.brainstormConfDestination}`);
+    execSync(`sudo chmod 664 ${configPaths.brainstormConfDestination}`);
     // move this to configure-sudo-privileges.sh
     // execSync(`sudo chown root:brainstorm ${configPaths.brainstormConfDestination}`);
     console.log(`Configuration file created at ${configPaths.brainstormConfDestination}`);
@@ -557,7 +557,7 @@ export BRAINSTORM_RELAY_NPUB="${relayNpub || ''}"
     console.log(brainstormConfigContent);
     console.log('---');
     console.log(`Save it to: ${configPaths.brainstormConfDestination}`);
-    console.log('And set permissions: chmod 644 ' + configPaths.brainstormConfDestination);
+    console.log('And set permissions: chmod 664 ' + configPaths.brainstormConfDestination);
     console.log('Then run: sudo ' + configPaths.createNostrIdentityScript);
     
     // Wait for user acknowledgment

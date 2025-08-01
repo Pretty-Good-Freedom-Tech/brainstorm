@@ -36,33 +36,23 @@ async function handleSignUpNewCustomer(req, res) {
 
         // Determine paths for customers data
         const customersPath = '/var/lib/brainstorm/customers/customers.json';
-        const fallbackPath = path.join(__dirname, '../../../customers/customers.json');
         const customersDir = '/var/lib/brainstorm/customers';
-        const fallbackDir = path.join(__dirname, '../../../customers');
         
         let actualCustomersPath, actualCustomersDir;
         let customersData;
         
-        // Try to read from production path first, then fallback
+        // Try to read from production path first
         try {
             const data = fs.readFileSync(customersPath, 'utf8');
             customersData = JSON.parse(data);
             actualCustomersPath = customersPath;
             actualCustomersDir = customersDir;
         } catch (error) {
-            try {
-                const data = fs.readFileSync(fallbackPath, 'utf8');
-                customersData = JSON.parse(data);
-                actualCustomersPath = fallbackPath;
-                actualCustomersDir = fallbackDir;
-            } catch (fallbackError) {
-                console.error('Error reading customers data from both paths:', error, fallbackError);
-                return res.json({
-                    success: false,
-                    message: 'Failed to access customer database',
-                    error
-                });
-            }
+            return res.json({
+                success: false,
+                message: 'Failed to access customer database',
+                error
+            });
         }
 
         // Check if user is already a customer
@@ -104,14 +94,14 @@ async function handleSignUpNewCustomer(req, res) {
             name: newCustomerName,
             pubkey: userPubkey,
             observer_id: userPubkey,
-            comments: 'auto-generated',
+            comments: 'default',
             createdAt: new Date().toISOString()
         };
 
         // Create customer directory
         const customerDir = path.join(actualCustomersDir, newCustomerName);
         const defaultDir = path.join(actualCustomersDir, 'default');
-        
+
         try {
             // Copy default customer directory to new customer directory
             if (fs.existsSync(defaultDir)) {
