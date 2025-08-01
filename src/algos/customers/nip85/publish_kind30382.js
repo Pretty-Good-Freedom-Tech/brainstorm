@@ -98,7 +98,7 @@ async function getUsers() {
       MATCH (u:NostrUserWotMetricsCard)
       WHERE u.personalizedPageRank IS NOT NULL 
       AND u.influence IS NOT NULL
-      AND (u.influence > 0.01 OR muterInput > 0.1 OR reporterInput > 0.1)
+      AND (u.influence > 0.01 OR u.muterInput > 0.1 OR u.reporterInput > 0.1)
       AND u.hops IS NOT NULL 
       AND u.hops < 20
       AND u.observer_pubkey IS NOT NULL
