@@ -19,6 +19,7 @@ const {
     handleAuthVerifyUser,
     handleAuthLoginUser
 } = require('../middleware/auth');
+const { handleGetUserClassification } = require('./auth/getUserClassification');
 const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
 const { handleSearchProfiles } = require('./search/profiles');
@@ -97,6 +98,9 @@ function register(app) {
     app.post('/api/auth/logout', handleAuthLogout);
     
     app.get('/api/auth/status', handleAuthStatus);
+    
+    // Get user classification (owner/customer/regular user)
+    app.get('/api/auth/user-classification', handleGetUserClassification);
     
     // Test endpoint for debugging authentication
     app.get('/api/auth/test', handleAuthTest);

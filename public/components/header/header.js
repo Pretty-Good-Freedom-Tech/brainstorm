@@ -198,6 +198,65 @@ function loadNavbar() {
 }
 
 /**
+ * Add user classification indicator to the header
+ */
+function addUserClassificationIndicator(classification, customerName) {
+    // Remove any existing classification indicator
+    const existingIndicator = document.getElementById('userClassification');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+
+    const userInfo = document.getElementById('userInfo');
+    if (!userInfo) return;
+
+    // Create classification indicator element
+    const indicator = document.createElement('span');
+    indicator.id = 'userClassification';
+    indicator.style.cssText = `
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: 8px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    `;
+
+    // Set indicator text and styling based on classification
+    switch (classification) {
+        case 'owner':
+            indicator.textContent = 'OWNER';
+            indicator.style.backgroundColor = '#4CAF50';
+            indicator.style.color = 'white';
+            indicator.title = 'You are the Brainstorm instance owner';
+            break;
+        case 'customer':
+            indicator.textContent = customerName ? customerName.toUpperCase() : 'CUSTOMER';
+            indicator.style.backgroundColor = '#2196F3';
+            indicator.style.color = 'white';
+            indicator.title = `You are a Brainstorm customer: ${customerName || 'Unknown'}`;
+            break;
+        case 'regular_user':
+            indicator.textContent = 'USER';
+            indicator.style.backgroundColor = '#9E9E9E';
+            indicator.style.color = 'white';
+            indicator.title = 'You are a regular user';
+            break;
+        default:
+            return; // Don't add indicator for unknown classifications
+    }
+
+    // Insert the indicator after the user name
+    const userName = document.getElementById('userName');
+    if (userName && userName.nextSibling) {
+        userInfo.insertBefore(indicator, userName.nextSibling);
+    } else {
+        userInfo.appendChild(indicator);
+    }
+}
+
+/**
  * Initialize the header component once it's loaded
  */
 function initializeHeader() {
@@ -214,11 +273,11 @@ function initializeHeader() {
     // Check Neo4j constraints and indexes
     checkNeo4jConstraints();
 
-    // Check authentication status
-    fetch('/api/auth/status')
+    // Check authentication status and user classification
+    fetch('/api/auth/user-classification')
         .then(response => response.json())
         .then(data => {
-            if (data && data.authenticated) {
+            if (data && data.success && data.classification !== 'unauthenticated') {
                 // User is authenticated
                 if (userInfo) { userInfo.style.display = 'flex' }
                 if (signInLink) { signInLink.style.display = 'none' }
@@ -228,6 +287,9 @@ function initializeHeader() {
                 if (data.pubkey) {
                     if (userAvatar) { userAvatar.textContent = data.pubkey.substring(0, 1).toUpperCase() }
                     if (userName) { userName.textContent = `${data.pubkey.substring(0, 8)}...` }
+                    
+                    // Add user classification indicator
+                    addUserClassificationIndicator(data.classification, data.customerName);
                     
                     // Fetch user profile information from kind 0 event
                     fetchUserProfile(data.pubkey);
@@ -240,7 +302,30 @@ function initializeHeader() {
             }
         })
         .catch(error => {
-            console.error('Error checking authentication status:', error);
+            console.error('Error checking user classification:', error);
+            // Fallback to basic auth check
+            fetch('/api/auth/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.authenticated) {
+                        if (userInfo) { userInfo.style.display = 'flex' }
+                        if (signInLink) { signInLink.style.display = 'none' }
+                        if (logoutLink) { logoutLink.style.display = 'inline-block' }
+                        
+                        if (data.pubkey) {
+                            if (userAvatar) { userAvatar.textContent = data.pubkey.substring(0, 1).toUpperCase() }
+                            if (userName) { userName.textContent = `${data.pubkey.substring(0, 8)}...` }
+                            fetchUserProfile(data.pubkey);
+                        }
+                    } else {
+                        if (userInfo) { userInfo.style.display = 'none' }
+                        if (signInLink) { signInLink.style.display = 'inline-block' }
+                        if (logoutLink) { logoutLink.style.display = 'none' }
+                    }
+                })
+                .catch(fallbackError => {
+                    console.error('Error with fallback auth check:', fallbackError);
+                });
         });
 
     // Set up the relay link with the correct domain if it exists
