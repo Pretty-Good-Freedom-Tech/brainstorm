@@ -23,7 +23,7 @@ const path = require('path');
 const nostrTools = require('nostr-tools');
 
 // Function to generate npub from pubkey
-function generateKeys() {
+function generateKeys_deprecating() {
     try {
         const privateKey = nostrTools.generateSecretKey();
         const pubkey = nostrTools.getPublicKey(privateKey);
@@ -52,9 +52,9 @@ function logMessage(message) {
     console.log(`${timestamp}: ${message}`);
 }
 
-function processSingleCustomer(customer_pubkey, customer_id, customer_name) {
+function createSingleCustomerRelay_deprecating(customer_pubkey, customer_id, customer_name) {
     try {
-        const keys = JSON.parse(generateKeys());
+        const keys = JSON.parse(generateKeys_deprecating());
 
         // log customer
         console.log(`Processing customer: ${customer_name} (id: ${customer_id}) with pubkey ${customer_pubkey}`);
@@ -80,6 +80,8 @@ export CUSTOMER_${customer_pubkey}_RELAY_NSEC='${keys.nsec}'
         const newBrainstormConf = brainstormConf + newBrainstormConfString;
         console.log(`newBrainstormConf: ${newBrainstormConf}`);
         fs.writeFileSync('/etc/brainstorm.conf', newBrainstormConf);
+
+        return keys;
 
     } catch (error) {
         console.error(`Error in createCustomerRelay.js: ${error.message}`);
@@ -113,22 +115,19 @@ function getBrainstormConfFile() {
 function processAllCustomers() {
     try {
         const customers = getCustomers();
-        const brainstormConf = getBrainstormConfFile();
         for (const customerDirectoryName of Object.keys(customers.customers)) {
             console.log(`customerDirectoryName: ${customerDirectoryName}`)
             const customer_pubkey = customers.customers[customerDirectoryName].pubkey
             const customer_id = customers.customers[customerDirectoryName].id
             const customer_name = customers.customers[customerDirectoryName].name
             console.log(`customer_id: ${customer_id}`)
-            // look for this string: `### CUSTOMER id: ${customer_id} ###` in brainstormConf
-            const searchString = `### CUSTOMER id: ${customer_id} ###`
-            const foo = brainstormConf.includes(searchString)
-            console.log(`foo: ${foo}`)
-            if (brainstormConf.includes(searchString)) {
+            // Check if customer already has a relay pubkey in brainstorm.conf
+            if (customerHasRelayKeys(customer_pubkey)) {
                 console.log(`Customer ${customer_id} already has a relay pubkey in brainstorm.conf`)
                 continue;
             } else {
-                processSingleCustomer(customer_pubkey, customer_id, customer_name);
+                const keys = createSingleCustomerRelay(customer_pubkey, customer_id, customer_name);
+                console.log(`keys: ${JSON.stringify(keys)}`);
             }
         }
     } catch (error) {

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../../utils/config');
+const { createSingleCustomerRelay } = require('../../utils/customerRelayKeys');
 
 /**
  * Sign up a new customer
@@ -81,7 +81,18 @@ async function handleSignUpNewCustomer(req, res) {
         // Generate new customer data
         const newCustomerName = generateCustomerName(userPubkey);
         const newCustomerId = generateNextCustomerId(customers);
-        const relayKeyPair = generateRelayKeyPair();
+        
+        // Generate relay keys using the shared utility
+        let relayKeys;
+        try {
+            relayKeys = createSingleCustomerRelay(userPubkey, newCustomerId, newCustomerName);
+        } catch (error) {
+            console.error('Error creating customer relay keys:', error);
+            return res.json({
+                success: false,
+                error: 'Failed to generate relay keys for customer'
+            });
+        }
         
         // Create new customer object
         const newCustomer = {
@@ -92,8 +103,6 @@ async function handleSignUpNewCustomer(req, res) {
             pubkey: userPubkey,
             observer_id: userPubkey,
             comments: 'auto-generated',
-            relayPubkey: relayKeyPair.pubkey,
-            relayPrivkey: relayKeyPair.privkey,
             createdAt: new Date().toISOString()
         };
 
@@ -150,7 +159,7 @@ async function handleSignUpNewCustomer(req, res) {
             pubkey: userPubkey,
             status: 'active',
             directory: customerDir,
-            relayPubkey: relayKeyPair.pubkey,
+            relayPubkey: relayKeys.pubkey,
             createdAt: newCustomer.createdAt
         });
 
@@ -188,30 +197,6 @@ function generateNextCustomerId(customers) {
         }
     }
     return maxId + 1;
-}
-
-/**
- * Generate a new relay key pair
- * @returns {Object} - Object with pubkey and privkey
- */
-function generateRelayKeyPair() {
-    try {
-        // Generate a random 32-byte private key
-        const privkey = crypto.randomBytes(32).toString('hex');
-        
-        // For now, generate a mock public key (in production, this should use proper secp256k1)
-        const pubkey = crypto.createHash('sha256').update(privkey).digest('hex');
-        
-        return { pubkey, privkey };
-    } catch (error) {
-        console.error('Error generating relay key pair:', error);
-        // Fallback to timestamp-based keys
-        const timestamp = Date.now().toString();
-        return {
-            pubkey: crypto.createHash('sha256').update(`pub_${timestamp}`).digest('hex'),
-            privkey: crypto.createHash('sha256').update(`priv_${timestamp}`).digest('hex')
-        };
-    }
 }
 
 module.exports = { handleSignUpNewCustomer };
