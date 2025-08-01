@@ -90,7 +90,8 @@ async function handleSignUpNewCustomer(req, res) {
             console.error('Error creating customer relay keys:', error);
             return res.json({
                 success: false,
-                error: 'Failed to generate relay keys for customer'
+                message: 'Failed to generate relay keys for customer',
+                error
             });
         }
         
@@ -124,7 +125,8 @@ async function handleSignUpNewCustomer(req, res) {
             console.error('Error creating customer directory:', error);
             return res.json({
                 success: false,
-                error: 'Failed to create customer directory'
+                message: 'Failed to create customer directory',
+                error
             });
         }
 
@@ -146,7 +148,8 @@ async function handleSignUpNewCustomer(req, res) {
             }
             return res.json({
                 success: false,
-                error: 'Failed to update customer database'
+                message: 'Failed to update customer database',
+                error
             });
         }
 
@@ -167,7 +170,8 @@ async function handleSignUpNewCustomer(req, res) {
         console.error('Error in signUpNewCustomer:', error);
         return res.status(500).json({
             success: false,
-            error: 'Internal server error during sign-up process'
+            message: 'Internal server error during sign-up process',
+            error
         });
     }
 }
