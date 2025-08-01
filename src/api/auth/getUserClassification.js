@@ -27,7 +27,6 @@ async function handleGetUserClassification(req, res) {
         if (ownerPubkey && userPubkey === ownerPubkey) {
             return res.json({
                 success: true,
-                ownerPubkey: ownerPubkey,
                 classification: 'owner',
                 pubkey: userPubkey,
             });
@@ -67,9 +66,7 @@ async function handleGetUserClassification(req, res) {
         // User is authenticated but not owner or customer
         return res.json({
             success: true,
-            ownerPubkey: ownerPubkey,
-            customersData: customersData,
-            classification: 'regular_user',
+            classification: 'guest',
             pubkey: userPubkey
         });
 

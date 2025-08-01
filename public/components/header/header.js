@@ -232,16 +232,16 @@ function addUserClassificationIndicator(classification, customerName) {
             indicator.title = 'You are the Brainstorm instance owner';
             break;
         case 'customer':
-            indicator.textContent = customerName ? customerName.toUpperCase() : 'CUSTOMER';
+            indicator.textContent = customerName ? 'CUSTOMER: ' + customerName.toUpperCase() : 'CUSTOMER';
             indicator.style.backgroundColor = '#2196F3';
             indicator.style.color = 'white';
             indicator.title = `You are a Brainstorm customer: ${customerName || 'Unknown'}`;
             break;
-        case 'regular_user':
-            indicator.textContent = 'USER';
+        case 'guest':
+            indicator.textContent = 'GUEST';
             indicator.style.backgroundColor = '#9E9E9E';
             indicator.style.color = 'white';
-            indicator.title = 'You are a regular user';
+            indicator.title = 'You are a guest';
             break;
         default:
             return; // Don't add indicator for unknown classifications
