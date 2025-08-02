@@ -5,6 +5,9 @@
  * 
  * This script creates backups of important configuration files and data:
  * - All files in /usr/local/lib/strfry/plugins/data/
+ * - Customer data in /var/lib/brainstorm/customers/
+ * - Secure relay keys in /var/lib/brainstorm/secure-keys/
+ * - Log files in /var/log/brainstorm/
  * - System configuration files:
  *   - /etc/strfry.conf
  *   - /etc/strfry-router.config
@@ -31,7 +34,9 @@ const SOURCE_FILES = [
 
 const SOURCE_DIRS = [
   '/usr/local/lib/strfry/plugins/data/',
-  '/var/log/brainstorm'
+  '/var/log/brainstorm',
+  '/var/lib/brainstorm/customers',
+  '/var/lib/brainstorm/secure-keys'
 ];
 
 // Determine the actual user's home directory, even when run with sudo
