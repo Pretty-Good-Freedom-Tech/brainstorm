@@ -89,6 +89,8 @@ const configPaths = {
   sudoPrivilegesScript: path.join(packageRoot, 'setup', 'configure-sudo-privileges.sh'),
   controlPanelSudoScript: path.join(packageRoot, 'setup', 'configure-control-panel-sudo.sh'),
 
+  setupSecureStorageScript: path.join(packageRoot, 'setup', 'setup-secure-storage.sh'),
+
   controlPanelServiceFileSource: path.join(packageRoot, 'systemd', 'brainstorm-control-panel.service'),
   strfryRouterServiceFileSource: path.join(packageRoot, 'systemd', 'strfry-router.service'),
   addToQueueServiceFileSource: path.join(packageRoot, 'systemd', 'addToQueue.service'),
@@ -230,6 +232,9 @@ async function install() {
     // Step 9: Configure sudo privileges
     await configureSudoPrivileges();
 
+    // Step 10: Setup secure storage
+    await setupSecureStorage();
+
     // make sure brainstorm-control-panel is running
     console.log('Waiting for system to stabilize before starting services...');
     execSync('sleep 5'); // 5-second delay
@@ -260,6 +265,13 @@ async function install() {
     rl.close();
     process.exit(1);
   }
+}
+
+async function setupSecureStorage() {
+  console.log('\x1b[36m=== Setting up secure storage ===\x1b[0m');
+  execSync('sudo bash ' + configPaths.setupSecureStorageScript, { stdio: 'inherit' });
+  console.log('\x1b[32mSecure storage setup complete.\x1b[0m');
+  console.log('\x1b[33mNote: Environment variables will be loaded automatically by the control panel.\x1b[0m');
 }
 
 // Create strfry router config file

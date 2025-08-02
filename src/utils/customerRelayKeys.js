@@ -143,8 +143,6 @@ module.exports = {
     generateRelayKeys,
     createSingleCustomerRelay,
     getCustomerRelayKeys,
-    hasCustomerRelayKeys,
     customerHasRelayKeys,
-    getCustomerRelayKeysFromConf,
     getBrainstormConfFile
 };

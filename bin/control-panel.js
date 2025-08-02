@@ -7,6 +7,36 @@
  * and API server for managing NIP-85 data generation and publication.
  */
 
+// Load secure storage environment variables first
+const fs = require('fs');
+const path = require('path');
+
+// Try multiple possible locations for the secure storage config
+const configPaths = [
+    '/etc/brainstorm/secure-storage.env',
+    path.join(process.env.HOME || '/root', '.brainstorm/secure-storage.env'),
+    path.join(__dirname, '../config/secure-storage.env')
+];
+
+let configLoaded = false;
+for (const configPath of configPaths) {
+    try {
+        if (fs.existsSync(configPath)) {
+            require('dotenv').config({ path: configPath });
+            console.log(`✅ Loaded secure storage configuration from: ${configPath}`);
+            configLoaded = true;
+            break;
+        }
+    } catch (error) {
+        // Continue to next path
+    }
+}
+
+if (!configLoaded) {
+    console.log('⚠️  Secure storage config not found - using environment defaults');
+    console.log('   Run setup/setup-secure-storage.sh to configure secure storage');
+}
+
 const express = require('express');
 const https = require('https');
 const http = require('http');
@@ -18,6 +48,7 @@ const WebSocket = require('ws');
 const { useWebSocketImplementation } = require('nostr-tools/pool');
 const { authMiddleware } = require('../src/middleware/auth');
 require('websocket-polyfill');
+
 useWebSocketImplementation(WebSocket);
 
 // Import API modules
