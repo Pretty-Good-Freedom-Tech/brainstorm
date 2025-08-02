@@ -16,6 +16,7 @@ const neo4j = require('neo4j-driver');
 const nostrTools = require('nostr-tools');
 const WebSocket = require('ws');
 const { getConfigFromFile } = require('../../../utils/config.js');
+const { getCustomerRelayKeys } = require('../../../utils/customerRelayKeys.js');
 
 // Extract CUSTOMER_PUBKEY, CUSTOMER_ID, and CUSTOMER_NAME which are passed as arguments
 const CUSTOMER_PUBKEY = process.argv[2];
@@ -32,52 +33,24 @@ const LOG_FILE = `${LOG_DIR}/publishNip85.log`;
 execSync(`touch ${LOG_FILE}`);
 execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
 
-// Get relay configuration
+// Get relay configuration (will be moved into main function)
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
-// const relayNsec = getConfigFromFile('BRAINSTORM_RELAY_PRIVKEY', '');
-const relayNsec = getConfigFromFile('CUSTOMER_' + CUSTOMER_PUBKEY + '_RELAY_PRIVKEY', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
 
-// Log relay configuration for debugging
+// Log initial setup
 console.log(`Continuing publishNip85; begin publish_kind30382 for customer ${CUSTOMER_PUBKEY} ${CUSTOMER_ID} ${CUSTOMER_NAME}`);
 console.log(`Using relay URL: ${relayUrl}`);
-console.log(`Relay private key available: ${relayNsec ? 'Yes' : 'No'}`);
 console.log(`Neo4j URI: ${neo4jUri}`);
 execSync(`echo "$(date): Continuing publishNip85; begin publish_kind30382 for customer ${CUSTOMER_PUBKEY} ${CUSTOMER_ID} ${CUSTOMER_NAME}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Using relay URL: ${relayUrl}" >> ${LOG_FILE}`);
-execSync(`echo "$(date): Relay private key available: ${relayNsec ? 'Yes' : 'No'}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${LOG_FILE}`);
 
 // Use fallback relay if the main one is not configured
 let primaryRelayUrl = relayUrl;
 
-// Convert keys to the format needed by nostr-tools
-let relayPrivateKey = relayNsec;
-let relayPubkey = '';
-
-try {
-  if (relayPrivateKey) {
-    // If we have the private key in nsec format, convert it to hex
-    if (relayPrivateKey.startsWith('nsec')) {
-      relayPrivateKey = nostrTools.nip19.decode(relayPrivateKey).data;
-    }
-    
-    // Derive the public key from the private key
-    relayPubkey = nostrTools.getPublicKey(relayPrivateKey);
-    console.log(`Using relay pubkey: ${relayPubkey.substring(0, 8)}...`);
-    execSync(`echo "$(date): Using relay pubkey: ${relayPubkey.substring(0, 8)}..." >> ${LOG_FILE}`);
-  } else {
-    console.error('No relay private key found in configuration. Cannot continue.');
-    execSync(`echo "$(date): No relay private key found in configuration. Cannot continue." >> ${LOG_FILE}`);
-    process.exit(1);
-  }
-} catch (error) {
-  console.error('Error processing relay keys:', error);
-  execSync(`echo "$(date): Error processing relay keys: ${error.message}" >> ${LOG_FILE}`);
-  process.exit(1);
-}
+// Relay key processing will be done inside main() function where we have access to secure storage
 
 // Connect to Neo4j
 const driver = neo4j.driver(
@@ -115,7 +88,7 @@ async function getUsers() {
              u.verifiedMuterCount AS verifiedMuterCount,
              u.verifiedReporterCount AS verifiedReporterCount
       ORDER BY u.influence DESC
-      LIMIT 100
+      LIMIT 5
     `;    
     const result = await session.run(query);
     
@@ -191,7 +164,7 @@ function processUserRecord(record) {
 }
 
 // Create and sign a kind 30382 event
-function createEvent(userPubkey, personalizedPageRank, hops, influence, average, confidence, input, verifiedFollowerCount, verifiedMuterCount, verifiedReporterCount) {
+function createEvent(relayPubkey, relayPrivateKey, userPubkey, personalizedPageRank, hops, influence, average, confidence, input, verifiedFollowerCount, verifiedMuterCount, verifiedReporterCount) {
   // Create the event object
   const rankValue = Math.round(parseFloat(influence) * 100).toString();
   const event = {
@@ -346,6 +319,50 @@ async function main() {
     console.log(`Found ${users.length} users`);
     execSync(`echo "$(date): Found ${users.length} users" >> ${LOG_FILE}`);
     
+    // Get relay private key from secure storage
+    console.log(`Fetching secure relay keys for customer ${CUSTOMER_PUBKEY}...`);
+    const relayKeys = await getCustomerRelayKeys(CUSTOMER_PUBKEY);
+    const relayNsec = relayKeys ? relayKeys.nsec : null;
+    
+    console.log(`Relay private key available: ${relayNsec ? 'Yes' : 'No'}`);
+    execSync(`echo "$(date): Relay private key available: ${relayNsec ? 'Yes' : 'No'}" >> ${LOG_FILE}`);
+    
+    if (!relayNsec) {
+      const errorMsg = `Error: No relay private key found for customer ${CUSTOMER_PUBKEY}`;
+      console.error(errorMsg);
+      execSync(`echo "$(date): ${errorMsg}" >> ${LOG_FILE}`);
+      return {
+        success: false,
+        message: errorMsg,
+        events: []
+      };
+    }
+    
+    // Convert keys to the format needed by nostr-tools
+    let relayPrivateKey = relayNsec;
+    let relayPubkey = '';
+    
+    try {
+      // If we have the private key in nsec format, convert it to hex
+      if (relayPrivateKey.startsWith('nsec')) {
+        relayPrivateKey = nostrTools.nip19.decode(relayPrivateKey).data;
+      }
+      
+      // Derive the public key from the private key
+      relayPubkey = nostrTools.getPublicKey(relayPrivateKey);
+      console.log(`Using relay pubkey: ${relayPubkey.substring(0, 8)}...`);
+      execSync(`echo "$(date): Using relay pubkey: ${relayPubkey.substring(0, 8)}..." >> ${LOG_FILE}`);
+    } catch (error) {
+      const errorMsg = `Error processing relay keys: ${error.message}`;
+      console.error(errorMsg);
+      execSync(`echo "$(date): ${errorMsg}" >> ${LOG_FILE}`);
+      return {
+        success: false,
+        message: errorMsg,
+        events: []
+      };
+    }
+    
     // Create data directory if it doesn't exist
     const dataDir = '/var/lib/brainstorm/data';
     const publishedDir = path.join(dataDir, 'published');
@@ -390,6 +407,8 @@ async function main() {
           
           // Create the event
           const event = createEvent(
+            relayPubkey,
+            relayPrivateKey,
             user.pubkey, 
             user.personalizedPageRank, 
             user.hops,
