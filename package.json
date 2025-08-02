@@ -55,6 +55,7 @@
     "fs": "^0.0.1-security",
     "neo4j-driver": "^5.28.1",
     "nostr-tools": "^2.10.4",
+    "proper-lockfile": "^4.1.2",
     "typescript": "^5.8.2",
     "websocket": "^1.0.35",
     "websocket-polyfill": "^0.0.3",
