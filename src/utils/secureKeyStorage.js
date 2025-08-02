@@ -13,11 +13,45 @@ class SecureKeyStorage {
         this.masterKey = config.masterKey || process.env.RELAY_KEY_MASTER_KEY;
         this.storagePath = config.storagePath || '/var/lib/brainstorm/secure-keys';
         
+        // If no master key in environment, try to read from file
         if (!this.masterKey) {
-            throw new Error('Master key required for secure key storage. Set RELAY_KEY_MASTER_KEY environment variable.');
+            this.masterKey = this.loadMasterKeyFromFile();
+        }
+        
+        if (!this.masterKey) {
+            throw new Error('Master key required for secure key storage. Set RELAY_KEY_MASTER_KEY environment variable or ensure master key file exists.');
         }
         
         this.initializeStorage();
+    }
+    
+    /**
+     * Load master key from file system as fallback
+     * Tries multiple common locations for master key files
+     */
+    loadMasterKeyFromFile() {
+        const possiblePaths = [
+            path.join(this.storagePath, '.master-key'),
+            '/etc/brainstorm/relay-master.key',
+            path.join(process.env.HOME || '/root', '.brainstorm/relay-master.key')
+        ];
+        
+        for (const keyPath of possiblePaths) {
+            try {
+                if (fs.existsSync(keyPath)) {
+                    const masterKey = fs.readFileSync(keyPath, 'utf8').trim();
+                    if (masterKey && masterKey.length > 0) {
+                        console.log(`Loaded master key from: ${keyPath}`);
+                        return masterKey;
+                    }
+                }
+            } catch (error) {
+                // Continue to next path if this one fails
+                continue;
+            }
+        }
+        
+        return null;
     }
     
     /**

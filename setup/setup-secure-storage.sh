@@ -31,18 +31,45 @@ mkdir -p "$STORAGE_DIR"
 chmod 700 "$STORAGE_DIR"  # Secure permissions
 
 # Generate master key if it doesn't exist
+# Store in both locations for compatibility
 MASTER_KEY_FILE="$CONFIG_DIR/relay-master.key"
-if [[ ! -f "$MASTER_KEY_FILE" ]]; then
-    echo "🔑 Generating master encryption key..."
-    openssl rand -hex 32 > "$MASTER_KEY_FILE"
-    chmod 600 "$MASTER_KEY_FILE"
-    echo "Master key generated and saved to: $MASTER_KEY_FILE"
-else
-    echo "✅ Master key already exists: $MASTER_KEY_FILE"
-fi
+STORAGE_MASTER_KEY_FILE="$STORAGE_DIR/.master-key"
 
-# Read the master key
-MASTER_KEY=$(cat "$MASTER_KEY_FILE")
+if [[ ! -f "$MASTER_KEY_FILE" ]] && [[ ! -f "$STORAGE_MASTER_KEY_FILE" ]]; then
+    echo "🔑 Generating master encryption key..."
+    MASTER_KEY=$(openssl rand -hex 32)
+    
+    # Store in config directory
+    echo "$MASTER_KEY" > "$MASTER_KEY_FILE"
+    chmod 600 "$MASTER_KEY_FILE"
+    
+    # Also store in storage directory for runtime access
+    echo "$MASTER_KEY" > "$STORAGE_MASTER_KEY_FILE"
+    chmod 600 "$STORAGE_MASTER_KEY_FILE"
+    
+    echo "Master key generated and saved to: $MASTER_KEY_FILE"
+    echo "Master key also saved to: $STORAGE_MASTER_KEY_FILE"
+elif [[ -f "$MASTER_KEY_FILE" ]]; then
+    echo "✅ Master key exists in config: $MASTER_KEY_FILE"
+    MASTER_KEY=$(cat "$MASTER_KEY_FILE")
+    
+    # Ensure it's also in storage directory
+    if [[ ! -f "$STORAGE_MASTER_KEY_FILE" ]]; then
+        echo "$MASTER_KEY" > "$STORAGE_MASTER_KEY_FILE"
+        chmod 600 "$STORAGE_MASTER_KEY_FILE"
+        echo "Master key copied to storage directory: $STORAGE_MASTER_KEY_FILE"
+    fi
+elif [[ -f "$STORAGE_MASTER_KEY_FILE" ]]; then
+    echo "✅ Master key exists in storage: $STORAGE_MASTER_KEY_FILE"
+    MASTER_KEY=$(cat "$STORAGE_MASTER_KEY_FILE")
+    
+    # Ensure it's also in config directory
+    if [[ ! -f "$MASTER_KEY_FILE" ]]; then
+        echo "$MASTER_KEY" > "$MASTER_KEY_FILE"
+        chmod 600 "$MASTER_KEY_FILE"
+        echo "Master key copied to config directory: $MASTER_KEY_FILE"
+    fi
+fi
 
 # Create environment configuration
 ENV_FILE="$CONFIG_DIR/secure-storage.env"
