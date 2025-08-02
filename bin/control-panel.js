@@ -11,7 +11,6 @@
 const fs = require('fs');
 const path = require('path');
 
-/*
 // Try multiple possible locations for the secure storage config
 const configPaths = [
     '/etc/brainstorm/secure-storage.env',
@@ -37,14 +36,12 @@ if (!configLoaded) {
     console.log('⚠️  Secure storage config not found - using environment defaults');
     console.log('   Run setup/setup-secure-storage.sh to configure secure storage');
 }
-*/
+
 const express = require('express');
 const https = require('https');
 const http = require('http');
 const session = require('express-session');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
 const WebSocket = require('ws');
 const { useWebSocketImplementation } = require('nostr-tools/pool');
 const { authMiddleware } = require('../src/middleware/auth');
