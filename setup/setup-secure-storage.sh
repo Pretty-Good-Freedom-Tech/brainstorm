@@ -89,9 +89,32 @@ echo ""
 
 # Set ownership if system-wide
 if [[ $SYSTEM_WIDE == true ]]; then
-    echo "4. Set proper ownership (replace 'brainstorm' with your app user):"
-    echo "   chown -R brainstorm:brainstorm $CONFIG_DIR"
-    echo "   chown -R brainstorm:brainstorm $STORAGE_DIR"
+    echo "4. Detecting and setting proper ownership..."
+    
+    # Try to detect the web server user
+    WEB_USER=""
+    if id "brainstorm" &>/dev/null; then
+        WEB_USER="brainstorm"
+    elif id "www-data" &>/dev/null; then
+        WEB_USER="www-data"
+    elif id "nodejs" &>/dev/null; then
+        WEB_USER="nodejs"
+    elif id "nginx" &>/dev/null; then
+        WEB_USER="nginx"
+    fi
+    
+    if [[ -n "$WEB_USER" ]]; then
+        echo "   Setting ownership to: $WEB_USER"
+        chown -R "$WEB_USER:$WEB_USER" "$CONFIG_DIR"
+        chown -R "$WEB_USER:$WEB_USER" "$STORAGE_DIR"
+        chmod -R 750 "$STORAGE_DIR"  # Allow group read/write
+        echo "   ✅ Ownership set successfully"
+    else
+        echo "   ⚠️  Could not detect web server user. Please run manually:"
+        echo "   chown -R [your-web-user]:[your-web-user] $CONFIG_DIR"
+        echo "   chown -R [your-web-user]:[your-web-user] $STORAGE_DIR"
+        echo "   chmod -R 750 $STORAGE_DIR"
+    fi
     echo ""
 fi
 
