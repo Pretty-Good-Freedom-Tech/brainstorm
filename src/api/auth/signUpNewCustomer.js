@@ -73,10 +73,11 @@ async function handleSignUpNewCustomer(req, res) {
         const newCustomerName = generateCustomerName(userPubkey);
         const newCustomerId = generateNextCustomerId(customers);
         
-        // Generate relay keys using the shared utility
+        // Generate relay keys for the new customer
+        console.log('Generating relay keys for new customer...');
         let relayKeys;
         try {
-            relayKeys = createSingleCustomerRelay(userPubkey, newCustomerId, newCustomerName);
+            relayKeys = await createSingleCustomerRelay(userPubkey, newCustomerId, newCustomerName);
         } catch (error) {
             console.error('Error creating customer relay keys:', error);
             return res.json({

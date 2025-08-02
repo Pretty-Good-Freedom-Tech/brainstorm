@@ -1,5 +1,6 @@
 const fs = require('fs');
 const nostrTools = require('nostr-tools');
+const { SecureKeyStorage } = require('./secureKeyStorage');
 
 /**
  * Customer Relay Key Management Utilities
@@ -47,45 +48,48 @@ function getBrainstormConfFile() {
 
 /**
  * Create and store relay keys for a single customer
- * This function generates new relay keys and stores them in brainstorm.conf
+ * Uses secure storage for private keys and public config for public keys
  * @param {string} customer_pubkey - Customer's public key
  * @param {number|string} customer_id - Customer's ID
  * @param {string} customer_name - Customer's name
  * @returns {Object} Generated keys object
  */
-function createSingleCustomerRelay(customer_pubkey, customer_id, customer_name) {
+async function createSingleCustomerRelay(customer_pubkey, customer_id, customer_name) {
     try {
         const keys = generateRelayKeys();
+        const secureStorage = new SecureKeyStorage();
 
         // Log customer processing
         console.log(`Processing customer: ${customer_name} (id: ${customer_id}) with pubkey ${customer_pubkey}`);
 
-        // Create the configuration string to append to brainstorm.conf
+        // Store private keys securely
+        await secureStorage.storeRelayKeys(customer_pubkey, keys);
+        console.log(`Securely stored private relay keys for customer: ${customer_name}`);
+
+        // Create public configuration string for brainstorm.conf (no private keys)
         const newBrainstormConfString = `
 #################### CUSTOMER id: ${customer_id} ####################
 # PUBKEY: ${customer_pubkey}
 # NAME: ${customer_name}
 export CUSTOMER_${customer_pubkey}_RELAY_PUBKEY='${keys.pubkey}'
 export CUSTOMER_${customer_pubkey}_RELAY_NPUB='${keys.npub}'
-export CUSTOMER_${customer_pubkey}_RELAY_PRIVKEY='${keys.privkey}'
-export CUSTOMER_${customer_pubkey}_RELAY_NSEC='${keys.nsec}'
+# Private keys stored securely - use getCustomerRelayKeys() to access
 # keys added by createSingleCustomerRelay on ${new Date().toISOString()}
 #############################################################
 `;
 
-        // Add keys to brainstorm.conf
+        // Add public keys to brainstorm.conf
         const brainstormConf = getBrainstormConfFile();
         const newBrainstormConf = brainstormConf + newBrainstormConfString;
         
-        console.log(`Writing relay keys for customer ${customer_name} to brainstorm.conf`);
+        console.log(`Writing public relay keys for customer ${customer_name} to brainstorm.conf`);
         fs.writeFileSync('/etc/brainstorm.conf', newBrainstormConf);
 
         console.log(`Successfully created relay keys for customer: ${customer_name}`);
         return keys;
-
     } catch (error) {
-        console.error(`Error in createSingleCustomerRelay: ${error.message}`);
-        throw new Error(`Failed to create relay keys for customer ${customer_name}: ${error.message}`);
+        console.error(`Error creating relay keys for customer ${customer_name}:`, error);
+        throw error;
     }
 }
 
@@ -138,7 +142,9 @@ function getCustomerRelayKeys(customer_pubkey) {
 module.exports = {
     generateRelayKeys,
     createSingleCustomerRelay,
-    customerHasRelayKeys,
     getCustomerRelayKeys,
+    hasCustomerRelayKeys,
+    customerHasRelayKeys,
+    getCustomerRelayKeysFromConf,
     getBrainstormConfFile
 };
