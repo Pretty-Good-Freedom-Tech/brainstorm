@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm</title>
+    <link rel="stylesheet" href="/control/css/common.css">
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <h1>Customers</h1>
+            <p>Manage customer data and processing operations.</p>
+            
+            <!-- Create Customer Relays Section -->
+            <div class="admin-section">
+                <h2>Customer Relay Setup</h2>
+                <p>Create default relay pubkeys for all customers. This ensures each customer has a relay identity for NIP-85 operations.</p>
+                
+                <div class="button-container">
+                    <button id="createAllRelaysBtn" class="action-button primary" onclick="createAllCustomerRelays()">
+                        <span class="button-text">Create All Customer Relays</span>
+                        <span class="button-spinner" style="display: none;">⏳ Creating...</span>
+                    </button>
+                </div>
+                
+                <div id="processStatus" class="status-message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
+    
+    <script>
+        async function createAllCustomerRelays() {
+            const button = document.getElementById('createAllRelaysBtn');
+            const buttonText = button.querySelector('.button-text');
+            const buttonSpinner = button.querySelector('.button-spinner');
+            const statusDiv = document.getElementById('processStatus');
+            
+            try {
+                // Check authentication first
+                const authResponse = await fetch('/api/auth/status');
+                const authData = await authResponse.json();
+                
+                if (!authData.authenticated) {
+                    showStatus('error', 'Authentication required. Please sign in to perform this operation.');
+                    return;
+                }
+                
+                // Disable button and show loading state
+                button.disabled = true;
+                buttonText.style.display = 'none';
+                buttonSpinner.style.display = 'inline';
+                
+                showStatus('info', 'Creating relay pubkeys for all customers. This may take a few minutes...');
+                
+                // Make the API call
+                const response = await fetch('/api/create-all-customer-relays', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('success', 'Customer relay creation completed successfully! ' + (result.message || ''));
+                } else {
+                    showStatus('error', 'Customer relay creation failed: ' + (result.error || 'Unknown error'));
+                }
+                
+            } catch (error) {
+                console.error('Error processing customers:', error);
+                showStatus('error', 'Network error occurred while processing customers: ' + error.message);
+            } finally {
+                // Re-enable button and restore normal state
+                button.disabled = false;
+                buttonText.style.display = 'inline';
+                buttonSpinner.style.display = 'none';
+            }
+        }
+        
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('processStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.textContent = message;
+            
+            // Auto-hide success messages after 10 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 10000);
+            }
+        }
+    </script>
+    
+    <style>
+        .admin-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .admin-section h2 {
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+        
+        .button-container {
+            margin: 1.5rem 0;
+        }
+        
+        .action-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .action-button:hover:not(:disabled) {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .action-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .button-spinner {
+            font-size: 14px;
+        }
+    </style>
+</body>
+</html>

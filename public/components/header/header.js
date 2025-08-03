@@ -128,13 +128,10 @@ function loadNavbar() {
     }
 
     if (
-        currentPath === '/customers.html'
-    ) {
-        navbarPath = '/components/header/navbars/customers.html';
-    }
-
-    if (
         currentPath === '/customer.html'
+        || currentPath === '/customers.html'
+        || currentPath === '/manage-customers.html'
+        || currentPath === '/create-customer-relays.html'
     ) {
         navbarPath = '/components/header/navbars/customers.html';
     }
@@ -417,8 +414,10 @@ function highlightCurrentPage() {
         '/subscribe.html': '/subscribe',
         '/search.html': '/search',
         '/follow-recs.html': '/follow-recs',
-        '/customers.html': '/customers',
         '/customer.html': '/customer',
+        '/customers.html': '/customers',
+        '/manage-customers.html': '/manage-customers',
+        '/create-customer-relays.html': '/create-customer-relays',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
