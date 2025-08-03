@@ -1,8 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../../utils/config');
 const { createSingleCustomerRelay } = require('../../utils/customerRelayKeys');
+const CustomerManager = require('../../utils/customerManager');
 
 /**
  * Sign up a new customer
@@ -34,44 +32,26 @@ async function handleSignUpNewCustomer(req, res) {
             });
         }
 
-        // Determine paths for customers data
-        const customersPath = '/var/lib/brainstorm/customers/customers.json';
-        const customersDir = '/var/lib/brainstorm/customers';
+        // Initialize CustomerManager
+        const customerManager = new CustomerManager();
+        await customerManager.initialize();
         
-        let actualCustomersPath, actualCustomersDir;
-        let customersData;
-        
-        // Try to read from production path first
-        try {
-            const data = fs.readFileSync(customersPath, 'utf8');
-            customersData = JSON.parse(data);
-            actualCustomersPath = customersPath;
-            actualCustomersDir = customersDir;
-        } catch (error) {
+        // Check if user is already a customer
+        const existingCustomer = await customerManager.getCustomer(userPubkey);
+        if (existingCustomer) {
             return res.json({
                 success: false,
-                message: 'Failed to access customer database',
-                error
+                message: 'You are already a customer',
+                classification: 'customer',
+                customerName: existingCustomer.name,
+                customerId: existingCustomer.id
             });
         }
 
-        // Check if user is already a customer
-        const customers = customersData.customers || {};
-        for (const [customerName, customerData] of Object.entries(customers)) {
-            if (customerData.pubkey === userPubkey) {
-                return res.json({
-                    success: false,
-                    message: 'You are already a customer',
-                    classification: 'customer',
-                    customerName: customerName,
-                    customerId: customerData.id
-                });
-            }
-        }
-
         // Generate new customer data
+        const allCustomers = await customerManager.getAllCustomers();
         const newCustomerName = generateCustomerName(userPubkey);
-        const newCustomerId = generateNextCustomerId(customers);
+        const newCustomerId = generateNextCustomerId(allCustomers.customers);
         
         // Generate relay keys for the new customer
         console.log('Generating relay keys for new customer...');
@@ -87,61 +67,26 @@ async function handleSignUpNewCustomer(req, res) {
             });
         }
         
-        // Create new customer object
-        const newCustomer = {
-            id: newCustomerId,
-            status: 'active',
-            directory: newCustomerName,
+        // Create new customer using CustomerManager
+        const newCustomerData = {
             name: newCustomerName,
             pubkey: userPubkey,
-            observer_id: userPubkey,
+            status: 'active',
             comments: 'default',
+            observer_id: userPubkey,
             createdAt: new Date().toISOString()
         };
 
-        // Create customer directory
-        const customerDir = path.join(actualCustomersDir, newCustomerName);
-        const defaultDir = path.join(actualCustomersDir, 'default');
-
+        let newCustomer;
         try {
-            // Copy default customer directory to new customer directory
-            if (fs.existsSync(defaultDir)) {
-                execSync(`cp -r "${defaultDir}" "${customerDir}"`, { stdio: 'pipe' });
-                console.log(`Created customer directory: ${customerDir}`);
-            } else {
-                // Create basic directory structure if default doesn't exist
-                fs.mkdirSync(customerDir, { recursive: true });
-                console.log(`Created basic customer directory: ${customerDir}`);
-            }
+            newCustomer = await customerManager.createCustomer(newCustomerData);
+            console.log(`Created new customer: ${newCustomerName} (ID: ${newCustomer.id})`);
         } catch (error) {
-            console.error('Error creating customer directory:', error);
+            console.error('Error creating customer:', error);
             return res.json({
                 success: false,
-                message: 'Failed to create customer directory',
-                error
-            });
-        }
-
-        // Update customers.json
-        customersData.customers[newCustomerName] = newCustomer;
-        
-        try {
-            fs.writeFileSync(actualCustomersPath, JSON.stringify(customersData, null, 4));
-            console.log(`Updated customers.json with new customer: ${newCustomerName}`);
-        } catch (error) {
-            console.error('Error updating customers.json:', error);
-            // Try to clean up the directory if JSON update failed
-            try {
-                if (fs.existsSync(customerDir)) {
-                    execSync(`rm -rf "${customerDir}"`, { stdio: 'pipe' });
-                }
-            } catch (cleanupError) {
-                console.error('Error cleaning up directory after JSON failure:', cleanupError);
-            }
-            return res.json({
-                success: false,
-                message: 'Failed to update customer database',
-                error
+                message: 'Failed to create customer account',
+                error: error.message
             });
         }
 
@@ -149,11 +94,11 @@ async function handleSignUpNewCustomer(req, res) {
         return res.json({
             success: true,
             message: 'Customer account created successfully',
-            customerName: newCustomerName,
-            customerId: newCustomerId,
+            customerName: newCustomer.name,
+            customerId: newCustomer.id,
             pubkey: userPubkey,
             status: 'active',
-            directory: customerDir,
+            directory: newCustomer.directory,
             relayPubkey: relayKeys.pubkey,
             createdAt: newCustomer.createdAt
         });
