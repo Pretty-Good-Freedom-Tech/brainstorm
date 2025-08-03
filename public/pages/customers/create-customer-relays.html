@@ -16,13 +16,12 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h1>Customers</h1>
-            <p>Manage customer data and processing operations.</p>
+            <h1>Create Customer Relays</h1>
+            <p>Create default relay pubkeys for all customers (who don't already have them). This ensures each customer has a relay identity for NIP-85 operations. Eventually this page will be deprecated, once relay pubkey setup becomes automated and behaves consistently.</p>
             
             <!-- Create Customer Relays Section -->
             <div class="admin-section">
                 <h2>Customer Relay Setup</h2>
-                <p>Create default relay pubkeys for all customers. This ensures each customer has a relay identity for NIP-85 operations.</p>
                 
                 <div class="button-container">
                     <button id="createAllRelaysBtn" class="action-button primary" onclick="createAllCustomerRelays()">

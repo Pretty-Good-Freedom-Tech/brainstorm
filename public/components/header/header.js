@@ -441,7 +441,8 @@ function highlightCurrentPage() {
     // Get the matching prefix for the current path
     let matchingPrefix = null;
     for (const [path, prefix] of Object.entries(pathMappings)) {
-        if (currentPath === path || currentPath.startsWith(prefix)) {
+        // if (currentPath === path || currentPath.startsWith(prefix)) {
+        if (currentPath === path || currentPath === prefix + '.html') {
             matchingPrefix = prefix;
             break;
         }
@@ -457,11 +458,11 @@ function highlightCurrentPage() {
     }
     
     if (matchingPrefix) {
-        console.log('Matching prefix for highlighting:', matchingPrefix);
+        console.log('Matching prefix for highlighting:', matchingPrefix + '.html');
         
         // Check each navbar item and highlight if it matches
         navItems.forEach(item => {
-            if (item.href.includes(matchingPrefix)) {
+            if (item.href.includes(matchingPrefix + '.html')) {
                 item.classList.add('active-page');
                 console.log('Highlighted item:', item.textContent.trim());
             } else {
