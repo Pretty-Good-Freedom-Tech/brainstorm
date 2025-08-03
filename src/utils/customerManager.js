@@ -487,16 +487,30 @@ class CustomerManager {
             // Optionally backup secure keys (metadata only, not actual keys)
             if (includeSecureKeys) {
                 const secureKeysPath = '/var/lib/brainstorm/secure-keys';
-                if (fs.existsSync(secureKeysPath)) {
-                    const secureKeysBackupPath = path.join(backupPath, 'secure-keys-manifest.json');
-                    const keyFiles = fs.readdirSync(secureKeysPath);
-                    const keyManifest = {
-                        timestamp: new Date().toISOString(),
-                        keyFiles: keyFiles.filter(f => f.endsWith('.enc')),
-                        note: 'Actual keys must be backed up separately with proper security'
-                    };
-                    fs.writeFileSync(secureKeysBackupPath, JSON.stringify(keyManifest, null, 2));
-                    backupManifest.files.push('secure-keys-manifest.json');
+                try {
+                    if (fs.existsSync(secureKeysPath)) {
+                        // Test if we can read the directory
+                        const keyFiles = fs.readdirSync(secureKeysPath);
+                        const secureKeysBackupPath = path.join(backupPath, 'secure-keys-manifest.json');
+                        const keyManifest = {
+                            timestamp: new Date().toISOString(),
+                            keyFiles: keyFiles.filter(f => f.endsWith('.enc')),
+                            note: 'Actual keys must be backed up separately with proper security'
+                        };
+                        fs.writeFileSync(secureKeysBackupPath, JSON.stringify(keyManifest, null, 2));
+                        backupManifest.files.push('secure-keys-manifest.json');
+                        console.log('✅ Secure keys manifest included in backup');
+                    } else {
+                        console.log('⚠️ Secure keys directory not found, skipping');
+                    }
+                } catch (error) {
+                    if (error.code === 'EACCES') {
+                        console.log('⚠️ No permission to read secure keys directory, skipping');
+                        console.log('   Run as brainstorm user or with sudo to include secure keys');
+                    } else {
+                        console.log(`⚠️ Failed to backup secure keys: ${error.message}`);
+                    }
+                    // Continue with backup even if secure keys fail
                 }
             }
 

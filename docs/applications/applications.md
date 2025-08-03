@@ -9,3 +9,7 @@ List of eCash mints, based upon NIP-87 recommendations filtered and weighted by 
 # 3. Content search
 
 Like nostr.band, except ranking comes from Brainstorm (NIP-85 events) rather than the nostr.band TrustRank
+
+# 4. Pollerama.fun
+
+Use GrapeRank weights for weighted average of poll results.
