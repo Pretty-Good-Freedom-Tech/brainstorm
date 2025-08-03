@@ -1,6 +1,5 @@
-const fs = require('fs');
-const path = require('path');
 const { getConfigFromFile } = require('../../utils/config');
+const CustomerManager = require('../../utils/customerManager');
 
 /**
  * Get user classification (owner/customer/regular user)
@@ -32,35 +31,25 @@ async function handleGetUserClassification(req, res) {
             });
         }
 
-        // Check if user is a customer
-        let customersData;
+        // Check if user is a customer using CustomerManager
         try {
-            const customersPath = '/var/lib/brainstorm/customers/customers.json';
-            const fallbackPath = path.join(__dirname, '../../../customers/customers.json');
+            const customerManager = new CustomerManager();
+            await customerManager.initialize();
             
-            try {
-                const data = fs.readFileSync(customersPath, 'utf8');
-                customersData = JSON.parse(data);
-            } catch (error) {
-                const data = fs.readFileSync(fallbackPath, 'utf8');
-                customersData = JSON.parse(data);
-            }
-
-            // Check if user pubkey matches any active customer
-            const customers = customersData.customers || {};
-            for (const [customerName, customerData] of Object.entries(customers)) {
-                if (customerData.status === 'active' && customerData.pubkey === userPubkey) {
-                    return res.json({
-                        success: true,
-                        classification: 'customer',
-                        pubkey: userPubkey,
-                        customerName: customerName,
-                        customerId: customerData.id
-                    });
-                }
+            // Get customer by pubkey
+            const customer = await customerManager.getCustomer(userPubkey);
+            
+            if (customer && customer.status === 'active') {
+                return res.json({
+                    success: true,
+                    classification: 'customer',
+                    pubkey: userPubkey,
+                    customerName: customer.name,
+                    customerId: customer.id
+                });
             }
         } catch (error) {
-            console.error('Error reading customers data:', error);
+            console.error('Error checking customer status:', error);
         }
 
         // User is authenticated but not owner or customer
