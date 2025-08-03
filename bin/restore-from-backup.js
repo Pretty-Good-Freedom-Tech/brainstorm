@@ -39,7 +39,9 @@ const TARGET_FILES = [
 
 const TARGET_DIRS = [
   '/usr/local/lib/strfry/plugins/data/',
-  '/var/log/brainstorm'
+  '/var/log/brainstorm',
+  '/var/lib/brainstorm/customers',
+  '/var/lib/brainstorm/secure-keys'
 ];
 
 // Determine the actual user's home directory, even when run with sudo

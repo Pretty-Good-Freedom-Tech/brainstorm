@@ -226,8 +226,12 @@ async function install() {
     // Step 7: Setup Strfry Neo4j Pipeline
     await installPipeline();
 
-    // Step 8: Install customers
-    await installCustomers();
+    // Step 8: Install customers (skip in update mode to preserve existing data)
+    if (!isUpdateMode) {
+      await installCustomers();
+    } else {
+      console.log('\x1b[33m=== Skipping customer installation in update mode - preserving existing customer data ===\x1b[0m');
+    }
     
     // Step 9: Configure sudo privileges
     await configureSudoPrivileges();
