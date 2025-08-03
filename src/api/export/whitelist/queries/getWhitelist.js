@@ -17,8 +17,7 @@
 
 const neo4j = require('neo4j-driver');
 const { getConfigFromFile } = require('../../../../utils/config');
-const fs = require('fs');
-const path = require('path');
+const CustomerManager = require('../../../../utils/customerManager');
 
 /**
  * Get whitelist configuration
@@ -136,53 +135,41 @@ function handleGetWhitelist(req, res) {
   }
 }
 
-function getCustomers(req, res) {
+async function getCustomers(req, res) {
   try {
-    // Path to customers.json file
-    const customersPath = '/var/lib/brainstorm/customers/customers.json';
+    // Initialize CustomerManager
+    const customerManager = new CustomerManager();
+    await customerManager.initialize();
     
-    let customersData;
+    // Get active customers using CustomerManager
+    const activeCustomers = await customerManager.listActiveCustomers();
     
-    try {
-        const data = fs.readFileSync(customersPath, 'utf8');
-        customersData = JSON.parse(data);
-        //extract active customers and place each pubkey in an array
-        // in addition to pubkey, also extract name
-        const activeCustomers = Object.values(customersData.customers || {})
-            .filter(customer => customer.status === 'active')
-            .map(customer => {
-              return {
-                pubkey: customer.pubkey,
-                name: customer.name
-              }
-            })
-            .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
-        return res.status(200).json({
-          success: true,
-          data: {
-            ownerPubkey: getConfigFromFile('BRAINSTORM_OWNER_PUBKEY'),
-            activeCustomers: activeCustomers,
-            comments: {
-              whitelistOfOwner: `api/get-whitelist`,
-              whitelistOfCustomer: `api/get-whitelist?observerPubkey=foo`,
-              queryIsPubkeyInWhitelist: `api/get-whitelist?pubkey=bar[&observerPubkey=foo]`,
-              getListOfAvailableWhitelists: `api/get-whitelist?getListOfAvailableWhitelists=true`
-            }
-          } 
-        });
-    } catch (error) {
-        console.error('Failed to read customers.json from path:', customersPath, error);
-        return res.status(500).json({
-            success: false,
-            error: 'Failed to load customers data'
-        });
-    }
+    // Format customers for API response
+    const formattedCustomers = activeCustomers
+      .map(customer => ({
+        pubkey: customer.pubkey,
+        name: customer.name
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
     
+    return res.status(200).json({
+      success: true,
+      data: {
+        ownerPubkey: getConfigFromFile('BRAINSTORM_OWNER_PUBKEY'),
+        activeCustomers: formattedCustomers,
+        comments: {
+          whitelistOfOwner: `api/get-whitelist`,
+          whitelistOfCustomer: `api/get-whitelist?observerPubkey=foo`,
+          queryIsPubkeyInWhitelist: `api/get-whitelist?pubkey=bar[&observerPubkey=foo]`,
+          getListOfAvailableWhitelists: `api/get-whitelist?getListOfAvailableWhitelists=true`
+        }
+      } 
+    });
   } catch (error) {
-    console.error('Error getting whitelist:', error);
-    return res.json({
+    console.error('Error getting customers for whitelist:', error);
+    return res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Failed to load customers data'
     });
   }
 }
