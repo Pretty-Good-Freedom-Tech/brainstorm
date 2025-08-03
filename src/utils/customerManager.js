@@ -168,7 +168,7 @@ class CustomerManager {
         }
 
         // Validate customer data
-        this.validateCustomerData(customerData);
+        this.validateSingleCustomer(customerData);
 
         const release = await lockfile.lock(this.customersFile, { 
             retries: 3, 
@@ -263,7 +263,7 @@ class CustomerManager {
 
             // Update customer data
             const updatedCustomer = { ...customerToUpdate, ...updateData };
-            this.validateCustomerData(updatedCustomer);
+            this.validateSingleCustomer(updatedCustomer);
 
             allCustomers.customers[customerName] = updatedCustomer;
 
@@ -423,7 +423,7 @@ class CustomerManager {
     /**
      * Validate customer data structure
      */
-    validateCustomerData(customerData) {
+    validateSingleCustomer(customerData) {
         const required = ['name', 'pubkey'];
         for (const field of required) {
             if (!customerData[field]) {
@@ -746,7 +746,7 @@ class CustomerManager {
                 
                 // Validate customer data structure
                 try {
-                    this.validateCustomerData(customer);
+                    this.validateSingleCustomer(customer);
                 } catch (error) {
                     issues.push(`Invalid data for ${name}: ${error.message}`);
                 }
