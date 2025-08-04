@@ -418,9 +418,8 @@
             document.getElementById('relayNpub').textContent = 'Not yet implemented';
             document.getElementById('signupDate').textContent = 'Not yet implemented';
             
-            // NIP-85 Status (placeholders)
-            document.getElementById('kind10040Status').innerHTML = '<span class="status-unknown">❓ Not checked</span>';
-            document.getElementById('relayKeyMatch').innerHTML = '<span class="status-unknown">❓ Not checked</span>';
+            // Load real NIP-85 Status data
+            loadKind10040Status();
             document.getElementById('kind30382Count').textContent = 'Not yet implemented';
             document.getElementById('lastPublication').textContent = 'Not yet implemented';
             
@@ -440,6 +439,70 @@
             
             // Update action buttons based on current status
             updateActionButtons();
+        }
+        
+        /**
+         * Load Kind 10040 status from API and update UI
+         */
+        async function loadKind10040Status() {
+            try {
+                // Set loading state
+                document.getElementById('kind10040Status').innerHTML = '<span class="status-loading">⏳ Loading...</span>';
+                document.getElementById('relayKeyMatch').innerHTML = '<span class="status-loading">⏳ Loading...</span>';
+                
+                // Make API call to get Kind 10040 info
+                const response = await fetch(`/api/get-kind10040-info?pubkey=${customerPubkey}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update Kind 10040 status
+                    updateKind10040Display(result);
+                } else {
+                    // Handle API error
+                    document.getElementById('kind10040Status').innerHTML = '<span class="status-error">❌ Error loading</span>';
+                    document.getElementById('relayKeyMatch').innerHTML = '<span class="status-error">❌ Error loading</span>';
+                    console.error('Kind 10040 API error:', result.message);
+                }
+                
+            } catch (error) {
+                // Handle network error
+                document.getElementById('kind10040Status').innerHTML = '<span class="status-error">❌ Network error</span>';
+                document.getElementById('relayKeyMatch').innerHTML = '<span class="status-error">❌ Network error</span>';
+                console.error('Error loading Kind 10040 status:', error);
+            }
+        }
+        
+        /**
+         * Update Kind 10040 display elements with API data
+         */
+        function updateKind10040Display(data) {
+            // Update Kind 10040 status based on whether event exists
+            const kind10040Element = document.getElementById('kind10040Status');
+            if (data.latestEvent && data.eventId) {
+                // Event exists - show success status with timestamp
+                const timestamp = data.timestamp ? new Date(data.timestamp * 1000).toLocaleString() : 'Unknown';
+                kind10040Element.innerHTML = `
+                    <span class="status-success">✅ Published</span>
+                    <div class="status-details">
+                        <small>Event ID: ${data.eventId.substring(0, 8)}...</small><br>
+                        <small>Published: ${timestamp}</small>
+                    </div>
+                `;
+            } else {
+                // No event found
+                kind10040Element.innerHTML = '<span class="status-warning">⚠️ Not published</span>';
+            }
+            
+            // Update relay key match status (placeholder for now)
+            const relayKeyElement = document.getElementById('relayKeyMatch');
+            if (data.latestEvent) {
+                // For now, just show that we have relay info to compare
+                relayKeyElement.innerHTML = '<span class="status-unknown">❓ Check needed</span>';
+            } else {
+                relayKeyElement.innerHTML = '<span class="status-na">➖ N/A (no event)</span>';
+            }
+            
+            console.log('Kind 10040 status updated:', data);
         }
         
         function updateStatusDisplay() {
@@ -920,6 +983,44 @@
         
         .status-indicator .status-no {
             color: #721c24;
+        }
+        
+        /* Kind 10040 Status Styling */
+        .status-loading {
+            color: #007bff;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .status-warning {
+            color: #ffc107;
+            font-weight: 600;
+        }
+        
+        .status-error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .status-na {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .status-details {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .status-details small {
+            color: #6c757d;
+            font-size: 0.75rem;
+            line-height: 1.4;
         }
         
         .preset-badge .preset-default {
