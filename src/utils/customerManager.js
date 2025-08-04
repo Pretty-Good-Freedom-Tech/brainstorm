@@ -532,7 +532,8 @@ class CustomerManager {
      */
     async listActiveCustomers() {
         const allCustomers = await this.getAllCustomers();
-        return Object.values(allCustomers.customers).filter(customer => customer.status === 'active');
+        // let's return all customers, even the ones who are inactive
+        return Object.values(allCustomers.customers);
     }
 
     /**
