@@ -372,6 +372,18 @@ class CustomerManager {
                 }
             }
 
+            // Step 2.5: Remove customer relay keys from brainstorm.conf
+            try {
+                this.removeCustomerFromBrainstormConf(customerToDelete);
+                deletionSummary.brainstormConfCleaned = true;
+                console.log(`Cleaned brainstorm.conf for customer: ${customerName}`);
+            } catch (error) {
+                const errorMsg = `Failed to clean brainstorm.conf: ${error.message}`;
+                deletionSummary.errors.push(errorMsg);
+                console.error(errorMsg);
+                // Continue with deletion even if conf cleanup fails
+            }
+
             // Step 3: Remove customer directory if requested
             if (opts.removeDirectory) {
                 try {
@@ -445,23 +457,71 @@ class CustomerManager {
     }
 
     /**
+     * Remove customer's relay keys from brainstorm.conf
+     */
+    removeCustomerFromBrainstormConf(customer) {
+        try {
+            const confPath = '/etc/brainstorm.conf';
+            if (!fs.existsSync(confPath)) {
+                console.log('brainstorm.conf not found, skipping relay key cleanup');
+                return;
+            }
+            
+            let confContent = fs.readFileSync(confPath, 'utf8');
+            const customerPubkey = customer.pubkey;
+            
+            // Remove all relay key entries for this customer
+            const patterns = [
+                new RegExp(`CUSTOMER_${customerPubkey}_RELAY_PUBKEY='[^']*'\n?`, 'g'),
+                new RegExp(`CUSTOMER_${customerPubkey}_RELAY_NPUB='[^']*'\n?`, 'g'),
+                new RegExp(`CUSTOMER_${customerPubkey}_RELAY_PRIVKEY='[^']*'\n?`, 'g'),
+                new RegExp(`CUSTOMER_${customerPubkey}_RELAY_NSEC='[^']*'\n?`, 'g')
+            ];
+            
+            let removedCount = 0;
+            patterns.forEach(pattern => {
+                const matches = confContent.match(pattern);
+                if (matches) {
+                    removedCount += matches.length;
+                    confContent = confContent.replace(pattern, '');
+                }
+            });
+            
+            if (removedCount > 0) {
+                // Write back the cleaned content
+                fs.writeFileSync(confPath, confContent);
+                console.log(`Removed ${removedCount} relay key entries from brainstorm.conf for customer: ${customer.name}`);
+            } else {
+                console.log(`No relay key entries found in brainstorm.conf for customer: ${customer.name}`);
+            }
+        } catch (error) {
+            console.error(`Error removing customer relay keys from brainstorm.conf:`, error.message);
+            // Don't throw - this is cleanup, not critical
+        }
+    }
+
+    /**
      * Remove customer's secure relay keys
      */
     async removeCustomerSecureKeys(customer) {
         try {
             // Import secure key storage if available
-            const SecureKeyStorage = require('./secureKeyStorage');
+            const { SecureKeyStorage } = require('./secureKeyStorage');
             const secureStorage = new SecureKeyStorage();
             
-            // Try to remove the customer's relay keys
-            const keyId = `customer-${customer.id}-relay`;
-            await secureStorage.deleteKey(keyId);
-            console.log(`Removed secure keys for customer: ${customer.name}`);
+            // Try to remove the customer's relay keys using their pubkey
+            const deleted = await secureStorage.deleteRelayKeys(customer.pubkey);
+            if (deleted) {
+                console.log(`Removed secure keys for customer: ${customer.name}`);
+            } else {
+                console.log(`No secure keys found for customer: ${customer.name}`);
+            }
         } catch (error) {
             // If secure storage is not available or key doesn't exist, that's okay
-            if (error.code === 'MODULE_NOT_FOUND' || error.message.includes('not found')) {
-                console.log(`No secure keys found for customer: ${customer.name}`);
+            if (error.code === 'MODULE_NOT_FOUND' || error.message.includes('not found') || error.message.includes('Master key required')) {
+                console.log(`No secure keys found or secure storage not available for customer: ${customer.name}`);
             } else {
+                console.error(`Error removing secure keys for customer ${customer.name}:`, error.message);
                 throw error;
             }
         }

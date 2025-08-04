@@ -169,6 +169,22 @@ class SecureKeyStorage {
         return keys !== null;
     }
     
+    /**
+     * Delete relay keys for a customer
+     */
+    async deleteRelayKeys(customerPubkey) {
+        switch (this.storageType) {
+            case 'encrypted-file':
+                return this.deleteFromEncryptedFile(customerPubkey);
+            case 'sqlite':
+                return this.deleteFromSQLite(customerPubkey);
+            case 'vault':
+                return await this.deleteFromVault(customerPubkey);
+            default:
+                throw new Error(`Unsupported storage type: ${this.storageType}`);
+        }
+    }
+    
     // ========== ENCRYPTED FILE STORAGE ==========
     
     ensureStorageDirectory() {
@@ -202,6 +218,19 @@ class SecureKeyStorage {
         }
     }
     
+    deleteFromEncryptedFile(customerPubkey) {
+        const filePath = path.join(this.storagePath, `${customerPubkey}.json`);
+        
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`Deleted encrypted keys for customer: ${customerPubkey}`);
+            return true;
+        } else {
+            console.log(`No encrypted keys found for customer: ${customerPubkey}`);
+            return false;
+        }
+    }
+    
     // ========== SQLITE STORAGE (Placeholder) ==========
     
     initializeSQLite() {
@@ -219,6 +248,11 @@ class SecureKeyStorage {
         throw new Error('SQLite storage not yet implemented');
     }
     
+    deleteFromSQLite(customerPubkey) {
+        // TODO: Implement SQLite deletion
+        throw new Error('SQLite storage not yet implemented');
+    }
+    
     // ========== VAULT STORAGE (Placeholder) ==========
     
     initializeVault() {
@@ -233,6 +267,11 @@ class SecureKeyStorage {
     
     async getFromVault(customerPubkey) {
         // TODO: Implement Vault retrieval
+        throw new Error('Vault storage not yet implemented');
+    }
+    
+    async deleteFromVault(customerPubkey) {
+        // TODO: Implement Vault deletion
         throw new Error('Vault storage not yet implemented');
     }
 }
