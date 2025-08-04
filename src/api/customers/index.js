@@ -6,6 +6,7 @@
 const { handleProcessAllActiveCustomers } = require('./commands/process-all-active-customers');
 const { handleCreateAllCustomerRelays } = require('./commands/create-all-customer-relays');
 const { handleGetCustomers } = require('./getCustomers');
+const { handleDeleteCustomer } = require('./deleteCustomer');
 
 // Export handlers directly - this allows the central router 
 // to register endpoints without creating multiple routers
@@ -15,5 +16,6 @@ module.exports = {
     
     // Commands (write operations)
     handleProcessAllActiveCustomers,
-    handleCreateAllCustomerRelays
+    handleCreateAllCustomerRelays,
+    handleDeleteCustomer
 };

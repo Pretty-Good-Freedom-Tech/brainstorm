@@ -457,7 +457,7 @@
             }
         }
         
-        // Management Action Functions (placeholders)
+        // Management Action Functions
         function changeCustomerStatus(newStatus) {
             if (confirm(`Are you sure you want to change this customer's status to ${newStatus}?`)) {
                 alert(`Status change to ${newStatus} - Not yet implemented. This will require CustomerManager API endpoint.`);
@@ -482,15 +482,69 @@
             }
         }
         
-        function deleteCustomer() {
+        async function deleteCustomer() {
             const displayName = profileData?.name || customerData.name || 'this customer';
-            if (confirm(`⚠️ WARNING: Are you absolutely sure you want to DELETE ${displayName}?\n\nThis action is IRREVERSIBLE and will:\n- Remove all customer data\n- Delete customer directory\n- Remove all associated trust metrics\n\nType 'DELETE' in the next prompt to confirm.`)) {
-                const confirmation = prompt('Type DELETE to confirm customer deletion:');
-                if (confirmation === 'DELETE') {
-                    alert('Customer deletion - Not yet implemented. This will require CustomerManager API endpoint.');
+            
+            // First confirmation dialog
+            if (!confirm(`⚠️ WARNING: Are you absolutely sure you want to DELETE ${displayName}?\n\nThis action is IRREVERSIBLE and will:\n- Remove all customer data\n- Delete customer directory\n- Remove all associated trust metrics\n- Remove secure relay keys\n\nType 'DELETE' in the next prompt to confirm.`)) {
+                return;
+            }
+            
+            // Second confirmation with typing requirement
+            const confirmation = prompt('Type DELETE to confirm customer deletion:');
+            if (confirmation !== 'DELETE') {
+                alert('Customer deletion cancelled.');
+                return;
+            }
+            
+            // Show loading state
+            const deleteBtn = document.querySelector('.btn-danger');
+            const originalText = deleteBtn.textContent;
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = '🗑️ Deleting...';
+            
+            try {
+                // Make API call to delete customer
+                const response = await fetch('/api/delete-customer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message with details
+                    const summary = result.data.deletionSummary;
+                    let summaryText = 'Customer successfully deleted!';
+                    
+                    if (summary.backupCreated) summaryText += '\n✅ Backup created';
+                    if (summary.directoryRemoved) summaryText += '\n✅ Directory removed';
+                    if (summary.secureKeysRemoved) summaryText += '\n✅ Secure keys removed';
+                    if (summary.errors && summary.errors.length > 0) {
+                        summaryText += '\n\n⚠️ Some non-critical errors occurred:\n' + summary.errors.join('\n');
+                    }
+                    
+                    alert(summaryText);
+                    
+                    // Redirect to manage customers page
+                    window.location.href = '/manage-customers.html';
                 } else {
-                    alert('Customer deletion cancelled.');
+                    // Show error message
+                    alert(`Customer deletion failed: ${result.error}`);
                 }
+                
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+                alert(`Network error occurred while deleting customer: ${error.message}`);
+            } finally {
+                // Restore button state
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = originalText;
             }
         }
         

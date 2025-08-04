@@ -232,6 +232,9 @@ function register(app) {
     
     // Process All Active Customers endpoint; creates all scores for all active customers
     app.post('/api/process-all-active-customers', customers.handleProcessAllActiveCustomers);
+    
+    // Delete Customer endpoint; owner-only complete customer deletion
+    app.post('/api/delete-customer', customers.handleDeleteCustomer);
 
     // Recently Active Pubkeys endpoint
     app.get('/api/get-recently-active-pubkeys', handleGetRecentlyActivePubkeys);
