@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainstorm</title>
+    <title>Manage Customers - Brainstorm</title>
     <link rel="stylesheet" href="/css/common.css">
     <link rel="shortcut icon" href="/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
@@ -17,10 +17,416 @@
     <div class="page-content">
         <div class="container">
             <h1>Manage Customers</h1>
+            
+            <!-- Loading state -->
+            <div id="loadingState" class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading customer data...</p>
+            </div>
+            
+            <!-- Not authorized message -->
+            <div id="notAuthorized" class="error-container" style="display: none;">
+                <div class="error-icon">🚫</div>
+                <h2>Access Denied</h2>
+                <p>You are not authorized to view this page. Only the owner can manage customers.</p>
+                <a href="/home.html" class="btn btn-primary">Return to Home</a>
+            </div>
+            
+            <!-- Main content -->
+            <div id="mainContent" style="display: none;">
+                <div class="page-header">
+                    <p class="page-description">Manage and view all customers in your Brainstorm instance. Click on any customer to view detailed management options.</p>
+                </div>
+                
+                <div id="customersGrid" class="customers-grid">
+                    <!-- Customer cards will be populated here -->
+                </div>
+                
+                <div id="noCustomers" class="empty-state" style="display: none;">
+                    <div class="empty-icon">👥</div>
+                    <h3>No Customers Found</h3>
+                    <p>There are currently no customers in your Brainstorm instance.</p>
+                    <a href="/sign-up.html" class="btn btn-primary">Customer Sign-up Page</a>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Include the footer component -->
     <div id="footerContainer"></div>
+    
+    <script>
+        let customers = [];
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuthAndLoadCustomers();
+        });
+        
+        async function checkAuthAndLoadCustomers() {
+            try {
+                // Check if user is owner
+                const classificationResponse = await fetch('/api/auth/user-classification');
+                const classificationData = await classificationResponse.json();
+                
+                if (!classificationData.success || classificationData.classification !== 'owner') {
+                    showNotAuthorized();
+                    return;
+                }
+                
+                // User is owner, load customers
+                await loadCustomers();
+                
+            } catch (error) {
+                console.error('Error checking authorization:', error);
+                showNotAuthorized();
+            }
+        }
+        
+        function showNotAuthorized() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('notAuthorized').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+        }
+        
+        async function loadCustomers() {
+            try {
+                // Fetch customers list
+                const customersResponse = await fetch('/api/customers/get-customers');
+                const customersData = await customersResponse.json();
+                
+                if (!customersData.success) {
+                    throw new Error('Failed to load customers: ' + customersData.error);
+                }
+                
+                customers = customersData.customers || [];
+                
+                // Load profile data for each customer
+                await loadCustomerProfiles();
+                
+                // Show main content
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                // Render customers
+                renderCustomers();
+                
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                showError('Failed to load customer data: ' + error.message);
+            }
+        }
+        
+        async function loadCustomerProfiles() {
+            // Load profile data for each customer in parallel
+            const profilePromises = customers.map(async (customer) => {
+                try {
+                    const response = await fetch(`/api/get-kind0?pubkey=${customer.pubkey}`);
+                    const data = await response.json();
+                    
+                    if (data.success && data.profile) {
+                        customer.profile = data.profile;
+                    } else {
+                        customer.profile = null;
+                    }
+                } catch (error) {
+                    console.error(`Error loading profile for customer ${customer.name}:`, error);
+                    customer.profile = null;
+                }
+            });
+            
+            await Promise.all(profilePromises);
+        }
+        
+        function renderCustomers() {
+            const grid = document.getElementById('customersGrid');
+            const noCustomersDiv = document.getElementById('noCustomers');
+            
+            if (customers.length === 0) {
+                grid.style.display = 'none';
+                noCustomersDiv.style.display = 'block';
+                return;
+            }
+            
+            grid.innerHTML = '';
+            
+            customers.forEach(customer => {
+                const card = createCustomerCard(customer);
+                grid.appendChild(card);
+            });
+            
+            grid.style.display = 'grid';
+            noCustomersDiv.style.display = 'none';
+        }
+        
+        function createCustomerCard(customer) {
+            const card = document.createElement('div');
+            card.className = 'customer-card';
+            
+            const profile = customer.profile;
+            const displayName = profile?.name || customer.name || 'Unknown';
+            const avatar = profile?.picture || '/img/default-avatar.png';
+            const about = profile?.about || 'No description available';
+            
+            // Truncate about text
+            const truncatedAbout = about.length > 100 ? about.substring(0, 100) + '...' : about;
+            
+            card.innerHTML = `
+                <div class="customer-card-header">
+                    <img src="${avatar}" alt="${displayName}" class="customer-avatar" onerror="this.src='/img/default-avatar.png'">
+                    <div class="customer-basic-info">
+                        <h3 class="customer-name">${escapeHtml(displayName)}</h3>
+                        <div class="customer-status status-${customer.status}">${customer.status.toUpperCase()}</div>
+                    </div>
+                </div>
+                
+                <div class="customer-card-body">
+                    <p class="customer-about">${escapeHtml(truncatedAbout)}</p>
+                    
+                    <div class="customer-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Customer ID:</span>
+                            <span class="detail-value">${customer.id}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Directory:</span>
+                            <span class="detail-value">${customer.directory}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pubkey:</span>
+                            <span class="detail-value pubkey">${customer.pubkey.substring(0, 16)}...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="customer-card-footer">
+                    <a href="/manage-customer.html?id=${customer.id}" class="btn btn-primary btn-manage">
+                        Manage Customer
+                    </a>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').innerHTML = `
+                <div class="error-container">
+                    <div class="error-icon">⚠️</div>
+                    <h2>Error Loading Customers</h2>
+                    <p>${escapeHtml(message)}</p>
+                    <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                </div>
+            `;
+            document.getElementById('mainContent').style.display = 'block';
+        }
+    </script>
+    
+    <style>
+        .loading-container {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-container, .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        .error-icon, .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-description {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+        
+        .customers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .customer-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .customer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .customer-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .customer-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 2px solid #e9ecef;
+        }
+        
+        .customer-basic-info {
+            flex: 1;
+        }
+        
+        .customer-name {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .customer-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .customer-card-body {
+            margin-bottom: 1.5rem;
+        }
+        
+        .customer-about {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+        
+        .customer-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .detail-value {
+            color: #6c757d;
+        }
+        
+        .detail-value.pubkey {
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        
+        .customer-card-footer {
+            border-top: 1px solid #e9ecef;
+            padding-top: 1rem;
+            text-align: center;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn-manage {
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .customers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .customer-card {
+                padding: 1rem;
+            }
+            
+            .customer-avatar {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
 </body>
 </html>
