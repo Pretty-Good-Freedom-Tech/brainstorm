@@ -282,18 +282,47 @@ class CustomerManager {
     }
 
     /**
-     * Delete a customer
+     * Delete a customer completely (IRREVERSIBLE)
+     * 
+     * This method performs a complete customer deletion including:
+     * - Removal from customers.json
+     * - Deletion of customer directory and all files
+     * - Cleanup of secure relay keys
+     * - Creation of deletion backup for audit trail
+     * 
+     * @param {string} pubkey - Customer's public key
+     * @param {Object} options - Deletion options
+     * @param {boolean} options.createBackup - Create backup before deletion (default: true)
+     * @param {boolean} options.removeDirectory - Remove customer directory (default: true)
+     * @param {boolean} options.removeSecureKeys - Remove secure relay keys (default: true)
+     * @returns {Object} Deleted customer data and deletion summary
      */
-    async deleteCustomer(pubkey) {
+    async deleteCustomer(pubkey, options = {}) {
         if (!pubkey) {
             throw new Error('Pubkey is required');
         }
+
+        // Default options
+        const opts = {
+            createBackup: options.createBackup !== false, // default true
+            removeDirectory: options.removeDirectory !== false, // default true
+            removeSecureKeys: options.removeSecureKeys !== false, // default true
+            ...options
+        };
 
         const release = await lockfile.lock(this.customersFile, { 
             retries: 3, 
             minTimeout: 100,
             maxTimeout: this.lockTimeout 
         });
+
+        let deletionSummary = {
+            customerDeleted: false,
+            directoryRemoved: false,
+            secureKeysRemoved: false,
+            backupCreated: false,
+            errors: []
+        };
 
         try {
             const allCustomers = await this.getAllCustomers();
@@ -313,26 +342,128 @@ class CustomerManager {
                 throw new Error(`Customer with pubkey '${pubkey}' not found`);
             }
 
-            // Remove from customers object
+            console.log(`Starting deletion of customer: ${customerName} (${pubkey})`);
+
+            // Step 1: Create backup if requested
+            if (opts.createBackup) {
+                try {
+                    await this.createDeletionBackup(customerToDelete);
+                    deletionSummary.backupCreated = true;
+                    console.log(`Created deletion backup for customer: ${customerName}`);
+                } catch (error) {
+                    const errorMsg = `Failed to create deletion backup: ${error.message}`;
+                    deletionSummary.errors.push(errorMsg);
+                    console.error(errorMsg);
+                    // Continue with deletion even if backup fails
+                }
+            }
+
+            // Step 2: Remove secure relay keys if requested
+            if (opts.removeSecureKeys) {
+                try {
+                    await this.removeCustomerSecureKeys(customerToDelete);
+                    deletionSummary.secureKeysRemoved = true;
+                    console.log(`Removed secure keys for customer: ${customerName}`);
+                } catch (error) {
+                    const errorMsg = `Failed to remove secure keys: ${error.message}`;
+                    deletionSummary.errors.push(errorMsg);
+                    console.error(errorMsg);
+                    // Continue with deletion even if secure key removal fails
+                }
+            }
+
+            // Step 3: Remove customer directory if requested
+            if (opts.removeDirectory) {
+                try {
+                    await this.removeCustomerDirectory(customerToDelete);
+                    deletionSummary.directoryRemoved = true;
+                    console.log(`Removed directory for customer: ${customerName}`);
+                } catch (error) {
+                    const errorMsg = `Failed to remove customer directory: ${error.message}`;
+                    deletionSummary.errors.push(errorMsg);
+                    console.error(errorMsg);
+                    // Continue with deletion even if directory removal fails
+                }
+            }
+
+            // Step 4: Remove from customers.json (this is the critical step)
             delete allCustomers.customers[customerName];
-
-            // Write updated customers file
             await this.writeCustomersFile(allCustomers);
-
-            // Optionally remove customer directory (commented out for safety)
-            // const customerDir = path.join(this.customersDir, customerToDelete.directory);
-            // if (fs.existsSync(customerDir)) {
-            //     fs.rmSync(customerDir, { recursive: true });
-            // }
+            deletionSummary.customerDeleted = true;
 
             // Clear cache
             this.cache.clear();
 
-            console.log(`Deleted customer: ${customerName}`);
-            return customerToDelete;
+            console.log(`Successfully deleted customer: ${customerName}`);
+            
+            return {
+                deletedCustomer: customerToDelete,
+                deletionSummary: deletionSummary
+            };
 
         } finally {
             await release();
+        }
+    }
+
+    /**
+     * Create a backup before customer deletion for audit trail
+     */
+    async createDeletionBackup(customer) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupDir = path.join(this.customersDir, '.deleted-backups');
+        const backupFile = path.join(backupDir, `deleted-${customer.name}-${timestamp}.json`);
+
+        // Ensure backup directory exists
+        if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true });
+        }
+
+        const backupData = {
+            deletedAt: new Date().toISOString(),
+            customer: customer,
+            backupReason: 'customer-deletion'
+        };
+
+        fs.writeFileSync(backupFile, JSON.stringify(backupData, null, 2));
+        console.log(`Created deletion backup: ${backupFile}`);
+    }
+
+    /**
+     * Remove customer directory and all contents
+     */
+    async removeCustomerDirectory(customer) {
+        const customerDir = path.join(this.customersDir, customer.directory);
+        
+        if (fs.existsSync(customerDir)) {
+            // Use recursive removal
+            fs.rmSync(customerDir, { recursive: true, force: true });
+            console.log(`Removed customer directory: ${customerDir}`);
+        } else {
+            console.log(`Customer directory not found (already removed?): ${customerDir}`);
+        }
+    }
+
+    /**
+     * Remove customer's secure relay keys
+     */
+    async removeCustomerSecureKeys(customer) {
+        try {
+            // Import secure key storage if available
+            const SecureKeyStorage = require('./secureKeyStorage');
+            const secureStorage = new SecureKeyStorage();
+            
+            // Try to remove the customer's relay keys
+            const keyId = `customer-${customer.id}-relay`;
+            await secureStorage.deleteKey(keyId);
+            console.log(`Removed secure keys for customer: ${customer.name}`);
+        } catch (error) {
+            // If secure storage is not available or key doesn't exist, that's okay
+            if (error.code === 'MODULE_NOT_FOUND' || error.message.includes('not found')) {
+                console.log(`No secure keys found for customer: ${customer.name}`);
+            } else {
+                throw error;
+            }
         }
     }
 
