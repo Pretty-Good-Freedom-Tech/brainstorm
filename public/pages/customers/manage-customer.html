@@ -442,6 +442,28 @@
             updateActionButtons();
         }
         
+        function updateStatusDisplay() {
+            // Update status display in header section
+            const statusElement = document.getElementById('customerStatus');
+            if (statusElement) {
+                statusElement.textContent = customerData.status.toUpperCase();
+                statusElement.className = `customer-status status-${customerData.status}`;
+            }
+            
+            // Update status in customer details section
+            const statusDetail = document.getElementById('customerStatusDetail');
+            if (statusDetail) {
+                statusDetail.textContent = customerData.status || '-';
+            }
+            
+            // Update status display in management section
+            const statusDisplay = document.getElementById('currentStatusDisplay');
+            if (statusDisplay) {
+                statusDisplay.textContent = customerData.status.toUpperCase();
+                statusDisplay.className = `status-badge status-${customerData.status}`;
+            }
+        }
+        
         function updateActionButtons() {
             const activateBtn = document.getElementById('activateBtn');
             const deactivateBtn = document.getElementById('deactivateBtn');
@@ -458,9 +480,67 @@
         }
         
         // Management Action Functions
-        function changeCustomerStatus(newStatus) {
-            if (confirm(`Are you sure you want to change this customer's status to ${newStatus}?`)) {
-                alert(`Status change to ${newStatus} - Not yet implemented. This will require CustomerManager API endpoint.`);
+        async function changeCustomerStatus(newStatus) {
+            const displayName = profileData?.name || customerData.name || 'this customer';
+            const currentStatus = customerData.status;
+            
+            // Check if status is already the same
+            if (currentStatus === newStatus) {
+                alert(`${displayName} is already ${newStatus}.`);
+                return;
+            }
+            
+            // Confirmation dialog
+            if (!confirm(`Are you sure you want to change ${displayName}'s status to ${newStatus}?`)) {
+                return;
+            }
+            
+            // Show loading state
+            const activateBtn = document.getElementById('activateBtn');
+            const deactivateBtn = document.getElementById('deactivateBtn');
+            const targetBtn = newStatus === 'active' ? activateBtn : deactivateBtn;
+            
+            const originalText = targetBtn.textContent;
+            targetBtn.disabled = true;
+            targetBtn.textContent = newStatus === 'active' ? '⏳ Activating...' : '⏳ Deactivating...';
+            
+            try {
+                // Make API call to change customer status
+                const response = await fetch('/api/change-customer-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pubkey: customerPubkey,
+                        status: newStatus
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    alert(`✅ ${result.message}`);
+                    
+                    // Update the UI to reflect the new status
+                    customerData.status = newStatus;
+                    updateStatusDisplay();
+                    
+                    // Update button states
+                    updateActionButtons();
+                } else {
+                    // Show error message
+                    alert(`❌ Failed to change customer status: ${result.error}`);
+                }
+                
+            } catch (error) {
+                console.error('Error changing customer status:', error);
+                alert(`❌ Network error occurred while changing customer status: ${error.message}`);
+            } finally {
+                // Restore button state
+                targetBtn.disabled = false;
+                targetBtn.textContent = originalText;
             }
         }
         

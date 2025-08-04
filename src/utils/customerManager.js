@@ -282,6 +282,81 @@ class CustomerManager {
     }
 
     /**
+     * Change customer status (activate/deactivate)
+     * @param {string} pubkey - Customer's public key
+     * @param {string} newStatus - New status ('active' or 'inactive')
+     * @returns {Object} Status change result
+     */
+    async changeCustomerStatus(pubkey, newStatus) {
+        if (!pubkey) {
+            throw new Error('Pubkey is required');
+        }
+
+        if (!['active', 'inactive'].includes(newStatus)) {
+            throw new Error('Status must be either "active" or "inactive"');
+        }
+
+        const release = await lockfile.lock(this.customersFile, { 
+            retries: 3, 
+            minTimeout: 100,
+            maxTimeout: this.lockTimeout 
+        });
+
+        try {
+            const allCustomers = await this.getAllCustomers();
+            let customerToUpdate = null;
+            let customerName = null;
+
+            // Find customer by pubkey
+            for (const [name, customer] of Object.entries(allCustomers.customers)) {
+                if (customer.pubkey === pubkey) {
+                    customerToUpdate = customer;
+                    customerName = name;
+                    break;
+                }
+            }
+
+            if (!customerToUpdate) {
+                throw new Error(`Customer with pubkey ${pubkey} not found`);
+            }
+
+            const oldStatus = customerToUpdate.status;
+            if (oldStatus === newStatus) {
+                return {
+                    success: true,
+                    message: `Customer ${customerName} is already ${newStatus}`,
+                    customer: customerToUpdate,
+                    statusChanged: false
+                };
+            }
+
+            // Update the status
+            customerToUpdate.status = newStatus;
+            customerToUpdate.lastModified = new Date().toISOString();
+
+            // Write back to file
+            await this.writeCustomersFile(allCustomers);
+
+            // Clear cache
+            this.cache.clear();
+
+            console.log(`Changed customer ${customerName} status from ${oldStatus} to ${newStatus}`);
+
+            return {
+                success: true,
+                message: `Customer ${customerName} status changed from ${oldStatus} to ${newStatus}`,
+                customer: customerToUpdate,
+                statusChanged: true,
+                oldStatus: oldStatus,
+                newStatus: newStatus
+            };
+
+        } finally {
+            await release();
+        }
+    }
+
+    /**
      * Delete a customer completely (IRREVERSIBLE)
      * 
      * This method performs a complete customer deletion including:

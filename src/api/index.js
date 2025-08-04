@@ -235,6 +235,9 @@ function register(app) {
     
     // Delete Customer endpoint; owner-only complete customer deletion
     app.post('/api/delete-customer', customers.handleDeleteCustomer);
+    
+    // Change Customer Status endpoint; owner-only status change (activate/deactivate)
+    app.post('/api/change-customer-status', customers.handleChangeCustomerStatus);
 
     // Recently Active Pubkeys endpoint
     app.get('/api/get-recently-active-pubkeys', handleGetRecentlyActivePubkeys);
