@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainstorm</title>
+    <title>Manage Customer - Brainstorm</title>
     <link rel="stylesheet" href="/css/common.css">
     <link rel="shortcut icon" href="/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
@@ -16,11 +16,535 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h1>Manage Customer</h1>
+            <!-- Loading state -->
+            <div id="loadingState" class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading customer data...</p>
+            </div>
+            
+            <!-- Not authorized message -->
+            <div id="notAuthorized" class="error-container" style="display: none;">
+                <div class="error-icon">🚫</div>
+                <h2>Access Denied</h2>
+                <p>You are not authorized to view this page. Only the owner can manage customers.</p>
+                <a href="/home.html" class="btn btn-primary">Return to Home</a>
+            </div>
+            
+            <!-- Customer not found message -->
+            <div id="customerNotFound" class="error-container" style="display: none;">
+                <div class="error-icon">🔍</div>
+                <h2>Customer Not Found</h2>
+                <p>The specified customer could not be found or no pubkey was provided.</p>
+                <a href="/manage-customers.html" class="btn btn-primary">Back to Manage Customers</a>
+            </div>
+            
+            <!-- Main content -->
+            <div id="mainContent" style="display: none;">
+                <!-- Page header with navigation -->
+                <div class="page-header">
+                    <div class="header-nav">
+                        <a href="/manage-customers.html" class="back-link">← Back to All Customers</a>
+                    </div>
+                    <h1 id="pageTitle">Manage Customer</h1>
+                </div>
+                
+                <!-- Customer profile section -->
+                <div class="customer-profile-section">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <img id="customerAvatar" src="/img/default-avatar.png" alt="Customer Avatar" class="profile-avatar">
+                            <div class="profile-info">
+                                <h2 id="customerName" class="customer-name">Loading...</h2>
+                                <div id="customerStatus" class="customer-status">Loading...</div>
+                                <p id="customerAbout" class="customer-about">Loading customer information...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-details">
+                            <h3>Customer Details</h3>
+                            <div class="details-grid">
+                                <div class="detail-row">
+                                    <span class="detail-label">Customer ID:</span>
+                                    <span id="customerId" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Status:</span>
+                                    <span id="customerStatusDetail" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Directory:</span>
+                                    <span id="customerDirectory" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Public Key:</span>
+                                    <span id="customerPubkey" class="detail-value pubkey">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Observer ID:</span>
+                                    <span id="customerObserverId" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Comments:</span>
+                                    <span id="customerComments" class="detail-value">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-nostr">
+                            <h3>Nostr Profile Information</h3>
+                            <div class="nostr-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Display Name:</span>
+                                    <span id="nostrDisplayName" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Username:</span>
+                                    <span id="nostrUsername" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Website:</span>
+                                    <span id="nostrWebsite" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Lightning Address:</span>
+                                    <span id="nostrLud16" class="detail-value">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">NIP-05:</span>
+                                    <span id="nostrNip05" class="detail-value">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Management actions section (placeholder for future) -->
+                <div class="management-actions">
+                    <h3>Management Actions</h3>
+                    <p class="coming-soon">Customer management controls will be added here in the next phase.</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Include the footer component -->
     <div id="footerContainer"></div>
+    
+    <script>
+        let customerPubkey = null;
+        let customerData = null;
+        let profileData = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Extract pubkey from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            customerPubkey = urlParams.get('pubkey');
+            
+            if (!customerPubkey) {
+                showCustomerNotFound();
+                return;
+            }
+            
+            await checkAuthAndLoadCustomer();
+        });
+        
+        async function checkAuthAndLoadCustomer() {
+            try {
+                // Check if user is owner
+                const classificationResponse = await fetch('/api/auth/user-classification');
+                const classificationData = await classificationResponse.json();
+                
+                if (!classificationData.success || classificationData.classification !== 'owner') {
+                    showNotAuthorized();
+                    return;
+                }
+                
+                // User is owner, load customer
+                await loadCustomerData();
+                
+            } catch (error) {
+                console.error('Error checking authorization:', error);
+                showNotAuthorized();
+            }
+        }
+        
+        function showNotAuthorized() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('notAuthorized').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+        }
+        
+        function showCustomerNotFound() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('customerNotFound').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+        }
+        
+        async function loadCustomerData() {
+            try {
+                // Load customer data and profile data in parallel
+                const [customerResponse, profileResponse] = await Promise.all([
+                    fetch('/api/get-customers'),
+                    fetch(`/api/get-kind0?pubkey=${customerPubkey}`)
+                ]);
+                
+                // Process customer data
+                const customersData = await customerResponse.json();
+                if (customersData.success && customersData.customers) {
+                    customerData = customersData.customers.find(c => c.pubkey === customerPubkey);
+                }
+                
+                // Process profile data
+                const profileResponseData = await profileResponse.json();
+                if (profileResponseData.success && profileResponseData.data && profileResponseData.data.content) {
+                    try {
+                        profileData = JSON.parse(profileResponseData.data.content);
+                    } catch (e) {
+                        console.error('Error parsing profile data:', e);
+                        profileData = null;
+                    }
+                }
+                
+                if (!customerData) {
+                    showCustomerNotFound();
+                    return;
+                }
+                
+                // Show main content and populate data
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                populateCustomerData();
+                
+            } catch (error) {
+                console.error('Error loading customer data:', error);
+                showError('Failed to load customer data: ' + error.message);
+            }
+        }
+        
+        function populateCustomerData() {
+            // Update page title
+            const displayName = profileData?.name || customerData.name || 'Unknown Customer';
+            document.getElementById('pageTitle').textContent = `Manage Customer: ${displayName}`;
+            
+            // Populate profile header
+            const avatar = profileData?.picture || '/img/default-avatar.png';
+            document.getElementById('customerAvatar').src = avatar;
+            document.getElementById('customerAvatar').onerror = function() { this.src = '/img/default-avatar.png'; };
+            
+            document.getElementById('customerName').textContent = displayName;
+            
+            const statusElement = document.getElementById('customerStatus');
+            statusElement.textContent = customerData.status.toUpperCase();
+            statusElement.className = `customer-status status-${customerData.status}`;
+            
+            const about = profileData?.about || 'No description available';
+            document.getElementById('customerAbout').textContent = about;
+            
+            // Populate customer details
+            document.getElementById('customerId').textContent = customerData.id || '-';
+            document.getElementById('customerStatusDetail').textContent = customerData.status || '-';
+            document.getElementById('customerDirectory').textContent = customerData.directory || '-';
+            document.getElementById('customerPubkey').textContent = customerData.pubkey || '-';
+            document.getElementById('customerObserverId').textContent = customerData.observer_id || '-';
+            document.getElementById('customerComments').textContent = customerData.comments || 'None';
+            
+            // Populate Nostr profile details
+            document.getElementById('nostrDisplayName').textContent = profileData?.display_name || profileData?.name || '-';
+            document.getElementById('nostrUsername').textContent = profileData?.username || '-';
+            
+            const website = profileData?.website;
+            if (website) {
+                document.getElementById('nostrWebsite').innerHTML = `<a href="${escapeHtml(website)}" target="_blank">${escapeHtml(website)}</a>`;
+            } else {
+                document.getElementById('nostrWebsite').textContent = '-';
+            }
+            
+            document.getElementById('nostrLud16').textContent = profileData?.lud16 || '-';
+            document.getElementById('nostrNip05').textContent = profileData?.nip05 || '-';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').innerHTML = `
+                <div class="error-container">
+                    <div class="error-icon">⚠️</div>
+                    <h2>Error Loading Customer</h2>
+                    <p>${escapeHtml(message)}</p>
+                    <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                    <a href="/manage-customers.html" class="btn btn-secondary">Back to Customers</a>
+                </div>
+            `;
+            document.getElementById('mainContent').style.display = 'block';
+        }
+    </script>
+    
+    <style>
+        .loading-container {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-container {
+            text-align: center;
+            padding: 3rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        .error-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .header-nav {
+            margin-bottom: 1rem;
+        }
+        
+        .back-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .customer-profile-section {
+            margin-bottom: 2rem;
+        }
+        
+        .profile-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 2rem;
+            border: 3px solid #e9ecef;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .customer-name {
+            margin: 0 0 1rem 0;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .customer-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .customer-about {
+            color: #6c757d;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .profile-details, .profile-nostr {
+            margin-bottom: 2rem;
+        }
+        
+        .profile-details h3, .profile-nostr h3 {
+            color: #495057;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .details-grid, .nostr-details {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 140px;
+        }
+        
+        .detail-value {
+            color: #6c757d;
+            flex: 1;
+            text-align: right;
+            word-break: break-all;
+        }
+        
+        .detail-value.pubkey {
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .detail-value a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .detail-value a:hover {
+            text-decoration: underline;
+        }
+        
+        .management-actions {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .management-actions h3 {
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+        
+        .coming-soon {
+            color: #6c757d;
+            font-style: italic;
+            margin: 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.25rem;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .profile-avatar {
+                margin: 0 auto 1.5rem auto;
+            }
+            
+            .customer-name {
+                font-size: 1.5rem;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .detail-value {
+                text-align: left;
+            }
+            
+            .detail-label {
+                min-width: auto;
+            }
+        }
+    </style>
 </body>
 </html>
