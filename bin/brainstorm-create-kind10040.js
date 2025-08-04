@@ -95,7 +95,14 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const eventFile = path.join(dataDir, 'kind10040_event.json');
+let event_file_name = '';
+if (customerPubkey) {
+  event_file_name = customerPubkey + '_kind10040_event.json';
+} else {
+  event_file_name = 'owner_kind10040_event.json';
+}
+
+const eventFile = path.join(dataDir, event_file_name);
 fs.writeFileSync(eventFile, JSON.stringify(event, null, 2));
 
 console.log(`Kind 10040 event created and saved to ${eventFile}`);

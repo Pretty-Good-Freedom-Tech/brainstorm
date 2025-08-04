@@ -16,6 +16,16 @@ const { getConfigFromFile } = require('../src/utils/config');
 // Get relay configuration
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
 
+// get customer pubkey if one is provided as an argument
+const customerPubkey = process.argv[2];
+
+let event_file_name = '';
+if (customerPubkey) {
+  event_file_name = customerPubkey + '_kind10040_event.json';
+} else {
+  event_file_name = 'owner_kind10040_event.json';
+}
+
 if (!relayUrl) {
   console.error('Error: Relay URL not found in configuration');
   process.exit(1);
@@ -23,7 +33,7 @@ if (!relayUrl) {
 
 // Check if the event file exists
 const dataDir = '/var/lib/brainstorm/data';
-const eventFile = path.join(dataDir, 'kind10040_event.json');
+const eventFile = path.join(dataDir, event_file_name);
 
 if (!fs.existsSync(eventFile)) {
   console.error(`Error: Event file not found at ${eventFile}`);
