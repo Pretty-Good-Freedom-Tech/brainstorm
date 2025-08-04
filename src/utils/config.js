@@ -77,7 +77,16 @@ function getNeo4jConnection() {
     };
 }
 
+/**
+ * Get the owner's public key from brainstorm.conf
+ * @returns {string|null} Owner's public key or null if not found
+ */
+function getOwnerPubkey() {
+    return getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', null);
+}
+
 module.exports = {
     getConfigFromFile,
-    getNeo4jConnection
+    getNeo4jConnection,
+    getOwnerPubkey
 };
