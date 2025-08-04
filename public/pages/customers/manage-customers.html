@@ -15,9 +15,7 @@
 
     <!-- Main content wrapper -->
     <div class="page-content">
-        <div class="container">
-            <h1>Manage Customers</h1>
-            
+        <div class="container">            
             <!-- Loading state -->
             <div id="loadingState" class="loading-container">
                 <div class="spinner"></div>
@@ -200,7 +198,7 @@
                 </div>
                 
                 <div class="customer-card-footer">
-                    <a href="/manage-customer.html?id=${customer.id}" class="btn btn-primary btn-manage" target="_blank">
+                    <a href="/manage-customer.html?pubkey=${customer.pubkey}" class="btn btn-primary btn-manage" target="_blank">
                         Manage Customer
                     </a>
                 </div>
@@ -410,7 +408,9 @@
         }
         
         .btn-manage {
-            width: 100%;
+            width: calc(100% - 0.5rem);
+            max-width: 280px;
+            margin: 0 auto;
         }
         
         @media (max-width: 768px) {
