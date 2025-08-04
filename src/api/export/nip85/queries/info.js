@@ -3,6 +3,7 @@
  * Handlers for retrieving information about NIP-85 events
  * accepts parameter: pubkey
  * If no pubkey is provided, it will use the owner pubkey from config
+ * /api/get-kind10040-info?pubkey=...
  */
 
 const { execSync } = require('child_process');

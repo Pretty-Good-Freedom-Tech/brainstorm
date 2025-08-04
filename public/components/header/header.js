@@ -130,6 +130,7 @@ function loadNavbar() {
     if (
         currentPath === '/customer.html'
         || currentPath === '/customers.html'
+        || currentPath === '/my-account.html'
         || currentPath === '/manage-customer.html'
         || currentPath === '/manage-customers.html'
         || currentPath === '/create-customer-relays.html'
@@ -417,6 +418,7 @@ function highlightCurrentPage() {
         '/follow-recs.html': '/follow-recs',
         '/customer.html': '/customer',
         '/customers.html': '/customers',
+        '/my-account.html': '/my-account',
         '/manage-customer.html': '/manage-customer',
         '/manage-customers.html': '/manage-customers',
         '/create-customer-relays.html': '/create-customer-relays',
