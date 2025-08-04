@@ -92,7 +92,7 @@
         async function loadCustomers() {
             try {
                 // Fetch customers list
-                const customersResponse = await fetch('/api/customers/get-customers');
+                const customersResponse = await fetch('/api/get-customers');
                 const customersData = await customersResponse.json();
                 
                 if (!customersData.success) {
@@ -124,8 +124,8 @@
                     const response = await fetch(`/api/get-kind0?pubkey=${customer.pubkey}`);
                     const data = await response.json();
                     
-                    if (data.success && data.profile) {
-                        customer.profile = data.profile;
+                    if (data.success && data.data && data.data.content) {
+                        customer.profile = JSON.parse(data.data.content);
                     } else {
                         customer.profile = null;
                     }
@@ -200,7 +200,7 @@
                 </div>
                 
                 <div class="customer-card-footer">
-                    <a href="/manage-customer.html?id=${customer.id}" class="btn btn-primary btn-manage">
+                    <a href="/manage-customer.html?id=${customer.id}" class="btn btn-primary btn-manage" target="_blank">
                         Manage Customer
                     </a>
                 </div>
