@@ -189,6 +189,60 @@
             font-weight: bold;
             margin-right: 0.5rem;
         }
+        
+        /* Kind 10040 Section Styling */
+        .kind10040-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .kind10040-status {
+            text-align: center;
+        }
+        
+        .kind10040-status h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        .kind10040-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .kind10040-prompt {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .kind10040-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .kind10040-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .kind10040-actions .btn {
+            min-width: 180px;
+        }
+        
+        .next-steps-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -254,7 +308,41 @@
                     <h3>🎉 Welcome to Brainstorm!</h3>
                     <p>Congratulations! Your customer account has been successfully created.</p>
                     <div id="newCustomerDetails" class="customer-details"></div>
-                    <p style="margin-top: 1rem;"><strong>Next steps:</strong> Your Web of Trust calculations will begin processing shortly. You can check your progress on the <a href="/customer.html">customer dashboard</a>.</p>
+                    
+                    <!-- Kind 10040 Status Section -->
+                    <div id="kind10040Section" class="kind10040-section">
+                        <div id="kind10040Loading" class="kind10040-status" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            Checking your NIP-85 status...
+                        </div>
+                        
+                        <div id="kind10040Published" class="kind10040-status kind10040-success" style="display: none;">
+                            <h4>✅ NIP-85 Setup Complete</h4>
+                            <p>Great! You already have a Kind 10040 event published. Your Web of Trust setup is complete.</p>
+                        </div>
+                        
+                        <div id="kind10040NotPublished" class="kind10040-status kind10040-prompt" style="display: none;">
+                            <h4>📝 Complete Your NIP-85 Setup</h4>
+                            <p>To get the most out of Brainstorm, we recommend publishing your Kind 10040 event. This helps other users discover and trust your content.</p>
+                            <div class="kind10040-actions">
+                                <button id="publishKind10040Btn" class="btn btn-primary">
+                                    📝 Publish Kind 10040 Event
+                                </button>
+                                <button id="skipKind10040Btn" class="btn btn-secondary">
+                                    Skip for Now
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="kind10040Error" class="kind10040-status kind10040-error" style="display: none;">
+                            <h4>⚠️ Unable to Check NIP-85 Status</h4>
+                            <p>We couldn't check your Kind 10040 status right now. You can set this up later from your <a href="/customer.html">customer dashboard</a>.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="nextStepsSection" class="next-steps-section">
+                        <p><strong>Next steps:</strong> Your Web of Trust calculations will begin processing shortly. You can check your progress on the <a href="/customer.html">customer dashboard</a>.</p>
+                    </div>
                 </div>
                 
                 <!-- Error message -->
@@ -400,6 +488,139 @@
                 <div class="detail-row">
                     <span class="detail-label">Your Public Key:</span>
                     <span class="detail-value">${data.pubkey ? data.pubkey.substring(0, 16) + '...' : 'Unknown'}</span>
+                </div>
+            `;
+            
+            // Store customer data for Kind 10040 check
+            window.newCustomerData = data;
+            
+            // Check Kind 10040 status after showing customer details
+            checkKind10040Status(data.pubkey);
+        }
+        
+        /**
+         * Check Kind 10040 status for the new customer
+         */
+        async function checkKind10040Status(customerPubkey) {
+            // Show loading state
+            document.getElementById('kind10040Loading').style.display = 'block';
+            
+            try {
+                const response = await fetch(`/api/get-kind10040-info?pubkey=${customerPubkey}`);
+                const result = await response.json();
+                
+                // Hide loading state
+                document.getElementById('kind10040Loading').style.display = 'none';
+                
+                if (result.success) {
+                    if (result.latestEvent && result.eventId) {
+                        // Customer already has Kind 10040 event
+                        document.getElementById('kind10040Published').style.display = 'block';
+                    } else {
+                        // Customer doesn't have Kind 10040 event - show prompt
+                        document.getElementById('kind10040NotPublished').style.display = 'block';
+                        setupKind10040Buttons(customerPubkey);
+                    }
+                } else {
+                    // API error
+                    document.getElementById('kind10040Error').style.display = 'block';
+                    console.error('Kind 10040 API error:', result.message);
+                }
+                
+            } catch (error) {
+                // Network error
+                document.getElementById('kind10040Loading').style.display = 'none';
+                document.getElementById('kind10040Error').style.display = 'block';
+                console.error('Error checking Kind 10040 status:', error);
+            }
+        }
+        
+        /**
+         * Setup event handlers for Kind 10040 buttons
+         */
+        function setupKind10040Buttons(customerPubkey) {
+            // Publish Kind 10040 button
+            document.getElementById('publishKind10040Btn').addEventListener('click', async function() {
+                await handlePublishKind10040(customerPubkey);
+            });
+            
+            // Skip button
+            document.getElementById('skipKind10040Btn').addEventListener('click', function() {
+                handleSkipKind10040();
+            });
+        }
+        
+        /**
+         * Handle Kind 10040 publishing
+         */
+        async function handlePublishKind10040(customerPubkey) {
+            const publishBtn = document.getElementById('publishKind10040Btn');
+            const skipBtn = document.getElementById('skipKind10040Btn');
+            
+            // Show loading state
+            const originalText = publishBtn.textContent;
+            publishBtn.disabled = true;
+            skipBtn.disabled = true;
+            publishBtn.textContent = '📝 Publishing...';
+            
+            try {
+                // Call the Kind 10040 creation API
+                const response = await fetch('/api/create-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Success - hide prompt and show success message
+                    document.getElementById('kind10040NotPublished').style.display = 'none';
+                    document.getElementById('kind10040Published').style.display = 'block';
+                    
+                    // Update success message
+                    const successDiv = document.getElementById('kind10040Published');
+                    successDiv.innerHTML = `
+                        <h4>✅ Kind 10040 Event Published!</h4>
+                        <p>Excellent! Your Kind 10040 event has been successfully published. Your NIP-85 setup is now complete.</p>
+                    `;
+                } else {
+                    // Show error
+                    alert(`❌ Failed to publish Kind 10040 event: ${result.message || 'Unknown error'}`);
+                    
+                    // Restore button state
+                    publishBtn.disabled = false;
+                    skipBtn.disabled = false;
+                    publishBtn.textContent = originalText;
+                }
+                
+            } catch (error) {
+                console.error('Error publishing Kind 10040:', error);
+                alert(`❌ Network error occurred while publishing Kind 10040 event: ${error.message}`);
+                
+                // Restore button state
+                publishBtn.disabled = false;
+                skipBtn.disabled = false;
+                publishBtn.textContent = originalText;
+            }
+        }
+        
+        /**
+         * Handle skipping Kind 10040 setup
+         */
+        function handleSkipKind10040() {
+            // Hide the prompt section
+            document.getElementById('kind10040NotPublished').style.display = 'none';
+            
+            // Show a brief message that they can set it up later
+            const kind10040Section = document.getElementById('kind10040Section');
+            kind10040Section.innerHTML = `
+                <div class="kind10040-status" style="text-align: center; color: #6c757d; font-style: italic;">
+                    <p>📝 Kind 10040 setup skipped. You can publish your event later from your <a href="/customer.html">customer dashboard</a>.</p>
                 </div>
             `;
         }
