@@ -118,10 +118,154 @@
                     </div>
                 </div>
                 
-                <!-- Management actions section (placeholder for future) -->
-                <div class="management-actions">
-                    <h3>Management Actions</h3>
-                    <p class="coming-soon">Customer management controls will be added here in the next phase.</p>
+                <!-- Brainstorm Customer Data Section -->
+                <div class="brainstorm-data-section">
+                    <h2>Brainstorm Customer Data</h2>
+                    
+                    <!-- Customer Relay Information -->
+                    <div class="data-card">
+                        <h3>Customer Relay Information</h3>
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <span class="data-label">Relay Pubkey:</span>
+                                <span id="relayPubkey" class="data-value monospace">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Relay Npub:</span>
+                                <span id="relayNpub" class="data-value monospace">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Signed Up:</span>
+                                <span id="signupDate" class="data-value">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- NIP-85 Status -->
+                    <div class="data-card">
+                        <h3>NIP-85 Status</h3>
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <span class="data-label">Kind 10040 Signed:</span>
+                                <span id="kind10040Status" class="data-value status-indicator">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Relay Key Match:</span>
+                                <span id="relayKeyMatch" class="data-value status-indicator">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Kind 30382 Published:</span>
+                                <span id="kind30382Count" class="data-value">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Last Publication:</span>
+                                <span id="lastPublication" class="data-value">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trust Metrics Configuration -->
+                    <div class="data-card">
+                        <h3>Trust Metrics Configuration</h3>
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <span class="data-label">GrapeRank Preset:</span>
+                                <span id="grapeRankPreset" class="data-value preset-badge">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trust Metrics Status -->
+                    <div class="data-card">
+                        <h3>Trust Metrics Calculation Status</h3>
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <span class="data-label">Hops Calculated:</span>
+                                <span id="hopsCalculated" class="data-value timestamp">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">PageRank Calculated:</span>
+                                <span id="pageRankCalculated" class="data-value timestamp">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">GrapeRank Calculated:</span>
+                                <span id="grapeRankCalculated" class="data-value timestamp">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Kind 30382 Export:</span>
+                                <span id="kind30382Export" class="data-value timestamp">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Management Actions Section -->
+                <div class="management-actions-section">
+                    <h2>Management Actions</h2>
+                    
+                    <!-- Status Management -->
+                    <div class="action-card">
+                        <h3>Customer Status</h3>
+                        <div class="action-content">
+                            <p>Current status: <span id="currentStatusDisplay" class="status-badge">Loading...</span></p>
+                            <div class="action-buttons">
+                                <button id="activateBtn" class="btn btn-success" onclick="changeCustomerStatus('active')">
+                                    ✅ Activate Customer
+                                </button>
+                                <button id="deactivateBtn" class="btn btn-warning" onclick="changeCustomerStatus('inactive')">
+                                    ⏸️ Deactivate Customer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trust Metrics Actions -->
+                    <div class="action-card">
+                        <h3>Trust Metrics Recalculation</h3>
+                        <div class="action-content">
+                            <p>Trigger recalculation of trust metrics for this customer.</p>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary" onclick="recalculateMetric('hops')">
+                                    🔄 Recalculate Hops
+                                </button>
+                                <button class="btn btn-primary" onclick="recalculateMetric('pagerank')">
+                                    🔄 Recalculate PageRank
+                                </button>
+                                <button class="btn btn-primary" onclick="recalculateMetric('graperank')">
+                                    🔄 Recalculate GrapeRank
+                                </button>
+                                <button class="btn btn-info" onclick="exportKind30382()">
+                                    📤 Export Kind 30382
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Communication Actions -->
+                    <div class="action-card">
+                        <h3>Customer Communication</h3>
+                        <div class="action-content">
+                            <p>Send automated messages to the customer via their relay.</p>
+                            <div class="action-buttons">
+                                <button class="btn btn-info" onclick="sendKind10040Reminder()">
+                                    📨 Send Kind 10040 Reminder
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Danger Zone -->
+                    <div class="action-card danger-zone">
+                        <h3>⚠️ Danger Zone</h3>
+                        <div class="action-content">
+                            <p class="danger-warning">These actions are irreversible. Proceed with extreme caution.</p>
+                            <div class="action-buttons">
+                                <button class="btn btn-danger" onclick="deleteCustomer()">
+                                    🗑️ DELETE Customer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -263,6 +407,91 @@
             
             document.getElementById('nostrLud16').textContent = profileData?.lud16 || '-';
             document.getElementById('nostrNip05').textContent = profileData?.nip05 || '-';
+            
+            // Populate Brainstorm-specific data (placeholders for now)
+            populateBrainstormData();
+        }
+        
+        function populateBrainstormData() {
+            // Customer Relay Information (placeholders)
+            document.getElementById('relayPubkey').textContent = 'Not yet implemented';
+            document.getElementById('relayNpub').textContent = 'Not yet implemented';
+            document.getElementById('signupDate').textContent = 'Not yet implemented';
+            
+            // NIP-85 Status (placeholders)
+            document.getElementById('kind10040Status').innerHTML = '<span class="status-unknown">❓ Not checked</span>';
+            document.getElementById('relayKeyMatch').innerHTML = '<span class="status-unknown">❓ Not checked</span>';
+            document.getElementById('kind30382Count').textContent = 'Not yet implemented';
+            document.getElementById('lastPublication').textContent = 'Not yet implemented';
+            
+            // Trust Metrics Configuration (placeholder)
+            document.getElementById('grapeRankPreset').innerHTML = '<span class="preset-default">Default</span>';
+            
+            // Trust Metrics Status (placeholders)
+            document.getElementById('hopsCalculated').textContent = 'Not yet implemented';
+            document.getElementById('pageRankCalculated').textContent = 'Not yet implemented';
+            document.getElementById('grapeRankCalculated').textContent = 'Not yet implemented';
+            document.getElementById('kind30382Export').textContent = 'Not yet implemented';
+            
+            // Update status display in management section
+            const statusDisplay = document.getElementById('currentStatusDisplay');
+            statusDisplay.textContent = customerData.status.toUpperCase();
+            statusDisplay.className = `status-badge status-${customerData.status}`;
+            
+            // Update action buttons based on current status
+            updateActionButtons();
+        }
+        
+        function updateActionButtons() {
+            const activateBtn = document.getElementById('activateBtn');
+            const deactivateBtn = document.getElementById('deactivateBtn');
+            
+            if (customerData.status === 'active') {
+                activateBtn.disabled = true;
+                activateBtn.textContent = '✅ Already Active';
+                deactivateBtn.disabled = false;
+            } else {
+                activateBtn.disabled = false;
+                deactivateBtn.disabled = true;
+                deactivateBtn.textContent = '⏸️ Already Inactive';
+            }
+        }
+        
+        // Management Action Functions (placeholders)
+        function changeCustomerStatus(newStatus) {
+            if (confirm(`Are you sure you want to change this customer's status to ${newStatus}?`)) {
+                alert(`Status change to ${newStatus} - Not yet implemented. This will require CustomerManager API endpoint.`);
+            }
+        }
+        
+        function recalculateMetric(metric) {
+            if (confirm(`Are you sure you want to recalculate ${metric} for this customer?`)) {
+                alert(`Recalculate ${metric} - Not yet implemented. This will require CustomerManager API endpoint.`);
+            }
+        }
+        
+        function exportKind30382() {
+            if (confirm('Are you sure you want to trigger Kind 30382 export for this customer?')) {
+                alert('Kind 30382 export - Not yet implemented. This will require CustomerManager API endpoint.');
+            }
+        }
+        
+        function sendKind10040Reminder() {
+            if (confirm('Are you sure you want to send a Kind 10040 reminder to this customer?')) {
+                alert('Send Kind 10040 reminder - Not yet implemented. This will require CustomerManager API endpoint.');
+            }
+        }
+        
+        function deleteCustomer() {
+            const displayName = profileData?.name || customerData.name || 'this customer';
+            if (confirm(`⚠️ WARNING: Are you absolutely sure you want to DELETE ${displayName}?\n\nThis action is IRREVERSIBLE and will:\n- Remove all customer data\n- Delete customer directory\n- Remove all associated trust metrics\n\nType 'DELETE' in the next prompt to confirm.`)) {
+                const confirmation = prompt('Type DELETE to confirm customer deletion:');
+                if (confirmation === 'DELETE') {
+                    alert('Customer deletion - Not yet implemented. This will require CustomerManager API endpoint.');
+                } else {
+                    alert('Customer deletion cancelled.');
+                }
+            }
         }
         
         function escapeHtml(text) {
@@ -484,10 +713,202 @@
             margin-bottom: 1rem;
         }
         
-        .coming-soon {
+        .brainstorm-data-section {
+            margin-bottom: 3rem;
+        }
+        
+        .brainstorm-data-section h2, .management-actions-section h2 {
+            color: #212529;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+        
+        .data-card, .action-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .data-card h3, .action-card h3 {
+            color: #495057;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .data-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        
+        .data-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 160px;
+        }
+        
+        .data-value {
             color: #6c757d;
-            font-style: italic;
-            margin: 0;
+            flex: 1;
+            text-align: right;
+        }
+        
+        .data-value.monospace {
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator .status-unknown {
+            color: #856404;
+        }
+        
+        .status-indicator .status-yes {
+            color: #155724;
+        }
+        
+        .status-indicator .status-no {
+            color: #721c24;
+        }
+        
+        .preset-badge .preset-default {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .preset-badge .preset-rigorous {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .preset-badge .preset-permissive {
+            background: #d4edda;
+            color: #155724;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .preset-badge .preset-custom {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .management-actions-section {
+            margin-bottom: 2rem;
+        }
+        
+        .action-content {
+            margin-bottom: 1rem;
+        }
+        
+        .action-content p {
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .danger-zone {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .danger-zone h3 {
+            color: #dc3545;
+        }
+        
+        .danger-warning {
+            color: #721c24;
+            font-weight: 600;
+            background: #f8d7da;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover:not(:disabled) {
+            background: #e0a800;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover:not(:disabled) {
+            background: #138496;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         
         .btn {
@@ -534,18 +955,26 @@
                 font-size: 1.5rem;
             }
             
-            .detail-row {
+            .detail-row, .data-row {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
             }
             
-            .detail-value {
+            .detail-value, .data-value {
                 text-align: left;
             }
             
-            .detail-label {
+            .detail-label, .data-label {
                 min-width: auto;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
             }
         }
     </style>
