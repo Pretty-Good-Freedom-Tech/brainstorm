@@ -35,10 +35,10 @@ function handleCreateAndPublishKind10040(req, res) {
     const baseDir = getConfigFromFile('BRAINSTORM_MODULE_BASE_DIR', '/usr/local/lib/node_modules/brainstorm');
     
     // Get the full path to the script
-    let scriptName = 'brainstorm-create-kind10040.js';
+    let scriptName = 'brainstorm-create-and-publish-kind10040.js';
     // if customerPubkey is provided, then include customerPubkey as an argument
     if (customerPubkey) {
-        scriptName = `brainstorm-create-kind10040.js ${customerPubkey}`;
+        scriptName = `brainstorm-create-and-publish-kind10040.js ${customerPubkey}`;
     }
     const scriptPath = path.join(baseDir, 'bin', scriptName);
     console.log('Using script path:', scriptPath);
