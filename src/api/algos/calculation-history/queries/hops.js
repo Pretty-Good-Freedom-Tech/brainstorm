@@ -5,8 +5,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const CustomerManager = require('../../../utils/customerManager');
-const { getConfigFromFile } = require('../../../utils/config');
+const CustomerManager = require('../../../../utils/customerManager');
+const { getConfigFromFile } = require('../../../../utils/config');
 
 /**
  * Handler for getting hops calculation history for a specific customer
