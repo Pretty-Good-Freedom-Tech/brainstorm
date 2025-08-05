@@ -127,12 +127,30 @@
                         <h3>Customer Relay Information</h3>
                         <div class="data-grid">
                             <div class="data-row">
+                                <span class="data-label">Relay Status:</span>
+                                <span id="relayStatus" class="data-value status-indicator">Loading...</span>
+                            </div>
+                            <div class="data-row">
                                 <span class="data-label">Relay Pubkey:</span>
                                 <span id="relayPubkey" class="data-value monospace">Loading...</span>
                             </div>
                             <div class="data-row">
                                 <span class="data-label">Relay Npub:</span>
                                 <span id="relayNpub" class="data-value monospace">Loading...</span>
+                            </div>
+                            <div class="data-row secure-key-row">
+                                <span class="data-label">Relay Nsec:</span>
+                                <div class="secure-key-container">
+                                    <span id="relayNsec" class="data-value monospace secure-key hidden">••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••</span>
+                                    <button id="revealNsecBtn" class="btn btn-sm btn-secondary reveal-btn" onclick="toggleSecureKey('nsec')">👁️ Reveal</button>
+                                </div>
+                            </div>
+                            <div class="data-row secure-key-row">
+                                <span class="data-label">Relay Privkey:</span>
+                                <div class="secure-key-container">
+                                    <span id="relayPrivkey" class="data-value monospace secure-key hidden">••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••</span>
+                                    <button id="revealPrivkeyBtn" class="btn btn-sm btn-secondary reveal-btn" onclick="toggleSecureKey('privkey')">👁️ Reveal</button>
+                                </div>
                             </div>
                             <div class="data-row">
                                 <span class="data-label">Signed Up:</span>
@@ -413,10 +431,8 @@
         }
         
         function populateBrainstormData() {
-            // Customer Relay Information (placeholders)
-            document.getElementById('relayPubkey').textContent = 'Not yet implemented';
-            document.getElementById('relayNpub').textContent = 'Not yet implemented';
-            document.getElementById('signupDate').textContent = 'Not yet implemented';
+            // Load Customer Relay Information
+            loadCustomerRelayKeys();
             
             // Load real NIP-85 Status data
             loadKind10040Status();
@@ -688,6 +704,109 @@
                 // Restore button state
                 deleteBtn.disabled = false;
                 deleteBtn.textContent = originalText;
+            }
+        }
+        
+        // Global variable to store relay keys data
+        let relayKeysData = null;
+        
+        /**
+         * Load customer relay keys from the API
+         */
+        async function loadCustomerRelayKeys() {
+            try {
+                const response = await fetch(`/api/get-customer-relay-keys?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const result = await response.json();
+                
+                if (result.success && result.data.found) {
+                    relayKeysData = result.data;
+                    
+                    // Update UI with relay key information
+                    document.getElementById('relayStatus').innerHTML = '<span class="status-success">✅ Keys Found</span>';
+                    document.getElementById('relayPubkey').textContent = result.data.pubkey || '-';
+                    document.getElementById('relayNpub').textContent = result.data.npub || '-';
+                    
+                    // Store secure keys but don't display them yet
+                    document.getElementById('relayNsec').dataset.secureValue = result.data.nsec || '';
+                    document.getElementById('relayPrivkey').dataset.secureValue = result.data.privkey || '';
+                    
+                    // Enable reveal buttons if keys exist
+                    if (result.data.nsec) {
+                        document.getElementById('revealNsecBtn').disabled = false;
+                    }
+                    if (result.data.privkey) {
+                        document.getElementById('revealPrivkeyBtn').disabled = false;
+                    }
+                    
+                } else {
+                    // No relay keys found
+                    document.getElementById('relayStatus').innerHTML = '<span class="status-error">❌ Keys Not Found</span>';
+                    document.getElementById('relayPubkey').textContent = 'No keys found';
+                    document.getElementById('relayNpub').textContent = 'No keys found';
+                    
+                    // Disable reveal buttons
+                    document.getElementById('revealNsecBtn').disabled = true;
+                    document.getElementById('revealPrivkeyBtn').disabled = true;
+                }
+                
+                // Set signup date placeholder
+                document.getElementById('signupDate').textContent = 'Not yet implemented';
+                
+            } catch (error) {
+                console.error('Error loading customer relay keys:', error);
+                document.getElementById('relayStatus').innerHTML = '<span class="status-error">❌ Error Loading</span>';
+                document.getElementById('relayPubkey').textContent = 'Error loading keys';
+                document.getElementById('relayNpub').textContent = 'Error loading keys';
+                
+                // Disable reveal buttons
+                document.getElementById('revealNsecBtn').disabled = true;
+                document.getElementById('revealPrivkeyBtn').disabled = true;
+            }
+        }
+        
+        /**
+         * Toggle secure key visibility
+         * @param {string} keyType - Either 'nsec' or 'privkey'
+         */
+        function toggleSecureKey(keyType) {
+            const elementId = keyType === 'nsec' ? 'relayNsec' : 'relayPrivkey';
+            const buttonId = keyType === 'nsec' ? 'revealNsecBtn' : 'revealPrivkeyBtn';
+            
+            const element = document.getElementById(elementId);
+            const button = document.getElementById(buttonId);
+            
+            if (!element || !button) {
+                console.error(`Elements not found for key type: ${keyType}`);
+                return;
+            }
+            
+            const secureValue = element.dataset.secureValue;
+            const isHidden = element.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Reveal the key
+                element.textContent = secureValue || 'No key available';
+                element.classList.remove('hidden');
+                element.classList.add('revealed');
+                button.innerHTML = '🙈 Hide';
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-warning');
+                
+                // Auto-hide after 30 seconds for security
+                setTimeout(() => {
+                    if (element.classList.contains('revealed')) {
+                        toggleSecureKey(keyType);
+                    }
+                }, 30000);
+                
+            } else {
+                // Hide the key
+                element.textContent = '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••';
+                element.classList.add('hidden');
+                element.classList.remove('revealed');
+                button.innerHTML = '👁️ Reveal';
+                button.classList.remove('btn-warning');
+                button.classList.add('btn-secondary');
             }
         }
         
@@ -1090,6 +1209,78 @@
         .danger-zone {
             border-color: #dc3545;
             background: #fff5f5;
+        }
+        
+        /* Secure Key Styles */
+        .secure-key-row {
+            background: #f8f9fa;
+            border-left: 3px solid #ffc107;
+            padding-left: 0.5rem;
+        }
+        
+        .secure-key-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .secure-key {
+            font-family: 'Courier New', monospace;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #34495e;
+            min-width: 300px;
+            word-break: break-all;
+            transition: all 0.3s ease;
+        }
+        
+        .secure-key.hidden {
+            background: #95a5a6;
+            color: #7f8c8d;
+            user-select: none;
+            cursor: not-allowed;
+        }
+        
+        .secure-key.revealed {
+            background: #e74c3c;
+            color: #fff;
+            border-color: #c0392b;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+        }
+        
+        .reveal-btn {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            min-width: 80px;
+            transition: all 0.2s ease;
+        }
+        
+        .reveal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .reveal-btn.btn-warning {
+            animation: pulse-warning 2s infinite;
+        }
+        
+        @keyframes pulse-warning {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        
+        .status-success {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .status-error {
+            color: #dc3545;
+            font-weight: 600;
         }
         
         .danger-zone h3 {
