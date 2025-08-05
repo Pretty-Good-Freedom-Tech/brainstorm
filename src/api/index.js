@@ -37,6 +37,7 @@ const services = require('./export/services');
 const strfry = require('./strfry');
 const pipeline = require('./pipeline');
 const algos = require('./algos');
+const calculationHistory = require('./algos/calculation-history');
 const graperank = require('./export/graperank');
 const manage = require('./manage');
 const lists = require('./lists');
@@ -72,6 +73,8 @@ function register(app) {
         // Mark session as configured
         app._brainstormSessionConfigured = true;
     }
+
+    app.get('/api/calculation-history/hops', calculationHistory.handleGetHistoryHops);
     
     // Register new modular endpoints for both paths
     // TODO: might move these to status module 
