@@ -16,23 +16,23 @@
 # INCORPORATE_BLACKLIST: exclude users in the blacklist (true or false)
 
 # ==========================================
-# DEFAULT PARAMETERS (lax)
-export INFLUENCE_CUTOFF_lax=0.05
-export COMBINATION_LOGIC_lax='OR'
-export HOPS_CUTOFF_lax=2
-export INCORPORATE_BLACKLIST_lax=false
+# PARAMETER PRESET: PERMISSIVE
+export INFLUENCE_CUTOFF_permissive=0.05
+export COMBINATION_LOGIC_permissive='OR'
+export HOPS_CUTOFF_permissive=2
+export INCORPORATE_BLACKLIST_permissive=false
 
-# DEFAULT PARAMETERS (DEFAULT)
+# PARAMETER PRESET: DEFAULT
 export INFLUENCE_CUTOFF_default=0.6
 export COMBINATION_LOGIC_default='OR'
 export HOPS_CUTOFF_default=1
 export INCORPORATE_BLACKLIST_default=true
 
-# DEFAULT PARAMETERS (strict)
-export INFLUENCE_CUTOFF_strict=0.9
-export COMBINATION_LOGIC_strict='AND'
-export HOPS_CUTOFF_strict=3
-export INCORPORATE_BLACKLIST_strict=true
+# PARAMETER PRESET: RESTRICTIVE
+export INFLUENCE_CUTOFF_restrictive=0.9
+export COMBINATION_LOGIC_restrictive='AND'
+export HOPS_CUTOFF_restrictive=3
+export INCORPORATE_BLACKLIST_restrictive=true
 
 # ==========================================
 # LIVE PARAMETERS
