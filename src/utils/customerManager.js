@@ -1673,9 +1673,13 @@ class CustomerManager {
 
                 // Get preset values
                 for (const preset of availablePresets) {
-                    const presetKey = `${param}_${preset.toUpperCase()}`;
+                    const presetKey = `${param}_${preset.toLowerCase()}`;
+                    console.log(`Looking for preset key: ${presetKey}`);
                     if (exports[presetKey] !== undefined) {
+                        console.log(`Found preset value: ${presetKey} = ${exports[presetKey]}`);
                         presetValues[preset][param] = exports[presetKey];
+                    } else {
+                        console.log(`Preset key not found: ${presetKey}`);
                     }
                 }
             }
