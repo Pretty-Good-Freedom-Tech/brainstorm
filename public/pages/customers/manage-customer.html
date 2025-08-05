@@ -228,14 +228,41 @@
                             </div>
                         </div>
                         
-                        <!-- Placeholder for other calculations -->
+                        <!-- PersonalizedPageRank Calculation Status -->
                         <div class="calculation-status-section">
-                            <h4>📊 Other Calculations</h4>
+                            <h4>📊 PersonalizedPageRank Calculation</h4>
                             <div class="calculation-details">
                                 <div class="status-row">
-                                    <span class="status-label">PageRank:</span>
-                                    <span class="status-value">Coming soon...</span>
+                                    <span class="status-label">Status:</span>
+                                    <span id="pageRankStatus" class="status-badge loading">Loading...</span>
                                 </div>
+                                <div class="status-row">
+                                    <span class="status-label">Last Run:</span>
+                                    <span id="pageRankLastRun" class="status-value">Loading...</span>
+                                </div>
+                                <div class="status-row" id="pageRankDurationRow" style="display: none;">
+                                    <span class="status-label">Duration:</span>
+                                    <span id="pageRankDuration" class="status-value">-</span>
+                                </div>
+                                <div class="status-row" id="pageRankInactivityRow" style="display: none;">
+                                    <span class="status-label">Last Activity:</span>
+                                    <span id="pageRankInactivity" class="status-value">-</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Log File:</span>
+                                    <span id="pageRankLogFile" class="status-value log-path">-</span>
+                                </div>
+                            </div>
+                            <div class="calculation-actions">
+                                <button id="refreshPageRankBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                <button id="triggerPageRankBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Placeholder for other calculations -->
+                        <div class="calculation-status-section">
+                            <h4>🔮 Other Calculations</h4>
+                            <div class="calculation-details">
                                 <div class="status-row">
                                     <span class="status-label">GrapeRank:</span>
                                     <span class="status-value">Coming soon...</span>
@@ -476,6 +503,7 @@
             
             // Load Trust Metrics Calculation Status
             loadHopsCalculationStatus();
+            loadPageRankCalculationStatus();
             
             // Update status display in management section
             const statusDisplay = document.getElementById('currentStatusDisplay');
@@ -943,6 +971,89 @@
         }
         
         /**
+         * Load PageRank calculation status from API
+         */
+        async function loadPageRankCalculationStatus() {
+            try {
+                console.log('Loading PageRank calculation status...');
+                
+                const response = await fetch(`/api/calculation-history/personalizedPageRank?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updatePageRankCalculationDisplay(result.data.calculation);
+                } else {
+                    console.error('Failed to load PageRank calculation status:', result.message);
+                    updatePageRankCalculationDisplay({
+                        status: 'Error',
+                        formattedTime: 'Failed to load',
+                        logExists: false,
+                        error: result.message
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading PageRank calculation status:', error);
+                updatePageRankCalculationDisplay({
+                    status: 'Error',
+                    formattedTime: 'Network error',
+                    logExists: false,
+                    error: error.message
+                });
+            }
+        }
+        
+        /**
+         * Update PageRank calculation display with API data
+         * @param {Object} data - Calculation status data from API
+         */
+        function updatePageRankCalculationDisplay(data) {
+            // Update status badge
+            const statusElement = document.getElementById('pageRankStatus');
+            statusElement.textContent = data.status || 'Unknown';
+            statusElement.className = `status-badge ${getStatusClass(data.status)}`;
+            
+            // Update last run time
+            document.getElementById('pageRankLastRun').textContent = data.formattedTime || 'Unknown';
+            
+            // Update duration if available
+            const durationRow = document.getElementById('pageRankDurationRow');
+            if (data.duration && data.status === 'Completed') {
+                document.getElementById('pageRankDuration').textContent = data.duration;
+                durationRow.style.display = 'flex';
+            } else {
+                durationRow.style.display = 'none';
+            }
+            
+            // Update inactivity info if in progress
+            const inactivityRow = document.getElementById('pageRankInactivityRow');
+            if (data.inProgress && data.inactivity) {
+                document.getElementById('pageRankInactivity').textContent = data.inactivity.inactivityDuration;
+                inactivityRow.style.display = 'flex';
+            } else {
+                inactivityRow.style.display = 'none';
+            }
+            
+            // Update log file path
+            const logFileElement = document.getElementById('pageRankLogFile');
+            if (data.logFile) {
+                logFileElement.textContent = data.logFile;
+                logFileElement.title = data.logExists ? 'Log file exists' : 'Log file does not exist';
+                logFileElement.className = `status-value log-path ${data.logExists ? 'log-exists' : 'log-missing'}`;
+            } else {
+                logFileElement.textContent = 'Not configured';
+            }
+            
+            // Enable trigger button if not in progress
+            const triggerBtn = document.getElementById('triggerPageRankBtn');
+            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
+                triggerBtn.disabled = false;
+            } else {
+                triggerBtn.disabled = true;
+            }
+        }
+        
+        /**
          * Get CSS class for status badge based on status
          * @param {string} status - Calculation status
          * @returns {string} CSS class name
@@ -979,6 +1090,22 @@
             
             // Trigger hops calculation (placeholder)
             document.getElementById('triggerHopsBtn')?.addEventListener('click', function() {
+                alert('Trigger calculation functionality will be implemented in a future update.');
+            });
+            
+            // Refresh PageRank calculation status
+            document.getElementById('refreshPageRankBtn')?.addEventListener('click', function() {
+                this.disabled = true;
+                this.textContent = '🔄 Refreshing...';
+                
+                loadPageRankCalculationStatus().finally(() => {
+                    this.disabled = false;
+                    this.textContent = '🔄 Refresh';
+                });
+            });
+            
+            // Trigger PageRank calculation (placeholder)
+            document.getElementById('triggerPageRankBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
         });

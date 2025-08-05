@@ -25,7 +25,10 @@ const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
 const { handleSearchProfiles } = require('./search/profiles');
 const { handleGetRecentlyActivePubkeys } = require('./content/queries/recentlyActivePubkeys');
-const { handleGetHistoryHops } = require('./algos/calculation-history');
+const {
+    handleGetHistoryHops,
+    handleGetHistoryPersonalizedPageRank
+} = require('./algos/calculation-history');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
@@ -75,6 +78,7 @@ function register(app) {
     }
 
     app.get('/api/calculation-history/hops', handleGetHistoryHops);
+    app.get('/api/calculation-history/personalizedPageRank', handleGetHistoryPersonalizedPageRank);
     
     // Register new modular endpoints for both paths
     // TODO: might move these to status module 
