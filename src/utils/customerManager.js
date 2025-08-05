@@ -1971,16 +1971,26 @@ class CustomerManager {
                     console.log(`✅ MATCH FOUND with pattern ${i + 1}:`, matches[0]);
                     console.log(`Replacing with:`, newLine);
                     
-                    // Use a more specific replacement to avoid replacing preset lines
+                    // Check if the existing line already has the correct value
+                    const existingLine = matches[0];
+                    if (existingLine === newLine) {
+                        console.log(`✅ PARAMETER ALREADY HAS CORRECT VALUE - no change needed`);
+                        replaced = true;
+                        break;
+                    }
+                    
+                    // Perform the replacement
                     const oldContent = updatedContent;
                     updatedContent = updatedContent.replace(paramRegex, newLine);
                     
                     if (oldContent !== updatedContent) {
-                        console.log(`✅ REPLACEMENT SUCCESSFUL`);
+                        console.log(`✅ REPLACEMENT SUCCESSFUL - content changed`);
                         replaced = true;
                         break;
                     } else {
-                        console.log(`❌ REPLACEMENT FAILED - content unchanged`);
+                        console.log(`❌ REPLACEMENT FAILED - content unchanged despite different values`);
+                        console.log(`  Existing: '${existingLine}'`);
+                        console.log(`  New:      '${newLine}'`);
                     }
                 } else {
                     console.log(`❌ No match with pattern ${i + 1}`);
