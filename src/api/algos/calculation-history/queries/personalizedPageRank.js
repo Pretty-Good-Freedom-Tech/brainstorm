@@ -1,264 +1,298 @@
 /**
- * PersonalizedPageRank Calculation History API Handler
- * Provides customer-specific personalizedPageRank calculation status and history
+ * PersonalizedPageRank Calculation History API
+ * Provides calculation status for customer-specific personalizedPageRank calculations
  */
 
 const fs = require('fs');
 const path = require('path');
+const CustomerManager = require('../../../../utils/customerManager');
+const { getConfigFromFile } = require('../../../../utils/config');
 
 /**
- * Handle GET request for personalizedPageRank calculation history
+ * Handler for getting personalizedPageRank calculation history for a specific customer
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
 async function handleGetHistoryPersonalizedPageRank(req, res) {
     try {
-        const { pubkey } = req.query;
-        
-        if (!pubkey) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required parameter: pubkey'
+        // Check if user is authenticated
+        if (!req.session.authenticated) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Authentication required.' 
             });
         }
+
+        // Get customer pubkey from query parameter
+        const customerPubkey = req.query.pubkey;
         
-        console.log(`[PersonalizedPageRank History] Fetching calculation history for customer: ${pubkey}`);
+        if (!customerPubkey) {
+            return res.status(400).json({
+                success: false,
+                message: 'Customer pubkey is required as query parameter'
+            });
+        }
+
+        console.log(`Getting personalizedPageRank calculation history for customer: ${customerPubkey.substring(0, 8)}...`);
         
-        // Get calculation status from log files
-        const calculation = await getPersonalizedPageRankCalculationStatus(pubkey);
+        // Verify the customer exists using CustomerManager
+        const customerManager = new CustomerManager();
+        await customerManager.initialize();
+        
+        const customer = await customerManager.getCustomer(customerPubkey);
+        
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer not found'
+            });
+        }
+
+        // Get the customer's log directory
+        const logDir = getConfigFromFile('BRAINSTORM_LOG_DIR', '/var/log/brainstorm');
+        const customerLogDir = path.join(logDir, 'customers', customer.name);
+        const personalizedPageRankLogFile = path.join(customerLogDir, 'personalizedPageRank.log');
+        
+        console.log(`Checking personalizedPageRank log file: ${personalizedPageRankLogFile}`);
+        
+        // Get calculation status from log file
+        const calculationStatus = getPersonalizedPageRankCalculationStatus(personalizedPageRankLogFile);
         
         res.json({
             success: true,
-            message: 'PersonalizedPageRank calculation history retrieved successfully',
             data: {
-                customer: pubkey,
-                calculation: calculation,
-                timestamp: new Date().toISOString()
+                customer: {
+                    name: customer.name,
+                    id: customer.id,
+                    pubkey: customerPubkey,
+                    status: customer.status
+                },
+                calculation: {
+                    type: 'personalizedPageRank',
+                    logFile: personalizedPageRankLogFile,
+                    ...calculationStatus
+                }
             }
         });
         
     } catch (error) {
-        console.error('[PersonalizedPageRank History] Error:', error);
+        console.error('Error getting personalizedPageRank calculation history:', error);
         res.status(500).json({
             success: false,
-            message: 'Internal server error while fetching personalizedPageRank calculation history',
-            error: error.message
+            message: 'Internal server error while getting calculation history'
         });
     }
 }
 
 /**
- * Get personalizedPageRank calculation status from log files
- * @param {string} pubkey - Customer public key
+ * Get calculation status from personalizedPageRank log file
+ * @param {string} logFile - Path to the log file
  * @returns {Object} Calculation status information
  */
-async function getPersonalizedPageRankCalculationStatus(pubkey) {
+function getPersonalizedPageRankCalculationStatus(logFile) {
     try {
-        // Construct log file path for this customer
-        const logFile = `/var/lib/brainstorm/customers/${pubkey}/logs/personalizedPageRank.log`;
-        
-        console.log(`[PersonalizedPageRank History] Checking log file: ${logFile}`);
-        
-        // Check if log file exists
-        const logExists = fs.existsSync(logFile);
-        
-        if (!logExists) {
-            console.log(`[PersonalizedPageRank History] Log file does not exist: ${logFile}`);
-            return {
-                status: 'Never Run',
-                formattedTime: 'Never',
-                logFile: logFile,
-                logExists: false,
-                message: 'PersonalizedPageRank calculation has never been run for this customer'
+        if (!fs.existsSync(logFile)) {
+            return { 
+                status: 'Never', 
+                timestamp: 0, 
+                formattedTime: 'Never', 
+                duration: null,
+                logExists: false
             };
         }
         
-        // Read and parse log file
-        const logContent = fs.readFileSync(logFile, 'utf8');
-        const logLines = logContent.trim().split('\n').filter(line => line.trim());
+        const fileContent = fs.readFileSync(logFile, 'utf8');
         
-        if (logLines.length === 0) {
-            return {
-                status: 'Never Run',
-                formattedTime: 'Never',
-                logFile: logFile,
+        // Check for the most recent "Starting personalizedPageRank" and "Finished personalizedPageRank" entries
+        // Expected format: "Tue Jul 29 18:54:47 UTC 2025: Starting personalizedPageRank"
+        const startMatches = [...fileContent.matchAll(/(.*?): Starting personalizedPageRank/g)];
+        const finishMatches = [...fileContent.matchAll(/(.*?): Finished personalizedPageRank/g)];
+        
+        if (startMatches.length === 0) {
+            return { 
+                status: 'Never', 
+                timestamp: 0, 
+                formattedTime: 'Never', 
+                duration: null,
                 logExists: true,
-                message: 'Log file exists but is empty'
+                logSize: fileContent.length
             };
         }
         
-        // Parse log entries to determine status
-        const result = parsePersonalizedPageRankLogEntries(logLines);
-        result.logFile = logFile;
-        result.logExists = true;
+        // Parse the date strings
+        const parseLogDate = (dateStr) => {
+            try {
+                // Convert the log date format to a standard format that JavaScript can parse
+                return new Date(dateStr.trim());
+            } catch (err) {
+                console.error(`Error parsing date: ${dateStr}`, err);
+                return null;
+            }
+        };
         
-        return result;
+        const lastStartMatch = startMatches[startMatches.length - 1];
+        const lastStartDate = parseLogDate(lastStartMatch[1]);
+        
+        if (!lastStartDate) {
+            return { 
+                status: 'Error', 
+                timestamp: 0, 
+                formattedTime: 'Error parsing date', 
+                duration: null,
+                logExists: true,
+                error: 'Could not parse start date'
+            };
+        }
+        
+        const lastStartTimestamp = Math.floor(lastStartDate.getTime() / 1000);
+        
+        // Check if there's a finish entry after the last start entry
+        let isCompleted = false;
+        let lastFinishDate = null;
+        let lastFinishTimestamp = 0;
+        
+        if (finishMatches.length > 0) {
+            // Find the most recent finish entry that comes after the last start
+            for (let i = finishMatches.length - 1; i >= 0; i--) {
+                const finishDate = parseLogDate(finishMatches[i][1]);
+                if (finishDate && finishDate >= lastStartDate) {
+                    isCompleted = true;
+                    lastFinishDate = finishDate;
+                    lastFinishTimestamp = Math.floor(lastFinishDate.getTime() / 1000);
+                    break;
+                }
+            }
+        }
+        
+        if (!isCompleted) {
+            // In progress - started but not finished
+            const now = new Date();
+            const elapsedSeconds = Math.floor((now - lastStartDate) / 1000);
+            const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+            const elapsedHours = Math.floor(elapsedMinutes / 60);
+            
+            let formattedElapsed;
+            if (elapsedHours > 0) {
+                formattedElapsed = `${elapsedHours}h ${elapsedMinutes % 60}m ago`;
+            } else if (elapsedMinutes > 0) {
+                formattedElapsed = `${elapsedMinutes}m ${elapsedSeconds % 60}s ago`;
+            } else {
+                formattedElapsed = `${elapsedSeconds}s ago`;
+            }
+            
+            // Check for potential stalling by examining the last line of the log
+            const lines = fileContent.split('\n').filter(line => line.trim() !== '');
+            const lastLine = lines[lines.length - 1];
+            
+            let lastActivityDate = null;
+            if (lastLine) {
+                // Try to extract date from the last line
+                const lastLineMatch = lastLine.match(/^(.*?): /);
+                if (lastLineMatch) {
+                    lastActivityDate = parseLogDate(lastLineMatch[1]);
+                }
+            }
+            
+            let inactivityInfo = null;
+            if (lastActivityDate) {
+                const inactivitySeconds = Math.floor((now - lastActivityDate) / 1000);
+                const inactivityMinutes = Math.floor(inactivitySeconds / 60);
+                const inactivityHours = Math.floor(inactivityMinutes / 60);
+                
+                let formattedInactivity;
+                if (inactivityHours > 0) {
+                    formattedInactivity = `${inactivityHours}h ${inactivityMinutes % 60}m ago`;
+                } else if (inactivityMinutes > 0) {
+                    formattedInactivity = `${inactivityMinutes}m ${inactivitySeconds % 60}s ago`;
+                } else {
+                    formattedInactivity = `${inactivitySeconds}s ago`;
+                }
+                
+                inactivityInfo = {
+                    lastLine: lastLine,
+                    lastActivityTimestamp: Math.floor(lastActivityDate.getTime() / 1000),
+                    inactivityDuration: formattedInactivity,
+                    inactivitySeconds: inactivitySeconds
+                };
+            }
+            
+            // Determine if it might be stalled (no activity for more than 5 minutes)
+            let status = 'In Progress';
+            if (inactivityInfo && inactivityInfo.inactivitySeconds > 300) { // 5 minutes
+                status = 'Stalled';
+            }
+            
+            return {
+                status,
+                timestamp: lastStartTimestamp,
+                formattedTime: `Started ${formattedElapsed}`,
+                startTime: lastStartDate.toLocaleString(),
+                duration: null,
+                logExists: true,
+                inProgress: true,
+                inactivity: inactivityInfo
+            };
+        } else {
+            // Completed
+            const now = new Date();
+            const elapsedSeconds = Math.floor((now - lastFinishDate) / 1000);
+            const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+            const elapsedHours = Math.floor(elapsedMinutes / 60);
+            const elapsedDays = Math.floor(elapsedHours / 24);
+            
+            let formattedElapsed;
+            if (elapsedDays > 0) {
+                formattedElapsed = `${elapsedDays}d ${elapsedHours % 24}h ago`;
+            } else if (elapsedHours > 0) {
+                formattedElapsed = `${elapsedHours}h ${elapsedMinutes % 60}m ago`;
+            } else if (elapsedMinutes > 0) {
+                formattedElapsed = `${elapsedMinutes}m ${elapsedSeconds % 60}s ago`;
+            } else {
+                formattedElapsed = `${elapsedSeconds}s ago`;
+            }
+            
+            const durationSeconds = Math.floor((lastFinishDate - lastStartDate) / 1000);
+            const durationMinutes = Math.floor(durationSeconds / 60);
+            const durationHours = Math.floor(durationMinutes / 60);
+            const durationDays = Math.floor(durationHours / 24);
+            
+            let formattedDuration;
+            if (durationDays > 0) {
+                formattedDuration = `${durationDays}d ${durationHours % 24}h`;
+            } else if (durationHours > 0) {
+                formattedDuration = `${durationHours}h ${durationMinutes % 60}m`;
+            } else if (durationMinutes > 0) {
+                formattedDuration = `${durationMinutes}m ${durationSeconds % 60}s`;
+            } else {
+                formattedDuration = `${durationSeconds}s`;
+            }
+            
+            return {
+                status: 'Completed',
+                timestamp: lastFinishTimestamp,
+                formattedTime: `Completed ${formattedElapsed}`,
+                startTime: lastStartDate.toLocaleString(),
+                finishTime: lastFinishDate.toLocaleString(),
+                duration: formattedDuration,
+                durationSeconds: durationSeconds,
+                logExists: true,
+                inProgress: false
+            };
+        }
         
     } catch (error) {
-        console.error('[PersonalizedPageRank History] Error reading log file:', error);
+        console.error(`Error reading log file ${logFile}:`, error);
         return {
             status: 'Error',
-            formattedTime: 'Unknown',
-            logFile: `/var/lib/brainstorm/customers/${pubkey}/logs/personalizedPageRank.log`,
-            logExists: false,
-            error: error.message,
-            message: 'Error reading personalizedPageRank calculation log'
+            timestamp: 0,
+            formattedTime: 'Error reading log file',
+            duration: null,
+            logExists: fs.existsSync(logFile),
+            error: error.message
         };
     }
 }
 
-/**
- * Parse personalizedPageRank log entries to determine calculation status
- * @param {Array} logLines - Array of log lines
- * @returns {Object} Parsed status information
- */
-function parsePersonalizedPageRankLogEntries(logLines) {
-    let startTime = null;
-    let endTime = null;
-    let lastActivityTime = null;
-    let status = 'Unknown';
-    let errors = [];
-    
-    // Parse each log line
-    for (const line of logLines) {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) continue;
-        
-        // Extract timestamp from log line (assuming format: YYYY-MM-DD HH:MM:SS - message)
-        const timestampMatch = trimmedLine.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
-        if (timestampMatch) {
-            lastActivityTime = new Date(timestampMatch[1]);
-        }
-        
-        // Look for start indicators
-        if (trimmedLine.includes('Starting personalizedPageRank calculation') || 
-            trimmedLine.includes('PersonalizedPageRank calculation started')) {
-            if (timestampMatch) {
-                startTime = new Date(timestampMatch[1]);
-            }
-            status = 'In Progress';
-        }
-        
-        // Look for completion indicators
-        if (trimmedLine.includes('PersonalizedPageRank calculation completed') ||
-            trimmedLine.includes('personalizedPageRank calculation finished') ||
-            trimmedLine.includes('Successfully completed personalizedPageRank')) {
-            if (timestampMatch) {
-                endTime = new Date(timestampMatch[1]);
-            }
-            status = 'Completed';
-        }
-        
-        // Look for error indicators
-        if (trimmedLine.includes('ERROR') || trimmedLine.includes('Error') || 
-            trimmedLine.includes('FAILED') || trimmedLine.includes('Failed')) {
-            errors.push(trimmedLine);
-            status = 'Error';
-        }
-    }
-    
-    // Determine final status and timing
-    const result = {
-        status: status,
-        startTime: startTime,
-        endTime: endTime,
-        lastActivityTime: lastActivityTime,
-        errors: errors
-    };
-    
-    // Format display time
-    if (endTime) {
-        result.formattedTime = formatTimestamp(endTime);
-        if (startTime) {
-            const durationMs = endTime - startTime;
-            result.duration = formatDuration(durationMs);
-        }
-    } else if (startTime) {
-        result.formattedTime = formatTimestamp(startTime);
-        
-        // Check if process might be stalled
-        if (lastActivityTime) {
-            const now = new Date();
-            const inactivityMs = now - lastActivityTime;
-            const inactivityMinutes = Math.floor(inactivityMs / (1000 * 60));
-            
-            // Consider stalled if no activity for more than 30 minutes
-            if (inactivityMinutes > 30) {
-                result.status = 'Stalled';
-                result.inactivity = {
-                    lastActivity: formatTimestamp(lastActivityTime),
-                    inactivityDuration: formatDuration(inactivityMs)
-                };
-            } else {
-                result.inProgress = true;
-                result.inactivity = {
-                    lastActivity: formatTimestamp(lastActivityTime),
-                    inactivityDuration: formatDuration(inactivityMs)
-                };
-            }
-        }
-    } else if (lastActivityTime) {
-        result.formattedTime = formatTimestamp(lastActivityTime);
-    } else {
-        result.formattedTime = 'Unknown';
-    }
-    
-    return result;
-}
-
-/**
- * Format timestamp for display
- * @param {Date} timestamp - Date object to format
- * @returns {string} Formatted timestamp string
- */
-function formatTimestamp(timestamp) {
-    if (!timestamp || !(timestamp instanceof Date)) {
-        return 'Unknown';
-    }
-    
-    const now = new Date();
-    const diffMs = now - timestamp;
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffMinutes < 1) {
-        return 'Just now';
-    } else if (diffMinutes < 60) {
-        return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
-    } else if (diffHours < 24) {
-        return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-    } else if (diffDays < 7) {
-        return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
-    } else {
-        return timestamp.toLocaleString();
-    }
-}
-
-/**
- * Format duration in milliseconds to human readable string
- * @param {number} durationMs - Duration in milliseconds
- * @returns {string} Formatted duration string
- */
-function formatDuration(durationMs) {
-    if (!durationMs || durationMs < 0) {
-        return 'Unknown';
-    }
-    
-    const seconds = Math.floor(durationMs / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    
-    if (hours > 0) {
-        const remainingMinutes = minutes % 60;
-        return `${hours}h ${remainingMinutes}m`;
-    } else if (minutes > 0) {
-        const remainingSeconds = seconds % 60;
-        return `${minutes}m ${remainingSeconds}s`;
-    } else {
-        return `${seconds}s`;
-    }
-}
 
 module.exports = {
     handleGetHistoryPersonalizedPageRank
