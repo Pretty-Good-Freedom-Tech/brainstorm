@@ -128,7 +128,6 @@ async function getCustomerRelayKeys(customer_pubkey) {
         }
         
         // Get private keys from secure storage
-        const SecureKeyStorage = require('./secureKeyStorage');
         const secureStorage = new SecureKeyStorage();
         
         let privkey = null;
