@@ -5,6 +5,7 @@
 
 const { handleGenerateNip85 } = require('./commands/generate');
 const { handleCreateKind10040, handlePublishKind10040 } = require('./commands/kind10040');
+const { handleCreateAndPublishKind10040 } = require('./commands/create-and-publish-kind10040');
 const { handlePublishKind30382 } = require('./commands/kind30382');
 const { handlePublish } = require('./commands/publish');
 const { handleGetKind10040Event } = require('./queries/kind10040');
@@ -17,6 +18,7 @@ module.exports = {
     handleGenerateNip85,
     handleCreateKind10040,
     handlePublishKind10040,
+    handleCreateAndPublishKind10040,
     handlePublishKind30382,
     handlePublish,
     

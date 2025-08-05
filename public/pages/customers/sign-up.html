@@ -541,7 +541,7 @@
         function setupKind10040Buttons(customerPubkey) {
             // Publish Kind 10040 button
             document.getElementById('publishKind10040Btn').addEventListener('click', async function() {
-                await handlePublishKind10040(customerPubkey);
+                await handleCreateAndPublishKind10040(customerPubkey);
             });
             
             // Skip button
@@ -553,7 +553,7 @@
         /**
          * Handle Kind 10040 publishing
          */
-        async function handlePublishKind10040(customerPubkey) {
+        async function handleCreateAndPublishKind10040(customerPubkey) {
             const publishBtn = document.getElementById('publishKind10040Btn');
             const skipBtn = document.getElementById('skipKind10040Btn');
             
@@ -565,7 +565,7 @@
             
             try {
                 // Call the Kind 10040 creation API
-                const response = await fetch('/api/create-kind10040', {
+                const response = await fetch('/api/create-and-publish-kind10040', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
