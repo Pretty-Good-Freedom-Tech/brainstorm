@@ -323,6 +323,39 @@
                             </div>
                         </div>
                         
+                        <!-- Analyze Follows, Mutes, and Reports Status -->
+                        <div class="calculation-status-section">
+                            <div class="calculation-header">
+                                <h4>🔍 Analyze Follows, Mutes, and Reports</h4>
+                                <div class="calculation-actions">
+                                    <button id="refreshAnalyzeFollowsMutesReportsBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                    <button id="triggerAnalyzeFollowsMutesReportsBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger</button>
+                                </div>
+                            </div>
+                            <div class="calculation-details">
+                                <div class="status-row">
+                                    <span class="status-label">Status:</span>
+                                    <span id="analyzeFollowsMutesReportsStatus" class="status-badge status-unknown">Loading...</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Last Run:</span>
+                                    <span id="analyzeFollowsMutesReportsLastRun" class="status-value">Loading...</span>
+                                </div>
+                                <div id="analyzeFollowsMutesReportsDurationRow" class="status-row" style="display: none;">
+                                    <span class="status-label">Duration:</span>
+                                    <span id="analyzeFollowsMutesReportsDuration" class="status-value">-</span>
+                                </div>
+                                <div id="analyzeFollowsMutesReportsInactivityRow" class="status-row" style="display: none;">
+                                    <span class="status-label">Last Activity:</span>
+                                    <span id="analyzeFollowsMutesReportsInactivity" class="status-value">-</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Log File:</span>
+                                    <span id="analyzeFollowsMutesReportsLogFile" class="status-value log-path">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Kind 30382 Export Calculation Status -->
                         <div class="calculation-status-section">
                             <div class="calculation-header">
@@ -588,6 +621,7 @@
             loadHopsCalculationStatus();
             loadPageRankCalculationStatus();
             loadGrapeRankCalculationStatus();
+            loadAnalyzeFollowsMutesReportsCalculationStatus();
             loadKind30382ExportCalculationStatus();
             
             // Update status display in management section
@@ -1388,6 +1422,89 @@
         }
         
         /**
+         * Load Analyze Follows, Mutes, and Reports calculation status from API
+         */
+        async function loadAnalyzeFollowsMutesReportsCalculationStatus() {
+            try {
+                console.log('Loading Analyze Follows, Mutes, and Reports calculation status...');
+                
+                const response = await fetch(`/api/calculation-history/analyzeFollowsMutesReports?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateAnalyzeFollowsMutesReportsCalculationDisplay(result.data.calculation);
+                } else {
+                    console.error('Failed to load Analyze Follows, Mutes, and Reports calculation status:', result.message);
+                    updateAnalyzeFollowsMutesReportsCalculationDisplay({
+                        status: 'Error',
+                        formattedTime: 'Failed to load',
+                        logExists: false,
+                        error: result.message
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading Analyze Follows, Mutes, and Reports calculation status:', error);
+                updateAnalyzeFollowsMutesReportsCalculationDisplay({
+                    status: 'Error',
+                    formattedTime: 'Network error',
+                    logExists: false,
+                    error: error.message
+                });
+            }
+        }
+        
+        /**
+         * Update Analyze Follows, Mutes, and Reports calculation display with API data
+         * @param {Object} data - Calculation status data from API
+         */
+        function updateAnalyzeFollowsMutesReportsCalculationDisplay(data) {
+            // Update status badge
+            const statusElement = document.getElementById('analyzeFollowsMutesReportsStatus');
+            statusElement.textContent = data.status || 'Unknown';
+            statusElement.className = `status-badge ${getStatusClass(data.status)}`;
+            
+            // Update last run time
+            document.getElementById('analyzeFollowsMutesReportsLastRun').textContent = data.formattedTime || 'Unknown';
+            
+            // Update duration if available
+            const durationRow = document.getElementById('analyzeFollowsMutesReportsDurationRow');
+            if (data.duration && data.status === 'Completed') {
+                document.getElementById('analyzeFollowsMutesReportsDuration').textContent = data.duration;
+                durationRow.style.display = 'flex';
+            } else {
+                durationRow.style.display = 'none';
+            }
+            
+            // Update inactivity info if in progress
+            const inactivityRow = document.getElementById('analyzeFollowsMutesReportsInactivityRow');
+            if (data.inProgress && data.inactivity) {
+                document.getElementById('analyzeFollowsMutesReportsInactivity').textContent = data.inactivity.inactivityDuration;
+                inactivityRow.style.display = 'flex';
+            } else {
+                inactivityRow.style.display = 'none';
+            }
+            
+            // Update log file path
+            const logFileElement = document.getElementById('analyzeFollowsMutesReportsLogFile');
+            if (data.logFile) {
+                logFileElement.textContent = data.logFile;
+                logFileElement.title = data.logExists ? 'Log file exists' : 'Log file does not exist';
+                logFileElement.className = `status-value log-path ${data.logExists ? 'log-exists' : 'log-missing'}`;
+            } else {
+                logFileElement.textContent = 'Not configured';
+            }
+            
+            // Enable trigger button if not in progress
+            const triggerBtn = document.getElementById('triggerAnalyzeFollowsMutesReportsBtn');
+            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
+                triggerBtn.disabled = false;
+            } else {
+                triggerBtn.disabled = true;
+            }
+        }
+        
+        /**
          * Get CSS class for status badge based on status
          * @param {string} status - Calculation status
          * @returns {string} CSS class name
@@ -1488,6 +1605,22 @@
             
             // Trigger Process All Trust Metrics calculation (placeholder)
             document.getElementById('triggerProcessAllTrustMetricsBtn')?.addEventListener('click', function() {
+                alert('Trigger calculation functionality will be implemented in a future update.');
+            });
+            
+            // Refresh Analyze Follows, Mutes, and Reports calculation status
+            document.getElementById('refreshAnalyzeFollowsMutesReportsBtn')?.addEventListener('click', function() {
+                this.disabled = true;
+                this.textContent = '🔄 Refreshing...';
+                
+                loadAnalyzeFollowsMutesReportsCalculationStatus().finally(() => {
+                    this.disabled = false;
+                    this.textContent = '🔄 Refresh';
+                });
+            });
+            
+            // Trigger Analyze Follows, Mutes, and Reports calculation (placeholder)
+            document.getElementById('triggerAnalyzeFollowsMutesReportsBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
         });

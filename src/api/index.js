@@ -29,6 +29,7 @@ const {
     handleGetHistoryHops,
     handleGetHistoryPersonalizedPageRank,
     handleGetHistoryPersonalizedGrapeRank,
+    handleGetHistoryAnalyzeFollowsMutesReports,
     handleGetHistoryKind30382Export,
     handleGetHistoryProcessAllTrustMetrics
 } = require('./algos/calculation-history');
@@ -84,6 +85,7 @@ function register(app) {
     app.get('/api/calculation-history/hops', handleGetHistoryHops);
     app.get('/api/calculation-history/personalizedPageRank', handleGetHistoryPersonalizedPageRank);
     app.get('/api/calculation-history/personalizedGrapeRank', handleGetHistoryPersonalizedGrapeRank);
+    app.get('/api/calculation-history/analyzeFollowsMutesReports', handleGetHistoryAnalyzeFollowsMutesReports);
     app.get('/api/calculation-history/kind30382Export', handleGetHistoryKind30382Export);
     
     // Register new modular endpoints for both paths

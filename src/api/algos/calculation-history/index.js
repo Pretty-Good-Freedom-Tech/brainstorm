@@ -6,6 +6,7 @@
 const { handleGetHistoryHops } = require('./queries/hops');
 const { handleGetHistoryPersonalizedPageRank } = require('./queries/personalizedPageRank');
 const { handleGetHistoryPersonalizedGrapeRank } = require('./queries/personalizedGrapeRank');
+const { handleGetHistoryAnalyzeFollowsMutesReports } = require('./queries/analyzeFollowsMutesReports');
 const { handleGetHistoryKind30382Export } = require('./queries/kind30382Export');
 const { handleGetHistoryProcessAllTrustMetrics } = require('./queries/processAllTrustMetrics');
 
@@ -15,6 +16,7 @@ module.exports = {
     handleGetHistoryHops,
     handleGetHistoryPersonalizedPageRank,
     handleGetHistoryPersonalizedGrapeRank,
+    handleGetHistoryAnalyzeFollowsMutesReports,
     handleGetHistoryKind30382Export,
     handleGetHistoryProcessAllTrustMetrics
 };
