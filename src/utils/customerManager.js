@@ -1703,27 +1703,50 @@ class CustomerManager {
     determineGeneralPreset(configData) {
         const { parameters, availablePresets, liveValues, presetValues } = configData;
         
+        console.log('=== PRESET DETERMINATION DEBUG ===');
+        console.log('Available presets:', availablePresets);
+        console.log('Parameters:', parameters);
+        console.log('Live values:', liveValues);
+        console.log('Preset values:', presetValues);
+        
         // Check each available preset
         for (const preset of availablePresets) {
             let matches = true;
             const mismatches = [];
             
+            console.log(`\n--- Checking preset: ${preset} ---`);
+            
             for (const param of parameters) {
                 const liveValue = liveValues[param];
                 const presetValue = presetValues[preset][param];
                 
-                if (!this.valuesEqual(liveValue, presetValue)) {
+                console.log(`Parameter ${param}:`);
+                console.log(`  Live: ${liveValue} (type: ${typeof liveValue})`);
+                console.log(`  Preset: ${presetValue} (type: ${typeof presetValue})`);
+                
+                const isEqual = this.valuesEqual(liveValue, presetValue);
+                console.log(`  Equal: ${isEqual}`);
+                
+                if (!isEqual) {
                     matches = false;
                     mismatches.push({
                         parameter: param,
                         liveValue,
-                        presetValue
+                        presetValue,
+                        liveType: typeof liveValue,
+                        presetType: typeof presetValue
                     });
                 }
             }
             
+            console.log(`Preset ${preset} matches: ${matches}`);
+            if (mismatches.length > 0) {
+                console.log('Mismatches:', mismatches);
+            }
+            
             if (matches) {
                 const presetName = preset.charAt(0).toUpperCase() + preset.slice(1);
+                console.log(`=== MATCH FOUND: ${presetName} ===`);
                 return {
                     preset: presetName,
                     details: {
@@ -1736,6 +1759,7 @@ class CustomerManager {
         }
         
         // No preset matches - it's custom
+        console.log('=== NO MATCH FOUND - CUSTOM ===');
         return {
             preset: 'Custom',
             details: {
