@@ -1462,26 +1462,47 @@ class CustomerManager {
         const { parameters, presetValues } = configData;
         let updatedContent = originalContent;
         
+        console.log(`Applying preset '${preset}' with parameters:`, parameters);
+        
         // Update each parameter with the new preset values
         for (const param of parameters) {
             const newValue = presetValues[preset][param];
             
-            // Create regex to match the live parameter line
-            const paramRegex = new RegExp(`^export\s+${param}=.*$`, 'm');
+            console.log(`Updating parameter ${param}: ${newValue}`);
             
-            // Format the new value properly
+            // Create more flexible regex to match the export line
+            // This matches: export PARAM_NAME=value (with optional whitespace)
+            const paramRegex = new RegExp(`^(export\s+${param}\s*=).*$`, 'gm');
+            
+            // Format the new value properly to match original format
             let formattedValue;
             if (typeof newValue === 'string') {
                 formattedValue = `'${newValue}'`;
-            } else {
+            } else if (typeof newValue === 'boolean') {
                 formattedValue = newValue.toString();
+            } else if (typeof newValue === 'number') {
+                formattedValue = newValue.toString();
+            } else {
+                formattedValue = `'${newValue}'`;
             }
             
-            // Replace the parameter line
+            // Create the replacement line
             const newLine = `export ${param}=${formattedValue}`;
-            updatedContent = updatedContent.replace(paramRegex, newLine);
+            
+            // Check if the parameter exists in the content
+            const matches = originalContent.match(paramRegex);
+            if (matches && matches.length > 0) {
+                console.log(`Found existing line for ${param}:`, matches[0]);
+                console.log(`Replacing with:`, newLine);
+                updatedContent = updatedContent.replace(paramRegex, newLine);
+            } else {
+                console.warn(`Parameter ${param} not found in configuration file`);
+                // If parameter doesn't exist, add it at the end
+                updatedContent += `\n${newLine}`;
+            }
         }
         
+        console.log('Configuration update completed');
         return updatedContent;
     }
 
