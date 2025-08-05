@@ -7,6 +7,7 @@ const { handleGetHistoryHops } = require('./queries/hops');
 const { handleGetHistoryPersonalizedPageRank } = require('./queries/personalizedPageRank');
 const { handleGetHistoryPersonalizedGrapeRank } = require('./queries/personalizedGrapeRank');
 const { handleGetHistoryKind30382Export } = require('./queries/kind30382Export');
+const { handleGetHistoryProcessAllTrustMetrics } = require('./queries/processAllTrustMetrics');
 
 // Export handlers directly - this allows the central router to register endpoints
 module.exports = {
@@ -14,5 +15,6 @@ module.exports = {
     handleGetHistoryHops,
     handleGetHistoryPersonalizedPageRank,
     handleGetHistoryPersonalizedGrapeRank,
-    handleGetHistoryKind30382Export
+    handleGetHistoryKind30382Export,
+    handleGetHistoryProcessAllTrustMetrics
 };

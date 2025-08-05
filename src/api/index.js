@@ -29,7 +29,8 @@ const {
     handleGetHistoryHops,
     handleGetHistoryPersonalizedPageRank,
     handleGetHistoryPersonalizedGrapeRank,
-    handleGetHistoryKind30382Export
+    handleGetHistoryKind30382Export,
+    handleGetHistoryProcessAllTrustMetrics
 } = require('./algos/calculation-history');
 
 // Import domain-specific handler modules
@@ -79,6 +80,7 @@ function register(app) {
         app._brainstormSessionConfigured = true;
     }
 
+    app.get('/api/calculation-history/processAllTrustMetrics', handleGetHistoryProcessAllTrustMetrics);
     app.get('/api/calculation-history/hops', handleGetHistoryHops);
     app.get('/api/calculation-history/personalizedPageRank', handleGetHistoryPersonalizedPageRank);
     app.get('/api/calculation-history/personalizedGrapeRank', handleGetHistoryPersonalizedGrapeRank);

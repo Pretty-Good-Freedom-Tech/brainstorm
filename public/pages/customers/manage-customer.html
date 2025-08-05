@@ -197,6 +197,39 @@
                     <div class="data-card">
                         <h3>Trust Metrics Calculation Status</h3>
                         
+                        <!-- Process All Trust Metrics Status -->
+                        <div class="calculation-status-section">
+                            <div class="calculation-header">
+                                <h4>🚀 Process All Trust Metrics</h4>
+                                <div class="calculation-actions">
+                                    <button id="refreshProcessAllTrustMetricsBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                    <button id="triggerProcessAllTrustMetricsBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger</button>
+                                </div>
+                            </div>
+                            <div class="calculation-details">
+                                <div class="status-row">
+                                    <span class="status-label">Status:</span>
+                                    <span id="processAllTrustMetricsStatus" class="status-badge status-unknown">Loading...</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Last Run:</span>
+                                    <span id="processAllTrustMetricsLastRun" class="status-value">Loading...</span>
+                                </div>
+                                <div id="processAllTrustMetricsDurationRow" class="status-row" style="display: none;">
+                                    <span class="status-label">Duration:</span>
+                                    <span id="processAllTrustMetricsDuration" class="status-value">-</span>
+                                </div>
+                                <div id="processAllTrustMetricsInactivityRow" class="status-row" style="display: none;">
+                                    <span class="status-label">Last Activity:</span>
+                                    <span id="processAllTrustMetricsInactivity" class="status-value">-</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Log File:</span>
+                                    <span id="processAllTrustMetricsLogFile" class="status-value log-path">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Hops Calculation Status -->
                         <div class="calculation-status-section">
                             <h4>🔗 Hops Calculation</h4>
@@ -551,6 +584,7 @@
             document.getElementById('grapeRankPreset').innerHTML = '<span class="preset-default">Default</span>';
             
             // Load Trust Metrics Calculation Status
+            loadProcessAllTrustMetricsCalculationStatus();
             loadHopsCalculationStatus();
             loadPageRankCalculationStatus();
             loadGrapeRankCalculationStatus();
@@ -1271,6 +1305,89 @@
         }
         
         /**
+         * Load Process All Trust Metrics calculation status from API
+         */
+        async function loadProcessAllTrustMetricsCalculationStatus() {
+            try {
+                console.log('Loading Process All Trust Metrics calculation status...');
+                
+                const response = await fetch(`/api/calculation-history/processAllTrustMetrics?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateProcessAllTrustMetricsCalculationDisplay(result.data.calculation);
+                } else {
+                    console.error('Failed to load Process All Trust Metrics calculation status:', result.message);
+                    updateProcessAllTrustMetricsCalculationDisplay({
+                        status: 'Error',
+                        formattedTime: 'Failed to load',
+                        logExists: false,
+                        error: result.message
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading Process All Trust Metrics calculation status:', error);
+                updateProcessAllTrustMetricsCalculationDisplay({
+                    status: 'Error',
+                    formattedTime: 'Network error',
+                    logExists: false,
+                    error: error.message
+                });
+            }
+        }
+        
+        /**
+         * Update Process All Trust Metrics calculation display with API data
+         * @param {Object} data - Calculation status data from API
+         */
+        function updateProcessAllTrustMetricsCalculationDisplay(data) {
+            // Update status badge
+            const statusElement = document.getElementById('processAllTrustMetricsStatus');
+            statusElement.textContent = data.status || 'Unknown';
+            statusElement.className = `status-badge ${getStatusClass(data.status)}`;
+            
+            // Update last run time
+            document.getElementById('processAllTrustMetricsLastRun').textContent = data.formattedTime || 'Unknown';
+            
+            // Update duration if available
+            const durationRow = document.getElementById('processAllTrustMetricsDurationRow');
+            if (data.duration && data.status === 'Completed') {
+                document.getElementById('processAllTrustMetricsDuration').textContent = data.duration;
+                durationRow.style.display = 'flex';
+            } else {
+                durationRow.style.display = 'none';
+            }
+            
+            // Update inactivity info if in progress
+            const inactivityRow = document.getElementById('processAllTrustMetricsInactivityRow');
+            if (data.inProgress && data.inactivity) {
+                document.getElementById('processAllTrustMetricsInactivity').textContent = data.inactivity.inactivityDuration;
+                inactivityRow.style.display = 'flex';
+            } else {
+                inactivityRow.style.display = 'none';
+            }
+            
+            // Update log file path
+            const logFileElement = document.getElementById('processAllTrustMetricsLogFile');
+            if (data.logFile) {
+                logFileElement.textContent = data.logFile;
+                logFileElement.title = data.logExists ? 'Log file exists' : 'Log file does not exist';
+                logFileElement.className = `status-value log-path ${data.logExists ? 'log-exists' : 'log-missing'}`;
+            } else {
+                logFileElement.textContent = 'Not configured';
+            }
+            
+            // Enable trigger button if not in progress
+            const triggerBtn = document.getElementById('triggerProcessAllTrustMetricsBtn');
+            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
+                triggerBtn.disabled = false;
+            } else {
+                triggerBtn.disabled = true;
+            }
+        }
+        
+        /**
          * Get CSS class for status badge based on status
          * @param {string} status - Calculation status
          * @returns {string} CSS class name
@@ -1355,6 +1472,22 @@
             
             // Trigger Kind 30382 Export calculation (placeholder)
             document.getElementById('triggerKind30382ExportBtn')?.addEventListener('click', function() {
+                alert('Trigger calculation functionality will be implemented in a future update.');
+            });
+            
+            // Refresh Process All Trust Metrics calculation status
+            document.getElementById('refreshProcessAllTrustMetricsBtn')?.addEventListener('click', function() {
+                this.disabled = true;
+                this.textContent = '🔄 Refreshing...';
+                
+                loadProcessAllTrustMetricsCalculationStatus().finally(() => {
+                    this.disabled = false;
+                    this.textContent = '🔄 Refresh';
+                });
+            });
+            
+            // Trigger Process All Trust Metrics calculation (placeholder)
+            document.getElementById('triggerProcessAllTrustMetricsBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
         });
