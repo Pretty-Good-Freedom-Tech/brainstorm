@@ -109,30 +109,53 @@ function customerHasRelayKeys(customer_pubkey) {
 }
 
 /**
- * Get existing relay keys for a customer from brainstorm.conf
+ * Get existing relay keys for a customer from brainstorm.conf and secure storage
  * @param {string} customer_pubkey - Customer's public key
- * @returns {Object|null} Relay keys object or null if not found
+ * @returns {Promise<Object|null>} Relay keys object or null if not found
  */
-function getCustomerRelayKeys(customer_pubkey) {
+async function getCustomerRelayKeys(customer_pubkey) {
     try {
         const brainstormConf = getBrainstormConfFile();
         
-        // Extract keys using regex patterns
+        // Extract public keys from brainstorm.conf
         const pubkeyMatch = brainstormConf.match(new RegExp(`CUSTOMER_${customer_pubkey}_RELAY_PUBKEY='([^']+)'`));
         const npubMatch = brainstormConf.match(new RegExp(`CUSTOMER_${customer_pubkey}_RELAY_NPUB='([^']+)'`));
-        const privkeyMatch = brainstormConf.match(new RegExp(`CUSTOMER_${customer_pubkey}_RELAY_PRIVKEY='([^']+)'`));
-        const nsecMatch = brainstormConf.match(new RegExp(`CUSTOMER_${customer_pubkey}_RELAY_NSEC='([^']+)'`));
         
-        if (pubkeyMatch && npubMatch && privkeyMatch && nsecMatch) {
-            return {
-                pubkey: pubkeyMatch[1],
-                npub: npubMatch[1],
-                privkey: privkeyMatch[1],
-                nsec: nsecMatch[1]
-            };
+        // Check if public keys exist in brainstorm.conf
+        if (!pubkeyMatch || !npubMatch) {
+            console.log(`Public keys not found in brainstorm.conf for customer: ${customer_pubkey.substring(0, 8)}...`);
+            return null;
         }
         
-        return null;
+        // Get private keys from secure storage
+        const SecureKeyStorage = require('./secureKeyStorage');
+        const secureStorage = new SecureKeyStorage();
+        
+        let privkey = null;
+        let nsec = null;
+        
+        try {
+            const secureKeys = await secureStorage.getRelayKeys(customer_pubkey);
+            if (secureKeys) {
+                privkey = secureKeys.privkey;
+                nsec = secureKeys.nsec;
+                console.log(`Private keys retrieved from secure storage for customer: ${customer_pubkey.substring(0, 8)}...`);
+            } else {
+                console.log(`Private keys not found in secure storage for customer: ${customer_pubkey.substring(0, 8)}...`);
+            }
+        } catch (secureError) {
+            console.error(`Error retrieving private keys from secure storage: ${secureError.message}`);
+            // Continue with null private keys - we'll still return public keys
+        }
+        
+        // Return combined keys (public from conf, private from secure storage)
+        return {
+            pubkey: pubkeyMatch[1],
+            npub: npubMatch[1],
+            privkey: privkey,
+            nsec: nsec
+        };
+        
     } catch (error) {
         console.error(`Error getting customer relay keys: ${error.message}`);
         return null;
