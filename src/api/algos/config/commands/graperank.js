@@ -13,14 +13,24 @@ const { getConfigFromFile } = require('../../../../utils/config');
  */
 async function handleUpdateGrapeRankConfig(req, res) {
     try {
-        // Extract pubkey from query parameters and config updates from body
-        const { pubkey } = req.query;
-        const { preset, parameters } = req.body;
+        // Extract pubkey and setPreset from query parameters
+        const { pubkey, setPreset } = req.query;
+        
+        // Also check request body for preset (fallback)
+        const { preset: bodyPreset } = req.body || {};
+        const newPreset = setPreset || bodyPreset;
 
         if (!pubkey) {
             return res.status(400).json({
                 success: false,
                 error: 'Missing required parameter: pubkey'
+            });
+        }
+
+        if (!newPreset) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required parameter: setPreset (or preset in body)'
             });
         }
 
@@ -32,28 +42,64 @@ async function handleUpdateGrapeRankConfig(req, res) {
             });
         }
 
-        // Validate request body
-        if (!preset && !parameters) {
+        // Validate preset value
+        const validPresets = ['permissive', 'default', 'restrictive'];
+        if (!validPresets.includes(newPreset.toLowerCase())) {
             return res.status(400).json({
                 success: false,
-                error: 'Must provide either preset or parameters to update'
+                error: `Invalid preset. Must be one of: ${validPresets.join(', ')}`
             });
         }
 
         // Initialize CustomerManager
-        const config = getConfigFromFile();
+        let customersDir = '/var/lib/brainstorm/customers'; // Default fallback
+        try {
+            const config = getConfigFromFile();
+            if (config && config.BRAINSTORM_CUSTOMERS_DIR) {
+                customersDir = config.BRAINSTORM_CUSTOMERS_DIR;
+            }
+        } catch (configError) {
+            console.log('Config loading failed, using default customers directory:', customersDir);
+        }
+        
         const customerManager = new CustomerManager({
-            customersDir: config.BRAINSTORM_CUSTOMERS_DIR || '/var/lib/brainstorm/customers'
+            customersDir
         });
         await customerManager.initialize();
 
-        // TODO: Implement GrapeRank configuration update logic
-        // This is a placeholder for future implementation
-        res.status(501).json({
-            success: false,
-            error: 'GrapeRank configuration updates not yet implemented',
-            message: 'This endpoint is reserved for future implementation of configuration updates'
-        });
+        // Update the GrapeRank preset
+        const updateResult = await customerManager.updateGrapeRankPreset(pubkey, newPreset.toLowerCase());
+        
+        if (updateResult.success) {
+            // Return successful response
+            res.json({
+                success: true,
+                message: updateResult.message,
+                data: {
+                    pubkey,
+                    oldPreset: updateResult.oldPreset,
+                    newPreset: updateResult.newPreset,
+                    customer: updateResult.customer,
+                    configPath: updateResult.configPath,
+                    timestamp: updateResult.timestamp
+                }
+            });
+        } else {
+            // Return error response with appropriate status code
+            const statusCode = updateResult.error.includes('does not exist') ? 404 :
+                             updateResult.error.includes('Invalid preset') ? 400 :
+                             updateResult.error.includes('configuration file') ? 404 : 500;
+            
+            res.status(statusCode).json({
+                success: false,
+                error: updateResult.error,
+                details: {
+                    pubkey,
+                    customer: updateResult.customer,
+                    configPath: updateResult.configPath
+                }
+            });
+        }
 
     } catch (error) {
         console.error('Error in handleUpdateGrapeRankConfig:', error);

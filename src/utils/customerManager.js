@@ -1327,6 +1327,165 @@ class CustomerManager {
     }
 
     /**
+     * Update GrapeRank preset for a customer
+     * @param {string} customerPubkey - Customer's public key
+     * @param {string} newPreset - New preset to apply (permissive, default, restrictive)
+     * @returns {Promise<Object>} Update result
+     */
+    async updateGrapeRankPreset(customerPubkey, newPreset) {
+        try {
+            // Validate customer exists
+            const customer = await this.getCustomer(customerPubkey);
+            if (!customer) {
+                return {
+                    success: false,
+                    error: 'Customer does not exist',
+                    customerPubkey
+                };
+            }
+
+            // Validate preset value
+            const validPresets = ['permissive', 'default', 'restrictive'];
+            if (!validPresets.includes(newPreset.toLowerCase())) {
+                return {
+                    success: false,
+                    error: `Invalid preset. Must be one of: ${validPresets.join(', ')}`,
+                    customerPubkey,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id
+                    }
+                };
+            }
+
+            // Construct path to customer's graperank.conf file
+            const customerDir = path.join(this.customersDir, customer.name);
+            const grapeRankConfigPath = path.join(customerDir, 'preferences', 'graperank.conf');
+
+            // Check if config file exists
+            if (!fs.existsSync(grapeRankConfigPath)) {
+                return {
+                    success: false,
+                    error: 'GrapeRank configuration file does not exist',
+                    configPath: grapeRankConfigPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    }
+                };
+            }
+
+            // Read and parse the current configuration
+            const configContent = fs.readFileSync(grapeRankConfigPath, 'utf8');
+            const configData = this.parseGrapeRankConfig(configContent);
+
+            if (configData.error) {
+                return {
+                    success: false,
+                    error: `Failed to parse configuration: ${configData.error}`,
+                    configPath: grapeRankConfigPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    }
+                };
+            }
+
+            // Create backup of original file
+            const backupPath = `${grapeRankConfigPath}.backup.${Date.now()}`;
+            fs.copyFileSync(grapeRankConfigPath, backupPath);
+
+            try {
+                // Update the configuration with new preset values
+                const updatedConfig = this.applyPresetToConfig(configContent, configData, newPreset);
+                
+                // Write the updated configuration
+                fs.writeFileSync(grapeRankConfigPath, updatedConfig, 'utf8');
+                
+                // Verify the update was successful
+                const verificationData = this.parseGrapeRankConfig(updatedConfig);
+                const verificationResult = this.determineGrapeRankPreset(verificationData);
+                
+                const expectedPreset = newPreset.charAt(0).toUpperCase() + newPreset.slice(1);
+                if (verificationResult.preset !== expectedPreset) {
+                    throw new Error(`Preset verification failed. Expected ${expectedPreset}, got ${verificationResult.preset}`);
+                }
+                
+                // Clean up backup file on success
+                fs.unlinkSync(backupPath);
+                
+                return {
+                    success: true,
+                    message: `Successfully updated GrapeRank preset to ${expectedPreset}`,
+                    oldPreset: this.determineGrapeRankPreset(configData).preset,
+                    newPreset: expectedPreset,
+                    configPath: grapeRankConfigPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    },
+                    backupCreated: backupPath,
+                    timestamp: new Date().toISOString()
+                };
+                
+            } catch (updateError) {
+                // Restore backup on failure
+                if (fs.existsSync(backupPath)) {
+                    fs.copyFileSync(backupPath, grapeRankConfigPath);
+                    fs.unlinkSync(backupPath);
+                }
+                
+                throw new Error(`Failed to update configuration: ${updateError.message}`);
+            }
+
+        } catch (error) {
+            console.error('Error updating GrapeRank preset:', error);
+            return {
+                success: false,
+                error: error.message,
+                customerPubkey
+            };
+        }
+    }
+
+    /**
+     * Apply preset values to configuration content
+     * @param {string} originalContent - Original configuration file content
+     * @param {Object} configData - Parsed configuration data
+     * @param {string} preset - Preset to apply (permissive, default, restrictive)
+     * @returns {string} Updated configuration content
+     */
+    applyPresetToConfig(originalContent, configData, preset) {
+        const { parameters, presetValues } = configData;
+        let updatedContent = originalContent;
+        
+        // Update each parameter with the new preset values
+        for (const param of parameters) {
+            const newValue = presetValues[preset][param];
+            
+            // Create regex to match the live parameter line
+            const paramRegex = new RegExp(`^export\s+${param}=.*$`, 'm');
+            
+            // Format the new value properly
+            let formattedValue;
+            if (typeof newValue === 'string') {
+                formattedValue = `'${newValue}'`;
+            } else {
+                formattedValue = newValue.toString();
+            }
+            
+            // Replace the parameter line
+            const newLine = `export ${param}=${formattedValue}`;
+            updatedContent = updatedContent.replace(paramRegex, newLine);
+        }
+        
+        return updatedContent;
+    }
+
+    /**
      * Clear cache
      */
     clearCache() {
