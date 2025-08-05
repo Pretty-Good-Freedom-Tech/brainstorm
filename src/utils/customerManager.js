@@ -1940,33 +1940,62 @@ class CustomerManager {
             // Create the replacement line
             const newLine = `export ${param}=${formattedValue}`;
             
+            console.log(`\n=== DEBUGGING PARAMETER REPLACEMENT FOR ${param} ===`);
+            console.log(`Looking for parameter: ${param}`);
+            console.log(`New line to insert: ${newLine}`);
+            
             // Create more robust regex patterns to match the export line
             // Try multiple patterns to handle different spacing and formats
             const regexPatterns = [
                 new RegExp(`^export\s+${param}\s*=.*$`, 'gm'),
                 new RegExp(`^export\s+${param}=.*$`, 'gm'),
-                new RegExp(`^\s*export\s+${param}\s*=.*$`, 'gm')
+                new RegExp(`^\s*export\s+${param}\s*=.*$`, 'gm'),
+                new RegExp(`^export ${param}=.*$`, 'gm'),
+                new RegExp(`export ${param}=.*$`, 'gm')
             ];
             
             let replaced = false;
             
+            // Debug: Show lines that contain the parameter name
+            const lines = updatedContent.split('\n');
+            const matchingLines = lines.filter(line => line.includes(param));
+            console.log(`Lines containing '${param}':`, matchingLines);
+            
             // Try each regex pattern
-            for (const paramRegex of regexPatterns) {
+            for (let i = 0; i < regexPatterns.length; i++) {
+                const paramRegex = regexPatterns[i];
+                console.log(`Trying regex pattern ${i + 1}: ${paramRegex.source}`);
+                
                 const matches = updatedContent.match(paramRegex);
                 if (matches && matches.length > 0) {
-                    console.log(`Found existing line for ${param} with pattern:`, matches[0]);
+                    console.log(`✅ MATCH FOUND with pattern ${i + 1}:`, matches[0]);
                     console.log(`Replacing with:`, newLine);
+                    
+                    // Use a more specific replacement to avoid replacing preset lines
+                    const oldContent = updatedContent;
                     updatedContent = updatedContent.replace(paramRegex, newLine);
-                    replaced = true;
-                    break;
+                    
+                    if (oldContent !== updatedContent) {
+                        console.log(`✅ REPLACEMENT SUCCESSFUL`);
+                        replaced = true;
+                        break;
+                    } else {
+                        console.log(`❌ REPLACEMENT FAILED - content unchanged`);
+                    }
+                } else {
+                    console.log(`❌ No match with pattern ${i + 1}`);
                 }
             }
             
             if (!replaced) {
-                console.warn(`Parameter ${param} not found in configuration file, adding at end`);
+                console.warn(`❌ Parameter ${param} not found in configuration file, adding at end`);
+                console.log(`Current content length: ${updatedContent.length}`);
                 // If parameter doesn't exist, add it at the end
                 updatedContent += `\n${newLine}`;
+                console.log(`New content length: ${updatedContent.length}`);
             }
+            
+            console.log(`=== END DEBUGGING FOR ${param} ===\n`);
         }
         
         console.log('Configuration update completed');
