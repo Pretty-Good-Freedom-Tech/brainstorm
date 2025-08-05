@@ -1044,6 +1044,289 @@ class CustomerManager {
     }
 
     /**
+     * Get GrapeRank preset for a customer by analyzing their graperank.conf file
+     * @param {string} customerPubkey - Customer's public key
+     * @returns {Promise<Object>} Preset analysis result
+     */
+    async getGrapeRankPreset(customerPubkey) {
+        try {
+            // Validate customer exists
+            const customer = await this.getCustomer(customerPubkey);
+            if (!customer) {
+                return {
+                    preset: 'Customer Not Found',
+                    error: 'Customer does not exist',
+                    customerPubkey
+                };
+            }
+
+            // Construct path to customer's graperank.conf file
+            const customerDir = path.join(this.customersDir, customer.name);
+            const grapeRankConfigPath = path.join(customerDir, 'preferences', 'graperank.conf');
+
+            // Check if config file exists
+            if (!fs.existsSync(grapeRankConfigPath)) {
+                return {
+                    preset: 'Config File Not Found',
+                    error: 'GrapeRank configuration file does not exist',
+                    configPath: grapeRankConfigPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    }
+                };
+            }
+
+            // Read and parse the configuration file
+            const configContent = fs.readFileSync(grapeRankConfigPath, 'utf8');
+            const configData = this.parseGrapeRankConfig(configContent);
+
+            if (configData.error) {
+                return {
+                    preset: 'Error',
+                    error: configData.error,
+                    configPath: grapeRankConfigPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    }
+                };
+            }
+
+            // Determine preset by comparing live values to presets
+            const presetResult = this.determineGrapeRankPreset(configData);
+
+            return {
+                preset: presetResult.preset,
+                details: presetResult.details,
+                configPath: grapeRankConfigPath,
+                customer: {
+                    name: customer.name,
+                    id: customer.id,
+                    pubkey: customerPubkey
+                },
+                parameters: configData.parameters,
+                liveValues: configData.liveValues,
+                presetValues: configData.presetValues
+            };
+
+        } catch (error) {
+            console.error('Error getting GrapeRank preset:', error);
+            return {
+                preset: 'Error',
+                error: error.message,
+                customerPubkey
+            };
+        }
+    }
+
+    /**
+     * Parse GrapeRank configuration file and extract parameters
+     * @param {string} configContent - Raw configuration file content
+     * @returns {Object} Parsed configuration data
+     */
+    parseGrapeRankConfig(configContent) {
+        try {
+            const lines = configContent.split('\n');
+            const exports = {};
+
+            // Extract all export statements
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('export ') && trimmed.includes('=')) {
+                    const exportMatch = trimmed.match(/^export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+                    if (exportMatch) {
+                        const [, key, value] = exportMatch;
+                        // Parse the value, handling quotes and special cases
+                        let parsedValue = value.trim();
+                        if (parsedValue.startsWith("'") && parsedValue.endsWith("'")) {
+                            parsedValue = parsedValue.slice(1, -1);
+                        } else if (parsedValue.startsWith('"') && parsedValue.endsWith('"')) {
+                            parsedValue = parsedValue.slice(1, -1);
+                        } else if (parsedValue === 'true') {
+                            parsedValue = true;
+                        } else if (parsedValue === 'false') {
+                            parsedValue = false;
+                        } else if (!isNaN(parsedValue) && parsedValue !== '') {
+                            parsedValue = parseFloat(parsedValue);
+                        }
+                        exports[key] = parsedValue;
+                    }
+                }
+            }
+
+            // Extract parameter list
+            if (!exports.PARAMETER_LIST) {
+                return {
+                    error: 'PARAMETER_LIST not found in configuration file'
+                };
+            }
+
+            let parameterList;
+            try {
+                parameterList = JSON.parse(exports.PARAMETER_LIST);
+            } catch (e) {
+                return {
+                    error: 'PARAMETER_LIST is not valid JSON'
+                };
+            }
+
+            // Extract live values for each parameter
+            const liveValues = {};
+            const presetValues = {
+                permissive: {},
+                default: {},
+                restrictive: {}
+            };
+
+            for (const param of parameterList) {
+                // Get live value
+                if (exports[param] === undefined) {
+                    return {
+                        error: `Live parameter ${param} not found in configuration file`
+                    };
+                }
+                liveValues[param] = exports[param];
+
+                // Get preset values
+                const permissiveKey = `${param}_permissive`;
+                const defaultKey = `${param}_default`;
+                const restrictiveKey = `${param}_restrictive`;
+
+                if (exports[permissiveKey] === undefined) {
+                    return {
+                        error: `Preset parameter ${permissiveKey} not found in configuration file`
+                    };
+                }
+                if (exports[defaultKey] === undefined) {
+                    return {
+                        error: `Preset parameter ${defaultKey} not found in configuration file`
+                    };
+                }
+                if (exports[restrictiveKey] === undefined) {
+                    return {
+                        error: `Preset parameter ${restrictiveKey} not found in configuration file`
+                    };
+                }
+
+                presetValues.permissive[param] = exports[permissiveKey];
+                presetValues.default[param] = exports[defaultKey];
+                presetValues.restrictive[param] = exports[restrictiveKey];
+            }
+
+            return {
+                parameters: parameterList,
+                liveValues,
+                presetValues,
+                allExports: exports
+            };
+
+        } catch (error) {
+            return {
+                error: `Failed to parse configuration file: ${error.message}`
+            };
+        }
+    }
+
+    /**
+     * Determine GrapeRank preset by comparing live values to presets
+     * @param {Object} configData - Parsed configuration data
+     * @returns {Object} Preset determination result
+     */
+    determineGrapeRankPreset(configData) {
+        const { parameters, liveValues, presetValues } = configData;
+        
+        // Check if live values match permissive preset
+        let matchesPermissive = true;
+        let matchesDefault = true;
+        let matchesRestrictive = true;
+        
+        const comparisonDetails = {};
+        
+        for (const param of parameters) {
+            const liveValue = liveValues[param];
+            const permissiveValue = presetValues.permissive[param];
+            const defaultValue = presetValues.default[param];
+            const restrictiveValue = presetValues.restrictive[param];
+            
+            comparisonDetails[param] = {
+                live: liveValue,
+                permissive: permissiveValue,
+                default: defaultValue,
+                restrictive: restrictiveValue,
+                matchesPermissive: this.valuesEqual(liveValue, permissiveValue),
+                matchesDefault: this.valuesEqual(liveValue, defaultValue),
+                matchesRestrictive: this.valuesEqual(liveValue, restrictiveValue)
+            };
+            
+            if (!comparisonDetails[param].matchesPermissive) {
+                matchesPermissive = false;
+            }
+            if (!comparisonDetails[param].matchesDefault) {
+                matchesDefault = false;
+            }
+            if (!comparisonDetails[param].matchesRestrictive) {
+                matchesRestrictive = false;
+            }
+        }
+        
+        // Determine preset
+        let preset;
+        if (matchesPermissive) {
+            preset = 'Permissive';
+        } else if (matchesDefault) {
+            preset = 'Default';
+        } else if (matchesRestrictive) {
+            preset = 'Restrictive';
+        } else {
+            preset = 'Custom';
+        }
+        
+        return {
+            preset,
+            details: {
+                matchesPermissive,
+                matchesDefault,
+                matchesRestrictive,
+                parameterComparisons: comparisonDetails
+            }
+        };
+    }
+
+    /**
+     * Compare two values for equality, handling different types appropriately
+     * @param {*} value1 - First value
+     * @param {*} value2 - Second value
+     * @returns {boolean} Whether values are equal
+     */
+    valuesEqual(value1, value2) {
+        // Handle exact equality
+        if (value1 === value2) {
+            return true;
+        }
+        
+        // Handle string/number comparisons
+        if (typeof value1 === 'string' && typeof value2 === 'number') {
+            return parseFloat(value1) === value2;
+        }
+        if (typeof value1 === 'number' && typeof value2 === 'string') {
+            return value1 === parseFloat(value2);
+        }
+        
+        // Handle boolean/string comparisons
+        if (typeof value1 === 'boolean' && typeof value2 === 'string') {
+            return value1.toString() === value2;
+        }
+        if (typeof value1 === 'string' && typeof value2 === 'boolean') {
+            return value1 === value2.toString();
+        }
+        
+        return false;
+    }
+
+    /**
      * Clear cache
      */
     clearCache() {

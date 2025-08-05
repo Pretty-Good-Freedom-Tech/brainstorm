@@ -34,6 +34,8 @@ const {
     handleGetHistoryProcessAllTrustMetrics
 } = require('./algos/calculation-history');
 
+const { handleGetGrapeRankConfig, handleUpdateGrapeRankConfig } = require('./algos/config');
+
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
 const profiles = require('./export/profiles');
@@ -80,6 +82,9 @@ function register(app) {
         // Mark session as configured
         app._brainstormSessionConfigured = true;
     }
+
+    app.get('/api/algos/config/graperank', handleGetGrapeRankConfig);
+    app.post('/api/algos/config/graperank', handleUpdateGrapeRankConfig);
 
     app.get('/api/calculation-history/processAllTrustMetrics', handleGetHistoryProcessAllTrustMetrics);
     app.get('/api/calculation-history/hops', handleGetHistoryHops);
