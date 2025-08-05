@@ -551,7 +551,7 @@
         }
         
         /**
-         * Handle Kind 10040 publishing
+         * Handle Kind 10040 publishing with NIP-07 signing
          */
         async function handleCreateAndPublishKind10040(customerPubkey) {
             const publishBtn = document.getElementById('publishKind10040Btn');
@@ -561,11 +561,22 @@
             const originalText = publishBtn.textContent;
             publishBtn.disabled = true;
             skipBtn.disabled = true;
-            publishBtn.textContent = '📝 Publishing...';
+            publishBtn.textContent = '🔄 Creating event...';
             
             try {
-                // Call the Kind 10040 creation API
-                const response = await fetch('/api/create-and-publish-kind10040', {
+                // Step 1: Check for NIP-07 extension
+                if (!window.nostr) {
+                    alert('❌ Nostr browser extension (NIP-07) is required to sign events. Please install a Nostr extension like Alby, nos2x, or Flamingo.');
+                    publishBtn.disabled = false;
+                    skipBtn.disabled = false;
+                    publishBtn.textContent = originalText;
+                    return;
+                }
+                
+                // Step 2: Create unsigned Kind 10040 event
+                publishBtn.textContent = '📝 Creating unsigned event...';
+                
+                const createResponse = await fetch('/api/create-unsigned-kind10040', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -575,9 +586,44 @@
                     })
                 });
                 
-                const result = await response.json();
+                const createResult = await createResponse.json();
                 
-                if (result.success) {
+                if (!createResult.success) {
+                    throw new Error(createResult.message || 'Failed to create unsigned event');
+                }
+                
+                const unsignedEvent = createResult.data.unsignedEvent;
+                console.log('Unsigned event created:', unsignedEvent);
+                
+                // Step 3: Sign the event using NIP-07
+                publishBtn.textContent = '✍️ Please sign in your Nostr extension...';
+                
+                let signedEvent;
+                try {
+                    signedEvent = await window.nostr.signEvent(unsignedEvent);
+                    console.log('Event signed successfully:', signedEvent);
+                } catch (signingError) {
+                    console.error('Signing error:', signingError);
+                    throw new Error(`Failed to sign event: ${signingError.message || 'User cancelled or extension error'}`);
+                }
+                
+                // Step 4: Publish the signed event
+                publishBtn.textContent = '📡 Publishing signed event...';
+                
+                const publishResponse = await fetch('/api/publish-signed-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        signedEvent: signedEvent,
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const publishResult = await publishResponse.json();
+                
+                if (publishResult.success) {
                     // Success - hide prompt and show success message
                     document.getElementById('kind10040NotPublished').style.display = 'none';
                     document.getElementById('kind10040Published').style.display = 'block';
@@ -586,21 +632,25 @@
                     const successDiv = document.getElementById('kind10040Published');
                     successDiv.innerHTML = `
                         <h4>✅ Kind 10040 Event Published!</h4>
-                        <p>Excellent! Your Kind 10040 event has been successfully published. Your NIP-85 setup is now complete.</p>
+                        <p>Excellent! Your Kind 10040 event has been successfully signed and published.</p>
+                        <p><strong>Event ID:</strong> <code>${signedEvent.id}</code></p>
+                        <p>Your NIP-85 setup is now complete! The relay is authorized to create Kind 30382 events on your behalf.</p>
                     `;
                 } else {
-                    // Show error
-                    alert(`❌ Failed to publish Kind 10040 event: ${result.message || 'Unknown error'}`);
-                    
-                    // Restore button state
-                    publishBtn.disabled = false;
-                    skipBtn.disabled = false;
-                    publishBtn.textContent = originalText;
+                    throw new Error(publishResult.message || 'Failed to publish signed event');
                 }
                 
             } catch (error) {
-                console.error('Error publishing Kind 10040:', error);
-                alert(`❌ Network error occurred while publishing Kind 10040 event: ${error.message}`);
+                console.error('Error in Kind 10040 flow:', error);
+                
+                let errorMessage = error.message;
+                if (errorMessage.includes('User rejected')) {
+                    errorMessage = 'You cancelled the signing process. Please try again when ready.';
+                } else if (errorMessage.includes('extension')) {
+                    errorMessage = 'Nostr extension error. Please check your extension and try again.';
+                }
+                
+                alert(`❌ ${errorMessage}`);
                 
                 // Restore button state
                 publishBtn.disabled = false;

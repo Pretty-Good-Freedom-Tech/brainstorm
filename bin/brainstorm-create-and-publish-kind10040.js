@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Brainstorm Create and Publish Kind 10040 Event
+ * Brainstorm Publish Kind 10040 Event
  * 
- * This script creates, signs, and publishes a kind 10040 event for NIP-85 trusted assertions
- * directly to the configured relay using secure relay keys.
+ * This script publishes an already-signed kind 10040 event for NIP-85 trusted assertions
+ * to the configured relay. The event must be signed by the user using NIP-07 browser extension.
+ * 
+ * Usage: 
+ *   - With signed event file: node brainstorm-create-and-publish-kind10040.js /path/to/signed-event.json
+ *   - With customer pubkey: node brainstorm-create-and-publish-kind10040.js <customer_pubkey>
  */
 
 const fs = require('fs');
@@ -14,131 +18,103 @@ const { execSync } = require('child_process');
 const WebSocket = require('ws');
 const nostrTools = require('nostr-tools');
 const { getConfigFromFile } = require('../src/utils/config');
-const { getCustomerRelayKeys } = require('../src/utils/customerRelayKeys');
 
 // Get relay configuration
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
-
-// get customer pubkey if one is provided as an argument
-const customerPubkey = process.argv[2];
+const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
 
 if (!relayUrl) {
   console.error('Error: Relay URL not found in configuration');
   process.exit(1);
 }
 
+// Get command line arguments
+const arg = process.argv[2];
+let eventFile = null;
+let customerPubkey = null;
+
+// Determine if argument is a file path or customer pubkey
+if (arg) {
+  if (fs.existsSync(arg) && arg.endsWith('.json')) {
+    eventFile = arg;
+    console.log(`Using provided signed event file: ${eventFile}`);
+  } else {
+    customerPubkey = arg;
+    console.log(`Processing for customer: ${customerPubkey.substring(0, 8)}...`);
+  }
+}
+
 // Main async function to handle the process
-async function createAndPublishKind10040() {
+async function publishKind10040() {
   try {
-    console.log('Starting Kind 10040 event creation and publishing...');
+    console.log('Starting Kind 10040 event publishing...');
     
-    // Get relay private key from secure storage
-    console.log(`Fetching secure relay keys${customerPubkey ? ` for customer ${customerPubkey}` : ' for owner'}...`);
-    const relayKeys = await getCustomerRelayKeys(customerPubkey);
-    const relayNsec = relayKeys ? relayKeys.nsec : null;
+    // Find the event file if not provided
+    if (!eventFile) {
+      eventFile = await findEventFile(customerPubkey);
+    }
     
-    console.log(`Relay private key available: ${relayNsec ? 'Yes' : 'No'}`);
-    
-    if (!relayNsec) {
-      const errorMsg = `Error: No relay private key found${customerPubkey ? ` for customer ${customerPubkey}` : ' for owner'}`;
-      console.error(errorMsg);
+    if (!eventFile || !fs.existsSync(eventFile)) {
+      console.error('Error: No signed Kind 10040 event file found');
+      console.error('The event must be signed by the user using NIP-07 browser extension first.');
       process.exit(1);
     }
     
-    // Convert keys to the format needed by nostr-tools
-    let relayPrivateKey = relayNsec;
-    let relayPubkey = '';
+    console.log(`Reading signed event from: ${eventFile}`);
+    
+    // Read and parse the signed event
+    const eventData = fs.readFileSync(eventFile, 'utf8');
+    let event;
     
     try {
-      // If we have the private key in nsec format, convert it to hex
-      if (relayPrivateKey.startsWith('nsec')) {
-        relayPrivateKey = nostrTools.nip19.decode(relayPrivateKey).data;
-      }
-      
-      // Derive the public key from the private key
-      relayPubkey = nostrTools.getPublicKey(relayPrivateKey);
-      console.log(`Using relay pubkey: ${relayPubkey.substring(0, 8)}...`);
+      event = JSON.parse(eventData);
     } catch (error) {
-      const errorMsg = `Error processing relay keys: ${error.message}`;
-      console.error(errorMsg);
+      console.error('Error parsing event JSON:', error);
+      process.exit(1);
+    }
+    
+    // Verify the event is signed
+    if (!event.sig || !event.id) {
+      console.error('Error: Event is not signed. The event must be signed by the user using NIP-07.');
+      process.exit(1);
+    }
+    
+    // Verify the event signature
+    console.log('Verifying event signature...');
+    const verified = nostrTools.verifyEvent(event);
+    
+    if (!verified) {
+      console.error('Error: Event signature verification failed');
+      process.exit(1);
+    }
+    
+    console.log('✅ Event signature verified successfully');
+    console.log(`Event ID: ${event.id}`);
+    console.log(`Signed by: ${event.pubkey.substring(0, 8)}...`);
+    
+    // Verify the event is from the expected user (if customer pubkey provided)
+    if (customerPubkey && event.pubkey !== customerPubkey) {
+      console.error(`Error: Event pubkey (${event.pubkey.substring(0, 8)}...) does not match expected customer pubkey (${customerPubkey.substring(0, 8)}...)`);
       process.exit(1);
     }
 
-    // Create the kind 10040 event
-    const eventTemplate = {
-      kind: 10040,
-      pubkey: relayPubkey,
-      created_at: Math.floor(Date.now() / 1000),
-      content: "",
-      tags: [
-        [
-          "30382:rank",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:personalizedGrapeRank_influence",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:personalizedGrapeRank_average",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:personalizedGrapeRank_confidence",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:personalizedGrapeRank_input",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:personalizedPageRank",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:verifiedFollowersCount",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:verifiedMutersCount",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:verifiedReportersCount",
-          relayPubkey,
-          relayUrl
-        ],
-        [
-          "30382:hops",
-          relayPubkey,
-          relayUrl
-        ]
-      ]
-    };
+    // Validate the event structure
+    if (event.kind !== 10040) {
+      console.error(`Error: Expected kind 10040, got kind ${event.kind}`);
+      process.exit(1);
+    }
     
-    // Sign the event using finalizeEvent
-    console.log('Signing Kind 10040 event...');
-    const signedEvent = nostrTools.finalizeEvent(eventTemplate, relayPrivateKey);
-    
-    console.log(`Event created with ID: ${signedEvent.id}`);
+    console.log('Event validation passed. Publishing to relay...');
     console.log('Event details:');
-    console.log(JSON.stringify(signedEvent, null, 2));
+    console.log(JSON.stringify(event, null, 2));
 
     // Publish the event to the relay
     console.log(`Publishing event to relay: ${relayUrl}`);
-    const publishResult = await publishEventToRelay(signedEvent, relayUrl);
+    const publishResult = await publishEventToRelay(event, relayUrl);
     
     if (publishResult.success) {
       console.log('✅ Event published successfully!');
-      console.log(`Event ID: ${signedEvent.id}`);
+      console.log(`Event ID: ${event.id}`);
       
       // Save the published event to a file for record keeping
       const dataDir = '/var/lib/brainstorm/data';
@@ -153,20 +129,73 @@ async function createAndPublishKind10040() {
       }
       
       const timestamp = Date.now();
-      const filename = `kind10040_${customerPubkey ? customerPubkey.substring(0, 8) : 'owner'}_${timestamp}.json`;
+      const userIdentifier = customerPubkey ? customerPubkey.substring(0, 8) : event.pubkey.substring(0, 8);
+      const filename = `kind10040_${userIdentifier}_${timestamp}.json`;
       const filePath = path.join(publishedDir, filename);
       
-      fs.writeFileSync(filePath, JSON.stringify(signedEvent, null, 2));
+      fs.writeFileSync(filePath, JSON.stringify(event, null, 2));
       console.log(`Event saved to ${filePath}`);
+      
+      // Clean up the temporary signed event file if it was in a temp location
+      if (eventFile.includes('/tmp/') || eventFile.includes('temp')) {
+        try {
+          fs.unlinkSync(eventFile);
+          console.log(`Cleaned up temporary file: ${eventFile}`);
+        } catch (cleanupError) {
+          console.warn(`Could not clean up temporary file: ${cleanupError.message}`);
+        }
+      }
+      
     } else {
       console.error('❌ Failed to publish event:', publishResult.message);
       process.exit(1);
     }
     
   } catch (error) {
-    console.error('Error creating and publishing Kind 10040 event:', error);
+    console.error('Error publishing Kind 10040 event:', error);
     process.exit(1);
   }
+}
+
+/**
+ * Find the event file for a customer
+ */
+async function findEventFile(customerPubkey) {
+  const dataDir = '/var/lib/brainstorm/data';
+  const tempDir = path.join(dataDir, 'temp');
+  
+  // Look for customer-specific signed event file
+  if (customerPubkey) {
+    const customerFile = path.join(tempDir, `kind10040_${customerPubkey}_signed.json`);
+    if (fs.existsSync(customerFile)) {
+      return customerFile;
+    }
+  }
+  
+  // Look for general signed event file
+  const generalFile = path.join(tempDir, 'kind10040_signed.json');
+  if (fs.existsSync(generalFile)) {
+    return generalFile;
+  }
+  
+  // Look for any recent kind10040 signed files
+  if (fs.existsSync(tempDir)) {
+    const files = fs.readdirSync(tempDir);
+    const signedFiles = files.filter(f => f.startsWith('kind10040_') && f.includes('signed') && f.endsWith('.json'));
+    
+    if (signedFiles.length > 0) {
+      // Return the most recent one
+      signedFiles.sort((a, b) => {
+        const statA = fs.statSync(path.join(tempDir, a));
+        const statB = fs.statSync(path.join(tempDir, b));
+        return statB.mtimeMs - statA.mtimeMs;
+      });
+      
+      return path.join(tempDir, signedFiles[0]);
+    }
+  }
+  
+  return null;
 }
 
 // Function to publish an event to the relay via WebSocket
@@ -264,7 +293,7 @@ function publishEventToRelay(event, targetRelayUrl) {
 }
 
 // Run the main function
-createAndPublishKind10040().catch(error => {
+publishKind10040().catch(error => {
   console.error('Unhandled error:', error);
   process.exit(1);
 });
