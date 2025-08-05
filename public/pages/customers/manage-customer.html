@@ -184,11 +184,72 @@
                     
                     <!-- Trust Metrics Configuration -->
                     <div class="data-card">
-                        <h3>Trust Metrics Configuration</h3>
-                        <div class="data-grid">
-                            <div class="data-row">
-                                <span class="data-label">GrapeRank Preset:</span>
-                                <span id="grapeRankPreset" class="data-value preset-badge">Loading...</span>
+                        <h3>🎛️ Trust Metrics Configuration</h3>
+                        
+                        <!-- GrapeRank Preset Configuration -->
+                        <div class="config-section">
+                            <h4>GrapeRank Algorithm Preset</h4>
+                            <div class="preset-status-container">
+                                <div class="preset-info">
+                                    <div class="data-row">
+                                        <span class="data-label">Current Preset:</span>
+                                        <span id="grapeRankPreset" class="preset-badge loading">Loading...</span>
+                                    </div>
+                                    <div class="data-row">
+                                        <span class="data-label">Configuration File:</span>
+                                        <span id="grapeRankConfigPath" class="config-path">Loading...</span>
+                                    </div>
+                                    <div class="data-row">
+                                        <span class="data-label">Parameters:</span>
+                                        <span id="grapeRankParameterCount" class="data-value">Loading...</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="preset-actions">
+                                    <button id="refreshGrapeRankPresetBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Preset Update Controls (Owner Only) -->
+                            <div id="presetUpdateControls" class="preset-update-section" style="display: none;">
+                                <h5>Update Preset</h5>
+                                <div class="preset-options">
+                                    <div class="preset-option">
+                                        <input type="radio" id="presetPermissive" name="grapeRankPreset" value="permissive">
+                                        <label for="presetPermissive" class="preset-label">
+                                            <span class="preset-name">Permissive</span>
+                                            <span class="preset-description">Lower thresholds, more inclusive</span>
+                                        </label>
+                                    </div>
+                                    <div class="preset-option">
+                                        <input type="radio" id="presetDefault" name="grapeRankPreset" value="default">
+                                        <label for="presetDefault" class="preset-label">
+                                            <span class="preset-name">Default</span>
+                                            <span class="preset-description">Balanced settings (recommended)</span>
+                                        </label>
+                                    </div>
+                                    <div class="preset-option">
+                                        <input type="radio" id="presetRestrictive" name="grapeRankPreset" value="restrictive">
+                                        <label for="presetRestrictive" class="preset-label">
+                                            <span class="preset-name">Restrictive</span>
+                                            <span class="preset-description">Higher thresholds, more selective</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="preset-update-actions">
+                                    <button id="updatePresetBtn" class="btn btn-primary" disabled>💾 Update Preset</button>
+                                    <button id="cancelPresetUpdateBtn" class="btn btn-secondary">❌ Cancel</button>
+                                </div>
+                                
+                                <div class="preset-warning">
+                                    <p><strong>⚠️ Warning:</strong> Changing the preset will update the GrapeRank configuration file and may affect trust metric calculations.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Show/Hide Update Controls Button -->
+                            <div class="preset-toggle-section">
+                                <button id="togglePresetUpdateBtn" class="btn btn-sm btn-outline" style="display: none;">⚙️ Update Preset</button>
                             </div>
                         </div>
                     </div>
@@ -623,6 +684,9 @@
             loadGrapeRankCalculationStatus();
             loadAnalyzeFollowsMutesReportsCalculationStatus();
             loadKind30382ExportCalculationStatus();
+            
+            // Load Trust Metrics Configuration
+            loadGrapeRankPresetConfig();
             
             // Update status display in management section
             const statusDisplay = document.getElementById('currentStatusDisplay');
@@ -1526,6 +1590,229 @@
             }
         }
         
+        /**
+         * Load GrapeRank preset configuration from API
+         */
+        async function loadGrapeRankPresetConfig() {
+            try {
+                const response = await fetch(`/api/algos/config/get/graperank?pubkey=${encodeURIComponent(customerData.pubkey)}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    updateGrapeRankPresetDisplay(result.data.grapeRankConfig);
+                } else {
+                    // Handle API error
+                    updateGrapeRankPresetDisplay({
+                        preset: 'Error',
+                        error: result.error || 'Failed to load preset configuration',
+                        customer: { name: customerData.name }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading GrapeRank preset config:', error);
+                updateGrapeRankPresetDisplay({
+                    preset: 'Error',
+                    error: 'Network error loading preset configuration',
+                    customer: { name: customerData.name }
+                });
+            }
+        }
+        
+        /**
+         * Update GrapeRank preset display with API data
+         * @param {Object} data - GrapeRank preset configuration data from API
+         */
+        function updateGrapeRankPresetDisplay(data) {
+            // Update preset badge
+            const presetElement = document.getElementById('grapeRankPreset');
+            presetElement.className = `preset-badge ${getPresetClass(data.preset)}`;
+            presetElement.textContent = data.preset || 'Unknown';
+            
+            // Update configuration file path
+            const configPathElement = document.getElementById('grapeRankConfigPath');
+            if (data.configPath) {
+                configPathElement.textContent = data.configPath;
+                configPathElement.className = 'config-path exists';
+                configPathElement.title = `Configuration file: ${data.configPath}`;
+            } else {
+                configPathElement.textContent = 'Not found';
+                configPathElement.className = 'config-path missing';
+                configPathElement.title = 'Configuration file not found';
+            }
+            
+            // Update parameter count
+            const paramCountElement = document.getElementById('grapeRankParameterCount');
+            if (data.parameters && data.parameters.length) {
+                paramCountElement.textContent = `${data.parameters.length} parameters`;
+            } else {
+                paramCountElement.textContent = 'Unknown';
+            }
+            
+            // Show/hide update controls based on user classification and preset status
+            updatePresetControlsVisibility(data);
+            
+            // Update radio button selection based on current preset
+            updatePresetRadioSelection(data.preset);
+            
+            console.log('GrapeRank preset config updated:', data);
+        }
+        
+        /**
+         * Get CSS class for preset badge based on preset type
+         * @param {string} preset - Preset type
+         * @returns {string} CSS class name
+         */
+        function getPresetClass(preset) {
+            switch (preset) {
+                case 'Permissive':
+                    return 'preset-permissive';
+                case 'Default':
+                    return 'preset-default';
+                case 'Restrictive':
+                    return 'preset-restrictive';
+                case 'Custom':
+                    return 'preset-custom';
+                case 'Error':
+                case 'Config File Not Found':
+                case 'Customer Not Found':
+                    return 'preset-error';
+                default:
+                    return 'preset-unknown';
+            }
+        }
+        
+        /**
+         * Update preset controls visibility based on user classification and data
+         * @param {Object} data - GrapeRank preset configuration data
+         */
+        function updatePresetControlsVisibility(data) {
+            const toggleBtn = document.getElementById('togglePresetUpdateBtn');
+            const updateControls = document.getElementById('presetUpdateControls');
+            
+            // Only show controls for owners and if preset data is valid
+            if (userClassification === 'owner' && data.preset && data.preset !== 'Error' && data.preset !== 'Config File Not Found') {
+                toggleBtn.style.display = 'inline-block';
+            } else {
+                toggleBtn.style.display = 'none';
+                updateControls.style.display = 'none';
+            }
+        }
+        
+        /**
+         * Update radio button selection based on current preset
+         * @param {string} currentPreset - Current preset type
+         */
+        function updatePresetRadioSelection(currentPreset) {
+            // Clear all radio selections first
+            document.querySelectorAll('input[name="grapeRankPreset"]').forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // Select the appropriate radio button
+            const presetMap = {
+                'Permissive': 'presetPermissive',
+                'Default': 'presetDefault', 
+                'Restrictive': 'presetRestrictive'
+            };
+            
+            const radioId = presetMap[currentPreset];
+            if (radioId) {
+                const radioElement = document.getElementById(radioId);
+                if (radioElement) {
+                    radioElement.checked = true;
+                }
+            }
+        }
+        
+        /**
+         * Toggle preset update controls visibility
+         */
+        function togglePresetUpdateControls() {
+            const updateControls = document.getElementById('presetUpdateControls');
+            const toggleBtn = document.getElementById('togglePresetUpdateBtn');
+            
+            if (updateControls.style.display === 'none') {
+                updateControls.style.display = 'block';
+                toggleBtn.textContent = '❌ Cancel Update';
+            } else {
+                updateControls.style.display = 'none';
+                toggleBtn.textContent = '⚙️ Update Preset';
+                // Reset form state
+                document.getElementById('updatePresetBtn').disabled = true;
+            }
+        }
+        
+        /**
+         * Handle preset radio button changes
+         */
+        function handlePresetRadioChange() {
+            const updateBtn = document.getElementById('updatePresetBtn');
+            const selectedRadio = document.querySelector('input[name="grapeRankPreset"]:checked');
+            
+            // Enable update button if a preset is selected
+            updateBtn.disabled = !selectedRadio;
+        }
+        
+        /**
+         * Update GrapeRank preset (placeholder for future implementation)
+         */
+        async function updateGrapeRankPreset() {
+            const selectedRadio = document.querySelector('input[name="grapeRankPreset"]:checked');
+            if (!selectedRadio) {
+                alert('Please select a preset to update.');
+                return;
+            }
+            
+            const newPreset = selectedRadio.value;
+            const customerName = customerData.name || 'this customer';
+            
+            // Confirmation dialog
+            if (!confirm(`Are you sure you want to change ${customerName}'s GrapeRank preset to "${newPreset.charAt(0).toUpperCase() + newPreset.slice(1)}"?\n\nThis will update the configuration file and may affect trust metric calculations.`)) {
+                return;
+            }
+            
+            try {
+                // Show loading state
+                const updateBtn = document.getElementById('updatePresetBtn');
+                const originalText = updateBtn.textContent;
+                updateBtn.disabled = true;
+                updateBtn.textContent = '⏳ Updating...';
+                
+                // Call the update API (placeholder - not yet implemented)
+                const response = await fetch(`/api/algos/config/update/graperank?pubkey=${encodeURIComponent(customerData.pubkey)}&setPreset=${encodeURIComponent(newPreset)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        preset: newPreset
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`✅ Successfully updated GrapeRank preset to "${newPreset.charAt(0).toUpperCase() + newPreset.slice(1)}"!`);
+                    // Reload preset configuration to reflect changes
+                    await loadGrapeRankPresetConfig();
+                    // Hide update controls
+                    togglePresetUpdateControls();
+                } else {
+                    alert(`❌ Failed to update preset: ${result.error || 'Unknown error'}`);
+                }
+                
+            } catch (error) {
+                console.error('Error updating GrapeRank preset:', error);
+                alert(`❌ Network error updating preset: ${error.message}`);
+            } finally {
+                // Restore button state
+                const updateBtn = document.getElementById('updatePresetBtn');
+                updateBtn.disabled = false;
+                updateBtn.textContent = originalText;
+            }
+        }
+        
         // Event handlers for calculation actions
         document.addEventListener('DOMContentLoaded', function() {
             // Refresh hops calculation status
@@ -1622,6 +1909,39 @@
             // Trigger Analyze Follows, Mutes, and Reports calculation (placeholder)
             document.getElementById('triggerAnalyzeFollowsMutesReportsBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
+            });
+            
+            // GrapeRank Preset Configuration Event Listeners
+            
+            // Refresh GrapeRank preset configuration
+            document.getElementById('refreshGrapeRankPresetBtn')?.addEventListener('click', function() {
+                this.disabled = true;
+                this.textContent = '🔄 Refreshing...';
+                
+                loadGrapeRankPresetConfig().finally(() => {
+                    this.disabled = false;
+                    this.textContent = '🔄 Refresh';
+                });
+            });
+            
+            // Toggle preset update controls
+            document.getElementById('togglePresetUpdateBtn')?.addEventListener('click', function() {
+                togglePresetUpdateControls();
+            });
+            
+            // Handle preset radio button changes
+            document.querySelectorAll('input[name="grapeRankPreset"]').forEach(radio => {
+                radio.addEventListener('change', handlePresetRadioChange);
+            });
+            
+            // Update preset button
+            document.getElementById('updatePresetBtn')?.addEventListener('click', function() {
+                updateGrapeRankPreset();
+            });
+            
+            // Cancel preset update
+            document.getElementById('cancelPresetUpdateBtn')?.addEventListener('click', function() {
+                togglePresetUpdateControls();
             });
         });
     </script>
@@ -2347,6 +2667,207 @@
             
             .action-buttons .btn {
                 width: 100%;
+            }
+        }
+        
+        /* GrapeRank Preset Configuration Styles */
+        .config-section {
+            margin-top: 1rem;
+        }
+        
+        .config-section h4 {
+            color: #495057;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .preset-status-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .preset-info {
+            flex: 1;
+        }
+        
+        .preset-actions {
+            flex-shrink: 0;
+        }
+        
+        .preset-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .preset-badge.loading {
+            background: #e9ecef;
+            color: #6c757d;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        
+        .preset-badge.preset-permissive {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .preset-badge.preset-default {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .preset-badge.preset-restrictive {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .preset-badge.preset-custom {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        
+        .preset-badge.preset-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .preset-badge.preset-unknown {
+            background: #e9ecef;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+        
+        .config-path {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .config-path.exists {
+            color: #155724;
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .config-path.missing {
+            color: #721c24;
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .preset-update-section {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        .preset-update-section h5 {
+            color: #495057;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .preset-options {
+            margin-bottom: 1.5rem;
+        }
+        
+        .preset-option {
+            margin-bottom: 0.75rem;
+        }
+        
+        .preset-option input[type="radio"] {
+            margin-right: 0.5rem;
+        }
+        
+        .preset-label {
+            display: inline-block;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .preset-label:hover {
+            background: #e9ecef;
+        }
+        
+        .preset-option input[type="radio"]:checked + .preset-label {
+            background: #007bff;
+            color: white;
+        }
+        
+        .preset-name {
+            font-weight: 600;
+            display: block;
+        }
+        
+        .preset-description {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            display: block;
+            margin-top: 0.25rem;
+        }
+        
+        .preset-update-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .preset-warning {
+            padding: 0.75rem;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            color: #856404;
+        }
+        
+        .preset-warning p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+        
+        .preset-toggle-section {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        @media (max-width: 768px) {
+            .preset-status-container {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .preset-update-actions {
+                flex-direction: column;
+            }
+            
+            .preset-label {
+                padding: 0.75rem;
             }
         }
     </style>
