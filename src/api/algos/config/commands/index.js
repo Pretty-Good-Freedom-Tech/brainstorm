@@ -4,7 +4,7 @@
  * Usage: /api/algos/config/update?pubkey=<customer_pubkey>&configType=<config_type>&setPreset=<preset>
  */
 
-const { CustomerManager } = require('../../../../utils/customerManager');
+const CustomerManager = require('../../../../utils/customerManager');
 const { getConfigFromFile } = require('../../../../utils/config');
 
 /**
