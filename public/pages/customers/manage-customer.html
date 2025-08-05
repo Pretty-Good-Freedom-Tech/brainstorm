@@ -252,6 +252,134 @@
                                 <button id="togglePresetUpdateBtn" class="btn btn-sm btn-outline" style="display: none;">⚙️ Update Preset</button>
                             </div>
                         </div>
+                        
+                        <!-- Whitelist Configuration -->
+                        <div class="config-section">
+                            <h4>Whitelist Algorithm Preset</h4>
+                            <div class="preset-status-container">
+                                <div class="preset-info">
+                                    <div class="data-row">
+                                        <span class="data-label">Current Preset:</span>
+                                        <span id="whitelistPreset" class="preset-badge loading">Loading...</span>
+                                    </div>
+                                    <div class="data-row">
+                                        <span class="data-label">Configuration File:</span>
+                                        <span id="whitelistConfigPath" class="config-path">Loading...</span>
+                                    </div>
+                                    <div class="data-row">
+                                        <span class="data-label">Parameters:</span>
+                                        <span id="whitelistParameterCount" class="data-value">Loading...</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="preset-refresh">
+                                    <button id="refreshWhitelistBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Preset Update Controls (Owner Only) -->
+                            <div id="whitelistUpdateControls" class="preset-update-section" style="display: none;">
+                                <h5>Update Preset</h5>
+                                <div class="preset-options">
+                                    <div class="preset-option">
+                                        <input type="radio" id="whitelistPermissive" name="whitelistPreset" value="permissive">
+                                        <label for="whitelistPermissive">
+                                            <strong>Permissive</strong> - More inclusive whitelist criteria
+                                        </label>
+                                    </div>
+                                    <div class="preset-option">
+                                        <input type="radio" id="whitelistDefault" name="whitelistPreset" value="default">
+                                        <label for="whitelistDefault">
+                                            <strong>Default</strong> - Balanced whitelist settings
+                                        </label>
+                                    </div>
+                                    <div class="preset-option">
+                                        <input type="radio" id="whitelistRestrictive" name="whitelistPreset" value="restrictive">
+                                        <label for="whitelistRestrictive">
+                                            <strong>Restrictive</strong> - Stricter whitelist criteria
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="preset-update-actions">
+                                    <button id="updateWhitelistBtn" class="btn btn-primary" disabled>💾 Update Preset</button>
+                                    <button id="cancelWhitelistUpdateBtn" class="btn btn-secondary">❌ Cancel</button>
+                                </div>
+                                
+                                <div class="preset-warning">
+                                    <p><strong>⚠️ Warning:</strong> Changing the preset will update the whitelist configuration file and may affect trust metric calculations.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Show/Hide Update Controls Button -->
+                            <div class="preset-toggle-section">
+                                <button id="toggleWhitelistUpdateBtn" class="btn btn-sm btn-outline" style="display: none;">⚙️ Update Preset</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Blacklist Configuration -->
+                        <div class="config-section">
+                            <h4>Blacklist Algorithm Preset</h4>
+                            <div class="preset-status-container">
+                                <div class="preset-info">
+                                    <div class="data-row">
+                                        <span class="data-label">Current Preset:</span>
+                                        <span id="blacklistPreset" class="preset-badge loading">Loading...</span>
+                                    </div>
+                                    <div class="data-row">
+                                        <span class="data-label">Configuration File:</span>
+                                        <span id="blacklistConfigPath" class="config-path">Loading...</span>
+                                    </div>
+                                    <div class="data-row">
+                                        <span class="data-label">Parameters:</span>
+                                        <span id="blacklistParameterCount" class="data-value">Loading...</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="preset-refresh">
+                                    <button id="refreshBlacklistBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Preset Update Controls (Owner Only) -->
+                            <div id="blacklistUpdateControls" class="preset-update-section" style="display: none;">
+                                <h5>Update Preset</h5>
+                                <div class="preset-options">
+                                    <div class="preset-option">
+                                        <input type="radio" id="blacklistPermissive" name="blacklistPreset" value="permissive">
+                                        <label for="blacklistPermissive">
+                                            <strong>Permissive</strong> - More lenient blacklist criteria
+                                        </label>
+                                    </div>
+                                    <div class="preset-option">
+                                        <input type="radio" id="blacklistDefault" name="blacklistPreset" value="default">
+                                        <label for="blacklistDefault">
+                                            <strong>Default</strong> - Balanced blacklist settings
+                                        </label>
+                                    </div>
+                                    <div class="preset-option">
+                                        <input type="radio" id="blacklistRestrictive" name="blacklistPreset" value="restrictive">
+                                        <label for="blacklistRestrictive">
+                                            <strong>Restrictive</strong> - Stricter blacklist criteria
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="preset-update-actions">
+                                    <button id="updateBlacklistBtn" class="btn btn-primary" disabled>💾 Update Preset</button>
+                                    <button id="cancelBlacklistUpdateBtn" class="btn btn-secondary">❌ Cancel</button>
+                                </div>
+                                
+                                <div class="preset-warning">
+                                    <p><strong>⚠️ Warning:</strong> Changing the preset will update the blacklist configuration file and may affect trust metric calculations.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Show/Hide Update Controls Button -->
+                            <div class="preset-toggle-section">
+                                <button id="toggleBlacklistUpdateBtn" class="btn btn-sm btn-outline" style="display: none;">⚙️ Update Preset</button>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Trust Metrics Status -->
@@ -693,6 +821,10 @@
             
             // Load Trust Metrics Configuration
             loadGrapeRankPresetConfig();
+            
+            // Load whitelist and blacklist configuration presets
+            loadConfigPreset('whitelist');
+            loadConfigPreset('blacklist');
             
             // Update status display in management section
             const statusDisplay = document.getElementById('currentStatusDisplay');
@@ -1819,6 +1951,218 @@
             }
         }
         
+        /**
+         * GENERALIZED CONFIGURATION MANAGEMENT FUNCTIONS
+         * These functions work with any config type (whitelist, blacklist, etc.)
+         */
+        
+        /**
+         * Load configuration preset for any config type
+         * @param {string} configType - Configuration type (e.g., 'whitelist', 'blacklist')
+         */
+        async function loadConfigPreset(configType) {
+            try {
+                const response = await fetch(`/api/algos/config/get?pubkey=${customerPubkey}&configType=${configType}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateConfigDisplay(configType, result.data);
+                } else {
+                    console.error(`Error loading ${configType} preset:`, result.error);
+                    updateConfigDisplay(configType, {
+                        preset: 'Error',
+                        error: result.error,
+                        configType
+                    });
+                }
+            } catch (error) {
+                console.error(`Error loading ${configType} preset:`, error);
+                updateConfigDisplay(configType, {
+                    preset: 'Error',
+                    error: error.message,
+                    configType
+                });
+            }
+        }
+        
+        /**
+         * Update configuration display for any config type
+         * @param {string} configType - Configuration type
+         * @param {Object} data - Configuration data
+         */
+        function updateConfigDisplay(configType, data) {
+            const presetElement = document.getElementById(`${configType}Preset`);
+            const configPathElement = document.getElementById(`${configType}ConfigPath`);
+            const parameterCountElement = document.getElementById(`${configType}ParameterCount`);
+            
+            if (presetElement) {
+                presetElement.textContent = data.preset || 'Unknown';
+                presetElement.className = `preset-badge ${getPresetClass(data.preset)}`;
+            }
+            
+            if (configPathElement) {
+                configPathElement.textContent = data.configPath || 'Not available';
+            }
+            
+            if (parameterCountElement) {
+                parameterCountElement.textContent = data.parameterCount ? `${data.parameterCount} parameters` : 'Unknown';
+            }
+            
+            // Update controls visibility and radio selection
+            updateConfigControlsVisibility(configType, data);
+            updateConfigRadioSelection(configType, data.preset);
+        }
+        
+        /**
+         * Update config controls visibility based on user classification and data
+         * @param {string} configType - Configuration type
+         * @param {Object} data - Configuration data
+         */
+        function updateConfigControlsVisibility(configType, data) {
+            const toggleBtn = document.getElementById(`toggle${configType.charAt(0).toUpperCase() + configType.slice(1)}UpdateBtn`);
+            const updateControls = document.getElementById(`${configType}UpdateControls`);
+            
+            // Only show controls for owners and if preset data is valid
+            if (userClassification === 'owner' && data.preset && data.preset !== 'Error' && data.preset !== 'Config File Not Found') {
+                if (toggleBtn) toggleBtn.style.display = 'inline-block';
+            } else {
+                if (toggleBtn) toggleBtn.style.display = 'none';
+                if (updateControls) updateControls.style.display = 'none';
+            }
+        }
+        
+        /**
+         * Update radio button selection based on current preset
+         * @param {string} configType - Configuration type
+         * @param {string} currentPreset - Current preset type
+         */
+        function updateConfigRadioSelection(configType, currentPreset) {
+            // Clear all radio selections first
+            document.querySelectorAll(`input[name="${configType}Preset"]`).forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // Select the appropriate radio button
+            const presetMap = {
+                'Permissive': `${configType}Permissive`,
+                'Default': `${configType}Default`, 
+                'Restrictive': `${configType}Restrictive`
+            };
+            
+            const radioId = presetMap[currentPreset];
+            if (radioId) {
+                const radioElement = document.getElementById(radioId);
+                if (radioElement) {
+                    radioElement.checked = true;
+                }
+            }
+        }
+        
+        /**
+         * Setup event listeners for any config type
+         * @param {string} configType - Configuration type
+         */
+        function setupConfigEventListeners(configType) {
+            const capitalizedType = configType.charAt(0).toUpperCase() + configType.slice(1);
+            
+            // Refresh button
+            const refreshBtn = document.getElementById(`refresh${capitalizedType}Btn`);
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    this.disabled = true;
+                    this.textContent = '🔄 Refreshing...';
+                    
+                    loadConfigPreset(configType).finally(() => {
+                        this.disabled = false;
+                        this.textContent = '🔄 Refresh';
+                    });
+                });
+            }
+            
+            // Toggle update controls button
+            const toggleBtn = document.getElementById(`toggle${capitalizedType}UpdateBtn`);
+            const updateControls = document.getElementById(`${configType}UpdateControls`);
+            if (toggleBtn && updateControls) {
+                toggleBtn.addEventListener('click', function() {
+                    const isVisible = updateControls.style.display !== 'none';
+                    updateControls.style.display = isVisible ? 'none' : 'block';
+                    this.textContent = isVisible ? '⚙️ Update Preset' : '❌ Hide Controls';
+                });
+            }
+            
+            // Radio button change handlers
+            document.querySelectorAll(`input[name="${configType}Preset"]`).forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const updateBtn = document.getElementById(`update${capitalizedType}Btn`);
+                    if (updateBtn) {
+                        updateBtn.disabled = false;
+                    }
+                });
+            });
+            
+            // Update preset button
+            const updateBtn = document.getElementById(`update${capitalizedType}Btn`);
+            if (updateBtn) {
+                updateBtn.addEventListener('click', async function() {
+                    const selectedPreset = document.querySelector(`input[name="${configType}Preset"]:checked`);
+                    if (!selectedPreset) {
+                        alert('Please select a preset to apply.');
+                        return;
+                    }
+                    
+                    const confirmed = confirm(`Are you sure you want to change the ${configType} preset to ${selectedPreset.value}?\n\nThis will update the configuration file and may affect trust metric calculations.`);
+                    if (!confirmed) return;
+                    
+                    this.disabled = true;
+                    this.textContent = '💾 Updating...';
+                    
+                    try {
+                        const response = await fetch(`/api/algos/config/update?pubkey=${customerPubkey}&configType=${configType}&setPreset=${selectedPreset.value}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            alert(`✅ Successfully updated ${configType} preset to ${result.data.newPreset}!`);
+                            // Reload the preset data
+                            await loadConfigPreset(configType);
+                            // Hide update controls
+                            updateControls.style.display = 'none';
+                            if (toggleBtn) toggleBtn.textContent = '⚙️ Update Preset';
+                        } else {
+                            alert(`❌ Failed to update ${configType} preset: ${result.error}`);
+                        }
+                    } catch (error) {
+                        console.error(`Error updating ${configType} preset:`, error);
+                        alert(`❌ Error updating ${configType} preset: ${error.message}`);
+                    } finally {
+                        this.disabled = false;
+                        this.textContent = '💾 Update Preset';
+                    }
+                });
+            }
+            
+            // Cancel button
+            const cancelBtn = document.getElementById(`cancel${capitalizedType}UpdateBtn`);
+            if (cancelBtn && updateControls) {
+                cancelBtn.addEventListener('click', function() {
+                    updateControls.style.display = 'none';
+                    if (toggleBtn) toggleBtn.textContent = '⚙️ Update Preset';
+                    
+                    // Reset radio selections to current preset
+                    const currentPreset = document.getElementById(`${configType}Preset`).textContent;
+                    updateConfigRadioSelection(configType, currentPreset);
+                    
+                    // Disable update button
+                    if (updateBtn) updateBtn.disabled = true;
+                });
+            }
+        }
+        
         // Event handlers for calculation actions
         document.addEventListener('DOMContentLoaded', function() {
             // Refresh hops calculation status
@@ -1949,6 +2293,10 @@
             document.getElementById('cancelPresetUpdateBtn')?.addEventListener('click', function() {
                 togglePresetUpdateControls();
             });
+            
+            // Setup event listeners for whitelist and blacklist configuration
+            setupConfigEventListeners('whitelist');
+            setupConfigEventListeners('blacklist');
         });
     </script>
     

@@ -35,6 +35,7 @@ const {
 } = require('./algos/calculation-history');
 
 const { handleGetGrapeRankConfig, handleUpdateGrapeRankConfig } = require('./algos/config');
+const { handleGetConfig, handleUpdateConfig } = require('./algos/config');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
@@ -85,6 +86,9 @@ function register(app) {
 
     app.get('/api/algos/config/get/graperank', handleGetGrapeRankConfig);
     app.post('/api/algos/config/update/graperank', handleUpdateGrapeRankConfig);
+
+    app.get('/api/algos/config/get', handleGetConfig); // /api/algos/config/get?pubkey=0xpubkey&configType=graperank
+    app.post('/api/algos/config/update', handleUpdateConfig); // /api/algos/config/update?pubkey=0xpubkey&configType=graperank&setPreset=permissive
 
     app.get('/api/calculation-history/processAllTrustMetrics', handleGetHistoryProcessAllTrustMetrics);
     app.get('/api/calculation-history/hops', handleGetHistoryHops);

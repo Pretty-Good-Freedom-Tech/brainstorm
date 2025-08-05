@@ -1507,6 +1507,432 @@ class CustomerManager {
     }
 
     /**
+     * GENERALIZED CONFIGURATION MANAGEMENT METHODS
+     * These methods work with any .conf file that has PARAMETER_LIST and PRESET_LIST
+     */
+
+    /**
+     * Get configuration preset for any config type
+     * @param {string} customerPubkey - Customer's public key
+     * @param {string} configType - Configuration type (e.g., 'whitelist', 'blacklist', 'graperank')
+     * @returns {Promise<Object>} Preset analysis result
+     */
+    async getConfigPreset(customerPubkey, configType) {
+        try {
+            // Validate customer exists
+            const customer = await this.getCustomer(customerPubkey);
+            if (!customer) {
+                return {
+                    preset: 'Customer Not Found',
+                    error: 'Customer does not exist',
+                    customerPubkey,
+                    configType
+                };
+            }
+
+            // Construct path to customer's config file
+            const customerDir = path.join(this.customersDir, customer.name);
+            const configPath = path.join(customerDir, 'preferences', `${configType}.conf`);
+
+            // Check if config file exists
+            if (!fs.existsSync(configPath)) {
+                return {
+                    preset: 'Config File Not Found',
+                    error: `Configuration file ${configType}.conf does not exist`,
+                    configPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    },
+                    configType
+                };
+            }
+
+            // Read and parse the configuration
+            const configContent = fs.readFileSync(configPath, 'utf8');
+            const configData = this.parseGeneralConfig(configContent);
+
+            if (configData.error) {
+                return {
+                    preset: 'Error',
+                    error: configData.error,
+                    configPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    },
+                    configType
+                };
+            }
+
+            // Determine the current preset
+            const presetResult = this.determineGeneralPreset(configData);
+
+            return {
+                preset: presetResult.preset,
+                configPath,
+                parameterCount: configData.parameters ? configData.parameters.length : 0,
+                availablePresets: configData.availablePresets || [],
+                customer: {
+                    name: customer.name,
+                    id: customer.id,
+                    pubkey: customerPubkey
+                },
+                configType,
+                details: presetResult.details
+            };
+
+        } catch (error) {
+            console.error(`Error getting ${configType} preset:`, error);
+            return {
+                preset: 'Error',
+                error: error.message,
+                customerPubkey,
+                configType
+            };
+        }
+    }
+
+    /**
+     * Parse any configuration file with PARAMETER_LIST and PRESET_LIST
+     * @param {string} configContent - Configuration file content
+     * @returns {Object} Parsed configuration data
+     */
+    parseGeneralConfig(configContent) {
+        try {
+            const lines = configContent.split('\n');
+            const exports = {};
+
+            // Parse all export statements
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('export ') && trimmed.includes('=')) {
+                    const exportMatch = trimmed.match(/^export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+                    if (exportMatch) {
+                        const [, key, value] = exportMatch;
+                        // Parse the value, handling quotes and special cases
+                        let parsedValue = value.trim();
+                        if (parsedValue.startsWith("'") && parsedValue.endsWith("'")) {
+                            parsedValue = parsedValue.slice(1, -1);
+                        } else if (parsedValue.startsWith('"') && parsedValue.endsWith('"')) {
+                            parsedValue = parsedValue.slice(1, -1);
+                        } else if (parsedValue === 'true') {
+                            parsedValue = true;
+                        } else if (parsedValue === 'false') {
+                            parsedValue = false;
+                        } else if (!isNaN(parsedValue) && parsedValue !== '') {
+                            parsedValue = parseFloat(parsedValue);
+                        }
+                        exports[key] = parsedValue;
+                    }
+                }
+            }
+
+            // Extract parameter list
+            if (!exports.PARAMETER_LIST) {
+                return {
+                    error: 'PARAMETER_LIST not found in configuration file'
+                };
+            }
+
+            let parameterList;
+            try {
+                parameterList = JSON.parse(exports.PARAMETER_LIST);
+            } catch (e) {
+                return {
+                    error: 'PARAMETER_LIST is not valid JSON'
+                };
+            }
+
+            // Extract preset list (new feature)
+            let availablePresets = ['permissive', 'default', 'restrictive']; // Default fallback
+            if (exports.PRESET_LIST) {
+                try {
+                    availablePresets = JSON.parse(exports.PRESET_LIST);
+                } catch (e) {
+                    console.warn('PRESET_LIST is not valid JSON, using default presets');
+                }
+            }
+
+            // Extract live values for each parameter
+            const liveValues = {};
+            const presetValues = {};
+
+            // Initialize preset values structure
+            for (const preset of availablePresets) {
+                presetValues[preset] = {};
+            }
+
+            for (const param of parameterList) {
+                // Get live value
+                if (exports[param] !== undefined) {
+                    liveValues[param] = exports[param];
+                }
+
+                // Get preset values
+                for (const preset of availablePresets) {
+                    const presetKey = `${param}_${preset.toUpperCase()}`;
+                    if (exports[presetKey] !== undefined) {
+                        presetValues[preset][param] = exports[presetKey];
+                    }
+                }
+            }
+
+            return {
+                parameters: parameterList,
+                availablePresets,
+                liveValues,
+                presetValues,
+                allExports: exports
+            };
+
+        } catch (error) {
+            return {
+                error: `Failed to parse configuration: ${error.message}`
+            };
+        }
+    }
+
+    /**
+     * Determine which preset matches the current live values
+     * @param {Object} configData - Parsed configuration data
+     * @returns {Object} Preset determination result
+     */
+    determineGeneralPreset(configData) {
+        const { parameters, availablePresets, liveValues, presetValues } = configData;
+        
+        // Check each available preset
+        for (const preset of availablePresets) {
+            let matches = true;
+            const mismatches = [];
+            
+            for (const param of parameters) {
+                const liveValue = liveValues[param];
+                const presetValue = presetValues[preset][param];
+                
+                if (!this.valuesEqual(liveValue, presetValue)) {
+                    matches = false;
+                    mismatches.push({
+                        parameter: param,
+                        liveValue,
+                        presetValue
+                    });
+                }
+            }
+            
+            if (matches) {
+                const presetName = preset.charAt(0).toUpperCase() + preset.slice(1);
+                return {
+                    preset: presetName,
+                    details: {
+                        matchedPreset: preset,
+                        allParametersMatch: true,
+                        availablePresets
+                    }
+                };
+            }
+        }
+        
+        // No preset matches - it's custom
+        return {
+            preset: 'Custom',
+            details: {
+                matchedPreset: null,
+                allParametersMatch: false,
+                availablePresets,
+                note: 'Configuration does not match any available preset'
+            }
+        };
+    }
+
+    /**
+     * Update configuration preset for any config type
+     * @param {string} customerPubkey - Customer's public key
+     * @param {string} configType - Configuration type (e.g., 'whitelist', 'blacklist')
+     * @param {string} newPreset - New preset to apply
+     * @returns {Promise<Object>} Update result
+     */
+    async updateConfigPreset(customerPubkey, configType, newPreset) {
+        try {
+            // Validate customer exists
+            const customer = await this.getCustomer(customerPubkey);
+            if (!customer) {
+                return {
+                    success: false,
+                    error: 'Customer does not exist',
+                    customerPubkey,
+                    configType
+                };
+            }
+
+            // Construct path to customer's config file
+            const customerDir = path.join(this.customersDir, customer.name);
+            const configPath = path.join(customerDir, 'preferences', `${configType}.conf`);
+
+            // Check if config file exists
+            if (!fs.existsSync(configPath)) {
+                return {
+                    success: false,
+                    error: `Configuration file ${configType}.conf does not exist`,
+                    configPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    },
+                    configType
+                };
+            }
+
+            // Read and parse the current configuration
+            const configContent = fs.readFileSync(configPath, 'utf8');
+            const configData = this.parseGeneralConfig(configContent);
+
+            if (configData.error) {
+                return {
+                    success: false,
+                    error: `Failed to parse configuration: ${configData.error}`,
+                    configPath,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    },
+                    configType
+                };
+            }
+
+            // Validate preset is available
+            if (!configData.availablePresets.includes(newPreset.toLowerCase())) {
+                return {
+                    success: false,
+                    error: `Invalid preset '${newPreset}'. Available presets: ${configData.availablePresets.join(', ')}`,
+                    customerPubkey,
+                    configType,
+                    availablePresets: configData.availablePresets,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id
+                    }
+                };
+            }
+
+            // Create backup of original file
+            const backupPath = `${configPath}.backup.${Date.now()}`;
+            fs.copyFileSync(configPath, backupPath);
+
+            try {
+                // Update the configuration with new preset values
+                const updatedConfig = this.applyGeneralPresetToConfig(configContent, configData, newPreset.toLowerCase());
+                
+                // Write the updated configuration
+                fs.writeFileSync(configPath, updatedConfig, 'utf8');
+                
+                // Verify the update was successful
+                const verificationData = this.parseGeneralConfig(updatedConfig);
+                const verificationResult = this.determineGeneralPreset(verificationData);
+                
+                const expectedPreset = newPreset.charAt(0).toUpperCase() + newPreset.slice(1);
+                if (verificationResult.preset !== expectedPreset) {
+                    throw new Error(`Preset verification failed. Expected ${expectedPreset}, got ${verificationResult.preset}`);
+                }
+                
+                // Clean up backup file on success
+                fs.unlinkSync(backupPath);
+                
+                return {
+                    success: true,
+                    message: `Successfully updated ${configType} preset to ${expectedPreset}`,
+                    oldPreset: this.determineGeneralPreset(configData).preset,
+                    newPreset: expectedPreset,
+                    configPath,
+                    configType,
+                    customer: {
+                        name: customer.name,
+                        id: customer.id,
+                        pubkey: customerPubkey
+                    },
+                    timestamp: new Date().toISOString()
+                };
+                
+            } catch (updateError) {
+                // Restore backup on failure
+                if (fs.existsSync(backupPath)) {
+                    fs.copyFileSync(backupPath, configPath);
+                    fs.unlinkSync(backupPath);
+                }
+                
+                throw new Error(`Failed to update configuration: ${updateError.message}`);
+            }
+
+        } catch (error) {
+            console.error(`Error updating ${configType} preset:`, error);
+            return {
+                success: false,
+                error: error.message,
+                customerPubkey,
+                configType
+            };
+        }
+    }
+
+    /**
+     * Apply preset values to any configuration content
+     * @param {string} originalContent - Original configuration file content
+     * @param {Object} configData - Parsed configuration data
+     * @param {string} preset - Preset to apply
+     * @returns {string} Updated configuration content
+     */
+    applyGeneralPresetToConfig(originalContent, configData, preset) {
+        const { parameters, presetValues } = configData;
+        let updatedContent = originalContent;
+        
+        console.log(`Applying preset '${preset}' with parameters:`, parameters);
+        
+        // Update each parameter with the new preset values
+        for (const param of parameters) {
+            const newValue = presetValues[preset][param];
+            
+            console.log(`Updating parameter ${param}: ${newValue}`);
+            
+            // Create more flexible regex to match the export line
+            const paramRegex = new RegExp(`^(export\s+${param}\s*=).*$`, 'gm');
+            
+            // Format the new value properly to match original format
+            let formattedValue;
+            if (typeof newValue === 'string') {
+                formattedValue = `'${newValue}'`;
+            } else if (typeof newValue === 'boolean') {
+                formattedValue = newValue.toString();
+            } else if (typeof newValue === 'number') {
+                formattedValue = newValue.toString();
+            } else {
+                formattedValue = `'${newValue}'`;
+            }
+            
+            // Create the replacement line
+            const newLine = `export ${param}=${formattedValue}`;
+            
+            // Check if the parameter exists in the content
+            const matches = originalContent.match(paramRegex);
+            if (matches && matches.length > 0) {
+                console.log(`Found existing line for ${param}:`, matches[0]);
+                console.log(`Replacing with:`, newLine);
+                updatedContent = updatedContent.replace(paramRegex, newLine);
+            } else {
+                console.warn(`Parameter ${param} not found in configuration file`);
+                // If parameter doesn't exist, add it at the end
+                updatedContent += `\n${newLine}`;
+            }
+        }
+        
+        console.log('Configuration update completed');
+        return updatedContent;
+    }
+
+    /**
      * Clear cache
      */
     clearCache() {
