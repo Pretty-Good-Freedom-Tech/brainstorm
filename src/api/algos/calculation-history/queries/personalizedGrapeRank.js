@@ -1,6 +1,6 @@
 /**
- * PersonalizedPageRank Calculation History API
- * Provides calculation status for customer-specific personalizedPageRank calculations
+ * PersonalizedGrapeRank Calculation History API
+ * Provides calculation status for customer-specific personalizedGrapeRank calculations
  */
 
 const fs = require('fs');
@@ -9,11 +9,11 @@ const CustomerManager = require('../../../../utils/customerManager');
 const { getConfigFromFile } = require('../../../../utils/config');
 
 /**
- * Handler for getting personalizedPageRank calculation history for a specific customer
+ * Handler for getting personalizedGrapeRank calculation history for a specific customer
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-async function handleGetHistoryPersonalizedPageRank(req, res) {
+async function handleGetHistoryPersonalizedGrapeRank(req, res) {
     try {
         // Check if user is authenticated
         if (!req.session.authenticated) {
@@ -33,7 +33,7 @@ async function handleGetHistoryPersonalizedPageRank(req, res) {
             });
         }
 
-        console.log(`Getting personalizedPageRank calculation history for customer: ${customerPubkey.substring(0, 8)}...`);
+        console.log(`Getting personalizedGrapeRank calculation history for customer: ${customerPubkey.substring(0, 8)}...`);
         
         // Verify the customer exists using CustomerManager
         const customerManager = new CustomerManager();
@@ -51,12 +51,12 @@ async function handleGetHistoryPersonalizedPageRank(req, res) {
         // Get the customer's log directory
         const logDir = getConfigFromFile('BRAINSTORM_LOG_DIR', '/var/log/brainstorm');
         const customerLogDir = path.join(logDir, 'customers', customer.name);
-        const personalizedPageRankLogFile = path.join(customerLogDir, 'personalizedPageRank.log');
+        const personalizedGrapeRankLogFile = path.join(customerLogDir, 'personalizedGrapeRank.log');
         
-        console.log(`Checking personalizedPageRank log file: ${personalizedPageRankLogFile}`);
+        console.log(`Checking personalizedGrapeRank log file: ${personalizedGrapeRankLogFile}`);
         
         // Get calculation status from log file
-        const calculationStatus = getPersonalizedPageRankCalculationStatus(personalizedPageRankLogFile);
+        const calculationStatus = getPersonalizedGrapeRankCalculationStatus(personalizedGrapeRankLogFile);
         
         res.json({
             success: true,
@@ -68,15 +68,15 @@ async function handleGetHistoryPersonalizedPageRank(req, res) {
                     status: customer.status
                 },
                 calculation: {
-                    type: 'personalizedPageRank',
-                    logFile: personalizedPageRankLogFile,
+                    type: 'personalizedGrapeRank',
+                    logFile: personalizedGrapeRankLogFile,
                     ...calculationStatus
                 }
             }
         });
         
     } catch (error) {
-        console.error('Error getting personalizedPageRank calculation history:', error);
+        console.error('Error getting personalizedGrapeRank calculation history:', error);
         res.status(500).json({
             success: false,
             message: 'Internal server error while getting calculation history'
@@ -85,11 +85,11 @@ async function handleGetHistoryPersonalizedPageRank(req, res) {
 }
 
 /**
- * Get calculation status from personalizedPageRank log file
+ * Get calculation status from personalizedGrapeRank log file
  * @param {string} logFile - Path to the log file
  * @returns {Object} Calculation status information
  */
-function getPersonalizedPageRankCalculationStatus(logFile) {
+function getPersonalizedGrapeRankCalculationStatus(logFile) {
     try {
         if (!fs.existsSync(logFile)) {
             return { 
@@ -103,10 +103,10 @@ function getPersonalizedPageRankCalculationStatus(logFile) {
         
         const fileContent = fs.readFileSync(logFile, 'utf8');
         
-        // Check for the most recent "Starting personalizedPageRank" and "Finished personalizedPageRank" entries
-        // Expected format: "Tue Jul 29 18:54:47 UTC 2025: Starting personalizedPageRank"
-        const startMatches = [...fileContent.matchAll(/(.*?): Starting personalizedPageRank/g)];
-        const finishMatches = [...fileContent.matchAll(/(.*?): Finished personalizedPageRank/g)];
+        // Check for the most recent "Starting personalizedGrapeRank" and "Finished personalizedGrapeRank" entries
+        // Expected format: "Tue Jul 29 18:54:47 UTC 2025: Starting personalizedGrapeRank"
+        const startMatches = [...fileContent.matchAll(/(.*?): Starting personalizedGrapeRank/g)];
+        const finishMatches = [...fileContent.matchAll(/(.*?): Finished personalizedGrapeRank/g)];
         
         if (startMatches.length === 0) {
             return { 
@@ -294,5 +294,5 @@ function getPersonalizedPageRankCalculationStatus(logFile) {
 }
 
 module.exports = {
-    handleGetHistoryPersonalizedPageRank
+    handleGetHistoryPersonalizedGrapeRank
 };

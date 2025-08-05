@@ -259,14 +259,41 @@
                             </div>
                         </div>
                         
+                        <!-- PersonalizedGrapeRank Calculation Status -->
+                        <div class="calculation-status-section">
+                            <h4>🍇 PersonalizedGrapeRank Calculation</h4>
+                            <div class="calculation-details">
+                                <div class="status-row">
+                                    <span class="status-label">Status:</span>
+                                    <span id="grapeRankStatus" class="status-badge loading">Loading...</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Last Run:</span>
+                                    <span id="grapeRankLastRun" class="status-value">Loading...</span>
+                                </div>
+                                <div class="status-row" id="grapeRankDurationRow" style="display: none;">
+                                    <span class="status-label">Duration:</span>
+                                    <span id="grapeRankDuration" class="status-value">-</span>
+                                </div>
+                                <div class="status-row" id="grapeRankInactivityRow" style="display: none;">
+                                    <span class="status-label">Last Activity:</span>
+                                    <span id="grapeRankInactivity" class="status-value">-</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Log File:</span>
+                                    <span id="grapeRankLogFile" class="status-value log-path">-</span>
+                                </div>
+                            </div>
+                            <div class="calculation-actions">
+                                <button id="refreshGrapeRankBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                <button id="triggerGrapeRankBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
+                            </div>
+                        </div>
+                        
                         <!-- Placeholder for other calculations -->
                         <div class="calculation-status-section">
                             <h4>🔮 Other Calculations</h4>
                             <div class="calculation-details">
-                                <div class="status-row">
-                                    <span class="status-label">GrapeRank:</span>
-                                    <span class="status-value">Coming soon...</span>
-                                </div>
                                 <div class="status-row">
                                     <span class="status-label">Kind 30382 Export:</span>
                                     <span class="status-value">Coming soon...</span>
@@ -504,6 +531,7 @@
             // Load Trust Metrics Calculation Status
             loadHopsCalculationStatus();
             loadPageRankCalculationStatus();
+            loadGrapeRankCalculationStatus();
             
             // Update status display in management section
             const statusDisplay = document.getElementById('currentStatusDisplay');
@@ -1054,6 +1082,89 @@
         }
         
         /**
+         * Load GrapeRank calculation status from API
+         */
+        async function loadGrapeRankCalculationStatus() {
+            try {
+                console.log('Loading GrapeRank calculation status...');
+                
+                const response = await fetch(`/api/calculation-history/personalizedGrapeRank?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateGrapeRankCalculationDisplay(result.data.calculation);
+                } else {
+                    console.error('Failed to load GrapeRank calculation status:', result.message);
+                    updateGrapeRankCalculationDisplay({
+                        status: 'Error',
+                        formattedTime: 'Failed to load',
+                        logExists: false,
+                        error: result.message
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading GrapeRank calculation status:', error);
+                updateGrapeRankCalculationDisplay({
+                    status: 'Error',
+                    formattedTime: 'Network error',
+                    logExists: false,
+                    error: error.message
+                });
+            }
+        }
+        
+        /**
+         * Update GrapeRank calculation display with API data
+         * @param {Object} data - Calculation status data from API
+         */
+        function updateGrapeRankCalculationDisplay(data) {
+            // Update status badge
+            const statusElement = document.getElementById('grapeRankStatus');
+            statusElement.textContent = data.status || 'Unknown';
+            statusElement.className = `status-badge ${getStatusClass(data.status)}`;
+            
+            // Update last run time
+            document.getElementById('grapeRankLastRun').textContent = data.formattedTime || 'Unknown';
+            
+            // Update duration if available
+            const durationRow = document.getElementById('grapeRankDurationRow');
+            if (data.duration && data.status === 'Completed') {
+                document.getElementById('grapeRankDuration').textContent = data.duration;
+                durationRow.style.display = 'flex';
+            } else {
+                durationRow.style.display = 'none';
+            }
+            
+            // Update inactivity info if in progress
+            const inactivityRow = document.getElementById('grapeRankInactivityRow');
+            if (data.inProgress && data.inactivity) {
+                document.getElementById('grapeRankInactivity').textContent = data.inactivity.inactivityDuration;
+                inactivityRow.style.display = 'flex';
+            } else {
+                inactivityRow.style.display = 'none';
+            }
+            
+            // Update log file path
+            const logFileElement = document.getElementById('grapeRankLogFile');
+            if (data.logFile) {
+                logFileElement.textContent = data.logFile;
+                logFileElement.title = data.logExists ? 'Log file exists' : 'Log file does not exist';
+                logFileElement.className = `status-value log-path ${data.logExists ? 'log-exists' : 'log-missing'}`;
+            } else {
+                logFileElement.textContent = 'Not configured';
+            }
+            
+            // Enable trigger button if not in progress
+            const triggerBtn = document.getElementById('triggerGrapeRankBtn');
+            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
+                triggerBtn.disabled = false;
+            } else {
+                triggerBtn.disabled = true;
+            }
+        }
+        
+        /**
          * Get CSS class for status badge based on status
          * @param {string} status - Calculation status
          * @returns {string} CSS class name
@@ -1106,6 +1217,22 @@
             
             // Trigger PageRank calculation (placeholder)
             document.getElementById('triggerPageRankBtn')?.addEventListener('click', function() {
+                alert('Trigger calculation functionality will be implemented in a future update.');
+            });
+            
+            // Refresh GrapeRank calculation status
+            document.getElementById('refreshGrapeRankBtn')?.addEventListener('click', function() {
+                this.disabled = true;
+                this.textContent = '🔄 Refreshing...';
+                
+                loadGrapeRankCalculationStatus().finally(() => {
+                    this.disabled = false;
+                    this.textContent = '🔄 Refresh';
+                });
+            });
+            
+            // Trigger GrapeRank calculation (placeholder)
+            document.getElementById('triggerGrapeRankBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
         });
