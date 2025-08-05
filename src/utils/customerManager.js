@@ -1925,9 +1925,6 @@ class CustomerManager {
             
             console.log(`Updating parameter ${param}: ${newValue}`);
             
-            // Create more flexible regex to match the export line
-            const paramRegex = new RegExp(`^(export\s+${param}\s*=).*$`, 'gm');
-            
             // Format the new value properly to match original format
             let formattedValue;
             if (typeof newValue === 'string') {
@@ -1943,14 +1940,30 @@ class CustomerManager {
             // Create the replacement line
             const newLine = `export ${param}=${formattedValue}`;
             
-            // Check if the parameter exists in the content
-            const matches = originalContent.match(paramRegex);
-            if (matches && matches.length > 0) {
-                console.log(`Found existing line for ${param}:`, matches[0]);
-                console.log(`Replacing with:`, newLine);
-                updatedContent = updatedContent.replace(paramRegex, newLine);
-            } else {
-                console.warn(`Parameter ${param} not found in configuration file`);
+            // Create more robust regex patterns to match the export line
+            // Try multiple patterns to handle different spacing and formats
+            const regexPatterns = [
+                new RegExp(`^export\s+${param}\s*=.*$`, 'gm'),
+                new RegExp(`^export\s+${param}=.*$`, 'gm'),
+                new RegExp(`^\s*export\s+${param}\s*=.*$`, 'gm')
+            ];
+            
+            let replaced = false;
+            
+            // Try each regex pattern
+            for (const paramRegex of regexPatterns) {
+                const matches = updatedContent.match(paramRegex);
+                if (matches && matches.length > 0) {
+                    console.log(`Found existing line for ${param} with pattern:`, matches[0]);
+                    console.log(`Replacing with:`, newLine);
+                    updatedContent = updatedContent.replace(paramRegex, newLine);
+                    replaced = true;
+                    break;
+                }
+            }
+            
+            if (!replaced) {
+                console.warn(`Parameter ${param} not found in configuration file, adding at end`);
                 // If parameter doesn't exist, add it at the end
                 updatedContent += `\n${newLine}`;
             }
