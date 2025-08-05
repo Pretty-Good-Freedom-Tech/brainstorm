@@ -211,7 +211,7 @@
                             </div>
                             
                             <!-- Preset Update Controls (Owner Only) -->
-                            <div id="presetUpdateControls" class="preset-update-section">
+                            <div id="presetUpdateControls" class="preset-update-section" style="display: block;">
                                 <h5>Update Preset</h5>
                                 <div class="preset-options">
                                     <div class="preset-option">
@@ -528,8 +528,9 @@
     <div id="footerContainer"></div>
     
     <script>
-        let customerPubkey = null;
+        let customerPubkey = '';
         let customerData = null;
+        let userClassification = null;
         let profileData = null;
         
         // Initialize page
@@ -551,6 +552,11 @@
                 // Check if user is owner
                 const classificationResponse = await fetch('/api/auth/user-classification');
                 const classificationData = await classificationResponse.json();
+                
+                // Store user classification globally
+                if (classificationData.success) {
+                    userClassification = classificationData.classification;
+                }
                 
                 if (!classificationData.success || classificationData.classification !== 'owner') {
                     showNotAuthorized();
