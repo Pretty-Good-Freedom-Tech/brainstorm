@@ -83,8 +83,8 @@ function register(app) {
         app._brainstormSessionConfigured = true;
     }
 
-    app.get('/api/algos/config/graperank', handleGetGrapeRankConfig);
-    app.post('/api/algos/config/graperank', handleUpdateGrapeRankConfig);
+    app.get('/api/algos/config/get/graperank', handleGetGrapeRankConfig);
+    app.post('/api/algos/config/update/graperank', handleUpdateGrapeRankConfig);
 
     app.get('/api/calculation-history/processAllTrustMetrics', handleGetHistoryProcessAllTrustMetrics);
     app.get('/api/calculation-history/hops', handleGetHistoryHops);
