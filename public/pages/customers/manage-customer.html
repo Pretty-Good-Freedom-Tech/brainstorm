@@ -290,13 +290,35 @@
                             </div>
                         </div>
                         
-                        <!-- Placeholder for other calculations -->
+                        <!-- Kind 30382 Export Calculation Status -->
                         <div class="calculation-status-section">
-                            <h4>🔮 Other Calculations</h4>
+                            <div class="calculation-header">
+                                <h4>📤 Kind 30382 Export</h4>
+                                <div class="calculation-actions">
+                                    <button id="refreshKind30382ExportBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                    <button id="triggerKind30382ExportBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger</button>
+                                </div>
+                            </div>
                             <div class="calculation-details">
                                 <div class="status-row">
-                                    <span class="status-label">Kind 30382 Export:</span>
-                                    <span class="status-value">Coming soon...</span>
+                                    <span class="status-label">Status:</span>
+                                    <span id="kind30382ExportStatus" class="status-badge status-unknown">Loading...</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Last Run:</span>
+                                    <span id="kind30382ExportLastRun" class="status-value">Loading...</span>
+                                </div>
+                                <div id="kind30382ExportDurationRow" class="status-row" style="display: none;">
+                                    <span class="status-label">Duration:</span>
+                                    <span id="kind30382ExportDuration" class="status-value">-</span>
+                                </div>
+                                <div id="kind30382ExportInactivityRow" class="status-row" style="display: none;">
+                                    <span class="status-label">Last Activity:</span>
+                                    <span id="kind30382ExportInactivity" class="status-value">-</span>
+                                </div>
+                                <div class="status-row">
+                                    <span class="status-label">Log File:</span>
+                                    <span id="kind30382ExportLogFile" class="status-value log-path">Loading...</span>
                                 </div>
                             </div>
                         </div>
@@ -532,6 +554,7 @@
             loadHopsCalculationStatus();
             loadPageRankCalculationStatus();
             loadGrapeRankCalculationStatus();
+            loadKind30382ExportCalculationStatus();
             
             // Update status display in management section
             const statusDisplay = document.getElementById('currentStatusDisplay');
@@ -1165,6 +1188,89 @@
         }
         
         /**
+         * Load Kind 30382 Export calculation status from API
+         */
+        async function loadKind30382ExportCalculationStatus() {
+            try {
+                console.log('Loading Kind 30382 Export calculation status...');
+                
+                const response = await fetch(`/api/calculation-history/kind30382Export?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateKind30382ExportCalculationDisplay(result.data.calculation);
+                } else {
+                    console.error('Failed to load Kind 30382 Export calculation status:', result.message);
+                    updateKind30382ExportCalculationDisplay({
+                        status: 'Error',
+                        formattedTime: 'Failed to load',
+                        logExists: false,
+                        error: result.message
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading Kind 30382 Export calculation status:', error);
+                updateKind30382ExportCalculationDisplay({
+                    status: 'Error',
+                    formattedTime: 'Network error',
+                    logExists: false,
+                    error: error.message
+                });
+            }
+        }
+        
+        /**
+         * Update Kind 30382 Export calculation display with API data
+         * @param {Object} data - Calculation status data from API
+         */
+        function updateKind30382ExportCalculationDisplay(data) {
+            // Update status badge
+            const statusElement = document.getElementById('kind30382ExportStatus');
+            statusElement.textContent = data.status || 'Unknown';
+            statusElement.className = `status-badge ${getStatusClass(data.status)}`;
+            
+            // Update last run time
+            document.getElementById('kind30382ExportLastRun').textContent = data.formattedTime || 'Unknown';
+            
+            // Update duration if available
+            const durationRow = document.getElementById('kind30382ExportDurationRow');
+            if (data.duration && data.status === 'Completed') {
+                document.getElementById('kind30382ExportDuration').textContent = data.duration;
+                durationRow.style.display = 'flex';
+            } else {
+                durationRow.style.display = 'none';
+            }
+            
+            // Update inactivity info if in progress
+            const inactivityRow = document.getElementById('kind30382ExportInactivityRow');
+            if (data.inProgress && data.inactivity) {
+                document.getElementById('kind30382ExportInactivity').textContent = data.inactivity.inactivityDuration;
+                inactivityRow.style.display = 'flex';
+            } else {
+                inactivityRow.style.display = 'none';
+            }
+            
+            // Update log file path
+            const logFileElement = document.getElementById('kind30382ExportLogFile');
+            if (data.logFile) {
+                logFileElement.textContent = data.logFile;
+                logFileElement.title = data.logExists ? 'Log file exists' : 'Log file does not exist';
+                logFileElement.className = `status-value log-path ${data.logExists ? 'log-exists' : 'log-missing'}`;
+            } else {
+                logFileElement.textContent = 'Not configured';
+            }
+            
+            // Enable trigger button if not in progress
+            const triggerBtn = document.getElementById('triggerKind30382ExportBtn');
+            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
+                triggerBtn.disabled = false;
+            } else {
+                triggerBtn.disabled = true;
+            }
+        }
+        
+        /**
          * Get CSS class for status badge based on status
          * @param {string} status - Calculation status
          * @returns {string} CSS class name
@@ -1233,6 +1339,22 @@
             
             // Trigger GrapeRank calculation (placeholder)
             document.getElementById('triggerGrapeRankBtn')?.addEventListener('click', function() {
+                alert('Trigger calculation functionality will be implemented in a future update.');
+            });
+            
+            // Refresh Kind 30382 Export calculation status
+            document.getElementById('refreshKind30382ExportBtn')?.addEventListener('click', function() {
+                this.disabled = true;
+                this.textContent = '🔄 Refreshing...';
+                
+                loadKind30382ExportCalculationStatus().finally(() => {
+                    this.disabled = false;
+                    this.textContent = '🔄 Refresh';
+                });
+            });
+            
+            // Trigger Kind 30382 Export calculation (placeholder)
+            document.getElementById('triggerKind30382ExportBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
         });

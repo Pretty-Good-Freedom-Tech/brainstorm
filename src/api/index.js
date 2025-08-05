@@ -28,7 +28,8 @@ const { handleGetRecentlyActivePubkeys } = require('./content/queries/recentlyAc
 const {
     handleGetHistoryHops,
     handleGetHistoryPersonalizedPageRank,
-    handleGetHistoryPersonalizedGrapeRank
+    handleGetHistoryPersonalizedGrapeRank,
+    handleGetHistoryKind30382Export
 } = require('./algos/calculation-history');
 
 // Import domain-specific handler modules
@@ -81,6 +82,7 @@ function register(app) {
     app.get('/api/calculation-history/hops', handleGetHistoryHops);
     app.get('/api/calculation-history/personalizedPageRank', handleGetHistoryPersonalizedPageRank);
     app.get('/api/calculation-history/personalizedGrapeRank', handleGetHistoryPersonalizedGrapeRank);
+    app.get('/api/calculation-history/kind30382Export', handleGetHistoryKind30382Export);
     
     // Register new modular endpoints for both paths
     // TODO: might move these to status module 
