@@ -55,7 +55,6 @@
                             <div class="profile-info">
                                 <h2 id="customerName" class="customer-name">Loading...</h2>
                                 <div id="customerStatus" class="customer-status">Loading...</div>
-                                <p id="customerAbout" class="customer-about">Loading customer information...</p>
                             </div>
                         </div>
                         
@@ -77,40 +76,6 @@
                                 <div class="detail-row">
                                     <span class="detail-label">Public Key:</span>
                                     <span id="customerPubkey" class="detail-value pubkey">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Observer ID:</span>
-                                    <span id="customerObserverId" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Comments:</span>
-                                    <span id="customerComments" class="detail-value">-</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="profile-nostr">
-                            <h3>Nostr Profile Information</h3>
-                            <div class="nostr-details">
-                                <div class="detail-row">
-                                    <span class="detail-label">Display Name:</span>
-                                    <span id="nostrDisplayName" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Username:</span>
-                                    <span id="nostrUsername" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Website:</span>
-                                    <span id="nostrWebsite" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Lightning Address:</span>
-                                    <span id="nostrLud16" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">NIP-05:</span>
-                                    <span id="nostrNip05" class="detail-value">-</span>
                                 </div>
                             </div>
                         </div>
@@ -803,30 +768,11 @@
             statusElement.textContent = customerData.status.toUpperCase();
             statusElement.className = `customer-status status-${customerData.status}`;
             
-            const about = profileData?.about || 'No description available';
-            document.getElementById('customerAbout').textContent = about;
-            
             // Populate customer details
             document.getElementById('customerId').textContent = customerData.id || '-';
             document.getElementById('customerStatusDetail').textContent = customerData.status || '-';
             document.getElementById('customerDirectory').textContent = customerData.directory || '-';
             document.getElementById('customerPubkey').textContent = customerData.pubkey || '-';
-            document.getElementById('customerObserverId').textContent = customerData.observer_id || '-';
-            document.getElementById('customerComments').textContent = customerData.comments || 'None';
-            
-            // Populate Nostr profile details
-            document.getElementById('nostrDisplayName').textContent = profileData?.display_name || profileData?.name || '-';
-            document.getElementById('nostrUsername').textContent = profileData?.username || '-';
-            
-            const website = profileData?.website;
-            if (website) {
-                document.getElementById('nostrWebsite').innerHTML = `<a href="${escapeHtml(website)}" target="_blank">${escapeHtml(website)}</a>`;
-            } else {
-                document.getElementById('nostrWebsite').textContent = '-';
-            }
-            
-            document.getElementById('nostrLud16').textContent = profileData?.lud16 || '-';
-            document.getElementById('nostrNip05').textContent = profileData?.nip05 || '-';
             
             // Populate Brainstorm-specific data (placeholders for now)
             populateBrainstormData();
