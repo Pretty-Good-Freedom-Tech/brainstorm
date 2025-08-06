@@ -315,62 +315,6 @@
                             <span class="progress-text">0%</span>
                         </div>
                     </div>
-                    <div class="calculation-item">
-                        <div class="calculation-item-content">
-                            <h4>Process Customer 0 (straycat)<span class="info-icon">i</span><span class="tooltip">Calculate personalized PageRank, GrapeRank, Hops and Verified Follower counts, and save data to Neo4j in nodes of type:NostrUserWotMetricsCard for customer 0.</span></h4>
-                            <p id="processCustomer_0-last-calculation-time" class="timestamp"></p>
-                            <p id="processCustomer_0-last-calculation-duration" class="duration"></p>
-                        </div>
-                        <div class="calculation-actions">
-                            <button class="action-btn">Run</button>
-                            <div class="progress-container">
-                                <div class="progress-bar"></div>
-                            </div>
-                            <span class="progress-text">0%</span>
-                        </div>
-                    </div>
-                    <div class="calculation-item">
-                        <div class="calculation-item-content">
-                            <h4>Process Customer 1 (cloudfodder)<span class="info-icon">i</span><span class="tooltip">Calculate personalized PageRank, GrapeRank, Hops and Verified Follower counts, and save data to Neo4j in nodes of type:NostrUserWotMetricsCard for customer 1.</span></h4>
-                            <p id="processCustomer_1-last-calculation-time" class="timestamp"></p>
-                            <p id="processCustomer_1-last-calculation-duration" class="duration"></p>
-                        </div>
-                        <div class="calculation-actions">
-                            <button class="action-btn">Run</button>
-                            <div class="progress-container">
-                                <div class="progress-bar"></div>
-                            </div>
-                            <span class="progress-text">0%</span>
-                        </div>
-                    </div>
-                    <div class="calculation-item">
-                        <div class="calculation-item-content">
-                            <h4>Process Customer 2 (dawn)<span class="info-icon">i</span><span class="tooltip">Calculate personalized PageRank, GrapeRank, Hops and Verified Follower counts, and save data to Neo4j in nodes of type:NostrUserWotMetricsCard for customer 2.</span></h4>
-                            <p id="processCustomer_2-last-calculation-time" class="timestamp"></p>
-                            <p id="processCustomer_2-last-calculation-duration" class="duration"></p>
-                        </div>
-                        <div class="calculation-actions">
-                            <button class="action-btn">Run</button>
-                            <div class="progress-container">
-                                <div class="progress-bar"></div>
-                            </div>
-                            <span class="progress-text">0%</span>
-                        </div>
-                    </div>
-                    <div class="calculation-item">
-                        <div class="calculation-item-content">
-                            <h4>Process Customer 3 (manime)<span class="info-icon">i</span><span class="tooltip">Calculate personalized PageRank, GrapeRank, Hops and Verified Follower counts, and save data to Neo4j in nodes of type:NostrUserWotMetricsCard for customer 3.</span></h4>
-                            <p id="processCustomer_3-last-calculation-time" class="timestamp"></p>
-                            <p id="processCustomer_3-last-calculation-duration" class="duration"></p>
-                        </div>
-                        <div class="calculation-actions">
-                            <button class="action-btn">Run</button>
-                            <div class="progress-container">
-                                <div class="progress-bar"></div>
-                            </div>
-                            <span class="progress-text">0%</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -437,7 +381,7 @@
                 
                 // Also refresh content filter status
                 checkFilteredContentStatus();
-            }, 30000); // Refresh every 30 seconds
+            }, 60000); // Refresh every 60 seconds
         });
 
         // Define service groups and their member services

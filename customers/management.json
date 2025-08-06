@@ -1,0 +1,19 @@
+{
+    "free_tier": {
+        "max_num_customers": 20,
+        "update_interval": 604800
+    },
+    "relays": {
+        "wot": [
+            "wss://relay.hasenpfeffr.com", 
+            "wss://wot.brainstorm.social",
+            "wss://profiles.nostr1.com"
+        ],
+        "profiles": [
+            "wss://profiles.nostr1.com"
+        ],
+        "brainstorm": [
+            "wss://cloudfodder.brainstorm.social/relay"
+        ]
+    }
+}
