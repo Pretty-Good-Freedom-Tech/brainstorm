@@ -11,7 +11,7 @@ async function handleGetCustomer(req, res) {
         await customerManager.initialize();
 
         // get pubkey as a parameter
-        const pubkey = req.params.pubkey;
+        const pubkey = req.query.pubkey;
 
         // if no pubkey, return error
         if (!pubkey) {
@@ -24,21 +24,9 @@ async function handleGetCustomer(req, res) {
         // Get customer with matching pubkey using CustomerManager
         const customer = await customerManager.getCustomer(pubkey);
         
-        // Return data for this customer
-        const customerData = customer
-            .map(customer => ({
-                id: customer.id,
-                name: customer.name,
-                pubkey: customer.pubkey,
-                status: customer.status,
-                comments: customer.comments || '',
-                directory: customer.directory,
-                
-            }))
-        
         res.json({
             success: true,
-            customer: customerData
+            customer
         });
         
     } catch (error) {
