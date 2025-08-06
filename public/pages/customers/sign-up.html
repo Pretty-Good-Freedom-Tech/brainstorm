@@ -473,6 +473,180 @@
                     <span class="detail-label">Public Key:</span>
                     <span class="detail-value">${data.pubkey ? data.pubkey.substring(0, 16) + '...' : 'Unknown'}</span>
                 </div>
+                <div id="existingCustomerNip85Status">
+                    <div class="detail-row">
+                        <span class="detail-label">NIP-85 Status:</span>
+                        <span class="detail-value"><span class="status-icon">🔄</span>Checking...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Check NIP-85 status for existing customer
+            if (data.pubkey) {
+                checkExistingCustomerNip85Status(data.pubkey);
+            }
+        }
+        
+        /**
+         * Check NIP-85 status for existing customer and display appropriate UI
+         */
+        async function checkExistingCustomerNip85Status(customerPubkey) {
+            try {
+                const response = await fetch(`/api/get-nip85-status?pubkey=${customerPubkey}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const nip85Data = result.data;
+                    
+                    // Determine which UI to show based on NIP-85 status
+                    if (nip85Data.overall.isComplete) {
+                        // Complete NIP-85 setup - show subtle success indicator
+                        showExistingCustomerNip85Complete(nip85Data);
+                    } else if (nip85Data.kind10040.exists && !nip85Data.kind10040.matches) {
+                        // Kind 10040 exists but relay keys don't match - show update prompt
+                        showExistingCustomerNip85Mismatch(nip85Data, customerPubkey);
+                    } else if (!nip85Data.kind10040.exists) {
+                        // No Kind 10040 event - show creation prompt
+                        showExistingCustomerNip85Missing(nip85Data, customerPubkey);
+                    } else {
+                        // Other scenarios
+                        showExistingCustomerNip85Error('Unable to determine NIP-85 status');
+                    }
+                } else {
+                    // API error
+                    showExistingCustomerNip85Error(`API error: ${result.message}`);
+                    console.error('NIP-85 API error for existing customer:', result.message);
+                }
+                
+            } catch (error) {
+                // Network error
+                showExistingCustomerNip85Error('Network error while checking NIP-85 status');
+                console.error('Error checking NIP-85 status for existing customer:', error);
+            }
+        }
+        
+        /**
+         * Show complete NIP-85 status for existing customer (unobtrusive)
+         */
+        function showExistingCustomerNip85Complete(nip85Data) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Complete</span>
+                </div>
+            `;
+        }
+        
+        /**
+         * Show relay key mismatch for existing customer (prompt for action)
+         */
+        function showExistingCustomerNip85Mismatch(nip85Data, customerPubkey) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">⚠️</span>Relay Key Mismatch</span>
+                </div>
+                <div class="kind10040-mismatch" style="margin-top: 1rem; padding: 1rem; border-radius: 6px;">
+                    <h4>⚠️ Update Required</h4>
+                    <p>Your existing Kind 10040 event references a different relay. To make your personalized trust scores available to the wider Nostr world, please update your Kind 10040 event.</p>
+                    <div class="kind10040-actions">
+                        <button id="existingCustomerUpdateKind10040Btn" class="btn btn-primary">
+                            🔄 Update Kind 10040 Event
+                        </button>
+                        <button id="existingCustomerSkipUpdateBtn" class="btn btn-secondary">
+                            Skip for Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Setup event handlers
+            setupExistingCustomerMismatchButtons(customerPubkey);
+        }
+        
+        /**
+         * Show missing Kind 10040 for existing customer (prompt for action)
+         */
+        function showExistingCustomerNip85Missing(nip85Data, customerPubkey) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">📝</span>Setup Needed</span>
+                </div>
+                <div class="kind10040-prompt" style="margin-top: 1rem; padding: 1rem; border-radius: 6px;">
+                    <h4>📝 Complete Your NIP-85 Setup</h4>
+                    <p>To get the most out of Brainstorm and make your personalized trust scores available to the wider Nostr world, we recommend publishing your Kind 10040 event.</p>
+                    <div class="kind10040-actions">
+                        <button id="existingCustomerPublishKind10040Btn" class="btn btn-primary">
+                            📝 Publish Kind 10040 Event
+                        </button>
+                        <button id="existingCustomerSkipPublishBtn" class="btn btn-secondary">
+                            Skip for Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Setup event handlers
+            setupExistingCustomerMissingButtons(customerPubkey);
+        }
+        
+        /**
+         * Show NIP-85 error for existing customer
+         */
+        function showExistingCustomerNip85Error(message) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">⚠️</span>Unable to check</span>
+                </div>
+            `;
+        }
+        
+        /**
+         * Setup event handlers for existing customer mismatch scenario
+         */
+        function setupExistingCustomerMismatchButtons(customerPubkey) {
+            // Update Kind 10040 button
+            document.getElementById('existingCustomerUpdateKind10040Btn').addEventListener('click', async function() {
+                await handleCreateAndPublishKind10040(customerPubkey, 'update');
+            });
+            
+            // Skip button
+            document.getElementById('existingCustomerSkipUpdateBtn').addEventListener('click', function() {
+                hideExistingCustomerNip85Actions();
+            });
+        }
+        
+        /**
+         * Setup event handlers for existing customer missing Kind 10040 scenario
+         */
+        function setupExistingCustomerMissingButtons(customerPubkey) {
+            // Publish Kind 10040 button
+            document.getElementById('existingCustomerPublishKind10040Btn').addEventListener('click', async function() {
+                await handleCreateAndPublishKind10040(customerPubkey, 'create');
+            });
+            
+            // Skip button
+            document.getElementById('existingCustomerSkipPublishBtn').addEventListener('click', function() {
+                hideExistingCustomerNip85Actions();
+            });
+        }
+        
+        /**
+         * Hide NIP-85 action prompts for existing customer
+         */
+        function hideExistingCustomerNip85Actions() {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">ℹ️</span>Skipped</span>
+                </div>
             `;
         }
         
