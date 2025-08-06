@@ -6,14 +6,9 @@
     "pubkey": "",
     "observer_id": "",
     "comments": "default",
-    "presets": {
-        "graperank": "default",
-        "blacklist": "default",
-        "whitelist": "default"
-    }, 
     "subscription": {
         "service_tier": "free",
-        "signed_up": 0,
+        "when_signed_up": 0,
         "update_interval": 604800
     }
 }

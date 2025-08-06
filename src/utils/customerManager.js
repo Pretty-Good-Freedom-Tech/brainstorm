@@ -193,6 +193,8 @@ class CustomerManager {
             const existingIds = Object.values(allCustomers.customers).map(c => c.id).filter(id => typeof id === 'number');
             const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 0;
 
+            // get time in seconds (unix)
+            const signed_up = Math.floor(Date.now() / 1000);
             // Prepare customer data
             const newCustomer = {
                 id: nextId,
@@ -201,7 +203,12 @@ class CustomerManager {
                 name: customerData.name,
                 pubkey: customerData.pubkey,
                 observer_id: customerData.observer_id || customerData.pubkey,
-                comments: customerData.comments || 'default'
+                comments: customerData.comments || 'default',
+                subscription: {
+                    service_tier: customerData.service_tier || 'free',
+                    when_signed_up: signed_up,
+                    update_interval: customerData.update_interval || 604800 // free tier: update scores once a week
+                }
             };
 
             // Add to customers object
