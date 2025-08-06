@@ -22,7 +22,11 @@ async function handleGetCustomer(req, res) {
         }
         
         // Get customer with matching pubkey using CustomerManager
-        const customer = await customerManager.getCustomer(pubkey);
+        let customer = await customerManager.getCustomer(pubkey);
+
+        // delete preferences property from customer to clean up the returned data;
+        // this contains graperank, whitelist, and blacklist preferences
+        delete customer.preferences;
         
         res.json({
             success: true,

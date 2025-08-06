@@ -155,6 +155,14 @@
                                 <span class="data-label">Signed Up:</span>
                                 <span id="signupDate" class="data-value">Loading...</span>
                             </div>
+                            <div class="data-row">
+                                <span class="data-label">Service Tier:</span>
+                                <span id="serviceTier" class="data-value">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Update Interval:</span>
+                                <span id="updateInterval" class="data-value">Loading...</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -712,14 +720,14 @@
             try {
                 // Load customer data and profile data in parallel
                 const [customerResponse, profileResponse] = await Promise.all([
-                    fetch('/api/get-customers'),
+                    fetch(`/api/get-customer?pubkey=${customerPubkey}`),
                     fetch(`/api/get-kind0?pubkey=${customerPubkey}`)
                 ]);
                 
-                // Process customer data
-                const customersData = await customerResponse.json();
-                if (customersData.success && customersData.customers) {
-                    customerData = customersData.customers.find(c => c.pubkey === customerPubkey);
+                // Process customer data from new endpoint
+                const customerResponseData = await customerResponse.json();
+                if (customerResponseData.success && customerResponseData.customer) {
+                    customerData = customerResponseData.customer;
                 }
                 
                 // Process profile data
@@ -794,9 +802,93 @@
             populateBrainstormData();
         }
         
+        /**
+         * Format Unix timestamp to human readable date
+         * @param {number} timestamp - Unix timestamp in seconds
+         * @returns {string} Formatted date string
+         */
+        function formatSignupDate(timestamp) {
+            if (!timestamp || timestamp === 0) {
+                return 'Unknown';
+            }
+            
+            const date = new Date(timestamp * 1000); // Convert to milliseconds
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        /**
+         * Format update interval in seconds to human readable format
+         * @param {number} seconds - Update interval in seconds
+         * @returns {string} Human readable interval
+         */
+        function formatUpdateInterval(seconds) {
+            if (!seconds || seconds === 0) {
+                return 'Unknown';
+            }
+            
+            const intervals = [
+                { label: 'month', value: 30 * 24 * 60 * 60 },
+                { label: 'week', value: 7 * 24 * 60 * 60 },
+                { label: 'day', value: 24 * 60 * 60 },
+                { label: 'hour', value: 60 * 60 },
+                { label: 'minute', value: 60 }
+            ];
+            
+            for (const interval of intervals) {
+                const count = Math.floor(seconds / interval.value);
+                if (count >= 1) {
+                    return `${count} ${interval.label}${count > 1 ? 's' : ''}`;
+                }
+            }
+            
+            return `${seconds} second${seconds > 1 ? 's' : ''}`;
+        }
+        
+        /**
+         * Format service tier for display
+         * @param {string} tier - Service tier
+         * @returns {string} Formatted tier
+         */
+        function formatServiceTier(tier) {
+            if (!tier) {
+                return 'Unknown';
+            }
+            
+            // Capitalize first letter
+            return tier.charAt(0).toUpperCase() + tier.slice(1);
+        }
+        
         function populateBrainstormData() {
             // Load Customer Relay Information
             loadCustomerRelayKeys();
+            
+            // Populate subscription information if available
+            if (customerData && customerData.subscription) {
+                const subscription = customerData.subscription;
+                
+                // Format and display signup date
+                const signupDate = formatSignupDate(subscription.when_signed_up);
+                document.getElementById('signupDate').textContent = signupDate;
+                
+                // Format and display service tier
+                const serviceTier = formatServiceTier(subscription.service_tier);
+                document.getElementById('serviceTier').textContent = serviceTier;
+                
+                // Format and display update interval
+                const updateInterval = formatUpdateInterval(subscription.update_interval);
+                document.getElementById('updateInterval').textContent = updateInterval;
+            } else {
+                // Fallback if subscription data is not available
+                document.getElementById('signupDate').textContent = 'Unknown';
+                document.getElementById('serviceTier').textContent = 'Unknown';
+                document.getElementById('updateInterval').textContent = 'Unknown';
+            }
             
             // Load real NIP-85 Status data
             loadKind10040Status();

@@ -279,6 +279,10 @@ function authMiddleware(req, res, next) {
     
     // Check if user is authenticated for API calls
     if (req.session && req.session.authenticated) {
+        // TODO: differentiate between owner and customer endpoints
+        const customerOrOwnerEndpoints = [
+            '/get-customer'
+        ]
         // Define owner-only endpoints (administrative actions)
         const ownerOnlyEndpoints = [
             '/brainstorm-control',
