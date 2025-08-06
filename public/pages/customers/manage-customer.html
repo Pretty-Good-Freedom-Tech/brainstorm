@@ -57,34 +57,47 @@
                                 <div id="customerStatus" class="customer-status">Loading...</div>
                             </div>
                         </div>
-                        
-                        <div class="profile-details">
-                            <h3>Customer Details</h3>
-                            <div class="details-grid">
-                                <div class="detail-row">
-                                    <span class="detail-label">Customer ID:</span>
-                                    <span id="customerId" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Status:</span>
-                                    <span id="customerStatusDetail" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Directory:</span>
-                                    <span id="customerDirectory" class="detail-value">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Public Key:</span>
-                                    <span id="customerPubkey" class="detail-value pubkey">-</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
                 <!-- Brainstorm Customer Data Section -->
                 <div class="brainstorm-data-section">
                     <h2>Brainstorm Customer Data</h2>
+                    
+                    <!-- Customer Details -->
+                    <div class="data-card">
+                        <h3>Customer Details</h3>
+                        <div class="data-grid">
+                            <div class="data-row">
+                                <span class="data-label">Customer ID:</span>
+                                <span id="customerId" class="data-value">-</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Status:</span>
+                                <span id="customerStatusDetail" class="data-value">-</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Directory:</span>
+                                <span id="customerDirectory" class="data-value">-</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Public Key:</span>
+                                <span id="customerPubkey" class="data-value pubkey">-</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Signed Up:</span>
+                                <span id="signupDate" class="data-value">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Service Tier:</span>
+                                <span id="serviceTier" class="data-value">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Update Interval:</span>
+                                <span id="updateInterval" class="data-value">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Customer Relay Information -->
                     <div class="data-card">
@@ -115,18 +128,6 @@
                                     <span id="relayPrivkey" class="data-value monospace secure-key hidden">••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••</span>
                                     <button id="revealPrivkeyBtn" class="btn btn-sm btn-secondary reveal-btn" onclick="toggleSecureKey('privkey')">👁️ Reveal</button>
                                 </div>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Signed Up:</span>
-                                <span id="signupDate" class="data-value">Loading...</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Service Tier:</span>
-                                <span id="serviceTier" class="data-value">Loading...</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Update Interval:</span>
-                                <span id="updateInterval" class="data-value">Loading...</span>
                             </div>
                         </div>
                     </div>
