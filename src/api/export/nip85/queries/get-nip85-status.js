@@ -35,9 +35,9 @@ async function handleGetNip85Status(req, res) {
         console.log(`[get-nip85-status] NIP-85 status result:`, {
             isComplete: nip85Status.overall.isComplete,
             summary: nip85Status.overall.summary,
-            hasRelayKeys: nip85Status.customerRelayKeys.hasKeys,
+            hasRelayKeys: nip85Status.customer.hasRelayKeys,
             hasKind10040: nip85Status.kind10040.exists,
-            relayKeyMatch: nip85Status.kind10040.relayKeyMatch?.status,
+            relayKeyMatch: nip85Status.kind10040.matches,
             kind30382Count: nip85Status.kind30382.count
         });
         

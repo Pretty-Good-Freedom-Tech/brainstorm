@@ -670,7 +670,7 @@
             const detailsHtml = `
                 <div class="detail-row">
                     <span class="detail-label">Relay Keys:</span>
-                    <span class="detail-value"><span class="status-icon">${nip85Data.customerRelayKeys.hasKeys ? '✅' : '❌'}</span>${nip85Data.customerRelayKeys.hasKeys ? 'Ready' : 'Not found'}</span>
+                    <span class="detail-value"><span class="status-icon">${nip85Data.customer.hasRelayKeys ? '✅' : '❌'}</span>${nip85Data.customer.hasRelayKeys ? 'Ready' : 'Not found'}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Kind 10040 Event:</span>
