@@ -824,6 +824,9 @@
                         <p><strong>Event ID:</strong> <code>${signedEvent.id}</code></p>
                         <p>Your NIP-85 setup is now complete! The relay is authorized to create Kind 30382 events on your behalf.</p>
                     `;
+                    // Make Relay Key Mismatch Detected section disappear
+                    document.getElementById('kind10040Mismatch').style.display = 'none';
+                    
                 } else {
                     throw new Error(publishResult.message || 'Failed to publish signed event');
                 }
