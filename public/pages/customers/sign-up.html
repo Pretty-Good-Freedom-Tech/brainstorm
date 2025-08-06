@@ -226,6 +226,43 @@
             color: #721c24;
         }
         
+        .kind10040-mismatch {
+            background: #fff3cd;
+            border: 1px solid #ffd700;
+            color: #856404;
+        }
+        
+        .nip85-details {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        
+        .nip85-details .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.25rem 0;
+        }
+        
+        .nip85-details .detail-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .nip85-details .detail-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .status-icon {
+            margin-right: 0.5rem;
+        }
+        
         .kind10040-actions {
             margin-top: 1.5rem;
             display: flex;
@@ -318,12 +355,28 @@
                         
                         <div id="kind10040Published" class="kind10040-status kind10040-success" style="display: none;">
                             <h4>✅ NIP-85 Setup Complete</h4>
-                            <p>Great! You already have a Kind 10040 event published. Your Web of Trust setup is complete.</p>
+                            <p>Great! You already have a Kind 10040 event published and it matches your Brainstorm relay keys. Your Web of Trust setup is complete.</p>
+                            <div id="nip85CompleteDetails" class="nip85-details"></div>
+                        </div>
+                        
+                        <div id="kind10040Mismatch" class="kind10040-status kind10040-mismatch" style="display: none;">
+                            <h4>⚠️ Relay Key Mismatch Detected</h4>
+                            <p>You have an existing Kind 10040 event, but it references a different relay than your Brainstorm account. To make your personalized trust scores available to the wider Nostr world, you need to publish a new Kind 10040 event with your current Brainstorm relay keys.</p>
+                            <div id="nip85MismatchDetails" class="nip85-details"></div>
+                            <div class="kind10040-actions">
+                                <button id="updateKind10040Btn" class="btn btn-primary">
+                                    🔄 Update Kind 10040 Event
+                                </button>
+                                <button id="skipUpdateKind10040Btn" class="btn btn-secondary">
+                                    Skip for Now
+                                </button>
+                            </div>
                         </div>
                         
                         <div id="kind10040NotPublished" class="kind10040-status kind10040-prompt" style="display: none;">
                             <h4>📝 Complete Your NIP-85 Setup</h4>
-                            <p>To get the most out of Brainstorm, we recommend publishing your Kind 10040 event. This helps other users discover and trust your content.</p>
+                            <p>To get the most out of Brainstorm, we recommend publishing your Kind 10040 event. This helps other users discover and trust your content across the Nostr network.</p>
+                            <div id="nip85NewDetails" class="nip85-details"></div>
                             <div class="kind10040-actions">
                                 <button id="publishKind10040Btn" class="btn btn-primary">
                                     📝 Publish Kind 10040 Event
@@ -499,40 +552,166 @@
         }
         
         /**
-         * Check Kind 10040 status for the new customer
+         * Check comprehensive NIP-85 status for the new customer
+         * Uses new CustomerManager utility methods for intelligent relay key matching
          */
         async function checkKind10040Status(customerPubkey) {
             // Show loading state
             document.getElementById('kind10040Loading').style.display = 'block';
             
             try {
-                const response = await fetch(`/api/get-kind10040-info?pubkey=${customerPubkey}`);
+                const response = await fetch(`/api/get-nip85-status?pubkey=${customerPubkey}`);
                 const result = await response.json();
                 
                 // Hide loading state
                 document.getElementById('kind10040Loading').style.display = 'none';
                 
                 if (result.success) {
-                    if (result.latestEvent && result.eventId) {
-                        // Customer already has Kind 10040 event
-                        document.getElementById('kind10040Published').style.display = 'block';
+                    const nip85Data = result.data;
+                    
+                    // Determine which UI state to show based on comprehensive NIP-85 status
+                    if (nip85Data.overall.isComplete) {
+                        // Complete NIP-85 setup - Kind 10040 exists and relay keys match
+                        showCompleteNip85Status(nip85Data);
+                    } else if (nip85Data.kind10040.exists && nip85Data.kind10040.relayKeyMatch?.status === 'mismatch') {
+                        // Kind 10040 exists but relay keys don't match - needs update
+                        showRelayKeyMismatch(nip85Data, customerPubkey);
+                    } else if (!nip85Data.kind10040.exists) {
+                        // No Kind 10040 event - needs to be created
+                        showNewKind10040Needed(nip85Data, customerPubkey);
                     } else {
-                        // Customer doesn't have Kind 10040 event - show prompt
-                        document.getElementById('kind10040NotPublished').style.display = 'block';
-                        setupKind10040Buttons(customerPubkey);
+                        // Other scenarios (missing relay keys, etc.)
+                        showNip85Error('Unable to determine NIP-85 status. Please check your setup.');
                     }
                 } else {
                     // API error
-                    document.getElementById('kind10040Error').style.display = 'block';
-                    console.error('Kind 10040 API error:', result.message);
+                    showNip85Error(`API error: ${result.message}`);
+                    console.error('NIP-85 API error:', result.message);
                 }
                 
             } catch (error) {
                 // Network error
                 document.getElementById('kind10040Loading').style.display = 'none';
-                document.getElementById('kind10040Error').style.display = 'block';
-                console.error('Error checking Kind 10040 status:', error);
+                showNip85Error('Network error while checking NIP-85 status');
+                console.error('Error checking NIP-85 status:', error);
             }
+        }
+        
+        /**
+         * Show complete NIP-85 status (Kind 10040 exists and relay keys match)
+         */
+        function showCompleteNip85Status(nip85Data) {
+            document.getElementById('kind10040Published').style.display = 'block';
+            
+            // Populate details
+            const detailsHtml = `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Keys:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Found</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 10040 Event:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Published</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Relay Key Match:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Verified</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 30382 Events:</span>
+                    <span class="detail-value"><span class="status-icon">📊</span>${nip85Data.kind30382.count.toLocaleString()}</span>
+                </div>
+            `;
+            document.getElementById('nip85CompleteDetails').innerHTML = detailsHtml;
+        }
+        
+        /**
+         * Show relay key mismatch scenario (Kind 10040 exists but keys don't match)
+         */
+        function showRelayKeyMismatch(nip85Data, customerPubkey) {
+            document.getElementById('kind10040Mismatch').style.display = 'block';
+            
+            // Populate details
+            const detailsHtml = `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Keys:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Found</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 10040 Event:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Published</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Relay Key Match:</span>
+                    <span class="detail-value"><span class="status-icon">⚠️</span>${nip85Data.kind10040.relayKeyMatch?.message || 'Mismatch detected'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Current Relay:</span>
+                    <span class="detail-value">${nip85Data.customerRelayKeys.pubkey?.substring(0, 16)}...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Event Relay:</span>
+                    <span class="detail-value">${nip85Data.kind10040.relayPubkey?.substring(0, 16) || 'Not found'}...</span>
+                </div>
+            `;
+            document.getElementById('nip85MismatchDetails').innerHTML = detailsHtml;
+            
+            // Setup event handlers for mismatch scenario
+            setupMismatchButtons(customerPubkey);
+        }
+        
+        /**
+         * Show new Kind 10040 needed scenario (no existing Kind 10040 event)
+         */
+        function showNewKind10040Needed(nip85Data, customerPubkey) {
+            document.getElementById('kind10040NotPublished').style.display = 'block';
+            
+            // Populate details
+            const detailsHtml = `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Keys:</span>
+                    <span class="detail-value"><span class="status-icon">${nip85Data.customerRelayKeys.hasKeys ? '✅' : '❌'}</span>${nip85Data.customerRelayKeys.hasKeys ? 'Ready' : 'Not found'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 10040 Event:</span>
+                    <span class="detail-value"><span class="status-icon">📝</span>Ready to publish</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Your Relay:</span>
+                    <span class="detail-value">${nip85Data.customerRelayKeys.pubkey?.substring(0, 16) || 'Not available'}...</span>
+                </div>
+            `;
+            document.getElementById('nip85NewDetails').innerHTML = detailsHtml;
+            
+            // Setup event handlers for new Kind 10040
+            setupKind10040Buttons(customerPubkey);
+        }
+        
+        /**
+         * Show NIP-85 error state
+         */
+        function showNip85Error(message) {
+            document.getElementById('kind10040Error').style.display = 'block';
+            // Update error message if needed
+            const errorElement = document.querySelector('#kind10040Error p');
+            if (errorElement && message) {
+                errorElement.textContent = message;
+            }
+        }
+        
+        /**
+         * Setup event handlers for relay key mismatch scenario
+         */
+        function setupMismatchButtons(customerPubkey) {
+            // Update Kind 10040 button
+            document.getElementById('updateKind10040Btn').addEventListener('click', async function() {
+                await handleCreateAndPublishKind10040(customerPubkey, 'update');
+            });
+            
+            // Skip button
+            document.getElementById('skipUpdateKind10040Btn').addEventListener('click', function() {
+                handleSkipKind10040();
+            });
         }
         
         /**
@@ -552,16 +731,25 @@
         
         /**
          * Handle Kind 10040 publishing with NIP-07 signing
+         * @param {string} customerPubkey - The customer's pubkey
+         * @param {string} mode - 'create' for new event, 'update' for relay key mismatch
          */
-        async function handleCreateAndPublishKind10040(customerPubkey) {
-            const publishBtn = document.getElementById('publishKind10040Btn');
-            const skipBtn = document.getElementById('skipKind10040Btn');
+        async function handleCreateAndPublishKind10040(customerPubkey, mode = 'create') {
+            // Determine which buttons to use based on mode
+            let publishBtn, skipBtn;
+            if (mode === 'update') {
+                publishBtn = document.getElementById('updateKind10040Btn');
+                skipBtn = document.getElementById('skipUpdateKind10040Btn');
+            } else {
+                publishBtn = document.getElementById('publishKind10040Btn');
+                skipBtn = document.getElementById('skipKind10040Btn');
+            }
             
             // Show loading state
             const originalText = publishBtn.textContent;
             publishBtn.disabled = true;
             skipBtn.disabled = true;
-            publishBtn.textContent = '🔄 Creating event...';
+            publishBtn.textContent = mode === 'update' ? '🔄 Updating event...' : '🔄 Creating event...';
             
             try {
                 // Step 1: Check for NIP-07 extension

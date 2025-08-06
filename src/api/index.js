@@ -147,6 +147,7 @@ function register(app) {
     app.post('/api/create-unsigned-kind10040', nip85.handleCreateUnsignedKind10040);
     app.post('/api/publish-signed-kind10040', nip85.handlePublishSignedKind10040);
     app.post('/api/publish-kind30382', nip85.handlePublishKind30382);
+    app.get('/api/get-nip85-status', nip85.handleGetNip85Status);
     // app.post('/api/publish', nip85.handlePublish);
     
     // Query endpoints (read operations)
