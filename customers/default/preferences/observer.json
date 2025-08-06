@@ -11,7 +11,9 @@
         "blacklist": "default",
         "whitelist": "default"
     }, 
-    "tier": {
-        "update": 604800
+    "subscription": {
+        "service_tier": "free",
+        "signed_up": 0,
+        "update_interval": 604800
     }
 }

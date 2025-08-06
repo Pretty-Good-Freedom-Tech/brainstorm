@@ -205,41 +205,38 @@
                                     </div>
                                 </div>
                                 
-                                <div class="preset-actions">
-                                    <button id="refreshGrapeRankPresetBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                                <div class="preset-refresh">
+                                    <button id="refreshGraperankBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
                                 </div>
                             </div>
                             
                             <!-- Preset Update Controls (Owner Only) -->
-                            <div id="presetUpdateControls" class="preset-update-section" style="display: block;">
+                            <div id="graperankUpdateControls" class="preset-update-section" style="display: none;">
                                 <h5>Update Preset</h5>
                                 <div class="preset-options">
                                     <div class="preset-option">
-                                        <input type="radio" id="presetPermissive" name="grapeRankPreset" value="permissive">
-                                        <label for="presetPermissive" class="preset-label">
-                                            <span class="preset-name">Permissive</span>
-                                            <span class="preset-description">Lower thresholds, more inclusive</span>
+                                        <input type="radio" id="graperankPermissive" name="graperankPreset" value="permissive">
+                                        <label for="graperankPermissive">
+                                            <strong>Permissive</strong> - Lower thresholds, more inclusive
                                         </label>
                                     </div>
                                     <div class="preset-option">
-                                        <input type="radio" id="presetDefault" name="grapeRankPreset" value="default">
-                                        <label for="presetDefault" class="preset-label">
-                                            <span class="preset-name">Default</span>
-                                            <span class="preset-description">Balanced settings (recommended)</span>
+                                        <input type="radio" id="graperankDefault" name="graperankPreset" value="default">
+                                        <label for="graperankDefault">
+                                            <strong>Default</strong> - Balanced settings (recommended)
                                         </label>
                                     </div>
                                     <div class="preset-option">
-                                        <input type="radio" id="presetRestrictive" name="grapeRankPreset" value="restrictive">
-                                        <label for="presetRestrictive" class="preset-label">
-                                            <span class="preset-name">Restrictive</span>
-                                            <span class="preset-description">Higher thresholds, more selective</span>
+                                        <input type="radio" id="graperankRestrictive" name="graperankPreset" value="restrictive">
+                                        <label for="graperankRestrictive">
+                                            <strong>Restrictive</strong> - Higher thresholds, more selective
                                         </label>
                                     </div>
                                 </div>
                                 
                                 <div class="preset-update-actions">
-                                    <button id="updatePresetBtn" class="btn btn-primary" disabled>💾 Update Preset</button>
-                                    <button id="cancelPresetUpdateBtn" class="btn btn-secondary">❌ Cancel</button>
+                                    <button id="updateGraperankBtn" class="btn btn-primary" disabled>💾 Update Preset</button>
+                                    <button id="cancelGraperankUpdateBtn" class="btn btn-secondary">❌ Cancel</button>
                                 </div>
                                 
                                 <div class="preset-warning">
@@ -249,7 +246,7 @@
                             
                             <!-- Show/Hide Update Controls Button -->
                             <div class="preset-toggle-section">
-                                <button id="togglePresetUpdateBtn" class="btn btn-sm btn-outline" style="display: none;">⚙️ Update Preset</button>
+                                <button id="toggleGraperankUpdateBtn" class="btn btn-sm btn-outline" style="display: none;">⚙️ Update Preset</button>
                             </div>
                         </div>
                         
