@@ -2019,6 +2019,354 @@ class CustomerManager {
         return updatedContent;
     }
 
+    // ===== NIP-85 STATUS UTILITY METHODS =====
+    
+    /**
+     * Get comprehensive NIP-85 status for a customer
+     * @param {string} pubkey - Customer pubkey
+     * @param {Object} options - Configuration options
+     * @param {boolean} options.includeEvents - Whether to include full event data (default: false)
+     * @param {boolean} options.includeRelayKeys - Whether to include relay key data (default: true)
+     * @returns {Promise<Object>} Comprehensive NIP-85 status
+     */
+    async getNip85Status(pubkey, options = {}) {
+        const {
+            includeEvents = false,
+            includeRelayKeys = true
+        } = options;
+        
+        try {
+            // Get customer relay keys status
+            const relayKeysStatus = includeRelayKeys ? 
+                await this.getCustomerRelayKeysStatus(pubkey) : 
+                { hasRelayKeys: false, relayPubkey: null };
+            
+            // Get Kind 10040 status
+            const kind10040Status = await this.checkKind10040Status(pubkey, includeEvents);
+            
+            // Get Kind 30382 status
+            const kind30382Status = await this.checkKind30382Status(pubkey, includeEvents);
+            
+            // Determine relay pubkey match for Kind 10040
+            const kind10040RelayMatch = this.compareRelayPubkeys(
+                relayKeysStatus.relayPubkey,
+                kind10040Status.relayPubkey
+            );
+            
+            // Determine relay pubkey match for Kind 30382
+            const kind30382AuthorMatch = this.compareRelayPubkeys(
+                relayKeysStatus.relayPubkey,
+                kind30382Status.authorPubkey
+            );
+            
+            // Calculate overall status
+            const overall = this.calculateOverallNip85Status({
+                hasRelayKeys: relayKeysStatus.hasRelayKeys,
+                kind10040Exists: kind10040Status.exists,
+                kind10040Matches: kind10040RelayMatch.matches,
+                kind30382Count: kind30382Status.count,
+                kind30382AuthorMatches: kind30382AuthorMatch.matches
+            });
+            
+            return {
+                success: true,
+                customer: {
+                    pubkey,
+                    hasRelayKeys: relayKeysStatus.hasRelayKeys,
+                    relayPubkey: relayKeysStatus.relayPubkey,
+                    ...(includeRelayKeys && relayKeysStatus.relayKeys ? { relayKeys: relayKeysStatus.relayKeys } : {})
+                },
+                kind10040: {
+                    exists: kind10040Status.exists,
+                    relayPubkey: kind10040Status.relayPubkey,
+                    matches: kind10040RelayMatch.matches,
+                    matchDetails: kind10040RelayMatch,
+                    timestamp: kind10040Status.timestamp,
+                    eventId: kind10040Status.eventId,
+                    ...(includeEvents && kind10040Status.event ? { event: kind10040Status.event } : {})
+                },
+                kind30382: {
+                    count: kind30382Status.count,
+                    latestTimestamp: kind30382Status.latestTimestamp,
+                    authorPubkey: kind30382Status.authorPubkey,
+                    authorMatches: kind30382AuthorMatch.matches,
+                    authorMatchDetails: kind30382AuthorMatch,
+                    ...(includeEvents && kind30382Status.latestEvent ? { latestEvent: kind30382Status.latestEvent } : {})
+                },
+                overall
+            };
+            
+        } catch (error) {
+            console.error('Error getting NIP-85 status:', error);
+            return {
+                success: false,
+                error: error.message,
+                customer: { pubkey, hasRelayKeys: false, relayPubkey: null },
+                kind10040: { exists: false, matches: false },
+                kind30382: { count: 0, authorMatches: false },
+                overall: { isComplete: false, needsKind10040Update: true, summary: 'Error checking status' }
+            };
+        }
+    }
+    
+    /**
+     * Get customer relay keys status
+     * @param {string} pubkey - Customer pubkey
+     * @returns {Promise<Object>} Relay keys status
+     */
+    async getCustomerRelayKeysStatus(pubkey) {
+        try {
+            const { getCustomerRelayKeys } = require('./customerRelayKeys');
+            const relayKeys = await getCustomerRelayKeys(pubkey);
+            
+            if (relayKeys && relayKeys.pubkey) {
+                return {
+                    hasRelayKeys: true,
+                    relayPubkey: relayKeys.pubkey,
+                    relayKeys: relayKeys
+                };
+            } else {
+                return {
+                    hasRelayKeys: false,
+                    relayPubkey: null,
+                    relayKeys: null
+                };
+            }
+        } catch (error) {
+            console.error('Error checking customer relay keys:', error);
+            return {
+                hasRelayKeys: false,
+                relayPubkey: null,
+                relayKeys: null,
+                error: error.message
+            };
+        }
+    }
+    
+    /**
+     * Check Kind 10040 status for a customer
+     * @param {string} pubkey - Customer pubkey
+     * @param {boolean} includeEvent - Whether to include full event data
+     * @returns {Promise<Object>} Kind 10040 status
+     */
+    async checkKind10040Status(pubkey, includeEvent = false) {
+        try {
+            const { exec } = require('child_process');
+            const { promisify } = require('util');
+            const execAsync = promisify(exec);
+            
+            // Use strfry to check for Kind 10040 events
+            const scanCmd = `sudo strfry scan '{"kinds":[10040], "authors":["${pubkey}"], "limit": 1}'`;
+            const { stdout } = await execAsync(scanCmd);
+            
+            if (stdout.trim()) {
+                const lines = stdout.trim().split('\n');
+                const eventLine = lines[lines.length - 1]; // Get the last (most recent) event
+                const event = JSON.parse(eventLine);
+                
+                // Extract relay pubkey from tags
+                const relayPubkey = this.extractRelayPubkeyFromKind10040(event);
+                
+                return {
+                    exists: true,
+                    relayPubkey,
+                    timestamp: event.created_at,
+                    eventId: event.id,
+                    ...(includeEvent ? { event } : {})
+                };
+            } else {
+                return {
+                    exists: false,
+                    relayPubkey: null,
+                    timestamp: null,
+                    eventId: null,
+                    event: null
+                };
+            }
+        } catch (error) {
+            console.error('Error checking Kind 10040 status:', error);
+            return {
+                exists: false,
+                relayPubkey: null,
+                timestamp: null,
+                eventId: null,
+                event: null,
+                error: error.message
+            };
+        }
+    }
+    
+    /**
+     * Check Kind 30382 status for a customer
+     * @param {string} pubkey - Customer pubkey (this is the customer's main pubkey, not relay pubkey)
+     * @param {boolean} includeEvent - Whether to include full event data
+     * @returns {Promise<Object>} Kind 30382 status
+     */
+    async checkKind30382Status(pubkey, includeEvent = false) {
+        try {
+            // First get the customer's relay pubkey to check for Kind 30382 events
+            const relayKeysStatus = await this.getCustomerRelayKeysStatus(pubkey);
+            
+            if (!relayKeysStatus.hasRelayKeys) {
+                return {
+                    count: 0,
+                    latestTimestamp: null,
+                    authorPubkey: null,
+                    latestEvent: null,
+                    error: 'No customer relay keys found'
+                };
+            }
+            
+            const relayPubkey = relayKeysStatus.relayPubkey;
+            const { exec } = require('child_process');
+            const { promisify } = require('util');
+            const execAsync = promisify(exec);
+            
+            // Get count of Kind 30382 events authored by the relay
+            const countCmd = `sudo strfry scan --count '{"kinds":[30382], "authors":["${relayPubkey}"]}'`;
+            const { stdout: countOutput } = await execAsync(countCmd);
+            const count = parseInt(countOutput.trim()) || 0;
+            
+            if (count > 0) {
+                // Get the most recent Kind 30382 event
+                const scanCmd = `sudo strfry scan '{"kinds":[30382], "authors":["${relayPubkey}"], "limit": 1}'`;
+                const { stdout } = await execAsync(scanCmd);
+                
+                if (stdout.trim()) {
+                    const lines = stdout.trim().split('\n');
+                    const eventLine = lines[lines.length - 1];
+                    const latestEvent = JSON.parse(eventLine);
+                    
+                    return {
+                        count,
+                        latestTimestamp: latestEvent.created_at,
+                        authorPubkey: latestEvent.pubkey,
+                        ...(includeEvent ? { latestEvent } : {})
+                    };
+                }
+            }
+            
+            return {
+                count,
+                latestTimestamp: null,
+                authorPubkey: null,
+                latestEvent: null
+            };
+            
+        } catch (error) {
+            console.error('Error checking Kind 30382 status:', error);
+            return {
+                count: 0,
+                latestTimestamp: null,
+                authorPubkey: null,
+                latestEvent: null,
+                error: error.message
+            };
+        }
+    }
+    
+    /**
+     * Extract relay pubkey from Kind 10040 event tags
+     * @param {Object} event - Kind 10040 event
+     * @returns {string|null} Relay pubkey or null if not found
+     */
+    extractRelayPubkeyFromKind10040(event) {
+        if (!event || !event.tags || !Array.isArray(event.tags)) {
+            return null;
+        }
+        
+        // Look for tag with "30382:rank" as first element
+        const relayTag = event.tags.find(tag => 
+            Array.isArray(tag) && 
+            tag.length >= 2 && 
+            tag[0] === '30382:rank'
+        );
+        
+        return relayTag && relayTag[1] ? relayTag[1] : null;
+    }
+    
+    /**
+     * Compare two relay pubkeys and provide detailed match information
+     * @param {string|null} customerRelayPubkey - Customer's relay pubkey
+     * @param {string|null} eventRelayPubkey - Event's relay pubkey
+     * @returns {Object} Comparison result
+     */
+    compareRelayPubkeys(customerRelayPubkey, eventRelayPubkey) {
+        if (!customerRelayPubkey) {
+            return {
+                matches: false,
+                reason: 'no_customer_relay_key',
+                message: 'Customer has no relay keys'
+            };
+        }
+        
+        if (!eventRelayPubkey) {
+            return {
+                matches: false,
+                reason: 'no_event_relay_key',
+                message: 'Event has no relay pubkey'
+            };
+        }
+        
+        const matches = customerRelayPubkey === eventRelayPubkey;
+        
+        return {
+            matches,
+            reason: matches ? 'match' : 'mismatch',
+            message: matches ? 'Relay pubkeys match' : 'Relay pubkeys do not match',
+            customerRelayPubkey,
+            eventRelayPubkey
+        };
+    }
+    
+    /**
+     * Calculate overall NIP-85 status based on individual components
+     * @param {Object} components - Individual status components
+     * @returns {Object} Overall status assessment
+     */
+    calculateOverallNip85Status(components) {
+        const {
+            hasRelayKeys,
+            kind10040Exists,
+            kind10040Matches,
+            kind30382Count,
+            kind30382AuthorMatches
+        } = components;
+        
+        // Determine if setup is complete
+        const isComplete = hasRelayKeys && kind10040Exists && kind10040Matches;
+        
+        // Determine if Kind 10040 needs updating
+        const needsKind10040Update = hasRelayKeys && kind10040Exists && !kind10040Matches;
+        
+        // Determine if Kind 10040 needs creation
+        const needsKind10040Creation = hasRelayKeys && !kind10040Exists;
+        
+        // Determine summary message
+        let summary;
+        if (!hasRelayKeys) {
+            summary = 'No relay keys found - setup required';
+        } else if (needsKind10040Creation) {
+            summary = 'Kind 10040 event needs to be created';
+        } else if (needsKind10040Update) {
+            summary = 'Kind 10040 event exists but needs updating';
+        } else if (isComplete) {
+            summary = 'Complete NIP-85 setup';
+        } else {
+            summary = 'Partial NIP-85 setup';
+        }
+        
+        return {
+            isComplete,
+            needsKind10040Update,
+            needsKind10040Creation,
+            hasActiveKind30382: kind30382Count > 0,
+            kind30382PublishingCorrectly: kind30382AuthorMatches,
+            summary,
+            components
+        };
+    }
+    
     /**
      * Clear cache
      */

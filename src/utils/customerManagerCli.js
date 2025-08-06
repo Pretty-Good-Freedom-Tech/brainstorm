@@ -53,6 +53,9 @@ async function main() {
             case 'cache-stats':
                 await cacheStats();
                 break;
+            case 'nip85-status':
+                await testNip85Status(args[1], args[2] === '--include-events');
+                break;
             default:
                 showHelp();
         }
@@ -212,6 +215,173 @@ async function validateData() {
     }
 }
 
+async function testNip85Status(pubkey, includeEvents = false) {
+    if (!pubkey) {
+        console.log('❌ Error: Please provide a customer pubkey');
+        console.log('Usage: node customerManagerCli.js nip85-status <pubkey> [--include-events]');
+        return;
+    }
+    
+    console.log('🔍 Testing NIP-85 Status Utility Methods');
+    console.log('=' .repeat(60));
+    console.log(`Customer Pubkey: ${pubkey}`);
+    console.log(`Include Events: ${includeEvents}`);
+    console.log('');
+    
+    try {
+        // Test the main getNip85Status method
+        console.log('🎯 Testing Main getNip85Status Method:');
+        console.log('-'.repeat(40));
+        
+        const startTime = Date.now();
+        const status = await customerManager.getNip85Status(pubkey, { 
+            includeEvents, 
+            includeRelayKeys: true 
+        });
+        const duration = Date.now() - startTime;
+        
+        console.log(`⏱️  Execution time: ${duration}ms`);
+        console.log('');
+        
+        if (status.success) {
+            console.log('✅ getNip85Status() - SUCCESS');
+            console.log('');
+            
+            // Display Customer Info
+            console.log('👤 Customer Information:');
+            console.log(`   Has Relay Keys: ${status.customer.hasRelayKeys ? '✅' : '❌'}`);
+            console.log(`   Relay Pubkey: ${status.customer.relayPubkey || 'None'}`);
+            console.log('');
+            
+            // Display Kind 10040 Status
+            console.log('📝 Kind 10040 Status:');
+            console.log(`   Exists: ${status.kind10040.exists ? '✅' : '❌'}`);
+            console.log(`   Relay Pubkey: ${status.kind10040.relayPubkey || 'None'}`);
+            console.log(`   Matches Customer: ${status.kind10040.matches ? '✅' : '❌'}`);
+            console.log(`   Match Reason: ${status.kind10040.matchDetails.reason}`);
+            console.log(`   Match Message: ${status.kind10040.matchDetails.message}`);
+            if (status.kind10040.timestamp) {
+                const date = new Date(status.kind10040.timestamp * 1000);
+                console.log(`   Timestamp: ${date.toISOString()} (${status.kind10040.timestamp})`);
+            }
+            if (status.kind10040.eventId) {
+                console.log(`   Event ID: ${status.kind10040.eventId}`);
+            }
+            console.log('');
+            
+            // Display Kind 30382 Status
+            console.log('📊 Kind 30382 Status:');
+            console.log(`   Count: ${status.kind30382.count.toLocaleString()}`);
+            console.log(`   Author Pubkey: ${status.kind30382.authorPubkey || 'None'}`);
+            console.log(`   Author Matches: ${status.kind30382.authorMatches ? '✅' : '❌'}`);
+            console.log(`   Author Match Reason: ${status.kind30382.authorMatchDetails.reason}`);
+            console.log(`   Author Match Message: ${status.kind30382.authorMatchDetails.message}`);
+            if (status.kind30382.latestTimestamp) {
+                const date = new Date(status.kind30382.latestTimestamp * 1000);
+                console.log(`   Latest Timestamp: ${date.toISOString()} (${status.kind30382.latestTimestamp})`);
+            }
+            console.log('');
+            
+            // Display Overall Status
+            console.log('🎯 Overall NIP-85 Status:');
+            console.log(`   Is Complete: ${status.overall.isComplete ? '✅' : '❌'}`);
+            console.log(`   Needs Kind 10040 Update: ${status.overall.needsKind10040Update ? '⚠️  YES' : '✅ NO'}`);
+            console.log(`   Needs Kind 10040 Creation: ${status.overall.needsKind10040Creation ? '⚠️  YES' : '✅ NO'}`);
+            console.log(`   Has Active Kind 30382: ${status.overall.hasActiveKind30382 ? '✅' : '❌'}`);
+            console.log(`   Kind 30382 Publishing Correctly: ${status.overall.kind30382PublishingCorrectly ? '✅' : '❌'}`);
+            console.log(`   Summary: ${status.overall.summary}`);
+            console.log('');
+            
+            // Display Events if included
+            if (includeEvents) {
+                console.log('📄 Event Data:');
+                if (status.kind10040.event) {
+                    console.log('   Kind 10040 Event:');
+                    console.log('   ' + JSON.stringify(status.kind10040.event, null, 4).replace(/\n/g, '\n   '));
+                    console.log('');
+                }
+                if (status.kind30382.latestEvent) {
+                    console.log('   Latest Kind 30382 Event:');
+                    console.log('   ' + JSON.stringify(status.kind30382.latestEvent, null, 4).replace(/\n/g, '\n   '));
+                    console.log('');
+                }
+            }
+            
+        } else {
+            console.log('❌ getNip85Status() - FAILED');
+            console.log(`Error: ${status.error}`);
+            console.log('');
+        }
+        
+        // Test individual helper methods
+        console.log('🔧 Testing Individual Helper Methods:');
+        console.log('-'.repeat(40));
+        
+        // Test getCustomerRelayKeysStatus
+        console.log('🔑 Testing getCustomerRelayKeysStatus():');
+        try {
+            const relayKeysStatus = await customerManager.getCustomerRelayKeysStatus(pubkey);
+            console.log(`   ✅ Success - Has Keys: ${relayKeysStatus.hasRelayKeys}`);
+            if (relayKeysStatus.relayPubkey) {
+                console.log(`   Relay Pubkey: ${relayKeysStatus.relayPubkey}`);
+            }
+        } catch (error) {
+            console.log(`   ❌ Error: ${error.message}`);
+        }
+        console.log('');
+        
+        // Test checkKind10040Status
+        console.log('📝 Testing checkKind10040Status():');
+        try {
+            const kind10040Status = await customerManager.checkKind10040Status(pubkey, false);
+            console.log(`   ✅ Success - Exists: ${kind10040Status.exists}`);
+            if (kind10040Status.relayPubkey) {
+                console.log(`   Relay Pubkey: ${kind10040Status.relayPubkey}`);
+            }
+        } catch (error) {
+            console.log(`   ❌ Error: ${error.message}`);
+        }
+        console.log('');
+        
+        // Test checkKind30382Status
+        console.log('📊 Testing checkKind30382Status():');
+        try {
+            const kind30382Status = await customerManager.checkKind30382Status(pubkey, false);
+            console.log(`   ✅ Success - Count: ${kind30382Status.count}`);
+            if (kind30382Status.authorPubkey) {
+                console.log(`   Author Pubkey: ${kind30382Status.authorPubkey}`);
+            }
+        } catch (error) {
+            console.log(`   ❌ Error: ${error.message}`);
+        }
+        console.log('');
+        
+        // Test compareRelayPubkeys
+        console.log('⚖️  Testing compareRelayPubkeys():');
+        const testPubkey1 = 'acc2b89da701a54682afb1eac0b48173cfb1d130851e33fc15176334000844db';
+        const testPubkey2 = 'acc2b89da701a54682afb1eac0b48173cfb1d130851e33fc15176334000844db';
+        const testPubkey3 = 'different123456789abcdef';
+        
+        const match1 = customerManager.compareRelayPubkeys(testPubkey1, testPubkey2);
+        const match2 = customerManager.compareRelayPubkeys(testPubkey1, testPubkey3);
+        const match3 = customerManager.compareRelayPubkeys(null, testPubkey1);
+        const match4 = customerManager.compareRelayPubkeys(testPubkey1, null);
+        
+        console.log(`   Same pubkeys: ${match1.matches ? '✅' : '❌'} (${match1.reason})`);
+        console.log(`   Different pubkeys: ${match2.matches ? '✅' : '❌'} (${match2.reason})`);
+        console.log(`   Null customer key: ${match3.matches ? '✅' : '❌'} (${match3.reason})`);
+        console.log(`   Null event key: ${match4.matches ? '✅' : '❌'} (${match4.reason})`);
+        console.log('');
+        
+        console.log('🎉 NIP-85 Status Testing Complete!');
+        
+    } catch (error) {
+        console.log('❌ Fatal Error during NIP-85 testing:');
+        console.log(`Error: ${error.message}`);
+        console.log(`Stack: ${error.stack}`);
+    }
+}
+
 async function cacheStats() {
     console.log('📊 Cache Statistics:');
     const stats = customerManager.getCacheStats();
@@ -236,6 +406,7 @@ Commands:
   merge-defaults [path]          Merge default customers
   validate                       Validate customer data integrity
   cache-stats                    Show cache statistics
+  nip85-status <pubkey> [--include-events] Test NIP-85 status utility methods
 
 Environment Variables:
   CUSTOMERS_DIR                  Customer data directory (default: /var/lib/brainstorm/customers)
@@ -247,6 +418,8 @@ Examples:
   node customerManagerCli.js backup /tmp/my-backup
   node customerManagerCli.js restore /tmp/my-backup
   node customerManagerCli.js validate
+  node customerManagerCli.js nip85-status e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f
+  node customerManagerCli.js nip85-status e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f --include-events
 `);
 }
 
