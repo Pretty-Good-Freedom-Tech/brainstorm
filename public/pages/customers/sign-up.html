@@ -647,7 +647,7 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Current Relay:</span>
-                    <span class="detail-value">${nip85Data.customerRelayKeys.pubkey?.substring(0, 16)}...</span>
+                    <span class="detail-value">${nip85Data.customer.relayKeys.pubkey?.substring(0, 16)}...</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Event Relay:</span>
@@ -678,7 +678,7 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Your Relay:</span>
-                    <span class="detail-value">${nip85Data.customerRelayKeys.pubkey?.substring(0, 16) || 'Not available'}...</span>
+                    <span class="detail-value">${nip85Data.customer.relayKeys.pubkey?.substring(0, 16) || 'Not available'}...</span>
                 </div>
             `;
             document.getElementById('nip85NewDetails').innerHTML = detailsHtml;
