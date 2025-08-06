@@ -592,7 +592,7 @@
             } catch (error) {
                 // Network error
                 document.getElementById('kind10040Loading').style.display = 'none';
-                showNip85Error('Network error while checking NIP-85 status');
+                showNip85Error('Network error while checking NIP-85 status; error: ' + error.message);
                 console.error('Error checking NIP-85 status:', error);
             }
         }
