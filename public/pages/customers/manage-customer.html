@@ -187,6 +187,19 @@
                                 <span id="lastPublication" class="data-value">Loading...</span>
                             </div>
                         </div>
+                        
+                        <!-- Raw Kind 10040 Note Viewer (hidden by default) -->
+                        <div id="rawNoteSection" class="raw-note-section" style="display: none;">
+                            <div class="raw-note-header">
+                                <button id="toggleRawNoteBtn" class="toggle-btn" onclick="toggleRawNote()">
+                                    <span class="toggle-icon">👁️</span>
+                                    <span class="toggle-text">Show Raw Kind 10040 Note</span>
+                                </button>
+                            </div>
+                            <div id="rawNoteContent" class="raw-note-content" style="display: none;">
+                                <pre id="rawNoteData" class="raw-note-data"></pre>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Trust Metrics Configuration -->
@@ -958,6 +971,8 @@
         function updateKind10040Display(data) {
             // Update Kind 10040 status based on whether event exists
             const kind10040Element = document.getElementById('kind10040Status');
+            const rawNoteSection = document.getElementById('rawNoteSection');
+            
             if (data.latestEvent && data.eventId) {
                 // Event exists - show success status with timestamp
                 const timestamp = data.timestamp ? new Date(data.timestamp * 1000).toLocaleString() : 'Unknown';
@@ -968,15 +983,44 @@
                         <small>Published: ${timestamp}</small>
                     </div>
                 `;
+                
+                // Show raw note section and populate with event data
+                rawNoteSection.style.display = 'block';
+                populateRawNoteData(data.latestEvent);
             } else {
                 // No event found
                 kind10040Element.innerHTML = '<span class="status-warning">⚠️ Not published</span>';
+                
+                // Hide raw note section when no event exists
+                rawNoteSection.style.display = 'none';
             }
             
             // Update relay key match status
             updateRelayKeyMatchStatus(data);
             
             console.log('Kind 10040 status updated:', data);
+        }
+        
+        /**
+         * Populate the raw note data viewer with formatted Kind 10040 event
+         * @param {Object} eventData - The Kind 10040 event data
+         */
+        function populateRawNoteData(eventData) {
+            const rawNoteDataElement = document.getElementById('rawNoteData');
+            
+            if (!eventData) {
+                rawNoteDataElement.textContent = 'No event data available';
+                return;
+            }
+            
+            // Format the event data as pretty-printed JSON
+            try {
+                const formattedData = JSON.stringify(eventData, null, 2);
+                rawNoteDataElement.textContent = formattedData;
+            } catch (error) {
+                console.error('Error formatting Kind 10040 event data:', error);
+                rawNoteDataElement.textContent = 'Error formatting event data: ' + error.message;
+            }
         }
         
         /**
@@ -1057,6 +1101,32 @@
                 kind10040RelayPubkey,
                 isMatch
             });
+        }
+        
+        /**
+         * Toggle the visibility of the raw Kind 10040 note viewer
+         */
+        function toggleRawNote() {
+            const rawNoteContent = document.getElementById('rawNoteContent');
+            const toggleBtn = document.getElementById('toggleRawNoteBtn');
+            const toggleText = toggleBtn.querySelector('.toggle-text');
+            const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+            
+            const isCurrentlyVisible = rawNoteContent.style.display !== 'none';
+            
+            if (isCurrentlyVisible) {
+                // Hide the raw note
+                rawNoteContent.style.display = 'none';
+                toggleText.textContent = 'Show Raw Kind 10040 Note';
+                toggleIcon.textContent = '👁️';
+                toggleBtn.classList.remove('expanded');
+            } else {
+                // Show the raw note
+                rawNoteContent.style.display = 'block';
+                toggleText.textContent = 'Hide Raw Kind 10040 Note';
+                toggleIcon.textContent = '🙈';
+                toggleBtn.classList.add('expanded');
+            }
         }
         
         function updateStatusDisplay() {
@@ -3166,6 +3236,126 @@
             
             .preset-label {
                 padding: 0.75rem;
+            }
+        }
+        
+        /* Raw Kind 10040 Note Viewer Styles */
+        .raw-note-section {
+            margin-top: 1rem;
+            border-top: 1px solid #e9ecef;
+            padding-top: 1rem;
+        }
+        
+        .raw-note-header {
+            margin-bottom: 0.75rem;
+        }
+        
+        .toggle-btn {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-btn:hover {
+            background: linear-gradient(135deg, #5a6268, #3d4043);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toggle-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-icon {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-btn.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .toggle-text {
+            font-size: 0.875rem;
+        }
+        
+        .raw-note-content {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .raw-note-data {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            border: none;
+        }
+        
+        .raw-note-data::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .raw-note-data::-webkit-scrollbar-track {
+            background: #4a5568;
+        }
+        
+        .raw-note-data::-webkit-scrollbar-thumb {
+            background: #718096;
+            border-radius: 4px;
+        }
+        
+        .raw-note-data::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                max-height: 400px;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive adjustments for raw note viewer */
+        @media (max-width: 768px) {
+            .raw-note-data {
+                font-size: 0.7rem;
+                padding: 0.75rem;
+            }
+            
+            .toggle-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
             }
         }
     </style>
