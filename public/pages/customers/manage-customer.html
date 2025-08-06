@@ -1729,72 +1729,13 @@
         }
         
         /**
-         * Load GrapeRank preset configuration from API
+         * Load GrapeRank preset configuration using generalized system
          */
         async function loadGrapeRankPresetConfig() {
-            try {
-                const response = await fetch(`/api/algos/config/get/graperank?pubkey=${encodeURIComponent(customerData.pubkey)}`);
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    updateGrapeRankPresetDisplay(result.data.grapeRankConfig);
-                } else {
-                    // Handle API error
-                    updateGrapeRankPresetDisplay({
-                        preset: 'Error',
-                        error: result.error || 'Failed to load preset configuration',
-                        customer: { name: customerData.name }
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Error loading GrapeRank preset config:', error);
-                updateGrapeRankPresetDisplay({
-                    preset: 'Error',
-                    error: 'Network error loading preset configuration',
-                    customer: { name: customerData.name }
-                });
-            }
+            await loadConfigPreset('graperank');
         }
         
-        /**
-         * Update GrapeRank preset display with API data
-         * @param {Object} data - GrapeRank preset configuration data from API
-         */
-        function updateGrapeRankPresetDisplay(data) {
-            // Update preset badge
-            const presetElement = document.getElementById('grapeRankPreset');
-            presetElement.className = `preset-badge ${getPresetClass(data.preset)}`;
-            presetElement.textContent = data.preset || 'Unknown';
-            
-            // Update configuration file path
-            const configPathElement = document.getElementById('grapeRankConfigPath');
-            if (data.configPath) {
-                configPathElement.textContent = data.configPath;
-                configPathElement.className = 'config-path exists';
-                configPathElement.title = `Configuration file: ${data.configPath}`;
-            } else {
-                configPathElement.textContent = 'Not found';
-                configPathElement.className = 'config-path missing';
-                configPathElement.title = 'Configuration file not found';
-            }
-            
-            // Update parameter count
-            const paramCountElement = document.getElementById('grapeRankParameterCount');
-            if (data.parameters && data.parameters.length) {
-                paramCountElement.textContent = `${data.parameters.length} parameters`;
-            } else {
-                paramCountElement.textContent = 'Unknown';
-            }
-            
-            // Show/hide update controls based on user classification and preset status
-            updatePresetControlsVisibility(data);
-            
-            // Update radio button selection based on current preset
-            updatePresetRadioSelection(data.preset);
-            
-            console.log('GrapeRank preset config updated:', data);
-        }
+
         
         /**
          * Get CSS class for preset badge based on preset type
@@ -1820,135 +1761,13 @@
             }
         }
         
-        /**
-         * Update preset controls visibility based on user classification and data
-         * @param {Object} data - GrapeRank preset configuration data
-         */
-        function updatePresetControlsVisibility(data) {
-            const toggleBtn = document.getElementById('togglePresetUpdateBtn');
-            const updateControls = document.getElementById('presetUpdateControls');
-            
-            // Only show controls for owners and if preset data is valid
-            if (userClassification === 'owner' && data.preset && data.preset !== 'Error' && data.preset !== 'Config File Not Found') {
-                toggleBtn.style.display = 'inline-block';
-            } else {
-                toggleBtn.style.display = 'none';
-                updateControls.style.display = 'none';
-            }
-        }
+
         
         /**
-         * Update radio button selection based on current preset
-         * @param {string} currentPreset - Current preset type
-         */
-        function updatePresetRadioSelection(currentPreset) {
-            // Clear all radio selections first
-            document.querySelectorAll('input[name="grapeRankPreset"]').forEach(radio => {
-                radio.checked = false;
-            });
-            
-            // Select the appropriate radio button
-            const presetMap = {
-                'Permissive': 'presetPermissive',
-                'Default': 'presetDefault', 
-                'Restrictive': 'presetRestrictive'
-            };
-            
-            const radioId = presetMap[currentPreset];
-            if (radioId) {
-                const radioElement = document.getElementById(radioId);
-                if (radioElement) {
-                    radioElement.checked = true;
-                }
-            }
-        }
-        
-        /**
-         * Toggle preset update controls visibility
-         */
-        function togglePresetUpdateControls() {
-            const updateControls = document.getElementById('presetUpdateControls');
-            const toggleBtn = document.getElementById('togglePresetUpdateBtn');
-            
-            if (updateControls.style.display === 'none') {
-                updateControls.style.display = 'block';
-                toggleBtn.textContent = '❌ Cancel Update';
-            } else {
-                updateControls.style.display = 'none';
-                toggleBtn.textContent = '⚙️ Update Preset';
-                // Reset form state
-                document.getElementById('updatePresetBtn').disabled = true;
-            }
-        }
-        
-        /**
-         * Handle preset radio button changes
-         */
-        function handlePresetRadioChange() {
-            const updateBtn = document.getElementById('updatePresetBtn');
-            const selectedRadio = document.querySelector('input[name="grapeRankPreset"]:checked');
-            
-            // Enable update button if a preset is selected
-            updateBtn.disabled = !selectedRadio;
-        }
-        
-        /**
-         * Update GrapeRank preset (placeholder for future implementation)
+         * Update GrapeRank preset using generalized system
          */
         async function updateGrapeRankPreset() {
-            const selectedRadio = document.querySelector('input[name="grapeRankPreset"]:checked');
-            if (!selectedRadio) {
-                alert('Please select a preset to update.');
-                return;
-            }
-            
-            const newPreset = selectedRadio.value;
-            const customerName = customerData.name || 'this customer';
-            
-            // Confirmation dialog
-            if (!confirm(`Are you sure you want to change ${customerName}'s GrapeRank preset to "${newPreset.charAt(0).toUpperCase() + newPreset.slice(1)}"?\n\nThis will update the configuration file and may affect trust metric calculations.`)) {
-                return;
-            }
-            
-            try {
-                // Show loading state
-                const updateBtn = document.getElementById('updatePresetBtn');
-                const originalText = updateBtn.textContent;
-                updateBtn.disabled = true;
-                updateBtn.textContent = '⏳ Updating...';
-                
-                // Call the update API (placeholder - not yet implemented)
-                const response = await fetch(`/api/algos/config/update/graperank?pubkey=${encodeURIComponent(customerData.pubkey)}&setPreset=${encodeURIComponent(newPreset)}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        preset: newPreset
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert(`✅ Successfully updated GrapeRank preset to "${newPreset.charAt(0).toUpperCase() + newPreset.slice(1)}"!`);
-                    // Reload preset configuration to reflect changes
-                    await loadGrapeRankPresetConfig();
-                    // Hide update controls
-                    togglePresetUpdateControls();
-                } else {
-                    alert(`❌ Failed to update preset: ${result.error || 'Unknown error'}`);
-                }
-                
-            } catch (error) {
-                console.error('Error updating GrapeRank preset:', error);
-                alert(`❌ Network error updating preset: ${error.message}`);
-            } finally {
-                // Restore button state
-                const updateBtn = document.getElementById('updatePresetBtn');
-                updateBtn.disabled = false;
-                updateBtn.textContent = originalText;
-            }
+            await updateConfigPreset('graperank', 'grapeRankPreset', 'updatePresetBtn', 'presetUpdateControls');
         }
         
         /**
@@ -2261,40 +2080,8 @@
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
             
-            // GrapeRank Preset Configuration Event Listeners
-            
-            // Refresh GrapeRank preset configuration
-            document.getElementById('refreshGrapeRankPresetBtn')?.addEventListener('click', function() {
-                this.disabled = true;
-                this.textContent = '🔄 Refreshing...';
-                
-                loadGrapeRankPresetConfig().finally(() => {
-                    this.disabled = false;
-                    this.textContent = '🔄 Refresh';
-                });
-            });
-            
-            // Toggle preset update controls
-            document.getElementById('togglePresetUpdateBtn')?.addEventListener('click', function() {
-                togglePresetUpdateControls();
-            });
-            
-            // Handle preset radio button changes
-            document.querySelectorAll('input[name="grapeRankPreset"]').forEach(radio => {
-                radio.addEventListener('change', handlePresetRadioChange);
-            });
-            
-            // Update preset button
-            document.getElementById('updatePresetBtn')?.addEventListener('click', function() {
-                updateGrapeRankPreset();
-            });
-            
-            // Cancel preset update
-            document.getElementById('cancelPresetUpdateBtn')?.addEventListener('click', function() {
-                togglePresetUpdateControls();
-            });
-            
-            // Setup event listeners for whitelist and blacklist configuration
+            // Setup event listeners for all configuration types using generalized system
+            setupConfigEventListeners('graperank');
             setupConfigEventListeners('whitelist');
             setupConfigEventListeners('blacklist');
         });
