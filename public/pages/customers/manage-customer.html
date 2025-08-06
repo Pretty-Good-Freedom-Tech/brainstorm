@@ -973,16 +973,90 @@
                 kind10040Element.innerHTML = '<span class="status-warning">⚠️ Not published</span>';
             }
             
-            // Update relay key match status (placeholder for now)
-            const relayKeyElement = document.getElementById('relayKeyMatch');
-            if (data.latestEvent) {
-                // For now, just show that we have relay info to compare
-                relayKeyElement.innerHTML = '<span class="status-unknown">❓ Check needed</span>';
-            } else {
-                relayKeyElement.innerHTML = '<span class="status-na">➖ N/A (no event)</span>';
-            }
+            // Update relay key match status
+            updateRelayKeyMatchStatus(data);
             
             console.log('Kind 10040 status updated:', data);
+        }
+        
+        /**
+         * Extract relay pubkey from Kind 10040 event tags
+         * Looks for tag with "30382:rank" as first element and extracts pubkey as second element
+         * @param {Object} eventData - The Kind 10040 event data
+         * @returns {string|null} The relay pubkey or null if not found
+         */
+        function extractRelayPubkeyFromKind10040(eventData) {
+            if (!eventData || !eventData.tags || !Array.isArray(eventData.tags)) {
+                return null;
+            }
+            
+            // Look for tag with "30382:rank" as first element
+            const relayTag = eventData.tags.find(tag => 
+                Array.isArray(tag) && 
+                tag.length >= 2 && 
+                tag[0] === '30382:rank'
+            );
+            
+            if (relayTag && relayTag[1]) {
+                return relayTag[1]; // Second element is the pubkey
+            }
+            
+            return null;
+        }
+        
+        /**
+         * Update relay key match status by comparing Kind 10040 relay pubkey with customer relay pubkey
+         * @param {Object} kind10040Data - Data from /api/get-kind10040-info
+         */
+        function updateRelayKeyMatchStatus(kind10040Data) {
+            const relayKeyElement = document.getElementById('relayKeyMatch');
+            
+            // Check if we have Kind 10040 event data
+            if (!kind10040Data || !kind10040Data.latestEvent) {
+                relayKeyElement.innerHTML = '<span class="status-na">➖ N/A (no Kind 10040 event)</span>';
+                return;
+            }
+            
+            // Check if we have customer relay keys data
+            if (!relayKeysData || !relayKeysData.pubkey) {
+                relayKeyElement.innerHTML = '<span class="status-warning">⚠️ No customer relay keys</span>';
+                return;
+            }
+            
+            // Extract relay pubkey from Kind 10040 event
+            const kind10040RelayPubkey = extractRelayPubkeyFromKind10040(kind10040Data.latestEvent);
+            
+            if (!kind10040RelayPubkey) {
+                relayKeyElement.innerHTML = '<span class="status-warning">⚠️ No relay pubkey in Kind 10040</span>';
+                return;
+            }
+            
+            // Compare the pubkeys
+            const customerRelayPubkey = relayKeysData.pubkey;
+            const isMatch = kind10040RelayPubkey === customerRelayPubkey;
+            
+            if (isMatch) {
+                relayKeyElement.innerHTML = `
+                    <span class="status-success">✅ Keys Match</span>
+                    <div class="status-details">
+                        <small>Pubkey: ${customerRelayPubkey.substring(0, 8)}...${customerRelayPubkey.substring(-8)}</small>
+                    </div>
+                `;
+            } else {
+                relayKeyElement.innerHTML = `
+                    <span class="status-error">❌ Keys Don't Match</span>
+                    <div class="status-details">
+                        <small>Customer: ${customerRelayPubkey.substring(0, 8)}...${customerRelayPubkey.substring(-8)}</small><br>
+                        <small>Kind 10040: ${kind10040RelayPubkey.substring(0, 8)}...${kind10040RelayPubkey.substring(-8)}</small>
+                    </div>
+                `;
+            }
+            
+            console.log('Relay key comparison:', {
+                customerRelayPubkey,
+                kind10040RelayPubkey,
+                isMatch
+            });
         }
         
         function updateStatusDisplay() {
