@@ -573,7 +573,7 @@
                     if (nip85Data.overall.isComplete) {
                         // Complete NIP-85 setup - Kind 10040 exists and relay keys match
                         showCompleteNip85Status(nip85Data);
-                    } else if (nip85Data.kind10040.exists && nip85Data.kind10040.relayKeyMatch?.status === 'mismatch') {
+                    } else if (nip85Data.kind10040.exists && !nip85Data.kind10040.matches) {
                         // Kind 10040 exists but relay keys don't match - needs update
                         showRelayKeyMismatch(nip85Data, customerPubkey);
                     } else if (!nip85Data.kind10040.exists) {
@@ -643,7 +643,7 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Relay Key Match:</span>
-                    <span class="detail-value"><span class="status-icon">⚠️</span>${nip85Data.kind10040.relayKeyMatch?.message || 'Mismatch detected'}</span>
+                    <span class="detail-value"><span class="status-icon">⚠️</span>${nip85Data.kind10040.matchDetails?.message || 'Mismatch detected'}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Current Relay:</span>
