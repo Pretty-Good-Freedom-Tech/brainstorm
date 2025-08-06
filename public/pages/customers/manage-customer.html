@@ -447,6 +447,9 @@
                             <div class="calculation-actions">
                                 <button id="refreshHopsBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
                                 <button id="triggerHopsBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
+                                <button class="btn btn-primary" onclick="recalculateMetric('hops')">
+                                    🔄 Recalculate Hops
+                                </button>
                             </div>
                         </div>
                         
@@ -478,6 +481,9 @@
                             <div class="calculation-actions">
                                 <button id="refreshPageRankBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
                                 <button id="triggerPageRankBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
+                                <button class="btn btn-primary" onclick="recalculateMetric('pagerank')">
+                                    🔄 Recalculate PageRank
+                                </button>
                             </div>
                         </div>
                         
@@ -509,6 +515,9 @@
                             <div class="calculation-actions">
                                 <button id="refreshGrapeRankBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
                                 <button id="triggerGrapeRankBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
+                                <button class="btn btn-primary" onclick="recalculateMetric('graperank')">
+                                    🔄 Recalculate GrapeRank
+                                </button>
                             </div>
                         </div>
                         
@@ -552,6 +561,9 @@
                                 <div class="calculation-actions">
                                     <button id="refreshKind30382ExportBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
                                     <button id="triggerKind30382ExportBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger</button>
+                                    <button class="btn btn-info" onclick="exportKind30382()">
+                                        📤 Export Kind 30382
+                                    </button>
                                 </div>
                             </div>
                             <div class="calculation-details">
@@ -595,28 +607,6 @@
                                 </button>
                                 <button id="deactivateBtn" class="btn btn-warning" onclick="changeCustomerStatus('inactive')">
                                     ⏸️ Deactivate Customer
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Trust Metrics Actions -->
-                    <div class="action-card">
-                        <h3>Trust Metrics Recalculation</h3>
-                        <div class="action-content">
-                            <p>Trigger recalculation of trust metrics for this customer.</p>
-                            <div class="action-buttons">
-                                <button class="btn btn-primary" onclick="recalculateMetric('hops')">
-                                    🔄 Recalculate Hops
-                                </button>
-                                <button class="btn btn-primary" onclick="recalculateMetric('pagerank')">
-                                    🔄 Recalculate PageRank
-                                </button>
-                                <button class="btn btn-primary" onclick="recalculateMetric('graperank')">
-                                    🔄 Recalculate GrapeRank
-                                </button>
-                                <button class="btn btn-info" onclick="exportKind30382()">
-                                    📤 Export Kind 30382
                                 </button>
                             </div>
                         </div>
@@ -1686,12 +1676,14 @@
             }
             
             // Enable trigger button if not in progress
+            /*
             const triggerBtn = document.getElementById('triggerHopsBtn');
             if (data.status !== 'In Progress' && data.status !== 'Stalled') {
                 triggerBtn.disabled = false;
             } else {
                 triggerBtn.disabled = true;
             }
+            */
         }
         
         /**
@@ -1769,12 +1761,14 @@
             }
             
             // Enable trigger button if not in progress
+            /*
             const triggerBtn = document.getElementById('triggerPageRankBtn');
             if (data.status !== 'In Progress' && data.status !== 'Stalled') {
                 triggerBtn.disabled = false;
             } else {
                 triggerBtn.disabled = true;
             }
+            */
         }
         
         /**
@@ -1852,12 +1846,14 @@
             }
             
             // Enable trigger button if not in progress
+            /*
             const triggerBtn = document.getElementById('triggerGrapeRankBtn');
             if (data.status !== 'In Progress' && data.status !== 'Stalled') {
                 triggerBtn.disabled = false;
             } else {
                 triggerBtn.disabled = true;
             }
+            */
         }
         
         /**
@@ -1935,12 +1931,14 @@
             }
             
             // Enable trigger button if not in progress
+            /*
             const triggerBtn = document.getElementById('triggerKind30382ExportBtn');
             if (data.status !== 'In Progress' && data.status !== 'Stalled') {
                 triggerBtn.disabled = false;
             } else {
                 triggerBtn.disabled = true;
             }
+            */
         }
         
         /**
@@ -2399,9 +2397,11 @@
             });
             
             // Trigger hops calculation (placeholder)
+            /*
             document.getElementById('triggerHopsBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
+            */
             
             // Refresh PageRank calculation status
             document.getElementById('refreshPageRankBtn')?.addEventListener('click', function() {
@@ -2415,9 +2415,11 @@
             });
             
             // Trigger PageRank calculation (placeholder)
+            /*
             document.getElementById('triggerPageRankBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
+            */
             
             // Refresh GrapeRank calculation status
             document.getElementById('refreshGrapeRankBtn')?.addEventListener('click', function() {
@@ -2431,10 +2433,12 @@
             });
             
             // Trigger GrapeRank calculation (placeholder)
+            /*
             document.getElementById('triggerGrapeRankBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
-            
+            */
+
             // Refresh Kind 30382 Export calculation status
             document.getElementById('refreshKind30382ExportBtn')?.addEventListener('click', function() {
                 this.disabled = true;
@@ -2447,9 +2451,11 @@
             });
             
             // Trigger Kind 30382 Export calculation (placeholder)
+            /*
             document.getElementById('triggerKind30382ExportBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
+            */
             
             // Refresh Process All Trust Metrics calculation status
             document.getElementById('refreshProcessAllTrustMetricsBtn')?.addEventListener('click', function() {
