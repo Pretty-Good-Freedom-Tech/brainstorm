@@ -189,7 +189,7 @@ class SecureKeyStorage {
     
     ensureStorageDirectory() {
         if (!fs.existsSync(this.storagePath)) {
-            fs.mkdirSync(this.storagePath, { recursive: true, mode: 0o700 });
+            fs.mkdirSync(this.storagePath, { recursive: true, mode: 0o750 });
         }
     }
     
@@ -197,7 +197,7 @@ class SecureKeyStorage {
         const filePath = path.join(this.storagePath, `${customerPubkey}.json`);
         const encryptedContent = this.encrypt(JSON.stringify(keyData));
         
-        fs.writeFileSync(filePath, JSON.stringify(encryptedContent), { mode: 0o600 });
+        fs.writeFileSync(filePath, JSON.stringify(encryptedContent), { mode: 0o640 });
         console.log(`Relay keys stored securely for customer: ${customerPubkey}`);
     }
     
