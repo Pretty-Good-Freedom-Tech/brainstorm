@@ -179,12 +179,16 @@
                                 <span id="relayKeyMatch" class="data-value status-indicator">Loading...</span>
                             </div>
                             <div class="data-row">
-                                <span class="data-label">Kind 30382 Published:</span>
+                                <span class="data-label">Kind 30382 Count:</span>
                                 <span id="kind30382Count" class="data-value">Loading...</span>
                             </div>
                             <div class="data-row">
-                                <span class="data-label">Last Publication:</span>
+                                <span class="data-label">Last 30382 Published:</span>
                                 <span id="lastPublication" class="data-value">Loading...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">30382 Author Match:</span>
+                                <span id="kind30382AuthorMatch" class="data-value status-indicator">Loading...</span>
                             </div>
                         </div>
                         
@@ -198,6 +202,19 @@
                             </div>
                             <div id="rawNoteContent" class="raw-note-content" style="display: none;">
                                 <pre id="rawNoteData" class="raw-note-data"></pre>
+                            </div>
+                        </div>
+                        
+                        <!-- Raw Kind 30382 Note Viewer (hidden by default) -->
+                        <div id="raw30382Section" class="raw-note-section" style="display: none;">
+                            <div class="raw-note-header">
+                                <button id="toggleRaw30382Btn" class="toggle-btn" onclick="toggleRaw30382Note()">
+                                    <span class="toggle-icon">📊</span>
+                                    <span class="toggle-text">Show Raw Kind 30382 Note</span>
+                                </button>
+                            </div>
+                            <div id="raw30382Content" class="raw-note-content" style="display: none;">
+                                <pre id="raw30382Data" class="raw-note-data"></pre>
                             </div>
                         </div>
                     </div>
@@ -905,8 +922,7 @@
             
             // Load real NIP-85 Status data
             loadKind10040Status();
-            document.getElementById('kind30382Count').textContent = 'Not yet implemented';
-            document.getElementById('lastPublication').textContent = 'Not yet implemented';
+            loadKind30382Status();
             
             // Trust Metrics Configuration will be loaded by generalized system
             
@@ -966,6 +982,40 @@
         }
         
         /**
+         * Load Kind 30382 status from API and update UI
+         */
+        async function loadKind30382Status() {
+            try {
+                // Set loading state
+                document.getElementById('kind30382Count').innerHTML = '<span class="status-loading">⏳ Loading...</span>';
+                document.getElementById('lastPublication').innerHTML = '<span class="status-loading">⏳ Loading...</span>';
+                document.getElementById('kind30382AuthorMatch').innerHTML = '<span class="status-loading">⏳ Loading...</span>';
+                
+                // Make API call to get Kind 30382 info
+                const response = await fetch(`/api/get-kind30382-info?pubkey=${customerPubkey}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update Kind 30382 status
+                    updateKind30382Display(result);
+                } else {
+                    // Handle API error
+                    document.getElementById('kind30382Count').innerHTML = '<span class="status-error">❌ Error loading</span>';
+                    document.getElementById('lastPublication').innerHTML = '<span class="status-error">❌ Error loading</span>';
+                    document.getElementById('kind30382AuthorMatch').innerHTML = '<span class="status-error">❌ Error loading</span>';
+                    console.error('Kind 30382 API error:', result.message);
+                }
+                
+            } catch (error) {
+                // Handle network error
+                document.getElementById('kind30382Count').innerHTML = '<span class="status-error">❌ Network error</span>';
+                document.getElementById('lastPublication').innerHTML = '<span class="status-error">❌ Network error</span>';
+                document.getElementById('kind30382AuthorMatch').innerHTML = '<span class="status-error">❌ Network error</span>';
+                console.error('Error loading Kind 30382 status:', error);
+            }
+        }
+        
+        /**
          * Update Kind 10040 display elements with API data
          */
         function updateKind10040Display(data) {
@@ -1020,6 +1070,159 @@
             } catch (error) {
                 console.error('Error formatting Kind 10040 event data:', error);
                 rawNoteDataElement.textContent = 'Error formatting event data: ' + error.message;
+            }
+        }
+        
+        /**
+         * Update Kind 30382 display elements with API data
+         * @param {Object} data - Data from /api/get-kind30382-info
+         */
+        function updateKind30382Display(data) {
+            const raw30382Section = document.getElementById('raw30382Section');
+            
+            // Update count
+            const countElement = document.getElementById('kind30382Count');
+            if (data.count !== undefined) {
+                if (data.count === 0) {
+                    countElement.innerHTML = '<span class="status-warning">⚠️ None published</span>';
+                } else {
+                    countElement.innerHTML = `<span class="status-success">✅ ${data.count.toLocaleString()} events</span>`;
+                }
+            } else {
+                countElement.innerHTML = '<span class="status-error">❌ Unknown</span>';
+            }
+            
+            // Update last publication timestamp
+            const lastPubElement = document.getElementById('lastPublication');
+            if (data.timestamp && data.count > 0) {
+                const timestamp = new Date(data.timestamp * 1000);
+                const timeAgo = getTimeAgo(timestamp);
+                lastPubElement.innerHTML = `
+                    <span class="status-success">✅ ${timeAgo}</span>
+                    <div class="status-details">
+                        <small>${timestamp.toLocaleString()}</small>
+                    </div>
+                `;
+            } else if (data.count === 0) {
+                lastPubElement.innerHTML = '<span class="status-na">➖ N/A (none published)</span>';
+            } else {
+                lastPubElement.innerHTML = '<span class="status-error">❌ Unknown</span>';
+            }
+            
+            // Update author match status and show/hide raw note section
+            if (data.latestEvent && data.count > 0) {
+                // Show raw note section and populate with event data
+                raw30382Section.style.display = 'block';
+                populateRaw30382Data(data.latestEvent);
+                
+                // Check author match
+                updateKind30382AuthorMatch(data.latestEvent);
+            } else {
+                // Hide raw note section when no events exist
+                raw30382Section.style.display = 'none';
+                
+                // Set author match to N/A
+                const authorMatchElement = document.getElementById('kind30382AuthorMatch');
+                authorMatchElement.innerHTML = '<span class="status-na">➖ N/A (no events)</span>';
+            }
+            
+            console.log('Kind 30382 status updated:', data);
+        }
+        
+        /**
+         * Populate the raw Kind 30382 data viewer with formatted event
+         * @param {Object} eventData - The Kind 30382 event data
+         */
+        function populateRaw30382Data(eventData) {
+            const raw30382DataElement = document.getElementById('raw30382Data');
+            
+            if (!eventData) {
+                raw30382DataElement.textContent = 'No event data available';
+                return;
+            }
+            
+            // Format the event data as pretty-printed JSON
+            try {
+                const formattedData = JSON.stringify(eventData, null, 2);
+                raw30382DataElement.textContent = formattedData;
+            } catch (error) {
+                console.error('Error formatting Kind 30382 event data:', error);
+                raw30382DataElement.textContent = 'Error formatting event data: ' + error.message;
+            }
+        }
+        
+        /**
+         * Update Kind 30382 author match status by comparing event author with customer relay pubkey
+         * @param {Object} eventData - The Kind 30382 event data
+         */
+        function updateKind30382AuthorMatch(eventData) {
+            const authorMatchElement = document.getElementById('kind30382AuthorMatch');
+            
+            // Check if we have customer relay keys data
+            if (!relayKeysData || !relayKeysData.pubkey) {
+                authorMatchElement.innerHTML = '<span class="status-warning">⚠️ No customer relay keys</span>';
+                return;
+            }
+            
+            // Check if we have event data with author
+            if (!eventData || !eventData.pubkey) {
+                authorMatchElement.innerHTML = '<span class="status-warning">⚠️ No event author</span>';
+                return;
+            }
+            
+            // Compare the pubkeys
+            const customerRelayPubkey = relayKeysData.pubkey;
+            const eventAuthorPubkey = eventData.pubkey;
+            const isMatch = eventAuthorPubkey === customerRelayPubkey;
+            
+            if (isMatch) {
+                authorMatchElement.innerHTML = `
+                    <span class="status-success">✅ Author Matches</span>
+                    <div class="status-details">
+                        <small>Pubkey: ${customerRelayPubkey.substring(0, 8)}...${customerRelayPubkey.substring(-8)}</small>
+                    </div>
+                `;
+            } else {
+                authorMatchElement.innerHTML = `
+                    <span class="status-error">❌ Author Mismatch</span>
+                    <div class="status-details">
+                        <small>Customer: ${customerRelayPubkey.substring(0, 8)}...${customerRelayPubkey.substring(-8)}</small><br>
+                        <small>Event Author: ${eventAuthorPubkey.substring(0, 8)}...${eventAuthorPubkey.substring(-8)}</small>
+                    </div>
+                `;
+            }
+            
+            console.log('Kind 30382 author comparison:', {
+                customerRelayPubkey,
+                eventAuthorPubkey,
+                isMatch
+            });
+        }
+        
+        /**
+         * Get human-readable time ago string
+         * @param {Date} date - The date to compare
+         * @returns {string} Human-readable time ago
+         */
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSeconds = Math.floor(diffMs / 1000);
+            const diffMinutes = Math.floor(diffSeconds / 60);
+            const diffHours = Math.floor(diffMinutes / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffSeconds < 60) {
+                return `${diffSeconds} second${diffSeconds !== 1 ? 's' : ''} ago`;
+            } else if (diffMinutes < 60) {
+                return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+            } else if (diffHours < 24) {
+                return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            } else if (diffDays < 30) {
+                return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            } else {
+                const diffMonths = Math.floor(diffDays / 30);
+                return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
             }
         }
         
@@ -1124,6 +1327,32 @@
                 // Show the raw note
                 rawNoteContent.style.display = 'block';
                 toggleText.textContent = 'Hide Raw Kind 10040 Note';
+                toggleIcon.textContent = '🙈';
+                toggleBtn.classList.add('expanded');
+            }
+        }
+        
+        /**
+         * Toggle the visibility of the raw Kind 30382 note viewer
+         */
+        function toggleRaw30382Note() {
+            const raw30382Content = document.getElementById('raw30382Content');
+            const toggleBtn = document.getElementById('toggleRaw30382Btn');
+            const toggleText = toggleBtn.querySelector('.toggle-text');
+            const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+            
+            const isCurrentlyVisible = raw30382Content.style.display !== 'none';
+            
+            if (isCurrentlyVisible) {
+                // Hide the raw note
+                raw30382Content.style.display = 'none';
+                toggleText.textContent = 'Show Raw Kind 30382 Note';
+                toggleIcon.textContent = '📊';
+                toggleBtn.classList.remove('expanded');
+            } else {
+                // Show the raw note
+                raw30382Content.style.display = 'block';
+                toggleText.textContent = 'Hide Raw Kind 30382 Note';
                 toggleIcon.textContent = '🙈';
                 toggleBtn.classList.add('expanded');
             }
