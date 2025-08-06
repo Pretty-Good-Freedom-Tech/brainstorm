@@ -1,4 +1,17 @@
 {
+    "id": null,
+    "status": "active",
+    "directory": "default",
+    "name": "default",
+    "pubkey": "",
     "observer_id": "",
-    "observer_pubkey": ""
+    "comments": "default",
+    "presets": {
+        "graperank": "default",
+        "blacklist": "default",
+        "whitelist": "default"
+    }, 
+    "tier": {
+        "update": 604800
+    }
 }
