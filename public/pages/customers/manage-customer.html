@@ -45,7 +45,6 @@
                     <div class="header-nav">
                         <a href="/manage-customers.html" class="back-link">← Back to All Customers</a>
                     </div>
-                    <h1 id="pageTitle">Manage Customer</h1>
                 </div>
                 
                 <!-- Customer profile section -->
@@ -754,7 +753,6 @@
         function populateCustomerData() {
             // Update page title
             const displayName = profileData?.name || customerData.name || 'Unknown Customer';
-            document.getElementById('pageTitle').textContent = `Manage Customer: ${displayName}`;
             
             // Populate profile header
             const avatar = profileData?.picture || '/img/default-avatar.png';

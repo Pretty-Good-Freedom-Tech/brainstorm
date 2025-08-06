@@ -253,6 +253,9 @@ function register(app) {
 
     // Get Customers endpoint
     app.get('/api/get-customers', customers.handleGetCustomers);
+
+    // Get Customer endpoint
+    app.get('/api/get-customer', customers.handleGetCustomer);
     
     // Get Customer Relay Keys endpoint; returns relay keys for a specific customer (owner only)
     app.get('/api/get-customer-relay-keys', customers.handleGetCustomerRelayKeys);
