@@ -115,10 +115,16 @@ function loadNavbar() {
     }
 
     if (
-        currentPath === '/sign-up.html'
+        currentPath === ''
+        || currentPath === '/'
+        || currentPath === '/index.html'
+        || currentPath === '/control'
+        || currentPath === '/control/'
+        || currentPath === '/control/index.html'
+        || currentPath === '/sign-up.html'
     ) {
-        navbarPath = '/components/header/navbars/nav1_empty.html';
-    }
+        navbarPath = '/components/header/navbars/nav_sparse.html';
+    }  
 
     if (
         currentPath === '/test.html'
@@ -143,17 +149,7 @@ function loadNavbar() {
     ) {
         navbarPath = '/components/header/navbars/customers.html';
     }
-
-    if (
-        currentPath === ''
-        || currentPath === '/'
-        || currentPath === '/index.html'
-        || currentPath === '/control'
-        || currentPath === '/control/'
-        || currentPath === '/control/index.html'
-    ) {
-        navbarPath = '/components/header/navbars/nav3.html';
-    }    
+  
     // First fetch the Neo4j Browser URL
     fetch('/api/status')
         .then(response => response.json())
