@@ -396,6 +396,117 @@
             color: #007bff;
             text-decoration: underline;
         }
+        
+        /* New NIP-85 Status Panel Styles */
+        .nip85-status-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #dee2e6;
+        }
+        
+        .status-item.mismatch-details {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+            flex: 1;
+            margin-right: 15px;
+        }
+        
+        .status-value {
+            text-align: right;
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .status-value.success {
+            color: #28a745;
+        }
+        
+        .status-value.warning {
+            color: #ffc107;
+        }
+        
+        .status-value.error {
+            color: #dc3545;
+        }
+        
+        .status-value.info {
+            color: #17a2b8;
+        }
+        
+        .status-value small {
+            display: block;
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .nip85-details {
+            margin: 15px 0;
+        }
+        
+        .raw-event-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .raw-event-container h5 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .raw-event-container pre {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 0.85em;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .nip85-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            color: #6c757d;
+        }
+        
+        .nip85-loading .loader {
+            width: 30px;
+            height: 30px;
+            margin-bottom: 15px;
+        }
+        
+        @media (min-width: 768px) {
+            .nip85-status-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -437,7 +548,65 @@
                 <div id="customerUserInfo" class="user-info"></div>
                 <div id="customerDetails" class="customer-details"></div>
                 
-                <!-- NIP-85 Panel -->
+                <!-- New Comprehensive NIP-85 Status Panel -->
+                <div id="newNip85Panel" class="nip85-panel">
+                    <h3>🎆 NIP-85 Status Overview</h3>
+                    
+                    <div id="newNip85Loading" class="nip85-loading">
+                        <div class="loader"></div>
+                        <p>Checking your NIP-85 status...</p>
+                    </div>
+                    
+                    <!-- Complete NIP-85 Status -->
+                    <div id="newNip85Complete" class="status-card success" style="display: none;">
+                        <h4>✅ NIP-85 Setup Complete</h4>
+                        <p>Excellent! Your Kind 10040 event is published and properly configured with your Brainstorm relay keys. Your personalized trust scores are available to the wider Nostr world.</p>
+                        <div id="newNip85CompleteDetails" class="nip85-details"></div>
+                        <div class="button-group">
+                            <button id="toggleCompleteRawEventBtn" class="btn btn-secondary" style="display: none;">👁️ View Raw Event</button>
+                        </div>
+                        <div id="completeRawEventContainer" class="raw-event-container" style="display: none;">
+                            <h5>Raw Kind 10040 Event:</h5>
+                            <pre id="completeRawEventContent" class="event-json"></pre>
+                        </div>
+                    </div>
+                    
+                    <!-- Relay Key Mismatch Status -->
+                    <div id="newNip85Mismatch" class="status-card warning" style="display: none;">
+                        <h4>⚠️ Relay Key Mismatch Detected</h4>
+                        <p>You have an existing Kind 10040 event, but it references a different relay than your current Brainstorm setup. To make your personalized trust scores available to the wider Nostr world, you should update your Kind 10040 event.</p>
+                        <div id="newNip85MismatchDetails" class="nip85-details"></div>
+                        <div class="button-group">
+                            <button id="updateKind10040EventBtn" class="btn btn-primary">🔄 Update Kind 10040 Event</button>
+                            <button id="toggleMismatchRawEventBtn" class="btn btn-secondary" style="display: none;">👁️ View Raw Event</button>
+                        </div>
+                        <div id="mismatchRawEventContainer" class="raw-event-container" style="display: none;">
+                            <h5>Current Kind 10040 Event:</h5>
+                            <pre id="mismatchRawEventContent" class="event-json"></pre>
+                        </div>
+                    </div>
+                    
+                    <!-- Missing Kind 10040 Status -->
+                    <div id="newNip85Missing" class="status-card info" style="display: none;">
+                        <h4>📝 Complete Your NIP-85 Setup</h4>
+                        <p>To get the most out of Brainstorm and make your personalized trust scores available to the wider Nostr world, we recommend publishing your Kind 10040 event.</p>
+                        <div id="newNip85MissingDetails" class="nip85-details"></div>
+                        <div class="button-group">
+                            <button id="publishKind10040EventBtn" class="btn btn-primary">📝 Publish Kind 10040 Event</button>
+                        </div>
+                    </div>
+                    
+                    <!-- NIP-85 Error Status -->
+                    <div id="newNip85Error" class="status-card error" style="display: none;">
+                        <h4>⚠️ Unable to Check NIP-85 Status</h4>
+                        <p id="newNip85ErrorMessage">We couldn't check your NIP-85 status right now. Please try refreshing the page.</p>
+                        <div class="button-group">
+                            <button id="retryNip85StatusBtn" class="btn btn-secondary">🔄 Retry</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Legacy NIP-85 Panel (will be removed once new panel is working well) -->
                 <div id="nip85Panel" class="nip85-panel">
                     <h3>
                         🔗 NIP-85 Relay Information
@@ -1037,6 +1206,266 @@
             }
         }
         
+        // New NIP-85 Status Panel Functions
+        async function loadNewNip85Status(pubkey) {
+            const loadingDiv = document.getElementById('newNip85Loading');
+            const completeDiv = document.getElementById('newNip85Complete');
+            const mismatchDiv = document.getElementById('newNip85Mismatch');
+            const missingDiv = document.getElementById('newNip85Missing');
+            const errorDiv = document.getElementById('newNip85Error');
+            
+            // Show loading state
+            loadingDiv.style.display = 'block';
+            completeDiv.style.display = 'none';
+            mismatchDiv.style.display = 'none';
+            missingDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/get-nip85-status?pubkey=${pubkey}`);
+                const data = await response.json();
+                
+                loadingDiv.style.display = 'none';
+                
+                if (data.success) {
+                    const status = data.nip85Status;
+                    
+                    if (status.hasKind10040 && status.relayKeysMatch) {
+                        // Complete setup
+                        showNewNip85Complete(status);
+                    } else if (status.hasKind10040 && !status.relayKeysMatch) {
+                        // Relay key mismatch
+                        showNewNip85Mismatch(status);
+                    } else {
+                        // Missing Kind 10040
+                        showNewNip85Missing(status);
+                    }
+                } else {
+                    showNewNip85Error(data.message || 'Unknown error occurred');
+                }
+                
+            } catch (error) {
+                console.error('Error loading NIP-85 status:', error);
+                loadingDiv.style.display = 'none';
+                showNewNip85Error(`Network error: ${error.message}`);
+            }
+        }
+        
+        function showNewNip85Complete(status) {
+            const completeDiv = document.getElementById('newNip85Complete');
+            const detailsDiv = document.getElementById('newNip85CompleteDetails');
+            const toggleBtn = document.getElementById('toggleCompleteRawEventBtn');
+            
+            completeDiv.style.display = 'block';
+            
+            // Create status details
+            const detailsHTML = createNewNip85StatusDetails(status);
+            detailsDiv.innerHTML = detailsHTML;
+            
+            // Show raw event toggle button if event data is available
+            if (status.kind10040Event) {
+                toggleBtn.style.display = 'inline-block';
+                setupRawEventToggle('complete', status.kind10040Event);
+            }
+        }
+        
+        function showNewNip85Mismatch(status) {
+            const mismatchDiv = document.getElementById('newNip85Mismatch');
+            const detailsDiv = document.getElementById('newNip85MismatchDetails');
+            const toggleBtn = document.getElementById('toggleMismatchRawEventBtn');
+            
+            mismatchDiv.style.display = 'block';
+            
+            // Create status details with mismatch information
+            const detailsHTML = createNewNip85StatusDetails(status, true);
+            detailsDiv.innerHTML = detailsHTML;
+            
+            // Show raw event toggle button if event data is available
+            if (status.kind10040Event) {
+                toggleBtn.style.display = 'inline-block';
+                setupRawEventToggle('mismatch', status.kind10040Event);
+            }
+        }
+        
+        function showNewNip85Missing(status) {
+            const missingDiv = document.getElementById('newNip85Missing');
+            const detailsDiv = document.getElementById('newNip85MissingDetails');
+            
+            missingDiv.style.display = 'block';
+            
+            // Create status details
+            const detailsHTML = createNewNip85StatusDetails(status);
+            detailsDiv.innerHTML = detailsHTML;
+        }
+        
+        function showNewNip85Error(message) {
+            const errorDiv = document.getElementById('newNip85Error');
+            const messageP = document.getElementById('newNip85ErrorMessage');
+            
+            errorDiv.style.display = 'block';
+            messageP.textContent = message;
+        }
+        
+        function createNewNip85StatusDetails(status, showMismatch = false) {
+            let html = '<div class="nip85-status-grid">';
+            
+            // Customer Relay Key Status
+            html += `
+                <div class="status-item">
+                    <span class="status-label">Customer Relay Key:</span>
+                    <span class="status-value ${status.hasCustomerRelayKey ? 'success' : 'error'}">
+                        ${status.hasCustomerRelayKey ? '✅ Available' : '❌ Missing'}
+                        ${status.hasCustomerRelayKey ? `<br><small>${formatPubkey(status.customerRelayPubkey)}</small>` : ''}
+                    </span>
+                </div>
+            `;
+            
+            // Kind 10040 Event Status
+            html += `
+                <div class="status-item">
+                    <span class="status-label">Kind 10040 Event:</span>
+                    <span class="status-value ${status.hasKind10040 ? 'success' : 'warning'}">
+                        ${status.hasKind10040 ? '✅ Published' : '📝 Not Published'}
+                    </span>
+                </div>
+            `;
+            
+            // Relay Key Match Status (only if both exist)
+            if (status.hasKind10040 && status.hasCustomerRelayKey) {
+                html += `
+                    <div class="status-item">
+                        <span class="status-label">Relay Key Match:</span>
+                        <span class="status-value ${status.relayKeysMatch ? 'success' : 'warning'}">
+                            ${status.relayKeysMatch ? '✅ Match' : '⚠️ Mismatch'}
+                        </span>
+                    </div>
+                `;
+                
+                // Show mismatch details if requested
+                if (showMismatch && !status.relayKeysMatch) {
+                    html += `
+                        <div class="status-item mismatch-details">
+                            <span class="status-label">Event Relay Key:</span>
+                            <span class="status-value warning">
+                                ${status.eventRelayPubkey ? formatPubkey(status.eventRelayPubkey) : 'Not found'}
+                            </span>
+                        </div>
+                        <div class="status-item mismatch-details">
+                            <span class="status-label">Current Relay Key:</span>
+                            <span class="status-value success">
+                                ${formatPubkey(status.customerRelayPubkey)}
+                            </span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Kind 30382 Event Count
+            html += `
+                <div class="status-item">
+                    <span class="status-label">Kind 30382 Events:</span>
+                    <span class="status-value info">
+                        📊 ${status.kind30382Count || 0} published
+                    </span>
+                </div>
+            `;
+            
+            html += '</div>';
+            return html;
+        }
+        
+        function setupRawEventToggle(type, eventData) {
+            const toggleBtn = document.getElementById(`toggle${type.charAt(0).toUpperCase() + type.slice(1)}RawEventBtn`);
+            const container = document.getElementById(`${type}RawEventContainer`);
+            const content = document.getElementById(`${type}RawEventContent`);
+            
+            if (toggleBtn && container && content) {
+                // Set event data
+                content.textContent = JSON.stringify(eventData, null, 2);
+                
+                // Remove existing event listeners
+                const newToggleBtn = toggleBtn.cloneNode(true);
+                toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+                
+                // Add new event listener
+                newToggleBtn.addEventListener('click', function() {
+                    if (container.style.display === 'none' || !container.style.display) {
+                        container.style.display = 'block';
+                        newToggleBtn.textContent = '🙈 Hide Raw Event';
+                    } else {
+                        container.style.display = 'none';
+                        newToggleBtn.textContent = '👁️ View Raw Event';
+                    }
+                });
+            }
+        }
+        
+        function setupNewNip85EventHandlers(pubkey) {
+            // Retry button
+            const retryBtn = document.getElementById('retryNip85StatusBtn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', function() {
+                    loadNewNip85Status(pubkey);
+                });
+            }
+            
+            // Publish Kind 10040 Event button
+            const publishBtn = document.getElementById('publishKind10040EventBtn');
+            if (publishBtn) {
+                publishBtn.addEventListener('click', function() {
+                    handleNewNip85EventAction(pubkey, 'create');
+                });
+            }
+            
+            // Update Kind 10040 Event button
+            const updateBtn = document.getElementById('updateKind10040EventBtn');
+            if (updateBtn) {
+                updateBtn.addEventListener('click', function() {
+                    handleNewNip85EventAction(pubkey, 'update');
+                });
+            }
+        }
+        
+        async function handleNewNip85EventAction(pubkey, mode) {
+            try {
+                // Check authentication first
+                const authPubkey = await checkAuthenticationStatus();
+                if (!authPubkey) {
+                    showNewNip85Error('Authentication required: Please sign in with your Nostr key to publish events.');
+                    return;
+                }
+                
+                // Use existing Kind 10040 event creation and publishing logic
+                await createKind10040Event(pubkey);
+                
+                // Update button text during publishing
+                const button = mode === 'create' ? 
+                    document.getElementById('publishKind10040EventBtn') : 
+                    document.getElementById('updateKind10040EventBtn');
+                    
+                if (button) {
+                    const originalText = button.textContent;
+                    button.textContent = mode === 'create' ? '📝 Creating...' : '🔄 Updating...';
+                    button.disabled = true;
+                    
+                    // Restore button after a delay (the publishKind10040Event function will handle the actual publishing)
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        // Reload NIP-85 status after publishing
+                        loadNewNip85Status(pubkey);
+                    }, 3000);
+                }
+                
+                // Trigger the existing publish function
+                await publishKind10040Event();
+                
+            } catch (error) {
+                console.error('Error handling NIP-85 event action:', error);
+                showNewNip85Error(`Error ${mode === 'create' ? 'creating' : 'updating'} event: ${error.message}`);
+            }
+        }
+        
         async function checkCustomerStatus() {
             try {
                 showState('loading');
@@ -1073,7 +1502,11 @@
                     
                     showState('customer');
                     
-                    // Load NIP-85 information for the customer
+                    // Load new comprehensive NIP-85 status
+                    loadNewNip85Status(pubkey);
+                    setupNewNip85EventHandlers(pubkey);
+                    
+                    // Load legacy NIP-85 information for the customer
                     loadNip85Info(pubkey);
                     
                     // Setup Kind 30382 event status for the customer
