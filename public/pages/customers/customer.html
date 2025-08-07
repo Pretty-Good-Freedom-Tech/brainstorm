@@ -1228,17 +1228,20 @@
                 loadingDiv.style.display = 'none';
                 
                 if (data.success) {
-                    const status = data.nip85Status;
+                    const nip85Data = data.data;
                     
-                    if (status.hasKind10040 && status.relayKeysMatch) {
-                        // Complete setup
-                        showNewNip85Complete(status);
-                    } else if (status.hasKind10040 && !status.relayKeysMatch) {
-                        // Relay key mismatch
-                        showNewNip85Mismatch(status);
+                    if (nip85Data.overall.isComplete) {
+                        // Complete setup - Kind 10040 exists and relay keys match
+                        showNewNip85Complete(nip85Data);
+                    } else if (nip85Data.kind10040.exists && !nip85Data.kind10040.matches) {
+                        // Relay key mismatch - Kind 10040 exists but relay keys don't match
+                        showNewNip85Mismatch(nip85Data);
+                    } else if (!nip85Data.kind10040.exists) {
+                        // Missing Kind 10040 - needs to be created
+                        showNewNip85Missing(nip85Data);
                     } else {
-                        // Missing Kind 10040
-                        showNewNip85Missing(status);
+                        // Other scenarios (missing relay keys, etc.)
+                        showNewNip85Error('Unable to determine NIP-85 status. Please check your setup.');
                     }
                 } else {
                     showNewNip85Error(data.message || 'Unknown error occurred');
@@ -1263,9 +1266,9 @@
             detailsDiv.innerHTML = detailsHTML;
             
             // Show raw event toggle button if event data is available
-            if (status.kind10040Event) {
+            if (nip85Data.kind10040.event) {
                 toggleBtn.style.display = 'inline-block';
-                setupRawEventToggle('complete', status.kind10040Event);
+                setupRawEventToggle('complete', nip85Data.kind10040.event);
             }
         }
         
@@ -1281,9 +1284,9 @@
             detailsDiv.innerHTML = detailsHTML;
             
             // Show raw event toggle button if event data is available
-            if (status.kind10040Event) {
+            if (nip85Data.kind10040.event) {
                 toggleBtn.style.display = 'inline-block';
-                setupRawEventToggle('mismatch', status.kind10040Event);
+                setupRawEventToggle('mismatch', nip85Data.kind10040.event);
             }
         }
         
@@ -1306,16 +1309,17 @@
             messageP.textContent = message;
         }
         
-        function createNewNip85StatusDetails(status, showMismatch = false) {
+        function createNewNip85StatusDetails(nip85Data, showMismatch = false) {
             let html = '<div class="nip85-status-grid">';
             
             // Customer Relay Key Status
+            const hasRelayKeys = nip85Data.customer?.relayKeys?.pubkey;
             html += `
                 <div class="status-item">
                     <span class="status-label">Customer Relay Key:</span>
-                    <span class="status-value ${status.hasCustomerRelayKey ? 'success' : 'error'}">
-                        ${status.hasCustomerRelayKey ? '✅ Available' : '❌ Missing'}
-                        ${status.hasCustomerRelayKey ? `<br><small>${formatPubkey(status.customerRelayPubkey)}</small>` : ''}
+                    <span class="status-value ${hasRelayKeys ? 'success' : 'error'}">
+                        ${hasRelayKeys ? '✅ Available' : '❌ Missing'}
+                        ${hasRelayKeys ? `<br><small>${formatPubkey(nip85Data.customer.relayKeys.pubkey)}</small>` : ''}
                     </span>
                 </div>
             `;
@@ -1324,36 +1328,36 @@
             html += `
                 <div class="status-item">
                     <span class="status-label">Kind 10040 Event:</span>
-                    <span class="status-value ${status.hasKind10040 ? 'success' : 'warning'}">
-                        ${status.hasKind10040 ? '✅ Published' : '📝 Not Published'}
+                    <span class="status-value ${nip85Data.kind10040.exists ? 'success' : 'warning'}">
+                        ${nip85Data.kind10040.exists ? '✅ Published' : '📝 Not Published'}
                     </span>
                 </div>
             `;
             
             // Relay Key Match Status (only if both exist)
-            if (status.hasKind10040 && status.hasCustomerRelayKey) {
+            if (nip85Data.kind10040.exists && hasRelayKeys) {
                 html += `
                     <div class="status-item">
                         <span class="status-label">Relay Key Match:</span>
-                        <span class="status-value ${status.relayKeysMatch ? 'success' : 'warning'}">
-                            ${status.relayKeysMatch ? '✅ Match' : '⚠️ Mismatch'}
+                        <span class="status-value ${nip85Data.kind10040.matches ? 'success' : 'warning'}">
+                            ${nip85Data.kind10040.matches ? '✅ Match' : '⚠️ Mismatch'}
                         </span>
                     </div>
                 `;
                 
                 // Show mismatch details if requested
-                if (showMismatch && !status.relayKeysMatch) {
+                if (showMismatch && !nip85Data.kind10040.matches) {
                     html += `
                         <div class="status-item mismatch-details">
                             <span class="status-label">Event Relay Key:</span>
                             <span class="status-value warning">
-                                ${status.eventRelayPubkey ? formatPubkey(status.eventRelayPubkey) : 'Not found'}
+                                ${nip85Data.kind10040.relayPubkey ? formatPubkey(nip85Data.kind10040.relayPubkey) : 'Not found'}
                             </span>
                         </div>
                         <div class="status-item mismatch-details">
                             <span class="status-label">Current Relay Key:</span>
                             <span class="status-value success">
-                                ${formatPubkey(status.customerRelayPubkey)}
+                                ${formatPubkey(nip85Data.customer.relayKeys.pubkey)}
                             </span>
                         </div>
                     `;
@@ -1365,7 +1369,7 @@
                 <div class="status-item">
                     <span class="status-label">Kind 30382 Events:</span>
                     <span class="status-value info">
-                        📊 ${status.kind30382Count || 0} published
+                        📊 ${nip85Data.kind30382?.count || 0} published
                     </span>
                 </div>
             `;
