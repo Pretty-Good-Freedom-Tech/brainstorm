@@ -893,7 +893,7 @@
             errorDiv.style.display = 'none';
             
             try {
-                const response = await fetch(`/api/get-nip85-status?pubkey=${pubkey}`);
+                const response = await fetch(`/api/get-nip85-status?pubkey=${pubkey}&returnRawEvents=true`);
                 const data = await response.json();
                 console.log(`qwerty 0`)
                 loadingDiv.style.display = 'none';

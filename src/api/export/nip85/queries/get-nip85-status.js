@@ -7,7 +7,7 @@ const CustomerManager = require('../../../../utils/customerManager');
 
 async function handleGetNip85Status(req, res) {
     try {
-        const { pubkey } = req.query;
+        const { pubkey, returnRawEvents } = req.query;
         
         if (!pubkey) {
             return res.status(400).json({
@@ -23,13 +23,18 @@ async function handleGetNip85Status(req, res) {
                 message: 'Invalid pubkey format. Must be 64 character hex string.'
             });
         }
+
+        let includeEvents = false;
+        if (returnRawEvents) {
+            includeEvents = true;
+        }
         
         console.log(`[get-nip85-status] Checking NIP-85 status for pubkey: ${pubkey}`);
         
         // Use CustomerManager utility to get comprehensive NIP-85 status
         const customerManager = new CustomerManager();
         const nip85Status = await customerManager.getNip85Status(pubkey, {
-            includeEvents: false // Don't include full event data in API response for performance
+            includeEvents: includeEvents // Don't include full event data in API response for performance unless requested
         });
         
         console.log(`[get-nip85-status] NIP-85 status result:`, {
