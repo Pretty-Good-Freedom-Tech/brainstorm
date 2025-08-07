@@ -1254,7 +1254,7 @@
             }
         }
         
-        function showNewNip85Complete(status) {
+        function showNewNip85Complete(nip85Data) {
             const completeDiv = document.getElementById('newNip85Complete');
             const detailsDiv = document.getElementById('newNip85CompleteDetails');
             const toggleBtn = document.getElementById('toggleCompleteRawEventBtn');
@@ -1262,7 +1262,7 @@
             completeDiv.style.display = 'block';
             
             // Create status details
-            const detailsHTML = createNewNip85StatusDetails(status);
+            const detailsHTML = createNewNip85StatusDetails(nip85Data);
             detailsDiv.innerHTML = detailsHTML;
             
             // Show raw event toggle button if event data is available
@@ -1272,7 +1272,7 @@
             }
         }
         
-        function showNewNip85Mismatch(status) {
+        function showNewNip85Mismatch(nip85Data) {
             const mismatchDiv = document.getElementById('newNip85Mismatch');
             const detailsDiv = document.getElementById('newNip85MismatchDetails');
             const toggleBtn = document.getElementById('toggleMismatchRawEventBtn');
@@ -1280,7 +1280,7 @@
             mismatchDiv.style.display = 'block';
             
             // Create status details with mismatch information
-            const detailsHTML = createNewNip85StatusDetails(status, true);
+            const detailsHTML = createNewNip85StatusDetails(nip85Data, true);
             detailsDiv.innerHTML = detailsHTML;
             
             // Show raw event toggle button if event data is available
