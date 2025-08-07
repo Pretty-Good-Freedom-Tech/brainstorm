@@ -7,6 +7,9 @@
 CONFIG_FILE="/etc/brainstorm.conf"
 source "$CONFIG_FILE" # BRAINSTORM_LOG_DIR BRAINSTORM_MODULE_BASE_DIR
 
+# Use a dedicated test directory to avoid permission issues
+TEST_LOG_DIR="${BRAINSTORM_LOG_DIR}/test-$(date +%s)"
+export BRAINSTORM_LOG_DIR="$TEST_LOG_DIR"
 export BRAINSTORM_STRUCTURED_LOGGING="true"
 export BRAINSTORM_LOG_LEVEL="INFO"
 
@@ -111,5 +114,6 @@ echo "- Validate dashboard integration"
 # Cleanup test files
 echo ""
 echo "Cleaning up test files..."
-rm -rf "$BRAINSTORM_LOG_DIR"
+echo "Removing test directory: $TEST_LOG_DIR"
+rm -rf "$TEST_LOG_DIR"
 echo "Test completed!"

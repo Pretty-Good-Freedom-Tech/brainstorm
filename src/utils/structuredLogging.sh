@@ -25,6 +25,9 @@ ensure_logging_dirs() {
     STRUCTURED_LOG_FILE="${task_queue_dir}/structured.log"
 }
 
+# Initialize directories and variables when script is sourced
+ensure_logging_dirs
+
 # Get ISO timestamp
 get_iso_timestamp() {
     date -Iseconds 2>/dev/null || date '+%Y-%m-%dT%H:%M:%S%z'
@@ -103,7 +106,12 @@ emit_task_event() {
         return 0
     fi
     
-    # Create JSON event
+    # Create JSON event with proper escaping
+    # Ensure metadata is valid JSON, default to empty object if invalid
+    if ! echo "$metadata" | jq empty 2>/dev/null; then
+        metadata='{}'
+    fi
+    
     local event_json=$(cat <<EOF
 {"timestamp":"$timestamp","eventType":"$event_type","taskName":"$task_name","target":"$target","metadata":$metadata,"scriptName":"$script_name","pid":$pid}
 EOF
