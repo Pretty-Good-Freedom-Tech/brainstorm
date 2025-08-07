@@ -208,40 +208,41 @@ function handleGetUserData(req, res) {
             recommendationsToObserverCount: null,
             recommendationsFromObserverCount: null
           }
+        } else {
+          userData = {
+            pubkey: user.get('pubkey') ? user.get('pubkey') : null,
+            npub: user.get('npub') ? user.get('npub') : null,
+            followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0,
+            muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
+            reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
+            followingCount: user.get('followingCount') ? parseInt(user.get('followingCount').toString()) : 0,
+            mutingCount: user.get('mutingCount') ? parseInt(user.get('mutingCount').toString()) : 0,
+            reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
+            personalizedPageRank: user.get('personalizedPageRank') ? parseFloat(user.get('personalizedPageRank').toString()) : null,
+            hops: user.get('hops') ? parseInt(user.get('hops').toString()) : null,
+            influence: user.get('influence') ? parseFloat(user.get('influence').toString()) : null,
+            average: user.get('average') ? parseFloat(user.get('average').toString()) : null,
+            confidence: user.get('confidence') ? parseFloat(user.get('confidence').toString()) : null,
+            input: user.get('input') ? parseFloat(user.get('input').toString()) : null,
+            verifiedFollowerCount: user.get('verifiedFollowerCount') ? parseInt(user.get('verifiedFollowerCount').toString()) : null,
+            verifiedMuterCount: user.get('verifiedMuterCount') ? parseInt(user.get('verifiedMuterCount').toString()) : null,
+            verifiedReporterCount: user.get('verifiedReporterCount') ? parseInt(user.get('verifiedReporterCount').toString()) : null,
+            followerInput: user.get('followerInput') ? parseFloat(user.get('followerInput').toString()) : null,
+            muterInput: user.get('muterInput') ? parseFloat(user.get('muterInput').toString()) : null,
+            reporterInput: user.get('reporterInput') ? parseFloat(user.get('reporterInput').toString()) : null,
+            frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : null,
+            groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : null,
+            idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : null,
+            mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : null,
+            mutualGroupieCount: user.get('mutualGroupieCount') ? parseInt(user.get('mutualGroupieCount').toString()) : null,
+            mutualIdolCount: user.get('mutualIdolCount') ? parseInt(user.get('mutualIdolCount').toString()) : null,
+            mutualFollowerCount: user.get('mutualFollowerCount') ? parseInt(user.get('mutualFollowerCount').toString()) : null,
+            mutualFollowCount: user.get('mutualFollowCount') ? parseInt(user.get('mutualFollowCount').toString()) : null,
+            recommendationsToObserverCount: user.get('recommendationsToObserverCount') ? parseInt(user.get('recommendationsToObserverCount').toString()) : null,
+            recommendationsFromObserverCount: user.get('recommendationsFromObserverCount') ? parseInt(user.get('recommendationsFromObserverCount').toString()) : null
+          }
         }
-
-        userData = {
-          pubkey: user.get('pubkey') ? user.get('pubkey') : null,
-          npub: user.get('npub') ? user.get('npub') : null,
-          followerCount: user.get('followerCount') ? parseInt(user.get('followerCount').toString()) : 0,
-          muterCount: user.get('muterCount') ? parseInt(user.get('muterCount').toString()) : 0,
-          reporterCount: user.get('reporterCount') ? parseInt(user.get('reporterCount').toString()) : 0,
-          followingCount: user.get('followingCount') ? parseInt(user.get('followingCount').toString()) : 0,
-          mutingCount: user.get('mutingCount') ? parseInt(user.get('mutingCount').toString()) : 0,
-          reportingCount: user.get('reportingCount') ? parseInt(user.get('reportingCount').toString()) : 0,
-          personalizedPageRank: user.get('personalizedPageRank') ? parseFloat(user.get('personalizedPageRank').toString()) : null,
-          hops: user.get('hops') ? parseInt(user.get('hops').toString()) : null,
-          influence: user.get('influence') ? parseFloat(user.get('influence').toString()) : null,
-          average: user.get('average') ? parseFloat(user.get('average').toString()) : null,
-          confidence: user.get('confidence') ? parseFloat(user.get('confidence').toString()) : null,
-          input: user.get('input') ? parseFloat(user.get('input').toString()) : null,
-          verifiedFollowerCount: user.get('verifiedFollowerCount') ? parseInt(user.get('verifiedFollowerCount').toString()) : null,
-          verifiedMuterCount: user.get('verifiedMuterCount') ? parseInt(user.get('verifiedMuterCount').toString()) : null,
-          verifiedReporterCount: user.get('verifiedReporterCount') ? parseInt(user.get('verifiedReporterCount').toString()) : null,
-          followerInput: user.get('followerInput') ? parseFloat(user.get('followerInput').toString()) : null,
-          muterInput: user.get('muterInput') ? parseFloat(user.get('muterInput').toString()) : null,
-          reporterInput: user.get('reporterInput') ? parseFloat(user.get('reporterInput').toString()) : null,
-          frenCount: user.get('frenCount') ? parseInt(user.get('frenCount').toString()) : null,
-          groupieCount: user.get('groupieCount') ? parseInt(user.get('groupieCount').toString()) : null,
-          idolCount: user.get('idolCount') ? parseInt(user.get('idolCount').toString()) : null,
-          mutualFrenCount: user.get('mutualFrenCount') ? parseInt(user.get('mutualFrenCount').toString()) : null,
-          mutualGroupieCount: user.get('mutualGroupieCount') ? parseInt(user.get('mutualGroupieCount').toString()) : null,
-          mutualIdolCount: user.get('mutualIdolCount') ? parseInt(user.get('mutualIdolCount').toString()) : null,
-          mutualFollowerCount: user.get('mutualFollowerCount') ? parseInt(user.get('mutualFollowerCount').toString()) : null,
-          mutualFollowCount: user.get('mutualFollowCount') ? parseInt(user.get('mutualFollowCount').toString()) : null,
-          recommendationsToObserverCount: user.get('recommendationsToObserverCount') ? parseInt(user.get('recommendationsToObserverCount').toString()) : null,
-          recommendationsFromObserverCount: user.get('recommendationsFromObserverCount') ? parseInt(user.get('recommendationsFromObserverCount').toString()) : null
-        }
+      
         // clean up cypherQuery = cypherQuery.replace(/\n/g, ' ').replace(/\s+/g, ' ');
         const cypherQueryCleaned = cypherQuery.replace(/\n/g, ' ').replace(/\s+/g, ' ').replaceAll('\u003E', '>').replaceAll('\u003C', '<');
         const apiResponse = {
