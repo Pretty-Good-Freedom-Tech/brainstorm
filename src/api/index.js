@@ -168,6 +168,7 @@ function register(app) {
     app.get('/api/get-nip56-profiles', users.handleGetNip56Profiles);
     app.get('/api/get-user-data', users.handleGetUserData);
     app.get('/api/get-network-proximity', users.handleGetNetworkProximity);
+    app.get('/api/get-npub-from-pubkey', users.handleGetNpubFromPubkey);
 
     // GrapeRank endpoints
     app.get('/api/get-graperank-config', graperank.handleGetGrapeRankConfig);
