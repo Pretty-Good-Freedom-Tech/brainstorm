@@ -237,8 +237,8 @@
     <div class="page-content">
         <div class="container">            
             <div class="nip85-info">
-                <h2 style="text-align: center">What is NIP-85?</h2>
-                <p>NIP-85 is a Nostr Improvement Proposal that defines a standard for publishing personalized trust scores in a way that is easily discoverable and verifiable by clients and other users on the Nostr network.</p>
+                <h2 style="text-align: center">What are Trusted Assertions?</h2>
+                <p><a href="https://github.com/nostr-protocol/nips/pull/1534">NIP-85: Trusted Assertions</a> is a proposed Nostr Improvement Proposal that defines a standard for publishing personalized trust scores in a way that is easily discoverable and verifiable by clients and other users on the Nostr network.</p>
 
                 <p>NIP-85 enables Nostr users to publish their personalized trust scores and rankings in a standardized format. This allows other applications and users to discover and utilize these trust metrics to enhance their Nostr experience.</p>
                 
@@ -384,8 +384,8 @@
         
         function displayAuthorsStats(data) {
             const statsHtml = `
-                <strong>📊 ${data.count} NIP-85 Authors</strong> have published Kind 10040 events 
-                (${data.stats.validEventsProcessed.toLocaleString()} events processed)
+                <strong>📊 ${data.count} NIP-85 Users</strong> are using NIP-85 for personalized web of trust
+                (${data.stats.validEventsProcessed.toLocaleString()} kind 10040 events)
             `;
             authorsState.stats.innerHTML = statsHtml;
         }
@@ -449,9 +449,12 @@
         function createAuthorCard(pubkey, profileData, nip85Data, npubData) {
             // Extract profile info
             console.log(`profileData: ${JSON.stringify(profileData)}`);
-            const profile = profileData.success && profileData.profile ? profileData.profile : {};
-            const displayName = profile.name || profile.display_name || 'Anonymous';
-            const avatar = profile.picture || '';
+            let profileKind0Event = {}
+            if (profileData.success && profileData.data && profileData.data.content) {
+                profileKind0Event = JSON.parse(profileData.data.content);
+            }
+            const displayName = profileKind0Event.name || profileKind0Event.display_name || 'Anonymous';
+            const avatar = profileKind0Event.picture || '';
             
             // Extract npub or fallback to truncated pubkey
             const displayPubkey = npubData && npubData.success && npubData.npub 
