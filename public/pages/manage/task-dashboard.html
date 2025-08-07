@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management Dashboard - Brainstorm</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-indicator {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+
+        .status-healthy { background-color: #d4edda; color: #155724; }
+        .status-warning { background-color: #fff3cd; color: #856404; }
+        .status-error { background-color: #f8d7da; color: #721c24; }
+        .status-unknown { background-color: #e2e3e5; color: #383d41; }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .task-queue-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-priority {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .task-priority.high { background: #dc3545; }
+        .task-priority.medium { background: #ffc107; color: #212529; }
+        .task-priority.low { background: #6c757d; }
+
+        .refresh-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .refresh-button:hover {
+            background: #0056b3;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #666;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>🎛️ Task Management Dashboard</h1>
+            <p>Real-time monitoring of Brainstorm background tasks and system health</p>
+            <button class="refresh-button" onclick="refreshDashboard()">🔄 Refresh Data</button>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading dashboard data...
+        </div>
+
+        <div id="error-container" style="display: none;"></div>
+
+        <div id="dashboard-content" style="display: none;">
+            <!-- System Health Panel -->
+            <div class="dashboard-grid">
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🏥 System Health</div>
+                        <div id="system-health-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="system-health-metrics">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Customer Overview Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">👥 Customer Overview</div>
+                        <div id="customer-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="customer-metrics">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Queue Panel -->
+            <div class="dashboard-grid">
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📋 Priority Task Queue</div>
+                        <div id="queue-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="task-queue-content">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Recent Task History Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📊 Recent Task History</div>
+                        <div id="history-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="task-history-content">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failed Tasks Panel -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <div class="panel-title">⚠️ Failed & Stalled Tasks</div>
+                    <div id="failed-tasks-status" class="status-indicator status-unknown">Unknown</div>
+                </div>
+                <div id="failed-tasks-content">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="last-updated" id="last-updated">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        let dashboardData = null;
+
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/task-dashboard/state');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                dashboardData = await response.json();
+                return dashboardData;
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                throw error;
+            }
+        }
+
+        function displayError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+            errorContainer.style.display = 'block';
+        }
+
+        function updateSystemHealth(health) {
+            const statusElement = document.getElementById('system-health-status');
+            const metricsElement = document.getElementById('system-health-metrics');
+            
+            // TODO: Determine overall health status
+            statusElement.textContent = 'Not Implemented';
+            statusElement.className = 'status-indicator status-unknown';
+            
+            metricsElement.innerHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Neo4j Status:</span>
+                    <span class="metric-value">${health.neo4j?.status || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Strfry Status:</span>
+                    <span class="metric-value">${health.strfry?.status || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Disk Usage:</span>
+                    <span class="metric-value">${health.diskSpace?.usePercent || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Memory Usage:</span>
+                    <span class="metric-value">${health.memory?.used || 'Unknown'} / ${health.memory?.total || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Active Processes:</span>
+                    <span class="metric-value">${health.processes?.count || 0}</span>
+                </div>
+            `;
+        }
+
+        function updateCustomerOverview(customers) {
+            const statusElement = document.getElementById('customer-status');
+            const metricsElement = document.getElementById('customer-metrics');
+            
+            if (customers.error) {
+                statusElement.textContent = 'Error';
+                statusElement.className = 'status-indicator status-error';
+                metricsElement.innerHTML = `<div class="metric-row"><span class="metric-value">Error: ${customers.error}</span></div>`;
+                return;
+            }
+            
+            statusElement.textContent = 'Loaded';
+            statusElement.className = 'status-indicator status-healthy';
+            
+            metricsElement.innerHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Total Customers:</span>
+                    <span class="metric-value">${customers.totalCustomers || 0}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Active Customers:</span>
+                    <span class="metric-value">${customers.activeCustomers || 0}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Needs Processing:</span>
+                    <span class="metric-value">TODO</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Up to Date:</span>
+                    <span class="metric-value">TODO</span>
+                </div>
+            `;
+        }
+
+        function updateTaskQueue(queue) {
+            const statusElement = document.getElementById('queue-status');
+            const contentElement = document.getElementById('task-queue-content');
+            
+            if (!Array.isArray(queue)) {
+                statusElement.textContent = 'Empty';
+                statusElement.className = 'status-indicator status-unknown';
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">No tasks in queue</span></div>';
+                return;
+            }
+            
+            statusElement.textContent = `${queue.length} Tasks`;
+            statusElement.className = queue.length > 0 ? 'status-indicator status-warning' : 'status-indicator status-healthy';
+            
+            if (queue.length === 0) {
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">No tasks in queue</span></div>';
+                return;
+            }
+            
+            const queueHTML = queue.slice(0, 10).map(task => {
+                const priorityClass = task.priority <= 100 ? 'high' : task.priority <= 500 ? 'medium' : 'low';
+                return `
+                    <div class="task-queue-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${task.type}</strong>
+                                ${task.target ? `<br><small>Target: ${task.target}</small>` : ''}
+                            </div>
+                            <div class="task-priority ${priorityClass}">${task.priority}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            contentElement.innerHTML = queueHTML + (queue.length > 10 ? `<div class="metric-row"><span class="metric-value">... and ${queue.length - 10} more tasks</span></div>` : '');
+        }
+
+        function updateTaskHistory(history) {
+            const statusElement = document.getElementById('history-status');
+            const contentElement = document.getElementById('task-history-content');
+            
+            // TODO: Process task history data
+            statusElement.textContent = 'Not Implemented';
+            statusElement.className = 'status-indicator status-unknown';
+            
+            contentElement.innerHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">ProcessAllTasks:</span>
+                    <span class="metric-value">${history.processAllTasks?.status || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">SyncWoT:</span>
+                    <span class="metric-value">${history.syncWoT?.status || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Customer Processing:</span>
+                    <span class="metric-value">${history.customerProcessing?.status || 'Unknown'}</span>
+                </div>
+            `;
+        }
+
+        function updateFailedTasks(failedTasks) {
+            const statusElement = document.getElementById('failed-tasks-status');
+            const contentElement = document.getElementById('failed-tasks-content');
+            
+            if (!Array.isArray(failedTasks)) {
+                statusElement.textContent = 'Unknown';
+                statusElement.className = 'status-indicator status-unknown';
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">Unable to determine failed tasks</span></div>';
+                return;
+            }
+            
+            if (failedTasks.length === 0) {
+                statusElement.textContent = 'None';
+                statusElement.className = 'status-indicator status-healthy';
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">✅ No failed tasks detected</span></div>';
+                return;
+            }
+            
+            statusElement.textContent = `${failedTasks.length} Failed`;
+            statusElement.className = 'status-indicator status-error';
+            
+            // TODO: Display failed tasks
+            contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">TODO: Display failed tasks</span></div>';
+        }
+
+        function updateLastUpdated(timestamp) {
+            const element = document.getElementById('last-updated');
+            const date = new Date(timestamp);
+            element.textContent = `Last updated: ${date.toLocaleString()}`;
+        }
+
+        async function refreshDashboard() {
+            const loadingElement = document.getElementById('loading');
+            const errorContainer = document.getElementById('error-container');
+            const dashboardContent = document.getElementById('dashboard-content');
+            
+            // Show loading state
+            loadingElement.style.display = 'block';
+            errorContainer.style.display = 'none';
+            dashboardContent.style.display = 'none';
+            
+            try {
+                const data = await loadDashboardData();
+                
+                // Update all panels
+                updateSystemHealth(data.systemHealth || {});
+                updateCustomerOverview(data.customers || {});
+                updateTaskQueue(data.priorityQueue || []);
+                updateTaskHistory(data.taskHistory || {});
+                updateFailedTasks(data.failedTasks || []);
+                updateLastUpdated(data.timestamp);
+                
+                // Show dashboard content
+                loadingElement.style.display = 'none';
+                dashboardContent.style.display = 'block';
+                
+            } catch (error) {
+                loadingElement.style.display = 'none';
+                displayError(`Failed to load dashboard data: ${error.message}`);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load header
+            try {
+                const headerResponse = await fetch('/components/header/header.html');
+                const headerHTML = await headerResponse.text();
+                document.getElementById('header-placeholder').innerHTML = headerHTML;
+                
+                // Load header script
+                const script = document.createElement('script');
+                script.src = '/components/header/header.js';
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Error loading header:', error);
+            }
+            
+            // Load dashboard data
+            await refreshDashboard();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(refreshDashboard, 30000);
+        });
+    </script>
+</body>
+</html>

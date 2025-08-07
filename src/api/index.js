@@ -25,6 +25,7 @@ const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
 const { handleSearchProfiles } = require('./search/profiles');
 const { handleGetRecentlyActivePubkeys } = require('./content/queries/recentlyActivePubkeys');
+const getTaskDashboardState = require('./taskDashboard/getTaskDashboardState');
 const {
     handleGetHistoryHops,
     handleGetHistoryPersonalizedPageRank,
@@ -277,6 +278,9 @@ function register(app) {
 
     // Recently Active Pubkeys endpoint
     app.get('/api/get-recently-active-pubkeys', handleGetRecentlyActivePubkeys);
+    
+    // Task Dashboard State endpoint (owner-only)
+    app.get('/api/task-dashboard/state', getTaskDashboardState);
 
     console.log('Registered all Brainstorm API endpoints');
 }
