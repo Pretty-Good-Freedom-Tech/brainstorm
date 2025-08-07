@@ -1,5 +1,5 @@
 /**
- * API endpoint to get all unique author pubkeys from Kind 30382 events
+ * API endpoint to get all unique author pubkeys from Kind 10040 events
  * Executes strfry scan command and extracts unique authors
  */
 
@@ -7,10 +7,10 @@ const { execSync } = require('child_process');
 
 async function handleGetAll10040Authors(req, res) {
     try {
-        console.log('[get-all-10040-authors] Starting to scan for Kind 30382 events...');
+        console.log('[get-all-10040-authors] Starting to scan for Kind 10040 events...');
         
-        // Execute strfry scan command to get all Kind 30382 events
-        const strfryCommand = `sudo strfry scan '{"kinds":[30382]}'`;
+        // Execute strfry scan command to get all Kind 10040 events
+        const strfryCommand = `sudo strfry scan '{"kinds":[10040]}'`;
         
         console.log('[get-all-10040-authors] Executing command:', strfryCommand);
         
@@ -42,8 +42,8 @@ async function handleGetAll10040Authors(req, res) {
             try {
                 const event = JSON.parse(line);
                 
-                // Validate that this is a Kind 30382 event and has a pubkey
-                if (event.kind === 30382 && event.pubkey) {
+                // Validate that this is a Kind 10040 event and has a pubkey
+                if (event.kind === 10040 && event.pubkey) {
                     uniqueAuthors.add(event.pubkey);
                     processedEvents++;
                 } else {
@@ -81,14 +81,14 @@ async function handleGetAll10040Authors(req, res) {
                     parseErrors: errorCount
                 }
             },
-            message: `Found ${authorsList.length} unique authors from ${processedEvents} Kind 30382 events`
+            message: `Found ${authorsList.length} unique authors from ${processedEvents} Kind 10040 events`
         });
         
     } catch (error) {
         console.error('[get-all-10040-authors] Unexpected error:', error);
         res.status(500).json({
             success: false,
-            message: 'Internal server error while processing Kind 30382 authors',
+            message: 'Internal server error while processing Kind 10040 authors',
             error: error.message
         });
     }
