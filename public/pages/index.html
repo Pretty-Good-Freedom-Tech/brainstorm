@@ -3,204 +3,1175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainstorm</title>
-    <link rel="stylesheet" href="/control/css/landing-page.css">
+    <title>Brainstorm Customer Sign Up</title>
+    <link rel="stylesheet" href="/control/css/common.css">
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
+    <style>
+        .sign-up-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sign-up-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .sign-up-header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sign-up-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .status-loading {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        
+        .status-unauthenticated {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .status-customer {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .status-owner {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .sign-up-invitation {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .sign-up-invitation h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .sign-up-invitation p {
+            color: #5a6c7d;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .sign-up-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .sign-up-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .sign-up-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+        
+        .success-message h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #155724;
+        }
+        
+        .customer-details {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+        
+        .customer-details .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .customer-details .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .customer-details .detail-value {
+            color: #6c757d;
+            font-family: monospace;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .features-list {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features-list li {
+            padding: 0.5rem 0;
+            color: #5a6c7d;
+        }
+        
+        .features-list li:before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        /* Kind 10040 Section Styling */
+        .kind10040-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .kind10040-status {
+            text-align: center;
+        }
+        
+        .kind10040-status h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        .kind10040-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .kind10040-prompt {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .kind10040-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .kind10040-mismatch {
+            background: #fff3cd;
+            border: 1px solid #ffd700;
+            color: #856404;
+        }
+        
+        .nip85-details {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        
+        .nip85-details .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.25rem 0;
+        }
+        
+        .nip85-details .detail-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .nip85-details .detail-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .status-icon {
+            margin-right: 0.5rem;
+        }
+        
+        /* Managed by section styling */
+        .managed-by-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0 20px 0;
+            padding: 8px 12px;
+            background: rgba(108, 117, 125, 0.05);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #6c757d;
+            max-width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .managed-by-text {
+            font-style: italic;
+            font-weight: 400;
+        }
+        
+        .owner-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .owner-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+        
+        .owner-name {
+            font-weight: 500;
+            color: #495057;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .kind10040-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .kind10040-actions .btn {
+            min-width: 180px;
+        }
+        
+        .next-steps-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
 </head>
-<body>   
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
     <!-- Main content wrapper -->
     <div class="page-content">
-        <div class="container-landing">
-            <h1 class="landing-page-title">
-                <img src="/img/brainstorm010.svg" class="brainstorm-image" />
-                Brainstorm <!-- <span style="color: #999; font-size: 12px; position: relative; top: 2px;">v0.0.1-alpha</span> -->
-            </h1>
-            <h3>a personalized</h3>
-            <h1>Webs of Trust</h1>
-            <h2>Nostr relay</h2>
-            <h3>featuring the 🍇 Grapevine of:</h3>
-            <!-- Enhanced owner profile section -->
-            <div id="ownerProfile" class="owner-profile">
-                <div class="profile-loading">Loading owner information...</div>
+        <div class="container">
+            <div class="sign-up-container">                
+                <!-- Status messages for different user states -->
+                <div id="statusContainer">
+                    <div id="loadingStatus" class="status-message status-loading">
+                        <div class="loading-spinner"></div>
+                        Checking your account status...
+                    </div>
+                    
+                    <div id="unauthenticatedStatus" class="status-message status-unauthenticated" style="display: none;">
+                        <h2>🌟 Welcome to Brainstorm!</h2>
+                        
+                        <!-- Managed by section -->
+                        <div id="managedBySection" class="managed-by-section" style="display: none;">
+                            <span class="managed-by-text">managed by</span>
+                            <div class="owner-info">
+                                <img id="ownerAvatar" class="owner-avatar" src="" alt="Owner" style="display: none;">
+                                <span id="ownerName" class="owner-name"></span>
+                            </div>
+                        </div>
+                        
+                        <p>Join our free service to calculate your personalized Web of Trust.</p>
+                        
+                        <div class="features-list">
+                            <h3>What you'll get:</h3>
+                            <ul>
+                                <li>Personalized Web of Trust calculations, updated periodically</li>
+                                <li>Scores include: GrapeRank, PageRank, verified follower count, and more</li>
+                                <li>Instant availability of all trust metrics throughout nostr. (<a href="./about-trusted-assertions.html" target="_blank">Learn more.</a>)</li>
+                                <li>Export your personalized whitelist to Relay Tools</li>
+                                <li>Access to all of your personalized Grapevine data</li>
+                            </ul>
+                        </div>
+
+                        <h3>🔐 Sign In Required</h3>
+                        <p>Please sign in with your Nostr extension.</p>
+                        <a href="/sign-in.html" class="btn">Go to Sign In</a>
+                    </div>
+                    
+                    <div id="ownerStatus" class="status-message status-owner" style="display: none;">
+                        <h3>👑 You're the Owner!</h3>
+                        <p>As the Brainstorm instance owner, you already have full access to all features.</p>
+                    </div>
+                    
+                    <div id="customerStatus" class="status-message status-customer" style="display: none;">
+                        <h3>🎉 You're Already a Customer!</h3>
+                        <p>Great news! You're already signed up as a Brainstorm customer with full access to personalized Web of Trust calculations.</p>
+                        <div id="existingCustomerDetails" class="customer-details"></div>
+                    </div>
+                    
+                    <div id="guestStatus" class="sign-up-invitation" style="display: none;">
+                        <h2>🌟 Welcome to Brainstorm!</h2>
+                        <p>Join our free service to calculate your personalized Web of Trust.</p>
+                        
+                        <div class="features-list">
+                            <h3>What you'll get:</h3>
+                            <ul>
+                                <li>Personalized Web of Trust calculations, updated periodically</li>
+                                <li>Scores include: GrapeRank, PageRank, verified follower count, and more</li>
+                                <li>Instant availability of all trust metrics throughout nostr (<a href="./about-nip85.html" target="_blank">learn more</a>)</li>
+                                <li>Export your personalized whitelist to Relay Tools</li>
+                                <li>Access to all of your personalized Grapevine data</li>
+                            </ul>
+                        </div>
+                        
+                        <button id="signUpBtn" class="sign-up-btn">
+                            🚀 Sign Me Up - It's Free!
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Success message after sign-up -->
+                <div id="successMessage" class="success-message" style="display: none;">
+                    <h3>🎉 Welcome to Brainstorm!</h3>
+                    <p>Congratulations! Your customer account has been successfully created.</p>
+                    <div id="newCustomerDetails" class="customer-details"></div>
+                    
+                    <!-- Kind 10040 Status Section -->
+                    <div id="kind10040Section" class="kind10040-section">
+                        <div id="kind10040Loading" class="kind10040-status" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            Checking your NIP-85 status...
+                        </div>
+                        
+                        <div id="kind10040Published" class="kind10040-status kind10040-success" style="display: none;">
+                            <h4>✅ NIP-85 Setup Complete</h4>
+                            <p>Great! You already have a Kind 10040 event published and it matches your Brainstorm relay keys. Your Web of Trust setup is complete.</p>
+                            <div id="nip85CompleteDetails" class="nip85-details"></div>
+                        </div>
+                        
+                        <div id="kind10040Mismatch" class="kind10040-status kind10040-mismatch" style="display: none;">
+                            <h4>⚠️ Relay Key Mismatch Detected</h4>
+                            <p>You have an existing Kind 10040 event, but it references a different relay than your Brainstorm account. To make your personalized trust scores available to the wider Nostr world, you need to publish a new Kind 10040 event with your current Brainstorm relay keys.</p>
+                            <div id="nip85MismatchDetails" class="nip85-details"></div>
+                            <div class="kind10040-actions">
+                                <button id="updateKind10040Btn" class="btn btn-primary">
+                                    🔄 Update Kind 10040 Event
+                                </button>
+                                <button id="skipUpdateKind10040Btn" class="btn btn-secondary">
+                                    Skip for Now
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="kind10040NotPublished" class="kind10040-status kind10040-prompt" style="display: none;">
+                            <h4>📝 Complete Your NIP-85 Setup</h4>
+                            <p>To get the most out of Brainstorm, we recommend publishing your Kind 10040 event. This helps other users discover and trust your content across the Nostr network.</p>
+                            <div id="nip85NewDetails" class="nip85-details"></div>
+                            <div class="kind10040-actions">
+                                <button id="publishKind10040Btn" class="btn btn-primary">
+                                    📝 Publish Kind 10040 Event
+                                </button>
+                                <button id="skipKind10040Btn" class="btn btn-secondary">
+                                    Skip for Now
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="kind10040Error" class="kind10040-status kind10040-error" style="display: none;">
+                            <h4>⚠️ Unable to Check NIP-85 Status</h4>
+                            <p>We couldn't check your Kind 10040 status right now. You can set this up later from your <a href="/customer.html">customer dashboard</a>.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="nextStepsSection" class="next-steps-section">
+                        <p><strong>Next steps:</strong> Your Web of Trust calculations will begin processing shortly. You'll receive a Direct Message once they are complete! or you can check your progress on the <a href="/customer.html">customer dashboard</a>.</p>
+                    </div>
+                </div>
+                
+                <!-- Error message -->
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
             </div>
-            <a href="/sign-in.html" class="btn secondary-btn" id="ownerSignInButton">Owner/Customer/Guest Sign In</a>
-            <p>Connect to <span id="ownerName">the owner</span>'s Brainstorm relay!</p>
-            <div class="relay-link-container">
-                <span id="relayLink">Loading relay information...</span>
-                <button id="copyRelayButton" class="copy-button" title="Copy relay address to clipboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
-                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
-                    </svg>
-                </button>
-                <a id="verifyButton" href="#" target="_blank" class="verify-button" title="Verify relay on legacy.nostr.watch">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"/>
-                    </svg>
-                </a>
-            </div>
-            <a href="/home.html" class="btn secondary-btn" id="homeButton">Home</a>
-            <a href="/search.html" class="btn home-btn">Search</a>
-            <p>Start your own Brainstorm!</p>
-            <a href="/about.html" class="btn home-btn">Learn more</a>
         </div>
     </div>
-    
-    <!-- Footer container -->
+
+    <!-- Include the footer component -->
     <div id="footerContainer"></div>
     
     <script>
+        // Initialize the page when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication status
-            checkAuthStatus();
+            initializeSignUpPage();
+        });
+        
+        /**
+         * Load and display owner information
+         */
+        async function loadOwnerInformation() {
+            try {
+                // Get owner pubkey from config
+                const configResponse = await fetch('/api/owner-info');
+                const configData = await configResponse.json();
+                
+                if (!configData.success || !configData.ownerPubkey) {
+                    console.log('[sign-up] Owner pubkey not found in config');
+                    return;
+                }
+                
+                const ownerPubkey = configData.ownerPubkey;
+                
+                // Get owner profile
+                const profileResponse = await fetch(`/api/get-kind0?pubkey=${ownerPubkey}`);
+                const profileData = await profileResponse.json();
+                
+                if (profileData.success && profileData.data && profileData.data.content) {
+                    const profile = JSON.parse(profileData.data.content);
+                    displayOwnerInfo(profile);
+                } else {
+                    // Fallback to showing just "Instance Owner" if no profile found
+                    displayOwnerInfo({ name: 'Instance Owner' });
+                }
+                
+            } catch (error) {
+                console.error('[sign-up] Error loading owner information:', error);
+                // Silently fail - this is not critical functionality
+            }
+        }
+        
+        /**
+         * Display owner information in the managed by section
+         */
+        function displayOwnerInfo(profile) {
+            const managedBySection = document.getElementById('managedBySection');
+            const ownerAvatar = document.getElementById('ownerAvatar');
+            const ownerName = document.getElementById('ownerName');
             
-            // Fetch owner information from the server
-            fetch('/control/api/owner-info')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.ownerPubkey) {
-                        // Store the owner pubkey and npub for reference
-                        const ownerPubkey = data.ownerPubkey;
-                        const ownerNpub = data.ownerNpub;
-                        
-                        // Fetch owner's profile information (kind0)
-                        fetch(`/control/api/get-kind0?pubkey=${ownerPubkey}`)
-                            .then(response => response.json())
-                            .then(profileData => {
-                                if (profileData && profileData.success) {
-                                    // Extract profile content
-                                    const content = profileData.data.content ? JSON.parse(profileData.data.content) : {};
-                                    
-                                    // Extract profile details
-                                    const picture = content.picture || '/control/img/default-avatar.svg';
-                                    const name = content.name || 'Unknown';
-                                    const displayName = content.display_name || content.displayName || name;
-                                    
-                                    // Update the owner name
-                                    document.getElementById('ownerName').textContent = displayName;
-                                    // Create profile HTML
-                                    const profileHTML = `
-                                        <div class="profile-card">
-                                            <a href="/profile.html?pubkey=${ownerPubkey}" target="_blank" class="profile-link">
-                                                <div class="profile-image">
-                                                    <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
-                                                </div>
-                                                <div class="profile-info">
-                                                    <h3 class="profile-name">${displayName}</h3>
-                                                    <p class="profile-handle">@${name}</p>
-                                                    <p class="profile-npub">${ownerNpub.substring(0, 8)}...${ownerNpub.substring(ownerNpub.length - 4)}</p>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    `;
-                                    
-                                    // Update the profile section
-                                    document.getElementById('ownerProfile').innerHTML = profileHTML;
-                                } else {
-                                    // Fallback if profile fetch fails
-                                    const fallbackHTML = `
-                                        <div class="profile-card">
-                                            <a href="https://njump.me/${ownerNpub}" target="_blank" class="profile-link">
-                                                <div class="profile-image">
-                                                    <img src="/control/img/default-avatar.svg" alt="Owner">
-                                                </div>
-                                                <div class="profile-info">
-                                                    <h3 class="profile-name">Relay Owner</h3>
-                                                    <p class="profile-npub">${ownerNpub}</p>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    `;
-                                    document.getElementById('ownerProfile').innerHTML = fallbackHTML;
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error fetching profile:', error);
-                                document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading profile</div>`;
-                            });
-                    } else {
-                        document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Owner information not available</div>`;
-                    }
-                    
-                    if (data && data.domainName) {
-                        const relayUrl = `wss://${data.domainName}/relay`;
-                        document.getElementById('relayLink').innerHTML = relayUrl;
-                        
-                        // Create verification URL for legacy.nostr.watch
-                        const verifyUrl = `https://legacy.nostr.watch/relay/${data.domainName}/relay`;
-                        const verifyButton = document.getElementById('verifyButton');
-                        verifyButton.href = verifyUrl;
-                        
-                        // Set up clipboard functionality
-                        const copyButton = document.getElementById('copyRelayButton');
-                        copyButton.addEventListener('click', function() {
-                            navigator.clipboard.writeText(relayUrl).then(function() {
-                                // Visual feedback on successful copy
-                                copyButton.classList.add('copied');
-                                setTimeout(function() {
-                                    copyButton.classList.remove('copied');
-                                }, 1500);
-                            }).catch(function(err) {
-                                console.error('Could not copy text: ', err);
-                            });
-                        });
-                    } else {
-                        document.getElementById('relayLink').textContent = 'Relay information not available';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching owner information:', error);
-                    document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading owner information</div>`;
-                });
-        });
+            // Set owner name
+            const displayName = profile.name || profile.display_name || 'Instance Owner';
+            ownerName.textContent = displayName;
+            
+            // Set owner avatar if available
+            if (profile.picture) {
+                ownerAvatar.src = profile.picture;
+                ownerAvatar.style.display = 'block';
+                ownerAvatar.onerror = function() {
+                    // Hide avatar if image fails to load
+                    this.style.display = 'none';
+                };
+            }
+            
+            // Show the managed by section
+            managedBySection.style.display = 'flex';
+        }
         
-        // Add a copy functionality to the copy button
-        document.getElementById('copyRelayButton').addEventListener('click', function() {
-            const relayText = document.getElementById('relayLink').textContent;
-            navigator.clipboard.writeText(relayText).then(function() {
-                // Add visual feedback
-                const button = document.getElementById('copyRelayButton');
-                button.classList.add('copied');
-                setTimeout(function() {
-                    button.classList.remove('copied');
-                }, 1500);
+        async function initializeSignUpPage() {
+            try {
+                // Load owner information and user classification in parallel
+                const [ownerResponse, userResponse] = await Promise.all([
+                    loadOwnerInformation(),
+                    fetch('/api/auth/user-classification')
+                ]);
+                
+                const data = await userResponse.json();
+                
+                // Hide loading status
+                document.getElementById('loadingStatus').style.display = 'none';
+                
+                if (!data.success) {
+                    showError('Failed to check account status. Please try again.');
+                    return;
+                }
+                
+                // Show appropriate status based on classification
+                switch (data.classification) {
+                    case 'unauthenticated':
+                        document.getElementById('unauthenticatedStatus').style.display = 'block';
+                        break;
+                        
+                    case 'owner':
+                        document.getElementById('ownerStatus').style.display = 'block';
+                        break;
+                        
+                    case 'customer':
+                        document.getElementById('customerStatus').style.display = 'block';
+                        showExistingCustomerDetails(data);
+                        break;
+                        
+                    case 'guest':
+                        document.getElementById('guestStatus').style.display = 'block';
+                        setupSignUpButton();
+                        break;
+                        
+                    default:
+                        showError('Unknown account status. Please contact support.');
+                }
+                
+            } catch (error) {
+                console.error('Error checking user classification:', error);
+                document.getElementById('loadingStatus').style.display = 'none';
+                showError('Failed to load page. Please refresh and try again.');
+            }
+        }
+        
+        function showExistingCustomerDetails(data) {
+            const container = document.getElementById('existingCustomerDetails');
+            container.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Customer Name:</span>
+                    <span class="detail-value">${data.customerName || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Customer ID:</span>
+                    <span class="detail-value">${data.customerId || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Public Key:</span>
+                    <span class="detail-value">${data.pubkey ? data.pubkey.substring(0, 16) + '...' : 'Unknown'}</span>
+                </div>
+                <div id="existingCustomerNip85Status">
+                    <div class="detail-row">
+                        <span class="detail-label">NIP-85 Status:</span>
+                        <span class="detail-value"><span class="status-icon">🔄</span>Checking...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Check NIP-85 status for existing customer
+            if (data.pubkey) {
+                checkExistingCustomerNip85Status(data.pubkey);
+            }
+        }
+        
+        /**
+         * Check NIP-85 status for existing customer and display appropriate UI
+         */
+        async function checkExistingCustomerNip85Status(customerPubkey) {
+            try {
+                const response = await fetch(`/api/get-nip85-status?pubkey=${customerPubkey}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const nip85Data = result.data;
+                    
+                    // Determine which UI to show based on NIP-85 status
+                    if (nip85Data.overall.isComplete) {
+                        // Complete NIP-85 setup - show subtle success indicator
+                        showExistingCustomerNip85Complete(nip85Data);
+                    } else if (nip85Data.kind10040.exists && !nip85Data.kind10040.matches) {
+                        // Kind 10040 exists but relay keys don't match - show update prompt
+                        showExistingCustomerNip85Mismatch(nip85Data, customerPubkey);
+                    } else if (!nip85Data.kind10040.exists) {
+                        // No Kind 10040 event - show creation prompt
+                        showExistingCustomerNip85Missing(nip85Data, customerPubkey);
+                    } else {
+                        // Other scenarios
+                        showExistingCustomerNip85Error('Unable to determine NIP-85 status');
+                    }
+                } else {
+                    // API error
+                    showExistingCustomerNip85Error(`API error: ${result.message}`);
+                    console.error('NIP-85 API error for existing customer:', result.message);
+                }
+                
+            } catch (error) {
+                // Network error
+                showExistingCustomerNip85Error('Network error while checking NIP-85 status');
+                console.error('Error checking NIP-85 status for existing customer:', error);
+            }
+        }
+        
+        /**
+         * Show complete NIP-85 status for existing customer (unobtrusive)
+         */
+        function showExistingCustomerNip85Complete(nip85Data) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Complete</span>
+                </div>
+            `;
+        }
+        
+        /**
+         * Show relay key mismatch for existing customer (prompt for action)
+         */
+        function showExistingCustomerNip85Mismatch(nip85Data, customerPubkey) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">⚠️</span>Relay Key Mismatch</span>
+                </div>
+                <div class="kind10040-mismatch" style="margin-top: 1rem; padding: 1rem; border-radius: 6px;">
+                    <h4>⚠️ Update Required</h4>
+                    <p>To make your personalized trust scores available to the wider Nostr world, please update your Kind 10040 event. Your existing kind 10040 event references a pubkey that does not match the one we have on file for you.</p>
+                    <div class="kind10040-actions">
+                        <button id="existingCustomerUpdateKind10040Btn" class="btn btn-primary">
+                            🔄 Update Kind 10040 Event
+                        </button>
+                        <button id="existingCustomerSkipUpdateBtn" class="btn btn-secondary">
+                            Skip for Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Setup event handlers
+            setupExistingCustomerMismatchButtons(customerPubkey);
+        }
+        
+        /**
+         * Show missing Kind 10040 for existing customer (prompt for action)
+         */
+        function showExistingCustomerNip85Missing(nip85Data, customerPubkey) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">📝</span>Setup Needed</span>
+                </div>
+                <div class="kind10040-prompt" style="margin-top: 1rem; padding: 1rem; border-radius: 6px;">
+                    <h4>📝 Complete Your NIP-85 Setup</h4>
+                    <p>To get the most out of Brainstorm and make your personalized trust scores available to the wider Nostr world, we recommend publishing your Kind 10040 event.</p>
+                    <div class="kind10040-actions">
+                        <button id="existingCustomerPublishKind10040Btn" class="btn btn-primary">
+                            📝 Publish Kind 10040 Event
+                        </button>
+                        <button id="existingCustomerSkipPublishBtn" class="btn btn-secondary">
+                            Skip for Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Setup event handlers
+            setupExistingCustomerMissingButtons(customerPubkey);
+        }
+        
+        /**
+         * Show NIP-85 error for existing customer
+         */
+        function showExistingCustomerNip85Error(message) {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">⚠️</span>Unable to check</span>
+                </div>
+            `;
+        }
+        
+        /**
+         * Setup event handlers for existing customer mismatch scenario
+         */
+        function setupExistingCustomerMismatchButtons(customerPubkey) {
+            // Update Kind 10040 button
+            document.getElementById('existingCustomerUpdateKind10040Btn').addEventListener('click', async function() {
+                await handleCreateAndPublishKind10040(customerPubkey, 'update');
             });
-        });
+            
+            // Skip button
+            document.getElementById('existingCustomerSkipUpdateBtn').addEventListener('click', function() {
+                hideExistingCustomerNip85Actions();
+            });
+        }
         
-        // Function to check authentication status and update button visibility
-        function checkAuthStatus() {
-            // Make a request to check if the user is authenticated
-            fetch('/control/api/auth/status')
-                .then(response => response.json())
-                .then(data => {
-                    const ownerSignInButton = document.getElementById('ownerSignInButton');
-                    const homeButton = document.getElementById('homeButton');
-                    
-                    if (data && data.authenticated) {
-                        // User is authenticated - hide sign in, show home
-                        if (ownerSignInButton) ownerSignInButton.style.display = 'none';
-                        if (homeButton) homeButton.style.display = 'inline-block';
-                    } else {
-                        // User is not authenticated - show sign in, hide home
-                        if (ownerSignInButton) ownerSignInButton.style.display = 'inline-block';
-                        if (homeButton) homeButton.style.display = 'none';
+        /**
+         * Setup event handlers for existing customer missing Kind 10040 scenario
+         */
+        function setupExistingCustomerMissingButtons(customerPubkey) {
+            // Publish Kind 10040 button
+            document.getElementById('existingCustomerPublishKind10040Btn').addEventListener('click', async function() {
+                await handleCreateAndPublishKind10040(customerPubkey, 'create');
+            });
+            
+            // Skip button
+            document.getElementById('existingCustomerSkipPublishBtn').addEventListener('click', function() {
+                hideExistingCustomerNip85Actions();
+            });
+        }
+        
+        /**
+         * Hide NIP-85 action prompts for existing customer
+         */
+        function hideExistingCustomerNip85Actions() {
+            const statusContainer = document.getElementById('existingCustomerNip85Status');
+            statusContainer.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-value"><span class="status-icon">ℹ️</span>Skipped</span>
+                </div>
+            `;
+        }
+        
+        function setupSignUpButton() {
+            const signUpBtn = document.getElementById('signUpBtn');
+            signUpBtn.addEventListener('click', handleSignUp);
+        }
+        
+        async function handleSignUp() {
+            const signUpBtn = document.getElementById('signUpBtn');
+            
+            // Disable button and show loading state
+            signUpBtn.disabled = true;
+            signUpBtn.innerHTML = '<div class="loading-spinner"></div>Processing your sign-up...';
+            
+            try {
+                const response = await fetch('/api/auth/sign-up-new-customer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
                     }
-                })
-                .catch(error => {
-                    console.error('Error checking authentication status:', error);
-                    // Default to showing sign-in button in case of errors
-                    const ownerSignInButton = document.getElementById('ownerSignInButton');
-                    const homeButton = document.getElementById('homeButton');
-                    if (ownerSignInButton) ownerSignInButton.style.display = 'inline-block';
-                    if (homeButton) homeButton.style.display = 'none';
                 });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Hide guest status and show success message
+                    document.getElementById('guestStatus').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                    showNewCustomerDetails(data);
+                } else {
+                    throw new Error(data.error || 'Sign-up failed');
+                }
+                
+            } catch (error) {
+                console.error('Sign-up error:', error);
+                showError(`Sign-up failed: ${error.message}`);
+                
+                // Re-enable button
+                signUpBtn.disabled = false;
+                signUpBtn.innerHTML = '🚀 Sign Me Up - It\'s Free!';
+            }
+        }
+        
+        function showNewCustomerDetails(data) {
+            const container = document.getElementById('newCustomerDetails');
+            container.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Customer Name:</span>
+                    <span class="detail-value">${data.customerName || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Customer ID:</span>
+                    <span class="detail-value">${data.customerId || 'Unknown'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">${data.status || 'Unknown'}</span>
+                </div>
+                ${data.relayPubkey ? `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Public Key:</span>
+                    <span class="detail-value">${data.relayPubkey.substring(0, 16)}...</span>
+                </div>
+                ` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">Your Public Key:</span>
+                    <span class="detail-value">${data.pubkey ? data.pubkey.substring(0, 16) + '...' : 'Unknown'}</span>
+                </div>
+            `;
+            
+            // Store customer data for Kind 10040 check
+            window.newCustomerData = data;
+            
+            // Check Kind 10040 status after showing customer details
+            checkKind10040Status(data.pubkey);
+        }
+        
+        /**
+         * Check comprehensive NIP-85 status for the new customer
+         * Uses new CustomerManager utility methods for intelligent relay key matching
+         */
+        async function checkKind10040Status(customerPubkey) {
+            // Show loading state
+            document.getElementById('kind10040Loading').style.display = 'block';
+            
+            try {
+                const response = await fetch(`/api/get-nip85-status?pubkey=${customerPubkey}`);
+                const result = await response.json();
+                
+                // Hide loading state
+                document.getElementById('kind10040Loading').style.display = 'none';
+                
+                if (result.success) {
+                    const nip85Data = result.data;
+                    
+                    // Determine which UI state to show based on comprehensive NIP-85 status
+                    if (nip85Data.overall.isComplete) {
+                        // Complete NIP-85 setup - Kind 10040 exists and relay keys match
+                        showCompleteNip85Status(nip85Data);
+                    } else if (nip85Data.kind10040.exists && !nip85Data.kind10040.matches) {
+                        // Kind 10040 exists but relay keys don't match - needs update
+                        showRelayKeyMismatch(nip85Data, customerPubkey);
+                    } else if (!nip85Data.kind10040.exists) {
+                        // No Kind 10040 event - needs to be created
+                        showNewKind10040Needed(nip85Data, customerPubkey);
+                    } else {
+                        // Other scenarios (missing relay keys, etc.)
+                        showNip85Error('Unable to determine NIP-85 status. Please check your setup.');
+                    }
+                } else {
+                    // API error
+                    showNip85Error(`API error: ${result.message}`);
+                    console.error('NIP-85 API error:', result.message);
+                }
+                
+            } catch (error) {
+                // Network error
+                document.getElementById('kind10040Loading').style.display = 'none';
+                showNip85Error('Network error while checking NIP-85 status; error: ' + error.message);
+                console.error('Error checking NIP-85 status:', error);
+            }
+        }
+        
+        /**
+         * Show complete NIP-85 status (Kind 10040 exists and relay keys match)
+         */
+        function showCompleteNip85Status(nip85Data) {
+            document.getElementById('kind10040Published').style.display = 'block';
+            
+            // Populate details
+            const detailsHtml = `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Keys:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Found</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 10040 Event:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Published</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Relay Key Match:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Verified</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 30382 Events:</span>
+                    <span class="detail-value"><span class="status-icon">📊</span>${nip85Data.kind30382.count.toLocaleString()}</span>
+                </div>
+            `;
+            document.getElementById('nip85CompleteDetails').innerHTML = detailsHtml;
+        }
+        
+        /**
+         * Show relay key mismatch scenario (Kind 10040 exists but keys don't match)
+         */
+        function showRelayKeyMismatch(nip85Data, customerPubkey) {
+            document.getElementById('kind10040Mismatch').style.display = 'block';
+            
+            // Populate details
+            const detailsHtml = `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Keys:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Found</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 10040 Event:</span>
+                    <span class="detail-value"><span class="status-icon">✅</span>Published</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Relay Key Match:</span>
+                    <span class="detail-value"><span class="status-icon">⚠️</span>${nip85Data.kind10040.matchDetails?.message || 'Mismatch detected'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Current Relay:</span>
+                    <span class="detail-value">${nip85Data.customer.relayKeys.pubkey?.substring(0, 16)}...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Event Relay:</span>
+                    <span class="detail-value">${nip85Data.kind10040.relayPubkey?.substring(0, 16) || 'Not found'}...</span>
+                </div>
+            `;
+            document.getElementById('nip85MismatchDetails').innerHTML = detailsHtml;
+            
+            // Setup event handlers for mismatch scenario
+            setupMismatchButtons(customerPubkey);
+        }
+        
+        /**
+         * Show new Kind 10040 needed scenario (no existing Kind 10040 event)
+         */
+        function showNewKind10040Needed(nip85Data, customerPubkey) {
+            document.getElementById('kind10040NotPublished').style.display = 'block';
+            
+            // Populate details
+            const detailsHtml = `
+                <div class="detail-row">
+                    <span class="detail-label">Relay Keys:</span>
+                    <span class="detail-value"><span class="status-icon">${nip85Data.customer.hasRelayKeys ? '✅' : '❌'}</span>${nip85Data.customer.hasRelayKeys ? 'Ready' : 'Not found'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind 10040 Event:</span>
+                    <span class="detail-value"><span class="status-icon">📝</span>Ready to publish</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Your Relay:</span>
+                    <span class="detail-value">${nip85Data.customer.relayKeys.pubkey?.substring(0, 16) || 'Not available'}...</span>
+                </div>
+            `;
+            document.getElementById('nip85NewDetails').innerHTML = detailsHtml;
+            
+            // Setup event handlers for new Kind 10040
+            setupKind10040Buttons(customerPubkey);
+        }
+        
+        /**
+         * Show NIP-85 error state
+         */
+        function showNip85Error(message) {
+            document.getElementById('kind10040Error').style.display = 'block';
+            // Update error message if needed
+            const errorElement = document.querySelector('#kind10040Error p');
+            if (errorElement && message) {
+                errorElement.textContent = message;
+            }
+        }
+        
+        /**
+         * Setup event handlers for relay key mismatch scenario
+         */
+        function setupMismatchButtons(customerPubkey) {
+            // Update Kind 10040 button
+            document.getElementById('updateKind10040Btn').addEventListener('click', async function() {
+                await handleCreateAndPublishKind10040(customerPubkey, 'update');
+            });
+            
+            // Skip button
+            document.getElementById('skipUpdateKind10040Btn').addEventListener('click', function() {
+                handleSkipKind10040();
+            });
+        }
+        
+        /**
+         * Setup event handlers for Kind 10040 buttons
+         */
+        function setupKind10040Buttons(customerPubkey) {
+            // Publish Kind 10040 button
+            document.getElementById('publishKind10040Btn').addEventListener('click', async function() {
+                await handleCreateAndPublishKind10040(customerPubkey);
+            });
+            
+            // Skip button
+            document.getElementById('skipKind10040Btn').addEventListener('click', function() {
+                handleSkipKind10040();
+            });
+        }
+        
+        /**
+         * Handle Kind 10040 publishing with NIP-07 signing
+         * @param {string} customerPubkey - The customer's pubkey
+         * @param {string} mode - 'create' for new event, 'update' for relay key mismatch
+         */
+        async function handleCreateAndPublishKind10040(customerPubkey, mode = 'create') {
+            // Determine which buttons to use based on mode
+            let publishBtn, skipBtn;
+            if (mode === 'update') {
+                publishBtn = document.getElementById('updateKind10040Btn');
+                skipBtn = document.getElementById('skipUpdateKind10040Btn');
+            } else {
+                publishBtn = document.getElementById('publishKind10040Btn');
+                skipBtn = document.getElementById('skipKind10040Btn');
+            }
+            
+            // Show loading state
+            const originalText = publishBtn.textContent;
+            publishBtn.disabled = true;
+            skipBtn.disabled = true;
+            publishBtn.textContent = mode === 'update' ? '🔄 Updating event...' : '🔄 Creating event...';
+            
+            try {
+                // Step 1: Check for NIP-07 extension
+                if (!window.nostr) {
+                    alert('❌ Nostr browser extension (NIP-07) is required to sign events. Please install a Nostr extension like Alby, nos2x, or Flamingo.');
+                    publishBtn.disabled = false;
+                    skipBtn.disabled = false;
+                    publishBtn.textContent = originalText;
+                    return;
+                }
+                
+                // Step 2: Create unsigned Kind 10040 event
+                publishBtn.textContent = '📝 Creating unsigned event...';
+                
+                const createResponse = await fetch('/api/create-unsigned-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const createResult = await createResponse.json();
+                
+                if (!createResult.success) {
+                    throw new Error(createResult.message || 'Failed to create unsigned event');
+                }
+                
+                const unsignedEvent = createResult.data.unsignedEvent;
+                console.log('Unsigned event created:', unsignedEvent);
+                
+                // Step 3: Sign the event using NIP-07
+                publishBtn.textContent = '✍️ Please sign in your Nostr extension...';
+                
+                let signedEvent;
+                try {
+                    signedEvent = await window.nostr.signEvent(unsignedEvent);
+                    console.log('Event signed successfully:', signedEvent);
+                } catch (signingError) {
+                    console.error('Signing error:', signingError);
+                    throw new Error(`Failed to sign event: ${signingError.message || 'User cancelled or extension error'}`);
+                }
+                
+                // Step 4: Publish the signed event
+                publishBtn.textContent = '📡 Publishing signed event...';
+                
+                const publishResponse = await fetch('/api/publish-signed-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        signedEvent: signedEvent,
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const publishResult = await publishResponse.json();
+                
+                if (publishResult.success) {
+                    // Success - hide prompt and show success message
+                    document.getElementById('kind10040NotPublished').style.display = 'none';
+                    document.getElementById('kind10040Published').style.display = 'block';
+                    
+                    // Update success message
+                    const successDiv = document.getElementById('kind10040Published');
+                    successDiv.innerHTML = `
+                        <h4>✅ Kind 10040 Event Published!</h4>
+                        <p>Excellent! Your Kind 10040 event has been successfully signed and published.</p>
+                        <p><strong>Event ID:</strong> <code>${signedEvent.id}</code></p>
+                        <p>Your NIP-85 setup is now complete! The relay is authorized to create Kind 30382 events on your behalf.</p>
+                    `;
+                    // Make Relay Key Mismatch Detected section disappear
+                    document.getElementById('kind10040Mismatch').style.display = 'none';
+                    
+                } else {
+                    throw new Error(publishResult.message || 'Failed to publish signed event');
+                }
+                
+            } catch (error) {
+                console.error('Error in Kind 10040 flow:', error);
+                
+                let errorMessage = error.message;
+                if (errorMessage.includes('User rejected')) {
+                    errorMessage = 'You cancelled the signing process. Please try again when ready.';
+                } else if (errorMessage.includes('extension')) {
+                    errorMessage = 'Nostr extension error. Please check your extension and try again.';
+                }
+                
+                alert(`❌ ${errorMessage}`);
+                
+                // Restore button state
+                publishBtn.disabled = false;
+                skipBtn.disabled = false;
+                publishBtn.textContent = originalText;
+            }
+        }
+        
+        /**
+         * Handle skipping Kind 10040 setup
+         */
+        function handleSkipKind10040() {
+            // Hide the prompt section
+            document.getElementById('kind10040NotPublished').style.display = 'none';
+            
+            // Show a brief message that they can set it up later
+            const kind10040Section = document.getElementById('kind10040Section');
+            kind10040Section.innerHTML = `
+                <div class="kind10040-status" style="text-align: center; color: #6c757d; font-style: italic;">
+                    <p>📝 Kind 10040 setup skipped. You can publish your event later from your <a href="/customer.html">customer dashboard</a>.</p>
+                </div>
+            `;
+        }
+        
+        function showError(message) {
+            const errorContainer = document.getElementById('errorMessage');
+            errorContainer.textContent = message;
+            errorContainer.style.display = 'block';
         }
     </script>
 </body>

@@ -237,8 +237,11 @@
         <div class="container">            
             <div class="nip85-info">
                 <h2 style="text-align: center">What are Trusted Assertions?</h2>
-                <p><a href="https://github.com/vitorpamplona/nips/blob/user-summaries/85.md" target="_blank">NIP-85: Trusted Assertions</a> is a <a href="https://github.com/nostr-protocol/nips/pull/1534" target="_blank">proposed</a> Nostr Improvement Proposal that defines a standard
-                    for publishing personalized trust scores in a way that is easily discoverable by clients and other users on the Nostr network.
+
+                <p>Trusted Assertions is one of several methods for delivery of personalized trust metrics for consumption by Nostr clients and users.
+                    Compared to API-based or DVM-based methods, Trusted Assertions is designed for simplicity, efficiency, versatility and ease of adoption.</p>              
+                
+                <p><i>How it works:</i>
                     Each "trusted assertion" is a kind 3038x event that contains a list of trust scores for a specific user.
                     Score types can be standardized (User Rank, Follower Count, etc) or custom.
                 </p>
@@ -252,6 +255,12 @@
                     <li><strong>Spam Prevention</strong> Leverage community trust scores to reduce spam and low-quality content</li>
                     <li><strong>Decentralized Reputation</strong> Build reputation systems without centralized authorities</li>
                 </ul>
+
+                <p>See the NIP-85: Trusted Assertions
+                    <a href="https://github.com/vitorpamplona/nips/blob/user-summaries/85.md" target="_blank">proposal</a> and
+                    <a href="https://github.com/nostr-protocol/nips/pull/1534" target="_blank">pull request</a>
+                    for more information.
+                </p>  
             </div>
             
             <!-- NIP-85 Authors Showcase -->
