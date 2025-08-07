@@ -1,0 +1,316 @@
+.sign-up-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sign-up-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.sign-up-header h1 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.sign-up-header p {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+.status-message {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.status-loading {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+}
+
+.status-unauthenticated {
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+    color: #1565c0;
+}
+
+.status-customer {
+    background-color: #f3e5f5;
+    border: 1px solid #ce93d8;
+    color: #6a1b9a;
+}
+
+.status-owner {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.sign-up-invitation {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.sign-up-invitation h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.sign-up-invitation p {
+    color: #5a6c7d;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.sign-up-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.sign-up-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.sign-up-btn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.success-message {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.success-message h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #155724;
+}
+
+.customer-details {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+.customer-details .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.customer-details .detail-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.customer-details .detail-value {
+    color: #6c757d;
+    font-family: monospace;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.features-list {
+    text-align: left;
+    margin: 1.5rem 0;
+}
+
+.features-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.features-list li {
+    padding: 0.5rem 0;
+    color: #5a6c7d;
+}
+
+.features-list li:before {
+    content: "✓";
+    color: #27ae60;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+/* Kind 10040 Section Styling */
+.kind10040-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.kind10040-status {
+    text-align: center;
+}
+
+.kind10040-status h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+}
+
+.kind10040-success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.kind10040-prompt {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.kind10040-error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.kind10040-mismatch {
+    background: #fff3cd;
+    border: 1px solid #ffd700;
+    color: #856404;
+}
+
+.nip85-details {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.nip85-details .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5rem 0;
+    padding: 0.25rem 0;
+}
+
+.nip85-details .detail-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.nip85-details .detail-value {
+    color: #6c757d;
+    font-family: 'Courier New', monospace;
+}
+
+.status-icon {
+    margin-right: 0.5rem;
+}
+
+/* Managed by section styling */
+.managed-by-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 12px 0 20px 0;
+    padding: 8px 12px;
+    background: rgba(108, 117, 125, 0.05);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #6c757d;
+    max-width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.managed-by-text {
+    font-style: italic;
+    font-weight: 400;
+}
+
+.owner-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.owner-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+.owner-name {
+    font-weight: 500;
+    color: #495057;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kind10040-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.kind10040-actions .btn {
+    min-width: 180px;
+}
+
+.next-steps-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}

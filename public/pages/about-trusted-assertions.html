@@ -304,6 +304,7 @@
             margin: 0;
             font-size: 12px;
             color: #6c757d;
+            text-align: left;
         }
         
         .close-btn {
@@ -385,7 +386,11 @@
                             <button class="close-btn" onclick="hideSampleEvent('10040')">&times;</button>
                         </div>
                         <div class="sample-event-content-small">
-                            This event identifies a third-party pubkey as a publisher of trust scores
+                            This event identifies the third-party pubkey,
+                            <code>4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71</code>,
+                            as a trusted provider and publisher of trust scores on behalf of the user:
+                            <code>e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f</code>.
+                            Each Brainstorm user receives a unique pubkey for this purpose.
                         </div>
                         <div class="sample-event-content">
                             <pre id="sample10040Content"></pre>
@@ -399,7 +404,8 @@
                             <button class="close-btn" onclick="hideSampleEvent('30382')">&times;</button>
                         </div>
                         <div class="sample-event-content-small">
-                            The d-tag identifies the pubkey being scored
+                            The d-tag identifies the pubkey being scored (<code>1736906a7265ad0100a8ea3019e1eb3fe1c92ce9602d7d799edbe17d9147826d</code>).
+                            Note that the event author, <code>4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71</code>, matches the pubkey in the kind 10040 event.
                         </div>
                         <div class="sample-event-content">
                             <pre id="sample30382Content"></pre>
