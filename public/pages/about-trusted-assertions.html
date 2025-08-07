@@ -217,6 +217,105 @@
             margin: 0;
         }
         
+        /* Sample events toggle styling */
+        .sample-events-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .toggle-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .toggle-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        .toggle-btn.active {
+            background: #27ae60;
+        }
+        
+        .toggle-btn.active:hover {
+            background: #229954;
+        }
+        
+        .sample-event-container {
+            margin: 16px 0;
+            padding: 0;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .sample-event-header {
+            background: #e9ecef;
+            padding: 12px 16px;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sample-event-content {
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sample-event-content pre {
+            margin: 0;
+            padding: 16px;
+            background: #ffffff;
+            border: none;
+            border-radius: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            color: #495057;
+        }
+        
         @media (max-width: 768px) {
             .authors-grid {
                 grid-template-columns: 1fr;
@@ -224,6 +323,19 @@
             
             .integration-steps {
                 grid-template-columns: 1fr;
+            }
+            
+            .toggle-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .toggle-btn {
+                width: 200px;
+            }
+            
+            .sample-event-content pre {
+                font-size: 11px;
             }
         }
     </style>
@@ -243,8 +355,43 @@
                 
                 <p><i>How it works:</i>
                     Each "trusted assertion" is a kind 3038x event that contains a list of trust scores for a specific user.
-                    Score types can be standardized (User Rank, Follower Count, etc) or custom.
+                    Score types can follow the NIP standards (User Rank, Follower Count, etc) or be custom (e.g. GrapeRank, hops, etc).
+                    Users can signal adoption of Trusted Assertions with support by a third-party provider like Brainstorm by publishing a kind 10040 event.
                 </p>
+
+                <!-- Sample events toggle section -->
+                <div class="sample-events-section">
+                    <div class="toggle-buttons">
+                        <button id="show10040Btn" class="toggle-btn">
+                            📋 Show Sample Kind 10040
+                        </button>
+                        <button id="show30382Btn" class="toggle-btn">
+                            📊 Show Sample Kind 30382
+                        </button>
+                    </div>
+                    
+                    <!-- Sample 10040 event container -->
+                    <div id="sample10040Container" class="sample-event-container">
+                        <div class="sample-event-header">
+                            <span>Sample Kind 10040 Event (Trust Score Discovery)</span>
+                            <button class="close-btn" onclick="hideSampleEvent('10040')">&times;</button>
+                        </div>
+                        <div class="sample-event-content">
+                            <pre id="sample10040Content"></pre>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample 30382 event container -->
+                    <div id="sample30382Container" class="sample-event-container">
+                        <div class="sample-event-header">
+                            <span>Sample Kind 30382 Event (Trust Score Data)</span>
+                            <button class="close-btn" onclick="hideSampleEvent('30382')">&times;</button>
+                        </div>
+                        <div class="sample-event-content">
+                            <pre id="sample30382Content"></pre>
+                        </div>
+                    </div>
+                </div>
                 
                 <h3>Key Benefits for Developers:</h3>
 
@@ -324,6 +471,124 @@
     <div id="footerContainer"></div>
     
     <script>
+        // sample 10040 event
+        const sample10040Event = {
+  "content": "",
+  "created_at": 1753498423,
+  "id": "2f7bce584659acf65eaf5c47e921b807adc6c9b2ac69205d18f12749d923dd70",
+  "kind": 10040,
+  "pubkey": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
+  "sig": "13616a21fce28fc8cb8e79e00d8bc5c87ece74f6ca029545e2ccaf8c7d19be64ad01ac597d30d581f6883fecd37f40bb60be4c567fcc0c3f6dc560041bc86faf",
+  "tags": [
+    [
+      "30382:rank",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:personalizedGrapeRank_influence",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:personalizedGrapeRank_average",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:personalizedGrapeRank_confidence",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:personalizedGrapeRank_input",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:personalizedPageRank",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:verifiedFollowersCount",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:verifiedMutersCount",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:verifiedReportersCount",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ],
+    [
+      "30382:hops",
+      "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+      "wss://straycat.brainstorm.social/relay"
+    ]
+  ]
+};
+        
+        // sample 30382 event
+        const sample30382Event = {
+  "content": "",
+  "created_at": 1753815259,
+  "id": "92239fa7ec696c6a7ad10364c178b00bfc76f71649d3e298bd94193582a23180",
+  "kind": 30382,
+  "pubkey": "4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71",
+  "sig": "ee41d9a67897f999aae28bdd1d29e13bdf5cf8ece4630c74c9671cf682c6613ab7e6f01d16851f3a99b283edbd0ca2b6e1dcbe4972ec7b3c99676e0d6796b6d6",
+  "tags": [
+    [
+      "d",
+      "1736906a7265ad0100a8ea3019e1eb3fe1c92ce9602d7d799edbe17d9147826d"
+    ],
+    [
+      "rank",
+      "1"
+    ],
+    [
+      "hops",
+      "3"
+    ],
+    [
+      "personalizedGrapeRank_influence",
+      "0.01000122352582411"
+    ],
+    [
+      "personalizedGrapeRank_average",
+      "1"
+    ],
+    [
+      "personalizedGrapeRank_confidence",
+      "0.01000122352582411"
+    ],
+    [
+      "personalizedGrapeRank_input",
+      "0.02333326453637423"
+    ],
+    [
+      "personalizedPageRank",
+      "3.330473852696137e-7"
+    ],
+    [
+      "verifiedFollowerCount",
+      "1"
+    ],
+    [
+      "verifiedMuterCount",
+      "0"
+    ],
+    [
+      "verifiedReporterCount",
+      "0"
+    ]
+  ]
+};
+
         // State management
         const authorsState = {
             loading: document.getElementById('authorsLoading'),
@@ -338,12 +603,65 @@
         // Load NIP-85 authors on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadNip85Authors();
+            setupSampleEventToggles();
             
             // Setup retry button
             authorsState.retryBtn.addEventListener('click', function() {
                 loadNip85Authors();
             });
         });
+        
+        /**
+         * Setup sample event toggle buttons
+         */
+        function setupSampleEventToggles() {
+            const show10040Btn = document.getElementById('show10040Btn');
+            const show30382Btn = document.getElementById('show30382Btn');
+            
+            show10040Btn.addEventListener('click', function() {
+                toggleSampleEvent('10040');
+            });
+            
+            show30382Btn.addEventListener('click', function() {
+                toggleSampleEvent('30382');
+            });
+        }
+        
+        /**
+         * Toggle display of sample events
+         */
+        function toggleSampleEvent(eventType) {
+            const container = document.getElementById(`sample${eventType}Container`);
+            const button = document.getElementById(`show${eventType}Btn`);
+            const content = document.getElementById(`sample${eventType}Content`);
+            
+            if (container.style.display === 'none' || container.style.display === '') {
+                // Show the event
+                const eventData = eventType === '10040' ? sample10040Event : sample30382Event;
+                content.textContent = JSON.stringify(eventData, null, 2);
+                container.style.display = 'block';
+                button.classList.add('active');
+                button.innerHTML = eventType === '10040' ? '✅ Hide Kind 10040' : '✅ Hide Kind 30382';
+                
+                // Scroll to the event container
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                // Hide the event
+                hideSampleEvent(eventType);
+            }
+        }
+        
+        /**
+         * Hide sample event (called by close button or toggle)
+         */
+        function hideSampleEvent(eventType) {
+            const container = document.getElementById(`sample${eventType}Container`);
+            const button = document.getElementById(`show${eventType}Btn`);
+            
+            container.style.display = 'none';
+            button.classList.remove('active');
+            button.innerHTML = eventType === '10040' ? '📋 Show Sample Kind 10040' : '📊 Show Sample Kind 30382';
+        }
         
         async function loadNip85Authors() {
             try {
