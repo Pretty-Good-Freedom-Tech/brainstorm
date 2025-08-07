@@ -296,6 +296,14 @@
             overflow-x: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
+            text-align: left;
+        }
+
+        .sample-event-content-small {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            color: #6c757d;
         }
         
         .close-btn {
@@ -355,7 +363,7 @@
                 
                 <p><i>How it works:</i>
                     Each "trusted assertion" is a kind 3038x event that contains a list of trust scores for a specific user.
-                    Score types can follow the NIP standards (User Rank, Follower Count, etc) or be custom (e.g. GrapeRank, hops, etc).
+                    Score types can follow the NIP standards (User Rank, Follower Count, etc) or be customized (e.g. GrapeRank, hops, etc).
                     Users can signal adoption of Trusted Assertions with support by a third-party provider like Brainstorm by publishing a kind 10040 event.
                 </p>
 
@@ -376,6 +384,9 @@
                             <span>Sample Kind 10040 Event (Trust Score Discovery)</span>
                             <button class="close-btn" onclick="hideSampleEvent('10040')">&times;</button>
                         </div>
+                        <div class="sample-event-content-small">
+                            This event identifies a third-party pubkey as a publisher of trust scores
+                        </div>
                         <div class="sample-event-content">
                             <pre id="sample10040Content"></pre>
                         </div>
@@ -386,6 +397,9 @@
                         <div class="sample-event-header">
                             <span>Sample Kind 30382 Event (Trust Score Data)</span>
                             <button class="close-btn" onclick="hideSampleEvent('30382')">&times;</button>
+                        </div>
+                        <div class="sample-event-content-small">
+                            The d-tag identifies the pubkey being scored
                         </div>
                         <div class="sample-event-content">
                             <pre id="sample30382Content"></pre>
