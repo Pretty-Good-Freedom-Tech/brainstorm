@@ -11,7 +11,10 @@
 # sudo bash /usr/local/lib/node_modules/brainstorm/src/algos/customers/processCustomer.sh dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319 0 laeserin
 
 CONFIG_FILE="/etc/brainstorm.conf"
-source "$CONFIG_FILE" # BRAINSTORM_MODULE_ALGOS_DIR
+source "$CONFIG_FILE"
+
+# Source structured logging utility
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh" # BRAINSTORM_MODULE_ALGOS_DIR
 
 SCRIPTS_DIR="$BRAINSTORM_MODULE_ALGOS_DIR/customers/"
 
@@ -45,9 +48,12 @@ LOG_FILE="$LOG_DIR/processCustomer.log"
 touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
-# Log start time
+# Log start time (legacy format for backward compatibility)
 echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
 echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"
+
+# Start structured task timer and emit structured event
+TASK_TIMER=$(start_task_timer "processCustomer" "$CUSTOMER_PUBKEY" '{"customerId":"'$CUSTOMER_ID'","customerName":"'$CUSTOMER_NAME'"}')
 
 echo "$(date): Continuing processCustomer; starting prepareNeo4jForCustomerData.sh"
 echo "$(date): Continuing processCustomer; starting prepareNeo4jForCustomerData.sh" >> "$LOG_FILE"
@@ -150,6 +156,9 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     fi
 done
 
-# Log end time
+# Log end time (legacy format for backward compatibility)
 echo "$(date): Finished processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
 echo "$(date): Finished processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"
+
+# End structured task timer and emit completion event
+end_task_timer "processCustomer" "$CUSTOMER_PUBKEY" "0" "$TASK_TIMER" '{"customerId":"'$CUSTOMER_ID'","customerName":"'$CUSTOMER_NAME'"}'

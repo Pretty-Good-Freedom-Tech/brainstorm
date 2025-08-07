@@ -95,10 +95,32 @@ class SystemStateGatherer {
     }
 
     async getCustomerLastProcessed(pubkey) {
-        // TODO: Parse processCustomer.log to find last completion for this customer
-        // Look for patterns like "Finished processCustomer for [pubkey]"
-        this.log(`TODO: Get last processed time for customer ${pubkey}`);
-        return null;
+        try {
+            // Try structured events first (Phase 2: Prefer structured data)
+            const structuredEvents = this.loadStructuredEvents();
+            const customerEvents = structuredEvents.filter(event => 
+                event.taskName === 'processCustomer' && 
+                event.target === pubkey &&
+                event.eventType === 'TASK_COMPLETE'
+            );
+            
+            if (customerEvents.length > 0) {
+                // Return most recent completion from structured events
+                const latest = customerEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                return {
+                    timestamp: latest.timestamp,
+                    source: 'structured_events',
+                    duration: latest.metadata?.durationSeconds || null
+                };
+            }
+            
+            // Fallback to legacy log parsing (defensive parsing)
+            return await this.parseCustomerLogForCompletion(pubkey);
+            
+        } catch (error) {
+            this.log(`Error getting last processed time for customer ${pubkey}: ${error.message}`);
+            return null;
+        }
     }
 
     async getCustomerScoreStatus(pubkey) {
@@ -142,20 +164,36 @@ class SystemStateGatherer {
     }
 
     async parseProcessAllTasksLog() {
-        const logFile = path.join(this.config.BRAINSTORM_LOG_DIR, 'processAllTasks.log');
-        
-        if (!fs.existsSync(logFile)) {
-            return { status: 'no_log_file' };
+        try {
+            // Try structured events first
+            const structuredEvents = this.loadStructuredEvents();
+            const processAllTasksEvents = structuredEvents.filter(event => 
+                event.taskName === 'processAllTasks'
+            );
+            
+            if (processAllTasksEvents.length > 0) {
+                const latest = processAllTasksEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                return {
+                    status: 'structured_data',
+                    lastRun: latest.timestamp,
+                    eventType: latest.eventType,
+                    duration: latest.metadata?.durationSeconds || null
+                };
+            }
+            
+            // Fallback to legacy log parsing
+            const logFile = path.join(this.config.BRAINSTORM_LOG_DIR, 'processAllTasks.log');
+            
+            if (!fs.existsSync(logFile)) {
+                return { status: 'no_log_file' };
+            }
+            
+            return await this.parseProcessAllTasksLogLegacy(logFile);
+            
+        } catch (error) {
+            this.log(`Error parsing processAllTasks data: ${error.message}`);
+            return { status: 'error', message: error.message };
         }
-        
-        // TODO: Parse processAllTasks.log for:
-        // - Last start time
-        // - Last completion time
-        // - Any errors or failures
-        // - Duration of last run
-        
-        this.log('TODO: Parse processAllTasks.log');
-        return { status: 'not_implemented' };
     }
 
     async parseSyncWoTLog() {
@@ -343,6 +381,123 @@ class SystemStateGatherer {
         }
         
         return [];
+    }
+
+    loadStructuredEvents() {
+        const eventsFile = path.join(this.config.BRAINSTORM_LOG_DIR, 'taskQueue', 'events.jsonl');
+        
+        if (fs.existsSync(eventsFile)) {
+            try {
+                const content = fs.readFileSync(eventsFile, 'utf8');
+                return content.trim().split('\n').map(line => {
+                    try {
+                        return JSON.parse(line);
+                    } catch {
+                        return null;
+                    }
+                }).filter(event => event !== null);
+            } catch (error) {
+                this.log(`Error loading structured events: ${error.message}`);
+                return [];
+            }
+        }
+        
+        return [];
+    }
+
+    async parseCustomerLogForCompletion(pubkey) {
+        // Defensive legacy log parsing with multiple patterns
+        const logFile = path.join(this.config.BRAINSTORM_LOG_DIR, 'processCustomer.log');
+        
+        if (!fs.existsSync(logFile)) {
+            return null;
+        }
+        
+        try {
+            const content = fs.readFileSync(logFile, 'utf8');
+            
+            // Multiple patterns for resilience (defensive parsing)
+            const patterns = [
+                // Current format
+                new RegExp(`(\\d{4}-\\d{2}-\\d{2}[T\\s]\\d{2}:\\d{2}:\\d{2}[^:]*): Finished processCustomer.*customer_pubkey ${pubkey}`, 'gi'),
+                // Alternative formats
+                new RegExp(`([^:]+): Finished processCustomer.*${pubkey}`, 'gi'),
+                // Flexible timestamp matching
+                new RegExp(`([^\\]]+): Finished processCustomer.*${pubkey.substring(0, 16)}`, 'gi')
+            ];
+            
+            let latestMatch = null;
+            let latestTime = null;
+            
+            for (const pattern of patterns) {
+                const matches = [...content.matchAll(pattern)];
+                for (const match of matches) {
+                    try {
+                        const timeStr = match[1].trim();
+                        const parsedTime = new Date(timeStr);
+                        
+                        if (!isNaN(parsedTime.getTime()) && (!latestTime || parsedTime > latestTime)) {
+                            latestTime = parsedTime;
+                            latestMatch = {
+                                timestamp: parsedTime.toISOString(),
+                                source: 'legacy_log_parsing',
+                                pattern: pattern.source
+                            };
+                        }
+                    } catch (error) {
+                        // Skip invalid timestamps
+                        continue;
+                    }
+                }
+                
+                // If we found a match with this pattern, use it
+                if (latestMatch) break;
+            }
+            
+            return latestMatch;
+            
+        } catch (error) {
+            this.log(`Error parsing customer log for ${pubkey}: ${error.message}`);
+            return null;
+        }
+    }
+
+    async parseProcessAllTasksLogLegacy(logFile) {
+        try {
+            const content = fs.readFileSync(logFile, 'utf8');
+            const lines = content.trim().split('\n');
+            
+            // Look for start/finish patterns with defensive parsing
+            const startPattern = /(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[^:]*): Starting processAllTasks/gi;
+            const finishPattern = /(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[^:]*): Finished processAllTasks/gi;
+            
+            const startMatches = [...content.matchAll(startPattern)];
+            const finishMatches = [...content.matchAll(finishPattern)];
+            
+            let lastStart = null;
+            let lastFinish = null;
+            
+            if (startMatches.length > 0) {
+                const latest = startMatches[startMatches.length - 1];
+                lastStart = new Date(latest[1].trim()).toISOString();
+            }
+            
+            if (finishMatches.length > 0) {
+                const latest = finishMatches[finishMatches.length - 1];
+                lastFinish = new Date(latest[1].trim()).toISOString();
+            }
+            
+            return {
+                status: 'legacy_parsed',
+                lastStart,
+                lastFinish,
+                isRunning: lastStart && (!lastFinish || new Date(lastStart) > new Date(lastFinish))
+            };
+            
+        } catch (error) {
+            this.log(`Error parsing legacy processAllTasks log: ${error.message}`);
+            return { status: 'parse_error', message: error.message };
+        }
     }
 
     loadTaskStatus() {
