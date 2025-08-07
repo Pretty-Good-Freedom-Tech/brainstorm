@@ -63,6 +63,7 @@
                     <div id="customerStatus" class="status-message status-customer" style="display: none;">
                         <h3>🎉 You're Already a Customer!</h3>
                         <p>Great news! You're already signed up as a Brainstorm customer with full access to personalized Web of Trust calculations.</p>
+                        <p><a href="/customer.html" class="btn" target="_blank">Go to Customer Dashboard</a></p>
                         <div id="existingCustomerDetails" class="customer-details"></div>
                     </div>
                     
@@ -286,7 +287,7 @@
                 </div>
                 <div id="existingCustomerNip85Status">
                     <div class="detail-row">
-                        <span class="detail-label">NIP-85 Status:</span>
+                        <span class="detail-label">Enable Trusted Assertions:</span>
                         <span class="detail-value"><span class="status-icon">🔄</span>Checking...</span>
                     </div>
                 </div>
@@ -343,7 +344,7 @@
             const statusContainer = document.getElementById('existingCustomerNip85Status');
             statusContainer.innerHTML = `
                 <div class="detail-row">
-                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-label">Enable Trusted Assertions:</span>
                     <span class="detail-value"><span class="status-icon">✅</span>Complete</span>
                 </div>
             `;
@@ -356,7 +357,7 @@
             const statusContainer = document.getElementById('existingCustomerNip85Status');
             statusContainer.innerHTML = `
                 <div class="detail-row">
-                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-label">Enable Trusted Assertions:</span>
                     <span class="detail-value"><span class="status-icon">⚠️</span>Relay Key Mismatch</span>
                 </div>
                 <div class="kind10040-mismatch" style="margin-top: 1rem; padding: 1rem; border-radius: 6px;">
@@ -384,7 +385,7 @@
             const statusContainer = document.getElementById('existingCustomerNip85Status');
             statusContainer.innerHTML = `
                 <div class="detail-row">
-                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-label">Enable Trusted Assertions:</span>
                     <span class="detail-value"><span class="status-icon">📝</span>Setup Needed</span>
                 </div>
                 <div class="kind10040-prompt" style="margin-top: 1rem; padding: 1rem; border-radius: 6px;">
@@ -412,7 +413,7 @@
             const statusContainer = document.getElementById('existingCustomerNip85Status');
             statusContainer.innerHTML = `
                 <div class="detail-row">
-                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-label">Enable Trusted Assertions:</span>
                     <span class="detail-value"><span class="status-icon">⚠️</span>Unable to check</span>
                 </div>
             `;
@@ -455,7 +456,7 @@
             const statusContainer = document.getElementById('existingCustomerNip85Status');
             statusContainer.innerHTML = `
                 <div class="detail-row">
-                    <span class="detail-label">NIP-85 Status:</span>
+                    <span class="detail-label">Enable Trusted Assertions:</span>
                     <span class="detail-value"><span class="status-icon">ℹ️</span>Skipped</span>
                 </div>
             `;

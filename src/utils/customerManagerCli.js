@@ -283,7 +283,7 @@ async function testNip85Status(pubkey, includeEvents = false) {
             console.log('');
             
             // Display Overall Status
-            console.log('🎯 Overall NIP-85 Status:');
+            console.log('🎯 Overall NIP 85 Status:');
             console.log(`   Is Complete: ${status.overall.isComplete ? '✅' : '❌'}`);
             console.log(`   Needs Kind 10040 Update: ${status.overall.needsKind10040Update ? '⚠️  YES' : '✅ NO'}`);
             console.log(`   Needs Kind 10040 Creation: ${status.overall.needsKind10040Creation ? '⚠️  YES' : '✅ NO'}`);
