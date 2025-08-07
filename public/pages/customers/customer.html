@@ -969,135 +969,87 @@
         }
         
         async function createKind10040Event(customerPubkey) {
-            const createBtn = document.getElementById('createKind10040Btn');
-            const publishBtn = document.getElementById('publishKind10040Btn');
-            const eventPreview = document.getElementById('eventPreview');
-            const eventPreviewContent = document.getElementById('eventPreviewContent');
-            
+            // This function is now a wrapper that calls the modern publishKind10040Event
+            // to maintain compatibility with existing code
+            await publishKind10040Event(customerPubkey);
+        }
+        
+        async function publishKind10040Event(customerPubkey) {
             try {
-                // Disable buttons during processing
-                createBtn.disabled = true;
-                publishBtn.disabled = true;
+                // Step 1: Check for NIP-07 extension
+                if (!window.nostr) {
+                    showEventStatus('❌ Nostr browser extension (NIP-07) is required to sign events. Please install a Nostr extension like Alby, nos2x, or Flamingo.', 'error');
+                    return;
+                }
                 
-                // Show status
-                showEventStatus('Creating Kind 10040 event...', 'info');
+                // Step 2: Create unsigned Kind 10040 event
+                showEventStatus('📝 Creating unsigned event...', 'info');
                 
-                // Make API request to create the event with customer pubkey
-                const response = await fetch('/api/create-kind10040', {
+                const createResponse = await fetch('/api/create-unsigned-kind10040', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ pubkey: customerPubkey })
+                    body: JSON.stringify({
+                        pubkey: customerPubkey
+                    })
                 });
                 
-                const data = await response.json();
+                const createResult = await createResponse.json();
                 
-                if (data.success) {
-                    // Show the event preview
-                    eventPreview.style.display = 'block';
-                    eventPreviewContent.textContent = data.output;
-                    
-                    // Update status
-                    showEventStatus('Kind 10040 event created successfully. Review the event and click "Publish" to publish it.', 'success');
-                    
-                    // Enable publish button
-                    publishBtn.disabled = false;
-                } else {
-                    // Show error
-                    showEventStatus('Error creating Kind 10040 event: ' + (data.error || 'Unknown error'), 'error');
+                if (!createResult.success) {
+                    throw new Error(createResult.message || 'Failed to create unsigned event');
                 }
                 
-            } catch (error) {
-                console.error('Error creating Kind 10040 event:', error);
-                showEventStatus('Error creating Kind 10040 event: ' + error.message, 'error');
-            } finally {
-                // Re-enable create button
-                createBtn.disabled = false;
-            }
-        }
-        
-        async function publishKind10040Event() {
-            const createBtn = document.getElementById('createKind10040Btn');
-            const publishBtn = document.getElementById('publishKind10040Btn');
-            
-            try {
-                // Disable buttons during processing
-                createBtn.disabled = true;
-                publishBtn.disabled = true;
+                const unsignedEvent = createResult.data.unsignedEvent;
+                console.log('Unsigned event created:', unsignedEvent);
                 
-                // Check if NIP-07 extension is available
-                if (typeof window.nostr === 'undefined') {
-                    showEventStatus('Error: No Nostr extension detected. Please install a NIP-07 compatible extension like Alby or nos2x.', 'error');
-                    createBtn.disabled = false;
-                    publishBtn.disabled = false;
-                    return;
+                // Step 3: Sign the event using NIP-07
+                showEventStatus('✍️ Please sign in your Nostr extension...', 'info');
+                
+                let signedEvent;
+                try {
+                    signedEvent = await window.nostr.signEvent(unsignedEvent);
+                    console.log('Event signed successfully:', signedEvent);
+                } catch (signingError) {
+                    console.error('Signing error:', signingError);
+                    throw new Error(`Failed to sign event: ${signingError.message || 'User cancelled or extension error'}`);
                 }
                 
-                // Update status
-                showEventStatus('Getting event data for signing...', 'info');
+                // Step 4: Publish the signed event
+                showEventStatus('📡 Publishing signed event...', 'info');
                 
-                // First, get the unsigned event
-                const response = await fetch('/api/get-kind10040-event', {
-                    method: 'GET'
+                const publishResponse = await fetch('/api/publish-signed-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        signedEvent: signedEvent,
+                        pubkey: customerPubkey
+                    })
                 });
                 
-                const data = await response.json();
+                const publishResult = await publishResponse.json();
                 
-                if (data.success && data.event) {
-                    // Update status
-                    showEventStatus('Signing event with NIP-07...', 'info');
+                if (publishResult.success) {
+                    // Success - show success message and refresh NIP-85 info
+                    showEventStatus('✅ Kind 10040 event published successfully!', 'success');
                     
-                    // Get the event data
-                    const event = data.event;
-                    
-                    // Make sure the pubkey matches the user's pubkey
-                    const userPubkey = await window.nostr.getPublicKey();
-                    event.pubkey = userPubkey;
-                    
-                    // Get the challenge from the server response
-                    const challenge = data.challenge;
-                    
-                    // Sign the event
-                    const signedEvent = await window.nostr.signEvent(event);
-                    
-                    // Update status
-                    showEventStatus('Publishing event to relay...', 'info');
-                    
-                    // Publish the signed event
-                    const publishResponse = await fetch('/api/publish-kind10040-event', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Challenge': challenge
-                        },
-                        body: JSON.stringify({ event: signedEvent })
-                    });
-                    
-                    const publishData = await publishResponse.json();
-                    
-                    if (publishData.success) {
-                        showEventStatus('Kind 10040 event published successfully!', 'success');
-                        
-                        // Refresh the NIP-85 info to show the new event
-                        const pubkey = await checkAuthenticationStatus();
-                        if (pubkey) {
-                            loadNip85Info(pubkey);
-                        }
-                    } else {
-                        showEventStatus('Error publishing event: ' + (publishData.error || 'Unknown error'), 'error');
+                    // Refresh the NIP-85 info to show the new event
+                    const pubkey = await checkAuthenticationStatus();
+                    if (pubkey) {
+                        loadNip85Info(pubkey);
+                        // Also refresh the new NIP-85 panel
+                        loadNewNip85Status(pubkey);
                     }
                 } else {
-                    showEventStatus('Error getting event data: ' + (data.error || 'No event found'), 'error');
+                    throw new Error(publishResult.message || 'Failed to publish event');
                 }
                 
             } catch (error) {
-                console.error('Error publishing Kind 10040 event:', error);
-                showEventStatus('Error publishing Kind 10040 event: ' + error.message, 'error');
-            } finally {
-                // Re-enable buttons
-                createBtn.disabled = false;
-                publishBtn.disabled = false;
+                console.error('Error in Kind 10040 event process:', error);
+                showEventStatus(`❌ Error: ${error.message}`, 'error');
             }
         }
         
