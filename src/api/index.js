@@ -147,13 +147,14 @@ function register(app) {
     app.post('/api/create-unsigned-kind10040', nip85.handleCreateUnsignedKind10040);
     app.post('/api/publish-signed-kind10040', nip85.handlePublishSignedKind10040);
     app.post('/api/publish-kind30382', nip85.handlePublishKind30382);
-    app.get('/api/get-nip85-status', nip85.handleGetNip85Status);
     // app.post('/api/publish', nip85.handlePublish);
     
     // Query endpoints (read operations)
     app.get('/api/get-kind10040-event', nip85.handleGetKind10040Event);
     app.get('/api/get-kind10040-info', nip85.handleGetKind10040Info);
     app.get('/api/get-kind30382-info', nip85.handleGetKind30382Info);
+    app.get('/api/get-nip85-status', nip85.handleGetNip85Status);
+    app.get('/api/get-all-10040-authors', nip85.handleGetAll10040Authors);
 
     // Profiles endpoint
     app.get('/api/get-kind0', profiles.handleGetKind0Event);

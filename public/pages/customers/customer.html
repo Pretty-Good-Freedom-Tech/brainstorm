@@ -940,27 +940,21 @@
             try {
                 const response = await fetch(`/api/get-nip85-status?pubkey=${pubkey}&returnRawEvents=true`);
                 const data = await response.json();
-                console.log(`qwerty 0`)
                 loadingDiv.style.display = 'none';
                 
                 if (data.success) {
-                    console.log(`qwerty A`)
                     const nip85Data = data.data;
                     
                     if (nip85Data.overall.isComplete) {
-                        console.log(`qwerty B`)
                         // Complete setup - Kind 10040 exists and relay keys match
                         showNewNip85Complete(nip85Data);
                     } else if (nip85Data.kind10040.exists && !nip85Data.kind10040.matches) {
-                        console.log(`qwerty C`)
                         // Relay key mismatch - Kind 10040 exists but relay keys don't match
                         showNewNip85Mismatch(nip85Data);
                     } else if (!nip85Data.kind10040.exists) {
-                        console.log(`qwerty D`)
                         // Missing Kind 10040 - needs to be created
                         showNewNip85Missing(nip85Data);
                     } else {
-                        console.log(`qwerty E`)
                         // Other scenarios (missing relay keys, etc.)
                         showNewNip85Error('Unable to determine NIP-85 status. Please check your setup.');
                     }
@@ -968,7 +962,6 @@
                     // Load Kind 30382 panel data
                     loadKind30382Status(nip85Data);
                 } else {
-                    console.log(`qwerty F`)
                     showNewNip85Error(data.message || 'Unknown error occurred');
                 }
                 
