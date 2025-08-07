@@ -4,8 +4,9 @@
 # Demonstrates Phase 1: Add Structured Events (Non-Breaking)
 
 # Set up test environment
-export BRAINSTORM_LOG_DIR="/tmp/brainstorm-test"
-export BRAINSTORM_MODULE_BASE_DIR="/Users/wds/CascadeProjects/windsurf-project"
+CONFIG_FILE="/etc/brainstorm.conf"
+source "$CONFIG_FILE" # BRAINSTORM_LOG_DIR BRAINSTORM_MODULE_BASE_DIR
+
 export BRAINSTORM_STRUCTURED_LOGGING="true"
 export BRAINSTORM_LOG_LEVEL="INFO"
 
