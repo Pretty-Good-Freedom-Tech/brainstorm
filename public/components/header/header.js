@@ -115,6 +115,12 @@ function loadNavbar() {
     }
 
     if (
+        currentPath === '/sign-up.html'
+    ) {
+        navbarPath = '/components/header/navbars/nav1_empty.html';
+    }
+
+    if (
         currentPath === '/test.html'
     ) {
         navbarPath = '/components/header/navbars/nav3.html';

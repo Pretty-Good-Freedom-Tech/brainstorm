@@ -528,6 +528,9 @@
                                 <div class="calculation-actions">
                                     <button id="refreshAnalyzeFollowsMutesReportsBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
                                     <button id="triggerAnalyzeFollowsMutesReportsBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger</button>
+                                    <button class="btn btn-primary" onclick="recalculateMetric('followsmutesreports')">
+                                        🔄 Recalculate Follows, Mutes, and Reports
+                                    </button>
                                 </div>
                             </div>
                             <div class="calculation-details">
@@ -2099,12 +2102,14 @@
             }
             
             // Enable trigger button if not in progress
+            /*
             const triggerBtn = document.getElementById('triggerAnalyzeFollowsMutesReportsBtn');
             if (data.status !== 'In Progress' && data.status !== 'Stalled') {
                 triggerBtn.disabled = false;
             } else {
                 triggerBtn.disabled = true;
             }
+            */
         }
         
         /**
@@ -2485,9 +2490,11 @@
             });
             
             // Trigger Analyze Follows, Mutes, and Reports calculation (placeholder)
+            /*
             document.getElementById('triggerAnalyzeFollowsMutesReportsBtn')?.addEventListener('click', function() {
                 alert('Trigger calculation functionality will be implemented in a future update.');
             });
+            */
             
             // Setup event listeners for all configuration types using generalized system
             setupConfigEventListeners('graperank');
@@ -2566,9 +2573,6 @@
         .profile-header {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid #e9ecef;
         }
         
         .profile-avatar {

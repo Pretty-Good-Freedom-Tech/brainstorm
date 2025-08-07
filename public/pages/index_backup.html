@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm</title>
+    <link rel="stylesheet" href="/control/css/landing-page.css">
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>   
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container-landing">
+            <h1 class="landing-page-title">
+                <img src="/img/brainstorm010.svg" class="brainstorm-image" />
+                Brainstorm <!-- <span style="color: #999; font-size: 12px; position: relative; top: 2px;">v0.0.1-alpha</span> -->
+            </h1>
+            <h3>a personalized</h3>
+            <h1>Webs of Trust</h1>
+            <h2>Nostr relay</h2>
+            <h3>featuring the 🍇 Grapevine of:</h3>
+            <!-- Enhanced owner profile section -->
+            <div id="ownerProfile" class="owner-profile">
+                <div class="profile-loading">Loading owner information...</div>
+            </div>
+            <a href="/sign-in.html" class="btn secondary-btn" id="ownerSignInButton">Owner/Customer/Guest Sign In</a>
+            <p>Connect to <span id="ownerName">the owner</span>'s Brainstorm relay!</p>
+            <div class="relay-link-container">
+                <span id="relayLink">Loading relay information...</span>
+                <button id="copyRelayButton" class="copy-button" title="Copy relay address to clipboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                    </svg>
+                </button>
+                <a id="verifyButton" href="#" target="_blank" class="verify-button" title="Verify relay on legacy.nostr.watch">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"/>
+                    </svg>
+                </a>
+            </div>
+            <a href="/home.html" class="btn secondary-btn" id="homeButton">Home</a>
+            <a href="/search.html" class="btn home-btn">Search</a>
+            <p>Start your own Brainstorm!</p>
+            <a href="/about.html" class="btn home-btn">Learn more</a>
+        </div>
+    </div>
+    
+    <!-- Footer container -->
+    <div id="footerContainer"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication status
+            checkAuthStatus();
+            
+            // Fetch owner information from the server
+            fetch('/control/api/owner-info')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.ownerPubkey) {
+                        // Store the owner pubkey and npub for reference
+                        const ownerPubkey = data.ownerPubkey;
+                        const ownerNpub = data.ownerNpub;
+                        
+                        // Fetch owner's profile information (kind0)
+                        fetch(`/control/api/get-kind0?pubkey=${ownerPubkey}`)
+                            .then(response => response.json())
+                            .then(profileData => {
+                                if (profileData && profileData.success) {
+                                    // Extract profile content
+                                    const content = profileData.data.content ? JSON.parse(profileData.data.content) : {};
+                                    
+                                    // Extract profile details
+                                    const picture = content.picture || '/control/img/default-avatar.svg';
+                                    const name = content.name || 'Unknown';
+                                    const displayName = content.display_name || content.displayName || name;
+                                    
+                                    // Update the owner name
+                                    document.getElementById('ownerName').textContent = displayName;
+                                    // Create profile HTML
+                                    const profileHTML = `
+                                        <div class="profile-card">
+                                            <a href="/profile.html?pubkey=${ownerPubkey}" target="_blank" class="profile-link">
+                                                <div class="profile-image">
+                                                    <img src="${picture}" alt="${displayName}" onerror="this.src='/control/img/default-avatar.svg'">
+                                                </div>
+                                                <div class="profile-info">
+                                                    <h3 class="profile-name">${displayName}</h3>
+                                                    <p class="profile-handle">@${name}</p>
+                                                    <p class="profile-npub">${ownerNpub.substring(0, 8)}...${ownerNpub.substring(ownerNpub.length - 4)}</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    `;
+                                    
+                                    // Update the profile section
+                                    document.getElementById('ownerProfile').innerHTML = profileHTML;
+                                } else {
+                                    // Fallback if profile fetch fails
+                                    const fallbackHTML = `
+                                        <div class="profile-card">
+                                            <a href="https://njump.me/${ownerNpub}" target="_blank" class="profile-link">
+                                                <div class="profile-image">
+                                                    <img src="/control/img/default-avatar.svg" alt="Owner">
+                                                </div>
+                                                <div class="profile-info">
+                                                    <h3 class="profile-name">Relay Owner</h3>
+                                                    <p class="profile-npub">${ownerNpub}</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    `;
+                                    document.getElementById('ownerProfile').innerHTML = fallbackHTML;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching profile:', error);
+                                document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading profile</div>`;
+                            });
+                    } else {
+                        document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Owner information not available</div>`;
+                    }
+                    
+                    if (data && data.domainName) {
+                        const relayUrl = `wss://${data.domainName}/relay`;
+                        document.getElementById('relayLink').innerHTML = relayUrl;
+                        
+                        // Create verification URL for legacy.nostr.watch
+                        const verifyUrl = `https://legacy.nostr.watch/relay/${data.domainName}/relay`;
+                        const verifyButton = document.getElementById('verifyButton');
+                        verifyButton.href = verifyUrl;
+                        
+                        // Set up clipboard functionality
+                        const copyButton = document.getElementById('copyRelayButton');
+                        copyButton.addEventListener('click', function() {
+                            navigator.clipboard.writeText(relayUrl).then(function() {
+                                // Visual feedback on successful copy
+                                copyButton.classList.add('copied');
+                                setTimeout(function() {
+                                    copyButton.classList.remove('copied');
+                                }, 1500);
+                            }).catch(function(err) {
+                                console.error('Could not copy text: ', err);
+                            });
+                        });
+                    } else {
+                        document.getElementById('relayLink').textContent = 'Relay information not available';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching owner information:', error);
+                    document.getElementById('ownerProfile').innerHTML = `<div class="error-message">Error loading owner information</div>`;
+                });
+        });
+        
+        // Add a copy functionality to the copy button
+        document.getElementById('copyRelayButton').addEventListener('click', function() {
+            const relayText = document.getElementById('relayLink').textContent;
+            navigator.clipboard.writeText(relayText).then(function() {
+                // Add visual feedback
+                const button = document.getElementById('copyRelayButton');
+                button.classList.add('copied');
+                setTimeout(function() {
+                    button.classList.remove('copied');
+                }, 1500);
+            });
+        });
+        
+        // Function to check authentication status and update button visibility
+        function checkAuthStatus() {
+            // Make a request to check if the user is authenticated
+            fetch('/control/api/auth/status')
+                .then(response => response.json())
+                .then(data => {
+                    const ownerSignInButton = document.getElementById('ownerSignInButton');
+                    const homeButton = document.getElementById('homeButton');
+                    
+                    if (data && data.authenticated) {
+                        // User is authenticated - hide sign in, show home
+                        if (ownerSignInButton) ownerSignInButton.style.display = 'none';
+                        if (homeButton) homeButton.style.display = 'inline-block';
+                    } else {
+                        // User is not authenticated - show sign in, hide home
+                        if (ownerSignInButton) ownerSignInButton.style.display = 'inline-block';
+                        if (homeButton) homeButton.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking authentication status:', error);
+                    // Default to showing sign-in button in case of errors
+                    const ownerSignInButton = document.getElementById('ownerSignInButton');
+                    const homeButton = document.getElementById('homeButton');
+                    if (ownerSignInButton) ownerSignInButton.style.display = 'inline-block';
+                    if (homeButton) homeButton.style.display = 'none';
+                });
+        }
+    </script>
+</body>
+</html>
