@@ -507,6 +507,69 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+        
+        /* Toggle Button Styles (matching manage-customer.html) */
+        .raw-note-section {
+            margin-top: 15px;
+        }
+        
+        .raw-note-header {
+            margin-bottom: 10px;
+        }
+        
+        .toggle-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #495057;
+            transition: all 0.2s ease;
+            width: auto;
+        }
+        
+        .toggle-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .toggle-btn.expanded {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .toggle-icon {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-btn.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .raw-note-content {
+            margin-top: 10px;
+        }
+        
+        .raw-note-data {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 0.85em;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 0;
+            font-family: 'Courier New', monospace;
+        }
     </style>
 </head>
 <body>
@@ -562,12 +625,18 @@
                         <h4>✅ NIP-85 Setup Complete</h4>
                         <p>Excellent! Your Kind 10040 event is published and properly configured with your Brainstorm relay keys. Your personalized trust scores are available to the wider Nostr world.</p>
                         <div id="newNip85CompleteDetails" class="nip85-details"></div>
-                        <div class="button-group">
-                            <button id="toggleCompleteRawEventBtn" class="btn btn-secondary" style="display: none;">👁️ View Raw Event</button>
-                        </div>
-                        <div id="completeRawEventContainer" class="raw-event-container" style="display: none;">
-                            <h5>Raw Kind 10040 Event:</h5>
-                            <pre id="completeRawEventContent" class="event-json"></pre>
+                        
+                        <!-- Raw Kind 10040 Note Viewer (hidden by default) -->
+                        <div id="completeRawNoteSection" class="raw-note-section" style="display: none;">
+                            <div class="raw-note-header">
+                                <button id="toggleCompleteRawNoteBtn" class="toggle-btn">
+                                    <span class="toggle-icon">👁️</span>
+                                    <span class="toggle-text">Show Raw Kind 10040 Event</span>
+                                </button>
+                            </div>
+                            <div id="completeRawNoteContent" class="raw-note-content" style="display: none;">
+                                <pre id="completeRawNoteData" class="raw-note-data"></pre>
+                            </div>
                         </div>
                     </div>
                     
@@ -578,11 +647,19 @@
                         <div id="newNip85MismatchDetails" class="nip85-details"></div>
                         <div class="button-group">
                             <button id="updateKind10040EventBtn" class="btn btn-primary">🔄 Update Kind 10040 Event</button>
-                            <button id="toggleMismatchRawEventBtn" class="btn btn-secondary" style="display: none;">👁️ View Raw Event</button>
                         </div>
-                        <div id="mismatchRawEventContainer" class="raw-event-container" style="display: none;">
-                            <h5>Current Kind 10040 Event:</h5>
-                            <pre id="mismatchRawEventContent" class="event-json"></pre>
+                        
+                        <!-- Raw Kind 10040 Note Viewer (hidden by default) -->
+                        <div id="mismatchRawNoteSection" class="raw-note-section" style="display: none;">
+                            <div class="raw-note-header">
+                                <button id="toggleMismatchRawNoteBtn" class="toggle-btn">
+                                    <span class="toggle-icon">👁️</span>
+                                    <span class="toggle-text">Show Raw Kind 10040 Event</span>
+                                </button>
+                            </div>
+                            <div id="mismatchRawNoteContent" class="raw-note-content" style="display: none;">
+                                <pre id="mismatchRawNoteData" class="raw-note-data"></pre>
+                            </div>
                         </div>
                     </div>
                     
@@ -1209,7 +1286,7 @@
         function showNewNip85Complete(nip85Data) {
             const completeDiv = document.getElementById('newNip85Complete');
             const detailsDiv = document.getElementById('newNip85CompleteDetails');
-            const toggleBtn = document.getElementById('toggleCompleteRawEventBtn');
+            const rawNoteSection = document.getElementById('completeRawNoteSection');
             
             completeDiv.style.display = 'block';
             
@@ -1217,17 +1294,17 @@
             const detailsHTML = createNewNip85StatusDetails(nip85Data);
             detailsDiv.innerHTML = detailsHTML;
             
-            // Show raw event toggle button if event data is available
+            // Show raw event toggle section if event data is available
             if (nip85Data.kind10040.event) {
-                toggleBtn.style.display = 'inline-block';
-                setupRawEventToggle('complete', nip85Data.kind10040.event);
+                rawNoteSection.style.display = 'block';
+                setupCompleteRawNoteToggle(nip85Data.kind10040.event);
             }
         }
         
         function showNewNip85Mismatch(nip85Data) {
             const mismatchDiv = document.getElementById('newNip85Mismatch');
             const detailsDiv = document.getElementById('newNip85MismatchDetails');
-            const toggleBtn = document.getElementById('toggleMismatchRawEventBtn');
+            const rawNoteSection = document.getElementById('mismatchRawNoteSection');
             
             mismatchDiv.style.display = 'block';
             
@@ -1235,10 +1312,10 @@
             const detailsHTML = createNewNip85StatusDetails(nip85Data, true);
             detailsDiv.innerHTML = detailsHTML;
             
-            // Show raw event toggle button if event data is available
+            // Show raw event toggle section if event data is available
             if (nip85Data.kind10040.event) {
-                toggleBtn.style.display = 'inline-block';
-                setupRawEventToggle('mismatch', nip85Data.kind10040.event);
+                rawNoteSection.style.display = 'block';
+                setupMismatchRawNoteToggle(nip85Data.kind10040.event);
             }
         }
         
@@ -1330,14 +1407,13 @@
             return html;
         }
         
-        function setupRawEventToggle(type, eventData) {
-            const toggleBtn = document.getElementById(`toggle${type.charAt(0).toUpperCase() + type.slice(1)}RawEventBtn`);
-            const container = document.getElementById(`${type}RawEventContainer`);
-            const content = document.getElementById(`${type}RawEventContent`);
+        function setupCompleteRawNoteToggle(eventData) {
+            const toggleBtn = document.getElementById('toggleCompleteRawNoteBtn');
+            const rawNoteData = document.getElementById('completeRawNoteData');
             
-            if (toggleBtn && container && content) {
+            if (toggleBtn && rawNoteData) {
                 // Set event data
-                content.textContent = JSON.stringify(eventData, null, 2);
+                rawNoteData.textContent = JSON.stringify(eventData, null, 2);
                 
                 // Remove existing event listeners
                 const newToggleBtn = toggleBtn.cloneNode(true);
@@ -1345,14 +1421,73 @@
                 
                 // Add new event listener
                 newToggleBtn.addEventListener('click', function() {
-                    if (container.style.display === 'none' || !container.style.display) {
-                        container.style.display = 'block';
-                        newToggleBtn.textContent = '🙈 Hide Raw Event';
-                    } else {
-                        container.style.display = 'none';
-                        newToggleBtn.textContent = '👁️ View Raw Event';
-                    }
+                    toggleCompleteRawNote();
                 });
+            }
+        }
+        
+        function setupMismatchRawNoteToggle(eventData) {
+            const toggleBtn = document.getElementById('toggleMismatchRawNoteBtn');
+            const rawNoteData = document.getElementById('mismatchRawNoteData');
+            
+            if (toggleBtn && rawNoteData) {
+                // Set event data
+                rawNoteData.textContent = JSON.stringify(eventData, null, 2);
+                
+                // Remove existing event listeners
+                const newToggleBtn = toggleBtn.cloneNode(true);
+                toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+                
+                // Add new event listener
+                newToggleBtn.addEventListener('click', function() {
+                    toggleMismatchRawNote();
+                });
+            }
+        }
+        
+        function toggleCompleteRawNote() {
+            const rawNoteContent = document.getElementById('completeRawNoteContent');
+            const toggleBtn = document.getElementById('toggleCompleteRawNoteBtn');
+            const toggleText = toggleBtn.querySelector('.toggle-text');
+            const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+            
+            const isCurrentlyVisible = rawNoteContent.style.display !== 'none';
+            
+            if (isCurrentlyVisible) {
+                // Hide the raw note
+                rawNoteContent.style.display = 'none';
+                toggleText.textContent = 'Show Raw Kind 10040 Event';
+                toggleIcon.textContent = '👁️';
+                toggleBtn.classList.remove('expanded');
+            } else {
+                // Show the raw note
+                rawNoteContent.style.display = 'block';
+                toggleText.textContent = 'Hide Raw Kind 10040 Event';
+                toggleIcon.textContent = '🙈';
+                toggleBtn.classList.add('expanded');
+            }
+        }
+        
+        function toggleMismatchRawNote() {
+            const rawNoteContent = document.getElementById('mismatchRawNoteContent');
+            const toggleBtn = document.getElementById('toggleMismatchRawNoteBtn');
+            const toggleText = toggleBtn.querySelector('.toggle-text');
+            const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+            
+            const isCurrentlyVisible = rawNoteContent.style.display !== 'none';
+            
+            if (isCurrentlyVisible) {
+                // Hide the raw note
+                rawNoteContent.style.display = 'none';
+                toggleText.textContent = 'Show Raw Kind 10040 Event';
+                toggleIcon.textContent = '👁️';
+                toggleBtn.classList.remove('expanded');
+            } else {
+                // Show the raw note
+                rawNoteContent.style.display = 'block';
+                toggleText.textContent = 'Hide Raw Kind 10040 Event';
+                toggleIcon.textContent = '🙈';
+                toggleBtn.classList.add('expanded');
             }
         }
         
