@@ -682,7 +682,69 @@
                         </div>
                     </div>
                 </div>
-
+                
+                <!-- Legacy NIP-85 Panel (will be removed once new panel is working well) -->
+                <div id="nip85Panel" class="nip85-panel">
+                    <h3>
+                        🔗 NIP-85 Relay Information
+                        <span id="nip85Status" class="nip85-status">Checking...</span>
+                    </h3>
+                    
+                    <div id="nip85Loading" class="nip85-loading">
+                        <div class="loader"></div>
+                        <p>Loading NIP-85 information...</p>
+                    </div>
+                    
+                    <div id="nip85Content" style="display: none;">
+                        <div id="nip85EventDetails" class="event-details"></div>
+                        
+                        <!-- Kind 30382 Event Status Section -->
+                        <div class="event-status-section">
+                            <h4>📊 Kind 30382 Event Status</h4>
+                            <p>View information about existing Kind 30382 events for your customer profile.</p>
+                            
+                            <div class="button-group">
+                                <button id="refreshKind30382InfoBtn" class="event-btn primary">Refresh Event Info</button>
+                            </div>
+                            
+                            <div id="kind30382InfoContainer" class="info-container">
+                                <div class="info-row">
+                                    <span class="info-label">Total Events:</span>
+                                    <span id="kind30382Count" class="info-value">Loading...</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Last Published:</span>
+                                    <span id="kind30382Timestamp" class="info-value">Loading...</span>
+                                </div>
+                            </div>
+                            
+                            <div id="kind30382InfoStatus" class="status-message" style="display: none;"></div>
+                            
+                            <div id="kind30382EventContainer" class="event-details" style="display: none;">
+                                <h5>Latest Event:</h5>
+                                <pre id="kind30382LatestEvent" class="event-json"></pre>
+                            </div>
+                        </div>
+                        
+                        <!-- Event Management Section -->
+                        <div class="event-management">
+                            <h4>📝 Event Management</h4>
+                            <p>Create and publish Kind 10040 events for your customer profile.</p>
+                            
+                            <div class="button-group">
+                                <button id="createKind10040Btn" class="event-btn primary">Create Kind 10040 Event</button>
+                                <button id="publishKind10040Btn" class="event-btn secondary" disabled>Publish Kind 10040 Event</button>
+                            </div>
+                            
+                            <div id="eventStatus" class="status-message" style="display: none;"></div>
+                            
+                            <div id="eventPreview" class="event-preview">
+                                <h5>Event Preview:</h5>
+                                <pre id="eventPreviewContent"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="action-buttons">
                     <a href="/home.html" class="btn btn-secondary">Back to Home</a>
@@ -845,7 +907,20 @@
             }
         }
         
-
+        async function fetchNip85Info(pubkey) {
+            try {
+                const response = await fetch(`/api/get-kind10040-info?pubkey=${pubkey}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('NIP-85 info:', data);
+                return data;
+            } catch (error) {
+                console.error('Error fetching NIP-85 info:', error);
+                throw error;
+            }
+        }
         
         function formatTimestamp(timestamp) {
             if (!timestamp) return 'N/A';
@@ -853,9 +928,98 @@
             return date.toLocaleString();
         }
         
-
+        function createNip85EventHTML(nip85Data) {
+            if (!nip85Data.latestEvent) {
+                return `
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">No Kind 10040 event found for this customer</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Relay URL:</span>
+                        <span class="detail-value">${nip85Data.relayUrl || 'N/A'}</span>
+                    </div>
+                `;
+            }
+            
+            const event = nip85Data.latestEvent;
+            const tagsHtml = event.tags && event.tags.length > 0 
+                ? event.tags.map(tag => `<div class="tag-item">[${tag.map(t => `"${t}"`).join(', ')}]</div>`).join('')
+                : '<div class="tag-item">No tags</div>';
+            
+            return `
+                <div class="detail-row">
+                    <span class="detail-label">Event ID:</span>
+                    <div class="event-id">${event.id}</div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Created:</span>
+                    <span class="detail-value timestamp">${formatTimestamp(event.created_at)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kind:</span>
+                    <span class="detail-value">${event.kind}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Relay URL:</span>
+                    <span class="detail-value">${nip85Data.relayUrl || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tags (${event.tags ? event.tags.length : 0}):</span>
+                    <div class="tags-list">${tagsHtml}</div>
+                </div>
+            `;
+        }
         
-
+        async function loadNip85Info(pubkey) {
+            const nip85Loading = document.getElementById('nip85Loading');
+            const nip85Content = document.getElementById('nip85Content');
+            const nip85Status = document.getElementById('nip85Status');
+            const nip85EventDetails = document.getElementById('nip85EventDetails');
+            
+            try {
+                // Show loading state
+                nip85Loading.style.display = 'block';
+                nip85Content.style.display = 'none';
+                nip85Status.textContent = 'Loading...';
+                nip85Status.className = 'nip85-status';
+                
+                // Fetch NIP-85 information
+                const nip85Data = await fetchNip85Info(pubkey);
+                
+                // Update status
+                if (nip85Data.latestEvent) {
+                    nip85Status.textContent = 'Available';
+                    nip85Status.className = 'nip85-status available';
+                } else {
+                    nip85Status.textContent = 'Not Available';
+                    nip85Status.className = 'nip85-status unavailable';
+                }
+                
+                // Create and display event details
+                nip85EventDetails.innerHTML = createNip85EventHTML(nip85Data);
+                
+                // Show content, hide loading
+                nip85Loading.style.display = 'none';
+                nip85Content.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading NIP-85 info:', error);
+                
+                // Show error state
+                nip85Status.textContent = 'Error';
+                nip85Status.className = 'nip85-status unavailable';
+                nip85EventDetails.innerHTML = `
+                    <div class="detail-row">
+                        <span class="detail-label">Error:</span>
+                        <span class="detail-value">Failed to load NIP-85 information: ${error.message}</span>
+                    </div>
+                `;
+                
+                nip85Loading.style.display = 'none';
+                nip85Content.style.display = 'block';
+            }
+        }
         
         function findCustomerByPubkey(customersData, pubkey) {
             if (!customersData.success || !customersData.customers) {
@@ -865,17 +1029,211 @@
             return customersData.customers.find(customer => customer.pubkey === pubkey);
         }
         
-
+        function showEventStatus(message, type) {
+            const eventStatus = document.getElementById('eventStatus');
+            if (eventStatus) {
+                eventStatus.textContent = message;
+                eventStatus.className = `status-message ${type}`;
+                eventStatus.style.display = 'block';
+            }
+        }
         
-
+        function hideEventStatus() {
+            const eventStatus = document.getElementById('eventStatus');
+            if (eventStatus) {
+                eventStatus.style.display = 'none';
+            }
+        }
         
-
+        async function createKind10040Event(customerPubkey) {
+            // This function is now a wrapper that calls the modern publishKind10040Event
+            // to maintain compatibility with existing code
+            await publishKind10040Event(customerPubkey);
+        }
         
-
+        async function publishKind10040Event(customerPubkey) {
+            try {
+                // Step 1: Check for NIP-07 extension
+                if (!window.nostr) {
+                    showEventStatus('❌ Nostr browser extension (NIP-07) is required to sign events. Please install a Nostr extension like Alby, nos2x, or Flamingo.', 'error');
+                    return;
+                }
+                
+                // Step 2: Create unsigned Kind 10040 event
+                showEventStatus('📝 Creating unsigned event...', 'info');
+                
+                const createResponse = await fetch('/api/create-unsigned-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const createResult = await createResponse.json();
+                
+                if (!createResult.success) {
+                    throw new Error(createResult.message || 'Failed to create unsigned event');
+                }
+                
+                const unsignedEvent = createResult.data.unsignedEvent;
+                console.log('Unsigned event created:', unsignedEvent);
+                
+                // Step 3: Sign the event using NIP-07
+                showEventStatus('✍️ Please sign in your Nostr extension...', 'info');
+                
+                let signedEvent;
+                try {
+                    signedEvent = await window.nostr.signEvent(unsignedEvent);
+                    console.log('Event signed successfully:', signedEvent);
+                } catch (signingError) {
+                    console.error('Signing error:', signingError);
+                    throw new Error(`Failed to sign event: ${signingError.message || 'User cancelled or extension error'}`);
+                }
+                
+                // Step 4: Publish the signed event
+                showEventStatus('📡 Publishing signed event...', 'info');
+                
+                const publishResponse = await fetch('/api/publish-signed-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        signedEvent: signedEvent,
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const publishResult = await publishResponse.json();
+                
+                if (publishResult.success) {
+                    // Success - show success message and refresh NIP-85 info
+                    showEventStatus('✅ Kind 10040 event published successfully!', 'success');
+                    
+                    // Refresh the NIP-85 info to show the new event
+                    const pubkey = await checkAuthenticationStatus();
+                    if (pubkey) {
+                        loadNip85Info(pubkey);
+                        // Also refresh the new NIP-85 panel
+                        loadNewNip85Status(pubkey);
+                    }
+                } else {
+                    throw new Error(publishResult.message || 'Failed to publish event');
+                }
+                
+            } catch (error) {
+                console.error('Error in Kind 10040 event process:', error);
+                showEventStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
         
-
+        function showKind30382Status(message, type) {
+            const kind30382InfoStatus = document.getElementById('kind30382InfoStatus');
+            if (kind30382InfoStatus) {
+                kind30382InfoStatus.textContent = message;
+                kind30382InfoStatus.className = `status-message ${type}`;
+                kind30382InfoStatus.style.display = 'block';
+                
+                // Clear status message after a delay for success messages
+                if (type === 'success') {
+                    setTimeout(() => {
+                        kind30382InfoStatus.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
         
-
+        async function fetchKind30382Info(customerPubkey) {
+            const kind30382Count = document.getElementById('kind30382Count');
+            const kind30382Timestamp = document.getElementById('kind30382Timestamp');
+            const kind30382EventContainer = document.getElementById('kind30382EventContainer');
+            const kind30382LatestEvent = document.getElementById('kind30382LatestEvent');
+            
+            try {
+                // Set loading state
+                kind30382Count.textContent = 'Loading...';
+                kind30382Timestamp.textContent = 'Loading...';
+                showKind30382Status('Fetching event information...', 'info');
+                
+                // Make API request with customer pubkey
+                const response = await fetch(`/api/get-kind30382-info?pubkey=${encodeURIComponent(customerPubkey)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update count
+                    kind30382Count.textContent = data.count || '0';
+                    
+                    // Update timestamp
+                    if (data.timestamp) {
+                        const date = new Date(data.timestamp * 1000);
+                        kind30382Timestamp.textContent = date.toLocaleString();
+                    } else {
+                        kind30382Timestamp.textContent = 'No events found';
+                    }
+                    
+                    // Update latest event
+                    if (data.latestEvent) {
+                        kind30382EventContainer.style.display = 'block';
+                        kind30382LatestEvent.textContent = JSON.stringify(data.latestEvent, null, 2);
+                    } else {
+                        kind30382EventContainer.style.display = 'none';
+                    }
+                    
+                    showKind30382Status('Event information updated successfully!', 'success');
+                } else {
+                    showKind30382Status(`Error: ${data.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching Kind 30382 info:', error);
+                showKind30382Status(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function setupKind30382EventStatus(customerPubkey) {
+            const refreshBtn = document.getElementById('refreshKind30382InfoBtn');
+            
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    fetchKind30382Info(customerPubkey);
+                });
+            }
+            
+            // Fetch info on initial setup
+            fetchKind30382Info(customerPubkey);
+        }
+        
+        function setupEventManagement(customerPubkey) {
+            const createBtn = document.getElementById('createKind10040Btn');
+            const publishBtn = document.getElementById('publishKind10040Btn');
+            
+            if (createBtn) {
+                createBtn.addEventListener('click', function() {
+                    createKind10040Event(customerPubkey);
+                });
+            }
+            
+            if (publishBtn) {
+                publishBtn.addEventListener('click', function() {
+                    // Check authentication status first
+                    checkAuthenticationStatus().then(pubkey => {
+                        if (pubkey) {
+                            // User is authenticated, proceed with publishing
+                            publishKind10040Event();
+                        } else {
+                            // User is not authenticated, show error with sign-in link
+                            showEventStatus('Authentication required: Please <a href="/sign-in.html" class="auth-link">sign in</a> with your Nostr key to publish events.', 'error');
+                        }
+                    }).catch(error => {
+                        console.error('Error checking authentication status:', error);
+                        showEventStatus('Error checking authentication: ' + error.message, 'error');
+                    });
+                });
+            }
+        }
         
         // New NIP-85 Status Panel Functions
         async function loadNewNip85Status(pubkey) {
@@ -1174,8 +1532,8 @@
                     return;
                 }
                 
-                // Use modern two-step Kind 10040 event creation and publishing logic
-                await handleCreateAndPublishKind10040(mode);
+                // Use existing Kind 10040 event creation and publishing logic
+                await createKind10040Event(pubkey);
                 
                 // Update button text during publishing
                 const button = mode === 'create' ? 
@@ -1245,8 +1603,14 @@
                     loadNewNip85Status(pubkey);
                     setupNewNip85EventHandlers(pubkey);
                     
-
-
+                    // Load legacy NIP-85 information for the customer
+                    loadNip85Info(pubkey);
+                    
+                    // Setup Kind 30382 event status for the customer
+                    setupKind30382EventStatus(pubkey);
+                    
+                    // Setup event management for the customer
+                    setupEventManagement(pubkey);
                 } else {
                     // User is not a customer - show signup prompt
                     const userInfo = document.getElementById('userInfo');
