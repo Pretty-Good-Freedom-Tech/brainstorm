@@ -63,8 +63,8 @@ sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/prepareNeo4jForCustomerData.sh $CU
 echo "$(date): Continuing processCustomer; starting updateAllScoresForSingleCustomer.sh"
 echo "$(date): Continuing processCustomer; starting updateAllScoresForSingleCustomer.sh" >> "$LOG_FILE"
 
-# Set the timeout in seconds (90 minutes = 5400 seconds)
-TIMEOUT=5400
+# Set the timeout in seconds (4 hours = 14400 seconds)
+TIMEOUT=14400
 # Maximum number of retry attempts
 MAX_RETRIES=3
 # Current retry count
