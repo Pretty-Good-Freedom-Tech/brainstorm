@@ -28,8 +28,7 @@
         }
         
         .nip85-info ul {
-            list-style-type: none;
-            padding-left: 0;
+            padding-left: 20px;
         }
         
         .nip85-info li {
@@ -238,16 +237,20 @@
         <div class="container">            
             <div class="nip85-info">
                 <h2 style="text-align: center">What are Trusted Assertions?</h2>
-                <p><a href="https://github.com/nostr-protocol/nips/pull/1534" target="_blank">NIP-85: Trusted Assertions</a> is a proposed Nostr Improvement Proposal that defines a standard for publishing personalized trust scores in a way that is easily discoverable and verifiable by clients and other users on the Nostr network.</p>
+                <p><a href="https://github.com/vitorpamplona/nips/blob/user-summaries/85.md" target="_blank">NIP-85: Trusted Assertions</a> is a <a href="https://github.com/nostr-protocol/nips/pull/1534" target="_blank">proposed</a> Nostr Improvement Proposal that defines a standard
+                    for publishing personalized trust scores in a way that is easily discoverable by clients and other users on the Nostr network.
+                    Each "trusted assertion" is a kind 30382 event that contains a list of standardized trust scores for a specific user.
+                    Score types can be standardized (rank, followers, etc) or custom.
+                </p>
                 
                 <h3>Key Benefits for Developers:</h3>
-                <p>Separation of clients and trust!</p>
+
                 <ul>
-                    <li><strong>Offload Calculation:</strong>Calculation of personalized trust metrics by third party providers like Brainstorm</li>
-                    <li><strong>Standardized Trust Data:</strong> Access consistent trust score formats across the network</li>
-                    <li><strong>Enhanced User Experience:</strong> Provide users with personalized content filtering and recommendations</li>
-                    <li><strong>Spam Prevention:</strong> Leverage community trust scores to reduce spam and low-quality content</li>
-                    <li><strong>Decentralized Reputation:</strong> Build reputation systems without centralized authorities</li>
+                    <li><strong>Separation of clients and trust</strong> Calculation of sophisticated personalized trust metrics by third party providers like Brainstorm makes your life easier.</li>
+                    <li><strong>Standardized Trust Data</strong> Access consistent trust scores and score formats across nostr</li>
+                    <li><strong>Enhanced User Experience</strong> Provide users with personalized content filtering and recommendations</li>
+                    <li><strong>Spam Prevention</strong> Leverage community trust scores to reduce spam and low-quality content</li>
+                    <li><strong>Decentralized Reputation</strong> Build reputation systems without centralized authorities</li>
                 </ul>
             </div>
             
@@ -488,7 +491,7 @@
                         </div>
                         <div class="stat-item">
                             <span class="stat-value">${kind30382Count.toLocaleString()}</span>
-                            <div class="stat-label">Trust Scores</div>
+                            <div class="stat-label">Trusted Assertions</div>
                         </div>
                     </div>
                 </div>

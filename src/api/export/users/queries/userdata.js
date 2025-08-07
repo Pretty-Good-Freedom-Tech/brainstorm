@@ -170,6 +170,12 @@ function handleGetUserData(req, res) {
     // Execute the query
     session.run(cypherQuery)
       .then(result => {
+        if (result.records.length === 0) {
+          return res.json({
+            success: false,
+            message: 'No profile data found for this user'
+          });
+        }
         const user = result.records[0];
         
         let isUserInNeo4j = true
