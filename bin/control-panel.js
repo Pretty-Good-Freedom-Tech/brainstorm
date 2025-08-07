@@ -148,6 +148,7 @@ function serveHtmlFile(filename, res) {
     try {
         // Build all possible file paths to check
         const customersPath = path.join(__dirname, '../public/pages/customers', filename);
+        const managePath = path.join(__dirname, '../public/pages/manage', filename);
         const pagesPath = path.join(__dirname, '../public/pages', filename);
         const originalPath = path.join(__dirname, '../public', filename);
         
@@ -157,11 +158,13 @@ function serveHtmlFile(filename, res) {
         
         // Check if files exist
         const customersExists = fs.existsSync(customersPath);
+        const manageExists = fs.existsSync(managePath);
         const pagesExists = fs.existsSync(pagesPath);
         const originalExists = fs.existsSync(originalPath);
         
         console.log(`[SERVER] File existence:
             In customers directory: ${customersExists}
+            In manage directory: ${manageExists}
             In pages directory: ${pagesExists}
             In original directory: ${originalExists}`);
         
@@ -169,6 +172,9 @@ function serveHtmlFile(filename, res) {
         if (customersExists) {
             console.log(`[SERVER] Serving from customers directory: ${customersPath}`);
             res.sendFile(customersPath);
+        } else if (manageExists) {
+            console.log(`[SERVER] Serving from manage directory: ${managePath}`);
+            res.sendFile(managePath);
         } else if (pagesExists) {
             console.log(`[SERVER] Serving from pages directory: ${pagesPath}`);
             res.sendFile(pagesPath);

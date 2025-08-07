@@ -425,6 +425,7 @@ function highlightCurrentPage() {
         '/manage-customer.html': '/manage-customer',
         '/manage-customers.html': '/manage-customers',
         '/create-customer-relays.html': '/create-customer-relays',
+        '/task-dashboard.html': '/task-dashboard',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
