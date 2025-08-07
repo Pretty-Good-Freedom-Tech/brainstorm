@@ -483,15 +483,15 @@
         async function loadOwnerInformation() {
             try {
                 // Get owner pubkey from config
-                const configResponse = await fetch('/api/get-config');
+                const configResponse = await fetch('/api/owner-info');
                 const configData = await configResponse.json();
                 
-                if (!configData.success || !configData.config.HASENPFEFFR_OWNER_PUBKEY) {
+                if (!configData.success || !configData.ownerPubkey) {
                     console.log('[sign-up] Owner pubkey not found in config');
                     return;
                 }
                 
-                const ownerPubkey = configData.config.HASENPFEFFR_OWNER_PUBKEY;
+                const ownerPubkey = configData.ownerPubkey;
                 
                 // Get owner profile
                 const profileResponse = await fetch(`/api/get-kind0?pubkey=${ownerPubkey}`);
