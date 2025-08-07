@@ -263,6 +263,51 @@
             margin-right: 0.5rem;
         }
         
+        /* Managed by section styling */
+        .managed-by-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0 20px 0;
+            padding: 8px 12px;
+            background: rgba(108, 117, 125, 0.05);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #6c757d;
+            max-width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .managed-by-text {
+            font-style: italic;
+            font-weight: 400;
+        }
+        
+        .owner-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .owner-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+        
+        .owner-name {
+            font-weight: 500;
+            color: #495057;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
         .kind10040-actions {
             margin-top: 1.5rem;
             display: flex;
@@ -299,6 +344,16 @@
                     
                     <div id="unauthenticatedStatus" class="status-message status-unauthenticated" style="display: none;">
                         <h2>🌟 Welcome to Brainstorm!</h2>
+                        
+                        <!-- Managed by section -->
+                        <div id="managedBySection" class="managed-by-section" style="display: none;">
+                            <span class="managed-by-text">managed by</span>
+                            <div class="owner-info">
+                                <img id="ownerAvatar" class="owner-avatar" src="" alt="Owner" style="display: none;">
+                                <span id="ownerName" class="owner-name"></span>
+                            </div>
+                        </div>
+                        
                         <p>Join our free service to calculate your personalized Web of Trust.</p>
                         
                         <div class="features-list">
@@ -306,7 +361,7 @@
                             <ul>
                                 <li>Personalized Web of Trust calculations, updated periodically</li>
                                 <li>Scores include: GrapeRank, PageRank, verified follower count, and more</li>
-                                <li>Instant availability of all trust metrics throughout nostr. (<a href="./about-nip85.html" target="_blank">Learn more.</a>)</li>
+                                <li>Instant availability of all trust metrics throughout nostr. (<a href="./about-trusted-assertions.html" target="_blank">Learn more.</a>)</li>
                                 <li>Export your personalized whitelist to Relay Tools</li>
                                 <li>Access to all of your personalized Grapevine data</li>
                             </ul>
@@ -422,11 +477,75 @@
             initializeSignUpPage();
         });
         
+        /**
+         * Load and display owner information
+         */
+        async function loadOwnerInformation() {
+            try {
+                // Get owner pubkey from config
+                const configResponse = await fetch('/api/get-config');
+                const configData = await configResponse.json();
+                
+                if (!configData.success || !configData.config.HASENPFEFFR_OWNER_PUBKEY) {
+                    console.log('[sign-up] Owner pubkey not found in config');
+                    return;
+                }
+                
+                const ownerPubkey = configData.config.HASENPFEFFR_OWNER_PUBKEY;
+                
+                // Get owner profile
+                const profileResponse = await fetch(`/api/get-kind0?pubkey=${ownerPubkey}`);
+                const profileData = await profileResponse.json();
+                
+                if (profileData.success && profileData.data && profileData.data.content) {
+                    const profile = JSON.parse(profileData.data.content);
+                    displayOwnerInfo(profile);
+                } else {
+                    // Fallback to showing just "Instance Owner" if no profile found
+                    displayOwnerInfo({ name: 'Instance Owner' });
+                }
+                
+            } catch (error) {
+                console.error('[sign-up] Error loading owner information:', error);
+                // Silently fail - this is not critical functionality
+            }
+        }
+        
+        /**
+         * Display owner information in the managed by section
+         */
+        function displayOwnerInfo(profile) {
+            const managedBySection = document.getElementById('managedBySection');
+            const ownerAvatar = document.getElementById('ownerAvatar');
+            const ownerName = document.getElementById('ownerName');
+            
+            // Set owner name
+            const displayName = profile.name || profile.display_name || 'Instance Owner';
+            ownerName.textContent = displayName;
+            
+            // Set owner avatar if available
+            if (profile.picture) {
+                ownerAvatar.src = profile.picture;
+                ownerAvatar.style.display = 'block';
+                ownerAvatar.onerror = function() {
+                    // Hide avatar if image fails to load
+                    this.style.display = 'none';
+                };
+            }
+            
+            // Show the managed by section
+            managedBySection.style.display = 'flex';
+        }
+        
         async function initializeSignUpPage() {
             try {
-                // Check user classification
-                const response = await fetch('/api/auth/user-classification');
-                const data = await response.json();
+                // Load owner information and user classification in parallel
+                const [ownerResponse, userResponse] = await Promise.all([
+                    loadOwnerInformation(),
+                    fetch('/api/auth/user-classification')
+                ]);
+                
+                const data = await userResponse.json();
                 
                 // Hide loading status
                 document.getElementById('loadingStatus').style.display = 'none';
