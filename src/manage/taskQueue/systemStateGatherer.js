@@ -38,6 +38,13 @@ class SystemStateGatherer {
             }
         });
         
+        // Override with environment variables if they exist (for test environments)
+        Object.keys(process.env).forEach(key => {
+            if (key.startsWith('BRAINSTORM_')) {
+                config[key] = process.env[key];
+            }
+        });
+        
         return config;
     }
 
