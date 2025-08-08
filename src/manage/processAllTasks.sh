@@ -15,6 +15,9 @@
 CONFIG_FILE="/etc/brainstorm.conf"
 source "$CONFIG_FILE" # BRAINSTORM_MODULE_MANAGE_DIR, BRAINSTORM_LOG_DIR, BRAINSTORM_MODULE_ALGOS_DIR, BRAINSTORM_MODULE_PIPELINE_DIR
 
+# Source structured logging utilities
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 # Function to check disk space and log it
 check_disk_space() {
   local label=$1
@@ -42,11 +45,49 @@ sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 echo "$(date): Starting processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-sudo $BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh
+# Emit structured event for task start
+emit_task_event "TASK_START" "processAllTasks" \
+    "message=Starting complete Brainstorm pipeline execution" \
+    "pipeline_type=full_system" \
+    "child_tasks=12"
+
+# Child Task 1: Neo4j Constraints and Indexes
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=neo4jConstraintsAndIndexes" \
+    "message=Starting Neo4j constraints and indexes setup"
+
+if sudo $BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=neo4jConstraintsAndIndexes" \
+        "status=success" \
+        "message=Neo4j constraints and indexes setup completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=neo4jConstraintsAndIndexes" \
+        "status=error" \
+        "message=Neo4j constraints and indexes setup failed"
+fi
+
 echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed"
 echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncWoT.sh
+# Child Task 2: Negentropy WoT Sync
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=syncWoT" \
+    "message=Starting negentropy WoT synchronization"
+
+if sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncWoT.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=syncWoT" \
+        "status=success" \
+        "message=Negentropy WoT synchronization completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=syncWoT" \
+        "status=error" \
+        "message=Negentropy WoT synchronization failed"
+fi
+
 echo "$(date): Continuing processAllTasks; syncWoT.sh completed"
 echo "$(date): Continuing processAllTasks; syncWoT.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
@@ -120,44 +161,158 @@ echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh complete
 # echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed"
 # echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconciliation/reconciliation.sh
+# Child Task 3: Data Reconciliation
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=reconciliation" \
+    "message=Starting data reconciliation process"
+
+if sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconciliation/reconciliation.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=reconciliation" \
+        "status=success" \
+        "message=Data reconciliation completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=reconciliation" \
+        "status=error" \
+        "message=Data reconciliation failed"
+fi
+
 echo "$(date): Continuing processAllTasks; reconciliation.sh completed"
 echo "$(date): Continuing processAllTasks; reconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/nostrUsers/processNpubsUpToMaxNumBlocks.sh 1000
+# Child Task 4: Process Npubs
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=processNpubsUpToMaxNumBlocks" \
+    "max_blocks=1000" \
+    "message=Starting npub processing with max 1000 blocks"
+
+if sudo $BRAINSTORM_MODULE_MANAGE_DIR/nostrUsers/processNpubsUpToMaxNumBlocks.sh 1000; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=processNpubsUpToMaxNumBlocks" \
+        "status=success" \
+        "max_blocks=1000" \
+        "message=Npub processing completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=processNpubsUpToMaxNumBlocks" \
+        "status=error" \
+        "message=Npub processing failed"
+fi
+
 echo "$(date): Continuing processAllTasks; processNpubsUpToMaxNumBlocks.sh 1000 completed"
 echo "$(date): Continuing processAllTasks; processNpubsUpToMaxNumBlocks.sh 1000 completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateHops.sh
+# Child Task 5: Calculate Hops (has Phase 2 structured logging)
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=calculateHops" \
+    "message=Starting hops calculation (Phase 2 structured logging enabled)"
+
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculateHops.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=calculateHops" \
+        "status=success" \
+        "message=Hops calculation completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=calculateHops" \
+        "status=error" \
+        "message=Hops calculation failed"
+fi
+
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed"
 echo "$(date): Continuing processAllTasks; calculateHops.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculatePersonalizedPageRank.sh
+# Child Task 6: Calculate Personalized PageRank (has Phase 2 structured logging)
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=calculatePersonalizedPageRank" \
+    "message=Starting personalized PageRank calculation (Phase 2 structured logging enabled)"
+
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/calculatePersonalizedPageRank.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=calculatePersonalizedPageRank" \
+        "status=success" \
+        "message=Personalized PageRank calculation completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=calculatePersonalizedPageRank" \
+        "status=error" \
+        "message=Personalized PageRank calculation failed"
+fi
+
 echo "$(date): Continuing processAllTasks; calculatePersonalizedPageRank.sh completed"
 echo "$(date): Continuing processAllTasks; calculatePersonalizedPageRank.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
+# Child Task 7: Calculate Personalized GrapeRank (with timeout/retry controller)
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=calculatePersonalizedGrapeRankController" \
+    "message=Starting personalized GrapeRank calculation with timeout/retry controller"
+
 # The controller script handles the timeout and retry logic
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=calculatePersonalizedGrapeRankController" \
+        "status=success" \
+        "message=Personalized GrapeRank calculation completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=calculatePersonalizedGrapeRankController" \
+        "status=error" \
+        "message=Personalized GrapeRank calculation failed"
+fi
+
 echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRankController.sh completed"
 echo "$(date): Continuing processAllTasks; calculatePersonalizedGrapeRankController.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/follows-mutes-reports/processFollowsMutesReports.sh
+# Child Task 8: Process Follows, Mutes, and Reports (has Phase 2 structured logging)
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=processFollowsMutesReports" \
+    "message=Starting follows, mutes, and reports processing (Phase 2 structured logging enabled)"
+
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/follows-mutes-reports/processFollowsMutesReports.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=processFollowsMutesReports" \
+        "status=success" \
+        "message=Follows, mutes, and reports processing completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=processFollowsMutesReports" \
+        "status=error" \
+        "message=Follows, mutes, and reports processing failed"
+fi
+
 echo "$(date): Continuing processAllTasks; processFollowsMutesReports.sh completed"
 echo "$(date): Continuing processAllTasks; processFollowsMutesReports.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/reports/calculateReportScores.sh
+# Child Task 9: Calculate Report Scores
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=calculateReportScores" \
+    "message=Starting report scores calculation"
+
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/reports/calculateReportScores.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=calculateReportScores" \
+        "status=success" \
+        "message=Report scores calculation completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=calculateReportScores" \
+        "status=error" \
+        "message=Report scores calculation failed"
+fi
+
 echo "$(date): Continuing processAllTasks; calculateReportScores.sh completed"
 echo "$(date): Continuing processAllTasks; calculateReportScores.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
@@ -170,19 +325,67 @@ sleep 5
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/exportWhitelist.sh
+# Child Task 10: Export Whitelist
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=exportWhitelist" \
+    "message=Starting whitelist export"
+
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/exportWhitelist.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=exportWhitelist" \
+        "status=success" \
+        "message=Whitelist export completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=exportWhitelist" \
+        "status=error" \
+        "message=Whitelist export failed"
+fi
+
 echo "$(date): Continuing processAllTasks; exportWhitelist.sh completed"
 echo "$(date): Continuing processAllTasks; exportWhitelist.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/nip85/publishNip85.sh
+# Child Task 11: Publish NIP-85
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=publishNip85" \
+    "message=Starting NIP-85 trusted assertions publishing"
+
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/nip85/publishNip85.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=publishNip85" \
+        "status=success" \
+        "message=NIP-85 trusted assertions publishing completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=publishNip85" \
+        "status=error" \
+        "message=NIP-85 trusted assertions publishing failed"
+fi
+
 echo "$(date): Continuing processAllTasks; publishNip85.sh completed"
 echo "$(date): Continuing processAllTasks; publishNip85.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
 
-sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/processAllActiveCustomers.sh
+# Child Task 12: Process All Active Customers
+emit_task_event "CHILD_TASK_START" "processAllTasks" \
+    "child_task=processAllActiveCustomers" \
+    "message=Starting processing of all active customers"
+
+if sudo $BRAINSTORM_MODULE_ALGOS_DIR/customers/processAllActiveCustomers.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" \
+        "child_task=processAllActiveCustomers" \
+        "status=success" \
+        "message=Processing of all active customers completed"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" \
+        "child_task=processAllActiveCustomers" \
+        "status=error" \
+        "message=Processing of all active customers failed"
+fi
+
 echo "$(date): Continuing processAllTasks; processAllActiveCustomers.sh completed"
 echo "$(date): Continuing processAllTasks; processAllActiveCustomers.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
@@ -198,3 +401,10 @@ sleep 5
 
 echo "$(date): Finished processAllTasks"
 echo "$(date): Finished processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "processAllTasks" \
+    "status=success" \
+    "pipeline_type=full_system" \
+    "child_tasks_completed=12" \
+    "message=Complete Brainstorm pipeline execution finished successfully"

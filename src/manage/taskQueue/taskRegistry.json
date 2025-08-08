@@ -39,7 +39,8 @@
       "priority": "high",
       "frequency": "timer-based",
       "status": "legacy",
-      "notes": "Being replaced by priority-based task queue system"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 12 child tasks (full pipeline orchestration). Being replaced by priority-based task queue system but retains structured logging for monitoring."
     },
 
     "taskQueueManager": {
