@@ -322,20 +322,21 @@
     },
 
     "calculateCustomerPageRank": {
-      "name": "Calculate Customer PageRank", 
+      "name": "Calculate Customer PageRank",
       "category": "algorithms",
       "type": "calculation",
-      "description": "Calculates personalized PageRank scores for a specific customer",
+      "description": "Calculates personalized PageRank scores for a customer",
       "scripts": [
         "src/algos/customers/personalizedPageRank.sh"
       ],
       "parent": "updateAllScoresForSingleCustomer",
+      "children": [],
       "scope": "customer",
-      "priority": "high",
+      "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific PageRank calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for all 5 algorithm phases (graph projection, PageRank calculation, cleanup, data transfer, temp cleanup)"
     },
 
     "calculateOwnerHops": {

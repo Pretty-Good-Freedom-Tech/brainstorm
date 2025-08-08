@@ -3,7 +3,7 @@
 # This calculates number of hops from scratch starting with CUSTOMER_PUBKEY which by definition is 0 hops away
 # The resuls are stored in neo4j in the relevant NostrUserWotMetricsCard nodesusing the property: hops
 # This script is called with a command like:
-# sudo bash calculateHops.sh <customer_pubkey>
+# sudo bash calculateHops.sh <customer_pubkey> <customer_id> <customer_name>
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_LOG_DIR
 
