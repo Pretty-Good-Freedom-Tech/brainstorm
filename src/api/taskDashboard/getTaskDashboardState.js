@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const StructuredEventsAnalyzer = require('./structuredEventsAnalyzer');
 
 /**
  * API endpoint to get comprehensive task dashboard state
@@ -34,6 +35,24 @@ async function getTaskDashboardState(req, res) {
         if (fs.existsSync(stateFile)) {
             try {
                 const stateData = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+                
+                // Enhance with structured events analysis (Phase 2)
+                try {
+                    const eventsAnalyzer = new StructuredEventsAnalyzer(config);
+                    const eventsData = eventsAnalyzer.generateDashboardData();
+                    
+                    stateData.structuredEvents = eventsData;
+                    stateData.enhanced = true;
+                } catch (eventsError) {
+                    console.error('Error analyzing structured events:', eventsError.message);
+                    stateData.structuredEvents = {
+                        summary: { message: 'Structured events analysis unavailable' },
+                        performance: {},
+                        realTime: { runningTasks: [], recentActivity: [] },
+                        customers: []
+                    };
+                    stateData.enhanced = false;
+                }
                 
                 // Add some real-time data that might not be in the cached state
                 stateData.realtime = {

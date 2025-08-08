@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Task Management Dashboard - Brainstorm</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-indicator {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+
+        .status-healthy { background-color: #d4edda; color: #155724; }
+        .status-warning { background-color: #fff3cd; color: #856404; }
+        .status-error { background-color: #f8d7da; color: #721c24; }
+        .status-unknown { background-color: #e2e3e5; color: #383d41; }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #555;
+            flex: 1;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .task-details {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .section-header {
+            font-weight: bold;
+            color: #666;
+            margin: 1rem 0 0.5rem 0;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>📊 Enhanced Task Management Dashboard</h1>
+            <p>Real-time monitoring of Brainstorm's Phase 2 structured logging and task execution</p>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading enhanced dashboard data...
+        </div>
+
+        <div id="error-container" style="display: none;"></div>
+
+        <div id="dashboard-content" style="display: none;">
+            <div class="dashboard-grid">
+                <!-- Phase 2 Structured Events Summary Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📊 Phase 2 Structured Events</div>
+                        <div id="events-status" class="status-indicator status-unknown">Loading</div>
+                    </div>
+                    <div id="events-summary-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading structured events...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Performance Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">⚡ Task Performance</div>
+                        <div id="performance-status" class="status-indicator status-unknown">Loading</div>
+                    </div>
+                    <div id="task-performance-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading performance data...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-Time Progress Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🔄 Real-Time Progress</div>
+                        <div id="realtime-status" class="status-indicator status-unknown">Loading</div>
+                    </div>
+                    <div id="realtime-progress-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading real-time data...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Processing Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">👥 Customer Processing</div>
+                        <div id="customer-status" class="status-indicator status-unknown">Loading</div>
+                    </div>
+                    <div id="customer-processing-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading customer data...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Health Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🏥 System Health</div>
+                        <div id="system-status" class="status-indicator status-unknown">Loading</div>
+                    </div>
+                    <div id="system-health-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading system health...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legacy Data Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📋 Legacy System Data</div>
+                        <div id="legacy-status" class="status-indicator status-unknown">Loading</div>
+                    </div>
+                    <div id="legacy-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading legacy data...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="refresh-info">
+            <p>Dashboard auto-refreshes every 30 seconds</p>
+            <p id="last-updated">Last updated: -</p>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Task Dashboard JavaScript
+        let refreshInterval;
+
+        // Load dashboard data from API
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/task-dashboard/state');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                updateDashboard(data);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error-container').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                displayError(`Failed to load dashboard data: ${error.message}`);
+            }
+        }
+
+        // Display error message
+        function displayError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+            errorContainer.style.display = 'block';
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'none';
+        }
+
+        // Update entire dashboard with new data
+        function updateDashboard(data) {
+            // Update structured events (Phase 2)
+            updateStructuredEvents(data);
+            
+            // Update legacy system data
+            updateSystemHealth(data.health || {});
+            updateLegacyData(data);
+            
+            // Update last updated timestamp
+            updateLastUpdated(data.realtime?.timestamp || new Date().toISOString());
+        }
+
+        // Phase 2 Structured Events Functions
+        function updateStructuredEvents(data) {
+            if (!data || !data.structuredEvents) {
+                updateEventsStatus('unavailable', 'No Data');
+                return;
+            }
+
+            const events = data.structuredEvents;
+            updateEventsSummary(events.summary);
+            updateTaskPerformance(events.performance);
+            updateRealTimeProgress(events.realTime);
+            updateCustomerProcessing(events.customers);
+        }
+
+        function updateEventsStatus(status, message) {
+            const statusElement = document.getElementById('events-status');
+            const contentElement = document.getElementById('events-summary-content');
+            
+            statusElement.textContent = message || status;
+            statusElement.className = `status-indicator status-${status === 'healthy' ? 'healthy' : status === 'warning' ? 'warning' : 'error'}`;
+            
+            if (status === 'unavailable') {
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">Structured events analysis unavailable</span></div>';
+            }
+        }
+
+        function updateEventsSummary(summary) {
+            const statusElement = document.getElementById('events-status');
+            const contentElement = document.getElementById('events-summary-content');
+            
+            if (!summary || summary.totalEvents === 0) {
+                statusElement.textContent = 'No Events';
+                statusElement.className = 'status-indicator status-warning';
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">No structured events found</span></div>';
+                return;
+            }
+
+            statusElement.textContent = `${summary.totalEvents} Events`;
+            statusElement.className = 'status-indicator status-healthy';
+            
+            const timeRange = summary.timeRange ? 
+                `${new Date(summary.timeRange.start).toLocaleString()} - ${new Date(summary.timeRange.end).toLocaleString()}` : 
+                'Unknown';
+            
+            contentElement.innerHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Total Events:</span>
+                    <span class="metric-value">${summary.totalEvents.toLocaleString()}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Tasks Completed:</span>
+                    <span class="metric-value">${summary.tasksCompleted || 0}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Tasks Running:</span>
+                    <span class="metric-value">${summary.tasksRunning || 0}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Customers Processed:</span>
+                    <span class="metric-value">${summary.customersProcessed || 0}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Time Range:</span>
+                    <span class="metric-value" style="font-size: 0.8em;">${timeRange}</span>
+                </div>
+            `;
+        }
+
+        function updateTaskPerformance(performance) {
+            const statusElement = document.getElementById('performance-status');
+            const contentElement = document.getElementById('task-performance-content');
+            
+            if (!performance || !performance.completedTasks) {
+                statusElement.textContent = 'No Data';
+                statusElement.className = 'status-indicator status-unknown';
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">No performance data available</span></div>';
+                return;
+            }
+
+            const completedCount = performance.completedTasks.length;
+            const failureRates = performance.failureRates || {};
+            const avgFailureRate = Object.values(failureRates).reduce((sum, rate) => sum + (rate.rate || 0), 0) / Object.keys(failureRates).length || 0;
+            
+            statusElement.textContent = `${completedCount} Completed`;
+            statusElement.className = avgFailureRate > 10 ? 'status-indicator status-warning' : 'status-indicator status-healthy';
+            
+            let performanceHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Completed Tasks:</span>
+                    <span class="metric-value">${completedCount}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Average Failure Rate:</span>
+                    <span class="metric-value">${avgFailureRate.toFixed(1)}%</span>
+                </div>
+            `;
+            
+            // Show slowest tasks
+            if (performance.slowestTasks && performance.slowestTasks.length > 0) {
+                performanceHTML += '<div class="section-header">Slowest Tasks:</div>';
+                performance.slowestTasks.slice(0, 3).forEach(task => {
+                    performanceHTML += `
+                        <div class="task-item">
+                            <div class="task-name">${task.taskName}</div>
+                            <div class="task-details">Duration: ${task.durationFormatted} | Target: ${task.target || 'global'}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            contentElement.innerHTML = performanceHTML;
+        }
+
+        function updateRealTimeProgress(realTime) {
+            const statusElement = document.getElementById('realtime-status');
+            const contentElement = document.getElementById('realtime-progress-content');
+            
+            if (!realTime) {
+                statusElement.textContent = 'No Data';
+                statusElement.className = 'status-indicator status-unknown';
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">No real-time data available</span></div>';
+                return;
+            }
+
+            const runningCount = realTime.runningTasks ? realTime.runningTasks.length : 0;
+            const recentCount = realTime.recentActivity ? realTime.recentActivity.length : 0;
+            
+            statusElement.textContent = runningCount > 0 ? `${runningCount} Running` : 'Idle';
+            statusElement.className = runningCount > 0 ? 'status-indicator status-healthy' : 'status-indicator status-unknown';
+            
+            let realtimeHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Running Tasks:</span>
+                    <span class="metric-value">${runningCount}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Recent Activity:</span>
+                    <span class="metric-value">${recentCount} events</span>
+                </div>
+            `;
+            
+            // Show running tasks
+            if (realTime.runningTasks && realTime.runningTasks.length > 0) {
+                realtimeHTML += '<div class="section-header">Currently Running:</div>';
+                realTime.runningTasks.slice(0, 3).forEach(task => {
+                    const runtime = new Date() - new Date(task.startTime);
+                    const runtimeFormatted = formatDuration(runtime);
+                    realtimeHTML += `
+                        <div class="task-item">
+                            <div class="task-name">${task.taskName}</div>
+                            <div class="task-details">Runtime: ${runtimeFormatted} | Target: ${task.target || 'global'}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Show recent activity
+            if (realTime.recentActivity && realTime.recentActivity.length > 0) {
+                realtimeHTML += '<div class="section-header">Recent Activity:</div>';
+                realTime.recentActivity.slice(0, 3).forEach(activity => {
+                    realtimeHTML += `
+                        <div class="task-item">
+                            <div class="task-name">${activity.eventType}: ${activity.taskName}</div>
+                            <div class="task-details">Target: ${activity.target || 'global'} | ${activity.timeAgo}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            contentElement.innerHTML = realtimeHTML;
+        }
+
+        function updateCustomerProcessing(customers) {
+            const statusElement = document.getElementById('customer-status');
+            const contentElement = document.getElementById('customer-processing-content');
+            
+            if (!customers || customers.length === 0) {
+                statusElement.textContent = 'No Data';
+                statusElement.className = 'status-indicator status-unknown';
+                contentElement.innerHTML = '<div class="metric-row"><span class="metric-value">No customer processing data available</span></div>';
+                return;
+            }
+
+            const processingCount = customers.filter(c => c.status === 'processing').length;
+            const completedCount = customers.filter(c => c.status === 'completed').length;
+            const failedCount = customers.filter(c => c.status === 'failed').length;
+            
+            statusElement.textContent = `${customers.length} Customers`;
+            statusElement.className = failedCount > 0 ? 'status-indicator status-warning' : 'status-indicator status-healthy';
+            
+            let customerHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Total Customers:</span>
+                    <span class="metric-value">${customers.length}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Processing:</span>
+                    <span class="metric-value">${processingCount}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Completed:</span>
+                    <span class="metric-value">${completedCount}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Failed:</span>
+                    <span class="metric-value">${failedCount}</span>
+                </div>
+            `;
+            
+            // Show recent customer activity
+            if (customers.length > 0) {
+                customerHTML += '<div class="section-header">Recent Customers:</div>';
+                customers.slice(0, 3).forEach(customer => {
+                    const timeAgo = getTimeAgo(customer.lastActivity);
+                    customerHTML += `
+                        <div class="task-item">
+                            <div class="task-name">${customer.customerId.substring(0, 12)}...</div>
+                            <div class="task-details">Status: ${customer.status} | ${timeAgo}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            contentElement.innerHTML = customerHTML;
+        }
+
+        // Legacy system health update
+        function updateSystemHealth(health) {
+            const statusElement = document.getElementById('system-status');
+            const contentElement = document.getElementById('system-health-content');
+            
+            statusElement.textContent = 'Monitoring';
+            statusElement.className = 'status-indicator status-healthy';
+            
+            contentElement.innerHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Neo4j Status:</span>
+                    <span class="metric-value">${health?.neo4j?.status || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Strfry Status:</span>
+                    <span class="metric-value">${health?.strfry?.status || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Disk Usage:</span>
+                    <span class="metric-value">${health?.diskSpace?.usePercent || 'Unknown'}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Memory Usage:</span>
+                    <span class="metric-value">${health?.memory?.used || 'Unknown'}</span>
+                </div>
+            `;
+        }
+
+        // Legacy data update
+        function updateLegacyData(data) {
+            const statusElement = document.getElementById('legacy-status');
+            const contentElement = document.getElementById('legacy-content');
+            
+            statusElement.textContent = 'Available';
+            statusElement.className = 'status-indicator status-healthy';
+            
+            const customers = data.customers || [];
+            const taskQueue = data.taskQueue || [];
+            
+            contentElement.innerHTML = `
+                <div class="metric-row">
+                    <span class="metric-label">Legacy Customers:</span>
+                    <span class="metric-value">${customers.length}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Task Queue:</span>
+                    <span class="metric-value">${taskQueue.length}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Server Uptime:</span>
+                    <span class="metric-value">${data.realtime?.serverUptime || 'Unknown'}</span>
+                </div>
+            `;
+        }
+
+        // Helper functions
+        function formatDuration(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+
+            if (hours > 0) {
+                return `${hours}h ${minutes % 60}m`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${seconds % 60}s`;
+            } else {
+                return `${seconds}s`;
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const eventTime = new Date(timestamp);
+            const diffMs = now - eventTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays > 0) return `${diffDays}d ago`;
+            if (diffHours > 0) return `${diffHours}h ago`;
+            if (diffMins > 0) return `${diffMins}m ago`;
+            return 'just now';
+        }
+
+        function updateLastUpdated(timestamp) {
+            const element = document.getElementById('last-updated');
+            element.textContent = `Last updated: ${new Date(timestamp).toLocaleString()}`;
+        }
+
+        function refreshDashboard() {
+            loadDashboardData();
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load header
+            try {
+                const headerResponse = await fetch('/components/header/header.html');
+                if (headerResponse.ok) {
+                    const headerHTML = await headerResponse.text();
+                    document.getElementById('header-placeholder').innerHTML = headerHTML;
+                    
+                    // Load header script
+                    const script = document.createElement('script');
+                    script.src = '/components/header/header.js';
+                    document.head.appendChild(script);
+                }
+            } catch (error) {
+                console.error('Error loading header:', error);
+            }
+
+            // Load initial dashboard data
+            await loadDashboardData();
+
+            // Set up auto-refresh
+            refreshInterval = setInterval(refreshDashboard, 30000); // 30 seconds
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>

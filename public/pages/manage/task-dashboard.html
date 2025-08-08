@@ -156,29 +156,87 @@
         <div id="error-container" style="display: none;"></div>
 
         <div id="dashboard-content" style="display: none;">
-            <!-- System Health Panel -->
             <div class="dashboard-grid">
+                <!-- Structured Events Summary Panel -->
                 <div class="dashboard-panel">
                     <div class="panel-header">
-                        <div class="panel-title">🏥 System Health</div>
-                        <div id="system-health-status" class="status-indicator status-unknown">Unknown</div>
+                        <div class="panel-title">📊 Phase 2 Structured Events</div>
+                        <div id="events-status" class="status-indicator status-unknown">Loading</div>
                     </div>
-                    <div id="system-health-metrics">
-                        <!-- Populated by JavaScript -->
+                    <div id="events-summary-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading structured events...</span>
+                            <span class="metric-value">-</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Customer Overview Panel -->
+                <!-- System Health Panel -->
                 <div class="dashboard-panel">
                     <div class="panel-header">
-                        <div class="panel-title">👥 Customer Overview</div>
+                        <div class="panel-title">🏥 System Health</div>
+                        <div id="system-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="system-health-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Performance Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">⚡ Task Performance</div>
+                        <div id="performance-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="task-performance-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading performance data...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-Time Progress Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🔄 Real-Time Progress</div>
+                        <div id="realtime-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="realtime-progress-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading real-time data...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Processing Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">👥 Customer Processing</div>
                         <div id="customer-status" class="status-indicator status-unknown">Unknown</div>
+                    </div>
+                    <div id="customer-processing-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Loading customer data...</span>
+                            <span class="metric-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legacy Customer Overview Panel -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📋 Legacy Customer Overview</div>
+                        <div id="legacy-customer-status" class="status-indicator status-unknown">Unknown</div>
                     </div>
                     <div id="customer-metrics">
                         <!-- Populated by JavaScript -->
                     </div>
                 </div>
-            </div>
 
             <!-- Task Queue Panel -->
             <div class="dashboard-grid">
@@ -246,29 +304,29 @@
         }
 
         function updateSystemHealth(health) {
-            const statusElement = document.getElementById('system-health-status');
-            const metricsElement = document.getElementById('system-health-metrics');
+            const statusElement = document.getElementById('system-status');
+            const contentElement = document.getElementById('system-health-content');
             
             // TODO: Determine overall health status
             statusElement.textContent = 'Not Implemented';
             statusElement.className = 'status-indicator status-unknown';
             
-            metricsElement.innerHTML = `
+            contentElement.innerHTML = `
                 <div class="metric-row">
                     <span class="metric-label">Neo4j Status:</span>
-                    <span class="metric-value">${health.neo4j?.status || 'Unknown'}</span>
+                    <span class="metric-value">${health?.neo4j?.status || 'Unknown'}</span>
                 </div>
                 <div class="metric-row">
                     <span class="metric-label">Strfry Status:</span>
-                    <span class="metric-value">${health.strfry?.status || 'Unknown'}</span>
+                    <span class="metric-value">${health?.strfry?.status || 'Unknown'}</span>
                 </div>
                 <div class="metric-row">
                     <span class="metric-label">Disk Usage:</span>
-                    <span class="metric-value">${health.diskSpace?.usePercent || 'Unknown'}</span>
+                    <span class="metric-value">${health?.diskSpace?.usePercent || 'Unknown'}</span>
                 </div>
                 <div class="metric-row">
                     <span class="metric-label">Memory Usage:</span>
-                    <span class="metric-value">${health.memory?.used || 'Unknown'} / ${health.memory?.total || 'Unknown'}</span>
+                    <span class="metric-value">${health?.memory?.used || 'Unknown'} / ${health?.memory?.total || 'Unknown'}</span>
                 </div>
                 <div class="metric-row">
                     <span class="metric-label">Active Processes:</span>
