@@ -152,6 +152,10 @@ fi
 # create blacklist
 # create whitelist
 
+: <<'COMMENT_BLOCK'
+echo "$(date): Continuing calculateAllScores; starting publishNip85.sh"
+echo "$(date): Continuing calculateAllScores; starting publishNip85.sh" >> "$LOG_FILE"
+
 # Emit structured event for child task start
 emit_task_event "CHILD_TASK_START" "exportCustomerKind30382" \
     "customer_id=$CUSTOMER_ID" \
@@ -173,9 +177,7 @@ else
         "parent_task=updateAllScoresForSingleCustomer"
     echo "$(date): ERROR: publishNip85.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
-
-echo "$(date): Continuing calculateAllScores; starting publishNip85.sh"
-echo "$(date): Continuing calculateAllScores; starting publishNip85.sh" >> "$LOG_FILE"
+COMMENT_BLOCK
 
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"

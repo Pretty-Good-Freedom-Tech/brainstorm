@@ -347,6 +347,7 @@ echo "$(date): Continuing processAllTasks; exportWhitelist.sh completed" >> ${BR
 
 sleep 5
 
+: <<'COMMENT_BLOCK'
 # Child Task 11: Publish NIP-85
 emit_task_event "CHILD_TASK_START" "processAllTasks" \
     "child_task=publishNip85" \
@@ -368,6 +369,8 @@ echo "$(date): Continuing processAllTasks; publishNip85.sh completed"
 echo "$(date): Continuing processAllTasks; publishNip85.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 sleep 5
+
+COMMENT_BLOCK
 
 # Child Task 12: Process All Active Customers
 emit_task_event "CHILD_TASK_START" "processAllTasks" \
