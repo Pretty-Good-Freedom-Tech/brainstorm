@@ -385,8 +385,8 @@
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific follows/mutes/reports processing, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 6 child tasks (verified counts and inputs for follows/mutes/reports)"
     },
 
     "exportCustomerKind30382": {
