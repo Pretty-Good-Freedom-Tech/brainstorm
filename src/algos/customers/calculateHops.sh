@@ -7,6 +7,9 @@
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_LOG_DIR
 
+# Source structured logging utility
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 # Check if customer_pubkey, customer_id, customer_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
@@ -43,6 +46,19 @@ numHops=1
 echo "$(date): Starting calculateHops"
 echo "$(date): Starting calculateHops" >> ${LOG_FILE}
 
+# Emit structured event for task start
+emit_task_event "TASK_START" "calculateCustomerHops" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME"
+
+# Initialize hop distances (set all to 999, then customer to 0)
+emit_task_event "PROGRESS" "calculateCustomerHops" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=initialization" \
+    "message=Setting initial hop distances"
+
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1"
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2"
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
@@ -51,14 +67,65 @@ numUpdates="${cypherResults:11}"
 echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops"
 echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
 
+# Emit structured event for initial iteration
+emit_task_event "PROGRESS" "calculateCustomerHops" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=iteration" \
+    "hop_level=$numHops" \
+    "updates_count=$numUpdates" \
+    "message=Initial hop calculation iteration"
+
 while [[ "$numUpdates" -gt 0 ]] && [[ "$numHops" -lt 12 ]];
 do
     ((numHops++))
+    
+    # Emit structured event for iteration start
+    emit_task_event "PROGRESS" "calculateCustomerHops" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "step=iteration" \
+        "hop_level=$numHops" \
+        "message=Processing hop level $numHops"
+    
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
     numUpdates="${cypherResults:11}"
+    
     echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops"
     echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
+    
+    # Emit structured event for iteration completion
+    emit_task_event "PROGRESS" "calculateCustomerHops" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "step=iteration_complete" \
+        "hop_level=$numHops" \
+        "updates_count=$numUpdates" \
+        "message=Completed hop level $numHops with $numUpdates updates"
 done
 
 echo "$(date): Finished calculateHops for observer_pubkey $CUSTOMER_PUBKEY"
 echo "$(date): Finished calculateHops for observer_pubkey $CUSTOMER_PUBKEY" >> ${LOG_FILE}
+
+# Determine completion reason and emit structured event
+if [[ "$numUpdates" -eq 0 ]]; then
+    completion_reason="converged"
+    completion_message="Algorithm converged - no more updates needed"
+elif [[ "$numHops" -ge 12 ]]; then
+    completion_reason="max_hops_reached"
+    completion_message="Maximum hop limit (12) reached"
+else
+    completion_reason="unknown"
+    completion_message="Algorithm completed for unknown reason"
+fi
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "calculateCustomerHops" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "status=success" \
+    "final_hop_level=$numHops" \
+    "final_updates_count=$numUpdates" \
+    "completion_reason=$completion_reason" \
+    "message=$completion_message"

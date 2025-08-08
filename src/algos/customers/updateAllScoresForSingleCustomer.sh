@@ -7,6 +7,9 @@
 CONFIG_FILE="/etc/brainstorm.conf"
 source "$CONFIG_FILE" # BRAINSTORM_LOG_DIR
 
+# Source structured logging utility
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 # Check if customer_pubkey, customer_id, and customer_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
@@ -38,37 +41,138 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
 echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
 
+# Emit structured event for task start
+emit_task_event "TASK_START" "updateAllScoresForSingleCustomer" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME"
+
 echo "$(date): Continuing calculateAllScores; starting calculateHops.sh"
 echo "$(date): Continuing calculateAllScores; starting calculateHops.sh" >> "$LOG_FILE"
 
+# Emit structured event for child task start
+emit_task_event "CHILD_TASK_START" "calculateCustomerHops" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "parent_task=updateAllScoresForSingleCustomer"
+
 # Run calculateHops.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+    emit_task_event "CHILD_TASK_END" "calculateCustomerHops" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=success" \
+        "parent_task=updateAllScoresForSingleCustomer"
+else
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerHops" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=failed" \
+        "parent_task=updateAllScoresForSingleCustomer"
+    echo "$(date): ERROR: calculateHops.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+fi
 
 echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh" >> "$LOG_FILE"
 
+# Emit structured event for child task start
+emit_task_event "CHILD_TASK_START" "calculateCustomerPageRank" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "parent_task=updateAllScoresForSingleCustomer"
+
 # Run personalizedPageRank.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+    emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=success" \
+        "parent_task=updateAllScoresForSingleCustomer"
+else
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=failed" \
+        "parent_task=updateAllScoresForSingleCustomer"
+    echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+fi
 
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh" >> "$LOG_FILE"
 
+# Emit structured event for child task start
+emit_task_event "CHILD_TASK_START" "calculateCustomerGrapeRank" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "parent_task=updateAllScoresForSingleCustomer"
+
 # Run personalizedGrapeRank.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+    emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=success" \
+        "parent_task=updateAllScoresForSingleCustomer"
+else
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=failed" \
+        "parent_task=updateAllScoresForSingleCustomer"
+    echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+fi
 
 echo "$(date): Continuing calculateAllScores; starting processFollowsMutesReports.sh"
 echo "$(date): Continuing calculateAllScores; starting processFollowsMutesReports.sh" >> "$LOG_FILE"
 
+# Emit structured event for child task start
+emit_task_event "CHILD_TASK_START" "processCustomerFollowsMutesReports" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "parent_task=updateAllScoresForSingleCustomer"
+
 # Run processFollowsMutesReports.sh
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFollowsMutesReports.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFollowsMutesReports.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+    emit_task_event "CHILD_TASK_END" "processCustomerFollowsMutesReports" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=success" \
+        "parent_task=updateAllScoresForSingleCustomer"
+else
+    emit_task_event "CHILD_TASK_ERROR" "processCustomerFollowsMutesReports" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=failed" \
+        "parent_task=updateAllScoresForSingleCustomer"
+    echo "$(date): ERROR: processFollowsMutesReports.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+fi
 
 # TODO:
 # process nip-56 reports by reportType
 # create blacklist
 # create whitelist
 
+# Emit structured event for child task start
+emit_task_event "CHILD_TASK_START" "exportCustomerKind30382" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "parent_task=updateAllScoresForSingleCustomer"
+
 # generate nip-85 exports
-sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+    emit_task_event "CHILD_TASK_END" "exportCustomerKind30382" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=success" \
+        "parent_task=updateAllScoresForSingleCustomer"
+else
+    emit_task_event "CHILD_TASK_ERROR" "exportCustomerKind30382" \
+        "customer_id=$CUSTOMER_ID" \
+        "customer_name=$CUSTOMER_NAME" \
+        "status=failed" \
+        "parent_task=updateAllScoresForSingleCustomer"
+    echo "$(date): ERROR: publishNip85.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+fi
 
 echo "$(date): Continuing calculateAllScores; starting publishNip85.sh"
 echo "$(date): Continuing calculateAllScores; starting publishNip85.sh" >> "$LOG_FILE"
@@ -76,3 +180,10 @@ echo "$(date): Continuing calculateAllScores; starting publishNip85.sh" >> "$LOG
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "updateAllScoresForSingleCustomer" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "status=success"

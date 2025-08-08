@@ -263,8 +263,8 @@
       "status": "active",
       "timeout": "4 hours",
       "retries": 3,
-      "structuredLogging": false,
-      "notes": "Candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 5 child tasks"
     },
 
     "calculateOwnerGrapeRank": {
@@ -367,8 +367,8 @@
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific hop calculation"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for initialization and each iteration with hop metrics"
     },
 
     "processCustomerFollowsMutesReports": {
