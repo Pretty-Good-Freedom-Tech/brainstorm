@@ -49,6 +49,19 @@ check_dependencies() {
         return 1
     fi
     
+    # Validate task registry
+    local registry_validator="${TASK_QUEUE_DIR}/validateRegistry.js"
+    if [[ -f "$registry_validator" ]]; then
+        log_message "Validating task registry..."
+        if ! node "$registry_validator"; then
+            log_message "ERROR: Task registry validation failed"
+            return 1
+        fi
+        log_message "Task registry validation passed"
+    else
+        log_message "WARNING: Registry validator not found, skipping validation"
+    fi
+    
     # Check if jq is available (needed for JSON processing)
     if ! command -v jq &> /dev/null; then
         log_message "ERROR: jq is required but not installed"

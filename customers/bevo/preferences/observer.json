@@ -1,0 +1,14 @@
+{
+    "id": null,
+    "status": "active",
+    "directory": "default",
+    "name": "default",
+    "pubkey": "",
+    "observer_id": "",
+    "comments": "default",
+    "subscription": {
+        "service_tier": "free",
+        "when_signed_up": 0,
+        "update_interval": 604800
+    }
+}

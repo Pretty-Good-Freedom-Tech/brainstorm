@@ -10,6 +10,8 @@
 # which in turn calls two other scripts:
 # sudo bash addSetsOfMetricsCards.sh (property 1)
 # sudo bash addMetricsCards.sh <customer_id> <customer_pubkey> (property 2)
+# Example: (cloudfodder.brainstorm.social)
+# sudo bash prepareNeo4jForCustomerData.sh 52387c6b99cc42aac51916b08b7b51d2baddfc19f2ba08d82a48432849dbdfb2 2
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_LOG_DIR
 

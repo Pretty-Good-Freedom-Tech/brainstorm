@@ -7,7 +7,12 @@
             "name": "laeserin",
             "pubkey": "dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319",
             "observer_id": "dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319",
-            "comments": "rigorous"
+            "comments": "rigorous",
+            "subscription": {
+                "service_tier": "free",
+                "when_signed_up": 0,
+                "update_interval": 604800
+            }
         },
         "shawn": {
             "id": 1,
@@ -16,7 +21,26 @@
             "name": "shawn",
             "pubkey": "c7eda660a6bc8270530e82b4a7712acdea2e31dc0a56f8dc955ac009efd97c86",
             "observer_id": "c7eda660a6bc8270530e82b4a7712acdea2e31dc0a56f8dc955ac009efd97c86",
-            "comments": "default"
+            "comments": "default",
+            "subscription": {
+                "service_tier": "free",
+                "when_signed_up": 0,
+                "update_interval": 604800
+            }
+        },
+        "bevo": {
+            "id": 2,
+            "status": "active",
+            "directory": "bevo",
+            "name": "bevo",
+            "pubkey": "52387c6b99cc42aac51916b08b7b51d2baddfc19f2ba08d82a48432849dbdfb2",
+            "observer_id": "52387c6b99cc42aac51916b08b7b51d2baddfc19f2ba08d82a48432849dbdfb2",
+            "comments": "default",
+            "subscription": {
+                "service_tier": "free",
+                "when_signed_up": 0,
+                "update_interval": 604800
+            }
         }
     }
 }

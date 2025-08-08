@@ -90,3 +90,6 @@ Currently two sets of scripts. Need to decide which one to keep and where to put
 
 ## INSTANCE TYPE
 4 April 2025: Currently using t2.large. CPU spikes causing crashes; AWS Compute Optimizer suggests m7g.large for better CPU provisioning, with slight cost savings. 
+
+8 Aug 2025: restore from backup from most recent that still has intact /var/log/brainstorm logs; seem to have gotten lost while implementing and testing Brainstorm Task Queue System
+backup-2025-08-07T22-43-48

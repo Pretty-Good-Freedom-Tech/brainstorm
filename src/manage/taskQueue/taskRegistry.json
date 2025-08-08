@@ -1,0 +1,619 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive registry of all Brainstorm background tasks, their relationships, and execution scripts",
+  "lastUpdated": "2025-08-07T21:31:00-05:00",
+  
+  "taskCategories": {
+    "orchestration": "Top-level task coordination and scheduling",
+    "customer": "Customer-specific processing tasks", 
+    "network": "Network data synchronization and updates",
+    "algorithms": "Trust metric and ranking calculations",
+    "export": "Data export and API preparation",
+    "maintenance": "System maintenance and cleanup"
+  },
+
+  "tasks": {
+    "processAllTasks": {
+      "name": "Process All Tasks",
+      "category": "orchestration",
+      "type": "orchestrator",
+      "description": "Legacy sequential orchestrator for all background tasks",
+      "scripts": [
+        "src/manage/processAllTasks.sh"
+      ],
+      "children": [
+        "neo4jConstraintsAndIndexes",
+        "syncWoT",
+        "callBatchTransferIfNeeded",
+        "reconciliation",
+        "processNpubsUpToMaxNumBlocks",
+        "calculateOwnerHops",
+        "calculateOwnerPageRank",
+        "calculateOwnerGrapeRank",
+        "processOwnerFollowsMutesReports",
+        "calculateReportScores",
+        "exportWhitelist",
+        "publishOwnerNip85",
+        "processAllActiveCustomers"
+      ],
+      "priority": "high",
+      "frequency": "timer-based",
+      "status": "legacy",
+      "notes": "Being replaced by priority-based task queue system"
+    },
+
+    "taskQueueManager": {
+      "name": "Task Queue Manager", 
+      "category": "orchestration",
+      "type": "orchestrator",
+      "description": "New priority-based task orchestrator",
+      "scripts": [
+        "src/manage/taskQueue/taskQueueManager.sh"
+      ],
+      "children": [
+        "taskScheduler",
+        "taskExecutor",
+        "systemStateGatherer"
+      ],
+      "priority": "high",
+      "frequency": "continuous",
+      "status": "active",
+      "notes": "Replacement for processAllTasks.sh"
+    },
+
+    "taskScheduler": {
+      "name": "Task Scheduler",
+      "category": "orchestration", 
+      "type": "scheduler",
+      "description": "Evaluates system state and queues tasks by priority",
+      "scripts": [
+        "src/manage/taskQueue/taskScheduler.js"
+      ],
+      "parent": "taskQueueManager",
+      "priority": "high",
+      "frequency": "continuous",
+      "status": "active"
+    },
+
+    "taskExecutor": {
+      "name": "Task Executor",
+      "category": "orchestration",
+      "type": "executor", 
+      "description": "Executes highest priority task from queue",
+      "scripts": [
+        "src/manage/taskQueue/taskExecutor.sh"
+      ],
+      "parent": "taskQueueManager",
+      "priority": "high",
+      "frequency": "continuous", 
+      "status": "active"
+    },
+
+    "systemStateGatherer": {
+      "name": "System State Gatherer",
+      "category": "orchestration",
+      "type": "monitor",
+      "description": "Collects comprehensive system state for dashboard and monitoring",
+      "scripts": [
+        "src/manage/taskQueue/systemStateGatherer.js"
+      ],
+      "parent": "taskQueueManager",
+      "priority": "medium",
+      "frequency": "periodic",
+      "status": "active"
+    },
+
+    "neo4jConstraintsAndIndexes": {
+      "name": "Neo4j Constraints and Indexes",
+      "category": "setup",
+      "type": "maintenance",
+      "description": "Ensures Neo4j constraints and indexes are properly configured",
+      "scripts": [
+        "setup/neo4jConstraintsAndIndexes.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "system",
+      "priority": "high",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "syncWoT": {
+      "name": "Sync Web of Trust",
+      "category": "network",
+      "type": "sync",
+      "description": "Synchronizes Web of Trust data from relays",
+      "scripts": [
+        "src/manage/negentropySync/syncWoT.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "system",
+      "priority": "high",
+      "frequency": "daily",
+      "status": "active",
+      "estimatedDuration": "30-60 minutes",
+      "structuredLogging": false,
+      "notes": "Candidate for Phase 2 structured events"
+    },
+
+    "callBatchTransferIfNeeded": {
+      "name": "Call Batch Transfer If Needed",
+      "category": "data",
+      "type": "transfer",
+      "description": "Conditionally executes batch data transfer operations",
+      "scripts": [
+        "src/manage/batchTransfer/callBatchTransferIfNeeded.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "system",
+      "priority": "medium",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "reconciliation": {
+      "name": "Data Reconciliation",
+      "category": "data",
+      "type": "reconciliation",
+      "description": "Reconciles data consistency between systems",
+      "scripts": [
+        "src/pipeline/reconciliation/reconciliation.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "system",
+      "priority": "medium",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "processNpubsUpToMaxNumBlocks": {
+      "name": "Process Npubs Up To Max Blocks",
+      "category": "maintenance",
+      "type": "npub",
+      "description": "Processes npub generation up to maximum number of blocks",
+      "scripts": [
+        "src/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "system",
+      "priority": "low",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "processAllActiveCustomers": {
+      "name": "Process All Active Customers",
+      "category": "customer",
+      "type": "batch",
+      "description": "Processes all active customers sequentially",
+      "scripts": [
+        "src/algos/customers/processAllActiveCustomers.sh"
+      ],
+      "parent": "processAllTasks",
+      "children": [
+        "processCustomer"
+      ],
+      "priority": "high", 
+      "frequency": "daily",
+      "status": "active",
+      "estimatedDuration": "2-8 hours"
+    },
+
+    "processCustomer": {
+      "name": "Process Single Customer",
+      "category": "customer",
+      "type": "individual",
+      "description": "Complete processing pipeline for a single customer",
+      "scripts": [
+        "src/algos/customers/processCustomer.sh"
+      ],
+      "parent": "processAllActiveCustomers",
+      "children": [
+        "prepareNeo4jForCustomerData",
+        "updateAllScoresForSingleCustomer"
+      ],
+      "scope": "customer",
+      "priority": "high",
+      "frequency": "per-customer",
+      "status": "active",
+      "estimatedDuration": "20-60 minutes",
+      "structuredLogging": true,
+      "notes": "Phase 1 structured events implemented"
+    },
+
+    "prepareNeo4jForCustomerData": {
+      "name": "Prepare Neo4j for Customer Data",
+      "category": "customer",
+      "type": "preparation",
+      "description": "Preliminary steps for customer data processing, common to all customers",
+      "scripts": [
+        "src/cns/prepareNeo4jForCustomerData.sh"
+      ],
+      "parent": "processCustomer",
+      "scope": "customer",
+      "priority": "high",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "updateAllScoresForSingleCustomer": {
+      "name": "Update All Scores for Single Customer",
+      "category": "customer",
+      "type": "scores",
+      "description": "Updates all trust scores for a single customer",
+      "scripts": [
+        "src/algos/customers/updateAllScoresForSingleCustomer.sh"
+      ],
+      "parent": "processCustomer",
+      "children": [
+        "calculateCustomerHops",
+        "calculateCustomerPageRank",
+        "calculateCustomerGrapeRank",
+        "processCustomerFollowsMutesReports",
+        "exportCustomerKind30382"
+      ],
+      "scope": "customer",
+      "priority": "high",
+      "frequency": "per-customer",
+      "status": "active",
+      "timeout": "4 hours",
+      "retries": 3,
+      "structuredLogging": false,
+      "notes": "Candidate for Phase 2 structured events"
+    },
+
+    "calculateOwnerGrapeRank": {
+      "name": "Calculate Owner GrapeRank",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates personalized GrapeRank scores for the instance owner",
+      "scripts": [
+        "src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
+        "src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh"
+      ],
+      "scope": "owner",
+      "priority": "medium",
+      "frequency": "daily",
+      "status": "active",
+      "timeout": "20 minutes",
+      "retries": 3,
+      "structuredLogging": false,
+      "notes": "Owner-level GrapeRank calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateCustomerGrapeRank": {
+      "name": "Calculate Customer GrapeRank",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates personalized GrapeRank scores for a specific customer",
+      "scripts": [
+        "src/algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh"
+      ],
+      "parent": "updateAllScoresForSingleCustomer",
+      "scope": "customer",
+      "priority": "high",
+      "frequency": "per-customer",
+      "status": "active",
+      "timeout": "20 minutes",
+      "retries": 3,
+      "structuredLogging": false,
+      "notes": "Customer-specific GrapeRank calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateOwnerPageRank": {
+      "name": "Calculate Owner PageRank",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates personalized PageRank scores for the instance owner",
+      "scripts": [
+        "src/algos/calculatePersonalizedPageRank.sh"
+      ],
+      "scope": "owner",
+      "priority": "medium",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Owner-level PageRank calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateCustomerPageRank": {
+      "name": "Calculate Customer PageRank", 
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates personalized PageRank scores for a specific customer",
+      "scripts": [
+        "src/algos/customers/personalizedPageRank.sh"
+      ],
+      "parent": "updateAllScoresForSingleCustomer",
+      "scope": "customer",
+      "priority": "high",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific PageRank calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateOwnerHops": {
+      "name": "Calculate Owner Hops",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates hop distances from the instance owner",
+      "scripts": [
+        "src/algos/calculateHops.sh"
+      ],
+      "scope": "owner",
+      "priority": "low",
+      "frequency": "weekly",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Owner-level hop calculation"
+    },
+
+    "calculateCustomerHops": {
+      "name": "Calculate Customer Hops",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates hop distances for a specific customer",
+      "scripts": [
+        "src/algos/customers/calculateHops.sh"
+      ],
+      "parent": "updateAllScoresForSingleCustomer",
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific hop calculation"
+    },
+
+    "processCustomerFollowsMutesReports": {
+      "name": "Process Customer Follows, Mutes, and Reports",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Processes follows, mutes, and reports data for a specific customer",
+      "scripts": [
+        "src/algos/customers/follows-mutes-reports/processFollowsMutesReports.sh"
+      ],
+      "parent": "updateAllScoresForSingleCustomer",
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific follows/mutes/reports processing, candidate for Phase 2 structured events"
+    },
+
+    "exportCustomerKind30382": {
+      "name": "Export Customer Kind 30382",
+      "category": "export",
+      "type": "nip85",
+      "description": "Exports Kind 30382 NIP-85 data for a specific customer",
+      "scripts": [
+        "src/algos/customers/nip85/publishNip85.sh"
+      ],
+      "parent": "updateAllScoresForSingleCustomer",
+      "scope": "customer",
+      "priority": "low",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific NIP-85 export"
+    },
+
+    "processOwnerFollowsMutesReports": {
+      "name": "Process Owner Follows, Mutes, and Reports",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Processes follows, mutes, and reports data for the instance owner",
+      "scripts": [
+        "src/algos/follows-mutes-reports/processFollowsMutesReports.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "owner",
+      "priority": "medium",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Owner-level follows/mutes/reports processing, candidate for Phase 2 structured events"
+    },
+
+    "calculateReportScores": {
+      "name": "Calculate Report Scores",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates report scores for the system",
+      "scripts": [
+        "src/algos/reports/calculateReportScores.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "owner",
+      "priority": "medium",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "exportWhitelist": {
+      "name": "Export Whitelist",
+      "category": "export",
+      "type": "whitelist",
+      "description": "Exports whitelist data for the system",
+      "scripts": [
+        "src/algos/exportWhitelist.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "owner",
+      "priority": "low",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "publishOwnerNip85": {
+      "name": "Publish Owner NIP-85",
+      "category": "export",
+      "type": "nip85",
+      "description": "Publishes NIP-85 data for the instance owner",
+      "scripts": [
+        "src/algos/nip85/publishNip85.sh"
+      ],
+      "parent": "processAllTasks",
+      "scope": "owner",
+      "priority": "low",
+      "frequency": "daily",
+      "status": "active",
+      "structuredLogging": false
+    },
+
+    "exportKind30382": {
+      "name": "Export Kind 30382 Events",
+      "category": "export",
+      "type": "export",
+      "description": "Exports Kind 30382 events for a customer",
+      "scripts": [
+        "src/algos/customers/nip85/publishNip85.sh"
+      ],
+      "parent": "processCustomer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active"
+    },
+
+    "npubManager": {
+      "name": "Npub Manager",
+      "category": "maintenance",
+      "type": "utility",
+      "description": "Ensures all NostrUser nodes have npub properties",
+      "scripts": [
+        "src/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
+      ],
+      "children": [
+        "queryMissingNpubs",
+        "generateNpubs", 
+        "updateNpubsInNeo4j"
+      ],
+      "priority": "low",
+      "frequency": "as-needed",
+      "status": "active"
+    },
+
+    "queryMissingNpubs": {
+      "name": "Query Missing Npubs",
+      "category": "maintenance",
+      "type": "query",
+      "description": "Queries Neo4j for NostrUsers missing npub property",
+      "scripts": [
+        "src/manage/nostrUsers/queryMissingNpubs.sh"
+      ],
+      "parent": "npubManager",
+      "priority": "low",
+      "frequency": "batch",
+      "status": "active"
+    },
+
+    "generateNpubs": {
+      "name": "Generate Npubs",
+      "category": "maintenance", 
+      "type": "generation",
+      "description": "Generates npubs using nip19.npubEncode",
+      "scripts": [
+        "src/manage/nostrUsers/generateNpubs.js"
+      ],
+      "parent": "npubManager",
+      "priority": "low",
+      "frequency": "batch",
+      "status": "active"
+    },
+
+    "updateNpubsInNeo4j": {
+      "name": "Update Npubs in Neo4j",
+      "category": "maintenance",
+      "type": "update",
+      "description": "Updates Neo4j nodes with generated npubs",
+      "scripts": [
+        "src/manage/nostrUsers/updateNpubsInNeo4j.sh"
+      ],
+      "parent": "npubManager", 
+      "priority": "low",
+      "frequency": "batch",
+      "status": "active"
+    }
+  },
+
+  "executionFlow": {
+    "legacy": {
+      "description": "Current sequential execution via processAllTasks.sh",
+      "sequence": [
+        "syncWoT",
+        "processAllActiveCustomers"
+      ],
+      "customerSequence": [
+        "updateAllScoresForSingleCustomer",
+        "calculatePersonalizedGrapeRank",
+        "calculatePersonalizedPageRank", 
+        "processFollowsMutesReports",
+        "exportKind30382"
+      ]
+    },
+    "priorityBased": {
+      "description": "New priority-based execution via taskQueueManager",
+      "components": [
+        "taskScheduler",
+        "taskExecutor", 
+        "systemStateGatherer"
+      ],
+      "priorities": {
+        "high": ["syncWoT", "processCustomer", "updateAllScoresForSingleCustomer"],
+        "medium": ["calculatePersonalizedGrapeRank", "calculatePersonalizedPageRank", "processFollowsMutesReports"],
+        "low": ["exportKind30382", "npubManager", "systemStateGatherer"]
+      }
+    }
+  },
+
+  "structuredLogging": {
+    "phase1Complete": ["processCustomer"],
+    "phase2Candidates": {
+      "owner": [
+        "calculateOwnerGrapeRank",
+        "calculateOwnerPageRank",
+        "syncWoT"
+      ],
+      "customer": [
+        "calculateCustomerGrapeRank",
+        "calculateCustomerPageRank", 
+        "processFollowsMutesReports"
+      ]
+    },
+    "phase3Candidates": {
+      "customer": [
+        "updateAllScoresForSingleCustomer",
+        "exportKind30382",
+        "calculateCustomerHops"
+      ],
+      "owner": [
+        "calculateOwnerHops"
+      ],
+      "maintenance": [
+        "npubManager"
+      ]
+    }
+  },
+
+  "monitoring": {
+    "logFiles": {
+      "processCustomer": "processCustomer.log",
+      "calculatePersonalizedGrapeRank": "calculatePersonalizedGrapeRank.log",
+      "processFollowsMutesReports": "processFollowsMutesReports.log",
+      "syncWoT": "syncWoT.log"
+    },
+    "structuredEvents": {
+      "eventsFile": "taskQueue/events.jsonl",
+      "stateFile": "taskQueue/fullSystemState.json"
+    }
+  }
+}
