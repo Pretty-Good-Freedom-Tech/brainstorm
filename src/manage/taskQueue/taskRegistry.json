@@ -386,7 +386,123 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 6 child tasks (verified counts and inputs for follows/mutes/reports)"
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 6 child tasks (verified counts and inputs for follows/mutes/reports)",
+      "children": [
+        "calculateVerifiedFollowerCounts",
+        "calculateVerifiedMuterCounts",
+        "calculateVerifiedReporterCounts",
+        "calculateFollowerInputs",
+        "calculateMuterInputs",
+        "calculateReporterInputs"
+      ]
+    },
+
+    "calculateVerifiedFollowerCounts": {
+      "name": "Calculate Verified Follower Counts",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates verified follower counts for a specific customer",
+      "scripts": [
+        "src/algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh"
+      ],
+      "parent": "processCustomerFollowsMutesReports",
+      "children": [],
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
+    },
+
+    "calculateVerifiedMuterCounts": {
+      "name": "Calculate Verified Muter Counts",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates verified muter counts for a specific customer",
+      "scripts": [
+        "src/algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh"
+      ],
+      "parent": "processCustomerFollowsMutesReports",
+      "children": [],
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific verified muter counts calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateVerifiedReporterCounts": {
+      "name": "Calculate Verified Reporter Counts",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates verified reporter counts for a specific customer",
+      "scripts": [
+        "src/algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh"
+      ],
+      "parent": "processCustomerFollowsMutesReports",
+      "children": [],
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific verified reporter counts calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateFollowerInputs": {
+      "name": "Calculate Follower Inputs",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates follower inputs for a specific customer",
+      "scripts": [
+        "src/algos/customers/follows-mutes-reports/calculateFollowerInputs.sh"
+      ],
+      "parent": "processCustomerFollowsMutesReports",
+      "children": [],
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific follower inputs calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateMuterInputs": {
+      "name": "Calculate Muter Inputs",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates muter inputs for a specific customer",
+      "scripts": [
+        "src/algos/customers/follows-mutes-reports/calculateMuterInputs.sh"
+      ],
+      "parent": "processCustomerFollowsMutesReports",
+      "children": [],
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific muter inputs calculation, candidate for Phase 2 structured events"
+    },
+
+    "calculateReporterInputs": {
+      "name": "Calculate Reporter Inputs",
+      "category": "algorithms",
+      "type": "calculation",
+      "description": "Calculates reporter inputs for a specific customer",
+      "scripts": [
+        "src/algos/customers/follows-mutes-reports/calculateReporterInputs.sh"
+      ],
+      "parent": "processCustomerFollowsMutesReports",
+      "children": [],
+      "scope": "customer",
+      "priority": "medium",
+      "frequency": "per-customer",
+      "status": "active",
+      "structuredLogging": false,
+      "notes": "Customer-specific reporter inputs calculation, candidate for Phase 2 structured events"
     },
 
     "exportCustomerKind30382": {

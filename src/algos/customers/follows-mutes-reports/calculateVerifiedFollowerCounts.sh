@@ -5,6 +5,9 @@
 
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
+# Source structured logging utilities
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 # Check if customer_pubkey, customer_id, and customer_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
@@ -46,6 +49,14 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 echo "$(date): Starting calculateVerifiedFollowerCounts"
 echo "$(date): Starting calculateVerifiedFollowerCounts" >> ${LOG_FILE}
 
+# Emit structured event for task start
+emit_task_event "TASK_START" "calculateVerifiedFollowerCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "influence_cutoff=$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF" \
+    "message=Starting verified follower counts calculation"
+
 CYPHER1_TEST="
 MATCH (followee:NostrUser)<-[f:FOLLOWS]-(follower:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(followerCard:NostrUserWotMetricsCard {customer_id: 1})
 WHERE followerCard.observee_pubkey = follower.pubkey AND followerCard.influence > 0.01
@@ -72,11 +83,37 @@ WHERE verifiedFollowerCount = 0
 SET followeeCard.verifiedFollowerCount = 0
 RETURN COUNT(followeeCard) AS numCardsUpdated"
 
+# Emit structured event for Phase 1 start
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=nonzero_counts" \
+    "phase=1" \
+    "influence_cutoff=$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF" \
+    "message=Calculating non-zero verified follower counts"
+
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedFollowerCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedFollowerCount)" >> ${LOG_FILE}
+
+# Emit structured event for Phase 1 completion
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=nonzero_counts_complete" \
+    "phase=1" \
+    "users_updated=$numUsersUpdated" \
+    "message=Completed non-zero verified follower counts calculation"
+
+# Emit structured event for Phase 2 start
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=zero_counts" \
+    "phase=2" \
+    "message=Setting zero verified follower counts for remaining users"
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
 numUsersUpdated="${cypherResults:16}"
@@ -84,5 +121,25 @@ numUsersUpdated="${cypherResults:16}"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedFollowerCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedFollowerCount)" >> ${LOG_FILE}
 
+# Emit structured event for Phase 2 completion
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=zero_counts_complete" \
+    "phase=2" \
+    "users_updated=$numUsersUpdated" \
+    "message=Completed zero verified follower counts assignment"
+
 echo "$(date): Finished calculateVerifiedFollowerCounts"
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "calculateVerifiedFollowerCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "status=success" \
+    "phases_completed=2" \
+    "influence_cutoff=$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF" \
+    "algorithm=verified_follower_counts" \
+    "message=Verified follower counts calculation completed successfully"
 echo "$(date): Finished calculateVerifiedFollowerCounts" >> ${LOG_FILE}
