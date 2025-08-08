@@ -5,6 +5,9 @@
 
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
+# Source structured logging utilities
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 # Check if customer_pubkey, customer_id, and customer_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
@@ -40,6 +43,13 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 
 echo "$(date): Starting calculateFollowerInputs"
 echo "$(date): Starting calculateFollowerInputs" >> ${LOG_FILE}
+
+# Emit structured event for task start
+emit_task_event "TASK_START" "calculateFollowerInputs" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "message=Starting follower inputs calculation"
 
 set -e  # Exit on error
 
@@ -119,11 +129,37 @@ SET followeeCard.followerInput = followerInput
 RETURN COUNT(followeeCard) AS numCardsUpdated
 "
 
+# Emit structured event for calculation start
+emit_task_event "PROGRESS" "calculateFollowerInputs" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=influence_calculation" \
+    "message=Calculating follower influence inputs for all users"
+
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated"
 echo "$(date): numUsersUpdated: $numUsersUpdated" >> ${LOG_FILE}
 
+# Emit structured event for calculation completion
+emit_task_event "PROGRESS" "calculateFollowerInputs" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=influence_calculation_complete" \
+    "users_updated=$numUsersUpdated" \
+    "message=Completed follower influence inputs calculation"
+
 echo "$(date): Finished calculateFollowerInputs"
-echo "$(date): Finished calculateFollowerInputs" >> ${LOG_FILE}  
+echo "$(date): Finished calculateFollowerInputs" >> ${LOG_FILE}
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "calculateFollowerInputs" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "status=success" \
+    "users_updated=$numUsersUpdated" \
+    "algorithm=follower_inputs" \
+    "calculation_type=influence_aggregation" \
+    "message=Follower inputs calculation completed successfully"  

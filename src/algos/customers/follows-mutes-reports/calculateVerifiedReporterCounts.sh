@@ -5,6 +5,9 @@
 
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
+# Source structured logging utilities
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 # Check if customer_pubkey, customer_id, and customer_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
@@ -46,6 +49,14 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 echo "$(date): Starting calculateVerifiedReporterCounts"
 echo "$(date): Starting calculateVerifiedReporterCounts" >> ${LOG_FILE}
 
+# Emit structured event for task start
+emit_task_event "TASK_START" "calculateVerifiedReporterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "influence_cutoff=$VERIFIED_REPORTERS_INFLUENCE_CUTOFF" \
+    "message=Starting verified reporter counts calculation"
+
 CYPHER1="
 MATCH (reportee:NostrUser)<-[r:REPORTS]-(reporter:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(reporterCard:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
 WHERE reporterCard.observee_pubkey = reporter.pubkey AND reporterCard.influence > $VERIFIED_REPORTERS_INFLUENCE_CUTOFF
@@ -64,11 +75,37 @@ WHERE verifiedReporterCount = 0
 SET reporteeCard.verifiedReporterCount = 0
 RETURN COUNT(reporteeCard) AS numCardsUpdated"
 
+# Emit structured event for Phase 1 start
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=nonzero_counts" \
+    "phase=1" \
+    "influence_cutoff=$VERIFIED_REPORTERS_INFLUENCE_CUTOFF" \
+    "message=Calculating non-zero verified reporter counts"
+
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedReporterCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedReporterCount)" >> ${LOG_FILE}
+
+# Emit structured event for Phase 1 completion
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=nonzero_counts_complete" \
+    "phase=1" \
+    "users_updated=$numUsersUpdated" \
+    "message=Completed non-zero verified reporter counts calculation"
+
+# Emit structured event for Phase 2 start
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=zero_counts" \
+    "phase=2" \
+    "message=Setting zero verified reporter counts for remaining users"
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
 numUsersUpdated="${cypherResults:16}"
@@ -76,5 +113,25 @@ numUsersUpdated="${cypherResults:16}"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedReporterCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedReporterCount)" >> ${LOG_FILE}
 
+# Emit structured event for Phase 2 completion
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=zero_counts_complete" \
+    "phase=2" \
+    "users_updated=$numUsersUpdated" \
+    "message=Completed zero verified reporter counts assignment"
+
 echo "$(date): Finished calculateVerifiedReporterCounts"
 echo "$(date): Finished calculateVerifiedReporterCounts" >> ${LOG_FILE}
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "calculateVerifiedReporterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "status=success" \
+    "phases_completed=2" \
+    "influence_cutoff=$VERIFIED_REPORTERS_INFLUENCE_CUTOFF" \
+    "algorithm=verified_reporter_counts" \
+    "message=Verified reporter counts calculation completed successfully"

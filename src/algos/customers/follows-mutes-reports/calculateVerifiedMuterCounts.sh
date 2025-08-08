@@ -5,6 +5,9 @@
 
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
+# Source structured logging utilities
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 # Check if customer_pubkey, customer_id, and customer_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
@@ -46,6 +49,14 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 echo "$(date): Starting calculateVerifiedMuterCounts"
 echo "$(date): Starting calculateVerifiedMuterCounts" >> ${LOG_FILE}
 
+# Emit structured event for task start
+emit_task_event "TASK_START" "calculateVerifiedMuterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "influence_cutoff=$VERIFIED_MUTERS_INFLUENCE_CUTOFF" \
+    "message=Starting verified muter counts calculation"
+
 CYPHER1="
 MATCH (mutee:NostrUser)<-[m:MUTES]-(muter:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(muterCard:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
 WHERE muterCard.observee_pubkey = muter.pubkey AND muterCard.influence > $VERIFIED_MUTERS_INFLUENCE_CUTOFF
@@ -64,11 +75,37 @@ WHERE verifiedMuterCount = 0
 SET muteeCard.verifiedMuterCount = 0
 RETURN COUNT(muteeCard) AS numCardsUpdated"
 
+# Emit structured event for Phase 1 start
+emit_task_event "PROGRESS" "calculateVerifiedMuterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=nonzero_counts" \
+    "phase=1" \
+    "influence_cutoff=$VERIFIED_MUTERS_INFLUENCE_CUTOFF" \
+    "message=Calculating non-zero verified muter counts"
+
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
 
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedMuterCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedMuterCount)" >> ${LOG_FILE}
+
+# Emit structured event for Phase 1 completion
+emit_task_event "PROGRESS" "calculateVerifiedMuterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=nonzero_counts_complete" \
+    "phase=1" \
+    "users_updated=$numUsersUpdated" \
+    "message=Completed non-zero verified muter counts calculation"
+
+# Emit structured event for Phase 2 start
+emit_task_event "PROGRESS" "calculateVerifiedMuterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=zero_counts" \
+    "phase=2" \
+    "message=Setting zero verified muter counts for remaining users"
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
 numUsersUpdated="${cypherResults:16}"
@@ -76,5 +113,25 @@ numUsersUpdated="${cypherResults:16}"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedMuterCount)"
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedMuterCount)" >> ${LOG_FILE}
 
+# Emit structured event for Phase 2 completion
+emit_task_event "PROGRESS" "calculateVerifiedMuterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_name=$CUSTOMER_NAME" \
+    "step=zero_counts_complete" \
+    "phase=2" \
+    "users_updated=$numUsersUpdated" \
+    "message=Completed zero verified muter counts assignment"
+
 echo "$(date): Finished calculateVerifiedMuterCounts"
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "calculateVerifiedMuterCounts" \
+    "customer_id=$CUSTOMER_ID" \
+    "customer_pubkey=$CUSTOMER_PUBKEY" \
+    "customer_name=$CUSTOMER_NAME" \
+    "status=success" \
+    "phases_completed=2" \
+    "influence_cutoff=$VERIFIED_MUTERS_INFLUENCE_CUTOFF" \
+    "algorithm=verified_muter_counts" \
+    "message=Verified muter counts calculation completed successfully"
 echo "$(date): Finished calculateVerifiedMuterCounts" >> ${LOG_FILE}

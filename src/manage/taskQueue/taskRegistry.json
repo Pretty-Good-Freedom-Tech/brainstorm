@@ -429,8 +429,8 @@
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific verified muter counts calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
     },
 
     "calculateVerifiedReporterCounts": {
@@ -447,8 +447,8 @@
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific verified reporter counts calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
     },
 
     "calculateFollowerInputs": {
@@ -465,8 +465,8 @@
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific follower inputs calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
     "calculateMuterInputs": {
@@ -483,8 +483,8 @@
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific muter inputs calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
     "calculateReporterInputs": {
@@ -501,8 +501,8 @@
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific reporter inputs calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
     "exportCustomerKind30382": {
