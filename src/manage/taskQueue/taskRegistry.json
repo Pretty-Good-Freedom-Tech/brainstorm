@@ -6,6 +6,7 @@
   "taskCategories": {
     "orchestration": "Top-level task coordination and scheduling",
     "customer": "Customer-specific processing tasks", 
+    "owner": "Owner-specific tasks not relevant to customers",
     "network": "Network data synchronization and updates",
     "algorithms": "Trust metric and ranking calculations",
     "export": "Data export and API preparation",
@@ -15,8 +16,7 @@
   "tasks": {
     "processAllTasks": {
       "name": "Process All Tasks",
-      "category": "orchestration",
-      "type": "orchestrator",
+      "categories": ["orchestration"],
       "description": "Legacy sequential orchestrator for all background tasks",
       "scripts": [
         "src/manage/processAllTasks.sh"
@@ -45,8 +45,7 @@
 
     "taskQueueManager": {
       "name": "Task Queue Manager", 
-      "category": "orchestration",
-      "type": "orchestrator",
+      "categories": ["orchestration"],
       "description": "New priority-based task orchestrator",
       "scripts": [
         "src/manage/taskQueue/taskQueueManager.sh"
@@ -64,8 +63,7 @@
 
     "taskScheduler": {
       "name": "Task Scheduler",
-      "category": "orchestration", 
-      "type": "scheduler",
+      "categories": ["orchestration"], 
       "description": "Evaluates system state and queues tasks by priority",
       "scripts": [
         "src/manage/taskQueue/taskScheduler.js"
@@ -78,9 +76,8 @@
 
     "taskExecutor": {
       "name": "Task Executor",
-      "category": "orchestration",
-      "type": "executor", 
-      "description": "Executes highest priority task from queue",
+      "categories": ["orchestration"],
+      "description": "Executes queued tasks based on priority and dependencies",
       "scripts": [
         "src/manage/taskQueue/taskExecutor.sh"
       ],
@@ -92,9 +89,8 @@
 
     "systemStateGatherer": {
       "name": "System State Gatherer",
-      "category": "orchestration",
-      "type": "monitor",
-      "description": "Collects comprehensive system state for dashboard and monitoring",
+      "categories": ["orchestration"],
+      "description": "Collects system state and task completion status for dashboard and monitoring",
       "scripts": [
         "src/manage/taskQueue/systemStateGatherer.js"
       ],
@@ -106,9 +102,8 @@
 
     "neo4jConstraintsAndIndexes": {
       "name": "Neo4j Constraints and Indexes",
-      "category": "setup",
-      "type": "maintenance",
-      "description": "Ensures Neo4j constraints and indexes are properly configured",
+      "categories": ["maintenance", "setup"],
+      "description": "Ensures Neo4j database has required constraints and indexes are properly configured",
       "scripts": [
         "setup/neo4jConstraintsAndIndexes.sh"
       ],
@@ -122,8 +117,7 @@
 
     "syncWoT": {
       "name": "Sync Web of Trust",
-      "category": "network",
-      "type": "sync",
+      "categories": ["network"],
       "description": "Synchronizes Web of Trust data from relays",
       "scripts": [
         "src/manage/negentropySync/syncWoT.sh"
@@ -140,8 +134,7 @@
 
     "callBatchTransferIfNeeded": {
       "name": "Call Batch Transfer If Needed",
-      "category": "data",
-      "type": "transfer",
+      "categories": ["network"],
       "description": "Conditionally executes batch data transfer operations",
       "scripts": [
         "src/manage/batchTransfer/callBatchTransferIfNeeded.sh"
@@ -156,8 +149,7 @@
 
     "reconciliation": {
       "name": "Data Reconciliation",
-      "category": "data",
-      "type": "reconciliation",
+      "categories": ["network"],
       "description": "Reconciles data consistency between systems",
       "scripts": [
         "src/pipeline/reconciliation/reconciliation.sh"
@@ -172,8 +164,7 @@
 
     "processNpubsUpToMaxNumBlocks": {
       "name": "Process Npubs Up To Max Blocks",
-      "category": "maintenance",
-      "type": "npub",
+      "categories": ["maintenance"],
       "description": "Processes npub generation up to maximum number of blocks",
       "scripts": [
         "src/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
@@ -188,9 +179,8 @@
 
     "processAllActiveCustomers": {
       "name": "Process All Active Customers",
-      "category": "customer",
-      "type": "batch",
-      "description": "Processes all active customers sequentially",
+      "categories": ["orchestration", "customer"],
+      "description": "Processes all active customers by calling processCustomer.sh for each",
       "scripts": [
         "src/algos/customers/processAllActiveCustomers.sh"
       ],
@@ -198,16 +188,17 @@
       "children": [
         "processCustomer"
       ],
-      "priority": "high", 
-      "frequency": "daily",
+      "scope": "global",
+      "priority": "high",
+      "frequency": "per-execution",
       "status": "active",
-      "estimatedDuration": "2-8 hours"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for each customer processed, PROGRESS events for discovery/summary/cleanup phases"
     },
 
     "processCustomer": {
-      "name": "Process Single Customer",
-      "category": "customer",
-      "type": "individual",
+      "name": "Process Customer",
+      "categories": ["customer"],
       "description": "Complete processing pipeline for a single customer",
       "scripts": [
         "src/algos/customers/processCustomer.sh"
@@ -215,7 +206,8 @@
       "parent": "processAllActiveCustomers",
       "children": [
         "prepareNeo4jForCustomerData",
-        "updateAllScoresForSingleCustomer"
+        "updateAllScoresForSingleCustomer",
+        "exportKind30382"
       ],
       "scope": "customer",
       "priority": "high",
@@ -228,8 +220,7 @@
 
     "prepareNeo4jForCustomerData": {
       "name": "Prepare Neo4j for Customer Data",
-      "category": "customer",
-      "type": "preparation",
+      "categories": ["customer", "maintenance"],
       "description": "Preliminary steps for customer data processing, common to all customers",
       "scripts": [
         "src/cns/prepareNeo4jForCustomerData.sh"
@@ -244,8 +235,7 @@
 
     "updateAllScoresForSingleCustomer": {
       "name": "Update All Scores for Single Customer",
-      "category": "customer",
-      "type": "scores",
+      "categories": ["customer", "algorithms"],
       "description": "Updates all trust scores for a single customer",
       "scripts": [
         "src/algos/customers/updateAllScoresForSingleCustomer.sh"
@@ -270,13 +260,13 @@
 
     "calculateOwnerGrapeRank": {
       "name": "Calculate Owner GrapeRank",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "owner"],
       "description": "Calculates personalized GrapeRank scores for the instance owner",
       "scripts": [
         "src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
         "src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh"
       ],
+      "parent": "processAllTasks",
       "scope": "owner",
       "priority": "medium",
       "frequency": "daily",
@@ -289,8 +279,7 @@
 
     "calculateCustomerGrapeRank": {
       "name": "Calculate Customer GrapeRank",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates personalized GrapeRank scores for a specific customer",
       "scripts": [
         "src/algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh"
@@ -308,12 +297,12 @@
 
     "calculateOwnerPageRank": {
       "name": "Calculate Owner PageRank",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "owner"],
       "description": "Calculates personalized PageRank scores for the instance owner",
       "scripts": [
         "src/algos/calculatePersonalizedPageRank.sh"
       ],
+      "parent": "processAllTasks",
       "scope": "owner",
       "priority": "medium",
       "frequency": "daily",
@@ -324,8 +313,7 @@
 
     "calculateCustomerPageRank": {
       "name": "Calculate Customer PageRank",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates personalized PageRank scores for a customer",
       "scripts": [
         "src/algos/customers/personalizedPageRank.sh"
@@ -342,12 +330,12 @@
 
     "calculateOwnerHops": {
       "name": "Calculate Owner Hops",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "owner"],
       "description": "Calculates hop distances from the instance owner",
       "scripts": [
         "src/algos/calculateHops.sh"
       ],
+      "parent": "processAllTasks",
       "scope": "owner",
       "priority": "low",
       "frequency": "weekly",
@@ -358,8 +346,7 @@
 
     "calculateCustomerHops": {
       "name": "Calculate Customer Hops",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates hop distances for a specific customer",
       "scripts": [
         "src/algos/customers/calculateHops.sh"
@@ -375,8 +362,7 @@
 
     "processCustomerFollowsMutesReports": {
       "name": "Process Customer Follows, Mutes, and Reports",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Processes follows, mutes, and reports data for a specific customer",
       "scripts": [
         "src/algos/customers/follows-mutes-reports/processFollowsMutesReports.sh"
@@ -400,8 +386,7 @@
 
     "calculateVerifiedFollowerCounts": {
       "name": "Calculate Verified Follower Counts",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates verified follower counts for a specific customer",
       "scripts": [
         "src/algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh"
@@ -418,8 +403,7 @@
 
     "calculateVerifiedMuterCounts": {
       "name": "Calculate Verified Muter Counts",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates verified muter counts for a specific customer",
       "scripts": [
         "src/algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh"
@@ -436,8 +420,7 @@
 
     "calculateVerifiedReporterCounts": {
       "name": "Calculate Verified Reporter Counts",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates verified reporter counts for a specific customer",
       "scripts": [
         "src/algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh"
@@ -454,8 +437,7 @@
 
     "calculateFollowerInputs": {
       "name": "Calculate Follower Inputs",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates follower inputs for a specific customer",
       "scripts": [
         "src/algos/customers/follows-mutes-reports/calculateFollowerInputs.sh"
@@ -472,8 +454,7 @@
 
     "calculateMuterInputs": {
       "name": "Calculate Muter Inputs",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates muter inputs for a specific customer",
       "scripts": [
         "src/algos/customers/follows-mutes-reports/calculateMuterInputs.sh"
@@ -490,8 +471,7 @@
 
     "calculateReporterInputs": {
       "name": "Calculate Reporter Inputs",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "customer"],
       "description": "Calculates reporter inputs for a specific customer",
       "scripts": [
         "src/algos/customers/follows-mutes-reports/calculateReporterInputs.sh"
@@ -508,8 +488,7 @@
 
     "exportCustomerKind30382": {
       "name": "Export Customer Kind 30382",
-      "category": "export",
-      "type": "nip85",
+      "categories": ["export", "customer"],
       "description": "Exports Kind 30382 NIP-85 data for a specific customer",
       "scripts": [
         "src/algos/customers/nip85/publishNip85.sh"
@@ -525,8 +504,7 @@
 
     "processOwnerFollowsMutesReports": {
       "name": "Process Owner Follows, Mutes, and Reports",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "owner"],
       "description": "Processes follows, mutes, and reports data for the instance owner",
       "scripts": [
         "src/algos/follows-mutes-reports/processFollowsMutesReports.sh"
@@ -542,8 +520,7 @@
 
     "calculateReportScores": {
       "name": "Calculate Report Scores",
-      "category": "algorithms",
-      "type": "calculation",
+      "categories": ["algorithms", "owner"],
       "description": "Calculates report scores for the system",
       "scripts": [
         "src/algos/reports/calculateReportScores.sh"
@@ -558,8 +535,7 @@
 
     "exportWhitelist": {
       "name": "Export Whitelist",
-      "category": "export",
-      "type": "whitelist",
+      "categories": ["export", "owner"],
       "description": "Exports whitelist data for the system",
       "scripts": [
         "src/algos/exportWhitelist.sh"
@@ -574,8 +550,7 @@
 
     "publishOwnerNip85": {
       "name": "Publish Owner NIP-85",
-      "category": "export",
-      "type": "nip85",
+      "categories": ["export", "owner"],
       "description": "Publishes NIP-85 data for the instance owner",
       "scripts": [
         "src/algos/nip85/publishNip85.sh"
@@ -590,8 +565,7 @@
 
     "exportKind30382": {
       "name": "Export Kind 30382 Events",
-      "category": "export",
-      "type": "export",
+      "categories": ["export", "customer"],
       "description": "Exports Kind 30382 events for a customer",
       "scripts": [
         "src/algos/customers/nip85/publishNip85.sh"
@@ -604,8 +578,7 @@
 
     "npubManager": {
       "name": "Npub Manager",
-      "category": "maintenance",
-      "type": "utility",
+      "categories": ["maintenance"],
       "description": "Ensures all NostrUser nodes have npub properties",
       "scripts": [
         "src/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
@@ -622,8 +595,7 @@
 
     "queryMissingNpubs": {
       "name": "Query Missing Npubs",
-      "category": "maintenance",
-      "type": "query",
+      "categories": ["maintenance"],
       "description": "Queries Neo4j for NostrUsers missing npub property",
       "scripts": [
         "src/manage/nostrUsers/queryMissingNpubs.sh"
@@ -636,8 +608,7 @@
 
     "generateNpubs": {
       "name": "Generate Npubs",
-      "category": "maintenance", 
-      "type": "generation",
+      "categories": ["maintenance"], 
       "description": "Generates npubs using nip19.npubEncode",
       "scripts": [
         "src/manage/nostrUsers/generateNpubs.js"
@@ -650,8 +621,7 @@
 
     "updateNpubsInNeo4j": {
       "name": "Update Npubs in Neo4j",
-      "category": "maintenance",
-      "type": "update",
+      "categories": ["maintenance"],
       "description": "Updates Neo4j nodes with generated npubs",
       "scripts": [
         "src/manage/nostrUsers/updateNpubsInNeo4j.sh"

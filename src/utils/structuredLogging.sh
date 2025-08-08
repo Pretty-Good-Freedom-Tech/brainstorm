@@ -6,11 +6,25 @@
 # Usage:
 #   source /path/to/structuredLogging.sh
 #   log_structured "INFO" "Script started" "script_name=processCustomer"
-#   emit_task_event "TASK_START" "processCustomer" "$CUSTOMER_PUBKEY" '{"customerId":"'$CUSTOMER_ID'"}'
+#   emit_task_event "TASK_START" "processCustomer" "$CUSTOMER_PUBKEY" '{"customerId":"'$CUSTOMER_ID'"}''
+#
+# Configuration Options:
+#   BRAINSTORM_STRUCTURED_LOGGING=true|false    # Enable/disable all structured logging
+#   BRAINSTORM_HUMAN_LOGS=true|false           # Enable/disable human-readable structured.log
+#   BRAINSTORM_HUMAN_LOG_VERBOSITY=MINIMAL|NORMAL|VERBOSE  # Control human log verbosity
+#   BRAINSTORM_LOG_LEVEL=ERROR|WARN|INFO|DEBUG  # Minimum log level to output
+#   BRAINSTORM_EVENTS_MAX_SIZE=10000            # Max lines in events.jsonl before rotation
+#
+# Verbosity Levels:
+#   MINIMAL: Only errors and critical task events (TASK_START/END/ERROR)
+#   NORMAL:  Most events except verbose PROGRESS events (default)
+#   VERBOSE: All events including detailed PROGRESS events
 
 # Configuration
 BRAINSTORM_LOG_LEVEL=${BRAINSTORM_LOG_LEVEL:-"INFO"}
 BRAINSTORM_STRUCTURED_LOGGING=${BRAINSTORM_STRUCTURED_LOGGING:-"true"}
+BRAINSTORM_HUMAN_LOGS=${BRAINSTORM_HUMAN_LOGS:-"true"}
+BRAINSTORM_HUMAN_LOG_VERBOSITY=${BRAINSTORM_HUMAN_LOG_VERBOSITY:-"NORMAL"}
 BRAINSTORM_EVENTS_MAX_SIZE=${BRAINSTORM_EVENTS_MAX_SIZE:-10000}
 
 # Ensure required directories exist
@@ -48,6 +62,40 @@ should_log_level() {
     return 1
 }
 
+# Check if human logs should be written based on verbosity and event type
+# Usage: should_write_human_log "EVENT_TYPE" "LOG_LEVEL"
+should_write_human_log() {
+    local event_type="$1"
+    local log_level="${2:-INFO}"
+    
+    # If human logs are disabled, never write
+    if [[ "$BRAINSTORM_HUMAN_LOGS" != "true" ]]; then
+        return 1
+    fi
+    
+    # Check verbosity level
+    case "$BRAINSTORM_HUMAN_LOG_VERBOSITY" in
+        "MINIMAL")
+            # Only log errors and critical task events
+            [[ "$log_level" == "ERROR" || "$event_type" =~ ^(TASK_START|TASK_END|TASK_ERROR)$ ]] && return 0
+            ;;
+        "NORMAL")
+            # Log most events but skip some verbose progress events
+            [[ "$event_type" != "PROGRESS" || "$log_level" =~ ^(WARN|ERROR)$ ]] && return 0
+            ;;
+        "VERBOSE")
+            # Log everything
+            return 0
+            ;;
+        *)
+            # Default to NORMAL behavior
+            [[ "$event_type" != "PROGRESS" || "$log_level" =~ ^(WARN|ERROR)$ ]] && return 0
+            ;;
+    esac
+    
+    return 1
+}
+
 # Structured logging function
 # Usage: log_structured "LEVEL" "MESSAGE" "key1=value1 key2=value2"
 log_structured() {
@@ -75,8 +123,8 @@ log_structured() {
     # Output to console
     echo "$structured_entry"
     
-    # Write to structured log file if enabled
-    if [[ "$BRAINSTORM_STRUCTURED_LOGGING" == "true" ]]; then
+    # Write to structured log file if both structured logging and human logs are enabled
+    if [[ "$BRAINSTORM_STRUCTURED_LOGGING" == "true" && "$BRAINSTORM_HUMAN_LOGS" == "true" ]]; then
         echo "$structured_entry" >> "$STRUCTURED_LOG_FILE"
     fi
 }
@@ -123,8 +171,10 @@ EOF
     # Rotate events file if it gets too large
     rotate_events_file_if_needed
     
-    # Also log as structured message for human readability
-    log_info "Task event: $event_type $task_name" "target=$target pid=$pid"
+    # Also log as structured message for human readability (respecting verbosity settings)
+    if should_write_human_log "$event_type" "INFO"; then
+        log_info "Task event: $event_type $task_name" "target=$target pid=$pid"
+    fi
 }
 
 # Rotate events file if it exceeds max size
