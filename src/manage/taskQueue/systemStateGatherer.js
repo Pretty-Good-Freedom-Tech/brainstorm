@@ -63,23 +63,45 @@ class SystemStateGatherer {
             let customers = [];
             
             if (fs.existsSync(customersFile)) {
-                customers = JSON.parse(fs.readFileSync(customersFile, 'utf8'));
+                try {
+                    const rawData = fs.readFileSync(customersFile, 'utf8');
+                    const parsedData = JSON.parse(rawData);
+                    
+                    // Ensure customers is an array
+                    if (Array.isArray(parsedData)) {
+                        customers = parsedData;
+                    } else if (parsedData && typeof parsedData === 'object' && parsedData.customers && Array.isArray(parsedData.customers)) {
+                        // Handle case where data is wrapped in an object
+                        customers = parsedData.customers;
+                    } else {
+                        this.log(`Warning: customers.json contains non-array data: ${typeof parsedData}`);
+                        customers = [];
+                    }
+                } catch (parseError) {
+                    this.log(`Warning: Failed to parse customers.json: ${parseError.message}`);
+                    customers = [];
+                }
+            } else {
+                this.log('Info: customers.json not found, using empty customer list');
             }
             
             const customerStates = [];
             
-            for (const customer of customers) {
-                const customerState = {
-                    pubkey: customer.pubkey,
-                    name: customer.name,
-                    active: customer.active,
-                    signupDate: customer.signupDate,
-                    lastProcessed: await this.getCustomerLastProcessed(customer.pubkey),
-                    scoreStatus: await this.getCustomerScoreStatus(customer.pubkey),
-                    processingErrors: await this.getCustomerProcessingErrors(customer.pubkey)
-                };
-                
-                customerStates.push(customerState);
+            // Ensure customers is iterable before attempting to iterate
+            if (Array.isArray(customers)) {
+                for (const customer of customers) {
+                    const customerState = {
+                        pubkey: customer.pubkey,
+                        name: customer.name,
+                        active: customer.active,
+                        signupDate: customer.signupDate,
+                        lastProcessed: await this.getCustomerLastProcessed(customer.pubkey),
+                        scoreStatus: await this.getCustomerScoreStatus(customer.pubkey),
+                        processingErrors: await this.getCustomerProcessingErrors(customer.pubkey)
+                    };
+                    
+                    customerStates.push(customerState);
+                }
             }
             
             return {
