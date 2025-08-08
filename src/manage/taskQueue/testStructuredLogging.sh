@@ -67,10 +67,26 @@ fi
 
 echo ""
 echo "Structured events (JSONL format):"
+echo "Checking for events file: $EVENTS_FILE"
 if [[ -f "$EVENTS_FILE" ]]; then
-    cat "$EVENTS_FILE" | jq '.'
+    echo "✅ Events file exists! Size: $(wc -l < "$EVENTS_FILE") lines"
+    echo "Contents:"
+    cat "$EVENTS_FILE"
+    echo ""
+    echo "JSON validation:"
+    if cat "$EVENTS_FILE" | jq empty 2>/dev/null; then
+        echo "✅ All JSON entries are valid"
+        echo "Pretty-printed events:"
+        cat "$EVENTS_FILE" | jq '.'
+    else
+        echo "❌ JSON validation failed"
+        echo "Raw contents for debugging:"
+        cat "$EVENTS_FILE"
+    fi
 else
-    echo "No events file found"
+    echo "❌ No events file found at: $EVENTS_FILE"
+    echo "Directory contents:"
+    ls -la "$(dirname "$EVENTS_FILE")" 2>/dev/null || echo "Directory doesn't exist"
 fi
 
 echo ""
@@ -78,21 +94,35 @@ echo "=== Testing systemStateGatherer Integration ==="
 
 # Test the state gatherer's ability to read structured events
 cd "$BRAINSTORM_MODULE_BASE_DIR"
-echo "Running systemStateGatherer to test structured event parsing..."
-node src/manage/taskQueue/systemStateGatherer.js > /dev/null 2>&1
+echo "Running systemStateGatherer with test directory..."
+echo "Test log directory: $BRAINSTORM_LOG_DIR"
+echo "Expected state file: $BRAINSTORM_LOG_DIR/taskQueue/fullSystemState.json"
 
+# Set environment for systemStateGatherer
+export BRAINSTORM_LOG_DIR="$TEST_LOG_DIR"
+node src/manage/taskQueue/systemStateGatherer.js 2>&1
+
+echo ""
+echo "Checking results..."
 if [[ -f "$BRAINSTORM_LOG_DIR/taskQueue/fullSystemState.json" ]]; then
-    echo "State file generated successfully!"
+    echo "✅ State file generated successfully!"
+    echo "State file size: $(wc -c < "$BRAINSTORM_LOG_DIR/taskQueue/fullSystemState.json") bytes"
     echo "Checking for structured event data..."
     
     # Check if structured events were loaded
     if grep -q "structured_events" "$BRAINSTORM_LOG_DIR/taskQueue/fullSystemState.json"; then
         echo "✅ SUCCESS: systemStateGatherer successfully loaded structured events!"
+        echo "Structured events found in state file:"
+        jq '.structured_events' "$BRAINSTORM_LOG_DIR/taskQueue/fullSystemState.json" 2>/dev/null || echo "Could not parse structured_events"
     else
-        echo "ℹ️  INFO: No structured events found in state (expected for first run)"
+        echo "ℹ️  INFO: No structured events found in state"
+        echo "State file contents (first 500 chars):"
+        head -c 500 "$BRAINSTORM_LOG_DIR/taskQueue/fullSystemState.json"
     fi
 else
     echo "⚠️  WARNING: State file not generated"
+    echo "Directory contents:"
+    ls -la "$BRAINSTORM_LOG_DIR/taskQueue/" 2>/dev/null || echo "taskQueue directory doesn't exist"
 fi
 
 echo ""
@@ -111,8 +141,18 @@ echo "- Update more scripts (Phase 1 continuation)"
 echo "- Monitor log bloat reduction"
 echo "- Validate dashboard integration"
 
-# Cleanup test files
 echo ""
+echo "=== Final Verification ==="
+echo "Test directory: $TEST_LOG_DIR"
+echo "Events file: $EVENTS_FILE"
+echo "Directory structure:"
+find "$TEST_LOG_DIR" -type f -exec ls -la {} \; 2>/dev/null || echo "No files found"
+
+echo ""
+echo "Press Enter to clean up test files, or Ctrl+C to keep them for manual inspection..."
+read -r
+
+# Cleanup test files
 echo "Cleaning up test files..."
 echo "Removing test directory: $TEST_LOG_DIR"
 rm -rf "$TEST_LOG_DIR"
