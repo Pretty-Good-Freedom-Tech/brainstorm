@@ -1,103 +1,93 @@
 {
     "customers": {
-        "straycat": {
-            "id": 0,
-            "status": "active",
-            "directory": "straycat",
-            "name": "straycat",
-            "pubkey": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
-            "observer_id": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
-            "comments": "rigorous"
+      "straycat": {
+        "id": 0,
+        "status": "inactive",
+        "directory": "straycat",
+        "name": "straycat",
+        "pubkey": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
+        "observer_id": "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
+        "comments": "rigorous",
+        "subscription": {
+          "service_tier": "free",
+          "when_signed_up": 0,
+          "update_interval": 604800
         },
-        "cloudfodder": {
-            "id": 1,
-            "status": "active",
-            "directory": "cloudfodder",
-            "name": "cloudfodder",
-            "pubkey": "7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e",
-            "observer_id": "7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e",
-            "comments": "default"
-        },
-        "dawn": {
-            "id": 2,
-            "status": "active",
-            "directory": "dawn",
-            "name": "dawn",
-            "pubkey": "c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712",
-            "observer_id": "c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712",
-            "comments": "rigorous"
-        },
-        "manime": {
-            "id": 3,
-            "status": "active",
-            "directory": "manime",
-            "name": "manime",
-            "pubkey": "df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200",
-            "observer_id": "df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200",
-            "comments": "lax"
-        },
-        "tekkadan": {
-            "id": 4,
-            "status": "active",
-            "directory": "tekkadan",
-            "name": "tekkadan",
-            "pubkey": "50809a53fef95904513a840d4082a92b45cd5f1b9e436d9d2b92a89ce091f164",
-            "observer_id": "50809a53fef95904513a840d4082a92b45cd5f1b9e436d9d2b92a89ce091f164",
-            "comments": "default"
-        },
-        "vinney": {
-            "id": 5,
-            "status": "inactive",
-            "directory": "vinney",
-            "name": "vinney",
-            "pubkey": "2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331",
-            "observer_id": "2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331",
-            "comments": "default"
-        },
-        "shawn": {
-            "id": 6,
-            "status": "inactive",
-            "directory": "shawn",
-            "name": "shawn",
-            "pubkey": "c7eda660a6bc8270530e82b4a7712acdea2e31dc0a56f8dc955ac009efd97c86",
-            "observer_id": "c7eda660a6bc8270530e82b4a7712acdea2e31dc0a56f8dc955ac009efd97c86",
-            "comments": "default"
-        },
-        "bitcoinerrorlog": {
-            "id": 7,
-            "status": "active",
-            "directory": "bitcoinerrorlog",
-            "name": "bitcoinerrorlog",
-            "pubkey": "8cda1daafb2df8daf4500533cba69b645afa0caf7136e341be1b66a2e9e5bdd8",
-            "observer_id": "8cda1daafb2df8daf4500533cba69b645afa0caf7136e341be1b66a2e9e5bdd8",
-            "comments": "default"
-        },
-        "fiatjaf": {
-            "id": 8,
-            "status": "inactive",
-            "directory": "fiatjaf",
-            "name": "fiatjaf",
-            "pubkey": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
-            "observer_id": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
-            "comments": "default"
-        },
-        "odell": {
-            "id": 9,
-            "status": "active",
-            "directory": "odell",
-            "name": "odell",
-            "pubkey": "04c915daefee38317fa734444acee390a8269fe5810b2241e5e6dd343dfbecc9",
-            "observer_id": "04c915daefee38317fa734444acee390a8269fe5810b2241e5e6dd343dfbecc9",
-            "comments": "default"
-        },
-        "pgft": {
-            "id": 10,
-            "status": "active",
-            "directory": "pgft",
-            "name": "pgft",
-            "pubkey": "53dab47395542b4df9c9d5b32934403b751f0a882e69bb8dd8a660df3a95f02d",
-            "observer_id": "53dab47395542b4df9c9d5b32934403b751f0a882e69bb8dd8a660df3a95f02d",
-            "comments": "default"
+        "lastModified": "2025-08-07T22:25:46.540Z"
+      },
+      "cloudfodder": {
+        "id": 1,
+        "status": "active",
+        "directory": "cloudfodder",
+        "name": "cloudfodder",
+        "pubkey": "7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e",
+        "observer_id": "7cc328a08ddb2afdf9f9be77beff4c83489ff979721827d628a542f32a247c0e",
+        "comments": "default",
+        "subscription": {
+          "service_tier": "free",
+          "when_signed_up": 0,
+          "update_interval": 604800
         }
+      },
+      "dawn": {
+        "id": 2,
+        "status": "inactive",
+        "directory": "dawn",
+        "name": "dawn",
+        "pubkey": "c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712",
+        "observer_id": "c230edd34ca5c8318bf4592ac056cde37519d395c0904c37ea1c650b8ad4a712",
+        "comments": "rigorous",
+        "subscription": {
+          "service_tier": "free",
+          "when_signed_up": 0,
+          "update_interval": 604800
+        },
+        "lastModified": "2025-08-07T22:25:23.277Z"
+      },
+      "manime": {
+        "id": 3,
+        "status": "inactive",
+        "directory": "manime",
+        "name": "manime",
+        "pubkey": "df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200",
+        "observer_id": "df67f9a7e41125745cbe7acfbdcd03691780c643df7bad70f5d2108f2d4fc200",
+        "comments": "lax",
+        "subscription": {
+          "service_tier": "free",
+          "when_signed_up": 0,
+          "update_interval": 604800
+        },
+        "lastModified": "2025-08-07T22:25:06.270Z"
+      },
+      "tekkadan": {
+        "id": 4,
+        "status": "inactive",
+        "directory": "tekkadan",
+        "name": "tekkadan",
+        "pubkey": "50809a53fef95904513a840d4082a92b45cd5f1b9e436d9d2b92a89ce091f164",
+        "observer_id": "50809a53fef95904513a840d4082a92b45cd5f1b9e436d9d2b92a89ce091f164",
+        "comments": "default",
+        "subscription": {
+          "service_tier": "free",
+          "when_signed_up": 0,
+          "update_interval": 604800
+        },
+        "lastModified": "2025-08-07T22:24:15.071Z"
+      },
+      "odell": {
+        "id": 9,
+        "status": "inactive",
+        "directory": "odell",
+        "name": "odell",
+        "pubkey": "04c915daefee38317fa734444acee390a8269fe5810b2241e5e6dd343dfbecc9",
+        "observer_id": "04c915daefee38317fa734444acee390a8269fe5810b2241e5e6dd343dfbecc9",
+        "comments": "default",
+        "subscription": {
+          "service_tier": "free",
+          "when_signed_up": 0,
+          "update_interval": 604800
+        },
+        "lastModified": "2025-08-07T22:25:35.378Z"
+      }
     }
-}
+  }

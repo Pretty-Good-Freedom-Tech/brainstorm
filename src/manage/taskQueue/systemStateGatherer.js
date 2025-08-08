@@ -70,9 +70,19 @@ class SystemStateGatherer {
                     // Ensure customers is an array
                     if (Array.isArray(parsedData)) {
                         customers = parsedData;
-                    } else if (parsedData && typeof parsedData === 'object' && parsedData.customers && Array.isArray(parsedData.customers)) {
+                    } else if (parsedData && typeof parsedData === 'object' && parsedData.customers) {
                         // Handle case where data is wrapped in an object
-                        customers = parsedData.customers;
+                        if (Array.isArray(parsedData.customers)) {
+                            // customers is already an array
+                            customers = parsedData.customers;
+                        } else if (typeof parsedData.customers === 'object') {
+                            // customers is an object with named keys, convert to array
+                            customers = Object.values(parsedData.customers);
+                            this.log(`Info: Converted customers object to array (${customers.length} customers)`);
+                        } else {
+                            this.log(`Warning: customers.json customers property is not an object or array: ${typeof parsedData.customers}`);
+                            customers = [];
+                        }
                     } else {
                         this.log(`Warning: customers.json contains non-array data: ${typeof parsedData}`);
                         customers = [];
