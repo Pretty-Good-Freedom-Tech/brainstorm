@@ -1312,7 +1312,7 @@
         // Create task actions (Run Task button)
         function createTaskActions(task) {
             const isRunning = task.execution?.isRunning || false;
-            const requiresCustomer = task.arguments === 'customer';
+            const requiresCustomer = task.categories.includes('customer');
             
             let html = '<div class="task-actions">';
             
@@ -1385,7 +1385,7 @@
         // Load customers for selector
         async function loadCustomers() {
             try {
-                const response = await fetch('/api/get-all-customers');
+                const response = await fetch('/api/get-customers');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -1403,7 +1403,7 @@
                 // Render customer list
                 customerList.innerHTML = customers.map(customer => `
                     <div class="customer-item" data-pubkey="${customer.pubkey}" data-name="${customer.customerName || 'Unknown'}" onclick="selectCustomer(this)">
-                        <div class="customer-name">${customer.customerName || 'Unknown Customer'}</div>
+                        <div class="customer-name">${customer.name || 'Unknown Customer'}</div>
                         <div class="customer-pubkey">${customer.pubkey}</div>
                     </div>
                 `).join('');

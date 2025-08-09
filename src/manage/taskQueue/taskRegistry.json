@@ -136,6 +136,7 @@
       ],
       "script": "BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh",
       "arguments": false,
+      "averageDuration": 44500,
       "parent": "processAllTasks",
       "scope": "system",
       "priority": "high",
@@ -231,6 +232,7 @@
       "arguments": {
         "customer": true
       },
+      "averageDuration": 564500,
       "parent": "processAllActiveCustomers",
       "children": [
         "prepareNeo4jForCustomerData",

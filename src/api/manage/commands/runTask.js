@@ -56,8 +56,32 @@ const buildTaskCommand = (task, customerArgs = null) => {
     return { command, args };
 };
 
+// Calculate timeout based on task's average duration
+const calculateTimeout = (task) => {
+    const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes default
+    const MIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes minimum
+    const MAX_TIMEOUT_MS = 120 * 60 * 1000; // 2 hours maximum
+    
+    if (!task.averageDuration) {
+        console.log(`[RunTask] No averageDuration for ${task.name}, using default timeout: ${DEFAULT_TIMEOUT_MS / 1000}s`);
+        return DEFAULT_TIMEOUT_MS;
+    }
+    
+    // Convert averageDuration to milliseconds (assume it's in milliseconds)
+    const durationMs = task.averageDuration;
+    
+    // Add 50% buffer for safety (e.g., 4 minute task gets 6 minute timeout)
+    const timeoutMs = Math.round(durationMs * 1.5);
+    
+    // Enforce min/max bounds
+    const boundedTimeout = Math.max(MIN_TIMEOUT_MS, Math.min(MAX_TIMEOUT_MS, timeoutMs));
+    
+    console.log(`[RunTask] Task ${task.name} averageDuration: ${task.averageDuration}ms, calculated timeout: ${boundedTimeout / 1000}s`);
+    return boundedTimeout;
+};
+
 // Execute task with real-time output streaming
-const executeTask = (command, args, taskName) => {
+const executeTask = (command, args, task) => {
     return new Promise((resolve, reject) => {
         console.log(`[RunTask] Executing: ${command} ${args.join(' ')}`);
         
@@ -82,7 +106,7 @@ const executeTask = (command, args, taskName) => {
         
         childProcess.on('close', (code) => {
             const result = {
-                taskName,
+                taskName: task.name,
                 command: `${command} ${args.join(' ')}`,
                 exitCode: code,
                 stdout: stdout.trim(),
@@ -92,18 +116,18 @@ const executeTask = (command, args, taskName) => {
             };
             
             if (code === 0) {
-                console.log(`[RunTask] Task ${taskName} completed successfully`);
+                console.log(`[RunTask] Task ${task.name} completed successfully`);
                 resolve(result);
             } else {
-                console.error(`[RunTask] Task ${taskName} failed with exit code ${code}`);
+                console.error(`[RunTask] Task ${task.name} failed with exit code ${code}`);
                 resolve(result); // Still resolve, but with error info
             }
         });
         
-        process.on('error', (error) => {
-            console.error(`[RunTask] Process error for ${taskName}:`, error);
+        childProcess.on('error', (error) => {
+            console.error(`[RunTask] Process error for ${task.name}:`, error);
             reject({
-                taskName,
+                taskName: task.name,
                 command: `${command} ${args.join(' ')}`,
                 error: error.message,
                 success: false,
@@ -111,20 +135,23 @@ const executeTask = (command, args, taskName) => {
             });
         });
         
-        // Set timeout for long-running tasks (30 minutes)
+        // Set dynamic timeout based on task's average duration
+        const timeoutMs = calculateTimeout(task);
+        const timeoutMinutes = Math.round(timeoutMs / 60000);
+        
         setTimeout(() => {
-            if (!process.killed) {
-                console.warn(`[RunTask] Timeout reached for ${taskName}, terminating process`);
-                process.kill('SIGTERM');
+            if (!childProcess.killed) {
+                console.warn(`[RunTask] Timeout reached for ${task.name}, terminating process`);
+                childProcess.kill('SIGTERM');
                 reject({
-                    taskName,
+                    taskName: task.name,
                     command: `${command} ${args.join(' ')}`,
-                    error: 'Task execution timeout (30 minutes)',
+                    error: `Task execution timeout (${timeoutMinutes} minutes)`,
                     success: false,
                     timestamp: new Date().toISOString()
                 });
             }
-        }, 30 * 60 * 1000); // 30 minutes
+        }, timeoutMs);
     });
 };
 
@@ -187,13 +214,13 @@ const handleRunTask = async (req, res) => {
         
         // Execute task
         console.log(`[RunTask] Starting task: ${taskName}`);
-        const result = await executeTask(command, args, taskName);
+        const result = await executeTask(command, args, task);
         
         // Return result
         res.json({
             success: result.success,
             task: {
-                name: taskName,
+                name: task.name,
                 description: task.description,
                 categories: task.categories,
                 requiresCustomer: !!(task.arguments && task.arguments.customer)
