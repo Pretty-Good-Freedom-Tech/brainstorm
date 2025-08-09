@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const StructuredEventsAnalyzer = require('../taskDashboard/structuredEventsAnalyzer');
 
 /**
  * API endpoint to serve task registry data for the Task Explorer dashboard
@@ -26,8 +27,70 @@ async function getTaskExplorerData(req, res) {
         const taskRegistryData = fs.readFileSync(taskRegistryPath, 'utf8');
         const taskRegistry = JSON.parse(taskRegistryData);
 
+        // Initialize structured events analyzer
+        const config = {
+            BRAINSTORM_LOG_DIR: process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm',
+            BRAINSTORM_MODULE_BASE_DIR: process.env.BRAINSTORM_MODULE_BASE_DIR || path.join(__dirname, '../..')
+        };
+        const eventsAnalyzer = new StructuredEventsAnalyzer(config);
+        
+        // Load and analyze structured events
+        const events = eventsAnalyzer.loadEvents();
+        const performance = eventsAnalyzer.analyzeTaskPerformance(events);
+        const realTime = eventsAnalyzer.analyzeRealTimeProgress(events);
+        
+        // Create task execution lookup maps
+        const taskExecutionMap = new Map();
+        const taskLastRunMap = new Map();
+        
+        // Process completed tasks to build execution history
+        performance.completedTasks.forEach(task => {
+            const key = task.taskName;
+            if (!taskExecutionMap.has(key)) {
+                taskExecutionMap.set(key, {
+                    totalRuns: 0,
+                    successfulRuns: 0,
+                    failedRuns: 0,
+                    totalDuration: 0,
+                    averageDuration: 0,
+                    lastRun: null,
+                    lastStatus: null,
+                    lastDuration: null,
+                    executions: []
+                });
+            }
+            
+            const execData = taskExecutionMap.get(key);
+            execData.totalRuns++;
+            execData.totalDuration += task.duration;
+            execData.averageDuration = execData.totalDuration / execData.totalRuns;
+            execData.executions.push(task);
+            
+            if (task.success) {
+                execData.successfulRuns++;
+            } else {
+                execData.failedRuns++;
+            }
+            
+            // Update last run info if this is more recent
+            if (!execData.lastRun || new Date(task.endTime) > new Date(execData.lastRun)) {
+                execData.lastRun = task.endTime;
+                execData.lastStatus = task.success ? 'success' : 'failed';
+                execData.lastDuration = task.duration;
+            }
+        });
+        
+        // Check for currently running tasks
+        const runningTasks = new Set();
+        realTime.runningTasks?.forEach(task => {
+            runningTasks.add(task.taskName);
+        });
+
         // Transform tasks for the explorer - only process the 'tasks' section
         const tasks = Object.entries(taskRegistry.tasks || {}).map(([taskName, taskData]) => {
+            const execData = taskExecutionMap.get(taskName);
+            const isRunning = runningTasks.has(taskName);
+            
             return {
                 name: taskName,
                 description: taskData.description || '',
@@ -43,12 +106,29 @@ async function getTaskExplorerData(req, res) {
                 isOrchestrator: !!(taskData.categories && taskData.categories.includes('orchestrator')),
                 isCustomerTask: !!(taskData.categories && taskData.categories.includes('customer')),
                 isOwnerTask: !!(taskData.categories && taskData.categories.includes('owner')),
-                childCount: taskData.children ? taskData.children.length : 0
+                childCount: taskData.children ? taskData.children.length : 0,
+                // Execution data from structured logging
+                execution: {
+                    isRunning: isRunning,
+                    hasExecutionData: !!execData,
+                    totalRuns: execData?.totalRuns || 0,
+                    successfulRuns: execData?.successfulRuns || 0,
+                    failedRuns: execData?.failedRuns || 0,
+                    successRate: execData ? ((execData.successfulRuns / execData.totalRuns) * 100).toFixed(1) : null,
+                    averageDuration: execData?.averageDuration || null,
+                    averageDurationFormatted: execData ? eventsAnalyzer.formatDuration(execData.averageDuration) : null,
+                    lastRun: execData?.lastRun || null,
+                    lastRunFormatted: execData?.lastRun ? new Date(execData.lastRun).toLocaleString() : null,
+                    lastStatus: execData?.lastStatus || null,
+                    lastDuration: execData?.lastDuration || null,
+                    lastDurationFormatted: execData?.lastDuration ? eventsAnalyzer.formatDuration(execData.lastDuration) : null,
+                    timeSinceLastRun: execData?.lastRun ? getTimeSinceLastRun(execData.lastRun) : null
+                }
             };
         });
 
-        // Generate analysis statistics
-        const analysis = generateTaskAnalysis(tasks);
+        // Generate analysis statistics including execution data
+        const analysis = generateTaskAnalysis(tasks, performance, events);
 
         // Return the data
         res.json({
@@ -69,9 +149,26 @@ async function getTaskExplorerData(req, res) {
 }
 
 /**
+ * Helper function to calculate time since last run
+ */
+function getTimeSinceLastRun(lastRunTimestamp) {
+    const now = new Date();
+    const lastRun = new Date(lastRunTimestamp);
+    const diffMs = now - lastRun;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) return `${diffDays}d ago`;
+    if (diffHours > 0) return `${diffHours}h ago`;
+    if (diffMins > 0) return `${diffMins}m ago`;
+    return 'just now';
+}
+
+/**
  * Generate comprehensive analysis of the task registry
  */
-function generateTaskAnalysis(tasks) {
+function generateTaskAnalysis(tasks, performance, events) {
     const analysis = {
         totals: {
             all: tasks.length,
@@ -81,7 +178,13 @@ function generateTaskAnalysis(tasks) {
             customerTasks: tasks.filter(t => t.isCustomerTask).length,
             ownerTasks: tasks.filter(t => t.isOwnerTask).length,
             rootTasks: tasks.filter(t => !t.hasParent).length,
-            leafTasks: tasks.filter(t => !t.hasChildren).length
+            leafTasks: tasks.filter(t => !t.hasChildren).length,
+            // Execution statistics
+            withExecutionData: tasks.filter(t => t.execution.hasExecutionData).length,
+            currentlyRunning: tasks.filter(t => t.execution.isRunning).length,
+            neverRun: tasks.filter(t => !t.execution.hasExecutionData && !t.execution.isRunning).length,
+            recentlySuccessful: tasks.filter(t => t.execution.lastStatus === 'success').length,
+            recentlyFailed: tasks.filter(t => t.execution.lastStatus === 'failed').length
         },
         categories: {},
         hierarchy: {
