@@ -60,7 +60,7 @@ const executeTask = (command, args, taskName) => {
     return new Promise((resolve, reject) => {
         console.log(`[RunTask] Executing: ${command} ${args.join(' ')}`);
         
-        const process = spawn(command, args, {
+        const childProcess = spawn(command, args, {
             stdio: ['pipe', 'pipe', 'pipe'],
             env: {
                 ...process.env,
@@ -71,15 +71,15 @@ const executeTask = (command, args, taskName) => {
         let stdout = '';
         let stderr = '';
         
-        process.stdout.on('data', (data) => {
+        childProcess.stdout.on('data', (data) => {
             stdout += data.toString();
         });
         
-        process.stderr.on('data', (data) => {
+        childProcess.stderr.on('data', (data) => {
             stderr += data.toString();
         });
         
-        process.on('close', (code) => {
+        childProcess.on('close', (code) => {
             const result = {
                 taskName,
                 command: `${command} ${args.join(' ')}`,
