@@ -37,6 +37,15 @@ ensure_logging_dirs() {
     # Set global variables for event files
     EVENTS_FILE="${task_queue_dir}/events.jsonl"
     STRUCTURED_LOG_FILE="${task_queue_dir}/structured.log"
+    
+    # Ensure log files exist and have correct ownership
+    # This prevents permission issues when different processes (root vs brainstorm) create files
+    touch "$EVENTS_FILE" "$STRUCTURED_LOG_FILE" 2>/dev/null || true
+    
+    # Fix ownership if we have sudo access (for systemd processes running as root)
+    if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+        sudo chown brainstorm:brainstorm "$EVENTS_FILE" "$STRUCTURED_LOG_FILE" 2>/dev/null || true
+    fi
 }
 
 # Initialize directories and variables when script is sourced

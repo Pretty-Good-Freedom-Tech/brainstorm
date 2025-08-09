@@ -42,7 +42,8 @@ const validateCustomerArguments = (req) => {
 // Build command arguments based on task requirements
 const buildTaskCommand = (task, customerArgs = null) => {
     const baseDir = process.env.BRAINSTORM_MODULE_BASE_DIR || '/usr/local/lib/node_modules/brainstorm';
-    const scriptPath = task.script.replace('BRAINSTORM_MODULE_SRC_DIR', path.join(baseDir, 'src'));
+    const srcDir = path.join(baseDir, 'src');
+    const scriptPath = task.script.replace('BRAINSTORM_MODULE_SRC_DIR', srcDir);
     
     let command = scriptPath;
     let args = [];
