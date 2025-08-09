@@ -30,7 +30,7 @@ log_message "Starting processAllActiveCustomers"
 # Emit structured event for task start
 emit_task_event "TASK_START" "processAllActiveCustomers" \
     "message=Starting processing of all active customers" \
-    "orchestration_type=customer_iteration"
+    "orchestrator_type=customer_iteration"
 
 # Define paths
 ALGOS_DIR="${BRAINSTORM_MODULE_ALGOS_DIR}"
@@ -163,7 +163,7 @@ if [ $failed_count -gt 0 ]; then
         "total_customers=$customer_count" \
         "successful_customers=$processed_count" \
         "failed_customers=$failed_count" \
-        "orchestration_type=customer_iteration" \
+        "orchestrator_type=customer_iteration" \
         "message=Completed processing all active customers with some failures"
     exit 1
 else
@@ -172,7 +172,7 @@ else
         "total_customers=$customer_count" \
         "successful_customers=$processed_count" \
         "failed_customers=$failed_count" \
-        "orchestration_type=customer_iteration" \
+        "orchestrator_type=customer_iteration" \
         "message=Successfully completed processing all active customers"
     exit 0
 fi

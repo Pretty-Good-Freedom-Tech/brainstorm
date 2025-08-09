@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # reconciliation.sh
-# Main orchestration script for the Neo4j database reconciliation process
+# Main orchestrator script for the Neo4j database reconciliation process
 
 # Source environment configuration
 source /etc/brainstorm.conf

@@ -4,7 +4,7 @@
   "lastUpdated": "2025-08-07T21:31:00-05:00",
   
   "taskCategories": {
-    "orchestration": "Top-level task coordination and scheduling",
+    "orchestrator": "Top-level task coordination and scheduling",
     "customer": "Customer-specific processing tasks", 
     "owner": "Owner-specific tasks not relevant to customers",
     "network": "Network data synchronization and updates",
@@ -16,7 +16,7 @@
   "tasks": {
     "processAllTasks": {
       "name": "Process All Tasks",
-      "categories": ["orchestration"],
+      "categories": ["orchestrator"],
       "description": "Legacy sequential orchestrator for all background tasks",
       "scripts": [
         "src/manage/processAllTasks.sh"
@@ -40,12 +40,12 @@
       "frequency": "timer-based",
       "status": "legacy",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 12 child tasks (full pipeline orchestration). Being replaced by priority-based task queue system but retains structured logging for monitoring."
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 12 child tasks (full pipeline orchestrator). Being replaced by priority-based task queue system but retains structured logging for monitoring."
     },
 
     "taskQueueManager": {
       "name": "Task Queue Manager", 
-      "categories": ["orchestration"],
+      "categories": ["orchestrator"],
       "description": "New priority-based task orchestrator",
       "scripts": [
         "src/manage/taskQueue/taskQueueManager.sh"
@@ -63,7 +63,7 @@
 
     "taskScheduler": {
       "name": "Task Scheduler",
-      "categories": ["orchestration"], 
+      "categories": ["orchestrator"], 
       "description": "Evaluates system state and queues tasks by priority",
       "scripts": [
         "src/manage/taskQueue/taskScheduler.js"
@@ -76,7 +76,7 @@
 
     "taskExecutor": {
       "name": "Task Executor",
-      "categories": ["orchestration"],
+      "categories": ["orchestrator"],
       "description": "Executes queued tasks based on priority and dependencies",
       "scripts": [
         "src/manage/taskQueue/taskExecutor.sh"
@@ -89,7 +89,7 @@
 
     "systemStateGatherer": {
       "name": "System State Gatherer",
-      "categories": ["orchestration"],
+      "categories": ["orchestrator"],
       "description": "Collects system state and task completion status for dashboard and monitoring",
       "scripts": [
         "src/manage/taskQueue/systemStateGatherer.js"
@@ -179,7 +179,7 @@
 
     "processAllActiveCustomers": {
       "name": "Process All Active Customers",
-      "categories": ["orchestration", "customer"],
+      "categories": ["orchestrator", "customer"],
       "description": "Processes all active customers by calling processCustomer.sh for each",
       "scripts": [
         "src/algos/customers/processAllActiveCustomers.sh"
