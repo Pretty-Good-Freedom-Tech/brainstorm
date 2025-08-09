@@ -440,6 +440,18 @@
                 </div>
 
                 <div class="filter-group">
+                    <label for="execution-filter">Execution Status:</label>
+                    <select id="execution-filter" class="filter-select">
+                        <option value="">All Tasks</option>
+                        <option value="running">Currently Running</option>
+                        <option value="success">Last Run: Success</option>
+                        <option value="failed">Last Run: Failed</option>
+                        <option value="never-run">Never Run</option>
+                        <option value="has-data">Has Execution Data</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
                     <label for="search-input">Search:</label>
                     <input type="text" id="search-input" class="search-input" placeholder="Search tasks...">
                 </div>
@@ -448,6 +460,7 @@
                     <button id="tree-view-btn" class="active">Tree View</button>
                     <button id="card-view-btn">Card View</button>
                     <button id="table-view-btn">Table View</button>
+                    <button id="log-view-btn">Log Data View</button>
                 </div>
             </div>
 
@@ -474,6 +487,26 @@
                     </thead>
                     <tbody id="table-body">
                         <!-- Table rows will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="log-view" class="table-view hidden">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Status</th>
+                            <th>Total Runs</th>
+                            <th>Success Rate</th>
+                            <th>Last Run</th>
+                            <th>Last Duration</th>
+                            <th>Avg Duration</th>
+                            <th>Categories</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table-body">
+                        <!-- Log table rows will be populated here -->
                     </tbody>
                 </table>
             </div>
@@ -528,10 +561,12 @@
             document.getElementById('tree-view-btn').addEventListener('click', () => switchView('tree'));
             document.getElementById('card-view-btn').addEventListener('click', () => switchView('card'));
             document.getElementById('table-view-btn').addEventListener('click', () => switchView('table'));
+            document.getElementById('log-view-btn').addEventListener('click', () => switchView('log'));
 
             // Set up filters
             document.getElementById('category-filter').addEventListener('change', applyFilters);
             document.getElementById('structured-filter').addEventListener('change', applyFilters);
+            document.getElementById('execution-filter').addEventListener('change', applyFilters);
             document.getElementById('search-input').addEventListener('input', applyFilters);
         }
 
@@ -584,6 +619,7 @@
         function applyFilters() {
             const categoryFilter = document.getElementById('category-filter').value;
             const structuredFilter = document.getElementById('structured-filter').value;
+            const executionFilter = document.getElementById('execution-filter').value;
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
 
             filteredTasks = allTasks.filter(task => {
@@ -597,6 +633,28 @@
                     const hasStructured = task.structuredLogging === true;
                     if (structuredFilter === 'true' && !hasStructured) return false;
                     if (structuredFilter === 'false' && hasStructured) return false;
+                }
+
+                // Execution status filter
+                if (executionFilter !== '') {
+                    const exec = task.execution;
+                    switch (executionFilter) {
+                        case 'running':
+                            if (!exec || !exec.isRunning) return false;
+                            break;
+                        case 'success':
+                            if (!exec || exec.lastStatus !== 'success') return false;
+                            break;
+                        case 'failed':
+                            if (!exec || exec.lastStatus !== 'failed') return false;
+                            break;
+                        case 'never-run':
+                            if (!exec || exec.hasExecutionData || exec.isRunning) return false;
+                            break;
+                        case 'has-data':
+                            if (!exec || !exec.hasExecutionData) return false;
+                            break;
+                    }
                 }
 
                 // Search filter
@@ -628,6 +686,7 @@
             document.getElementById('tree-view').classList.add('hidden');
             document.getElementById('card-view').classList.add('hidden');
             document.getElementById('table-view').classList.add('hidden');
+            document.getElementById('log-view').classList.add('hidden');
 
             // Show selected view
             document.getElementById(`${view}-view`).classList.remove('hidden');
@@ -647,6 +706,9 @@
                     break;
                 case 'table':
                     updateTableView();
+                    break;
+                case 'log':
+                    updateLogView();
                     break;
             }
         }
@@ -789,6 +851,100 @@
                 descCell.style.overflow = 'hidden';
                 descCell.style.textOverflow = 'ellipsis';
                 descCell.style.whiteSpace = 'nowrap';
+            });
+        }
+
+        // Update log data view
+        function updateLogView() {
+            const logTableBody = document.getElementById('log-table-body');
+            logTableBody.innerHTML = '';
+
+            if (filteredTasks.length === 0) {
+                const row = logTableBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 8;
+                cell.textContent = 'No tasks match the current filters.';
+                cell.style.textAlign = 'center';
+                cell.style.padding = '2rem';
+                return;
+            }
+
+            // Sort tasks by execution data relevance (running first, then by last run time)
+            const sortedTasks = [...filteredTasks].sort((a, b) => {
+                // Running tasks first
+                if (a.execution?.isRunning && !b.execution?.isRunning) return -1;
+                if (!a.execution?.isRunning && b.execution?.isRunning) return 1;
+                
+                // Then by last run time (most recent first)
+                if (a.execution?.lastRun && b.execution?.lastRun) {
+                    return new Date(b.execution.lastRun) - new Date(a.execution.lastRun);
+                }
+                if (a.execution?.lastRun && !b.execution?.lastRun) return -1;
+                if (!a.execution?.lastRun && b.execution?.lastRun) return 1;
+                
+                // Finally by name
+                return a.name.localeCompare(b.name);
+            });
+
+            sortedTasks.forEach(task => {
+                const row = logTableBody.insertRow();
+                const exec = task.execution;
+                
+                // Task name
+                const nameCell = row.insertCell();
+                nameCell.innerHTML = `<strong>${task.name}</strong>`;
+                
+                // Status
+                const statusCell = row.insertCell();
+                statusCell.innerHTML = createExecutionBadges(exec);
+                
+                // Total runs
+                const runsCell = row.insertCell();
+                runsCell.textContent = exec?.totalRuns || '0';
+                runsCell.style.textAlign = 'center';
+                
+                // Success rate
+                const successCell = row.insertCell();
+                if (exec?.totalRuns > 0) {
+                    const rate = parseFloat(exec.successRate);
+                    successCell.textContent = `${exec.successRate}%`;
+                    successCell.style.textAlign = 'center';
+                    // Color code success rate
+                    if (rate >= 90) {
+                        successCell.style.color = '#2e7d32';
+                        successCell.style.fontWeight = 'bold';
+                    } else if (rate >= 70) {
+                        successCell.style.color = '#f57c00';
+                    } else {
+                        successCell.style.color = '#c62828';
+                        successCell.style.fontWeight = 'bold';
+                    }
+                } else {
+                    successCell.textContent = '-';
+                    successCell.style.textAlign = 'center';
+                }
+                
+                // Last run
+                const lastRunCell = row.insertCell();
+                lastRunCell.textContent = exec?.timeSinceLastRun || 'Never';
+                lastRunCell.style.textAlign = 'center';
+                if (exec?.timeSinceLastRun) {
+                    lastRunCell.title = exec.lastRunFormatted;
+                }
+                
+                // Last duration
+                const lastDurationCell = row.insertCell();
+                lastDurationCell.textContent = exec?.lastDurationFormatted || '-';
+                lastDurationCell.style.textAlign = 'center';
+                
+                // Average duration
+                const avgDurationCell = row.insertCell();
+                avgDurationCell.textContent = exec?.averageDurationFormatted || '-';
+                avgDurationCell.style.textAlign = 'center';
+                
+                // Categories
+                const categoriesCell = row.insertCell();
+                categoriesCell.innerHTML = createCategoryBadges(task.categories);
             });
         }
 
