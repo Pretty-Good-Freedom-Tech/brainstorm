@@ -129,14 +129,49 @@ console.log('');
 // Test full analyzer
 console.log('=== Full Analyzer Test ===');
 const result = analyzer.analyzeTaskExecution(rawEvents);
-const processAllActiveCustomersData = result['processAllActiveCustomers'];
 
+// Look specifically for processAllActiveCustomers
+console.log('=== processAllActiveCustomers Analysis ===');
+const processAllActiveCustomersData = result.executionData['processAllActiveCustomers'];
 if (processAllActiveCustomersData) {
-    console.log('Analyzer result for processAllActiveCustomers:');
-    console.log(JSON.stringify(processAllActiveCustomersData, null, 2));
+    console.log('Task found in execution data:');
+    console.log('  Has execution data:', processAllActiveCustomersData.hasExecutionData);
+    console.log('  Is running:', processAllActiveCustomersData.isRunning);
+    console.log('  Last status:', processAllActiveCustomersData.lastStatus);
+    console.log('  Total runs:', processAllActiveCustomersData.totalRuns);
+    console.log('  Success rate:', processAllActiveCustomersData.successRate);
+    console.log('  Last run:', processAllActiveCustomersData.lastRun);
+    console.log('  Last duration:', processAllActiveCustomersData.lastDurationFormatted);
+    console.log('  Time since last run:', processAllActiveCustomersData.timeSinceLastRun);
 } else {
-    console.log('processAllActiveCustomers NOT found in analyzer result');
-    console.log('Available tasks in result:', Object.keys(result).slice(0, 10));
+    console.log('processAllActiveCustomers NOT found in execution data');
+}
+
+// Test processCustomer specifically (should now use TASK_END after standardization)
+console.log('');
+console.log('=== processCustomer Analysis (TASK_END Standardization Test) ===');
+const processCustomerEvents = rawEvents.filter(e => e.taskName === 'processCustomer');
+console.log('processCustomer events found:', processCustomerEvents.length);
+
+if (processCustomerEvents.length > 0) {
+    console.log('Event details:');
+    processCustomerEvents.forEach((event, index) => {
+        console.log(`  ${index + 1}. ${event.eventType} at ${event.timestamp} (pid: ${event.pid})`);
+        if (event.target) console.log(`     target: ${event.target}`);
+    });
+}
+
+const processCustomerData = result.executionData['processCustomer'];
+if (processCustomerData) {
+    console.log('Analyzer result for processCustomer:');
+    console.log('  Has execution data:', processCustomerData.hasExecutionData);
+    console.log('  Is running:', processCustomerData.isRunning);
+    console.log('  Last status:', processCustomerData.lastStatus);
+    console.log('  Total runs:', processCustomerData.totalRuns);
+    console.log('  Success rate:', processCustomerData.successRate);
+    console.log('  Last duration:', processCustomerData.lastDurationFormatted);
+} else {
+    console.log('processCustomer NOT found in execution data');
 }
 
 console.log('');

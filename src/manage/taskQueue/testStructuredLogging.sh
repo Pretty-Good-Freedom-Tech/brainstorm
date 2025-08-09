@@ -36,7 +36,7 @@ echo ""
 echo "2. Testing task event emission..."
 emit_task_event "TASK_START" "testTask" "test-target" '{"testId":"001","phase":"1"}'
 sleep 1
-emit_task_event "TASK_COMPLETE" "testTask" "test-target" '{"testId":"001","exitCode":0,"phase":"1"}'
+emit_task_event "TASK_END" "testTask" "test-target" '{"testId":"001","exitCode":0,"phase":"1"}'
 
 echo ""
 
@@ -51,7 +51,7 @@ echo ""
 # Test legacy compatibility
 echo "4. Testing legacy compatibility..."
 legacy_log_with_event "$(date): Starting legacy task for test" "TASK_START" "legacyTask" "legacy-target"
-legacy_log_with_event "$(date): Finished legacy task for test" "TASK_COMPLETE" "legacyTask" "legacy-target"
+legacy_log_with_event "$(date): Finished legacy task for test" "TASK_END" "legacyTask" "legacy-target"
 
 echo ""
 

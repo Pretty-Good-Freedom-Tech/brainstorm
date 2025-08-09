@@ -140,7 +140,7 @@ class SystemStateGatherer {
             const customerEvents = structuredEvents.filter(event => 
                 event.taskName === 'processCustomer' && 
                 event.target === pubkey &&
-                event.eventType === 'TASK_COMPLETE'
+                event.eventType === 'TASK_END'
             );
             
             if (customerEvents.length > 0) {

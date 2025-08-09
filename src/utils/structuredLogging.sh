@@ -242,10 +242,10 @@ end_task_timer() {
 EOF
 )
     
-    # Emit completion event
-    local event_type="TASK_COMPLETE"
+    # Emit completion event (standardized to TASK_END)
+    local event_type="TASK_END"
     if [[ "$exit_code" != "0" ]]; then
-        event_type="TASK_FAILED"
+        event_type="TASK_ERROR"
     fi
     
     emit_task_event "$event_type" "$task_name" "$target" "$metadata"

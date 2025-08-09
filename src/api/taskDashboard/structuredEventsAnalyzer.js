@@ -218,7 +218,7 @@ class StructuredEventsAnalyzer {
             }
 
             const startEvent = session.events.find(e => e.eventType === 'TASK_START');
-            const endEvent = session.events.find(e => e.eventType === 'TASK_END');
+            const endEvent = session.events.find(e => e.eventType === 'TASK_END' || e.eventType === 'TASK_COMPLETE');
             const errorEvent = session.events.find(e => e.eventType === 'TASK_ERROR');
 
             if (startEvent) {
@@ -268,7 +268,7 @@ class StructuredEventsAnalyzer {
                 taskSessions.forEach(session => {
                     if (session.taskName === taskName) {
                         const startEvent = session.events.find(e => e.eventType === 'TASK_START');
-                        const endEvent = session.events.find(e => e.eventType === 'TASK_END');
+                        const endEvent = session.events.find(e => e.eventType === 'TASK_END' || e.eventType === 'TASK_COMPLETE');
                         const errorEvent = session.events.find(e => e.eventType === 'TASK_ERROR');
                         
                         if (startEvent && (endEvent || errorEvent)) {
@@ -326,7 +326,7 @@ class StructuredEventsAnalyzer {
         // Analyze each task session
         taskSessions.forEach(session => {
             const startEvent = session.events.find(e => e.eventType === 'TASK_START');
-            const endEvent = session.events.find(e => e.eventType === 'TASK_END');
+            const endEvent = session.events.find(e => e.eventType === 'TASK_END' || e.eventType === 'TASK_COMPLETE');
             const errorEvent = session.events.find(e => e.eventType === 'TASK_ERROR');
 
             if (startEvent && (endEvent || errorEvent)) {
@@ -408,11 +408,11 @@ class StructuredEventsAnalyzer {
                     status: 'running',
                     progress: []
                 });
-            } else if (event.eventType === 'TASK_END' || event.eventType === 'TASK_ERROR') {
+            } else if (event.eventType === 'TASK_END' || event.eventType === 'TASK_COMPLETE' || event.eventType === 'TASK_ERROR') {
                 if (runningTasks.has(sessionKey)) {
                     const task = runningTasks.get(sessionKey);
                     task.endTime = event.timestamp;
-                    task.status = event.eventType === 'TASK_END' ? 'completed' : 'failed';
+                    task.status = (event.eventType === 'TASK_END' || event.eventType === 'TASK_COMPLETE') ? 'completed' : 'failed';
                     task.duration = new Date(event.timestamp) - new Date(task.startTime);
                     runningTasks.delete(sessionKey);
                 }
@@ -473,7 +473,7 @@ class StructuredEventsAnalyzer {
             if (event.eventType === 'TASK_START') {
                 customer.totalTasks += 1;
                 customer.status = 'processing';
-            } else if (event.eventType === 'TASK_END') {
+            } else if (event.eventType === 'TASK_END' || event.eventType === 'TASK_COMPLETE') {
                 customer.completedTasks += 1;
                 customer.status = 'completed';
             } else if (event.eventType === 'TASK_ERROR') {

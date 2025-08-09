@@ -6,7 +6,7 @@
 **Status: IMPLEMENTED**
 - ✅ Created `src/utils/structuredLogging.sh` utility library
 - ✅ ISO timestamp format: `date -Iseconds`
-- ✅ Consistent event types: TASK_START, TASK_COMPLETE, TASK_FAILED
+- ✅ Consistent event types: TASK_START, TASK_END, TASK_ERROR
 - ✅ Structured fields: `log_structured "LEVEL" "MESSAGE" "key=value"`
 - ✅ Example implemented in `processCustomer.sh`
 
