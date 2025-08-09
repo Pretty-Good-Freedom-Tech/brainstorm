@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Explorer - Brainstorm</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        .explorer-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .explorer-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .explorer-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .filter-select, .search-input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .search-input {
+            min-width: 200px;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .view-toggle button.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .view-toggle button:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        /* Tree View Styles */
+        .tree-view {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tree-node {
+            margin-bottom: 0.5rem;
+        }
+
+        .tree-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .tree-item:hover {
+            background: #f8f9fa;
+        }
+
+        .tree-expand {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .tree-expand.empty {
+            visibility: hidden;
+        }
+
+        .tree-children {
+            margin-left: 2rem;
+            border-left: 2px solid #e9ecef;
+            padding-left: 1rem;
+        }
+
+        .tree-children.collapsed {
+            display: none;
+        }
+
+        /* Card View Styles */
+        .card-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .task-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            transition: box-shadow 0.2s;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Table View Styles */
+        .table-view {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .task-table th,
+        .task-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .task-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .task-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Task Info Styles */
+        .task-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .task-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-category {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge-structured {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .badge-no-structured {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .badge-orchestrator {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge-customer {
+            background: #e0f2f1;
+            color: #00695c;
+        }
+
+        .badge-owner {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .task-relationships {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .relationship-link {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .relationship-link:hover {
+            text-decoration: underline;
+        }
+
+        .task-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .explorer-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .card-view {
+                grid-template-columns: 1fr;
+            }
+
+            .task-table {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <div class="explorer-container">
+        <div class="explorer-header">
+            <h1>🔍 Task Explorer</h1>
+            <p>Comprehensive view of all Brainstorm tasks, their relationships, and implementation status</p>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading task registry and analysis...
+        </div>
+
+        <div id="error-container" style="display: none;"></div>
+
+        <div id="explorer-content" style="display: none;">
+            <!-- Task Statistics -->
+            <div class="task-stats">
+                <div class="stat-item">
+                    <div id="total-tasks" class="stat-value">-</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-item">
+                    <div id="structured-tasks" class="stat-value">-</div>
+                    <div class="stat-label">Structured Logging</div>
+                </div>
+                <div class="stat-item">
+                    <div id="orchestrator-tasks" class="stat-value">-</div>
+                    <div class="stat-label">Orchestrators</div>
+                </div>
+                <div class="stat-item">
+                    <div id="customer-tasks" class="stat-value">-</div>
+                    <div class="stat-label">Customer Tasks</div>
+                </div>
+                <div class="stat-item">
+                    <div id="owner-tasks" class="stat-value">-</div>
+                    <div class="stat-label">Owner Tasks</div>
+                </div>
+                <div class="stat-item">
+                    <div id="root-tasks" class="stat-value">-</div>
+                    <div class="stat-label">Root Tasks</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="explorer-controls">
+                <div class="filter-group">
+                    <label for="category-filter">Category:</label>
+                    <select id="category-filter" class="filter-select">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="structured-filter">Structured Logging:</label>
+                    <select id="structured-filter" class="filter-select">
+                        <option value="">All Tasks</option>
+                        <option value="true">Implemented</option>
+                        <option value="false">Not Implemented</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="search-input">Search:</label>
+                    <input type="text" id="search-input" class="search-input" placeholder="Search tasks...">
+                </div>
+
+                <div class="view-toggle">
+                    <button id="tree-view-btn" class="active">Tree View</button>
+                    <button id="card-view-btn">Card View</button>
+                    <button id="table-view-btn">Table View</button>
+                </div>
+            </div>
+
+            <!-- Content Views -->
+            <div id="tree-view" class="tree-view">
+                <!-- Tree content will be populated here -->
+            </div>
+
+            <div id="card-view" class="card-view hidden">
+                <!-- Card content will be populated here -->
+            </div>
+
+            <div id="table-view" class="table-view hidden">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Categories</th>
+                            <th>Structured Logging</th>
+                            <th>Parent</th>
+                            <th>Children</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Table rows will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Task Explorer JavaScript
+        let allTasks = [];
+        let filteredTasks = [];
+        let currentView = 'tree';
+
+        // Load task registry data
+        async function loadTaskData() {
+            try {
+                const response = await fetch('/api/task-explorer/data');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                allTasks = data.tasks || [];
+                
+                initializeExplorer();
+                updateStatistics();
+                populateFilters();
+                applyFilters();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error-container').style.display = 'none';
+                document.getElementById('explorer-content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading task data:', error);
+                displayError(`Failed to load task data: ${error.message}`);
+            }
+        }
+
+        // Display error message
+        function displayError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+            errorContainer.style.display = 'block';
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('explorer-content').style.display = 'none';
+        }
+
+        // Initialize explorer
+        function initializeExplorer() {
+            // Set up view toggle buttons
+            document.getElementById('tree-view-btn').addEventListener('click', () => switchView('tree'));
+            document.getElementById('card-view-btn').addEventListener('click', () => switchView('card'));
+            document.getElementById('table-view-btn').addEventListener('click', () => switchView('table'));
+
+            // Set up filters
+            document.getElementById('category-filter').addEventListener('change', applyFilters);
+            document.getElementById('structured-filter').addEventListener('change', applyFilters);
+            document.getElementById('search-input').addEventListener('input', applyFilters);
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalTasks = allTasks.length;
+            const structuredTasks = allTasks.filter(task => task.structuredLogging).length;
+            const orchestratorTasks = allTasks.filter(task => 
+                task.categories && task.categories.includes('orchestrator')).length;
+            const customerTasks = allTasks.filter(task => 
+                task.categories && task.categories.includes('customer')).length;
+            const ownerTasks = allTasks.filter(task => 
+                task.categories && task.categories.includes('owner')).length;
+            const rootTasks = allTasks.filter(task => !task.parent).length;
+
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('structured-tasks').textContent = structuredTasks;
+            document.getElementById('orchestrator-tasks').textContent = orchestratorTasks;
+            document.getElementById('customer-tasks').textContent = customerTasks;
+            document.getElementById('owner-tasks').textContent = ownerTasks;
+            document.getElementById('root-tasks').textContent = rootTasks;
+        }
+
+        // Populate filter options
+        function populateFilters() {
+            const categoryFilter = document.getElementById('category-filter');
+            const categories = new Set();
+            
+            allTasks.forEach(task => {
+                if (task.categories) {
+                    task.categories.forEach(cat => categories.add(cat));
+                }
+            });
+
+            Array.from(categories).sort().forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const categoryFilter = document.getElementById('category-filter').value;
+            const structuredFilter = document.getElementById('structured-filter').value;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            filteredTasks = allTasks.filter(task => {
+                // Category filter
+                if (categoryFilter && (!task.categories || !task.categories.includes(categoryFilter))) {
+                    return false;
+                }
+
+                // Structured logging filter
+                if (structuredFilter !== '') {
+                    const hasStructured = task.structuredLogging === true;
+                    if (structuredFilter === 'true' && !hasStructured) return false;
+                    if (structuredFilter === 'false' && hasStructured) return false;
+                }
+
+                // Search filter
+                if (searchTerm) {
+                    const searchableText = [
+                        task.name,
+                        task.description,
+                        ...(task.categories || [])
+                    ].join(' ').toLowerCase();
+                    
+                    if (!searchableText.includes(searchTerm)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            updateCurrentView();
+        }
+
+        // Switch view
+        function switchView(view) {
+            // Update button states
+            document.querySelectorAll('.view-toggle button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${view}-view-btn`).classList.add('active');
+
+            // Hide all views
+            document.getElementById('tree-view').classList.add('hidden');
+            document.getElementById('card-view').classList.add('hidden');
+            document.getElementById('table-view').classList.add('hidden');
+
+            // Show selected view
+            document.getElementById(`${view}-view`).classList.remove('hidden');
+
+            currentView = view;
+            updateCurrentView();
+        }
+
+        // Update current view
+        function updateCurrentView() {
+            switch (currentView) {
+                case 'tree':
+                    updateTreeView();
+                    break;
+                case 'card':
+                    updateCardView();
+                    break;
+                case 'table':
+                    updateTableView();
+                    break;
+            }
+        }
+
+        // Update tree view
+        function updateTreeView() {
+            const treeContainer = document.getElementById('tree-view');
+            const rootTasks = filteredTasks.filter(task => !task.parent);
+            
+            treeContainer.innerHTML = '';
+            
+            if (rootTasks.length === 0) {
+                treeContainer.innerHTML = '<p>No tasks match the current filters.</p>';
+                return;
+            }
+
+            rootTasks.forEach(task => {
+                const treeNode = createTreeNode(task, 0);
+                treeContainer.appendChild(treeNode);
+            });
+        }
+
+        // Create tree node
+        function createTreeNode(task, depth) {
+            const node = document.createElement('div');
+            node.className = 'tree-node';
+
+            const item = document.createElement('div');
+            item.className = 'tree-item';
+            item.style.paddingLeft = `${depth * 1.5}rem`;
+
+            const children = filteredTasks.filter(t => t.parent === task.name);
+            const hasChildren = children.length > 0;
+
+            // Expand/collapse button
+            const expandBtn = document.createElement('div');
+            expandBtn.className = hasChildren ? 'tree-expand' : 'tree-expand empty';
+            expandBtn.textContent = hasChildren ? '▼' : '';
+            expandBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleTreeNode(node);
+            });
+
+            // Task info
+            const taskInfo = document.createElement('div');
+            taskInfo.innerHTML = createTaskHTML(task, 'tree');
+
+            item.appendChild(expandBtn);
+            item.appendChild(taskInfo);
+            node.appendChild(item);
+
+            // Add children
+            if (hasChildren) {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'tree-children';
+                
+                children.forEach(child => {
+                    const childNode = createTreeNode(child, depth + 1);
+                    childrenContainer.appendChild(childNode);
+                });
+                
+                node.appendChild(childrenContainer);
+            }
+
+            return node;
+        }
+
+        // Toggle tree node
+        function toggleTreeNode(node) {
+            const children = node.querySelector('.tree-children');
+            const expandBtn = node.querySelector('.tree-expand');
+            
+            if (children) {
+                children.classList.toggle('collapsed');
+                expandBtn.textContent = children.classList.contains('collapsed') ? '▶' : '▼';
+            }
+        }
+
+        // Update card view
+        function updateCardView() {
+            const cardContainer = document.getElementById('card-view');
+            cardContainer.innerHTML = '';
+
+            if (filteredTasks.length === 0) {
+                cardContainer.innerHTML = '<p>No tasks match the current filters.</p>';
+                return;
+            }
+
+            filteredTasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = 'task-card';
+                card.innerHTML = createTaskHTML(task, 'card');
+                cardContainer.appendChild(card);
+            });
+        }
+
+        // Update table view
+        function updateTableView() {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+
+            if (filteredTasks.length === 0) {
+                const row = tableBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 6;
+                cell.textContent = 'No tasks match the current filters.';
+                cell.style.textAlign = 'center';
+                cell.style.padding = '2rem';
+                return;
+            }
+
+            filteredTasks.forEach(task => {
+                const row = tableBody.insertRow();
+                
+                // Task name
+                const nameCell = row.insertCell();
+                nameCell.innerHTML = `<strong>${task.name}</strong>`;
+                
+                // Categories
+                const categoriesCell = row.insertCell();
+                categoriesCell.innerHTML = createCategoryBadges(task.categories);
+                
+                // Structured logging
+                const structuredCell = row.insertCell();
+                structuredCell.innerHTML = createStructuredBadge(task.structuredLogging);
+                
+                // Parent
+                const parentCell = row.insertCell();
+                parentCell.textContent = task.parent || '-';
+                
+                // Children
+                const childrenCell = row.insertCell();
+                const childCount = filteredTasks.filter(t => t.parent === task.name).length;
+                childrenCell.textContent = childCount > 0 ? `${childCount} children` : '-';
+                
+                // Description
+                const descCell = row.insertCell();
+                descCell.textContent = task.description || '-';
+                descCell.style.maxWidth = '200px';
+                descCell.style.overflow = 'hidden';
+                descCell.style.textOverflow = 'ellipsis';
+                descCell.style.whiteSpace = 'nowrap';
+            });
+        }
+
+        // Create task HTML
+        function createTaskHTML(task, viewType) {
+            const children = filteredTasks.filter(t => t.parent === task.name);
+            
+            let html = `<div class="task-name">${task.name}</div>`;
+            
+            if (task.description) {
+                html += `<div class="task-description">${task.description}</div>`;
+            }
+
+            html += '<div class="task-meta">';
+            html += createCategoryBadges(task.categories);
+            html += createStructuredBadge(task.structuredLogging);
+            html += '</div>';
+
+            if (viewType !== 'tree' && (task.parent || children.length > 0)) {
+                html += '<div class="task-relationships">';
+                if (task.parent) {
+                    html += `Parent: <span class="relationship-link">${task.parent}</span><br>`;
+                }
+                if (children.length > 0) {
+                    html += `Children: ${children.map(c => `<span class="relationship-link">${c.name}</span>`).join(', ')}`;
+                }
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        // Create category badges
+        function createCategoryBadges(categories) {
+            if (!categories || categories.length === 0) return '';
+            
+            return categories.map(cat => 
+                `<span class="task-badge badge-category">${cat}</span>`
+            ).join('');
+        }
+
+        // Create structured logging badge
+        function createStructuredBadge(hasStructured) {
+            if (hasStructured) {
+                return '<span class="task-badge badge-structured">Structured Logging</span>';
+            } else {
+                return '<span class="task-badge badge-no-structured">No Structured Logging</span>';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load header
+            try {
+                const headerResponse = await fetch('/components/header/header.html');
+                if (headerResponse.ok) {
+                    const headerHTML = await headerResponse.text();
+                    document.getElementById('header-placeholder').innerHTML = headerHTML;
+                    
+                    // Load header script
+                    const script = document.createElement('script');
+                    script.src = '/components/header/header.js';
+                    document.head.appendChild(script);
+                }
+            } catch (error) {
+                console.error('Error loading header:', error);
+            }
+
+            // Load task data
+            await loadTaskData();
+        });
+    </script>
+</body>
+</html>

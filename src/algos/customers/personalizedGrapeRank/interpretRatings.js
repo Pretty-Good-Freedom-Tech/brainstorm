@@ -158,68 +158,89 @@ async function processCSVFile(filePath, ratings, config, ratingType) {
 }
 
 // Write ratings to file using a memory-efficient streaming approach
+// Refactored to avoid MaxListenersExceededWarning by using a single drain handler
 async function writeRatingsToFile(ratingsFile, ratings) {
   return new Promise((resolve, reject) => {
     try {
       // Create a writable stream
       const stream = fs.createWriteStream(ratingsFile);
       
-      // Increase max listeners to avoid warnings (default is 10)
-      stream.setMaxListeners(100); // Adjust based on batch size and processing needs
+      // Queue for managing backpressure without multiple drain listeners
+      let writeQueue = [];
+      let isWriting = false;
+      let isDraining = false;
+      
+      // Single drain handler to avoid listener accumulation
+      const drainHandler = () => {
+        isDraining = false;
+        processWriteQueue();
+      };
+      
+      stream.on('drain', drainHandler);
+      
+      // Process queued writes when stream is ready
+      function processWriteQueue() {
+        if (isWriting || isDraining || writeQueue.length === 0) {
+          return;
+        }
+        
+        isWriting = true;
+        
+        while (writeQueue.length > 0 && !isDraining) {
+          const { data, callback } = writeQueue.shift();
+          
+          if (stream.write(data)) {
+            // Stream buffer is not full, continue
+            callback();
+          } else {
+            // Stream buffer is full, wait for drain
+            isDraining = true;
+            callback();
+            break;
+          }
+        }
+        
+        isWriting = false;
+      }
+      
+      // Helper function to write data with backpressure handling
+      function writeToStream(data) {
+        return new Promise((resolveWrite) => {
+          writeQueue.push({ data, callback: resolveWrite });
+          processWriteQueue();
+        });
+      }
       
       // Get all contexts (should only be 'verifiedUsers' in this case)
       const contexts = Object.keys(ratings);
       let contextIndex = 0;
       
-      // Write the opening brace
-      stream.write('{\n');
-      
-      // Process contexts one at a time
-      function processNextContext() {
-        if (contextIndex >= contexts.length) {
-          // All contexts processed, close the JSON
-          stream.write('}\n');
-          stream.end();
-          return;
-        }
+      // Process contexts sequentially
+      async function processContexts() {
+        // Write the opening brace
+        await writeToStream('{\n');
         
-        const context = contexts[contextIndex];
-        // Write context key
-        stream.write(`  "${context}": {\n`);
-        
-        // Get all ratees for this context
-        const ratees = Object.keys(ratings[context]);
-        let rateeIndex = 0;
-        
-        // Process ratees in batches to avoid memory issues
-        function processNextRateeBatch() {
-          if (rateeIndex >= ratees.length) {
-            // All ratees in this context processed
-            if (contextIndex < contexts.length - 1) {
-              stream.write('  },\n');
-            } else {
-              stream.write('  }\n');
-            }
+        for (contextIndex = 0; contextIndex < contexts.length; contextIndex++) {
+          const context = contexts[contextIndex];
+          
+          // Write context key
+          await writeToStream(`  "${context}": {\n`);
+          
+          // Get all ratees for this context
+          const ratees = Object.keys(ratings[context]);
+          
+          // Process ratees in smaller batches to reduce memory usage
+          const batchSize = 100; // Reduced batch size for better memory management
+          
+          for (let rateeIndex = 0; rateeIndex < ratees.length; rateeIndex += batchSize) {
+            const endIndex = Math.min(rateeIndex + batchSize, ratees.length);
             
-            // Move to next context
-            contextIndex++;
-            process.nextTick(processNextContext);
-            return;
-          }
-          
-          // Process a batch of ratees
-          const batchSize = 1000; // Adjust based on memory constraints
-          const endIndex = Math.min(rateeIndex + batchSize, ratees.length);
-          let batchPromises = [];
-          
-          for (let i = rateeIndex; i < endIndex; i++) {
-            const ratee = ratees[i];
-            batchPromises.push(new Promise((resolveRatee) => {
-              // Process this ratee
-              let rateeOutput = '';
+            // Process this batch of ratees
+            for (let i = rateeIndex; i < endIndex; i++) {
+              const ratee = ratees[i];
               
-              // Write ratee key
-              rateeOutput += `    "${ratee}": {\n`;
+              // Build ratee output
+              let rateeOutput = `    "${ratee}": {\n`;
               
               // Get all raters for this ratee
               const raters = Object.keys(ratings[context][ratee]);
@@ -247,42 +268,43 @@ async function writeRatingsToFile(ratingsFile, ratings) {
                 rateeOutput += '    }\n';
               }
               
-              // Write to stream and resolve when drain is complete
-              if (stream.write(rateeOutput)) {
-                resolveRatee();
-              } else {
-                stream.once('drain', resolveRatee);
-              }
-            }));
+              // Write ratee data
+              await writeToStream(rateeOutput);
+            }
+            
+            // Yield control to prevent blocking
+            await new Promise(resolve => process.nextTick(resolve));
           }
           
-          // After batch is processed, move to next batch
-          Promise.all(batchPromises)
-            .then(() => {
-              rateeIndex = endIndex;
-              // Use process.nextTick to avoid stack overflow
-              process.nextTick(processNextRateeBatch);
-            })
-            .catch(err => {
-              reject(err);
-            });
+          // Close context
+          if (contextIndex < contexts.length - 1) {
+            await writeToStream('  },\n');
+          } else {
+            await writeToStream('  }\n');
+          }
         }
         
-        // Start processing ratees
-        processNextRateeBatch();
+        // Close the JSON
+        await writeToStream('}\n');
+        
+        // End the stream
+        stream.end();
       }
       
-      // Start processing contexts
-      processNextContext();
+      // Start processing
+      processContexts().catch(reject);
       
       // Handle stream events
       stream.on('finish', () => {
+        stream.removeListener('drain', drainHandler);
         resolve();
       });
       
       stream.on('error', (err) => {
+        stream.removeListener('drain', drainHandler);
         reject(err);
       });
+      
     } catch (error) {
       reject(error);
     }
