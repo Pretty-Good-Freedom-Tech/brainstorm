@@ -128,8 +128,8 @@
       "frequency": "daily",
       "status": "active",
       "estimatedDuration": "30-60 minutes",
-      "structuredLogging": false,
-      "notes": "Candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START, PROGRESS (initialization, relay_sync phases), and TASK_END with comprehensive metadata about relay synchronization, filter kinds, and sync status."
     },
 
     "callBatchTransferIfNeeded": {
