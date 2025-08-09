@@ -30,7 +30,7 @@ async function getTaskExplorerData(req, res) {
         // Initialize structured events analyzer
         const config = {
             BRAINSTORM_LOG_DIR: process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm',
-            BRAINSTORM_MODULE_BASE_DIR: process.env.BRAINSTORM_MODULE_BASE_DIR || path.join(__dirname, '../..')
+            BRAINSTORM_MODULE_BASE_DIR: process.env.BRAINSTORM_MODULE_BASE_DIR || '/usr/local/lib/node_modules/brainstorm/'
         };
         const eventsAnalyzer = new StructuredEventsAnalyzer(config);
         
