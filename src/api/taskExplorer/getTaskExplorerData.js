@@ -26,8 +26,8 @@ async function getTaskExplorerData(req, res) {
         const taskRegistryData = fs.readFileSync(taskRegistryPath, 'utf8');
         const taskRegistry = JSON.parse(taskRegistryData);
 
-        // Transform tasks for the explorer
-        const tasks = Object.entries(taskRegistry).map(([taskName, taskData]) => {
+        // Transform tasks for the explorer - only process the 'tasks' section
+        const tasks = Object.entries(taskRegistry.tasks || {}).map(([taskName, taskData]) => {
             return {
                 name: taskName,
                 description: taskData.description || '',
