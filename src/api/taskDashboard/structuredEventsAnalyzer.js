@@ -27,7 +27,8 @@ class StructuredEventsAnalyzer {
 
     loadTaskRegistry() {
         try {
-            const registryPath = path.join(this.config.BRAINSTORM_MODULE_SRC_DIR, 'manage', 'taskQueue', 'taskRegistry.json');
+            const registryPath = path.join(this.config.BRAINSTORM_MODULE_BASE_DIR, 'src', 'manage', 'taskQueue', 'taskRegistry.json');
+            console.log('Loading task registry from:', registryPath);
             return JSON.parse(fs.readFileSync(registryPath, 'utf8'));
         } catch (error) {
             console.error('Error loading task registry:', error.message);
