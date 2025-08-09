@@ -233,6 +233,8 @@ function register(app) {
     // Algos endpoint
     app.post('/api/calculate-hops', algos.hops.handleCalculateHops);
 
+    // Task execution endpoint
+    app.post('/api/run-task', manage.handleRunTask);
     // Negentropy sync endpoints
     app.post('/api/negentropy-sync-wot', manage.handleNegentropySyncWoT);
     app.post('/api/negentropy-sync-profiles', manage.handleNegentropySyncProfiles);

@@ -19,8 +19,10 @@
       "categories": ["orchestrator"],
       "description": "Legacy sequential orchestrator for all background tasks",
       "scripts": [
-        "src/manage/processAllTasks.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/processAllTasks.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/processAllTasks.sh",
+      "arguments": false,
       "children": [
         "neo4jConstraintsAndIndexes",
         "syncWoT",
@@ -33,7 +35,7 @@
         "processOwnerFollowsMutesReports",
         "calculateReportScores",
         "exportWhitelist",
-        "publishOwnerNip85",
+        "exportOwnerKind30382",
         "processAllActiveCustomers"
       ],
       "priority": "high",
@@ -48,8 +50,10 @@
       "categories": ["orchestrator"],
       "description": "New priority-based task orchestrator",
       "scripts": [
-        "src/manage/taskQueue/taskQueueManager.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskQueueManager.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskQueueManager.sh",
+      "arguments": false,
       "children": [
         "taskScheduler",
         "taskExecutor",
@@ -66,8 +70,10 @@
       "categories": ["orchestrator"], 
       "description": "Evaluates system state and queues tasks by priority",
       "scripts": [
-        "src/manage/taskQueue/taskScheduler.js"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskScheduler.js"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskScheduler.js",
+      "arguments": false,
       "parent": "taskQueueManager",
       "priority": "high",
       "frequency": "continuous",
@@ -79,8 +85,10 @@
       "categories": ["orchestrator"],
       "description": "Executes queued tasks based on priority and dependencies",
       "scripts": [
-        "src/manage/taskQueue/taskExecutor.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskExecutor.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskExecutor.sh",
+      "arguments": false,
       "parent": "taskQueueManager",
       "priority": "high",
       "frequency": "continuous", 
@@ -92,8 +100,10 @@
       "categories": ["orchestrator"],
       "description": "Collects system state and task completion status for dashboard and monitoring",
       "scripts": [
-        "src/manage/taskQueue/systemStateGatherer.js"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/systemStateGatherer.js"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/systemStateGatherer.js",
+      "arguments": false,
       "parent": "taskQueueManager",
       "priority": "medium",
       "frequency": "periodic",
@@ -102,11 +112,13 @@
 
     "neo4jConstraintsAndIndexes": {
       "name": "Neo4j Constraints and Indexes",
-      "categories": ["maintenance", "setup"],
-      "description": "Ensures Neo4j database has required constraints and indexes are properly configured",
+      "categories": ["maintenance"],
+      "description": "Sets up database constraints and indexes",
       "scripts": [
-        "setup/neo4jConstraintsAndIndexes.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/cns/neo4jConstraintsAndIndexes.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/cns/neo4jConstraintsAndIndexes.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
       "priority": "high",
@@ -120,8 +132,10 @@
       "categories": ["network"],
       "description": "Synchronizes Web of Trust data from relays",
       "scripts": [
-        "src/manage/negentropySync/syncWoT.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
       "priority": "high",
@@ -137,8 +151,10 @@
       "categories": ["network"],
       "description": "Conditionally executes batch data transfer operations",
       "scripts": [
-        "src/manage/batchTransfer/callBatchTransferIfNeeded.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/batchTransfer/callBatchTransferIfNeeded.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/batchTransfer/callBatchTransferIfNeeded.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
       "priority": "medium",
@@ -152,8 +168,10 @@
       "categories": ["network"],
       "description": "Reconciles data consistency between systems",
       "scripts": [
-        "src/pipeline/reconciliation/reconciliation.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/pipeline/reconciliation/reconciliation.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/pipeline/reconciliation/reconciliation.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
       "priority": "medium",
@@ -167,8 +185,10 @@
       "categories": ["maintenance"],
       "description": "Processes npub generation up to maximum number of blocks",
       "scripts": [
-        "src/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
       "priority": "low",
@@ -182,8 +202,12 @@
       "categories": ["orchestrator", "customer"],
       "description": "Processes all active customers by calling processCustomer.sh for each",
       "scripts": [
-        "src/algos/customers/processAllActiveCustomers.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/processAllActiveCustomers.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/processAllActiveCustomers.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processAllTasks",
       "children": [
         "processCustomer"
@@ -201,13 +225,17 @@
       "categories": ["customer"],
       "description": "Complete processing pipeline for a single customer",
       "scripts": [
-        "src/algos/customers/processCustomer.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/processCustomer.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/processCustomer.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processAllActiveCustomers",
       "children": [
         "prepareNeo4jForCustomerData",
         "updateAllScoresForSingleCustomer",
-        "exportKind30382"
+        "exportCustomerKind30382"
       ],
       "scope": "customer",
       "priority": "high",
@@ -219,12 +247,16 @@
     },
 
     "prepareNeo4jForCustomerData": {
-      "name": "Prepare Neo4j for Customer Data",
+      "name": "Prepare Neo4j For Customer Data",
       "categories": ["customer", "maintenance"],
       "description": "Preliminary steps for customer data processing, common to all customers",
       "scripts": [
-        "src/cns/prepareNeo4jForCustomerData.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/cns/prepareNeo4jForCustomerData.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/cns/prepareNeo4jForCustomerData.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomer",
       "scope": "customer",
       "priority": "high",
@@ -234,12 +266,16 @@
     },
 
     "updateAllScoresForSingleCustomer": {
-      "name": "Update All Scores for Single Customer",
+      "name": "Update All Scores For Single Customer",
       "categories": ["customer", "algorithms"],
       "description": "Updates all trust scores for a single customer",
       "scripts": [
-        "src/algos/customers/updateAllScoresForSingleCustomer.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/updateAllScoresForSingleCustomer.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/updateAllScoresForSingleCustomer.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomer",
       "children": [
         "calculateCustomerHops",
@@ -263,9 +299,11 @@
       "categories": ["algorithms", "owner"],
       "description": "Calculates personalized GrapeRank scores for the instance owner",
       "scripts": [
-        "src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
-        "src/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
+        "BRAINSTORM_MODULE_SRC_DIR/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
       "priority": "medium",
@@ -282,8 +320,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates personalized GrapeRank scores for a specific customer",
       "scripts": [
-        "src/algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "updateAllScoresForSingleCustomer",
       "scope": "customer",
       "priority": "high",
@@ -300,8 +342,10 @@
       "categories": ["algorithms", "owner"],
       "description": "Calculates personalized PageRank scores for the instance owner",
       "scripts": [
-        "src/algos/calculatePersonalizedPageRank.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/calculatePersonalizedPageRank.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/calculatePersonalizedPageRank.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
       "priority": "medium",
@@ -316,8 +360,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates personalized PageRank scores for a customer",
       "scripts": [
-        "src/algos/customers/personalizedPageRank.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedPageRank.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedPageRank.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "updateAllScoresForSingleCustomer",
       "children": [],
       "scope": "customer",
@@ -333,8 +381,10 @@
       "categories": ["algorithms", "owner"],
       "description": "Calculates hop distances from the instance owner",
       "scripts": [
-        "src/algos/calculateHops.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/calculateHops.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/calculateHops.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
       "priority": "low",
@@ -349,8 +399,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates hop distances for a specific customer",
       "scripts": [
-        "src/algos/customers/calculateHops.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/calculateHops.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/calculateHops.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "updateAllScoresForSingleCustomer",
       "scope": "customer",
       "priority": "medium",
@@ -361,12 +415,16 @@
     },
 
     "processCustomerFollowsMutesReports": {
-      "name": "Process Customer Follows, Mutes, and Reports",
+      "name": "Process Customer Follows Mutes Reports",
       "categories": ["algorithms", "customer"],
       "description": "Processes follows, mutes, and reports data for a specific customer",
       "scripts": [
-        "src/algos/customers/follows-mutes-reports/processFollowsMutesReports.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/processFollowsMutesReports.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/processFollowsMutesReports.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "updateAllScoresForSingleCustomer",
       "scope": "customer",
       "priority": "medium",
@@ -389,8 +447,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates verified follower counts for a specific customer",
       "scripts": [
-        "src/algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomerFollowsMutesReports",
       "children": [],
       "scope": "customer",
@@ -406,8 +468,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates verified muter counts for a specific customer",
       "scripts": [
-        "src/algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomerFollowsMutesReports",
       "children": [],
       "scope": "customer",
@@ -423,8 +489,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates verified reporter counts for a specific customer",
       "scripts": [
-        "src/algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomerFollowsMutesReports",
       "children": [],
       "scope": "customer",
@@ -440,8 +510,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates follower inputs for a specific customer",
       "scripts": [
-        "src/algos/customers/follows-mutes-reports/calculateFollowerInputs.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateFollowerInputs.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateFollowerInputs.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomerFollowsMutesReports",
       "children": [],
       "scope": "customer",
@@ -457,8 +531,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates muter inputs for a specific customer",
       "scripts": [
-        "src/algos/customers/follows-mutes-reports/calculateMuterInputs.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateMuterInputs.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateMuterInputs.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomerFollowsMutesReports",
       "children": [],
       "scope": "customer",
@@ -474,8 +552,12 @@
       "categories": ["algorithms", "customer"],
       "description": "Calculates reporter inputs for a specific customer",
       "scripts": [
-        "src/algos/customers/follows-mutes-reports/calculateReporterInputs.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateReporterInputs.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateReporterInputs.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomerFollowsMutesReports",
       "children": [],
       "scope": "customer",
@@ -486,13 +568,17 @@
       "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
-    "exportCustomerKind30382": {
-      "name": "Export Customer Kind 30382",
+    "publishCustomerNip85": {
+      "name": "Publish Customer NIP-85",
       "categories": ["export", "customer"],
       "description": "Exports Kind 30382 NIP-85 data for a specific customer",
       "scripts": [
-        "src/algos/customers/nip85/publishNip85.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "updateAllScoresForSingleCustomer",
       "scope": "customer",
       "priority": "low",
@@ -503,12 +589,14 @@
     },
 
     "processOwnerFollowsMutesReports": {
-      "name": "Process Owner Follows, Mutes, and Reports",
+      "name": "Process Owner Follows Mutes Reports",
       "categories": ["algorithms", "owner"],
       "description": "Processes follows, mutes, and reports data for the instance owner",
       "scripts": [
-        "src/algos/follows-mutes-reports/processFollowsMutesReports.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/follows-mutes-reports/processFollowsMutesReports.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/follows-mutes-reports/processFollowsMutesReports.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
       "priority": "medium",
@@ -523,8 +611,10 @@
       "categories": ["algorithms", "owner"],
       "description": "Calculates report scores for the system",
       "scripts": [
-        "src/algos/reports/calculateReportScores.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/reports/calculateReportScores.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/reports/calculateReportScores.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
       "priority": "medium",
@@ -538,8 +628,10 @@
       "categories": ["export", "owner"],
       "description": "Exports whitelist data for the system",
       "scripts": [
-        "src/algos/exportWhitelist.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/exportWhitelist.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/exportWhitelist.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
       "priority": "low",
@@ -548,13 +640,15 @@
       "structuredLogging": false
     },
 
-    "publishOwnerNip85": {
+    "exportOwnerKind30382": {
       "name": "Publish Owner NIP-85",
       "categories": ["export", "owner"],
       "description": "Publishes NIP-85 data for the instance owner",
       "scripts": [
-        "src/algos/nip85/publishNip85.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/nip85/publishNip85.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/nip85/publishNip85.sh",
+      "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
       "priority": "low",
@@ -563,17 +657,22 @@
       "structuredLogging": false
     },
 
-    "exportKind30382": {
-      "name": "Export Kind 30382 Events",
+    "exportCustomerKind30382": {
+      "name": "Export Customer Kind 30382",
       "categories": ["export", "customer"],
       "description": "Exports Kind 30382 events for a customer",
       "scripts": [
-        "src/algos/customers/nip85/publishNip85.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh",
+      "arguments": {
+        "customer": true
+      },
       "parent": "processCustomer",
       "priority": "medium",
       "frequency": "per-customer",
-      "status": "active"
+      "status": "active",
+      "structuredLogging": false
     },
 
     "npubManager": {
@@ -581,8 +680,10 @@
       "categories": ["maintenance"],
       "description": "Ensures all NostrUser nodes have npub properties",
       "scripts": [
-        "src/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh",
+      "arguments": false,
       "children": [
         "queryMissingNpubs",
         "generateNpubs", 
@@ -598,8 +699,10 @@
       "categories": ["maintenance"],
       "description": "Queries Neo4j for NostrUsers missing npub property",
       "scripts": [
-        "src/manage/nostrUsers/queryMissingNpubs.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/queryMissingNpubs.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/queryMissingNpubs.sh",
+      "arguments": false,
       "parent": "npubManager",
       "priority": "low",
       "frequency": "batch",
@@ -611,8 +714,10 @@
       "categories": ["maintenance"], 
       "description": "Generates npubs using nip19.npubEncode",
       "scripts": [
-        "src/manage/nostrUsers/generateNpubs.js"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/generateNpubs.js"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/generateNpubs.js",
+      "arguments": false,
       "parent": "npubManager",
       "priority": "low",
       "frequency": "batch",
@@ -620,12 +725,14 @@
     },
 
     "updateNpubsInNeo4j": {
-      "name": "Update Npubs in Neo4j",
+      "name": "Update Npubs In Neo4j",
       "categories": ["maintenance"],
       "description": "Updates Neo4j nodes with generated npubs",
       "scripts": [
-        "src/manage/nostrUsers/updateNpubsInNeo4j.sh"
+        "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/updateNpubsInNeo4j.sh"
       ],
+      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/updateNpubsInNeo4j.sh",
+      "arguments": false,
       "parent": "npubManager", 
       "priority": "low",
       "frequency": "batch",
@@ -645,7 +752,7 @@
         "calculatePersonalizedGrapeRank",
         "calculatePersonalizedPageRank", 
         "processFollowsMutesReports",
-        "exportKind30382"
+        "exportCustomerKind30382"
       ]
     },
     "priorityBased": {
@@ -658,7 +765,7 @@
       "priorities": {
         "high": ["syncWoT", "processCustomer", "updateAllScoresForSingleCustomer"],
         "medium": ["calculatePersonalizedGrapeRank", "calculatePersonalizedPageRank", "processFollowsMutesReports"],
-        "low": ["exportKind30382", "npubManager", "systemStateGatherer"]
+        "low": ["exportCustomerKind30382", "npubManager", "systemStateGatherer"]
       }
     }
   },
@@ -680,7 +787,7 @@
     "phase3Candidates": {
       "customer": [
         "updateAllScoresForSingleCustomer",
-        "exportKind30382",
+        "exportCustomerKind30382",
         "calculateCustomerHops"
       ],
       "owner": [
