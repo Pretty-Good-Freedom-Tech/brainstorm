@@ -152,7 +152,16 @@ emit_task_event() {
     local target="${3:-}"
     local metadata="${4:-{}}"
     local timestamp=$(get_iso_timestamp)
-    local script_name="${BASH_SOURCE[2]##*/}"
+    # Get script name from call stack - try different levels
+    local script_name=""
+    for i in {1..5}; do
+        if [[ -n "${BASH_SOURCE[$i]}" ]]; then
+            script_name="${BASH_SOURCE[$i]##*/}"
+            break
+        fi
+    done
+    [[ -z "$script_name" ]] && script_name="unknown"
+    
     local pid=$$
     
     # Ensure directories exist
@@ -163,10 +172,22 @@ emit_task_event() {
         return 0
     fi
     
-    # Create JSON event with proper escaping
+    # Debug: Log metadata validation for troubleshooting
+    if [[ "$BRAINSTORM_DEBUG_LOGGING" == "true" ]]; then
+        echo "DEBUG: emit_task_event metadata validation for $task_name" >&2
+        echo "DEBUG: metadata input: $metadata" >&2
+    fi
+    
     # Ensure metadata is valid JSON, default to empty object if invalid
     if ! echo "$metadata" | jq empty 2>/dev/null; then
+        if [[ "$BRAINSTORM_DEBUG_LOGGING" == "true" ]]; then
+            echo "DEBUG: metadata validation failed, using empty object" >&2
+        fi
         metadata='{}'
+    else
+        if [[ "$BRAINSTORM_DEBUG_LOGGING" == "true" ]]; then
+            echo "DEBUG: metadata validation passed" >&2
+        fi
     fi
     
     local event_json=$(cat <<EOF
