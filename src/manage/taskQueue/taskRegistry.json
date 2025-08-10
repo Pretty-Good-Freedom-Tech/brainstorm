@@ -386,6 +386,7 @@
         "BRAINSTORM_MODULE_SRC_DIR/algos/calculateHops.sh"
       ],
       "script": "BRAINSTORM_MODULE_SRC_DIR/algos/calculateHops.sh",
+      "enforcedTimeout": 600000,
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",

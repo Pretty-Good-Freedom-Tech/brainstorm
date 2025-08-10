@@ -4,6 +4,8 @@
 # The resuls are stored in neo4j using the property: hops
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_OWNER_PUBKEY, BRAINSTORM_LOG_DIR
+
+# Source structured logging utility
 source /usr/local/lib/node_modules/brainstorm/src/utils/structuredLogging.sh
 
 CYPHER1="MATCH (u:NostrUser) SET u.hops=999"
@@ -15,6 +17,7 @@ start_task_timer "calculateOwnerHops" "system" '{"algorithm":"hop_distance","tar
 
 numHops=1
 
+echo "$(date): Starting calculateHops"
 echo "$(date): Starting calculateHops" >> ${BRAINSTORM_LOG_DIR}/calculateHops.log
 
 # Phase 1: Initialize hop distances
@@ -36,6 +39,9 @@ do
     ((numHops++))
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
     numUpdates="${cypherResults:11}"
+
+    echo "$(date): calculateHops iteration $numHops"
+    echo "$(date): calculateHops iteration $numHops" >> ${BRAINSTORM_LOG_DIR}/calculateHops.log
     
     log_structured "PROGRESS" "calculateOwnerHops" "system" '{"phase":"calculation","step":"iteration","hop_level":'$numHops',"updates":'$numUpdates',"description":"Completed hop level '$numHops' calculation"}'
 done
@@ -49,6 +55,7 @@ fi
 
 log_structured "PROGRESS" "calculateOwnerHops" "system" '{"phase":"completion","final_hop_level":'$final_hops',"total_iterations":'$numHops',"completion_reason":"'$completion_reason'","description":"Hop distance calculation completed"}'
 
+echo "$(date): Finished calculateHops"
 echo "$(date): Finished calculateHops" >> ${BRAINSTORM_LOG_DIR}/calculateHops.log
 
 # End structured logging

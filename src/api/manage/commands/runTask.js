@@ -70,8 +70,13 @@ const calculateTimeout = (task) => {
     // Convert averageDuration to milliseconds (assume it's in milliseconds)
     const durationMs = task.averageDuration;
     
-    // Add 50% buffer for safety (e.g., 4 minute task gets 6 minute timeout)
-    const timeoutMs = Math.round(durationMs * 1.5);
+    // Add 100% buffer for safety (e.g., 4 minute task gets 8 minute timeout)
+    let timeoutMs = Math.round(durationMs * 2);
+
+    // If the task has an enforced timeout, use that instead
+    if (task.enforcedTimeout) {
+        timeoutMs = task.enforcedTimeout;
+    }
     
     // Enforce min/max bounds
     const boundedTimeout = Math.max(MIN_TIMEOUT_MS, Math.min(MAX_TIMEOUT_MS, timeoutMs));
