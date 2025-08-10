@@ -6,7 +6,7 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { CustomerManager } = require('../../utils/customerManager');
+const { CustomerManager } = require('../../../utils/customerManager');
 
 // Initialize CustomerManager
 const customerManager = new CustomerManager();
