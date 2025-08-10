@@ -392,8 +392,8 @@
       "priority": "low",
       "frequency": "weekly",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Owner-level hop calculation"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 3-phase algorithm (initialization, iterative calculation, completion) with hop level tracking and completion reason"
     },
 
     "calculateCustomerHops": {
