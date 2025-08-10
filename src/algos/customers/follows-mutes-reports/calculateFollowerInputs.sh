@@ -23,17 +23,14 @@ CUSTOMER_ID="$2"
 # Get customer_name
 CUSTOMER_NAME="$3"
 
-# DIR_NAME is customer_ + the first 8 digits of the customer pubkey
-DIR_NAME="customer_$(echo $CUSTOMER_PUBKEY | cut -c1-8)"
-
 # Get customer preferences
-CUSTOMER_DIR="/var/lib/brainstorm/customers/$DIR_NAME"
+CUSTOMER_DIR="/var/lib/brainstorm/customers/$CUSTOMER_NAME"
 source $CUSTOMER_DIR/preferences/whitelist.conf
 source $CUSTOMER_DIR/preferences/blacklist.conf
 source $CUSTOMER_DIR/preferences/graperank.conf # VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF
 
 # Get log directory
-LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$DIR_NAME"
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 
 # Create log directory if it doesn't exist; chown to brainstorm user
 mkdir -p "$LOG_DIR"
