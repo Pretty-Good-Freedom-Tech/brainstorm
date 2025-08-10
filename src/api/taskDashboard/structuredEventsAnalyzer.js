@@ -10,6 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 class StructuredEventsAnalyzer {
     constructor(config) {
@@ -32,6 +33,25 @@ class StructuredEventsAnalyzer {
         } catch (error) {
             console.error('Error loading task registry:', error.message);
             return { tasks: {} };
+        }
+    }
+
+    /**
+     * Check if a process ID is still running
+     * This is crucial for detecting silent task failures
+     */
+    isProcessAlive(pid) {
+        if (!pid || isNaN(pid)) {
+            return false;
+        }
+        
+        try {
+            // Use kill -0 to check if process exists without actually killing it
+            execSync(`kill -0 ${pid}`, { stdio: 'ignore' });
+            return true;
+        } catch (error) {
+            // Process doesn't exist or we don't have permission to signal it
+            return false;
         }
     }
 
@@ -226,8 +246,31 @@ class StructuredEventsAnalyzer {
 
                 // Check if task is currently running (has start but no end/error)
                 if (!endEvent && !errorEvent) {
-                    taskExecutionData[taskName].isRunning = true;
-                    taskExecutionData[taskName].lastStatus = 'running';
+                    // Validate if the process is actually still alive
+                    const pidAlive = this.isProcessAlive(session.pid);
+                    
+                    if (pidAlive) {
+                        // Process is genuinely running
+                        taskExecutionData[taskName].isRunning = true;
+                        taskExecutionData[taskName].lastStatus = 'running';
+                    } else {
+                        // Silent failure detected: TASK_START without TASK_END and dead PID
+                        console.warn(`[StructuredEventsAnalyzer] Silent failure detected for ${taskName} (PID ${session.pid})`);
+                        
+                        taskExecutionData[taskName].isRunning = false;
+                        taskExecutionData[taskName].lastStatus = 'failed';
+                        taskExecutionData[taskName].lastRun = startEvent.timestamp;
+                        taskExecutionData[taskName].lastRunFormatted = new Date(startEvent.timestamp).toLocaleString();
+                        taskExecutionData[taskName].timeSinceLastRun = this.getTimeAgo(startEvent.timestamp);
+                        taskExecutionData[taskName].timeSinceLastRunMinutes = Math.floor((now - new Date(startEvent.timestamp)) / (1000 * 60));
+                        taskExecutionData[taskName].lastDuration = null; // Unknown duration for silent failures
+                        taskExecutionData[taskName].lastDurationFormatted = 'Unknown (silent failure)';
+                        taskExecutionData[taskName].totalRuns += 1;
+                        taskExecutionData[taskName].failedRuns += 1;
+                        taskExecutionData[taskName].silentFailures = (taskExecutionData[taskName].silentFailures || 0) + 1;
+                        taskExecutionData[taskName].errorType = 'silent_failure';
+                        taskExecutionData[taskName].errorDetails = `Process ${session.pid} terminated without logging TASK_END or TASK_ERROR`;
+                    }
                 } else {
                     // Task completed
                     const finalEvent = endEvent || errorEvent;
