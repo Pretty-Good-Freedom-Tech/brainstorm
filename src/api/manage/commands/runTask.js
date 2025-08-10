@@ -6,21 +6,24 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { CustomerManager } = require('../../utils/customerManager');
 
-// Load task registry
+// Initialize CustomerManager
+const customerManager = new CustomerManager();
+
+// Get task registry
 const getTaskRegistry = () => {
-    try {
-        const registryPath = path.join(process.env.BRAINSTORM_MODULE_BASE_DIR || '/usr/local/lib/node_modules/brainstorm', 'src/manage/taskQueue/taskRegistry.json');
-        const registryData = fs.readFileSync(registryPath, 'utf8');
-        return JSON.parse(registryData);
-    } catch (error) {
-        console.error('Error loading task registry:', error);
-        throw new Error('Failed to load task registry');
+    const registryPath = path.join(__dirname, '../../../manage/taskQueue/taskRegistry.json');
+    if (!fs.existsSync(registryPath)) {
+        throw new Error('Task registry not found');
     }
+    
+    const registryData = fs.readFileSync(registryPath, 'utf8');
+    return JSON.parse(registryData);
 };
 
-// Validate customer arguments
-const validateCustomerArguments = (req) => {
+// Validate customer arguments using CustomerManager
+const validateCustomerArguments = async (req) => {
     const { pubkey, customerId, customerName } = req.query;
     
     if (!pubkey) {
@@ -32,11 +35,38 @@ const validateCustomerArguments = (req) => {
         throw new Error('Invalid pubkey format (must be 64-character hex string)');
     }
     
-    return {
-        pubkey,
-        customerId: customerId || pubkey.substring(0, 8), // Default to first 8 chars of pubkey
-        customerName: customerName || `customer_${pubkey.substring(0, 8)}`
-    };
+    // Get customer data from CustomerManager
+    try {
+        const customer = await customerManager.getCustomer(pubkey);
+        
+        if (!customer) {
+            throw new Error(`Customer with pubkey ${pubkey} not found in system`);
+        }
+        
+        // Return actual customer data from the system
+        return {
+            pubkey: customer.pubkey,
+            customerId: customer.id.toString(), // Ensure ID is string for script compatibility
+            customerName: customer.name,
+            directory: customer.directory // Include directory for path resolution
+        };
+        
+    } catch (error) {
+        if (error.message.includes('not found in system')) {
+            throw error; // Re-throw customer not found errors
+        }
+        
+        // For other errors, provide fallback with warning
+        console.warn(`[RunTask] CustomerManager lookup failed for ${pubkey}: ${error.message}`);
+        console.warn(`[RunTask] Using fallback customer identifiers`);
+        
+        return {
+            pubkey,
+            customerId: customerId || pubkey.substring(0, 8),
+            customerName: customerName || `customer_${pubkey.substring(0, 8)}`,
+            directory: `customer_${pubkey.substring(0, 8)}` // Fallback directory
+        };
+    }
 };
 
 // Build command arguments based on task requirements
@@ -197,7 +227,7 @@ const handleRunTask = async (req, res) => {
         let customerArgs = null;
         if (task.arguments && task.arguments.customer) {
             try {
-                customerArgs = validateCustomerArguments(req);
+                customerArgs = await validateCustomerArguments(req);
             } catch (error) {
                 return res.status(400).json({
                     success: false,
