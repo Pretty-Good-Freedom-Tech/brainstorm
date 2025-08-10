@@ -6,13 +6,10 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { CustomerManager } = require('../../../utils/customerManager');
-
-// Initialize CustomerManager
-const customerManager = new CustomerManager();
+const CustomerManager = require('../../../utils/customerManager');
 
 // Get task registry
-const getTaskRegistry = () => {
+async function getTaskRegistry() {
     const registryPath = path.join(__dirname, '../../../manage/taskQueue/taskRegistry.json');
     if (!fs.existsSync(registryPath)) {
         throw new Error('Task registry not found');
@@ -20,11 +17,15 @@ const getTaskRegistry = () => {
     
     const registryData = fs.readFileSync(registryPath, 'utf8');
     return JSON.parse(registryData);
-};
+}
 
 // Validate customer arguments using CustomerManager
-const validateCustomerArguments = async (req) => {
+async function validateCustomerArguments(req) {
     const { pubkey, customerId, customerName } = req.query;
+    
+    // Initialize CustomerManager
+    const customerManager = new CustomerManager();
+    await customerManager.initialize();
     
     if (!pubkey) {
         throw new Error('Customer pubkey is required for customer tasks');
@@ -67,15 +68,16 @@ const validateCustomerArguments = async (req) => {
             directory: `customer_${pubkey.substring(0, 8)}` // Fallback directory
         };
     }
-};
+}
 
 // Build command arguments based on task requirements
-const buildTaskCommand = (task, customerArgs = null) => {
+async function buildTaskCommand(task, customerArgs = null) {
     const baseDir = process.env.BRAINSTORM_MODULE_BASE_DIR || '/usr/local/lib/node_modules/brainstorm';
     const srcDir = path.join(baseDir, 'src');
     const scriptPath = task.script.replace('BRAINSTORM_MODULE_SRC_DIR', srcDir);
     
     let command = scriptPath;
+    
     let args = [];
     
     // Handle customer arguments if required
@@ -84,10 +86,10 @@ const buildTaskCommand = (task, customerArgs = null) => {
     }
     
     return { command, args };
-};
+}
 
 // Calculate timeout based on task's average duration
-const calculateTimeout = (task) => {
+async function calculateTimeout(task) {
     const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes default
     const MIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes minimum
     const MAX_TIMEOUT_MS = 120 * 60 * 1000; // 2 hours maximum
@@ -113,10 +115,10 @@ const calculateTimeout = (task) => {
     
     console.log(`[RunTask] Task ${task.name} averageDuration: ${task.averageDuration}ms, calculated timeout: ${boundedTimeout / 1000}s`);
     return boundedTimeout;
-};
+}
 
 // Execute task with real-time output streaming
-const executeTask = (command, args, task) => {
+async function executeTask(command, args, task) {
     return new Promise((resolve, reject) => {
         console.log(`[RunTask] Executing: ${command} ${args.join(' ')}`);
         
@@ -188,7 +190,7 @@ const executeTask = (command, args, task) => {
             }
         }, timeoutMs);
     });
-};
+}
 
 /**
  * Handle task execution request
@@ -200,7 +202,7 @@ const executeTask = (command, args, task) => {
  * - customerId (optional): Customer ID (defaults to first 8 chars of pubkey)
  * - customerName (optional): Customer name (defaults to customer_<pubkey_prefix>)
  */
-const handleRunTask = async (req, res) => {
+async function handleRunTask(req, res) {
     try {
         const { taskName } = req.query;
         
@@ -237,7 +239,7 @@ const handleRunTask = async (req, res) => {
         }
         
         // Build command
-        const { command, args } = buildTaskCommand(task, customerArgs);
+        const { command, args } = await buildTaskCommand(task, customerArgs);
         
         // Verify script exists
         if (!fs.existsSync(command)) {
@@ -273,8 +275,8 @@ const handleRunTask = async (req, res) => {
             error: error.message || 'Internal server error'
         });
     }
-};
+}
 
 module.exports = {
     handleRunTask
-};
+}
