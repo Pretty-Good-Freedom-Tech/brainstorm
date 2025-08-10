@@ -161,7 +161,8 @@
       "priority": "medium",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured events implemented - emits TASK_START, PROGRESS events for decision and execution phases (transfer needed/skipped), and TASK_END with execution status"
     },
 
     "reconciliation": {
@@ -178,7 +179,8 @@
       "priority": "medium",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented - comprehensive 3-phase reconciliation tracking with TASK_START/END, detailed PROGRESS events for each phase (A: mutes, B: follows, C: reports), operation-specific tracking with timing and status"
     },
 
     "processNpubsUpToMaxNumBlocks": {
@@ -236,8 +238,7 @@
       "parent": "processAllActiveCustomers",
       "children": [
         "prepareNeo4jForCustomerData",
-        "updateAllScoresForSingleCustomer",
-        "exportCustomerKind30382"
+        "updateAllScoresForSingleCustomer"
       ],
       "scope": "customer",
       "priority": "high",
@@ -571,26 +572,6 @@
       "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
-    "publishCustomerNip85": {
-      "name": "Publish Customer NIP-85",
-      "categories": ["export", "customer"],
-      "description": "Exports Kind 30382 NIP-85 data for a specific customer",
-      "scripts": [
-        "BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh"
-      ],
-      "script": "BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh",
-      "arguments": {
-        "customer": true
-      },
-      "parent": "updateAllScoresForSingleCustomer",
-      "scope": "customer",
-      "priority": "low",
-      "frequency": "per-customer",
-      "status": "active",
-      "structuredLogging": false,
-      "notes": "Customer-specific NIP-85 export"
-    },
-
     "processOwnerFollowsMutesReports": {
       "name": "Process Owner Follows Mutes Reports",
       "categories": ["algorithms", "owner"],
@@ -671,11 +652,12 @@
       "arguments": {
         "customer": true
       },
-      "parent": "processCustomer",
+      "parent": "updateAllScoresForSingleCustomer",
       "priority": "medium",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented - comprehensive NIP-85 event publishing tracking with TASK_START/END, PROGRESS events for relay pubkey verification and Kind 30382 publishing phases, error handling with TASK_ERROR events"
     },
 
     "npubManager": {
