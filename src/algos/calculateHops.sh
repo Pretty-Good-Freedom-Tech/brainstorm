@@ -43,7 +43,7 @@ do
     echo "$(date): calculateHops iteration $numHops"
     echo "$(date): calculateHops iteration $numHops" >> ${BRAINSTORM_LOG_DIR}/calculateHops.log
     
-    log_structured "PROGRESS" "calculateOwnerHops" "system" "{\"phase\":\"calculation\",\"step\":\"iteration\",\"hop_level\":$numHops,\"updates\":$numUpdates,\"description\":\"Completed hop level $numHops calculation\"}"
+    emit_task_event "PROGRESS" "calculateOwnerHops" "system" "{\"phase\":\"calculation\",\"step\":\"iteration\",\"hop_level\":$numHops,\"updates\":$numUpdates,\"description\":\"Completed hop level $numHops calculation\"}"
 done
 
 # Phase 3: Completion
