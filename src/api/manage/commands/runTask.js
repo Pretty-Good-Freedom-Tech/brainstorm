@@ -77,7 +77,7 @@ async function buildTaskCommand(task, customerArgs = null) {
     const scriptPath = task.script.replace('BRAINSTORM_MODULE_SRC_DIR', srcDir);
     
     let command = scriptPath;
-    
+
     let args = [];
     
     // Handle customer arguments if required
@@ -119,7 +119,7 @@ async function calculateTimeout(task) {
 
 // Execute task with real-time output streaming
 async function executeTask(command, args, task) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         console.log(`[RunTask] Executing: ${command} ${args.join(' ')}`);
         
         const childProcess = spawn(command, args, {
@@ -173,10 +173,10 @@ async function executeTask(command, args, task) {
         });
         
         // Set dynamic timeout based on task's average duration
-        const timeoutMs = calculateTimeout(task);
+        const timeoutMs = await calculateTimeout(task);
         const timeoutMinutes = Math.round(timeoutMs / 60000);
         
-        setTimeout(() => {
+        setTimeout(async () => {
             if (!childProcess.killed) {
                 console.warn(`[RunTask] Timeout reached for ${task.name}, terminating process`);
                 childProcess.kill('SIGTERM');
@@ -215,7 +215,7 @@ async function handleRunTask(req, res) {
         }
         
         // Load task registry
-        const registry = getTaskRegistry();
+        const registry = await getTaskRegistry();
         const task = registry.tasks[taskName];
         
         if (!task) {
