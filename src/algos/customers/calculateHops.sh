@@ -47,17 +47,28 @@ echo "$(date): Starting calculateHops"
 echo "$(date): Starting calculateHops" >> ${LOG_FILE}
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "calculateCustomerHops" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME"
+startMetadata=$(cat <<EOF
+{
+    "customer_id": "$CUSTOMER_ID",
+    "customer_pubkey": "$CUSTOMER_PUBKEY",
+    "customer_name": "$CUSTOMER_NAME",
+    "algorithm": "customer_hop_distance"
+}
+EOF
+)
+emit_task_event "TASK_START" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$startMetadata"
 
 # Initialize hop distances (set all to 999, then customer to 0)
-emit_task_event "PROGRESS" "calculateCustomerHops" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=initialization" \
-    "message=Setting initial hop distances"
+progressMetadata=$(cat <<EOF
+{
+    "customer_id": "$CUSTOMER_ID",
+    "customer_name": "$CUSTOMER_NAME",
+    "step": "initialization",
+    "message": "Setting initial hop distances"
+}
+EOF
+)
+emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1"
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2"
@@ -68,25 +79,35 @@ echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHo
 echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
 
 # Emit structured event for initial iteration
-emit_task_event "PROGRESS" "calculateCustomerHops" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=iteration" \
-    "hop_level=$numHops" \
-    "updates_count=$numUpdates" \
-    "message=Initial hop calculation iteration"
+progressMetadata=$(cat <<EOF
+{
+    "customer_id": "$CUSTOMER_ID",
+    "customer_name": "$CUSTOMER_NAME",
+    "step": "iteration",
+    "hop_level": $numHops,
+    "updates_count": $numUpdates,
+    "message": "Initial hop calculation iteration"
+}
+EOF
+)
+emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
 
 while [[ "$numUpdates" -gt 0 ]] && [[ "$numHops" -lt 12 ]];
 do
     ((numHops++))
     
     # Emit structured event for iteration start
-    emit_task_event "PROGRESS" "calculateCustomerHops" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "step=iteration" \
-        "hop_level=$numHops" \
-        "message=Processing hop level $numHops"
+    progressMetadata=$(cat <<EOF
+{
+    "customer_id": "$CUSTOMER_ID",
+    "customer_name": "$CUSTOMER_NAME",
+    "step": "iteration",
+    "hop_level": $numHops,
+    "message": "Processing hop level $numHops"
+}
+EOF
+)
+    emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
     
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
     numUpdates="${cypherResults:11}"
@@ -95,13 +116,18 @@ do
     echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
     
     # Emit structured event for iteration completion
-    emit_task_event "PROGRESS" "calculateCustomerHops" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "step=iteration_complete" \
-        "hop_level=$numHops" \
-        "updates_count=$numUpdates" \
-        "message=Completed hop level $numHops with $numUpdates updates"
+    progressMetadata=$(cat <<EOF
+{
+    "customer_id": "$CUSTOMER_ID",
+    "customer_name": "$CUSTOMER_NAME",
+    "step": "iteration_complete",
+    "hop_level": $numHops,
+    "updates_count": $numUpdates,
+    "message": "Completed hop level $numHops with $numUpdates updates"
+}
+EOF
+)
+    emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
 done
 
 echo "$(date): Finished calculateHops for observer_pubkey $CUSTOMER_PUBKEY"
@@ -120,12 +146,17 @@ else
 fi
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "calculateCustomerHops" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "status=success" \
-    "final_hop_level=$numHops" \
-    "final_updates_count=$numUpdates" \
-    "completion_reason=$completion_reason" \
-    "message=$completion_message"
+endMetadata=$(cat <<EOF
+{
+    "customer_id": "$CUSTOMER_ID",
+    "customer_pubkey": "$CUSTOMER_PUBKEY",
+    "customer_name": "$CUSTOMER_NAME",
+    "status": "success",
+    "final_hop_level": $numHops,
+    "final_updates_count": $numUpdates,
+    "completion_reason": "$completion_reason",
+    "message": "$completion_message"
+}
+EOF
+)
+emit_task_event "TASK_END" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$endMetadata"
