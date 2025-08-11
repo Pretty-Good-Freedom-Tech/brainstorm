@@ -39,6 +39,7 @@ class StructuredEventsAnalyzer {
     /**
      * Check if a process ID is still running
      * This is crucial for detecting silent task failures
+     * Uses ps instead of kill -0 to work across different process owners
      */
     isProcessAlive(pid) {
         if (!pid || isNaN(pid)) {
@@ -46,11 +47,12 @@ class StructuredEventsAnalyzer {
         }
         
         try {
-            // Use kill -0 to check if process exists without actually killing it
-            execSync(`kill -0 ${pid}`, { stdio: 'ignore' });
-            return true;
+            // Use ps to check if process exists (works regardless of process owner)
+            const result = execSync(`ps -p ${pid} -o pid=`, { stdio: 'pipe', encoding: 'utf8' });
+            // If ps finds the process, it returns the PID, otherwise empty/error
+            return result.trim() === pid.toString();
         } catch (error) {
-            // Process doesn't exist or we don't have permission to signal it
+            // Process doesn't exist or ps command failed
             return false;
         }
     }

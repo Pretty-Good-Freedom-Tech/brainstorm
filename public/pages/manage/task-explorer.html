@@ -93,7 +93,6 @@
             align-items: center;
             padding: 0.5rem;
             border-radius: 4px;
-            cursor: pointer;
             transition: background-color 0.2s;
         }
 
@@ -125,6 +124,107 @@
 
         .tree-children.collapsed {
             display: none;
+        }
+
+        /* Compact Tree View Enhancements */
+        .tree-task-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .tree-status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .tree-status-indicator.running {
+            background: #ffc107;
+            animation: pulse 2s infinite;
+        }
+
+        .tree-status-indicator.success {
+            background: #28a745;
+        }
+
+        .tree-status-indicator.failed {
+            background: #dc3545;
+        }
+
+        .tree-status-indicator.never-run {
+            background: #6c757d;
+        }
+
+        .tree-task-name {
+            font-weight: 500;
+            color: #333;
+            flex: 1;
+        }
+
+        .tree-task-name.running {
+            color: #856404;
+        }
+
+        .tree-detail-toggle {
+            background: none;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #6c757d;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .tree-detail-toggle:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+        .tree-detail-toggle.expanded {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .tree-task-details {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+            display: none;
+        }
+
+        .tree-task-details.expanded {
+            display: block;
+        }
+
+        .tree-task-details .task-description {
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .tree-task-details .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tree-task-details .task-execution {
+            font-size: 0.85rem;
+            color: #555;
         }
 
         /* Card View Styles */
@@ -971,22 +1071,53 @@
             const children = filteredTasks.filter(t => t.parent === task.name);
             const hasChildren = children.length > 0;
 
-            // Expand/collapse button
+            // Expand/collapse button for children
             const expandBtn = document.createElement('div');
             expandBtn.className = hasChildren ? 'tree-expand' : 'tree-expand empty';
             expandBtn.textContent = hasChildren ? '▼' : '';
-            expandBtn.addEventListener('click', (e) => {
+            if (hasChildren) {
+                expandBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleTreeNode(node);
+                });
+            }
+
+            // Task header (compact view)
+            const taskHeader = document.createElement('div');
+            taskHeader.className = 'tree-task-header';
+
+            // Status indicator
+            const statusIndicator = document.createElement('div');
+            statusIndicator.className = `tree-status-indicator ${getTaskStatusClass(task)}`;
+
+            // Task name
+            const taskName = document.createElement('div');
+            taskName.className = `tree-task-name ${task.execution?.isRunning ? 'running' : ''}`;
+            taskName.textContent = task.name;
+
+            // Detail toggle button
+            const detailToggle = document.createElement('button');
+            detailToggle.className = 'tree-detail-toggle';
+            detailToggle.textContent = 'ⓘ';
+            detailToggle.title = 'Show/hide task details';
+            detailToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                toggleTreeNode(node);
+                toggleTaskDetails(node, task);
             });
 
-            // Task info
-            const taskInfo = document.createElement('div');
-            taskInfo.innerHTML = createTaskHTML(task, 'tree');
+            taskHeader.appendChild(statusIndicator);
+            taskHeader.appendChild(taskName);
+            taskHeader.appendChild(detailToggle);
+
+            // Task details (initially hidden)
+            const taskDetails = document.createElement('div');
+            taskDetails.className = 'tree-task-details';
+            taskDetails.innerHTML = createTaskDetailsHTML(task);
 
             item.appendChild(expandBtn);
-            item.appendChild(taskInfo);
+            item.appendChild(taskHeader);
             node.appendChild(item);
+            node.appendChild(taskDetails);
 
             // Add children
             if (hasChildren) {
@@ -1002,6 +1133,76 @@
             }
 
             return node;
+        }
+
+        // Get task status class for visual indicator
+        function getTaskStatusClass(task) {
+            if (!task.execution || !task.execution.hasExecutionData) {
+                return 'never-run';
+            }
+            if (task.execution.isRunning) {
+                return 'running';
+            }
+            if (task.execution.lastStatus === 'success') {
+                return 'success';
+            }
+            return 'failed';
+        }
+
+        // Toggle task details
+        function toggleTaskDetails(node, task) {
+            const detailsElement = node.querySelector('.tree-task-details');
+            const toggleButton = node.querySelector('.tree-detail-toggle');
+            
+            if (detailsElement.classList.contains('expanded')) {
+                detailsElement.classList.remove('expanded');
+                toggleButton.classList.remove('expanded');
+                toggleButton.textContent = 'ⓘ';
+            } else {
+                detailsElement.classList.add('expanded');
+                toggleButton.classList.add('expanded');
+                toggleButton.textContent = '✕';
+                // Refresh details content in case data has changed
+                detailsElement.innerHTML = createTaskDetailsHTML(task);
+            }
+        }
+
+        // Create detailed task HTML for expanded view
+        function createTaskDetailsHTML(task) {
+            let html = '';
+            
+            if (task.description) {
+                html += `<div class="task-description">${task.description}</div>`;
+            }
+
+            html += '<div class="task-meta">';
+            html += createCategoryBadges(task.categories);
+            html += createStructuredBadge(task.structuredLogging);
+            html += createExecutionBadges(task.execution);
+            html += '</div>';
+
+            // Add execution information if available
+            if (task.execution && task.execution.hasExecutionData) {
+                html += createExecutionInfo(task.execution);
+            }
+
+            // Add relationships
+            const children = filteredTasks.filter(t => t.parent === task.name);
+            if (task.parent || children.length > 0) {
+                html += '<div class="task-relationships">';
+                if (task.parent) {
+                    html += `Parent: <span class="relationship-link">${task.parent}</span><br>`;
+                }
+                if (children.length > 0) {
+                    html += `Children: ${children.map(c => `<span class="relationship-link">${c.name}</span>`).join(', ')}`;
+                }
+                html += '</div>';
+            }
+
+            // Add task actions (Run Task button)
+            html += createTaskActions(task);
+
+            return html;
         }
 
         // Toggle tree node
