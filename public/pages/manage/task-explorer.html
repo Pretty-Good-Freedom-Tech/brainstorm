@@ -422,6 +422,37 @@
             text-decoration: none;
         }
 
+        .task-name-link {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .task-name-link:hover {
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        .table-details-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            text-decoration: none;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .table-details-link:hover {
+            background: #007bff;
+            border-color: #007bff;
+            text-decoration: none;
+        }
+
         .customer-required-badge {
             background: #17a2b8;
             color: white;
@@ -1274,7 +1305,14 @@
                 
                 // Task name
                 const nameCell = row.insertCell();
-                nameCell.innerHTML = `<strong>${task.name}</strong>`;
+                nameCell.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <strong><a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="task-name-link" title="View detailed execution history">${task.name}</a></strong>
+                        <a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="table-details-link" title="View details">
+                            📊
+                        </a>
+                    </div>
+                `;
                 
                 // Categories
                 const categoriesCell = row.insertCell();
@@ -1341,7 +1379,14 @@
                 
                 // Task name
                 const nameCell = row.insertCell();
-                nameCell.innerHTML = `<strong>${task.name}</strong>`;
+                nameCell.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <strong><a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="task-name-link" title="View detailed execution history">${task.name}</a></strong>
+                        <a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="table-details-link" title="View details">
+                            📊
+                        </a>
+                    </div>
+                `;
                 
                 // Status
                 const statusCell = row.insertCell();

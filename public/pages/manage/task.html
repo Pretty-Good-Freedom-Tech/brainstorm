@@ -325,51 +325,242 @@
             font-size: 0.9rem;
         }
 
-        .raw-events-container {
+        .events-timeline {
             margin-top: 1.5rem;
         }
 
-        .raw-events-toggle {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
         }
 
-        .raw-events-toggle:hover {
-            background: #5a6268;
+        .timeline-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
         }
 
-        .raw-events-toggle.active {
+        .timeline-count {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .event-card {
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .event-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .event-compact {
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .event-type-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .event-type-indicator.TASK_START {
+            background: #28a745;
+        }
+
+        .event-type-indicator.TASK_END {
+            background: #007bff;
+        }
+
+        .event-type-indicator.TASK_ERROR {
             background: #dc3545;
         }
 
-        .raw-events {
+        .event-type-indicator.PROGRESS {
+            background: #ffc107;
+        }
+
+        .event-type-indicator.CHILD_TASK_ERROR {
+            background: #fd7e14;
+        }
+
+        .event-type-indicator.default {
+            background: #6c757d;
+        }
+
+        .event-summary {
+            flex: 1;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .event-type {
+            font-weight: 500;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .event-description {
+            color: #666;
+            font-size: 0.85rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .event-time {
+            color: #666;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .event-expand-btn {
+            background: none;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+
+        .event-expand-btn:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+        .event-expand-btn.expanded {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .event-expanded {
+            padding: 1rem;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .event-expanded.visible {
+            display: block;
+        }
+
+        .event-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .event-detail-group {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+        }
+
+        .event-detail-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .event-detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .event-detail-label {
+            color: #666;
+        }
+
+        .event-detail-value {
+            color: #333;
+            font-weight: 500;
+            font-family: monospace;
+        }
+
+        .event-metadata {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .metadata-content {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #333;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .raw-data-toggle {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .raw-data-toggle:hover {
+            background: #5a6268;
+        }
+
+        .raw-data-toggle.active {
+            background: #dc3545;
+        }
+
+        .raw-data {
             background: #2d3748;
             color: #e2e8f0;
-            padding: 1rem;
+            padding: 0.75rem;
             border-radius: 4px;
             font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            max-height: 400px;
+            font-size: 0.75rem;
+            max-height: 300px;
             overflow-y: auto;
             white-space: pre-wrap;
             display: none;
         }
 
-        .raw-events.visible {
+        .raw-data.visible {
             display: block;
         }
 
-        .raw-events-header {
+        .raw-data-header {
             color: #a0aec0;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
             border-bottom: 1px solid #4a5568;
+            font-size: 0.7rem;
         }
 
         .loading {
@@ -703,20 +894,8 @@
                 `;
             }
 
-            // Add raw events toggle for this session
-            html += `
-                <div class="raw-events-container">
-                    <button class="raw-events-toggle" onclick="toggleSessionRawEvents('${session.sessionId}')">
-                        Show Raw Events for This Session
-                    </button>
-                    <div class="raw-events" id="raw-events-${session.sessionId}">
-                        <div class="raw-events-header">
-                            Raw Events for Session ${session.sessionId} (${session.events.length} events)
-                        </div>
-                        ${session.events.map(event => JSON.stringify(event, null, 2)).join('\n\n')}
-                    </div>
-                </div>
-            `;
+            // Add chronological events timeline
+            html += createEventsTimeline(session);
 
             return html;
         }
@@ -737,19 +916,205 @@
             }
         }
 
-        // Toggle session raw events
-        function toggleSessionRawEvents(sessionId) {
-            const rawEventsElement = document.getElementById(`raw-events-${sessionId}`);
-            const toggleBtn = rawEventsElement.previousElementSibling;
+        // Create events timeline for session
+        function createEventsTimeline(session) {
+            // Sort events by timestamp (most recent first)
+            const sortedEvents = [...session.events].sort((a, b) => {
+                const timeA = new Date(a.timestamp).getTime();
+                const timeB = new Date(b.timestamp).getTime();
+                return timeB - timeA; // Reverse chronological order
+            });
+
+            let html = `
+                <div class="events-timeline">
+                    <div class="timeline-header">
+                        <div class="timeline-title">Event Timeline</div>
+                        <div class="timeline-count">${sortedEvents.length} event${sortedEvents.length !== 1 ? 's' : ''} (most recent first)</div>
+                    </div>
+                    <div class="events-list">
+            `;
+
+            sortedEvents.forEach((event, index) => {
+                const eventId = `${session.sessionId}-event-${index}`;
+                html += createEventCard(event, eventId, index);
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Create individual event card
+        function createEventCard(event, eventId, index) {
+            const eventTime = new Date(event.timestamp);
+            const timeString = eventTime.toLocaleTimeString();
+            const eventDescription = getEventDescription(event);
             
-            if (rawEventsElement.classList.contains('visible')) {
-                rawEventsElement.classList.remove('visible');
-                toggleBtn.classList.remove('active');
-                toggleBtn.textContent = 'Show Raw Events for This Session';
+            return `
+                <div class="event-card">
+                    <div class="event-compact" onclick="toggleEventExpanded('${eventId}')">
+                        <div class="event-type-indicator ${event.eventType}"></div>
+                        <div class="event-summary">
+                            <div class="event-type">${event.eventType}</div>
+                            <div class="event-description">${eventDescription}</div>
+                            <div class="event-time">${timeString}</div>
+                            <button class="event-expand-btn" onclick="event.stopPropagation(); toggleEventExpanded('${eventId}')">
+                                ⓘ
+                            </button>
+                        </div>
+                    </div>
+                    <div class="event-expanded" id="event-expanded-${eventId}">
+                        ${createEventExpandedContent(event, eventId)}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Get event description
+        function getEventDescription(event) {
+            if (event.metadata) {
+                try {
+                    const metadata = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
+                    if (metadata.phase && metadata.step) {
+                        return `${metadata.phase} - ${metadata.step}`;
+                    }
+                    if (metadata.description) {
+                        return metadata.description;
+                    }
+                    if (metadata.error_message) {
+                        return metadata.error_message;
+                    }
+                } catch (e) {
+                    // If metadata parsing fails, continue to fallback
+                }
+            }
+            
+            // Fallback descriptions based on event type
+            switch (event.eventType) {
+                case 'TASK_START':
+                    return 'Task execution started';
+                case 'TASK_END':
+                    return 'Task execution completed';
+                case 'TASK_ERROR':
+                    return 'Task execution failed';
+                case 'PROGRESS':
+                    return 'Progress update';
+                case 'CHILD_TASK_ERROR':
+                    return 'Child task error reported';
+                default:
+                    return 'Event occurred';
+            }
+        }
+
+        // Create expanded event content
+        function createEventExpandedContent(event, eventId) {
+            const eventTime = new Date(event.timestamp);
+            
+            let html = `
+                <div class="event-details">
+                    <div class="event-detail-group">
+                        <div class="event-detail-title">Event Information</div>
+                        <div class="event-detail-item">
+                            <span class="event-detail-label">Type:</span>
+                            <span class="event-detail-value">${event.eventType}</span>
+                        </div>
+                        <div class="event-detail-item">
+                            <span class="event-detail-label">Timestamp:</span>
+                            <span class="event-detail-value">${eventTime.toLocaleString()}</span>
+                        </div>
+                        <div class="event-detail-item">
+                            <span class="event-detail-label">Task Name:</span>
+                            <span class="event-detail-value">${event.taskName}</span>
+                        </div>
+                        <div class="event-detail-item">
+                            <span class="event-detail-label">PID:</span>
+                            <span class="event-detail-value">${event.pid}</span>
+                        </div>
+                    </div>
+                    <div class="event-detail-group">
+                        <div class="event-detail-title">Technical Details</div>
+                        <div class="event-detail-item">
+                            <span class="event-detail-label">Session ID:</span>
+                            <span class="event-detail-value">${event.sessionId || 'N/A'}</span>
+                        </div>
+                        <div class="event-detail-item">
+                            <span class="event-detail-label">Source:</span>
+                            <span class="event-detail-value">${event.source || 'structured_logging'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add metadata if available
+            if (event.metadata) {
+                let metadataDisplay = '';
+                try {
+                    const metadata = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
+                    metadataDisplay = JSON.stringify(metadata, null, 2);
+                } catch (e) {
+                    metadataDisplay = event.metadata.toString();
+                }
+                
+                html += `
+                    <div class="event-metadata">
+                        <div class="event-detail-title">Event Metadata</div>
+                        <div class="metadata-content">${metadataDisplay}</div>
+                    </div>
+                `;
+            }
+
+            // Add raw data toggle
+            html += `
+                <button class="raw-data-toggle" onclick="toggleEventRawData('${eventId}')">
+                    Show Raw Event Data
+                </button>
+                <div class="raw-data" id="raw-data-${eventId}">
+                    <div class="raw-data-header">
+                        Raw JSON Event Data
+                    </div>
+                    ${JSON.stringify(event, null, 2)}
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Toggle event expanded view
+        function toggleEventExpanded(eventId) {
+            const expandedElement = document.getElementById(`event-expanded-${eventId}`);
+            const expandBtn = document.querySelector(`[onclick*="toggleEventExpanded('${eventId}')"] .event-expand-btn`);
+            
+            if (expandedElement.classList.contains('visible')) {
+                expandedElement.classList.remove('visible');
+                if (expandBtn) {
+                    expandBtn.classList.remove('expanded');
+                    expandBtn.textContent = 'ⓘ';
+                }
             } else {
-                rawEventsElement.classList.add('visible');
+                expandedElement.classList.add('visible');
+                if (expandBtn) {
+                    expandBtn.classList.add('expanded');
+                    expandBtn.textContent = '✕';
+                }
+            }
+        }
+
+        // Toggle event raw data
+        function toggleEventRawData(eventId) {
+            const rawDataElement = document.getElementById(`raw-data-${eventId}`);
+            const toggleBtn = rawDataElement.previousElementSibling;
+            
+            if (rawDataElement.classList.contains('visible')) {
+                rawDataElement.classList.remove('visible');
+                toggleBtn.classList.remove('active');
+                toggleBtn.textContent = 'Show Raw Event Data';
+            } else {
+                rawDataElement.classList.add('visible');
                 toggleBtn.classList.add('active');
-                toggleBtn.textContent = 'Hide Raw Events for This Session';
+                toggleBtn.textContent = 'Hide Raw Event Data';
             }
         }
 
