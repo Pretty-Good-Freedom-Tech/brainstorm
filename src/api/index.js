@@ -27,6 +27,7 @@ const { handleSearchProfiles } = require('./search/profiles');
 const { handleGetRecentlyActivePubkeys } = require('./content/queries/recentlyActivePubkeys');
 const getTaskDashboardState = require('./taskDashboard/getTaskDashboardState');
 const getTaskExplorerData = require('./taskExplorer/getTaskExplorerData');
+const getTaskExplorerSingleTaskData = require('./taskExplorer/getTaskExplorerSingleTaskData');
 const {
     handleGetHistoryHops,
     handleGetHistoryPersonalizedPageRank,
@@ -287,6 +288,7 @@ function register(app) {
     
     // Task Explorer Data endpoint (owner-only)
     app.get('/api/task-explorer/data', getTaskExplorerData);
+    app.get('/api/task-explorer/single-task/data', getTaskExplorerSingleTaskData);
 
     console.log('Registered all Brainstorm API endpoints');
 }

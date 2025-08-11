@@ -402,6 +402,26 @@
             color: #212529;
         }
 
+        .task-details-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .task-details-link:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
         .customer-required-badge {
             background: #17a2b8;
             color: white;
@@ -1516,6 +1536,11 @@
             const requiresCustomer = task.categories.includes('customer');
             
             let html = '<div class="task-actions">';
+            
+            // View Details link
+            html += `<a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="task-details-link" title="View detailed execution history">`;
+            html += '📊 View Details';
+            html += '</a>';
             
             // Run Task button
             const buttonText = isRunning ? '🔄 Running...' : '▶️ Run Task';
