@@ -42,33 +42,50 @@ echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and custome
 echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "updateAllScoresForSingleCustomer" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME"
+emit_task_event "TASK_START" "updateAllScoresForSingleCustomer" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "description": "Updates all trust scores for a single customer",
+    "child_tasks": 5,
+    "scope": "customer_specific",
+    "orchestrator_level": "secondary"
+}'
 
 echo "$(date): Continuing calculateAllScores; starting calculateHops.sh"
 echo "$(date): Continuing calculateAllScores; starting calculateHops.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "calculateCustomerHops" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "parent_task=updateAllScoresForSingleCustomer"
+emit_task_event "CHILD_TASK_START" "calculateCustomerHops" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "parent_task": "updateAllScoresForSingleCustomer",
+    "child_order": 1,
+    "algorithm": "hop_calculation",
+    "category": "algorithms"
+}'
 
 # Run calculateHops.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "calculateCustomerHops" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=success" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_END" "calculateCustomerHops" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "success",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 1,
+        "algorithm": "hop_calculation",
+        "structured_logging": true
+    }'
 else
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerHops" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=failed" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerHops" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "failed",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 1,
+        "algorithm": "hop_calculation",
+        "structured_logging": true
+    }'
     echo "$(date): ERROR: calculateHops.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -76,24 +93,37 @@ echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "parent_task=updateAllScoresForSingleCustomer"
+emit_task_event "CHILD_TASK_START" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "parent_task": "updateAllScoresForSingleCustomer",
+    "child_order": 2,
+    "algorithm": "personalized_pagerank",
+    "category": "algorithms",
+    "structured_logging": true
+}'
 
 # Run personalizedPageRank.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=success" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "success",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 2,
+        "algorithm": "personalized_pagerank",
+        "structured_logging": true
+    }'
 else
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=failed" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "failed",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 2,
+        "algorithm": "personalized_pagerank",
+        "structured_logging": true
+    }'
     echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -101,24 +131,36 @@ echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "calculateCustomerGrapeRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "parent_task=updateAllScoresForSingleCustomer"
+emit_task_event "CHILD_TASK_START" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "parent_task": "updateAllScoresForSingleCustomer",
+    "child_order": 3,
+    "algorithm": "personalized_graperank",
+    "category": "algorithms"
+}'
 
 # Run personalizedGrapeRank.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=success" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "success",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 3,
+        "algorithm": "personalized_graperank",
+        "category": "algorithms"
+    }'
 else
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=failed" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "failed",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 3,
+        "algorithm": "personalized_graperank",
+        "category": "algorithms"
+    }'
     echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -126,24 +168,37 @@ echo "$(date): Continuing calculateAllScores; starting processFollowsMutesReport
 echo "$(date): Continuing calculateAllScores; starting processFollowsMutesReports.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "processCustomerFollowsMutesReports" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "parent_task=updateAllScoresForSingleCustomer"
+emit_task_event "CHILD_TASK_START" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "parent_task": "updateAllScoresForSingleCustomer",
+    "child_order": 4,
+    "algorithm": "follows_mutes_reports",
+    "category": "algorithms",
+    "structured_logging": true
+}'
 
 # Run processFollowsMutesReports.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFollowsMutesReports.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "processCustomerFollowsMutesReports" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=success" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_END" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "success",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 4,
+        "algorithm": "follows_mutes_reports",
+        "structured_logging": true
+    }'
 else
-    emit_task_event "CHILD_TASK_ERROR" "processCustomerFollowsMutesReports" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=failed" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    emit_task_event "CHILD_TASK_ERROR" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" '{
+        "customer_id": "'$CUSTOMER_ID'",
+        "customer_name": "'$CUSTOMER_NAME'",
+        "status": "failed",
+        "parent_task": "updateAllScoresForSingleCustomer",
+        "child_order": 4,
+        "algorithm": "follows_mutes_reports",
+        "structured_logging": true
+    }'
     echo "$(date): ERROR: processFollowsMutesReports.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -184,8 +239,13 @@ echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and custome
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "updateAllScoresForSingleCustomer" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "status=success"
+emit_task_event "TASK_END" "updateAllScoresForSingleCustomer" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "status": "success",
+    "child_tasks_completed": 4,
+    "description": "Updates all trust scores for a single customer",
+    "scope": "customer_specific",
+    "orchestrator_level": "secondary"
+}'

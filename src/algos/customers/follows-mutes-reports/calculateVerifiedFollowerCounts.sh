@@ -50,12 +50,18 @@ echo "$(date): Starting calculateVerifiedFollowerCounts"
 echo "$(date): Starting calculateVerifiedFollowerCounts" >> ${LOG_FILE}
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "calculateVerifiedFollowerCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "influence_cutoff=$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF" \
-    "message=Starting verified follower counts calculation"
+emit_task_event "TASK_START" "calculateVerifiedFollowerCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "influence_cutoff": '$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF',
+    "message": "Starting verified follower counts calculation",
+    "algorithm": "verified_follower_counts",
+    "phases": 2,
+    "calculation_type": "count_aggregation",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'
 
 CYPHER1_TEST="
 MATCH (followee:NostrUser)<-[f:FOLLOWS]-(follower:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(followerCard:NostrUserWotMetricsCard {customer_id: 1})
@@ -84,13 +90,17 @@ SET followeeCard.verifiedFollowerCount = 0
 RETURN COUNT(followeeCard) AS numCardsUpdated"
 
 # Emit structured event for Phase 1 start
-emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=nonzero_counts" \
-    "phase=1" \
-    "influence_cutoff=$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF" \
-    "message=Calculating non-zero verified follower counts"
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "nonzero_counts",
+    "phase": 1,
+    "phase_name": "nonzero_counts",
+    "influence_cutoff": '$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF',
+    "message": "Calculating non-zero verified follower counts",
+    "algorithm": "verified_follower_counts",
+    "calculation_type": "count_aggregation"
+}'
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
@@ -99,21 +109,30 @@ echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedFollowerC
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedFollowerCount)" >> ${LOG_FILE}
 
 # Emit structured event for Phase 1 completion
-emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=nonzero_counts_complete" \
-    "phase=1" \
-    "users_updated=$numUsersUpdated" \
-    "message=Completed non-zero verified follower counts calculation"
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "nonzero_counts_complete",
+    "phase": 1,
+    "phase_name": "nonzero_counts_complete",
+    "users_updated": '$numUsersUpdated',
+    "message": "Completed non-zero verified follower counts calculation",
+    "algorithm": "verified_follower_counts",
+    "calculation_type": "count_aggregation",
+    "status": "completed"
+}'
 
 # Emit structured event for Phase 2 start
-emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=zero_counts" \
-    "phase=2" \
-    "message=Setting zero verified follower counts for remaining users"
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "zero_counts",
+    "phase": 2,
+    "phase_name": "zero_counts",
+    "message": "Setting zero verified follower counts for remaining users",
+    "algorithm": "verified_follower_counts",
+    "calculation_type": "count_aggregation"
+}'
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
 numUsersUpdated="${cypherResults:16}"
@@ -122,24 +141,33 @@ echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedFollowerCoun
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedFollowerCount)" >> ${LOG_FILE}
 
 # Emit structured event for Phase 2 completion
-emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=zero_counts_complete" \
-    "phase=2" \
-    "users_updated=$numUsersUpdated" \
-    "message=Completed zero verified follower counts assignment"
+emit_task_event "PROGRESS" "calculateVerifiedFollowerCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "zero_counts_complete",
+    "phase": 2,
+    "phase_name": "zero_counts_complete",
+    "users_updated": '$numUsersUpdated',
+    "message": "Completed zero verified follower counts assignment",
+    "algorithm": "verified_follower_counts",
+    "calculation_type": "count_aggregation",
+    "status": "completed"
+}'
 
 echo "$(date): Finished calculateVerifiedFollowerCounts"
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "calculateVerifiedFollowerCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "status=success" \
-    "phases_completed=2" \
-    "influence_cutoff=$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF" \
-    "algorithm=verified_follower_counts" \
-    "message=Verified follower counts calculation completed successfully"
+emit_task_event "TASK_END" "calculateVerifiedFollowerCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "status": "success",
+    "phases_completed": 2,
+    "influence_cutoff": '$VERIFIED_FOLLOWERS_INFLUENCE_CUTOFF',
+    "algorithm": "verified_follower_counts",
+    "message": "Verified follower counts calculation completed successfully",
+    "calculation_type": "count_aggregation",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'
 echo "$(date): Finished calculateVerifiedFollowerCounts" >> ${LOG_FILE}

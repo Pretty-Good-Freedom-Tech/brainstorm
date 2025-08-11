@@ -50,12 +50,18 @@ echo "$(date): Starting calculateVerifiedReporterCounts"
 echo "$(date): Starting calculateVerifiedReporterCounts" >> ${LOG_FILE}
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "calculateVerifiedReporterCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "influence_cutoff=$VERIFIED_REPORTERS_INFLUENCE_CUTOFF" \
-    "message=Starting verified reporter counts calculation"
+emit_task_event "TASK_START" "calculateVerifiedReporterCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "influence_cutoff": '$VERIFIED_REPORTERS_INFLUENCE_CUTOFF',
+    "message": "Starting verified reporter counts calculation",
+    "algorithm": "verified_reporter_counts",
+    "phases": 2,
+    "calculation_type": "count_aggregation",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'
 
 CYPHER1="
 MATCH (reportee:NostrUser)<-[r:REPORTS]-(reporter:NostrUser)-[:WOT_METRICS_CARDS]->(:SetOfNostrUserWotMetricsCards)-[:SPECIFIC_INSTANCE]->(reporterCard:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
@@ -76,13 +82,17 @@ SET reporteeCard.verifiedReporterCount = 0
 RETURN COUNT(reporteeCard) AS numCardsUpdated"
 
 # Emit structured event for Phase 1 start
-emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=nonzero_counts" \
-    "phase=1" \
-    "influence_cutoff=$VERIFIED_REPORTERS_INFLUENCE_CUTOFF" \
-    "message=Calculating non-zero verified reporter counts"
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "nonzero_counts",
+    "phase": 1,
+    "phase_name": "nonzero_counts",
+    "influence_cutoff": '$VERIFIED_REPORTERS_INFLUENCE_CUTOFF',
+    "message": "Calculating non-zero verified reporter counts",
+    "algorithm": "verified_reporter_counts",
+    "calculation_type": "count_aggregation"
+}'
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
@@ -91,21 +101,30 @@ echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedReporterC
 echo "$(date): numUsersUpdated: $numUsersUpdated (with nonzero verifiedReporterCount)" >> ${LOG_FILE}
 
 # Emit structured event for Phase 1 completion
-emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=nonzero_counts_complete" \
-    "phase=1" \
-    "users_updated=$numUsersUpdated" \
-    "message=Completed non-zero verified reporter counts calculation"
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "nonzero_counts_complete",
+    "phase": 1,
+    "phase_name": "nonzero_counts_complete",
+    "users_updated": '$numUsersUpdated',
+    "message": "Completed non-zero verified reporter counts calculation",
+    "algorithm": "verified_reporter_counts",
+    "calculation_type": "count_aggregation",
+    "status": "completed"
+}'
 
 # Emit structured event for Phase 2 start
-emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=zero_counts" \
-    "phase=2" \
-    "message=Setting zero verified reporter counts for remaining users"
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "zero_counts",
+    "phase": 2,
+    "phase_name": "zero_counts",
+    "message": "Setting zero verified reporter counts for remaining users",
+    "algorithm": "verified_reporter_counts",
+    "calculation_type": "count_aggregation"
+}'
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2")
 numUsersUpdated="${cypherResults:16}"
@@ -114,24 +133,33 @@ echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedReporterCoun
 echo "$(date): numUsersUpdated: $numUsersUpdated (with zero verifiedReporterCount)" >> ${LOG_FILE}
 
 # Emit structured event for Phase 2 completion
-emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=zero_counts_complete" \
-    "phase=2" \
-    "users_updated=$numUsersUpdated" \
-    "message=Completed zero verified reporter counts assignment"
+emit_task_event "PROGRESS" "calculateVerifiedReporterCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "zero_counts_complete",
+    "phase": 2,
+    "phase_name": "zero_counts_complete",
+    "users_updated": '$numUsersUpdated',
+    "message": "Completed zero verified reporter counts assignment",
+    "algorithm": "verified_reporter_counts",
+    "calculation_type": "count_aggregation",
+    "status": "completed"
+}'
 
 echo "$(date): Finished calculateVerifiedReporterCounts"
 echo "$(date): Finished calculateVerifiedReporterCounts" >> ${LOG_FILE}
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "calculateVerifiedReporterCounts" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "status=success" \
-    "phases_completed=2" \
-    "influence_cutoff=$VERIFIED_REPORTERS_INFLUENCE_CUTOFF" \
-    "algorithm=verified_reporter_counts" \
-    "message=Verified reporter counts calculation completed successfully"
+emit_task_event "TASK_END" "calculateVerifiedReporterCounts" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "status": "success",
+    "phases_completed": 2,
+    "influence_cutoff": '$VERIFIED_REPORTERS_INFLUENCE_CUTOFF',
+    "algorithm": "verified_reporter_counts",
+    "message": "Verified reporter counts calculation completed successfully",
+    "calculation_type": "count_aggregation",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'

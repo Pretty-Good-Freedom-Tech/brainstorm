@@ -45,11 +45,16 @@ echo "$(date): Starting calculateFollowerInputs"
 echo "$(date): Starting calculateFollowerInputs" >> ${LOG_FILE}
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "calculateFollowerInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "message=Starting follower inputs calculation"
+emit_task_event "TASK_START" "calculateFollowerInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "message": "Starting follower inputs calculation",
+    "algorithm": "follower_inputs",
+    "calculation_type": "influence_aggregation",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'
 
 set -e  # Exit on error
 
@@ -130,11 +135,16 @@ RETURN COUNT(followeeCard) AS numCardsUpdated
 "
 
 # Emit structured event for calculation start
-emit_task_event "PROGRESS" "calculateFollowerInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=influence_calculation" \
-    "message=Calculating follower influence inputs for all users"
+emit_task_event "PROGRESS" "calculateFollowerInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "influence_calculation",
+    "phase": 1,
+    "phase_name": "influence_calculation",
+    "message": "Calculating follower influence inputs for all users",
+    "algorithm": "follower_inputs",
+    "calculation_type": "influence_aggregation"
+}'
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
@@ -143,23 +153,32 @@ echo "$(date): numUsersUpdated: $numUsersUpdated"
 echo "$(date): numUsersUpdated: $numUsersUpdated" >> ${LOG_FILE}
 
 # Emit structured event for calculation completion
-emit_task_event "PROGRESS" "calculateFollowerInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=influence_calculation_complete" \
-    "users_updated=$numUsersUpdated" \
-    "message=Completed follower influence inputs calculation"
+emit_task_event "PROGRESS" "calculateFollowerInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "influence_calculation_complete",
+    "phase": 1,
+    "phase_name": "influence_calculation_complete",
+    "users_updated": '$numUsersUpdated',
+    "message": "Completed follower influence inputs calculation",
+    "algorithm": "follower_inputs",
+    "calculation_type": "influence_aggregation",
+    "status": "completed"
+}'
 
 echo "$(date): Finished calculateFollowerInputs"
 echo "$(date): Finished calculateFollowerInputs" >> ${LOG_FILE}
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "calculateFollowerInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "status=success" \
-    "users_updated=$numUsersUpdated" \
-    "algorithm=follower_inputs" \
-    "calculation_type=influence_aggregation" \
-    "message=Follower inputs calculation completed successfully"  
+emit_task_event "TASK_END" "calculateFollowerInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "status": "success",
+    "users_updated": '$numUsersUpdated',
+    "algorithm": "follower_inputs",
+    "calculation_type": "influence_aggregation",
+    "message": "Follower inputs calculation completed successfully",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'  

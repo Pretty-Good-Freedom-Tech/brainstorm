@@ -45,11 +45,16 @@ echo "$(date): Starting calculateMuterInputs"
 echo "$(date): Starting calculateMuterInputs" >> ${LOG_FILE}
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "calculateMuterInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "message=Starting muter inputs calculation"
+emit_task_event "TASK_START" "calculateMuterInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "message": "Starting muter inputs calculation",
+    "algorithm": "muter_inputs",
+    "calculation_type": "influence_aggregation",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'
 
 set -e  # Exit on error
 
@@ -76,11 +81,16 @@ RETURN COUNT(muteeCard) AS numCardsUpdated
 "
 
 # Emit structured event for calculation start
-emit_task_event "PROGRESS" "calculateMuterInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=influence_calculation" \
-    "message=Calculating muter influence inputs for all users"
+emit_task_event "PROGRESS" "calculateMuterInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "influence_calculation",
+    "phase": 1,
+    "phase_name": "influence_calculation",
+    "message": "Calculating muter influence inputs for all users",
+    "algorithm": "muter_inputs",
+    "calculation_type": "influence_aggregation"
+}'
 
 cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
 numUsersUpdated="${cypherResults:16}"
@@ -89,23 +99,32 @@ echo "$(date): numUsersUpdated: $numUsersUpdated"
 echo "$(date): numUsersUpdated: $numUsersUpdated" >> ${LOG_FILE}
 
 # Emit structured event for calculation completion
-emit_task_event "PROGRESS" "calculateMuterInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=influence_calculation_complete" \
-    "users_updated=$numUsersUpdated" \
-    "message=Completed muter influence inputs calculation"
+emit_task_event "PROGRESS" "calculateMuterInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "influence_calculation_complete",
+    "phase": 1,
+    "phase_name": "influence_calculation_complete",
+    "users_updated": '$numUsersUpdated',
+    "message": "Completed muter influence inputs calculation",
+    "algorithm": "muter_inputs",
+    "calculation_type": "influence_aggregation",
+    "status": "completed"
+}'
 
 echo "$(date): Finished calculateMuterInputs"
 echo "$(date): Finished calculateMuterInputs" >> ${LOG_FILE}
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "calculateMuterInputs" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "status=success" \
-    "users_updated=$numUsersUpdated" \
-    "algorithm=muter_inputs" \
-    "calculation_type=influence_aggregation" \
-    "message=Muter inputs calculation completed successfully"  
+emit_task_event "TASK_END" "calculateMuterInputs" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "status": "success",
+    "users_updated": '$numUsersUpdated',
+    "algorithm": "muter_inputs",
+    "calculation_type": "influence_aggregation",
+    "message": "Muter inputs calculation completed successfully",
+    "category": "algorithms",
+    "parent_task": "processCustomerFollowsMutesReports"
+}'  

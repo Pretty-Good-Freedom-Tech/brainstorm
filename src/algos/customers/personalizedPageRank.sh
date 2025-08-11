@@ -35,11 +35,17 @@ echo "$(date): Starting personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBK
 echo "$(date): Starting personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${LOG_FILE}
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "message=Starting personalized PageRank calculation"
+emit_task_event "TASK_START" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "message": "Starting personalized PageRank calculation",
+    "algorithm": "personalized_pagerank",
+    "max_iterations": 20,
+    "damping_factor": 0.85,
+    "phases": 5,
+    "category": "algorithms"
+}'
 
 CYPHER1="
 MATCH (source:NostrUser)-[r:FOLLOWS]->(target:NostrUser)
@@ -79,12 +85,15 @@ SET n.customer_personalizedPageRank = NULL
 "
 
 # Emit progress event for graph projection phase
-emit_task_event "PROGRESS" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=graph_projection" \
-    "phase=1" \
-    "message=Creating graph projection for PageRank calculation"
+emit_task_event "PROGRESS" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "graph_projection",
+    "phase": 1,
+    "phase_name": "graph_projection",
+    "message": "Creating graph projection for PageRank calculation",
+    "algorithm": "personalized_pagerank"
+}'
 
 # no need to send output to log file or console
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1" > /dev/null 2>&1
@@ -93,22 +102,29 @@ echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PU
 echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY ... finished CYPHER1" >> ${LOG_FILE}
 
 # Emit progress event for graph projection completion
-emit_task_event "PROGRESS" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=graph_projection_complete" \
-    "phase=1" \
-    "message=Graph projection completed successfully"
+emit_task_event "PROGRESS" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "graph_projection_complete",
+    "phase": 1,
+    "phase_name": "graph_projection_complete",
+    "message": "Graph projection completed successfully",
+    "algorithm": "personalized_pagerank",
+    "status": "completed"
+}'
 
 # Emit progress event for PageRank calculation phase
-emit_task_event "PROGRESS" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=pagerank_calculation" \
-    "phase=2" \
-    "max_iterations=20" \
-    "damping_factor=0.85" \
-    "message=Running personalized PageRank algorithm"
+emit_task_event "PROGRESS" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "pagerank_calculation",
+    "phase": 2,
+    "phase_name": "pagerank_calculation",
+    "message": "Running PageRank algorithm with max 20 iterations",
+    "algorithm": "personalized_pagerank",
+    "max_iterations": 20,
+    "damping_factor": 0.85
+}'
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER2" > /dev/null 2>&1
 
@@ -124,12 +140,15 @@ emit_task_event "PROGRESS" "calculateCustomerPageRank" \
     "message=PageRank algorithm completed successfully"
 
 # Emit progress event for graph cleanup phase
-emit_task_event "PROGRESS" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=graph_cleanup" \
-    "phase=3" \
-    "message=Dropping temporary graph projection"
+emit_task_event "PROGRESS" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "graph_cleanup",
+    "phase": 3,
+    "phase_name": "graph_cleanup",
+    "message": "Dropping temporary graph projection",
+    "algorithm": "personalized_pagerank"
+}'
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3" > /dev/null 2>&1
 
@@ -137,12 +156,15 @@ echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PU
 echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY ... finished CYPHER3" >> ${LOG_FILE}
 
 # Emit progress event for data transfer phase
-emit_task_event "PROGRESS" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=data_transfer" \
-    "phase=4" \
-    "message=Transferring PageRank scores to WoT metrics cards"
+emit_task_event "PROGRESS" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "data_transfer",
+    "phase": 4,
+    "phase_name": "data_transfer",
+    "message": "Transferring PageRank scores to WoT metrics cards",
+    "algorithm": "personalized_pagerank"
+}'
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER4" > /dev/null 2>&1
 
@@ -150,12 +172,15 @@ echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PU
 echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY ... finished CYPHER4" >> ${LOG_FILE}
 
 # Emit progress event for cleanup phase
-emit_task_event "PROGRESS" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=temp_data_cleanup" \
-    "phase=5" \
-    "message=Cleaning up temporary PageRank properties"
+emit_task_event "PROGRESS" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "temp_data_cleanup",
+    "phase": 5,
+    "phase_name": "temp_data_cleanup",
+    "message": "Cleaning up temporary PageRank properties",
+    "algorithm": "personalized_pagerank"
+}'
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER5" > /dev/null 2>&1
 
@@ -163,24 +188,30 @@ echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PU
 echo "$(date): Continuing personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY ... finished CYPHER5" >> ${LOG_FILE}
 
 # Emit progress event for cleanup completion
-emit_task_event "PROGRESS" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "step=temp_data_cleanup_complete" \
-    "phase=5" \
-    "message=Temporary data cleanup completed"
+emit_task_event "PROGRESS" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "step": "temp_data_cleanup_complete",
+    "phase": 5,
+    "phase_name": "temp_data_cleanup_complete",
+    "message": "Temporary data cleanup completed",
+    "algorithm": "personalized_pagerank",
+    "status": "completed"
+}'
 
 echo "$(date): Finished personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY"
 echo "$(date): Finished personalizedPageRank for CUSTOMER_PUBKEY: $CUSTOMER_PUBKEY" >> ${LOG_FILE}
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "calculateCustomerPageRank" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_pubkey=$CUSTOMER_PUBKEY" \
-    "customer_name=$CUSTOMER_NAME" \
-    "status=success" \
-    "phases_completed=5" \
-    "algorithm=personalized_pagerank" \
-    "max_iterations=20" \
-    "damping_factor=0.85" \
-    "message=Personalized PageRank calculation completed successfully"
+emit_task_event "TASK_END" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
+    "customer_id": "'$CUSTOMER_ID'",
+    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
+    "customer_name": "'$CUSTOMER_NAME'",
+    "status": "success",
+    "phases_completed": 5,
+    "algorithm": "personalized_pagerank",
+    "max_iterations": 20,
+    "damping_factor": 0.85,
+    "message": "Personalized PageRank calculation completed successfully",
+    "category": "algorithms"
+}'
