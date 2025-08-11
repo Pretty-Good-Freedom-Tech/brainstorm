@@ -78,24 +78,8 @@ echo "$(date): Continuing calculateReportScores; total_report_types: $total_repo
 for reportType in ${REPORT_TYPES[@]}; do
     ((report_type_count++))
     
-    # Emit structured event for individual report type processing start
-    progressMetadata=$(cat <<EOF
-{
-    "message": "Processing report type: $reportType",
-    "phase": "per_type_processing",
-    "step": "report_type_processing",
-    "algorithm": "report_scoring",
-    "report_type": "$reportType",
-    "report_type_index": $report_type_count,
-    "total_report_types": $total_report_types,
-    "operations": ["influence_weighted_query", "verified_count_query"],
-    "scope": "owner"
-}
-EOF
-)
-emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
-
-
+    echo "$(date): Continuing calculateReportScores; report_type_count: $report_type_count; reportType: $reportType"
+    echo "$(date): Continuing calculateReportScores; report_type_count: $report_type_count; reportType: $reportType" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
     cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "
 MATCH (a:NostrUser)-[r:REPORTS {report_type: '$reportType'}]->(u:NostrUser)
