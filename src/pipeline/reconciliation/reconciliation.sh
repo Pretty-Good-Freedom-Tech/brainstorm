@@ -54,9 +54,34 @@ check_disk_space() {
   du -sh /var/lib/neo4j/data/transactions | tee -a "${LOG_FILE}"
 }
 
+emit_function_error() {
+  local function_name="$1"
+  local line_number="$2" 
+  local exit_code="$3"
+  local last_command="${BASH_COMMAND}"
+  
+  emit_task_event "TASK_ERROR" "reconciliation" "system" '{
+    "message": "Function failure in reconciliation script",
+    "function": "'$function_name'",
+    "line_number": '$line_number',
+    "exit_code": '$exit_code',
+    "failed_command": "'$last_command'",
+    "phase": "pre_phase_A",
+    "context": "cleanup_operations",
+    "category": "function_error",
+    "scope": "system"
+  }'
+}
+
 # create function for cleaning up
 function cleanup() {
   # clean up neo4j import folder
+  log "Starting cleanup"
+
+  # Trap errors within this function
+  set -e
+  trap 'emit_function_error "cleanup" "$LINENO" "$?"' ERR
+
   # clean up mutes
   sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
   sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
@@ -94,6 +119,7 @@ function cleanup() {
   sudo chown -R brainstorm:brainstorm $BASE_DIR/currentRelationshipsFromNeo4j
 
   log "Completed cleanup"
+  trap - ERR  # Remove trap
 }
 
 # Start reconciliation process

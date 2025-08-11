@@ -208,13 +208,16 @@ if sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconciliation/reconciliation.sh; then
         "structured_logging": true
     }'
 else
+    CHILD_EXIT_CODE=$?
     emit_task_event "CHILD_TASK_ERROR" "processAllTasks" "" '{
         "child_task": "reconciliation",
+        "child_exit_code": '$CHILD_EXIT_CODE',
         "status": "error",
-        "message": "Data reconciliation failed",
+        "message": "Data reconciliation failed - check reconciliation logs for function-level details.",
         "task_order": 3,
         "category": "data_processing",
-        "structured_logging": true
+        "structured_logging": true,
+        "diagnostic_hint": "Check events.jsonl for TASK_ERROR from reconciliation script"
     }'
 fi
 
