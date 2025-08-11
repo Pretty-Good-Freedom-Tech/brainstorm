@@ -50,7 +50,7 @@ echo "$(date): Continuing calculateReportScores; REPORT_TYPES: $REPORT_TYPES" >>
 
 # loop through report types; for each reported user, count the total number as well as the influence-weighted number of reports of that type by verified users
 report_type_count=0
-total_report_types=$(echo ${REPORT_TYPES[@]} | wc -w)
+total_report_types=$(echo $REPORT_TYPES | wc -w)
 
 echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types"
 echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
@@ -72,14 +72,17 @@ EOF
 )
 emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
 
-echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types"
-echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
+echo "$(date): Continuing calculateReportScores b; total_report_types: $total_report_types"
+echo "$(date): Continuing calculateReportScores b; total_report_types: $total_report_types" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
-for reportType in ${REPORT_TYPES[@]}; do
+for reportType in $REPORT_TYPES; do
+    echo "$(date): Continuing calculateReportScores a report_type_count: $report_type_count; reportType: $reportType"
+    echo "$(date): Continuing calculateReportScores a; report_type_count: $report_type_count; reportType: $reportType" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
+
     ((report_type_count++))
     
-    echo "$(date): Continuing calculateReportScores; report_type_count: $report_type_count; reportType: $reportType"
-    echo "$(date): Continuing calculateReportScores; report_type_count: $report_type_count; reportType: $reportType" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
+    echo "$(date): Continuing calculateReportScores b report_type_count: $report_type_count; reportType: $reportType"
+    echo "$(date): Continuing calculateReportScores b; report_type_count: $report_type_count; reportType: $reportType" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
     cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "
 MATCH (a:NostrUser)-[r:REPORTS {report_type: '$reportType'}]->(u:NostrUser)
@@ -141,7 +144,7 @@ emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$
 TOTAL_REPORT_COUNT=""
 TOTAL_VERIFIED_REPORT_COUNT=""
 TOTAL_GRAPE_RANK_SCORE=""
-for reportType in ${REPORT_TYPES[@]}; do
+for reportType in $REPORT_TYPES; do
     TOTAL_REPORT_COUNT+="COALESCE(u.nip56_${reportType}_reportCount, 0) + "
     TOTAL_VERIFIED_REPORT_COUNT+="COALESCE(u.nip56_${reportType}_verifiedReportCount, 0) + "
     TOTAL_GRAPE_RANK_SCORE+="COALESCE(u.nip56_${reportType}_grapeRankScore, 0) + "
