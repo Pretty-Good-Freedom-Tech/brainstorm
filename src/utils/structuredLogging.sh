@@ -172,25 +172,40 @@ emit_task_event() {
         return 0
     fi
 
-    echo "metadata: $metadata"
-    BRAINSTORM_DEBUG_LOGGING="true"
+    # Force debug logging to a file we can easily check
+    local debug_file="/tmp/emit_task_event_debug.log"
+    echo "=== DEBUG emit_task_event ===" >> "$debug_file"
+    echo "Timestamp: $(date)" >> "$debug_file"
+    echo "Task: $task_name" >> "$debug_file"
+    echo "Event: $event_type" >> "$debug_file"
+    echo "Target: $target" >> "$debug_file"
+    echo "Metadata param count: $#" >> "$debug_file"
+    echo "Param 1: $1" >> "$debug_file"
+    echo "Param 2: $2" >> "$debug_file"
+    echo "Param 3: $3" >> "$debug_file"
+    echo "Param 4: $4" >> "$debug_file"
+    echo "Raw metadata variable: '$metadata'" >> "$debug_file"
+    echo "Metadata length: ${#metadata}" >> "$debug_file"
     
-    # Debug: Log metadata validation for troubleshooting
-    if [[ "$BRAINSTORM_DEBUG_LOGGING" == "true" ]]; then
-        echo "DEBUG: emit_task_event metadata validation for $task_name" >&2
-        echo "DEBUG: metadata input: $metadata" >&2
+    # Test if jq is available
+    if command -v jq >/dev/null 2>&1; then
+        echo "jq is available" >> "$debug_file"
+        # Test jq validation
+        if echo "$metadata" | jq empty 2>/dev/null; then
+            echo "jq validation: PASSED" >> "$debug_file"
+        else
+            echo "jq validation: FAILED" >> "$debug_file"
+            echo "jq error output:" >> "$debug_file"
+            echo "$metadata" | jq empty 2>> "$debug_file"
+        fi
+    else
+        echo "jq is NOT available" >> "$debug_file"
     fi
+    echo "=========================" >> "$debug_file"
     
     # Ensure metadata is valid JSON, default to empty object if invalid
     if ! echo "$metadata" | jq empty 2>/dev/null; then
-        if [[ "$BRAINSTORM_DEBUG_LOGGING" == "true" ]]; then
-            echo "DEBUG: metadata validation failed, using empty object" >&2
-        fi
         metadata='{}'
-    else
-        if [[ "$BRAINSTORM_DEBUG_LOGGING" == "true" ]]; then
-            echo "DEBUG: metadata validation passed" >&2
-        fi
     fi
     
     local event_json=$(cat <<EOF
