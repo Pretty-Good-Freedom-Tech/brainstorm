@@ -150,7 +150,9 @@ emit_task_event() {
     local event_type="$1"
     local task_name="$2"
     local target="${3:-}"
-    local metadata="${4:-{}}"
+    local metadata="$4"
+    # Default to empty object if no metadata provided
+    [[ -z "$metadata" ]] && metadata='{}'
     local timestamp=$(get_iso_timestamp)
     # Get script name from call stack - try different levels
     local script_name=""
@@ -172,37 +174,6 @@ emit_task_event() {
         return 0
     fi
 
-    # Force debug logging to a file we can easily check
-    local debug_file="/tmp/emit_task_event_debug.log"
-    echo "=== DEBUG emit_task_event ===" >> "$debug_file"
-    echo "Timestamp: $(date)" >> "$debug_file"
-    echo "Task: $task_name" >> "$debug_file"
-    echo "Event: $event_type" >> "$debug_file"
-    echo "Target: $target" >> "$debug_file"
-    echo "Metadata param count: $#" >> "$debug_file"
-    echo "Param 1: $1" >> "$debug_file"
-    echo "Param 2: $2" >> "$debug_file"
-    echo "Param 3: $3" >> "$debug_file"
-    echo "Param 4: $4" >> "$debug_file"
-    echo "Raw metadata variable: '$metadata'" >> "$debug_file"
-    echo "Metadata length: ${#metadata}" >> "$debug_file"
-    
-    # Test if jq is available
-    if command -v jq >/dev/null 2>&1; then
-        echo "jq is available" >> "$debug_file"
-        # Test jq validation
-        if echo "$metadata" | jq empty 2>/dev/null; then
-            echo "jq validation: PASSED" >> "$debug_file"
-        else
-            echo "jq validation: FAILED" >> "$debug_file"
-            echo "jq error output:" >> "$debug_file"
-            echo "$metadata" | jq empty 2>> "$debug_file"
-        fi
-    else
-        echo "jq is NOT available" >> "$debug_file"
-    fi
-    echo "=========================" >> "$debug_file"
-    
     # Ensure metadata is valid JSON, default to empty object if invalid
     if ! echo "$metadata" | jq empty 2>/dev/null; then
         metadata='{}'
