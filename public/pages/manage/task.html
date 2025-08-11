@@ -763,7 +763,14 @@
             } else if (execution?.lastStatus === 'success') {
                 statusElement.innerHTML = '<span class="status-indicator success">✅ Success</span>';
             } else if (execution?.lastStatus === 'failed') {
-                statusElement.innerHTML = '<span class="status-indicator failed">❌ Failed</span>';
+                // Show different status for caught vs uncaught errors
+                if (execution?.errorType === 'caught') {
+                    statusElement.innerHTML = '<span class="status-indicator failed">❌ Failed (Caught)</span>';
+                } else if (execution?.errorType === 'uncaught') {
+                    statusElement.innerHTML = '<span class="status-indicator failed">💥 Failed (Silent)</span>';
+                } else {
+                    statusElement.innerHTML = '<span class="status-indicator failed">❌ Failed</span>';
+                }
             } else {
                 statusElement.innerHTML = '<span class="status-indicator never-run">⚫ Never Run</span>';
             }

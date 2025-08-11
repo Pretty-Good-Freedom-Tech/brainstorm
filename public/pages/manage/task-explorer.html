@@ -350,6 +350,13 @@
             color: #c62828;
         }
 
+        .badge-failed-uncaught {
+            background: #ff5722;
+            color: white;
+            font-weight: bold;
+            border: 1px solid #d84315;
+        }
+
         .badge-never-run {
             background: #f5f5f5;
             color: #757575;
@@ -1512,7 +1519,15 @@
                 if (execution.lastStatus === 'success') {
                     badges += '<span class="task-badge badge-success">✅ Last: Success</span>';
                 } else if (execution.lastStatus === 'failed') {
-                    badges += '<span class="task-badge badge-failed">❌ Last: Failed</span>';
+                    // Show different icons and text for caught vs uncaught errors
+                    if (execution.errorType === 'caught') {
+                        badges += '<span class="task-badge badge-failed" title="Error was caught and reported">❌ Failed (Caught)</span>';
+                    } else if (execution.errorType === 'uncaught') {
+                        badges += '<span class="task-badge badge-failed-uncaught" title="Task failed silently without error reporting">💥 Failed (Silent)</span>';
+                    } else {
+                        // Fallback for tasks without errorType data
+                        badges += '<span class="task-badge badge-failed">❌ Last: Failed</span>';
+                    }
                 }
             } else {
                 badges += '<span class="task-badge badge-never-run">⚪ Never Run</span>';

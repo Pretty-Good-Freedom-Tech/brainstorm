@@ -85,23 +85,23 @@ function cleanup() {
   set -e
   trap 'emit_function_error "cleanup" "$LINENO" "$?"' ERR
 
-  # clean up mutes
-  sudo rm /var/lib/neo4j/import/mutesToAddToNeo4j.json
-  sudo rm /var/lib/neo4j/import/allKind10000EventsStripped.json
-  sudo rm /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
+  # clean up mutes (use -f to avoid errors if files don't exist)
+  sudo rm -f /var/lib/neo4j/import/mutesToAddToNeo4j.json
+  sudo rm -f /var/lib/neo4j/import/allKind10000EventsStripped.json
+  sudo rm -f /var/lib/neo4j/import/mutesToDeleteFromNeo4j.json
   # clean up follows
-  sudo rm /var/lib/neo4j/import/followsToAddToNeo4j.json
-  sudo rm /var/lib/neo4j/import/allKind3EventsStripped.json
-  sudo rm /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
+  sudo rm -f /var/lib/neo4j/import/followsToAddToNeo4j.json
+  sudo rm -f /var/lib/neo4j/import/allKind3EventsStripped.json
+  sudo rm -f /var/lib/neo4j/import/followsToDeleteFromNeo4j.json
   # clean up reports
-  sudo rm /var/lib/neo4j/import/reportsToAddToNeo4j.json
-  sudo rm /var/lib/neo4j/import/allKind1984EventsStripped.json
-  # sudo rm /var/lib/neo4j/import/reportsToDeleteFromNeo4j.json
+  sudo rm -f /var/lib/neo4j/import/reportsToAddToNeo4j.json
+  sudo rm -f /var/lib/neo4j/import/allKind1984EventsStripped.json
+  # sudo rm -f /var/lib/neo4j/import/reportsToDeleteFromNeo4j.json
 
   # clean up current relationships from base directory
-  sudo rm $BASE_DIR/currentMutesFromStrfry.json
-  sudo rm $BASE_DIR/currentFollowsFromStrfry.json
-  sudo rm $BASE_DIR/currentReportsFromStrfry.json
+  sudo rm -f $BASE_DIR/currentMutesFromStrfry.json
+  sudo rm -f $BASE_DIR/currentFollowsFromStrfry.json
+  sudo rm -f $BASE_DIR/currentReportsFromStrfry.json
 
   # clean up reconciliation/currentRelationshipsFromStrfry
   sudo rm -rf $BASE_DIR/currentRelationshipsFromStrfry

@@ -270,7 +270,7 @@ class StructuredEventsAnalyzer {
                         taskExecutionData[taskName].totalRuns += 1;
                         taskExecutionData[taskName].failedRuns += 1;
                         taskExecutionData[taskName].silentFailures = (taskExecutionData[taskName].silentFailures || 0) + 1;
-                        taskExecutionData[taskName].errorType = 'silent_failure';
+                        taskExecutionData[taskName].errorType = 'uncaught';
                         taskExecutionData[taskName].errorDetails = `Process ${session.pid} terminated without logging TASK_END or TASK_ERROR`;
                     }
                 } else {
@@ -293,6 +293,21 @@ class StructuredEventsAnalyzer {
                         taskExecutionData[taskName].successfulRuns += 1;
                     } else {
                         taskExecutionData[taskName].failedRuns += 1;
+                        
+                        // Determine error type for failed tasks
+                        if (errorEvent) {
+                            taskExecutionData[taskName].errorType = 'caught';
+                            // Extract error details from metadata if available
+                            if (errorEvent.metadata && typeof errorEvent.metadata === 'object') {
+                                taskExecutionData[taskName].errorDetails = errorEvent.metadata.message || errorEvent.metadata.error_message || 'Error details available in metadata';
+                            } else {
+                                taskExecutionData[taskName].errorDetails = 'Task reported error via TASK_ERROR event';
+                            }
+                        } else {
+                            // Task failed but no TASK_ERROR event - this is an uncaught failure
+                            taskExecutionData[taskName].errorType = 'uncaught';
+                            taskExecutionData[taskName].errorDetails = 'Task failed without reporting error details';
+                        }
                     }
 
                     // Calculate success rate
