@@ -42,20 +42,22 @@ sudo $BRAINSTORM_MODULE_ALGOS_DIR/reports/updateReportTypes.sh
 # import text list of report types
 REPORT_TYPES=$(cat ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.txt)
 
+# loop through report types; for each reported user, count the total number as well as the influence-weighted number of reports of that type by verified users
+report_type_count=0
+total_report_types=$(echo ${REPORT_TYPES[@]} | wc -w)
+
 # Emit structured event for Phase 1 completion and Phase 2 start
 emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" '{
     "message": "Phase 1 completed, starting Phase 2: Per-type processing",
     "phase": "per_type_processing",
     "step": "phase_2_start",
     "algorithm": "report_scoring",
+    "report_types": '"$REPORT_TYPES"',
+    "report_types_count": '"$total_report_types"',
     "report_types_loaded": true,
     "operations_per_type": ["influence_weighted_scoring", "verified_report_counting"],
     "scope": "owner"
 }'
-
-# loop through report types; for each reported user, count the total number as well as the influence-weighted number of reports of that type by verified users
-report_type_count=0
-total_report_types=$(echo ${REPORT_TYPES[@]} | wc -w)
 
 for reportType in ${REPORT_TYPES[@]}; do
     ((report_type_count++))
