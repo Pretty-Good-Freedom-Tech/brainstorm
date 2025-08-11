@@ -309,13 +309,16 @@ class StructuredEventsAnalyzer {
                             taskExecutionData[taskName].errorDetails = 'Task failed without reporting error details';
                         }
                     }
-
-                    // Calculate success rate
-                    if (taskExecutionData[taskName].totalRuns > 0) {
-                        const rate = (taskExecutionData[taskName].successfulRuns / taskExecutionData[taskName].totalRuns) * 100;
-                        taskExecutionData[taskName].successRate = rate.toFixed(1);
-                    }
                 }
+            }
+        });
+
+        // Calculate success rates for all tasks (after all sessions processed)
+        Object.keys(taskExecutionData).forEach(taskName => {
+            const taskData = taskExecutionData[taskName];
+            if (taskData.totalRuns > 0) {
+                const rate = (taskData.successfulRuns / taskData.totalRuns) * 100;
+                taskData.successRate = rate.toFixed(1);
             }
         });
 
