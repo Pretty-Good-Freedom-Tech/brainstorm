@@ -39,21 +39,12 @@ emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" '{
 # update reportTypes.txt
 sudo $BRAINSTORM_MODULE_ALGOS_DIR/reports/updateReportTypes.sh
 
-echo "$(date): Continuing calculateReportScores; updated reportTypes.txt"
-echo "$(date): Continuing calculateReportScores; updated reportTypes.txt" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
-
 # import text list of report types
 REPORT_TYPES=$(cat ${BRAINSTORM_MODULE_ALGOS_DIR}/reports/reportTypes.txt)
-
-echo "$(date): Continuing calculateReportScores; REPORT_TYPES: $REPORT_TYPES"
-echo "$(date): Continuing calculateReportScores; REPORT_TYPES: $REPORT_TYPES" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
 # loop through report types; for each reported user, count the total number as well as the influence-weighted number of reports of that type by verified users
 report_type_count=0
 total_report_types=$(echo ${REPORT_TYPES[@]} | wc -w)
-
-echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types"
-echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
 # Emit structured event for Phase 1 completion and Phase 2 start
 progressMetadata=$(cat <<EOF
@@ -71,9 +62,6 @@ progressMetadata=$(cat <<EOF
 EOF
 )
 emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
-
-echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types"
-echo "$(date): Continuing calculateReportScores; total_report_types: $total_report_types" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
 for reportType in ${REPORT_TYPES[@]}; do
     ((report_type_count++))
@@ -133,9 +121,6 @@ RETURN COUNT(u) AS numReportedUsers")
 EOF
 )
 done
-
-echo "$(date): Continuing calculateReportScores; completed per-type processing"
-echo "$(date): Continuing calculateReportScores; completed per-type processing" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
 # Emit structured event for Phase 2 completion and Phase 3 start
 progressMetadata=$(cat <<EOF
