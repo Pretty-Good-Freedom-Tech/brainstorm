@@ -232,7 +232,7 @@ emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
     "operation": "npub_processing"
 }'
 
-if sudo $BRAINSTORM_MODULE_ALGOS_DIR/processNpubs.sh; then
+if sudo $BRAINSTORM_MODULE_MANAGE_DIR/nostrUsers/processNpubsUpToMaxNumBlocks.sh; then
     emit_task_event "CHILD_TASK_END" "processAllTasks" "" '{
         "child_task": "processNpubs",
         "status": "success",

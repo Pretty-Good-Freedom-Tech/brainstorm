@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR
 
@@ -168,3 +170,5 @@ emit_task_event "TASK_END" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" '{
 
 echo "$(date): Finished calculateReportScores"
 echo "$(date): Finished calculateReportScores" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
+
+exit 0  # Explicit success exit code for parent script orchestration

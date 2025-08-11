@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # This script controls the execution of calculatePersonalizedGrapeRank.sh with timeout and retry logic
 # It ensures the GrapeRank calculation completes within a reasonable time frame
@@ -251,3 +253,5 @@ emit_task_event "TASK_END" "calculateOwnerGrapeRank" "$BRAINSTORM_OWNER_PUBKEY" 
 # Log end time
 echo "$(date): Finished calculatePersonalizedGrapeRankController"
 echo "$(date): Finished calculatePersonalizedGrapeRankController" >> "$LOG_FILE"
+
+exit 0  # Explicit success exit code for parent script orchestration

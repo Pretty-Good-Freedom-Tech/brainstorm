@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # Brainstorm Neo4j Constraints and Indexes Setup
 # This script sets up the necessary constraints and indexes for the Brainstorm project
@@ -250,6 +252,7 @@ if [ $STORED_PASSWORD_RESULT -eq 0 -o $DEFAULT_PASSWORD_RESULT -eq 0 ] && [ $CON
     
     echo "Neo4j constraints and indexes have been set up successfully."
     echo "$(date): Finished neo4jConstraintsAndIndexes - SUCCESS" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+    exit 0  # Explicit success exit code for parent script orchestration
 else
     # Emit structured event for failed completion
     emit_task_event "TASK_ERROR" "neo4jConstraintsAndIndexes" "system" '{

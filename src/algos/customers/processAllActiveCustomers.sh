@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # processAllActiveCustomers.sh
 # Consolidated script to process all active customers

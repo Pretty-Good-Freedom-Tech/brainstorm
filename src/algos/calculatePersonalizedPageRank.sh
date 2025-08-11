@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
+
 # Calculates personalized PageRank using BRAINSTORM_OWNER_PUBKEY as the reference user
 # Results are written to neo4j database and stored in each NostrUser node using the personalizedPageRank property
 
@@ -201,3 +204,5 @@ emit_task_event "TASK_END" "calculateOwnerPageRank" "$BRAINSTORM_OWNER_PUBKEY" '
 
 echo "$(date): Finished calculatePersonalizedPageRank"
 echo "$(date): Finished calculatePersonalizedPageRank" >> ${BRAINSTORM_LOG_DIR}/calculatePersonalizedPageRank.log
+
+exit 0  # Explicit success exit code for parent script orchestration

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # reconciliation.sh
 # Main orchestrator script for the Neo4j database reconciliation process
@@ -547,3 +549,6 @@ emit_task_event "TASK_END" "reconciliation" "system" '{
     "process_type": "database_reconciliation",
     "database": "neo4j"
 }'
+
+# Explicit success exit code for parent script orchestration
+exit 0

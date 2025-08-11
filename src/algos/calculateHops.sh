@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # This calculates number of hops from scratch starting with BRAINSTORM_OWNER_PUBKEY which by definition is 0 hops away
 # The resuls are stored in neo4j using the property: hops
@@ -133,3 +135,4 @@ endMetadata=$(cat <<EOF
 EOF
 )
 emit_task_event "TASK_END" "calculateOwnerHops" "system" "$endMetadata"
+exit 0  # Explicit success exit code for parent script orchestration

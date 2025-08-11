@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, STRFRY_PLUGINS_DATA
 source /etc/whitelist.conf
@@ -169,3 +171,5 @@ emit_task_event "TASK_END" "exportWhitelist" "$BRAINSTORM_OWNER_PUBKEY" '{
 }'
 
 echo "$(date): Finished exportWhitelist" >> ${BRAINSTORM_LOG_DIR}/exportWhitelist.log
+
+exit 0  # Explicit success exit code for parent script orchestration

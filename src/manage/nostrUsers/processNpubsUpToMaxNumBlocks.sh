@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # processNpubsUpToMaxNumBlocks.sh - Repeatedly run processNpubsOneBlock.sh until all NostrUser nodes have npub property
 # This script ensures complete coverage by running processNpubsOneBlock in a loop until no more npubs need to be generated
@@ -251,6 +253,7 @@ if [ "$FINAL_MISSING" -eq 0 ]; then
     
     log_message "SUCCESS: All NostrUsers now have npub property!"
     COMPLETION_PERCENTAGE="100"
+    exit 0
 else
     COMPLETION_PERCENTAGE=$(echo "scale=2; $COMPLETED_NPUBS * 100 / $FINAL_TOTAL" | bc -l 2>/dev/null || echo "N/A")
     
@@ -274,6 +277,7 @@ else
         
         log_message "WARNING: Reached maximum iterations ($MAX_ITERATIONS). $FINAL_MISSING npubs still missing."
         log_message "Completion: $COMPLETION_PERCENTAGE% ($COMPLETED_NPUBS of $FINAL_TOTAL)"
+        exit 0
     else
         # Emit structured event for early termination
         emit_task_event "TASK_END" "processNpubsUpToMaxNumBlocks" "system" '{
@@ -294,6 +298,7 @@ else
         
         log_message "WARNING: Process stopped with $FINAL_MISSING npubs still missing."
         log_message "Completion: $COMPLETION_PERCENTAGE% ($COMPLETED_NPUBS of $FINAL_TOTAL)"
+        exit 0
     fi
 fi
 

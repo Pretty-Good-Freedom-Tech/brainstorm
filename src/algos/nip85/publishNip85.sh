@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # Script to publish Web of Trust scores to the Nostr network as kind 30382 events
 # following the Trusted Assertions protocol (NIP-85)
