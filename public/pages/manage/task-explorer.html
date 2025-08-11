@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Explorer - Brainstorm</title>
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <link rel="stylesheet" href="/css/common.css">
     <style>
         .explorer-container {
@@ -752,9 +755,10 @@
     </style>
 </head>
 <body>
-    <div id="header-placeholder"></div>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
 
-    <div class="explorer-container">
+    <div class="page-content explorer-container">
         <div class="explorer-header">
             <h1>🔍 Task Explorer</h1>
             <p>Comprehensive view of all Brainstorm tasks, their relationships, and implementation status</p>
@@ -898,6 +902,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer container -->
+    <div id="footerContainer"></div>
 
     <script>
         // Task Explorer JavaScript
@@ -1314,8 +1321,8 @@
                 const nameCell = row.insertCell();
                 nameCell.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <strong><a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="task-name-link" title="View detailed execution history">${task.name}</a></strong>
-                        <a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="table-details-link" title="View details">
+                        <strong><a href="/task.html?taskName=${encodeURIComponent(task.name)}" class="task-name-link" title="View detailed execution history">${task.name}</a></strong>
+                        <a href="/task.html?taskName=${encodeURIComponent(task.name)}" class="table-details-link" title="View details">
                             📊
                         </a>
                     </div>
@@ -1388,8 +1395,8 @@
                 const nameCell = row.insertCell();
                 nameCell.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <strong><a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="task-name-link" title="View detailed execution history">${task.name}</a></strong>
-                        <a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="table-details-link" title="View details">
+                        <strong><a href="/task.html?taskName=${encodeURIComponent(task.name)}" class="task-name-link" title="View detailed execution history">${task.name}</a></strong>
+                        <a href="/task.html?taskName=${encodeURIComponent(task.name)}" class="table-details-link" title="View details">
                             📊
                         </a>
                     </div>
@@ -1598,7 +1605,7 @@
             let html = '<div class="task-actions">';
             
             // View Details link
-            html += `<a href="/pages/manage/task.html?taskName=${encodeURIComponent(task.name)}" class="task-details-link" title="View detailed execution history">`;
+            html += `<a href="/task.html?taskName=${encodeURIComponent(task.name)}" class="task-details-link" title="View detailed execution history">`;
             html += '📊 View Details';
             html += '</a>';
             

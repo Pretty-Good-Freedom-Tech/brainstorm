@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Details - Brainstorm</title>
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <link rel="stylesheet" href="/css/common.css">
     <style>
         .task-container {
@@ -619,10 +622,11 @@
     </style>
 </head>
 <body>
-    <div id="header-placeholder"></div>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
 
-    <div class="task-container">
-        <a href="/pages/manage/task-explorer.html" class="back-link">
+    <div class="page-content task-container">
+        <a href="/task-explorer.html" class="back-link">
             ← Back to Task Explorer
         </a>
 
@@ -708,6 +712,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer container -->
+    <div id="footerContainer"></div>
 
     <script>
         // Task Details JavaScript
