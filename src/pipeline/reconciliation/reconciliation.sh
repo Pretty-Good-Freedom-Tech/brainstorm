@@ -60,17 +60,20 @@ emit_function_error() {
   local exit_code="$3"
   local last_command="${BASH_COMMAND}"
   
-  emit_task_event "TASK_ERROR" "reconciliation" "system" '{
-    "message": "Function failure in reconciliation script",
-    "function": "'$function_name'",
-    "line_number": '$line_number',
-    "exit_code": '$exit_code',
-    "failed_command": "'$last_command'",
-    "phase": "pre_phase_A",
-    "context": "cleanup_operations",
-    "category": "function_error",
-    "scope": "system"
-  }'
+  emit_task_event "TASK_ERROR" "reconciliation" "system" "$(cat <<EOF
+{
+  "message": "Function failure in reconciliation script",
+  "function": "$function_name",
+  "line_number": $line_number,
+  "exit_code": $exit_code,
+  "failed_command": "$last_command",
+  "phase": "pre_phase_A",
+  "context": "cleanup_operations",
+  "category": "function_error",
+  "scope": "system"
+}
+EOF
+)"
 }
 
 # create function for cleaning up

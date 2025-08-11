@@ -169,7 +169,7 @@
     "reconciliation": {
       "name": "Data Reconciliation",
       "categories": ["network"],
-      "description": "Reconciles data consistency between systems",
+      "description": "Reconciles neo4j with strfry, taking strfry as source of truth",
       "scripts": [
         "BRAINSTORM_MODULE_SRC_DIR/pipeline/reconciliation/reconciliation.sh"
       ],
