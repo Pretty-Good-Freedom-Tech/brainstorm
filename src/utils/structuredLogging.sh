@@ -175,14 +175,16 @@ emit_task_event() {
     fi
 
     # Ensure metadata is valid JSON, default to empty object if invalid
+    # Also compact metadata to single line for proper JSONL formatting
     if ! echo "$metadata" | jq empty 2>/dev/null; then
         metadata='{}'
+    else
+        # Compact metadata JSON to single line for JSONL compatibility
+        metadata=$(echo "$metadata" | jq -c .)
     fi
     
-    local event_json=$(cat <<EOF
-{"timestamp":"$timestamp","eventType":"$event_type","taskName":"$task_name","target":"$target","metadata":$metadata,"scriptName":"$script_name","pid":$pid}
-EOF
-)
+    # Create event JSON as single line for JSONL format
+    local event_json="{\"timestamp\":\"$timestamp\",\"eventType\":\"$event_type\",\"taskName\":\"$task_name\",\"target\":\"$target\",\"metadata\":$metadata,\"scriptName\":\"$script_name\",\"pid\":$pid}"
     
     # Append to events file
     echo "$event_json" >> "$EVENTS_FILE"
