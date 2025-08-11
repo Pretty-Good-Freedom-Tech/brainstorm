@@ -47,7 +47,7 @@ report_type_count=0
 total_report_types=$(echo ${REPORT_TYPES[@]} | wc -w)
 
 # Emit structured event for Phase 1 completion and Phase 2 start
-emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$(cat <<EOF
+progressMetadata=$(cat <<EOF
 {
     "message": "Phase 1 completed, starting Phase 2: Per-type processing",
     "phase": "per_type_processing",
@@ -60,13 +60,14 @@ emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$
     "scope": "owner"
 }
 EOF
-)"
+)
+emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
 
 for reportType in ${REPORT_TYPES[@]}; do
     ((report_type_count++))
     
     # Emit structured event for individual report type processing start
-    emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$(cat <<EOF
+    progressMetadata=$(cat <<EOF
 {
     "message": "Processing report type: $reportType",
     "phase": "per_type_processing",
@@ -79,7 +80,11 @@ for reportType in ${REPORT_TYPES[@]}; do
     "scope": "owner"
 }
 EOF
-)"
+)
+emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
+
+
+
     cypherResults1=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "
 MATCH (a:NostrUser)-[r:REPORTS {report_type: '$reportType'}]->(u:NostrUser)
 WITH u, SUM(a.influence) AS influenceTotal, COUNT(r) AS totalReportCount
@@ -100,7 +105,7 @@ RETURN COUNT(u) AS numReportedUsers")
     echo "$(date): for reportType: $reportType; numReportedUsers: $numReportedUsers" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
     
     # Emit structured event for individual report type completion
-    emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$(cat <<EOF
+    progressMetadata=$(cat <<EOF
 {
     "message": "Completed processing report type: $reportType",
     "phase": "per_type_processing",
@@ -114,11 +119,11 @@ RETURN COUNT(u) AS numReportedUsers")
     "scope": "owner"
 }
 EOF
-)"
+)
 done
 
 # Emit structured event for Phase 2 completion and Phase 3 start
-emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$(cat <<EOF
+progressMetadata=$(cat <<EOF
 {
     "message": "Phase 2 completed, starting Phase 3: Total aggregation",
     "phase": "total_aggregation",
@@ -129,7 +134,8 @@ emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$
     "scope": "owner"
 }
 EOF
-)"
+)
+emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
 
 # for each reported user, calculate the total number of reports of all types and save results using properties: nip56_totalReportCount, nip56_totalVerifiedReportCount, nip56_totalGrapeRankScore
 # iterate through REPORT_TYPES to build the cypher query
@@ -166,7 +172,7 @@ cypherResults3=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_P
 numReportedUsers="${cypherResults3:11}"
 
 # Emit structured event for successful completion
-emit_task_event "TASK_END" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$(cat <<EOF
+progressMetadata=$(cat <<EOF
 {
     "message": "Report scores calculation completed successfully",
     "status": "success",
@@ -183,7 +189,8 @@ emit_task_event "TASK_END" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$
     "parent_task": "processAllTasks"
 }
 EOF
-)"
+)
+emit_task_event "TASK_END" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
 
 echo "$(date): Finished calculateReportScores"
 echo "$(date): Finished calculateReportScores" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
