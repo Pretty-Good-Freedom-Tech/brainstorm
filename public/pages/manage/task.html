@@ -652,7 +652,15 @@
                     </div>
                     <div class="overview-item">
                         <div class="overview-value" id="avg-duration">-</div>
-                        <div class="overview-label">Avg Duration</div>
+                        <div class="overview-label">Avg Duration (All)</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-value" id="avg-success-duration">-</div>
+                        <div class="overview-label">Avg Success Duration</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-value" id="avg-failure-duration">-</div>
+                        <div class="overview-label">Avg Failure Duration</div>
                     </div>
                     <div class="overview-item">
                         <div class="overview-value" id="current-status">-</div>
@@ -755,6 +763,8 @@
             document.getElementById('total-runs').textContent = execution?.totalRuns || 0;
             document.getElementById('success-rate').textContent = execution?.successRate ? `${execution.successRate}%` : '0%';
             document.getElementById('avg-duration').textContent = execution?.averageDurationFormatted || 'N/A';
+            document.getElementById('avg-success-duration').textContent = execution?.averageSuccessDurationFormatted || 'N/A';
+            document.getElementById('avg-failure-duration').textContent = execution?.averageFailureDurationFormatted || 'N/A';
             
             // Current status
             const statusElement = document.getElementById('current-status');

@@ -322,12 +322,14 @@ class StructuredEventsAnalyzer {
             }
         });
 
-        // Calculate average durations for tasks with multiple runs
+        // Calculate average durations for tasks with multiple runs (separate success/failure averages)
         Object.keys(taskExecutionData).forEach(taskName => {
             const taskData = taskExecutionData[taskName];
             if (taskData.totalRuns > 1) {
-                // Get all completed sessions for this task
-                const completedSessions = [];
+                // Get completed sessions separated by success/failure
+                const successfulSessions = [];
+                const failedSessions = [];
+                
                 taskSessions.forEach(session => {
                     if (session.taskName === taskName) {
                         const startEvent = session.events.find(e => e.eventType === 'TASK_START');
@@ -337,20 +339,50 @@ class StructuredEventsAnalyzer {
                         if (startEvent && (endEvent || errorEvent)) {
                             const finalEvent = endEvent || errorEvent;
                             const duration = new Date(finalEvent.timestamp) - new Date(startEvent.timestamp);
-                            completedSessions.push(duration);
+                            const success = !!endEvent;
+                            
+                            if (success) {
+                                successfulSessions.push(duration);
+                            } else {
+                                failedSessions.push(duration);
+                            }
                         }
                     }
                 });
 
-                if (completedSessions.length > 0) {
-                    const avgDuration = completedSessions.reduce((sum, duration) => sum + duration, 0) / completedSessions.length;
+                // Calculate average duration for successful runs
+                if (successfulSessions.length > 0) {
+                    const avgSuccessDuration = successfulSessions.reduce((sum, duration) => sum + duration, 0) / successfulSessions.length;
+                    taskData.averageSuccessDuration = avgSuccessDuration;
+                    taskData.averageSuccessDurationFormatted = this.formatDuration(avgSuccessDuration);
+                }
+
+                // Calculate average duration for failed runs
+                if (failedSessions.length > 0) {
+                    const avgFailureDuration = failedSessions.reduce((sum, duration) => sum + duration, 0) / failedSessions.length;
+                    taskData.averageFailureDuration = avgFailureDuration;
+                    taskData.averageFailureDurationFormatted = this.formatDuration(avgFailureDuration);
+                }
+
+                // Keep overall average for backward compatibility
+                const allCompletedSessions = [...successfulSessions, ...failedSessions];
+                if (allCompletedSessions.length > 0) {
+                    const avgDuration = allCompletedSessions.reduce((sum, duration) => sum + duration, 0) / allCompletedSessions.length;
                     taskData.averageDuration = avgDuration;
                     taskData.averageDurationFormatted = this.formatDuration(avgDuration);
                 }
             } else if (taskData.lastDuration) {
-                // Single run - use last duration as average
+                // Single run - use last duration as average and set appropriate success/failure average
                 taskData.averageDuration = taskData.lastDuration;
                 taskData.averageDurationFormatted = taskData.lastDurationFormatted;
+                
+                if (taskData.lastStatus === 'success') {
+                    taskData.averageSuccessDuration = taskData.lastDuration;
+                    taskData.averageSuccessDurationFormatted = taskData.lastDurationFormatted;
+                } else if (taskData.lastStatus === 'failed') {
+                    taskData.averageFailureDuration = taskData.lastDuration;
+                    taskData.averageFailureDurationFormatted = taskData.lastDurationFormatted;
+                }
             }
         });
 
