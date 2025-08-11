@@ -89,6 +89,10 @@ function loadNavbar() {
     if (
         currentPath === '/home.html' 
         || currentPath === '/nip85.html' 
+        || currentPath === '/manage-customers.html' 
+        || currentPath === '/manage-customer.html'
+        || currentPath === '/task-explorer.html' 
+        || currentPath === '/task.html'
         || currentPath === '/nip87.html' 
         || currentPath === '/nip56.html' 
         || currentPath === '/profiles.html' 
@@ -143,8 +147,6 @@ function loadNavbar() {
         currentPath === '/customer.html'
         || currentPath === '/customers.html'
         || currentPath === '/my-account.html'
-        || currentPath === '/manage-customer.html'
-        || currentPath === '/manage-customers.html'
         || currentPath === '/create-customer-relays.html'
     ) {
         navbarPath = '/components/header/navbars/customers.html';
