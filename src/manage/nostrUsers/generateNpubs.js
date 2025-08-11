@@ -9,6 +9,9 @@ const fs = require('fs');
 const path = require('path');
 const { nip19 } = require('nostr-tools');
 
+// Import structured logging utilities
+const { emitTaskEvent } = require('../../utils/structuredLogging.js');
+
 // Function to generate npub from pubkey
 function generateNpub(pubkey) {
     try {
@@ -42,7 +45,31 @@ async function main() {
     const inputFile = process.argv[2];
     const outputFile = process.argv[3];
 
+    // Emit structured event for task start
+    await emitTaskEvent('TASK_START', 'generateNpubs', 'system', {
+        message: 'Starting npub generation from pubkeys',
+        task_type: 'npub_generation',
+        operation: 'generate_npubs_from_pubkeys',
+        input_file: inputFile,
+        output_file: outputFile,
+        phases: ['initialization_and_validation', 'json_processing', 'npub_generation', 'output_and_validation'],
+        nip19_library: 'nostr-tools',
+        category: 'maintenance',
+        scope: 'system',
+        parent_task: 'npubManager'
+    });
+
     try {
+        // Emit structured event for Phase 1 start
+        await emitTaskEvent('PROGRESS', 'generateNpubs', 'system', {
+            message: 'Starting Phase 1: Initialization and validation',
+            phase: 'initialization_and_validation',
+            step: 'phase_1_start',
+            operation: 'generate_npubs_from_pubkeys',
+            input_file: inputFile,
+            scope: 'system'
+        });
+
         // Read input file
         logMessage(`Reading input file: ${inputFile}`);
         
@@ -52,6 +79,16 @@ async function main() {
 
         const inputData = fs.readFileSync(inputFile, 'utf8');
         let users;
+
+        // Emit structured event for Phase 1 completion and Phase 2 start
+        await emitTaskEvent('PROGRESS', 'generateNpubs', 'system', {
+            message: 'Phase 1 completed, starting Phase 2: JSON processing',
+            phase: 'json_processing',
+            step: 'phase_2_start',
+            operation: 'generate_npubs_from_pubkeys',
+            input_file_validated: true,
+            scope: 'system'
+        });
 
         try {
             users = JSON.parse(inputData);
@@ -64,6 +101,17 @@ async function main() {
         }
 
         logMessage(`Processing ${users.length} users`);
+
+        // Emit structured event for Phase 2 completion and Phase 3 start
+        await emitTaskEvent('PROGRESS', 'generateNpubs', 'system', {
+            message: 'Phase 2 completed, starting Phase 3: Npub generation',
+            phase: 'npub_generation',
+            step: 'phase_3_start',
+            operation: 'generate_npubs_from_pubkeys',
+            json_parsed: true,
+            total_users: users.length,
+            scope: 'system'
+        });
 
         // Generate npubs for each user
         const results = [];
@@ -93,6 +141,19 @@ async function main() {
 
         logMessage(`Successfully generated ${successCount} npubs, ${errorCount} errors`);
 
+        // Emit structured event for Phase 3 completion and Phase 4 start
+        await emitTaskEvent('PROGRESS', 'generateNpubs', 'system', {
+            message: 'Phase 3 completed, starting Phase 4: Output and validation',
+            phase: 'output_and_validation',
+            step: 'phase_4_start',
+            operation: 'generate_npubs_from_pubkeys',
+            npub_generation_complete: true,
+            success_count: successCount,
+            error_count: errorCount,
+            total_results: results.length,
+            scope: 'system'
+        });
+
         // Write results to output file
         logMessage(`Writing results to: ${outputFile}`);
         
@@ -116,10 +177,42 @@ async function main() {
             throw new Error(`Output file validation failed: ${validationError.message}`);
         }
 
+        // Emit structured event for successful completion
+        await emitTaskEvent('TASK_END', 'generateNpubs', 'system', {
+            message: 'Npub generation completed successfully',
+            status: 'success',
+            task_type: 'npub_generation',
+            operation: 'generate_npubs_from_pubkeys',
+            phases_completed: ['initialization_and_validation', 'json_processing', 'npub_generation', 'output_and_validation'],
+            input_file: inputFile,
+            output_file: outputFile,
+            total_users_processed: users.length,
+            successful_npubs: successCount,
+            failed_npubs: errorCount,
+            total_results: results.length,
+            nip19_library: 'nostr-tools',
+            json_validated: true,
+            category: 'maintenance',
+            scope: 'system',
+            parent_task: 'npubManager'
+        });
+
         process.exit(0);
 
     } catch (error) {
         console.error(`Error in generateNpubs.js: ${error.message}`);
+        
+        // Emit structured event for error
+        await emitTaskEvent('TASK_ERROR', 'generateNpubs', 'system', {
+            message: 'Npub generation failed',
+            error: 'npub_generation_failure',
+            error_message: error.message,
+            operation: 'generate_npubs_from_pubkeys',
+            input_file: inputFile,
+            output_file: outputFile,
+            scope: 'system'
+        });
+        
         process.exit(1);
     }
 }

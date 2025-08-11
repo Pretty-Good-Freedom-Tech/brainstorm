@@ -115,16 +115,17 @@
       "categories": ["maintenance"],
       "description": "Sets up database constraints and indexes",
       "scripts": [
-        "BRAINSTORM_MODULE_SRC_DIR/cns/neo4jConstraintsAndIndexes.sh"
+        "BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh"
       ],
-      "script": "BRAINSTORM_MODULE_SRC_DIR/cns/neo4jConstraintsAndIndexes.sh",
+      "script": "BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
       "priority": "high",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive database maintenance events: TASK_START, creation phase with password fallback, verification with detailed counts, configuration updates, and TASK_END/TASK_ERROR with rich metadata for Neo4j constraints and indexes setup."
     },
 
     "syncWoT": {
@@ -197,7 +198,8 @@
       "priority": "low",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive iterative npub generation events: TASK_START, initialization status, per-iteration progress tracking, error detection with infinite loop prevention, child script failure handling, and multiple completion scenarios (success/partial_success) with detailed metrics."
     },
 
     "processAllActiveCustomers": {
@@ -265,7 +267,8 @@
       "priority": "high",
       "frequency": "per-customer",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j customer preparation events: TASK_START, child script orchestration (addSetsOfMetricsCards.sh and addMetricsCards.sh), individual child script success/failure tracking, and TASK_END with detailed operation completion metadata."
     },
 
     "updateAllScoresForSingleCustomer": {
@@ -314,8 +317,8 @@
       "status": "active",
       "timeout": "20 minutes",
       "retries": 3,
-      "structuredLogging": false,
-      "notes": "Owner-level GrapeRank calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive algorithm controller events: TASK_START, retry management with attempt tracking, real-time progress monitoring (every 2 minutes), timeout/premature exit detection, max retries failure handling, and TASK_END with execution statistics."
     },
 
     "calculateCustomerGrapeRank": {
@@ -336,8 +339,8 @@
       "status": "active",
       "timeout": "20 minutes",
       "retries": 3,
-      "structuredLogging": false,
-      "notes": "Customer-specific GrapeRank calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive customer GrapeRank algorithm events: TASK_START, 5-phase orchestration (CSV initialization with conditional logic, ratings interpretation, scorecards initialization, GrapeRank calculation, Neo4j update), individual child process success/failure tracking for mixed technology stack (bash + Node.js), and TASK_END with phase completion summary."
     },
 
     "calculateOwnerPageRank": {
@@ -354,8 +357,8 @@
       "priority": "medium",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Owner-level PageRank calculation, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j GDS PageRank algorithm events: TASK_START, 3-phase orchestration (graph projection, personalized PageRank calculation with 20 iterations/0.85 damping/MinMax scaling, graph cleanup), individual Cypher query success/failure tracking, non-fatal warning handling for cleanup, and TASK_END with complete algorithm parameters."
     },
 
     "calculateCustomerPageRank": {
@@ -586,8 +589,8 @@
       "priority": "medium",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false,
-      "notes": "Owner-level follows/mutes/reports processing, candidate for Phase 2 structured events"
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive owner-level follows-mutes-reports orchestration events: TASK_START, 3-phase processing (basic counts with 6 scripts, verified counts with 3 scripts, inputs calculation with 1 script), detailed phase start/completion tracking, comprehensive count types and input types metadata, and TASK_END with complete orchestration summary."
     },
 
     "calculateReportScores": {
@@ -604,7 +607,8 @@
       "priority": "medium",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive report scoring algorithm events: TASK_START, 3-phase processing (report types update with child script, iterative per-type processing with dual Neo4j queries for influence-weighted scoring and verified counts, total aggregation with dynamic query building), detailed per-report-type tracking with progress counters, Neo4j property updates tracking, and TASK_END with complete algorithm summary."
     },
 
     "exportWhitelist": {
@@ -621,7 +625,8 @@
       "priority": "low",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive whitelist export algorithm events: TASK_START, 4-phase processing (configuration and query building with dynamic Cypher construction, Neo4j query execution with conditional filtering logic, JSON file generation with line-by-line processing, cleanup and finalization with permissions management), detailed configuration parameters tracking (combination logic, influence/hops cutoffs, blacklist integration), performance metrics, and TASK_END with complete export summary."
     },
 
     "exportOwnerKind30382": {
@@ -638,7 +643,8 @@
       "priority": "low",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": false
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive owner-level NIP-85 publishing events: TASK_START, 3-phase processing (initialization and validation with directory checks and script permissions, NIP-85 event publishing with Node.js script orchestration for kind 30382 events, error handling and completion with exit code validation), robust error handling for directory validation and Node.js script failures, filter criteria tracking for hops-based event selection, target relay configuration, and TASK_END with complete NIP-85 publishing summary."
     },
 
     "exportCustomerKind30382": {
@@ -676,7 +682,9 @@
       ],
       "priority": "low",
       "frequency": "as-needed",
-      "status": "active"
+      "status": "active",
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive npub generation workflow events: TASK_START, iterative PROGRESS events for batch processing with detailed counts and performance metrics, TASK_ERROR events for child script failures, and TASK_END events for various completion scenarios (no missing npubs, max iterations reached, successful completion). Includes detailed metadata for batch processing, user counts, iteration tracking, and child script orchestration."
     },
 
     "queryMissingNpubs": {
@@ -691,7 +699,9 @@
       "parent": "npubManager",
       "priority": "low",
       "frequency": "batch",
-      "status": "active"
+      "status": "active",
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j query workflow events: TASK_START, 4-phase processing (initialization and validation with argument checking, Neo4j query execution with Cypher query for missing npubs limited to 1000 results, JSON processing with plain text to structured JSON conversion and temporary file management, validation and completion with jq-based JSON validation), robust error handling for query failures, file creation errors, and JSON validation failures, result counting and performance metrics, and TASK_END with complete query summary."
     },
 
     "generateNpubs": {
@@ -706,7 +716,9 @@
       "parent": "npubManager",
       "priority": "low",
       "frequency": "batch",
-      "status": "active"
+      "status": "active",
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive Node.js npub generation workflow events: TASK_START, 4-phase processing (initialization and validation with input file checking, JSON processing with parsing and validation, npub generation using nostr-tools nip19.npubEncode with batch processing and success/error tracking, output and validation with directory creation and JSON validation), robust error handling for file operations and npub generation failures, performance metrics with success/error counts, and TASK_END with complete generation summary."
     },
 
     "updateNpubsInNeo4j": {
@@ -721,7 +733,9 @@
       "parent": "npubManager", 
       "priority": "low",
       "frequency": "batch",
-      "status": "active"
+      "status": "active",
+      "structuredLogging": true,
+      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j APOC batch update workflow events: TASK_START, 4-phase processing (initialization and validation with import file checking and JSON validation, JSON processing and counting with record enumeration, APOC batch update execution using apoc.periodic.iterate with batch size 250 and sequential processing, verification and completion with post-update NostrUser npub property verification), robust error handling for file operations and Neo4j query failures, APOC performance metrics with committed/failed operations and execution time tracking, and TASK_END with complete batch update summary."
     }
   },
 

@@ -5,11 +5,26 @@
 
 
 source /etc/brainstorm.conf
+
+# Source structured logging utilities
+source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+
 touch ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 echo "$(date): Starting neo4jConstraintsAndIndexes"
 echo "$(date): Starting neo4jConstraintsAndIndexes" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+
+# Emit structured event for task start
+emit_task_event "TASK_START" "neo4jConstraintsAndIndexes" "system" '{
+    "message": "Starting Neo4j constraints and indexes setup",
+    "task_type": "database_maintenance",
+    "database": "neo4j",
+    "operation": "constraints_and_indexes_setup",
+    "category": "maintenance",
+    "scope": "system",
+    "parent_task": "processAllTasks"
+}'
 
 NEO4J_URI="bolt://localhost:7687"
 NEO4J_USER="neo4j"
@@ -100,19 +115,48 @@ CREATE INDEX nostrUserWotMetricsCard_muterInput IF NOT EXISTS FOR (n:NostrUserWo
 CREATE INDEX nostrUserWotMetricsCard_reporterInput IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.reporterInput);
 "
 
+# Emit structured event for constraint/index creation phase
+emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" '{
+    "message": "Creating Neo4j constraints and indexes",
+    "phase": "creation",
+    "step": "cypher_execution",
+    "database": "neo4j",
+    "operation": "constraints_and_indexes_setup",
+    "auth_method": "stored_password"
+}'
+
 # Run Cypher commands with stored password
-echo "$(date): Attempting to create constraints and indexes with stored password..." >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+echo "$(date): Running Cypher commands to create constraints and indexes..." >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_COMMAND" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log 2>&1
 STORED_PASSWORD_RESULT=$?
 
 # If stored password failed, try with default password
 if [ $STORED_PASSWORD_RESULT -ne 0 ]; then
+    # Emit structured event for password fallback
+    emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" '{
+        "message": "Stored password failed, trying default password",
+        "phase": "creation",
+        "step": "password_fallback",
+        "database": "neo4j",
+        "auth_method": "default_password",
+        "fallback_reason": "stored_password_failed"
+    }'
+    
     echo "$(date): First attempt failed, trying with default password..." >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
     sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$CYPHER_COMMAND" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log 2>&1
     DEFAULT_PASSWORD_RESULT=$?
 else
     DEFAULT_PASSWORD_RESULT=0
 fi
+
+# Emit structured event for verification phase
+emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" '{
+    "message": "Verifying constraints and indexes creation",
+    "phase": "verification",
+    "step": "constraint_index_check",
+    "database": "neo4j",
+    "operation": "verification"
+}'
 
 # Verify that constraints and indexes were created successfully
 echo "$(date): Verifying constraints and indexes were created successfully..." >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
@@ -153,12 +197,35 @@ fi
 # Clean up temporary files
 rm -f /tmp/neo4j_constraints.txt /tmp/neo4j_indexes.txt
 
+# Emit structured event for verification results
+emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" '{
+    "message": "Verification results obtained",
+    "phase": "verification",
+    "step": "results_analysis",
+    "database": "neo4j",
+    "constraints_found": '$CONSTRAINT_COUNT',
+    "indexes_found": '$INDEX_COUNT',
+    "constraint_count_user": '$CONSTRAINT_COUNT_USER',
+    "constraint_count_event": '$CONSTRAINT_COUNT_EVENT',
+    "index_count_user": '$INDEX_COUNT_USER',
+    "index_count_event": '$INDEX_COUNT_EVENT'
+}'
+
 # Log results
 echo "$(date): Constraint check result: $CONSTRAINT_COUNT constraints found" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 echo "$(date): Index check result: $INDEX_COUNT indexes found" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 
 # Update timestamp only if the commands were successful and the constraints/indexes exist
 if [ $STORED_PASSWORD_RESULT -eq 0 -o $DEFAULT_PASSWORD_RESULT -eq 0 ] && [ $CONSTRAINT_COUNT -gt 0 ] && [ $INDEX_COUNT -gt 0 ]; then
+    # Emit structured event for configuration update
+    emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" '{
+        "message": "Updating configuration timestamp",
+        "phase": "configuration_update",
+        "step": "timestamp_update",
+        "config_file": "/etc/brainstorm.conf",
+        "config_key": "BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES"
+    }'
+    
     # Update BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES in brainstorm.conf with current timestamp
     CURRENT_TIMESTAMP=$(date +%s)
     echo "$(date): Setting BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP in /etc/brainstorm.conf" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
@@ -166,9 +233,40 @@ if [ $STORED_PASSWORD_RESULT -eq 0 -o $DEFAULT_PASSWORD_RESULT -eq 0 ] && [ $CON
     # Use sed to replace the line in brainstorm.conf
     sudo sed -i "s/^export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=.*$/export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP/" /etc/brainstorm.conf
     
+    # Emit structured event for successful completion
+    emit_task_event "TASK_END" "neo4jConstraintsAndIndexes" "system" '{
+        "message": "Neo4j constraints and indexes setup completed successfully",
+        "status": "success",
+        "task_type": "database_maintenance",
+        "database": "neo4j",
+        "constraints_created": '$CONSTRAINT_COUNT',
+        "indexes_created": '$INDEX_COUNT',
+        "config_updated": true,
+        "timestamp": '$CURRENT_TIMESTAMP',
+        "category": "maintenance",
+        "scope": "system",
+        "parent_task": "processAllTasks"
+    }'
+    
     echo "Neo4j constraints and indexes have been set up successfully."
     echo "$(date): Finished neo4jConstraintsAndIndexes - SUCCESS" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 else
+    # Emit structured event for failed completion
+    emit_task_event "TASK_ERROR" "neo4jConstraintsAndIndexes" "system" '{
+        "message": "Neo4j constraints and indexes setup failed",
+        "status": "failed",
+        "task_type": "database_maintenance",
+        "database": "neo4j",
+        "stored_password_result": '$STORED_PASSWORD_RESULT',
+        "default_password_result": '$DEFAULT_PASSWORD_RESULT',
+        "constraints_found": '$CONSTRAINT_COUNT',
+        "indexes_found": '$INDEX_COUNT',
+        "error_reason": "insufficient_constraints_or_indexes",
+        "category": "maintenance",
+        "scope": "system",
+        "parent_task": "processAllTasks"
+    }'
+    
     echo "Failed to set up Neo4j constraints and indexes. Check the log at ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log"
     echo "$(date): Finished neo4jConstraintsAndIndexes - FAILED" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
     exit 1
