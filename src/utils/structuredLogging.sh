@@ -171,6 +171,9 @@ emit_task_event() {
     if [[ "$BRAINSTORM_STRUCTURED_LOGGING" != "true" ]]; then
         return 0
     fi
+
+    echo "metadata: $metadata"
+    BRAINSTORM_DEBUG_LOGGING="true"
     
     # Debug: Log metadata validation for troubleshooting
     if [[ "$BRAINSTORM_DEBUG_LOGGING" == "true" ]]; then
