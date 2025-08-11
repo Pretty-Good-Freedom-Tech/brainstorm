@@ -28,9 +28,12 @@ log_message() {
 log_message "Starting processAllActiveCustomers"
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "processAllActiveCustomers" \
-    "message=Starting processing of all active customers" \
-    "orchestrator_type=customer_iteration"
+emit_task_event "TASK_START" "processAllActiveCustomers" "" '{
+    "message": "Starting processing of all active customers",
+    "orchestrator_type": "customer_iteration",
+    "description": "Consolidated script to process all active customers",
+    "scope": "all_customers"
+}'
 
 # Define paths
 ALGOS_DIR="${BRAINSTORM_MODULE_ALGOS_DIR}"
@@ -72,31 +75,38 @@ customer_count=$(echo "$active_customers" | wc -l)
 log_message "Found $customer_count active customers"
 
 # Emit structured event for customer discovery
-emit_task_event "PROGRESS" "processAllActiveCustomers" \
-    "step=customer_discovery" \
-    "active_customers_found=$customer_count" \
-    "message=Discovered active customers from customers.json"
+emit_task_event "PROGRESS" "processAllActiveCustomers" "" '{
+    "step": "customer_discovery",
+    "active_customers_found": '$customer_count',
+    "message": "Discovered active customers from customers.json",
+    "data_source": "customers.json",
+    "operation": "customer_enumeration"
+}'
 
 # Process each active customer
 processed_count=0
 failed_count=0
 
 # Emit structured event for processing start
-emit_task_event "PROGRESS" "processAllActiveCustomers" \
-    "step=customer_processing_start" \
-    "total_customers=$customer_count" \
-    "message=Starting individual customer processing"
+emit_task_event "PROGRESS" "processAllActiveCustomers" "" '{
+    "step": "customer_processing_start",
+    "total_customers": '$customer_count',
+    "message": "Starting individual customer processing",
+    "operation": "batch_processing_initialization"
+}'
 
 while IFS=',' read -r customer_id customer_pubkey customer_name; do
     log_message "Processing customer: $customer_name (id: $customer_id) with pubkey $customer_pubkey"
     
     # Emit structured event for child task start
-    emit_task_event "CHILD_TASK_START" "processAllActiveCustomers" \
-        "child_task=processCustomer" \
-        "customer_id=$customer_id" \
-        "customer_pubkey=$customer_pubkey" \
-        "customer_name=$customer_name" \
-        "message=Starting processing for customer $customer_name"
+    emit_task_event "CHILD_TASK_START" "processAllActiveCustomers" "" '{
+        "child_task": "processCustomer",
+        "customer_id": "'$customer_id'",
+        "customer_pubkey": "'$customer_pubkey'",
+        "customer_name": "'$customer_name'",
+        "message": "Starting processing for customer '$customer_name'",
+        "operation": "individual_customer_processing"
+    }'
     
     # Construct and execute the command
     command="sudo bash $PROCESS_CUSTOMER_SCRIPT $customer_pubkey $customer_id $customer_name"
@@ -107,23 +117,27 @@ while IFS=',' read -r customer_id customer_pubkey customer_name; do
         ((processed_count++))
         
         # Emit structured event for child task success
-        emit_task_event "CHILD_TASK_END" "processAllActiveCustomers" \
-            "child_task=processCustomer" \
-            "customer_id=$customer_id" \
-            "customer_name=$customer_name" \
-            "status=success" \
-            "message=Successfully completed processing for customer $customer_name"
+        emit_task_event "CHILD_TASK_END" "processAllActiveCustomers" "" '{
+            "child_task": "processCustomer",
+            "customer_id": "'$customer_id'",
+            "customer_name": "'$customer_name'",
+            "status": "success",
+            "message": "Successfully completed processing for customer '$customer_name'",
+            "operation": "individual_customer_processing"
+        }'
     else
         log_message "Error processing customer $customer_name"
         ((failed_count++))
         
         # Emit structured event for child task error
-        emit_task_event "CHILD_TASK_ERROR" "processAllActiveCustomers" \
-            "child_task=processCustomer" \
-            "customer_id=$customer_id" \
-            "customer_name=$customer_name" \
-            "status=error" \
-            "message=Error processing customer $customer_name"
+        emit_task_event "CHILD_TASK_ERROR" "processAllActiveCustomers" "" '{
+            "child_task": "processCustomer",
+            "customer_id": "'$customer_id'",
+            "customer_name": "'$customer_name'",
+            "status": "error",
+            "message": "Error processing customer '$customer_name'",
+            "operation": "individual_customer_processing"
+        }'
         
         # Continue with other customers even if one fails
     fi
@@ -132,47 +146,60 @@ done <<< "$active_customers"
 log_message "Processing summary: $processed_count successful, $failed_count failed out of $customer_count total"
 
 # Emit structured event for processing summary
-emit_task_event "PROGRESS" "processAllActiveCustomers" \
-    "step=processing_summary" \
-    "total_customers=$customer_count" \
-    "successful_customers=$processed_count" \
-    "failed_customers=$failed_count" \
-    "message=Completed processing all customers"
+emit_task_event "PROGRESS" "processAllActiveCustomers" "" '{
+    "step": "processing_summary",
+    "total_customers": '$customer_count',
+    "successful_customers": '$processed_count',
+    "failed_customers": '$failed_count',
+    "message": "Completed processing all customers",
+    "operation": "batch_processing_summary",
+    "success_rate": "'$(echo "scale=2; $processed_count * 100 / $customer_count" | bc)'"
+}'
 
 # Clean up personalizedGrapeRank tmp files
 log_message "Cleaning up personalizedGrapeRank tmp files"
 
 # Emit structured event for cleanup start
-emit_task_event "PROGRESS" "processAllActiveCustomers" \
-    "step=cleanup_start" \
-    "message=Starting cleanup of personalizedGrapeRank tmp files"
+emit_task_event "PROGRESS" "processAllActiveCustomers" "" '{
+    "step": "cleanup_start",
+    "message": "Starting cleanup of personalizedGrapeRank tmp files",
+    "operation": "temporary_file_cleanup",
+    "cleanup_target": "/var/lib/brainstorm/algos/personalizedGrapeRank/tmp"
+}'
 
 sudo rm -rf /var/lib/brainstorm/algos/personalizedGrapeRank/tmp
 
 # Emit structured event for cleanup completion
-emit_task_event "PROGRESS" "processAllActiveCustomers" \
-    "step=cleanup_complete" \
-    "message=Completed cleanup of personalizedGrapeRank tmp files"
+emit_task_event "PROGRESS" "processAllActiveCustomers" "" '{
+    "step": "cleanup_complete",
+    "message": "Completed cleanup of personalizedGrapeRank tmp files",
+    "operation": "temporary_file_cleanup",
+    "cleanup_target": "/var/lib/brainstorm/algos/personalizedGrapeRank/tmp"
+}'
 
 log_message "Finished processAllActiveCustomers"
 
 # Emit structured event for task completion
 if [ $failed_count -gt 0 ]; then
-    emit_task_event "TASK_END" "processAllActiveCustomers" \
-        "status=partial_success" \
-        "total_customers=$customer_count" \
-        "successful_customers=$processed_count" \
-        "failed_customers=$failed_count" \
-        "orchestrator_type=customer_iteration" \
-        "message=Completed processing all active customers with some failures"
+    emit_task_event "TASK_END" "processAllActiveCustomers" "" '{
+        "status": "partial_success",
+        "total_customers": '$customer_count',
+        "successful_customers": '$processed_count',
+        "failed_customers": '$failed_count',
+        "orchestrator_type": "customer_iteration",
+        "message": "Completed processing all active customers with some failures",
+        "success_rate": "'$(echo "scale=2; $processed_count * 100 / $customer_count" | bc)'"
+    }'
     exit 1
 else
-    emit_task_event "TASK_END" "processAllActiveCustomers" \
-        "status=success" \
-        "total_customers=$customer_count" \
-        "successful_customers=$processed_count" \
-        "failed_customers=$failed_count" \
-        "orchestrator_type=customer_iteration" \
-        "message=Successfully completed processing all active customers"
+    emit_task_event "TASK_END" "processAllActiveCustomers" "" '{
+        "status": "success",
+        "total_customers": '$customer_count',
+        "successful_customers": '$processed_count',
+        "failed_customers": '$failed_count',
+        "orchestrator_type": "customer_iteration",
+        "message": "Successfully completed processing all active customers",
+        "success_rate": "100.00"
+    }'
     exit 0
 fi
