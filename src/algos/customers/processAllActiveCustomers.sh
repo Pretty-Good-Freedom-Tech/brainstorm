@@ -116,7 +116,7 @@ while IFS=',' read -r customer_id customer_pubkey customer_name; do
     
     if $command; then
         log_message "Successfully completed processing for customer: $customer_name"
-        ((processed_count++))
+        processed_count=$((processed_count + 1))
         
         # Emit structured event for child task success
         emit_task_event "CHILD_TASK_END" "processAllActiveCustomers" "" '{
@@ -129,7 +129,7 @@ while IFS=',' read -r customer_id customer_pubkey customer_name; do
         }'
     else
         log_message "Error processing customer $customer_name"
-        ((failed_count++))
+        failed_count=$((failed_count + 1))
         
         # Emit structured event for child task error
         emit_task_event "CHILD_TASK_ERROR" "processAllActiveCustomers" "" '{
