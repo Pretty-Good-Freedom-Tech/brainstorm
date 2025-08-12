@@ -271,8 +271,8 @@ class StructuredEventsAnalyzer {
                         taskExecutionData[taskName].failedRuns += 1;
                         taskExecutionData[taskName].silentFailures = (taskExecutionData[taskName].silentFailures || 0) + 1;
                         taskExecutionData[taskName].errorType = 'uncaught';
-                        taskExecutionData[taskName].errorDetails = `Process ${session.pid} terminated without logging TASK_END or TASK_ERROR`;
-                    }
+                            taskExecutionData[taskName].errorDetails = `Process ${session.pid} terminated without logging TASK_END or TASK_ERROR`;
+                        }
                 } else {
                     // Task completed
                     const finalEvent = endEvent || errorEvent;

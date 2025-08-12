@@ -1,0 +1,31 @@
+{
+    "completionScenarios": {
+        "success":{
+            "withError": {
+                "parentNextStep": "nextTaskInQueue"
+            },
+            "withoutError": {
+                "parentNextStep": "nextTaskInQueue"
+            }
+        },
+        "failure": {
+            "timeout": {
+                "duration": 1800000,
+                "forceKill": false,
+                "restart": true,
+                "maxRetries": 3,
+                "parentNextStep": "nextTaskInQueue"
+            },
+            "uncaught": {
+                "restart": true,
+                "maxRetries": 3,
+                "parentNextStep": "exit"
+            },
+            "caught": {
+                "restart": true,
+                "maxRetries": 3,
+                "parentNextStep": "exit"
+            }
+        }
+    }
+}

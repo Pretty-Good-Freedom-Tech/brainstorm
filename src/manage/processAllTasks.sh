@@ -18,6 +18,9 @@ source "$CONFIG_FILE" # BRAINSTORM_MODULE_MANAGE_DIR, BRAINSTORM_LOG_DIR, BRAINS
 # Source structured logging utilities
 source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
 
+# Source launchChildTask function
+source "$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh"
+
 # Function to check disk space and log it
 check_disk_space() {
   local label=$1
@@ -55,6 +58,7 @@ emit_task_event "TASK_START" "processAllTasks" "" '{
     "orchestrator_level": "primary"
 }'
 
+#################### neo4jConstraintsAndIndexes: start  ##############
 # Child Task 1: Neo4j Constraints and Indexes
 emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
     "child_task": "neo4jConstraintsAndIndexes",
@@ -67,6 +71,7 @@ emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
 if sudo $BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh; then
     emit_task_event "CHILD_TASK_END" "processAllTasks" "" '{
         "child_task": "neo4jConstraintsAndIndexes",
+        "child_exit_code": '$CHILD_EXIT_CODE',
         "status": "success",
         "message": "Neo4j constraints and indexes setup completed",
         "task_order": 1,
@@ -75,6 +80,7 @@ if sudo $BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh; then
 else
     emit_task_event "CHILD_TASK_ERROR" "processAllTasks" "" '{
         "child_task": "neo4jConstraintsAndIndexes",
+        "child_exit_code": '$CHILD_EXIT_CODE',
         "status": "error",
         "message": "Neo4j constraints and indexes setup failed",
         "task_order": 1,
@@ -84,39 +90,20 @@ fi
 
 echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed"
 echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+#################### neo4jConstraintsAndIndexes: complete  ##############
 
-# Child Task 2: Negentropy WoT Sync
-emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
-    "child_task": "syncWoT",
-    "message": "Starting negentropy WoT synchronization",
-    "task_order": 2,
-    "category": "network_sync",
-    "operation": "negentropy_sync",
-    "structured_logging": true
-}'
+#################### syncWoT: start  ##############
+# Child Task 2: Negentropy WoT Sync using launchChildTask
+echo "$(date): Starting syncWoT using launchChildTask" | tee -a ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-if sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncWoT.sh; then
-    emit_task_event "CHILD_TASK_END" "processAllTasks" "" '{
-        "child_task": "syncWoT",
-        "status": "success",
-        "message": "Negentropy WoT synchronization completed",
-        "task_order": 2,
-        "category": "network_sync",
-        "structured_logging": true
-    }'
+if launchChildTask "syncWoT" "processAllTasks"; then
+    echo "$(date): syncWoT completed successfully via launchChildTask" | tee -a ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 else
-    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" "" '{
-        "child_task": "syncWoT",
-        "status": "error",
-        "message": "Negentropy WoT synchronization failed",
-        "task_order": 2,
-        "category": "network_sync",
-        "structured_logging": true
-    }'
+    local exit_code=$?
+    echo "$(date): syncWoT failed via launchChildTask with exit code: $exit_code" | tee -a ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+    # Note: launchChildTask handles parentNextStep logic, so we continue based on its return code
 fi
-
-echo "$(date): Continuing processAllTasks; syncWoT.sh completed"
-echo "$(date): Continuing processAllTasks; syncWoT.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+#################### syncWoT: complete  ##############
 
 sleep 5
 
@@ -134,7 +121,33 @@ sleep 5
 
 # sleep 5
 
-sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransferIfNeeded.sh
+# Child Task 3: Batch Transfer
+emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
+    "child_task": "callBatchTransferIfNeeded",
+    "message": "Starting batch transfer",
+    "task_order": 3,
+    "category": "batch_transfer",
+    "operation": "batch_transfer"
+}'
+
+if sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransferIfNeeded.sh; then
+    emit_task_event "CHILD_TASK_END" "processAllTasks" "" '{
+        "child_task": "callBatchTransferIfNeeded",
+        "status": "success",
+        "message": "Batch transfer completed",
+        "task_order": 3,
+        "category": "batch_transfer"
+    }'
+else
+    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" "" '{
+        "child_task": "callBatchTransferIfNeeded",
+        "status": "error",
+        "message": "Batch transfer failed",
+        "task_order": 3,
+        "category": "batch_transfer"
+    }'
+fi
+
 echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed"
 echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
@@ -188,11 +201,11 @@ echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh complete
 # echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed"
 # echo "$(date): Continuing processAllTasks; runFullReconciliation.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-# Child Task 3: Data Reconciliation
+# Child Task 4: Data Reconciliation
 emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
     "child_task": "reconciliation",
     "message": "Starting data reconciliation",
-    "task_order": 3,
+    "task_order": 4,
     "category": "data_processing",
     "operation": "reconciliation",
     "structured_logging": true
@@ -203,7 +216,7 @@ if sudo $BRAINSTORM_MODULE_PIPELINE_DIR/reconciliation/reconciliation.sh; then
         "child_task": "reconciliation",
         "status": "success",
         "message": "Data reconciliation completed",
-        "task_order": 3,
+        "task_order": 4,
         "category": "data_processing",
         "structured_logging": true
     }'
@@ -214,7 +227,7 @@ else
         "child_exit_code": '$CHILD_EXIT_CODE',
         "status": "error",
         "message": "Data reconciliation failed - check reconciliation logs for function-level details.",
-        "task_order": 3,
+        "task_order": 4,
         "category": "data_processing",
         "structured_logging": true,
         "diagnostic_hint": "Check events.jsonl for TASK_ERROR from reconciliation script"
@@ -226,11 +239,11 @@ echo "$(date): Continuing processAllTasks; reconciliation.sh completed" >> ${BRA
 
 sleep 5
 
-# Child Task 4: Process Npubs
+# Child Task 5: Process Npubs
 emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
     "child_task": "processNpubs",
     "message": "Starting npubs processing",
-    "task_order": 4,
+    "task_order": 5,
     "category": "data_processing",
     "operation": "npub_processing"
 }'
@@ -240,7 +253,7 @@ if sudo $BRAINSTORM_MODULE_MANAGE_DIR/nostrUsers/processNpubsUpToMaxNumBlocks.sh
         "child_task": "processNpubs",
         "status": "success",
         "message": "Npubs processing completed",
-        "task_order": 4,
+        "task_order": 5,
         "category": "data_processing"
     }'
 else
@@ -248,7 +261,7 @@ else
         "child_task": "processNpubs",
         "status": "error",
         "message": "Npubs processing failed",
-        "task_order": 4,
+        "task_order": 5,
         "category": "data_processing"
     }'
 fi

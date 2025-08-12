@@ -97,7 +97,6 @@ backup-2025-08-07T22-43-48
 
 
 TODO 11 Aug 2025:
-- in processAllTasks, is if sudo $BRAINSTORM_MODULE_ALGOS_DIR/processNpubs.sh; then the correct pagth?
 - does generateNpubs, the task that's in js, not sh, cause crash?
 - who processAllTasks use so many if sude commands? Why did script seem to pause in reconciliation?
 - taskQueueManager and relayed tasks still need to incorporate structured logging

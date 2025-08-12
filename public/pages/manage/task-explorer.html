@@ -360,6 +360,14 @@
             border: 1px solid #d84315;
         }
 
+        .badge-failed-timeout {
+            background: #ff9800;
+            color: white;
+            font-weight: bold;
+            border: 1px solid #f57c00;
+            animation: pulse 2s infinite;
+        }
+
         .badge-never-run {
             background: #f5f5f5;
             color: #757575;
@@ -1526,14 +1534,17 @@
                 if (execution.lastStatus === 'success') {
                     badges += '<span class="task-badge badge-success">✅ Last: Success</span>';
                 } else if (execution.lastStatus === 'failed') {
-                    // Show different icons and text for caught vs uncaught errors
-                    if (execution.errorType === 'caught') {
-                        badges += '<span class="task-badge badge-failed" title="Error was caught and reported">❌ Failed (Caught)</span>';
-                    } else if (execution.errorType === 'uncaught') {
-                        badges += '<span class="task-badge badge-failed-uncaught" title="Task failed silently without error reporting">💥 Failed (Silent)</span>';
+                    // Show different status for caught vs uncaught errors
+                    if (execution?.errorType === 'caught') {
+                        badges += `<span class="badge badge-failed" title="Error was caught and reported">❌ Failed (Caught)</span>`;
+                    } else if (execution?.errorType === 'uncaught') {
+                        if (execution?.timeoutSuspected) {
+                            badges += `<span class="badge badge-failed-timeout" title="Task likely terminated due to timeout after long-running child task">⏰ Failed (Timeout)</span>`;
+                        } else {
+                            badges += `<span class="badge badge-failed-uncaught" title="Task failed silently without error reporting">💥 Failed (Silent)</span>`;
+                        }
                     } else {
-                        // Fallback for tasks without errorType data
-                        badges += '<span class="task-badge badge-failed">❌ Last: Failed</span>';
+                        badges += `<span class="badge badge-failed">❌ Failed</span>`;
                     }
                 }
             } else {
