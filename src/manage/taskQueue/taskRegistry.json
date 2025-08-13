@@ -17,8 +17,8 @@
     "launch": {
       "processAlreadyRunning": {
         "withoutError": {
-          "killPreexisting": true,
-          "launchNew": true
+          "killPreexisting": false,
+          "launchNew": false
         },
         "withError": {
           "killPreexisting": true,
@@ -86,17 +86,19 @@
       "frequency": "timer-based",
       "status": "legacy",
       "structuredLogging": true,
-      "processAlreadyRunning": {
-        "withoutError": {
-          "killPreexisting": false,
-          "launchNew": false
-        },
-        "withError": {
-          "killPreexisting": true,
-          "launchNew": true
-        }
-      },
       "options": {
+        "launch": {
+          "processAlreadyRunning": {
+            "withoutError": {
+              "killPreexisting": false,
+              "launchNew": false
+            },
+            "withError": {
+              "killPreexisting": true,
+              "launchNew": true
+            }
+          }
+        },
         "completion": {
           "failure": {
             "timeout": {
