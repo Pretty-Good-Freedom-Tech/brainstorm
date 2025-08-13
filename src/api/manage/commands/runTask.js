@@ -72,9 +72,10 @@ async function validateCustomerArguments(req) {
 
 // Build command arguments based on task requirements
 async function buildTaskCommand(task, customerArgs = null) {
-    const baseDir = process.env.BRAINSTORM_MODULE_BASE_DIR || '/usr/local/lib/node_modules/brainstorm';
-    const srcDir = path.join(baseDir, 'src');
-    const scriptPath = task.script.replace('$BRAINSTORM_MODULE_SRC_DIR', srcDir);
+    const brainstormConfig = require('../../utils/brainstormConfig');
+    
+    // Use the cross-platform config module to expand all environment variables
+    const scriptPath = brainstormConfig.expandScriptPath(task.script);
     
     let command = scriptPath;
 
