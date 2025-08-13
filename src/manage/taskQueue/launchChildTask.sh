@@ -266,7 +266,7 @@ EOF
         fi
         
         if [[ "$launch_new" == "false" ]]; then
-            echo "$(date): Launch policy prevents new instance, returning existing PID" >> ${LOG_FILE}
+            echo "$(date): Launch policy prevents new instance of $task_name, returning existing PID $existing_pid" >> ${LOG_FILE}
             
             # Emit event for launch prevention
             local preventEventMetadata=$(cat <<EOF
@@ -290,6 +290,7 @@ EOF
     local temp_log="/tmp/${child_task_id}.log"
     
     # Execute child script in background
+    echo "$(date): Launching child task: $child_script" >> ${LOG_FILE}
     if [[ -n "$child_args" ]]; then
         bash "$child_script" $child_args > "$temp_log" 2>&1 &
     else
