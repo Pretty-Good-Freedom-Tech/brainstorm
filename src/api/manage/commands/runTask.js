@@ -74,7 +74,7 @@ async function validateCustomerArguments(req) {
 async function buildTaskCommand(task, customerArgs = null) {
     const baseDir = process.env.BRAINSTORM_MODULE_BASE_DIR || '/usr/local/lib/node_modules/brainstorm';
     const srcDir = path.join(baseDir, 'src');
-    const scriptPath = task.script.replace('BRAINSTORM_MODULE_SRC_DIR', srcDir);
+    const scriptPath = task.script.replace('$BRAINSTORM_MODULE_SRC_DIR', srcDir);
     
     let command = scriptPath;
 
