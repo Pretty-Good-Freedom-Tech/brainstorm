@@ -127,7 +127,7 @@ launchChildTask() {
     local error_type=""
     
     # Emit CHILD_TASK_START event
-    emit_task_event "CHILD_TASK_START" "$parent_task_name" <<EOF
+    local eventMetadata=$(cat <<EOF
 {
     "child_task": "$task_name",
     "child_task_id": "$child_task_id",
@@ -137,6 +137,8 @@ launchChildTask() {
     "start_time": "$start_time"
 }
 EOF
+)
+    emit_task_event "CHILD_TASK_START" "$parent_task_name" "$child_task_id" "$eventMetadata"
     
     echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
     echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
@@ -197,7 +199,7 @@ EOF
         
         exit_code=124  # Standard timeout exit code
         
-        emit_task_event "CHILD_TASK_ERROR" "$parent_task_name" <<EOF
+        local eventMetadata=$(cat <<EOF
 {
     "child_task": "$task_name",
     "child_task_id": "$child_task_id",
@@ -208,7 +210,8 @@ EOF
     "end_time": "$end_time"
 }
 EOF
-        
+)
+        emit_task_event "CHILD_TASK_ERROR" "$parent_task_name" "$child_task_id" "$eventMetadata"
     else
         # Process completed normally
         wait "$child_pid"
@@ -217,7 +220,7 @@ EOF
         if [[ $exit_code -eq 0 ]]; then
             completion_status="success"
             
-            emit_task_event "CHILD_TASK_END" "$parent_task_name" <<EOF
+            local eventMetadata=$(cat <<EOF
 {
     "child_task": "$task_name",
     "child_task_id": "$child_task_id",
@@ -226,6 +229,8 @@ EOF
     "end_time": "$end_time"
 }
 EOF
+)
+            emit_task_event "CHILD_TASK_END" "$parent_task_name" "$child_task_id" "$eventMetadata"
         else
             # Check if this was a caught or uncaught error
             # Look for TASK_ERROR events in structured logs for this task
@@ -239,7 +244,7 @@ EOF
                 completion_status="uncaught_failure"
             fi
             
-            emit_task_event "CHILD_TASK_ERROR" "$parent_task_name" <<EOF
+            local eventMetadata=$(cat <<EOF
 {
     "child_task": "$task_name",
     "child_task_id": "$child_task_id",
@@ -249,6 +254,8 @@ EOF
     "end_time": "$end_time"
 }
 EOF
+)
+            emit_task_event "CHILD_TASK_ERROR" "$parent_task_name" "$child_task_id" "$eventMetadata"
         fi
     fi
     
