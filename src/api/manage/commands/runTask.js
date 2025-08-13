@@ -7,6 +7,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const CustomerManager = require('../../../utils/customerManager');
+const brainstormConfig = require('../../../utils/brainstormConfig');
 
 // Get task registry
 async function getTaskRegistry() {
@@ -71,9 +72,7 @@ async function validateCustomerArguments(req) {
 }
 
 // Build command arguments based on task requirements
-async function buildTaskCommand(task, customerArgs = null) {
-    const brainstormConfig = require('../../utils/brainstormConfig');
-    
+async function buildTaskCommand(task, customerArgs = null) {    
     // Use the cross-platform config module to expand all environment variables
     const scriptPath = brainstormConfig.expandScriptPath(task.script);
     

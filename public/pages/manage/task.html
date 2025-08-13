@@ -1002,6 +1002,22 @@
             if (event.metadata) {
                 try {
                     const metadata = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
+                    
+                    // Handle child task events with child_task metadata
+                    if (event.eventType.startsWith('CHILD_TASK') && metadata.child_task) {
+                        const childTaskName = metadata.child_task;
+                        switch (event.eventType) {
+                            case 'CHILD_TASK_START':
+                                return `Starting child task: ${childTaskName}`;
+                            case 'CHILD_TASK_END':
+                                return `Child task completed: ${childTaskName}`;
+                            case 'CHILD_TASK_ERROR':
+                                return `Child task failed: ${childTaskName}`;
+                            default:
+                                return `Child task event: ${childTaskName}`;
+                        }
+                    }
+                    
                     if (metadata.phase && metadata.step) {
                         return `${metadata.phase} - ${metadata.step}`;
                     }
@@ -1026,6 +1042,10 @@
                     return 'Task execution failed';
                 case 'PROGRESS':
                     return 'Progress update';
+                case 'CHILD_TASK_START':
+                    return 'Child task started';
+                case 'CHILD_TASK_END':
+                    return 'Child task completed';
                 case 'CHILD_TASK_ERROR':
                     return 'Child task error reported';
                 default:
