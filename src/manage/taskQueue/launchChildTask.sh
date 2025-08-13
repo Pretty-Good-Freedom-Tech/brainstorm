@@ -10,22 +10,33 @@
 # - caught (process is not running; there is not a corresponding Structured Log error entry)
 # RESPONSES
 
+# Source configuration and structured logging
+CONFIG_FILE="/etc/brainstorm.conf"
+source "$CONFIG_FILE"
+source "${BRAINSTORM_MODULE_SRC_DIR}/utils/structuredLogging.sh"
+
+LOG_FILE="$BRAINSTORM_LOG_DIR/launchChildTask.log"
+touch ${LOG_FILE}
+sudo chown brainstorm:brainstorm ${LOG_FILE}
+
 launchChildTask() {
     local task_name="$1"         # Required: name of this task
     local parent_task_name="$2"  # Required: name of parent task
     local config_json="$3"       # Optional: per-invocation config (JSON string)
     local child_args="$4"        # Optional: arguments to pass to child task
     
+    echo "$(date): Starting launchChildTask"
+    echo "$(date): Starting launchChildTask" >> ${LOG_FILE}
+
     # Validate required arguments
     if [[ -z "$task_name" || -z "$parent_task_name" ]]; then
         echo "ERROR: launchChildTask requires task_name and parent_task_name" >&2
+        echo "ERROR: launchChildTask requires task_name and parent_task_name" >> ${LOG_FILE}
         return 1
     fi
     
-    # Source configuration and structured logging
-    CONFIG_FILE="/etc/brainstorm.conf"
-    source "$CONFIG_FILE"
-    source "${BRAINSTORM_MODULE_SRC_DIR}/utils/structuredLogging.sh"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
     
     # Task registry file
     local task_registry="${BRAINSTORM_MODULE_MANAGE_DIR}/taskQueue/taskRegistry.json"
@@ -33,22 +44,34 @@ launchChildTask() {
     # Validate task registry exists
     if [[ ! -f "$task_registry" ]]; then
         echo "ERROR: Task registry not found: $task_registry" >&2
+        echo "ERROR: Task registry not found: $task_registry" >> ${LOG_FILE}
         return 1
     fi
+    
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
     
     # Extract task information from registry
     local task_data=$(jq -r ".tasks.\"$task_name\"" "$task_registry" 2>/dev/null)
     if [[ "$task_data" == "null" || -z "$task_data" ]]; then
         echo "ERROR: Task '$task_name' not found in registry" >&2
+        echo "ERROR: Task '$task_name' not found in registry" >> ${LOG_FILE}
         return 1
     fi
+    
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
     
     # Get child script path from registry
     local child_script=$(echo "$task_data" | jq -r '.script // empty')
     if [[ -z "$child_script" ]]; then
         echo "ERROR: No script defined for task '$task_name'" >&2
+        echo "ERROR: No script defined for task '$task_name'" >> ${LOG_FILE}
         return 1
     fi
+    
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
     
     # Expand environment variables in script path
     child_script=$(eval echo "$child_script")
@@ -56,8 +79,12 @@ launchChildTask() {
     # Validate child script exists
     if [[ ! -f "$child_script" ]]; then
         echo "ERROR: Child script not found: $child_script" >&2
+        echo "ERROR: Child script not found: $child_script" >> ${LOG_FILE}
         return 1
     fi
+    
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
     
     # Resolve hierarchical configuration (invocation → task → global defaults)
     local resolved_config="{}"
@@ -99,6 +126,9 @@ launchChildTask() {
 }
 EOF
     
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
+    
     # Launch child task with monitoring
     local temp_log="/tmp/${child_task_id}.log"
     
@@ -111,9 +141,15 @@ EOF
     
     child_pid=$!
     
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, child_pid: $child_pid"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, child_pid: $child_pid" >> ${LOG_FILE}
+    
     # Get timeout from config (default 30 minutes)
     local timeout_duration=$(echo "$resolved_config" | jq -r '.completionScenarios.failure.timeout.duration // 1800')
     local timeout_seconds=$((timeout_duration / 1000))
+    
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, timeout_duration: $timeout_duration, timeout_seconds: $timeout_seconds"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, timeout_duration: $timeout_duration, timeout_seconds: $timeout_seconds" >> ${LOG_FILE}
     
     # Monitor child process
     local elapsed=0
@@ -131,6 +167,9 @@ EOF
     done
     
     local end_time=$(date -Iseconds)
+    
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, end_time: $end_time"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, end_time: $end_time" >> ${LOG_FILE}
     
     # Handle completion scenarios
     if [[ "$timed_out" == "true" ]]; then
@@ -200,6 +239,9 @@ EOF
 EOF
         fi
     fi
+    
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, completion_status: $completion_status, exit_code: $exit_code"
+    echo "$(date): Continuing launchChildTask; task_name: $task_name, completion_status: $completion_status, exit_code: $exit_code" >> ${LOG_FILE}
     
     # Clean up temp log
     [[ -f "$temp_log" ]] && rm -f "$temp_log"
