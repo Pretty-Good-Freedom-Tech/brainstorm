@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const CustomerManager = require('../../../utils/customerManager');
 const brainstormConfig = require('../../../utils/brainstormConfig');
+const { resolveTaskTimeout, determineExecutionMode, formatTimeoutLog } = require('../../../utils/taskTimeout');
 
 // Get task registry
 async function getTaskRegistry() {
@@ -88,47 +89,22 @@ async function buildTaskCommand(task, customerArgs = null) {
     return { command, args };
 }
 
-// Calculate timeout based on task's registry configuration and average duration
-async function calculateTimeout(task, registry) {
-    const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes default
-    const MIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes minimum
-    const MAX_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours maximum (increased for long-running orchestrators)
+// Calculate timeout and execution mode using shared utility
+async function calculateTaskExecution(task, registry) {
+    const timeoutConfig = resolveTaskTimeout(task, registry);
+    const executionMode = determineExecutionMode(timeoutConfig, task);
     
-    let timeoutMs = DEFAULT_TIMEOUT_MS;
-    let timeoutSource = 'default';
+    console.log(`[RunTask] ${formatTimeoutLog(timeoutConfig, task.name)}`);
+    console.log(`[RunTask] Execution mode: ${executionMode.shouldRunAsync ? 'async' : 'sync'} (${executionMode.reason})`);
     
-    // Priority 1: Check task-specific completion timeout configuration
-    if (task.completion && task.completion.failure && task.completion.failure.timeout && task.completion.failure.timeout.duration) {
-        timeoutMs = task.completion.failure.timeout.duration;
-        timeoutSource = 'task-specific registry config';
-    }
-    // Priority 2: Check global default completion timeout configuration
-    else if (registry.completion_default && registry.completion_default.failure && registry.completion_default.failure.timeout && registry.completion_default.failure.timeout.duration) {
-        timeoutMs = registry.completion_default.failure.timeout.duration;
-        timeoutSource = 'global registry default';
-    }
-    // Priority 3: Use averageDuration with buffer
-    else if (task.averageDuration) {
-        // Add 100% buffer for safety (e.g., 4 minute task gets 8 minute timeout)
-        timeoutMs = Math.round(task.averageDuration * 2);
-        timeoutSource = 'averageDuration with 100% buffer';
-    }
-    
-    // Override with enforced timeout if specified (legacy support)
-    if (task.enforcedTimeout) {
-        timeoutMs = task.enforcedTimeout;
-        timeoutSource = 'enforced timeout (legacy)';
-    }
-    
-    // Enforce min/max bounds
-    const boundedTimeout = Math.max(MIN_TIMEOUT_MS, Math.min(MAX_TIMEOUT_MS, timeoutMs));
-    
-    console.log(`[RunTask] Task ${task.name} timeout: ${boundedTimeout / 1000}s (${Math.round(boundedTimeout / 60000)} minutes) from ${timeoutSource}`);
-    return boundedTimeout;
+    return {
+        timeoutConfig,
+        executionMode
+    };
 }
 
-// Execute task with real-time output streaming
-async function executeTask(command, args, task, registry) {
+// Execute task with support for both sync and async modes
+async function executeTask(command, args, task, registry, executionConfig) {
     return new Promise(async (resolve, reject) => {
         console.log(`[RunTask] Executing: ${command} ${args.join(' ')}`);
         
@@ -142,6 +118,7 @@ async function executeTask(command, args, task, registry) {
         
         let stdout = '';
         let stderr = '';
+        const startTime = new Date().toISOString();
         
         childProcess.stdout.on('data', (data) => {
             stdout += data.toString();
@@ -159,7 +136,10 @@ async function executeTask(command, args, task, registry) {
                 stdout: stdout.trim(),
                 stderr: stderr.trim(),
                 success: code === 0,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                startTime,
+                pid: childProcess.pid,
+                executionMode: executionConfig.executionMode.shouldRunAsync ? 'async' : 'sync'
             };
             
             if (code === 0) {
@@ -178,13 +158,32 @@ async function executeTask(command, args, task, registry) {
                 command: `${command} ${args.join(' ')}`,
                 error: error.message,
                 success: false,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                startTime,
+                executionMode: executionConfig.executionMode.shouldRunAsync ? 'async' : 'sync'
             });
         });
         
-        // Set dynamic timeout based on task's registry configuration
-        const timeoutMs = await calculateTimeout(task, registry);
-        const timeoutMinutes = Math.round(timeoutMs / 60000);
+        // For async tasks, resolve immediately with process info
+        if (executionConfig.executionMode.shouldRunAsync) {
+            console.log(`[RunTask] Task ${task.name} started asynchronously (PID: ${childProcess.pid})`);
+            resolve({
+                taskName: task.name,
+                command: `${command} ${args.join(' ')}`,
+                success: true,
+                async: true,
+                pid: childProcess.pid,
+                timestamp: startTime,
+                message: `Task started successfully in background (PID: ${childProcess.pid})`,
+                estimatedDuration: `${executionConfig.timeoutConfig.timeoutMinutes} minutes`,
+                executionMode: 'async'
+            });
+            return;
+        }
+        
+        // For sync tasks, set timeout and wait for completion
+        const timeoutMs = executionConfig.timeoutConfig.timeoutMs;
+        const timeoutMinutes = executionConfig.timeoutConfig.timeoutMinutes;
         
         setTimeout(async () => {
             if (!childProcess.killed) {
@@ -195,7 +194,9 @@ async function executeTask(command, args, task, registry) {
                     command: `${command} ${args.join(' ')}`,
                     error: `Task execution timeout (${timeoutMinutes} minutes)`,
                     success: false,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    startTime,
+                    executionMode: 'sync'
                 });
             }
         }, timeoutMs);
@@ -259,23 +260,39 @@ async function handleRunTask(req, res) {
             });
         }
         
+        // Calculate execution configuration
+        const executionConfig = await calculateTaskExecution(task, registry);
+        
         // Execute task
         console.log(`[RunTask] Starting task: ${taskName}`);
-        const result = await executeTask(command, args, task, registry);
+        const result = await executeTask(command, args, task, registry, executionConfig);
         
-        // Return result
+        // Return result with enhanced async task information
+        const responseMessage = result.async ? 
+            `Task '${taskName}' started successfully in background` :
+            result.success ? 
+                `Task '${taskName}' completed successfully` : 
+                `Task '${taskName}' completed with errors`;
+        
         res.json({
             success: result.success,
             task: {
                 name: task.name,
                 description: task.description,
                 categories: task.categories,
-                requiresCustomer: !!(task.arguments && task.arguments.customer)
+                requiresCustomer: !!(task.arguments && task.arguments.customer),
+                timeout: executionConfig.timeoutConfig.timeoutMinutes + ' minutes',
+                executionMode: result.executionMode || 'sync'
             },
             execution: result,
-            message: result.success ? 
-                `Task '${taskName}' completed successfully` : 
-                `Task '${taskName}' completed with errors`
+            message: responseMessage,
+            ...(result.async && {
+                monitoring: {
+                    pid: result.pid,
+                    estimatedDuration: result.estimatedDuration,
+                    note: "Task is running in background. Check Task Explorer for progress updates."
+                }
+            })
         });
         
     } catch (error) {
