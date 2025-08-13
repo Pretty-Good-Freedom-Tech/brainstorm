@@ -103,12 +103,31 @@ async function calculateTaskExecution(task, registry) {
     };
 }
 
-// Execute task with support for both sync and async modes
+// Execute task with support for both sync and async modes using launchChildTask.sh
 async function executeTask(command, args, task, registry, executionConfig) {
     return new Promise(async (resolve, reject) => {
-        console.log(`[RunTask] Executing: ${command} ${args.join(' ')}`);
+        // Use launchChildTask.sh for unified launch control
+        const launchChildTaskPath = '/Users/wds/CascadeProjects/windsurf-project/src/manage/taskQueue/launchChildTask.sh';
         
-        const childProcess = spawn(command, args, {
+        // Build options JSON for launchChildTask
+        const optionsJson = JSON.stringify({
+            completion: {
+                failure: {
+                    timeout: {
+                        duration: executionConfig.timeoutConfig.timeoutMs,
+                        forceKill: executionConfig.timeoutConfig.forceKill || false
+                    }
+                }
+            }
+        });
+        
+        // Prepare child args (combine original args into single string if needed)
+        const childArgs = args.length > 0 ? args.join(' ') : '';
+        
+        console.log(`[RunTask] Using launchChildTask for: ${task.name}`);
+        console.log(`[RunTask] Options: ${optionsJson}`);
+        
+        const childProcess = spawn('bash', [launchChildTaskPath, task.name, 'api-handler', optionsJson, childArgs], {
             stdio: ['pipe', 'pipe', 'pipe'],
             env: {
                 ...process.env,
