@@ -164,9 +164,9 @@
       "categories": ["network"],
       "description": "Synchronizes Web of Trust data from relays",
       "scripts": [
-        "BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh"
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh"
       ],
-      "script": "BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh",
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh",
       "arguments": false,
       "averageDuration": 44500,
       "parent": "processAllTasks",

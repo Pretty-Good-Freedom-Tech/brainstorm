@@ -69,17 +69,29 @@ launchChildTask() {
         echo "ERROR: No script defined for task '$task_name'" >> ${LOG_FILE}
         return 1
     fi
-    
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
-    
+
     # Expand environment variables in script path
+    # First, ensure all required environment variables are available
+    if [[ -z "$BRAINSTORM_MODULE_SRC_DIR" ]]; then
+        echo "ERROR: BRAINSTORM_MODULE_SRC_DIR not set - config may not be properly sourced" >&2
+        echo "ERROR: BRAINSTORM_MODULE_SRC_DIR not set - config may not be properly sourced" >> ${LOG_FILE}
+        return 1
+    fi
+    
+    # Expand the $BRAINSTORM_MODULE_SRC_DIR variable in the script path
     child_script=$(eval echo "$child_script")
+    
+    echo "$(date): Expanded child_script path: $child_script"
+    echo "$(date): Expanded child_script path: $child_script" >> ${LOG_FILE}
     
     # Validate child script exists
     if [[ ! -f "$child_script" ]]; then
         echo "ERROR: Child script not found: $child_script" >&2
         echo "ERROR: Child script not found: $child_script" >> ${LOG_FILE}
+        echo "Available environment variables:" >> ${LOG_FILE}
+        echo "BRAINSTORM_MODULE_SRC_DIR=$BRAINSTORM_MODULE_SRC_DIR" >> ${LOG_FILE}
+        echo "BRAINSTORM_MODULE_MANAGE_DIR=$BRAINSTORM_MODULE_MANAGE_DIR" >> ${LOG_FILE}
+        echo "BRAINSTORM_MODULE_BASE_DIR=$BRAINSTORM_MODULE_BASE_DIR" >> ${LOG_FILE}
         return 1
     fi
     

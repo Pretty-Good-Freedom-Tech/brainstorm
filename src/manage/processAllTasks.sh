@@ -157,3 +157,17 @@ fi
 
 echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed"
 echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+echo "$(date): Finished processAllTasks"
+echo "$(date): Finished processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+# Emit structured event for task completion
+emit_task_event "TASK_END" "processAllTasks" "" '{
+    "status": "success",
+    "pipeline_type": "full_system",
+    "child_tasks_completed": 12,
+    "message": "Complete Brainstorm pipeline execution finished successfully",
+    "description": "Top-level orchestrator for entire Brainstorm system",
+    "scope": "system_wide",
+    "orchestrator_level": "primary"
+}'
