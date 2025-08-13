@@ -12,7 +12,7 @@ const { resolveTaskTimeout, determineExecutionMode, formatTimeoutLog } = require
 
 // Get task registry
 async function getTaskRegistry() {
-    const registryPath = path.join(__dirname, '../../../manage/taskQueue/taskRegistry.json');
+    const registryPath = path.join(brainstormConfig.get('BRAINSTORM_MODULE_MANAGE_DIR'), 'taskQueue/taskRegistry.json');
     if (!fs.existsSync(registryPath)) {
         throw new Error('Task registry not found');
     }
@@ -107,7 +107,7 @@ async function calculateTaskExecution(task, registry) {
 async function executeTask(command, args, task, registry, executionConfig) {
     return new Promise(async (resolve, reject) => {
         // Use launchChildTask.sh for unified launch control
-        const launchChildTaskPath = '/Users/wds/CascadeProjects/windsurf-project/src/manage/taskQueue/launchChildTask.sh';
+        const launchChildTaskPath = brainstormConfig.expandScriptPath('$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh');
         
         // Build options JSON for launchChildTask
         const optionsJson = JSON.stringify({
