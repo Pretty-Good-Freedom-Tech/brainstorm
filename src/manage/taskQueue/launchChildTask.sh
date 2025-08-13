@@ -59,9 +59,6 @@ launchChildTask() {
         return 1
     fi
     
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
-    
     # Get child script path from registry
     local child_script=$(echo "$task_data" | jq -r '.script // empty')
     if [[ -z "$child_script" ]]; then
@@ -94,10 +91,7 @@ launchChildTask() {
         echo "BRAINSTORM_MODULE_BASE_DIR=$BRAINSTORM_MODULE_BASE_DIR" >> ${LOG_FILE}
         return 1
     fi
-    
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
-    
+       
     # Resolve hierarchical configuration (invocation → task → global defaults)
     local resolved_config="{}"
     
@@ -117,6 +111,9 @@ launchChildTask() {
     if [[ -n "$config_json" && "$config_json" != "{}" && "$config_json" != "null" ]]; then
         resolved_config=$(echo "$resolved_config $config_json" | jq -s '.[0] * .[1]' 2>/dev/null || echo "$resolved_config")
     fi
+
+    echo "$(date): Continuing launchChildTask; resolved_config: $resolved_config"
+    echo "$(date): Continuing launchChildTask; resolved_config: $resolved_config" >> ${LOG_FILE}
     
     # Generate unique child task ID for tracking
     local child_task_id="${task_name}_$(date +%s)_$$"
@@ -203,6 +200,7 @@ EOF
 {
     "child_task": "$task_name",
     "child_task_id": "$child_task_id",
+    "parent_task": "$parent_task_name",
     "error_type": "timeout",
     "timeout_duration": $timeout_duration,
     "elapsed_time": $((elapsed * 1000)),
@@ -224,6 +222,7 @@ EOF
 {
     "child_task": "$task_name",
     "child_task_id": "$child_task_id",
+    "parent_task": "$parent_task_name",
     "exit_code": $exit_code,
     "completion_status": "success",
     "end_time": "$end_time"
@@ -248,6 +247,7 @@ EOF
 {
     "child_task": "$task_name",
     "child_task_id": "$child_task_id",
+    "parent_task": "$parent_task_name",
     "error_type": "$error_type",
     "exit_code": $exit_code,
     "completion_status": "$completion_status",
