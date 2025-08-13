@@ -174,9 +174,15 @@ async function executeTask(command, args, task, registry, executionConfig) {
                 async: true,
                 pid: childProcess.pid,
                 timestamp: startTime,
+                status: 'running',
+                statusMessage: 'Task is running in background. Check Task Explorer for progress updates.',
                 message: `Task started successfully in background (PID: ${childProcess.pid})`,
                 estimatedDuration: `${executionConfig.timeoutConfig.timeoutMinutes} minutes`,
-                executionMode: 'async'
+                executionMode: 'async',
+                // Explicitly exclude exitCode for async tasks to avoid UI confusion
+                exitCode: null,
+                stdout: '',
+                stderr: ''
             });
             return;
         }

@@ -1865,13 +1865,30 @@
             // Update output
             let output = '';
             if (result.execution) {
-                if (result.execution.stdout) {
-                    output += `STDOUT:\n${result.execution.stdout}\n\n`;
+                // Handle async tasks differently
+                if (result.execution.async) {
+                    output += `Status: ${result.execution.status || 'Running'}\n\n`;
+                    if (result.execution.statusMessage) {
+                        output += `${result.execution.statusMessage}\n\n`;
+                    }
+                    if (result.execution.pid) {
+                        output += `Process ID: ${result.execution.pid}\n`;
+                    }
+                    if (result.execution.estimatedDuration) {
+                        output += `Estimated Duration: ${result.execution.estimatedDuration}\n`;
+                    }
+                } else {
+                    // Handle sync tasks with traditional output
+                    if (result.execution.stdout) {
+                        output += `STDOUT:\n${result.execution.stdout}\n\n`;
+                    }
+                    if (result.execution.stderr) {
+                        output += `STDERR:\n${result.execution.stderr}\n\n`;
+                    }
+                    if (result.execution.exitCode !== null && result.execution.exitCode !== undefined) {
+                        output += `Exit Code: ${result.execution.exitCode}`;
+                    }
                 }
-                if (result.execution.stderr) {
-                    output += `STDERR:\n${result.execution.stderr}\n\n`;
-                }
-                output += `Exit Code: ${result.execution.exitCode || 0}`;
             } else {
                 output = result.message || 'No execution details available';
             }
