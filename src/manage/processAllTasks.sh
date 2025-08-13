@@ -83,29 +83,14 @@ emit_task_event "TASK_START" "processAllTasks" "" '{
 
 #################### neo4jConstraintsAndIndexes: start  ##############
 # Child Task 1: Neo4j Constraints and Indexes
-
 launch_child_task "neo4jConstraintsAndIndexes" "processAllTasks" "" ""
-
 #################### neo4jConstraintsAndIndexes: complete  ##############
+
+sleep 5
 
 #################### syncWoT: start  ##############
 # Child Task 2: Negentropy WoT Sync using launchChildTask
-echo "$(date): Continuing processAllTasks; Starting syncWoT using launchChildTask"
-echo "$(date): Continuing processAllTasks; Starting syncWoT using launchChildTask" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-
-if launchChildTask "syncWoT" "processAllTasks"; then
-    echo "$(date): syncWoT completed successfully via launchChildTask"
-    echo "$(date): syncWoT completed successfully via launchChildTask" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-else
-    local exit_code=$?
-    echo "$(date): syncWoT failed via launchChildTask with exit code: $exit_code"
-    echo "$(date): syncWoT failed via launchChildTask with exit code: $exit_code" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-    # Note: launchChildTask handles parentNextStep logic, so we continue based on its return code
-fi
-
-echo "$(date): Continuing processAllTasks; syncWoT completed"
-echo "$(date): Continuing processAllTasks; syncWoT completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-
+launch_child_task "syncWoT" "processAllTasks" "" ""
 #################### syncWoT: complete  ##############
 
 sleep 5
@@ -124,35 +109,18 @@ sleep 5
 
 # sleep 5
 
+#################### callBatchTransferIfNeeded: start  ##############
 # Child Task 3: Batch Transfer
-emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
-    "child_task": "callBatchTransferIfNeeded",
-    "message": "Starting batch transfer",
-    "task_order": 3,
-    "category": "batch_transfer",
-    "operation": "batch_transfer"
-}'
+launch_child_task "callBatchTransferIfNeeded" "processAllTasks" "" ""
+#################### callBatchTransferIfNeeded: complete  ##############
 
-if sudo $BRAINSTORM_MODULE_MANAGE_DIR/batchTransfer/callBatchTransferIfNeeded.sh; then
-    emit_task_event "CHILD_TASK_END" "processAllTasks" "" '{
-        "child_task": "callBatchTransferIfNeeded",
-        "status": "success",
-        "message": "Batch transfer completed",
-        "task_order": 3,
-        "category": "batch_transfer"
-    }'
-else
-    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" "" '{
-        "child_task": "callBatchTransferIfNeeded",
-        "status": "error",
-        "message": "Batch transfer failed",
-        "task_order": 3,
-        "category": "batch_transfer"
-    }'
-fi
+sleep 5
 
-echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed"
-echo "$(date): Continuing processAllTasks; callBatchTransferIfNeeded.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+#################### reconciliation: start  ##############
+# Child Task 4: Data Reconciliation
+launch_child_task "reconciliation" "processAllTasks" "" ""
+#################### reconciliation: complete  ##############
+
 
 echo "$(date): Finished processAllTasks"
 echo "$(date): Finished processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log

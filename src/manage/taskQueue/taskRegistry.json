@@ -202,6 +202,15 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
+      "completion": {
+        "failure": {
+          "timeout": {
+            "comments": "3600000 = 1 hour",
+            "duration": 3600000,
+            "forceKill": false
+          }
+        }
+      },
       "notes": "Phase 2 structured events implemented - emits TASK_START, PROGRESS events for decision and execution phases (transfer needed/skipped), and TASK_END with execution status"
     },
 
@@ -220,6 +229,15 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
+      "completion": {
+        "failure": {
+          "timeout": {
+            "comments": "5400000 = 1.5 hours",
+            "duration": 5400000,
+            "forceKill": false
+          }
+        }
+      },
       "notes": "Phase 2 structured logging implemented - comprehensive 3-phase reconciliation tracking with TASK_START/END, detailed PROGRESS events for each phase (A: mutes, B: follows, C: reports), operation-specific tracking with timing and status"
     },
 
