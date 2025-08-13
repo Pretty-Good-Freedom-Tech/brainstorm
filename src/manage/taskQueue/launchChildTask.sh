@@ -19,10 +19,92 @@ LOG_FILE="$BRAINSTORM_LOG_DIR/launchChildTask.log"
 touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
+# Check if a task is already running by name
+# Returns PID if running, empty string if not
+check_task_already_running() {
+    local task_name="$1"
+    
+    # Look for processes running the task script
+    # Use pgrep to find processes by script name pattern
+    local task_script_pattern="$task_name"
+    
+    # Search for bash processes running scripts containing the task name
+    local pids=$(pgrep -f "$task_script_pattern" 2>/dev/null || echo "")
+    
+    # Filter out our own process and parent processes
+    local filtered_pids=""
+    for pid in $pids; do
+        if [[ "$pid" != "$$" && "$pid" != "$PPID" ]]; then
+            # Verify the process is still running and is actually our task
+            if ps -p "$pid" >/dev/null 2>&1; then
+                local cmd=$(ps -p "$pid" -o cmd= 2>/dev/null || echo "")
+                if [[ "$cmd" == *"$task_name"* ]]; then
+                    filtered_pids="$pid"
+                    break  # Return first matching PID
+                fi
+            fi
+        fi
+    done
+    
+    echo "$filtered_pids"
+}
+
+# Placeholder function to detect if a running process has error state
+# Currently returns "withoutError" for all processes
+# TODO: Implement sophisticated error detection logic in future phases
+detect_process_error_state() {
+    local task_name="$1"
+    local pid="$2"
+    
+    # Phase 1: Simple placeholder - always return no error
+    # Future phases will implement:
+    # - Timeout detection (process running longer than expected)
+    # - Activity detection (no structured log events in X minutes)
+    # - Resource monitoring (high CPU/memory with no progress)
+    # - Task-specific health checks
+    
+    echo "withoutError"
+}
+
+# Resolve launch options using hierarchical approach
+# Priority: invocation options > task-specific options > global options_default > fallback
+resolve_launch_options() {
+    local task_data="$1"
+    local registry_data="$2" 
+    local error_state="$3"  # "withError" or "withoutError"
+    local options_json="$4"  # Per-invocation options
+    
+    # Start with global defaults
+    local options="{}"
+    local global_default=$(echo "$registry_data" | jq -r ".options_default.launch.processAlreadyRunning.$error_state // {}")
+    if [[ "$global_default" != "{}" && "$global_default" != "null" ]]; then
+        options="$global_default"
+    fi
+    
+    # Override with task-specific options if present
+    local task_options=$(echo "$task_data" | jq -r ".options.launch.processAlreadyRunning.$error_state // {}")
+    if [[ "$task_options" != "{}" && "$task_options" != "null" ]]; then
+        options=$(echo "$options $task_options" | jq -s '.[0] * .[1]' 2>/dev/null || echo "$options")
+    fi
+    
+    # Override with per-invocation options if present (highest priority)
+    local invocation_options=$(echo "$options_json" | jq -r ".launch.processAlreadyRunning.$error_state // {}" 2>/dev/null || echo '{}')
+    if [[ "$invocation_options" != "{}" && "$invocation_options" != "null" ]]; then
+        options=$(echo "$options $invocation_options" | jq -s '.[0] * .[1]' 2>/dev/null || echo "$options")
+    fi
+    
+    # Provide fallback defaults if options is still empty
+    if [[ "$options" == "{}" || "$options" == "null" ]]; then
+        options='{"killPreexisting": true, "launchNew": true}'
+    fi
+    
+    echo "$options"
+}
+
 launchChildTask() {
     local task_name="$1"         # Required: name of this task
     local parent_task_name="$2"  # Required: name of parent task
-    local config_json="$3"       # Optional: per-invocation config (JSON string)
+    local options_json="$3"      # Optional: per-invocation options config (JSON string)
     local child_args="$4"        # Optional: arguments to pass to child task
     
     echo "$(date): Starting launchChildTask"
@@ -89,28 +171,30 @@ launchChildTask() {
         return 1
     fi
        
-    # Resolve hierarchical configuration (invocation → task → global defaults)
-    local resolved_config="{}"
+    # Resolve completion options using hierarchical approach
+    local resolved_options="{}"
     
     # Start with global defaults from registry
-    local global_defaults=$(jq -r '.completion_default // {}' "$task_registry" 2>/dev/null)
+    local registry_data=$(cat "$task_registry")
+    local global_defaults=$(echo "$registry_data" | jq -r '.options_default.completion // {}')
     if [[ "$global_defaults" != "{}" && "$global_defaults" != "null" ]]; then
-        resolved_config="$global_defaults"
+        resolved_options="$global_defaults"
     fi
     
-    # Merge with task-specific config from registry (task.completion)
-    local task_config=$(echo "$task_data" | jq -r '.completion // {}')
-    if [[ "$task_config" != "{}" && "$task_config" != "null" ]]; then
-        resolved_config=$(echo "$resolved_config $task_config" | jq -s '.[0] * .[1]' 2>/dev/null || echo "$resolved_config")
+    # Merge with task-specific options from registry (task.options.completion)
+    local task_options=$(echo "$task_data" | jq -r '.options.completion // {}')
+    if [[ "$task_options" != "{}" && "$task_options" != "null" ]]; then
+        resolved_options=$(echo "$resolved_options $task_options" | jq -s '.[0] * .[1]' 2>/dev/null || echo "$resolved_options")
     fi
     
-    # Merge with per-invocation config (highest priority)
-    if [[ -n "$config_json" && "$config_json" != "{}" && "$config_json" != "null" ]]; then
-        resolved_config=$(echo "$resolved_config $config_json" | jq -s '.[0] * .[1]' 2>/dev/null || echo "$resolved_config")
+    # Merge with per-invocation completion options (highest priority)
+    local invocation_completion=$(echo "$options_json" | jq -r '.completion // {}' 2>/dev/null || echo '{}')
+    if [[ "$invocation_completion" != "{}" && "$invocation_completion" != "null" ]]; then
+        resolved_options=$(echo "$resolved_options $invocation_completion" | jq -s '.[0] * .[1]' 2>/dev/null || echo "$resolved_options")
     fi
 
-    echo "$(date): Continuing launchChildTask; resolved_config: $resolved_config"
-    echo "$(date): Continuing launchChildTask; resolved_config: $resolved_config" >> ${LOG_FILE}
+    echo "$(date): Continuing launchChildTask; resolved_options: $resolved_options"
+    echo "$(date): Continuing launchChildTask; resolved_options: $resolved_options" >> ${LOG_FILE}
     
     # Generate unique child task ID for tracking
     local child_task_id="${task_name}_$(date +%s)_$$"
@@ -134,6 +218,74 @@ EOF
 )
     emit_task_event "CHILD_TASK_START" "$parent_task_name" "$child_task_id" "$eventMetadata"
     
+    # Check if task is already running and handle according to launch policy
+    local existing_pid=$(check_task_already_running "$task_name")
+    if [[ -n "$existing_pid" ]]; then
+        echo "$(date): Task $task_name is already running (PID: $existing_pid)"
+        echo "$(date): Task $task_name is already running (PID: $existing_pid)" >> ${LOG_FILE}
+        
+        # Detect if existing process has error state
+        local error_state=$(detect_process_error_state "$task_name" "$existing_pid")
+        echo "$(date): Process error state: $error_state" >> ${LOG_FILE}
+        
+        # Resolve launch options for this scenario
+        local launch_options=""
+        if [[ "$error_state" == "withError" ]]; then
+            launch_options=$(resolve_launch_options "$task_data" "$registry_data" "withError" "$options_json")
+        else
+            launch_options=$(resolve_launch_options "$task_data" "$registry_data" "withoutError" "$options_json")
+        fi
+        
+        local kill_preexisting=$(echo "$launch_options" | jq -r '.killPreexisting // false')
+        local launch_new=$(echo "$launch_options" | jq -r '.launchNew // false')
+        
+        echo "$(date): Launch policy - killPreexisting: $kill_preexisting, launchNew: $launch_new" >> ${LOG_FILE}
+        
+        # Apply launch policy
+        if [[ "$kill_preexisting" == "true" ]]; then
+            echo "$(date): Killing existing process $existing_pid" >> ${LOG_FILE}
+            if ! kill -9 "$existing_pid" 2>/dev/null; then
+                sudo kill -9 "$existing_pid" 2>/dev/null || true
+                echo "$(date): Required sudo to kill PID $existing_pid" >> ${LOG_FILE}
+            fi
+            
+            # Emit event for process replacement
+            local replaceEventMetadata=$(cat <<EOF
+{
+    "child_task": "$task_name",
+    "child_task_id": "$child_task_id",
+    "action": "process_replaced",
+    "old_pid": $existing_pid,
+    "error_state": "$error_state",
+    "kill_preexisting": true,
+    "launch_new": $launch_new
+}
+EOF
+)
+            emit_task_event "TASK_LAUNCH_REPLACED" "$parent_task_name" "$child_task_id" "$replaceEventMetadata"
+        fi
+        
+        if [[ "$launch_new" == "false" ]]; then
+            echo "$(date): Launch policy prevents new instance, returning existing PID" >> ${LOG_FILE}
+            
+            # Emit event for launch prevention
+            local preventEventMetadata=$(cat <<EOF
+{
+    "child_task": "$task_name",
+    "child_task_id": "$child_task_id",
+    "action": "launch_prevented",
+    "existing_pid": $existing_pid,
+    "error_state": "$error_state",
+    "kill_preexisting": $kill_preexisting,
+    "launch_new": false
+}
+EOF
+)
+            emit_task_event "TASK_LAUNCH_PREVENTED" "$parent_task_name" "$child_task_id" "$preventEventMetadata"
+            return 0  # Exit successfully, task is already running
+        fi
+    fi
+    
     # Launch child task with monitoring
     local temp_log="/tmp/${child_task_id}.log"
     
@@ -146,8 +298,8 @@ EOF
     
     child_pid=$!
     
-    # Get timeout from config (default 60 seconds)
-    local timeout_duration=$(echo "$resolved_config" | jq -r '.failure.timeout.duration // 60000')
+    # Get timeout from options (default 60 seconds)
+    local timeout_duration=$(echo "$resolved_options" | jq -r '.failure.timeout.duration // 60000')
     local timeout_seconds=$((timeout_duration / 1000))
        
     # Monitor child process
@@ -174,7 +326,7 @@ EOF
         error_type="timeout"
         
         # Check if we should force kill
-        local force_kill=$(echo "$resolved_config" | jq -r '.failure.timeout.forceKill // false')
+        local force_kill=$(echo "$resolved_options" | jq -r '.failure.timeout.forceKill // false')
         if [[ "$force_kill" == "true" ]]; then
             # Try to force kill the process with cross-user compatibility
             if ! kill -9 "$child_pid" 2>/dev/null; then
@@ -257,16 +409,16 @@ EOF
     
     case "$completion_status" in
         "success")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.success.withoutError.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_options" | jq -r '.success.withoutError.parentNextStep // "continue"')
             ;;
         "timeout")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.failure.timeout.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_options" | jq -r '.failure.timeout.parentNextStep // "continue"')
             ;;
         "caught_failure")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.failure.caught.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_options" | jq -r '.failure.caught.parentNextStep // "continue"')
             ;;
         "uncaught_failure")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.failure.uncaught.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_options" | jq -r '.failure.uncaught.parentNextStep // "continue"')
             ;;
     esac
     

@@ -51,13 +51,13 @@ sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 launch_child_task() {
     local task_name="$1"
     local parent_task_name="$2"
-    local config_json="$3"
+    local options_json="$3"
     local child_args="$4"
 
     echo "$(date): Continuing $parent_task_name; Starting $task_name using launchChildTask"
     echo "$(date): Continuing $parent_task_name; Starting $task_name using launchChildTask" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
-    if launchChildTask "$task_name" "$parent_task_name" "$config_json" "$child_args"; then
+    if launchChildTask "$task_name" "$parent_task_name" "$options_json" "$child_args"; then
         echo "$(date): $task_name completed successfully via launchChildTask"
         echo "$(date): $task_name completed successfully via launchChildTask" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
     else

@@ -39,8 +39,8 @@ function resolveTaskTimeout(task, registry, options = {}) {
     let additionalConfig = {};
     
     // Priority 1: Check task-specific completion timeout configuration
-    if (task.completion && task.completion.failure && task.completion.failure.timeout) {
-        const timeoutConfig = task.completion.failure.timeout;
+    if (task.options && task.options.completion && task.options.completion.failure && task.options.completion.failure.timeout) {
+        const timeoutConfig = task.options.completion.failure.timeout;
         if (timeoutConfig.duration) {
             timeoutMs = timeoutConfig.duration;
             timeoutSource = 'task-specific registry config';
@@ -53,8 +53,8 @@ function resolveTaskTimeout(task, registry, options = {}) {
         }
     }
     // Priority 2: Check global default completion timeout configuration
-    else if (registry.completion_default && registry.completion_default.failure && registry.completion_default.failure.timeout) {
-        const timeoutConfig = registry.completion_default.failure.timeout;
+    else if (registry.options_default && registry.options_default.completion && registry.options_default.completion.failure && registry.options_default.completion.failure.timeout) {
+        const timeoutConfig = registry.options_default.completion.failure.timeout;
         if (timeoutConfig.duration) {
             timeoutMs = timeoutConfig.duration;
             timeoutSource = 'global registry default';
@@ -115,13 +115,13 @@ function resolveCompletionScenario(task, registry, scenario) {
     let config = {};
     
     // Start with global defaults
-    if (registry.completion_default && registry.completion_default[scenario]) {
-        config = { ...registry.completion_default[scenario] };
+    if (registry.options_default && registry.options_default.completion && registry.options_default.completion[scenario]) {
+        config = { ...registry.options_default.completion[scenario] };
     }
     
     // Override with task-specific config
-    if (task.completion && task.completion[scenario]) {
-        config = { ...config, ...task.completion[scenario] };
+    if (task.options && task.options.completion && task.options.completion[scenario]) {
+        config = { ...config, ...task.options.completion[scenario] };
     }
     
     return config;

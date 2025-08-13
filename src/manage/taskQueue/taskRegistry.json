@@ -13,32 +13,46 @@
     "maintenance": "System maintenance and cleanup"
   },
 
-  "completion_default": {
-    "success":{
-      "withError": {
-        "parentNextStep": "nextTaskInQueue"
-      },
-      "withoutError": {
-        "parentNextStep": "nextTaskInQueue"
+  "options_default": {
+    "launch": {
+      "processAlreadyRunning": {
+        "withoutError": {
+          "killPreexisting": true,
+          "launchNew": true
+        },
+        "withError": {
+          "killPreexisting": true,
+          "launchNew": true
+        }
       }
     },
-    "failure": {
-      "timeout": {
-        "duration": 1800000,
-        "forceKill": false,
-        "restart": true,
-        "maxRetries": 3,
-        "parentNextStep": "nextTaskInQueue"
+    "completion": {
+      "success":{
+        "withError": {
+          "parentNextStep": "nextTaskInQueue"
+        },
+        "withoutError": {
+          "parentNextStep": "nextTaskInQueue"
+        }
       },
-      "uncaught": {
-        "restart": true,
-        "maxRetries": 3,
-        "parentNextStep": "exit"
-      },
-      "caught": {
-        "restart": true,
-        "maxRetries": 3,
-        "parentNextStep": "exit"
+      "failure": {
+        "timeout": {
+          "duration": 1800000,
+          "forceKill": false,
+          "restart": true,
+          "maxRetries": 3,
+          "parentNextStep": "nextTaskInQueue"
+        },
+        "uncaught": {
+          "restart": true,
+          "maxRetries": 3,
+          "parentNextStep": "exit"
+        },
+        "caught": {
+          "restart": true,
+          "maxRetries": 3,
+          "parentNextStep": "exit"
+        }
       }
     }
   },
@@ -72,12 +86,24 @@
       "frequency": "timer-based",
       "status": "legacy",
       "structuredLogging": true,
-      "completion": {
-        "failure": {
-          "timeout": {
-            "comments": "21600000 = 6 hours - generous timeout to accommodate all child tasks including long-running reconciliation (1.5h), syncWoT (1h), and customer processing",
-            "duration": 21600000,
-            "forceKill": false
+      "processAlreadyRunning": {
+        "withoutError": {
+          "killPreexisting": false,
+          "launchNew": false
+        },
+        "withError": {
+          "killPreexisting": true,
+          "launchNew": true
+        }
+      },
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "comments": "21600000 = 6 hours - generous timeout to accommodate all child tasks including long-running reconciliation (1.5h), syncWoT (1h), and customer processing",
+              "duration": 21600000,
+              "forceKill": false
+            }
           }
         }
       },
@@ -164,7 +190,7 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "completion": {},
+      "options": {},
       "notes": "Phase 2 structured logging implemented with comprehensive database maintenance events: TASK_START, creation phase with password fallback, verification with detailed counts, configuration updates, and TASK_END/TASK_ERROR with rich metadata for Neo4j constraints and indexes setup."
     },
 
@@ -185,11 +211,13 @@
       "status": "active",
       "estimatedDuration": "30-60 minutes",
       "structuredLogging": true,
-      "completion": {
-        "failure": {
-          "timeout": {
-            "duration": 60000,
-            "forceKill": false
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "duration": 60000,
+              "forceKill": false
+            }
           }
         }
       },
@@ -211,12 +239,14 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "completion": {
-        "failure": {
-          "timeout": {
-            "comments": "3600000 = 1 hour",
-            "duration": 3600000,
-            "forceKill": false
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "comments": "3600000 = 1 hour",
+              "duration": 3600000,
+              "forceKill": false
+            }
           }
         }
       },
@@ -238,12 +268,14 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "completion": {
-        "failure": {
-          "timeout": {
-            "comments": "5400000 = 1.5 hours",
-            "duration": 5400000,
-            "forceKill": false
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "comments": "5400000 = 1.5 hours",
+              "duration": 5400000,
+              "forceKill": false
+            }
           }
         }
       },
