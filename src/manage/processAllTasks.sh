@@ -46,6 +46,29 @@ check_disk_space() {
 touch ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
+launch_child_task() {
+    local task_name="$1"
+    local parent_task_name="$2"
+    local config_json="$3"
+    local child_args="$4"
+
+    echo "$(date): Continuing $parent_task_name; Starting $task_name using launchChildTask"
+    echo "$(date): Continuing $parent_task_name; Starting $task_name using launchChildTask" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+    if launchChildTask "$task_name" "$parent_task_name" "$config_json" "$child_args"; then
+        echo "$(date): $task_name completed successfully via launchChildTask"
+        echo "$(date): $task_name completed successfully via launchChildTask" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+    else
+        local exit_code=$?
+        echo "$(date): $task_name failed via launchChildTask with exit code: $exit_code"
+        echo "$(date): $task_name failed via launchChildTask with exit code: $exit_code" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+        # Note: launchChildTask handles parentNextStep logic, so we continue based on its return code
+    fi
+
+    echo "$(date): Continuing $parent_task_name; $task_name completed"
+    echo "$(date): Continuing $parent_task_name; $task_name completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+}
+
 echo "$(date): Starting processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 # Emit structured event for task start
@@ -60,36 +83,9 @@ emit_task_event "TASK_START" "processAllTasks" "" '{
 
 #################### neo4jConstraintsAndIndexes: start  ##############
 # Child Task 1: Neo4j Constraints and Indexes
-emit_task_event "CHILD_TASK_START" "processAllTasks" "" '{
-    "child_task": "neo4jConstraintsAndIndexes",
-    "message": "Starting Neo4j constraints and indexes setup",
-    "task_order": 1,
-    "category": "database_setup",
-    "operation": "constraints_and_indexes"
-}'
 
-if sudo $BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh; then
-    emit_task_event "CHILD_TASK_END" "processAllTasks" "" '{
-        "child_task": "neo4jConstraintsAndIndexes",
-        "child_exit_code": '$CHILD_EXIT_CODE',
-        "status": "success",
-        "message": "Neo4j constraints and indexes setup completed",
-        "task_order": 1,
-        "category": "database_setup"
-    }'
-else
-    emit_task_event "CHILD_TASK_ERROR" "processAllTasks" "" '{
-        "child_task": "neo4jConstraintsAndIndexes",
-        "child_exit_code": '$CHILD_EXIT_CODE',
-        "status": "error",
-        "message": "Neo4j constraints and indexes setup failed",
-        "task_order": 1,
-        "category": "database_setup"
-    }'
-fi
+launch_child_task "neo4jConstraintsAndIndexes" "processAllTasks" "" ""
 
-echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed"
-echo "$(date): Continuing processAllTasks; neo4jConstraintsAndIndexes.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 #################### neo4jConstraintsAndIndexes: complete  ##############
 
 #################### syncWoT: start  ##############

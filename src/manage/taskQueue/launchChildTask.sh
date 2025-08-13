@@ -48,9 +48,6 @@ launchChildTask() {
         return 1
     fi
     
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
-    
     # Extract task information from registry
     local task_data=$(jq -r ".tasks.\"$task_name\"" "$task_registry" 2>/dev/null)
     if [[ "$task_data" == "null" || -z "$task_data" ]]; then
@@ -137,9 +134,6 @@ EOF
 )
     emit_task_event "CHILD_TASK_START" "$parent_task_name" "$child_task_id" "$eventMetadata"
     
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, parent_task_name: $parent_task_name" >> ${LOG_FILE}
-    
     # Launch child task with monitoring
     local temp_log="/tmp/${child_task_id}.log"
     
@@ -152,16 +146,10 @@ EOF
     
     child_pid=$!
     
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, child_pid: $child_pid"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, child_pid: $child_pid" >> ${LOG_FILE}
-    
-    # Get timeout from config (default 30 minutes)
-    local timeout_duration=$(echo "$resolved_config" | jq -r '.completionScenarios.failure.timeout.duration // 1800')
+    # Get timeout from config (default 60 seconds)
+    local timeout_duration=$(echo "$resolved_config" | jq -r '.failure.timeout.duration // 60000')
     local timeout_seconds=$((timeout_duration / 1000))
-    
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, timeout_duration: $timeout_duration, timeout_seconds: $timeout_seconds"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, timeout_duration: $timeout_duration, timeout_seconds: $timeout_seconds" >> ${LOG_FILE}
-    
+       
     # Monitor child process
     local elapsed=0
     local check_interval=5
@@ -179,9 +167,6 @@ EOF
     
     local end_time=$(date -Iseconds)
     
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, end_time: $end_time"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, end_time: $end_time" >> ${LOG_FILE}
-    
     # Handle completion scenarios
     if [[ "$timed_out" == "true" ]]; then
         # Timeout scenario
@@ -189,7 +174,7 @@ EOF
         error_type="timeout"
         
         # Check if we should force kill
-        local force_kill=$(echo "$resolved_config" | jq -r '.completionScenarios.failure.timeout.forceKill // false')
+        local force_kill=$(echo "$resolved_config" | jq -r '.failure.timeout.forceKill // false')
         if [[ "$force_kill" == "true" ]]; then
             kill -9 "$child_pid" 2>/dev/null
         fi
@@ -259,9 +244,6 @@ EOF
         fi
     fi
     
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, completion_status: $completion_status, exit_code: $exit_code"
-    echo "$(date): Continuing launchChildTask; task_name: $task_name, completion_status: $completion_status, exit_code: $exit_code" >> ${LOG_FILE}
-    
     # Clean up temp log
     [[ -f "$temp_log" ]] && rm -f "$temp_log"
     
@@ -270,16 +252,16 @@ EOF
     
     case "$completion_status" in
         "success")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.completionScenarios.success.withoutError.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_config" | jq -r '.success.withoutError.parentNextStep // "continue"')
             ;;
         "timeout")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.completionScenarios.failure.timeout.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_config" | jq -r '.failure.timeout.parentNextStep // "continue"')
             ;;
         "caught_failure")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.completionScenarios.failure.caught.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_config" | jq -r '.failure.caught.parentNextStep // "continue"')
             ;;
         "uncaught_failure")
-            parent_next_step=$(echo "$resolved_config" | jq -r '.completionScenarios.failure.uncaught.parentNextStep // "continue"')
+            parent_next_step=$(echo "$resolved_config" | jq -r '.failure.uncaught.parentNextStep // "continue"')
             ;;
     esac
     
