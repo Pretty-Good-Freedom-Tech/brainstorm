@@ -155,7 +155,7 @@ EOF
     local check_interval=5
     local timed_out=false
     
-    while kill -0 "$child_pid" 2>/dev/null; do
+    while ps -p "$child_pid" >/dev/null 2>&1; do
         sleep $check_interval
         elapsed=$((elapsed + check_interval))
         
@@ -176,7 +176,12 @@ EOF
         # Check if we should force kill
         local force_kill=$(echo "$resolved_config" | jq -r '.failure.timeout.forceKill // false')
         if [[ "$force_kill" == "true" ]]; then
-            kill -9 "$child_pid" 2>/dev/null
+            # Try to force kill the process with cross-user compatibility
+            if ! kill -9 "$child_pid" 2>/dev/null; then
+                # If direct kill fails (e.g., cross-user), try with sudo
+                sudo kill -9 "$child_pid" 2>/dev/null || true
+                echo "$(date): Force kill required sudo for PID $child_pid" >> ${LOG_FILE}
+            fi
         fi
         
         exit_code=124  # Standard timeout exit code

@@ -88,37 +88,47 @@ async function buildTaskCommand(task, customerArgs = null) {
     return { command, args };
 }
 
-// Calculate timeout based on task's average duration
-async function calculateTimeout(task) {
+// Calculate timeout based on task's registry configuration and average duration
+async function calculateTimeout(task, registry) {
     const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes default
     const MIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes minimum
-    const MAX_TIMEOUT_MS = 120 * 60 * 1000; // 2 hours maximum
+    const MAX_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours maximum (increased for long-running orchestrators)
     
-    if (!task.averageDuration) {
-        console.log(`[RunTask] No averageDuration for ${task.name}, using default timeout: ${DEFAULT_TIMEOUT_MS / 1000}s`);
-        return DEFAULT_TIMEOUT_MS;
+    let timeoutMs = DEFAULT_TIMEOUT_MS;
+    let timeoutSource = 'default';
+    
+    // Priority 1: Check task-specific completion timeout configuration
+    if (task.completion && task.completion.failure && task.completion.failure.timeout && task.completion.failure.timeout.duration) {
+        timeoutMs = task.completion.failure.timeout.duration;
+        timeoutSource = 'task-specific registry config';
+    }
+    // Priority 2: Check global default completion timeout configuration
+    else if (registry.completion_default && registry.completion_default.failure && registry.completion_default.failure.timeout && registry.completion_default.failure.timeout.duration) {
+        timeoutMs = registry.completion_default.failure.timeout.duration;
+        timeoutSource = 'global registry default';
+    }
+    // Priority 3: Use averageDuration with buffer
+    else if (task.averageDuration) {
+        // Add 100% buffer for safety (e.g., 4 minute task gets 8 minute timeout)
+        timeoutMs = Math.round(task.averageDuration * 2);
+        timeoutSource = 'averageDuration with 100% buffer';
     }
     
-    // Convert averageDuration to milliseconds (assume it's in milliseconds)
-    const durationMs = task.averageDuration;
-    
-    // Add 100% buffer for safety (e.g., 4 minute task gets 8 minute timeout)
-    let timeoutMs = Math.round(durationMs * 2);
-
-    // If the task has an enforced timeout, use that instead
+    // Override with enforced timeout if specified (legacy support)
     if (task.enforcedTimeout) {
         timeoutMs = task.enforcedTimeout;
+        timeoutSource = 'enforced timeout (legacy)';
     }
     
     // Enforce min/max bounds
     const boundedTimeout = Math.max(MIN_TIMEOUT_MS, Math.min(MAX_TIMEOUT_MS, timeoutMs));
     
-    console.log(`[RunTask] Task ${task.name} averageDuration: ${task.averageDuration}ms, calculated timeout: ${boundedTimeout / 1000}s`);
+    console.log(`[RunTask] Task ${task.name} timeout: ${boundedTimeout / 1000}s (${Math.round(boundedTimeout / 60000)} minutes) from ${timeoutSource}`);
     return boundedTimeout;
 }
 
 // Execute task with real-time output streaming
-async function executeTask(command, args, task) {
+async function executeTask(command, args, task, registry) {
     return new Promise(async (resolve, reject) => {
         console.log(`[RunTask] Executing: ${command} ${args.join(' ')}`);
         
@@ -172,8 +182,8 @@ async function executeTask(command, args, task) {
             });
         });
         
-        // Set dynamic timeout based on task's average duration
-        const timeoutMs = await calculateTimeout(task);
+        // Set dynamic timeout based on task's registry configuration
+        const timeoutMs = await calculateTimeout(task, registry);
         const timeoutMinutes = Math.round(timeoutMs / 60000);
         
         setTimeout(async () => {
@@ -251,7 +261,7 @@ async function handleRunTask(req, res) {
         
         // Execute task
         console.log(`[RunTask] Starting task: ${taskName}`);
-        const result = await executeTask(command, args, task);
+        const result = await executeTask(command, args, task, registry);
         
         // Return result
         res.json({

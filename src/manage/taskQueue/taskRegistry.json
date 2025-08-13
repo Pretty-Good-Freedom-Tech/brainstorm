@@ -72,6 +72,15 @@
       "frequency": "timer-based",
       "status": "legacy",
       "structuredLogging": true,
+      "completion": {
+        "failure": {
+          "timeout": {
+            "comments": "21600000 = 6 hours - generous timeout to accommodate all child tasks including long-running reconciliation (1.5h), syncWoT (1h), and customer processing",
+            "duration": 21600000,
+            "forceKill": false
+          }
+        }
+      },
       "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 12 child tasks (full pipeline orchestrator). Being replaced by priority-based task queue system but retains structured logging for monitoring."
     },
 

@@ -46,6 +46,8 @@ check_disk_space() {
 touch ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
+# wrapper function which employs legacy log system; 
+# will eventually get rid of this wrapper and just run launchChildTask directly
 launch_child_task() {
     local task_name="$1"
     local parent_task_name="$2"
@@ -83,14 +85,14 @@ emit_task_event "TASK_START" "processAllTasks" "" '{
 
 #################### neo4jConstraintsAndIndexes: start  ##############
 # Child Task 1: Neo4j Constraints and Indexes
-launch_child_task "neo4jConstraintsAndIndexes" "processAllTasks" "" ""
+launchChildTask "neo4jConstraintsAndIndexes" "processAllTasks" "" ""
 #################### neo4jConstraintsAndIndexes: complete  ##############
 
 sleep 5
 
 #################### syncWoT: start  ##############
 # Child Task 2: Negentropy WoT Sync using launchChildTask
-launch_child_task "syncWoT" "processAllTasks" "" ""
+launchChildTask "syncWoT" "processAllTasks" "" ""
 #################### syncWoT: complete  ##############
 
 sleep 5
