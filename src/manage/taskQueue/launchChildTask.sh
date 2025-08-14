@@ -438,3 +438,19 @@ EOF
 }
 
 export -f launchChildTask
+
+# Main execution block - call launchChildTask function when script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # Script is being executed directly, not sourced
+    echo "$(date): launchChildTask.sh executed directly with args: $@"
+    
+    # Validate we have the required arguments
+    if [[ $# -lt 2 ]]; then
+        echo "ERROR: launchChildTask.sh requires at least 2 arguments: task_name parent_task_name [options_json] [child_args]" >&2
+        exit 1
+    fi
+    
+    # Call the launchChildTask function with all provided arguments
+    launchChildTask "$@"
+    exit $?
+fi
