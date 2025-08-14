@@ -942,18 +942,18 @@
 
         // Create events timeline for session
         function createEventsTimeline(session) {
-            // Sort events by timestamp (most recent first)
+            // Sort events by timestamp (chronological order)
             const sortedEvents = [...session.events].sort((a, b) => {
                 const timeA = new Date(a.timestamp).getTime();
                 const timeB = new Date(b.timestamp).getTime();
-                return timeB - timeA; // Reverse chronological order
+                return timeA - timeB; // Chronological order
             });
 
             let html = `
                 <div class="events-timeline">
                     <div class="timeline-header">
                         <div class="timeline-title">Event Timeline</div>
-                        <div class="timeline-count">${sortedEvents.length} event${sortedEvents.length !== 1 ? 's' : ''} (most recent first)</div>
+                        <div class="timeline-count">${sortedEvents.length} event${sortedEvents.length !== 1 ? 's' : ''} (chronological order)</div>
                     </div>
                     <div class="events-list">
             `;

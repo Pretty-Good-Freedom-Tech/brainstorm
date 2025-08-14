@@ -16,6 +16,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Log file for complete npubs operations
 LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsUpToMaxNumBlocks.log"
+touch "$LOG_FILE"
+sudo chown brainstorm:brainstorm $LOG_FILE
+
+# Function to log messages
+log_message() {
+    local message="$1"
+    echo "$(date): $message"
+    echo "$(date): $message" >> "$LOG_FILE"
+}
 
 # Default MAX_ITERATIONS
 MAX_ITERATIONS=50
@@ -24,17 +33,6 @@ MAX_ITERATIONS=50
 if [ "$1" ]; then
     MAX_ITERATIONS=$1
 fi
-
-# Create log directory if it doesn't exist
-mkdir -p "$(dirname "$LOG_FILE")"
-touch "$LOG_FILE"
-
-# Function to log messages
-log_message() {
-    local message="$1"
-    echo "$(date): $message"
-    echo "$(date): $message" >> "$LOG_FILE"
-}
 
 # Function to count NostrUsers missing npub property
 count_missing_npubs() {

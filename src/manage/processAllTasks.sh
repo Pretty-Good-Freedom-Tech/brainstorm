@@ -83,6 +83,8 @@ emit_task_event "TASK_START" "processAllTasks" "" '{
     "orchestrator_level": "primary"
 }'
 
+sleep 5
+
 #################### neo4jConstraintsAndIndexes: start  ##############
 # Child Task 1: Neo4j Constraints and Indexes
 launchChildTask "neo4jConstraintsAndIndexes" "processAllTasks" "" ""
@@ -171,6 +173,8 @@ sleep 5
 # Child Task 6: Process All Active Customers
 launch_child_task "processAllActiveCustomers" "processAllTasks" "" ""
 #################### processAllActiveCustomers: complete  ##############
+
+sleep 5
 
 echo "$(date): Finished processAllTasks"
 echo "$(date): Finished processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log

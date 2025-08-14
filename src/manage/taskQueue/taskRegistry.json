@@ -309,6 +309,7 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
+      "options":{},
       "notes": "Phase 2 structured logging implemented with comprehensive iterative npub generation events: TASK_START, initialization status, per-iteration progress tracking, error detection with infinite loop prevention, child script failure handling, and multiple completion scenarios (success/partial_success) with detailed metrics."
     },
 
@@ -333,6 +334,7 @@
       "frequency": "per-execution",
       "status": "active",
       "structuredLogging": true,
+      "options":{},
       "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for each customer processed, PROGRESS events for discovery/summary/cleanup phases"
     },
 
@@ -360,6 +362,7 @@
       "status": "active",
       "estimatedDuration": "20-60 minutes",
       "structuredLogging": true,
+      "options":{},
       "notes": "Phase 1 structured events implemented"
     },
 
@@ -381,7 +384,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j customer preparation events: TASK_START, child script orchestration (addSetsOfMetricsCards.sh and addMetricsCards.sh), individual child script success/failure tracking, and TASK_END with detailed operation completion metadata."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive Neo4j customer preparation events: TASK_START, child script orchestration (addSetsOfMetricsCards.sh and addMetricsCards.sh), individual child script success/failure tracking, and TASK_END with detailed operation completion metadata."
     },
 
     "updateAllScoresForSingleCustomer": {
@@ -411,7 +415,8 @@
       "timeout": "4 hours",
       "retries": 3,
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 5 child tasks"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 5 child tasks"
     },
 
     "calculateOwnerGrapeRank": {
@@ -433,7 +438,8 @@
       "timeout": "20 minutes",
       "retries": 3,
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive algorithm controller events: TASK_START, retry management with attempt tracking, real-time progress monitoring (every 2 minutes), timeout/premature exit detection, max retries failure handling, and TASK_END with execution statistics."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive algorithm controller events: TASK_START, retry management with attempt tracking, real-time progress monitoring (every 2 minutes), timeout/premature exit detection, max retries failure handling, and TASK_END with execution statistics."
     },
 
     "calculateCustomerGrapeRank": {
@@ -456,7 +462,8 @@
       "timeout": "20 minutes",
       "retries": 3,
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive customer GrapeRank algorithm events: TASK_START, 5-phase orchestration (CSV initialization with conditional logic, ratings interpretation, scorecards initialization, GrapeRank calculation, Neo4j update), individual child process success/failure tracking for mixed technology stack (bash + Node.js), and TASK_END with phase completion summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive customer GrapeRank algorithm events: TASK_START, 5-phase orchestration (CSV initialization with conditional logic, ratings interpretation, scorecards initialization, GrapeRank calculation, Neo4j update), individual child process success/failure tracking for mixed technology stack (bash + Node.js), and TASK_END with phase completion summary."
     },
 
     "calculateOwnerPageRank": {
@@ -475,7 +482,8 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j GDS PageRank algorithm events: TASK_START, 3-phase orchestration (graph projection, personalized PageRank calculation with 20 iterations/0.85 damping/MinMax scaling, graph cleanup), individual Cypher query success/failure tracking, non-fatal warning handling for cleanup, and TASK_END with complete algorithm parameters."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive Neo4j GDS PageRank algorithm events: TASK_START, 3-phase orchestration (graph projection, personalized PageRank calculation with 20 iterations/0.85 damping/MinMax scaling, graph cleanup), individual Cypher query success/failure tracking, non-fatal warning handling for cleanup, and TASK_END with complete algorithm parameters."
     },
 
     "calculateCustomerPageRank": {
@@ -497,7 +505,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for all 5 algorithm phases (graph projection, PageRank calculation, cleanup, data transfer, temp cleanup)"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for all 5 algorithm phases (graph projection, PageRank calculation, cleanup, data transfer, temp cleanup)"
     },
 
     "calculateOwnerHops": {
@@ -517,7 +526,8 @@
       "frequency": "weekly",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 3-phase algorithm (initialization, iterative calculation, completion) with hop level tracking and completion reason"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 3-phase algorithm (initialization, iterative calculation, completion) with hop level tracking and completion reason"
     },
 
     "calculateCustomerHops": {
@@ -538,7 +548,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for initialization and each iteration with hop metrics"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for initialization and each iteration with hop metrics"
     },
 
     "processCustomerFollowsMutesReports": {
@@ -559,7 +570,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 6 child tasks (verified counts and inputs for follows/mutes/reports)",
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 6 child tasks (verified counts and inputs for follows/mutes/reports)",
       "children": [
         "calculateVerifiedFollowerCounts",
         "calculateVerifiedMuterCounts",
@@ -589,7 +601,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
     },
 
     "calculateVerifiedMuterCounts": {
@@ -611,7 +624,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
     },
 
     "calculateVerifiedReporterCounts": {
@@ -633,7 +647,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for 2-phase algorithm (non-zero counts calculation, zero counts assignment) with influence cutoff tracking"
     },
 
     "calculateFollowerInputs": {
@@ -655,7 +670,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
     "calculateMuterInputs": {
@@ -677,7 +693,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
     "calculateReporterInputs": {
@@ -699,7 +716,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, PROGRESS events for single-phase influence aggregation algorithm"
     },
 
     "processOwnerFollowsMutesReports": {
@@ -718,7 +736,8 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive owner-level follows-mutes-reports orchestration events: TASK_START, 3-phase processing (basic counts with 6 scripts, verified counts with 3 scripts, inputs calculation with 1 script), detailed phase start/completion tracking, comprehensive count types and input types metadata, and TASK_END with complete orchestration summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive owner-level follows-mutes-reports orchestration events: TASK_START, 3-phase processing (basic counts with 6 scripts, verified counts with 3 scripts, inputs calculation with 1 script), detailed phase start/completion tracking, comprehensive count types and input types metadata, and TASK_END with complete orchestration summary."
     },
 
     "calculateReportScores": {
@@ -737,7 +756,8 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive report scoring algorithm events: TASK_START, 3-phase processing (report types update with child script, iterative per-type processing with dual Neo4j queries for influence-weighted scoring and verified counts, total aggregation with dynamic query building), detailed per-report-type tracking with progress counters, Neo4j property updates tracking, and TASK_END with complete algorithm summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive report scoring algorithm events: TASK_START, 3-phase processing (report types update with child script, iterative per-type processing with dual Neo4j queries for influence-weighted scoring and verified counts, total aggregation with dynamic query building), detailed per-report-type tracking with progress counters, Neo4j property updates tracking, and TASK_END with complete algorithm summary."
     },
 
     "exportWhitelist": {
@@ -756,7 +776,8 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive whitelist export algorithm events: TASK_START, 4-phase processing (configuration and query building with dynamic Cypher construction, Neo4j query execution with conditional filtering logic, JSON file generation with line-by-line processing, cleanup and finalization with permissions management), detailed configuration parameters tracking (combination logic, influence/hops cutoffs, blacklist integration), performance metrics, and TASK_END with complete export summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive whitelist export algorithm events: TASK_START, 4-phase processing (configuration and query building with dynamic Cypher construction, Neo4j query execution with conditional filtering logic, JSON file generation with line-by-line processing, cleanup and finalization with permissions management), detailed configuration parameters tracking (combination logic, influence/hops cutoffs, blacklist integration), performance metrics, and TASK_END with complete export summary."
     },
 
     "exportOwnerKind30382": {
@@ -775,7 +796,8 @@
       "frequency": "daily",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive owner-level NIP-85 publishing events: TASK_START, 3-phase processing (initialization and validation with directory checks and script permissions, NIP-85 event publishing with Node.js script orchestration for kind 30382 events, error handling and completion with exit code validation), robust error handling for directory validation and Node.js script failures, filter criteria tracking for hops-based event selection, target relay configuration, and TASK_END with complete NIP-85 publishing summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive owner-level NIP-85 publishing events: TASK_START, 3-phase processing (initialization and validation with directory checks and script permissions, NIP-85 event publishing with Node.js script orchestration for kind 30382 events, error handling and completion with exit code validation), robust error handling for directory validation and Node.js script failures, filter criteria tracking for hops-based event selection, target relay configuration, and TASK_END with complete NIP-85 publishing summary."
     },
 
     "exportCustomerKind30382": {
@@ -795,7 +817,8 @@
       "frequency": "per-customer",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented - comprehensive NIP-85 event publishing tracking with TASK_START/END, PROGRESS events for relay pubkey verification and Kind 30382 publishing phases, error handling with TASK_ERROR events"
+      "options":{},
+      "notes":"Phase 2 structured logging implemented - comprehensive NIP-85 event publishing tracking with TASK_START/END, PROGRESS events for relay pubkey verification and Kind 30382 publishing phases, error handling with TASK_ERROR events"
     },
 
     "npubManager": {
@@ -817,7 +840,8 @@
       "frequency": "as-needed",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive npub generation workflow events: TASK_START, iterative PROGRESS events for batch processing with detailed counts and performance metrics, TASK_ERROR events for child script failures, and TASK_END events for various completion scenarios (no missing npubs, max iterations reached, successful completion). Includes detailed metadata for batch processing, user counts, iteration tracking, and child script orchestration."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive npub generation workflow events: TASK_START, iterative PROGRESS events for batch processing with detailed counts and performance metrics, TASK_ERROR events for child script failures, and TASK_END events for various completion scenarios (no missing npubs, max iterations reached, successful completion). Includes detailed metadata for batch processing, user counts, iteration tracking, and child script orchestration."
     },
 
     "queryMissingNpubs": {
@@ -835,7 +859,8 @@
       "frequency": "batch",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j query workflow events: TASK_START, 4-phase processing (initialization and validation with argument checking, Neo4j query execution with Cypher query for missing npubs limited to 1000 results, JSON processing with plain text to structured JSON conversion and temporary file management, validation and completion with jq-based JSON validation), robust error handling for query failures, file creation errors, and JSON validation failures, result counting and performance metrics, and TASK_END with complete query summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive Neo4j query workflow events: TASK_START, 4-phase processing (initialization and validation with argument checking, Neo4j query execution with Cypher query for missing npubs limited to 1000 results, JSON processing with plain text to structured JSON conversion and temporary file management, validation and completion with jq-based JSON validation), robust error handling for query failures, file creation errors, and JSON validation failures, result counting and performance metrics, and TASK_END with complete query summary."
     },
 
     "generateNpubs": {
@@ -853,7 +878,8 @@
       "frequency": "batch",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive Node.js npub generation workflow events: TASK_START, 4-phase processing (initialization and validation with input file checking, JSON processing with parsing and validation, npub generation using nostr-tools nip19.npubEncode with batch processing and success/error tracking, output and validation with directory creation and JSON validation), robust error handling for file operations and npub generation failures, performance metrics with success/error counts, and TASK_END with complete generation summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive Node.js npub generation workflow events: TASK_START, 4-phase processing (initialization and validation with input file checking, JSON processing with parsing and validation, npub generation using nostr-tools nip19.npubEncode with batch processing and success/error tracking, output and validation with directory creation and JSON validation), robust error handling for file operations and npub generation failures, performance metrics with success/error counts, and TASK_END with complete generation summary."
     },
 
     "updateNpubsInNeo4j": {
@@ -871,7 +897,8 @@
       "frequency": "batch",
       "status": "active",
       "structuredLogging": true,
-      "notes": "Phase 2 structured logging implemented with comprehensive Neo4j APOC batch update workflow events: TASK_START, 4-phase processing (initialization and validation with import file checking and JSON validation, JSON processing and counting with record enumeration, APOC batch update execution using apoc.periodic.iterate with batch size 250 and sequential processing, verification and completion with post-update NostrUser npub property verification), robust error handling for file operations and Neo4j query failures, APOC performance metrics with committed/failed operations and execution time tracking, and TASK_END with complete batch update summary."
+      "options":{},
+      "notes":"Phase 2 structured logging implemented with comprehensive Neo4j APOC batch update workflow events: TASK_START, 4-phase processing (initialization and validation with import file checking and JSON validation, JSON processing and counting with record enumeration, APOC batch update execution using apoc.periodic.iterate with batch size 250 and sequential processing, verification and completion with post-update NostrUser npub property verification), robust error handling for file operations and Neo4j query failures, APOC performance metrics with committed/failed operations and execution time tracking, and TASK_END with complete batch update summary."
     }
   },
 
