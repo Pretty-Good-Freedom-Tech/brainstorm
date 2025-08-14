@@ -103,6 +103,36 @@ async function calculateTaskExecution(task, registry) {
     };
 }
 
+/**
+ * Process launch result and enhance response object with launch-specific information
+ */
+function enhanceResponseWithLaunchResult(baseResponse, launchResult) {
+    if (!launchResult) {
+        return baseResponse;
+    }
+    
+    const enhanced = {
+        ...baseResponse,
+        launchAction: launchResult.launch_action,
+        launchMessage: launchResult.message
+    };
+    
+    if (launchResult.launch_action === 'prevented') {
+        enhanced.existingPid = launchResult.existing_pid;
+        enhanced.errorState = launchResult.error_state;
+        enhanced.statusMessage = `Task already running (PID: ${launchResult.existing_pid}). Launch prevented by policy.`;
+        enhanced.message = `Task already running in background (PID: ${launchResult.existing_pid}). Check Task Explorer for progress updates.`;
+        enhanced.pid = launchResult.existing_pid; // Use existing PID instead of launcher PID
+    } else if (launchResult.launch_action === 'launched') {
+        enhanced.newPid = launchResult.new_pid;
+        enhanced.statusMessage = `Task launched successfully in background (PID: ${launchResult.new_pid}).`;
+        enhanced.message = `Task started successfully in background (PID: ${launchResult.new_pid})`;
+        enhanced.pid = launchResult.new_pid; // Use actual task PID instead of launcher PID
+    }
+    
+    return enhanced;
+}
+
 // Execute task with support for both sync and async modes using launchChildTask.sh
 async function executeTask(command, args, taskName, task, registry, executionConfig) {
     return new Promise(async (resolve, reject) => {
@@ -199,7 +229,7 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         
         childProcess.on('close', (code) => {
             // Build base result
-            let result = {
+            let baseResult = {
                 taskName: taskName,
                 command: `${command} ${args.join(' ')}`,
                 exitCode: code,
@@ -212,20 +242,8 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                 executionMode: executionConfig.executionMode.shouldRunAsync ? 'async' : 'sync'
             };
             
-            // Enhance result with launch information if available
-            if (launchResult) {
-                result.launchAction = launchResult.launch_action;
-                result.launchMessage = launchResult.message;
-                
-                if (launchResult.launch_action === 'prevented') {
-                    result.existingPid = launchResult.existing_pid;
-                    result.errorState = launchResult.error_state;
-                    result.statusMessage = `Task already running (PID: ${launchResult.existing_pid}). Launch prevented by policy.`;
-                } else if (launchResult.launch_action === 'launched') {
-                    result.newPid = launchResult.new_pid;
-                    result.statusMessage = `Task launched successfully in background (PID: ${launchResult.new_pid}).`;
-                }
-            }
+            // Enhance result with launch information using helper function
+            const result = enhanceResponseWithLaunchResult(baseResult, launchResult);
             
             if (code === 0) {
                 console.log(`[RunTask] Task ${taskName} completed successfully`);
@@ -255,7 +273,7 @@ async function executeTask(command, args, taskName, task, registry, executionCon
             
             // Wait a moment for launchResult to be parsed
             setTimeout(() => {
-                let response = {
+                let baseResponse = {
                     taskName: taskName,
                     command: `${command} ${args.join(' ')}`,
                     success: true,
@@ -267,25 +285,11 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                     executionMode: 'async'
                 };
                 
-                // Customize response based on launch action
-                if (launchResult) {
-                    response.launchAction = launchResult.launch_action;
-                    response.launchMessage = launchResult.message;
-                    
-                    if (launchResult.launch_action === 'prevented') {
-                        response.existingPid = launchResult.existing_pid;
-                        response.errorState = launchResult.error_state;
-                        response.statusMessage = `Task already running (PID: ${launchResult.existing_pid}). Launch prevented by policy.`;
-                        response.message = `Task already running in background (PID: ${launchResult.existing_pid}). Check Task Explorer for progress updates.`;
-                        response.pid = launchResult.existing_pid; // Use existing PID instead of launcher PID
-                    } else if (launchResult.launch_action === 'launched') {
-                        response.newPid = launchResult.new_pid;
-                        response.statusMessage = `Task launched successfully in background (PID: ${launchResult.new_pid}).`;
-                        response.message = `Task started successfully in background (PID: ${launchResult.new_pid})`;
-                        response.pid = launchResult.new_pid; // Use actual task PID instead of launcher PID
-                    }
-                } else {
-                    // Fallback for when launchResult is not available yet
+                // Enhance response with launch result information
+                const response = enhanceResponseWithLaunchResult(baseResponse, launchResult);
+                
+                // Fallback message if no launch result available yet
+                if (!launchResult) {
                     response.statusMessage = 'Task is running in background. Check Task Explorer for progress updates.';
                     response.message = `Task started successfully in background (PID: ${childProcess.pid})`;
                 }
