@@ -129,6 +129,8 @@ function enhanceResponseWithLaunchResult(baseResponse, launchResult) {
         enhanced.message = `Task started successfully in background (PID: ${launchResult.new_pid})`;
         enhanced.pid = launchResult.new_pid; // Use actual task PID instead of launcher PID
     }
+
+    console.log(`qwerty: enhanceResponseWithLaunchResult enhanced: ${JSON.stringify(enhanced)}`)
     
     return enhanced;
 }
@@ -250,7 +252,7 @@ async function executeTask(command, args, taskName, task, registry, executionCon
             
             // Enhance result with launch information using helper function
             const result = enhanceResponseWithLaunchResult(baseResult, launchResult);
-            
+            console.log(`qwerty: enhanceResponseWithLaunchResult result: ${JSON.stringify(result)}`)
             if (code === 0) {
                 console.log(`[RunTask] Sync task ${taskName} completed successfully`);
                 resolve(result);
@@ -293,6 +295,7 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                 
                 // Enhance response with launch result information
                 const response = enhanceResponseWithLaunchResult(baseResponse, launchResult);
+                console.log(`qwerty: enhanceResponseWithLaunchResult response: ${JSON.stringify(response)}`)
                 
                 // Fallback message if no launch result available yet
                 if (!launchResult) {
@@ -389,6 +392,7 @@ async function handleRunTask(req, res) {
         // Execute task
         console.log(`[RunTask] Starting task: ${taskName}`);
         const result = await executeTask(command, args, taskName, task, registry, executionConfig);
+        console.log(`qwerty: executeTask result: ${JSON.stringify(result)}`)
         
         // Return result with enhanced async task information
         // Use launch-specific message if available, otherwise fall back to generic message
