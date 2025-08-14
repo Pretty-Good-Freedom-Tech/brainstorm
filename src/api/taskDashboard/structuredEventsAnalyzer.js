@@ -257,7 +257,7 @@ class StructuredEventsAnalyzer {
                         taskExecutionData[taskName].lastStatus = 'running';
                     } else {
                         // Silent failure detected: TASK_START without TASK_END and dead PID
-                        console.warn(`[StructuredEventsAnalyzer] Silent failure detected for ${taskName} (PID ${session.pid})`);
+                        // console.warn(`[StructuredEventsAnalyzer] Silent failure detected for ${taskName} (PID ${session.pid})`);
                         
                         taskExecutionData[taskName].isRunning = false;
                         taskExecutionData[taskName].lastStatus = 'failed';

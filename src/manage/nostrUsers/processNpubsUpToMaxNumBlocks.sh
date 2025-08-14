@@ -19,6 +19,9 @@ LOG_FILE="$BRAINSTORM_LOG_DIR/processNpubsUpToMaxNumBlocks.log"
 touch "$LOG_FILE"
 sudo chown brainstorm:brainstorm $LOG_FILE
 
+echo "$(date): Starting processNpubsUpToMaxNumBlocks"
+echo "$(date): Starting processNpubsUpToMaxNumBlocks" >> ${LOG_FILE}
+
 # Function to log messages
 log_message() {
     local message="$1"
@@ -301,6 +304,9 @@ else
 fi
 
 log_message "processNpubsUpToMaxNumBlocks workflow finished"
+
+echo "$(date): Finished processNpubsUpToMaxNumBlocks"
+echo "$(date): Finished processNpubsUpToMaxNumBlocks" >> ${LOG_FILE}
 
 # Exit with appropriate code
 if [ "$FINAL_MISSING" -eq 0 ]; then
