@@ -145,10 +145,12 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         childProcess.stdout.on('data', (data) => {
             const output = data.toString();
             stdout += output;
+            console.log(`[RunTask] Child process stdout: ${output}`);
             
             // Parse structured output from launchChildTask
             const lines = output.split('\n');
             for (const line of lines) {
+                console.log(`[RunTask] Child process stdout line: ${line}`);
                 if (line.startsWith('LAUNCHCHILDTASK_RESULT:')) {
                     try {
                         const jsonStr = line.substring('LAUNCHCHILDTASK_RESULT:'.length).trim();

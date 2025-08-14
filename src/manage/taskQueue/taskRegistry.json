@@ -205,6 +205,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh",
+      "script_relative_path": "manage/negentropySync/syncWoT.sh",
       "arguments": false,
       "averageDuration": 44500,
       "parent": "processAllTasks",
