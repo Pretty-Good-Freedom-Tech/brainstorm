@@ -142,6 +142,9 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         let launchResult = null;
         const startTime = new Date().toISOString();
         
+        let jsonBuffer = '';
+        let collectingJson = false;
+        
         childProcess.stdout.on('data', (data) => {
             const output = data.toString();
             stdout += output;
@@ -151,13 +154,40 @@ async function executeTask(command, args, taskName, task, registry, executionCon
             const lines = output.split('\n');
             for (const line of lines) {
                 console.log(`[RunTask] Child process stdout line: ${line}`);
+                
                 if (line.startsWith('LAUNCHCHILDTASK_RESULT:')) {
-                    try {
-                        const jsonStr = line.substring('LAUNCHCHILDTASK_RESULT:'.length).trim();
-                        launchResult = JSON.parse(jsonStr);
-                        console.log(`[RunTask] Parsed launch result:`, launchResult);
-                    } catch (error) {
-                        console.warn(`[RunTask] Failed to parse launch result:`, error);
+                    // Start collecting JSON
+                    collectingJson = true;
+                    const jsonStart = line.substring('LAUNCHCHILDTASK_RESULT:'.length).trim();
+                    jsonBuffer = jsonStart;
+                    
+                    // Try to parse immediately in case it's a single line
+                    if (jsonStart.startsWith('{') && jsonStart.endsWith('}')) {
+                        try {
+                            launchResult = JSON.parse(jsonStart);
+                            console.log(`[RunTask] Parsed single-line launch result:`, launchResult);
+                            collectingJson = false;
+                            jsonBuffer = '';
+                        } catch (error) {
+                            // Continue collecting multi-line JSON
+                            console.log(`[RunTask] Single-line parse failed, collecting multi-line JSON`);
+                        }
+                    }
+                } else if (collectingJson) {
+                    // Continue collecting JSON lines
+                    jsonBuffer += '\n' + line;
+                    
+                    // Try to parse when we have what looks like complete JSON
+                    if (line.trim() === '}' && jsonBuffer.includes('{')) {
+                        try {
+                            launchResult = JSON.parse(jsonBuffer);
+                            console.log(`[RunTask] Parsed multi-line launch result:`, launchResult);
+                            collectingJson = false;
+                            jsonBuffer = '';
+                        } catch (error) {
+                            console.warn(`[RunTask] Failed to parse multi-line launch result:`, error);
+                            console.warn(`[RunTask] JSON buffer was:`, jsonBuffer);
+                        }
                     }
                 }
             }

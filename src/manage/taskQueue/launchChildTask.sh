@@ -285,20 +285,17 @@ EOF
         if [[ "$launch_new" == "false" ]]; then
             echo "$(date): Launch policy prevents new instance of $task_name, returning existing PID $existing_pid" >> ${LOG_FILE}
             
-            # Output structured result for API handler
-            local launch_result=$(cat <<EOF
-{
-    "launch_action": "prevented",
-    "task_name": "$task_name",
-    "existing_pid": $existing_pid,
-    "error_state": "$error_state",
-    "kill_preexisting": $kill_preexisting,
-    "launch_new": false,
-    "message": "Task is already running. Launch prevented by policy.",
-    "success": true
-}
-EOF
-)
+            # Output structured result for API handler (compact single-line JSON)
+            local launch_result=$(jq -nc --arg task_name "$task_name" --argjson existing_pid "$existing_pid" --arg error_state "$error_state" --argjson kill_preexisting "$kill_preexisting" '{
+                "launch_action": "prevented",
+                "task_name": $task_name,
+                "existing_pid": $existing_pid,
+                "error_state": $error_state,
+                "kill_preexisting": $kill_preexisting,
+                "launch_new": false,
+                "message": "Task is already running. Launch prevented by policy.",
+                "success": true
+            }')
             echo "LAUNCHCHILDTASK_RESULT: $launch_result"
             
             # Emit event for launch prevention
@@ -332,19 +329,16 @@ EOF
     
     child_pid=$!
     
-    # Output structured result for API handler (successful launch)
-    local launch_result=$(cat <<EOF
-{
-    "launch_action": "launched",
-    "task_name": "$task_name",
-    "new_pid": $child_pid,
-    "child_script": "$child_script",
-    "child_args": "$child_args",
-    "message": "Task launched successfully in background.",
-    "success": true
-}
-EOF
-)
+    # Output structured result for API handler (compact single-line JSON)
+    local launch_result=$(jq -nc --arg task_name "$task_name" --argjson new_pid "$child_pid" --arg child_script "$child_script" --arg child_args "$child_args" '{
+        "launch_action": "launched",
+        "task_name": $task_name,
+        "new_pid": $new_pid,
+        "child_script": $child_script,
+        "child_args": $child_args,
+        "message": "Task launched successfully in background.",
+        "success": true
+    }')
     echo "LAUNCHCHILDTASK_RESULT: $launch_result"
     
     # Get timeout from options (default 60 seconds)

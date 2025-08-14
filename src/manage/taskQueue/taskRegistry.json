@@ -121,6 +121,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskQueueManager.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskQueueManager.sh",
+      "script_relative_path": "manage/taskQueue/taskQueueManager.sh",
       "arguments": false,
       "children": [
         "taskScheduler",
@@ -141,6 +142,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskScheduler.js"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskScheduler.js",
+      "script_relative_path": "manage/taskQueue/taskScheduler.js",
       "arguments": false,
       "parent": "taskQueueManager",
       "priority": "high",
@@ -156,6 +158,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskExecutor.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskExecutor.sh",
+      "script_relative_path": "manage/taskQueue/taskExecutor.sh",
       "arguments": false,
       "parent": "taskQueueManager",
       "priority": "high",
@@ -171,6 +174,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/systemStateGatherer.js"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/systemStateGatherer.js",
+      "script_relative_path": "manage/taskQueue/systemStateGatherer.js",
       "arguments": false,
       "parent": "taskQueueManager",
       "priority": "medium",
@@ -186,6 +190,7 @@
         "$BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh"
       ],
       "script": "$BRAINSTORM_MODULE_BASE_DIR/setup/neo4jConstraintsAndIndexes.sh",
+      "script_relative_path": "setup/neo4jConstraintsAndIndexes.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
@@ -236,6 +241,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/batchTransfer/callBatchTransferIfNeeded.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/batchTransfer/callBatchTransferIfNeeded.sh",
+      "script_relative_path": "manage/batchTransfer/callBatchTransferIfNeeded.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
@@ -265,6 +271,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/pipeline/reconciliation/reconciliation.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/pipeline/reconciliation/reconciliation.sh",
+      "script_relative_path": "pipeline/reconciliation/reconciliation.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
@@ -294,6 +301,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh",
+      "script_relative_path": "manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "system",
@@ -312,6 +320,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/processAllActiveCustomers.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/processAllActiveCustomers.sh",
+      "script_relative_path": "algos/customers/processAllActiveCustomers.sh",
       "arguments": {
         "customer": true
       },
@@ -335,6 +344,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/processCustomer.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/processCustomer.sh",
+      "script_relative_path": "algos/customers/processCustomer.sh",
       "arguments": {
         "customer": true
       },
@@ -361,6 +371,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/cns/prepareNeo4jForCustomerData.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/cns/prepareNeo4jForCustomerData.sh",
+      "script_relative_path": "cns/prepareNeo4jForCustomerData.sh",
       "arguments": {
         "customer": true
       },
@@ -381,6 +392,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/updateAllScoresForSingleCustomer.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/updateAllScoresForSingleCustomer.sh",
+      "script_relative_path": "algos/customers/updateAllScoresForSingleCustomer.sh",
       "arguments": {
         "customer": true
       },
@@ -411,6 +423,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/personalizedGrapeRank/calculatePersonalizedGrapeRank.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
+      "script_relative_path": "algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
@@ -431,6 +444,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh",
+      "script_relative_path": "algos/customers/personalizedGrapeRank/personalizedGrapeRank.sh",
       "arguments": {
         "customer": true
       },
@@ -453,6 +467,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/calculatePersonalizedPageRank.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/calculatePersonalizedPageRank.sh",
+      "script_relative_path": "algos/calculatePersonalizedPageRank.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
@@ -471,6 +486,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedPageRank.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/personalizedPageRank.sh",
+      "script_relative_path": "algos/customers/personalizedPageRank.sh",
       "arguments": {
         "customer": true
       },
@@ -562,6 +578,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh",
+      "script_relative_path": "algos/customers/follows-mutes-reports/calculateVerifiedFollowerCounts.sh",
       "arguments": {
         "customer": true
       },
@@ -583,6 +600,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh",
+      "script_relative_path": "algos/customers/follows-mutes-reports/calculateVerifiedMuterCounts.sh",
       "arguments": {
         "customer": true
       },
@@ -604,6 +622,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh",
+      "script_relative_path": "algos/customers/follows-mutes-reports/calculateVerifiedReporterCounts.sh",
       "arguments": {
         "customer": true
       },
@@ -625,6 +644,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateFollowerInputs.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateFollowerInputs.sh",
+      "script_relative_path": "algos/customers/follows-mutes-reports/calculateFollowerInputs.sh",
       "arguments": {
         "customer": true
       },
@@ -646,6 +666,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateMuterInputs.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateMuterInputs.sh",
+      "script_relative_path": "algos/customers/follows-mutes-reports/calculateMuterInputs.sh",
       "arguments": {
         "customer": true
       },
@@ -667,6 +688,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateReporterInputs.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/calculateReporterInputs.sh",
+      "script_relative_path": "algos/customers/follows-mutes-reports/calculateReporterInputs.sh",
       "arguments": {
         "customer": true
       },
@@ -688,6 +710,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/follows-mutes-reports/processFollowsMutesReports.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/follows-mutes-reports/processFollowsMutesReports.sh",
+      "script_relative_path": "algos/follows-mutes-reports/processFollowsMutesReports.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
@@ -706,6 +729,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/reports/calculateReportScores.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/reports/calculateReportScores.sh",
+      "script_relative_path": "algos/reports/calculateReportScores.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
@@ -724,6 +748,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/exportWhitelist.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/exportWhitelist.sh",
+      "script_relative_path": "algos/exportWhitelist.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
@@ -742,6 +767,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/nip85/publishNip85.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/nip85/publishNip85.sh",
+      "script_relative_path": "algos/nip85/publishNip85.sh",
       "arguments": false,
       "parent": "processAllTasks",
       "scope": "owner",
@@ -760,6 +786,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/nip85/publishNip85.sh",
+      "script_relative_path": "algos/customers/nip85/publishNip85.sh",
       "arguments": {
         "customer": true
       },
@@ -779,6 +806,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh",
+      "script_relative_path": "manage/nostrUsers/processNpubsUpToMaxNumBlocks.sh",
       "arguments": false,
       "children": [
         "queryMissingNpubs",
@@ -800,6 +828,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/queryMissingNpubs.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/queryMissingNpubs.sh",
+      "script_relative_path": "manage/nostrUsers/queryMissingNpubs.sh",
       "arguments": false,
       "parent": "npubManager",
       "priority": "low",
@@ -817,6 +846,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/generateNpubs.js"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/generateNpubs.js",
+      "script_relative_path": "manage/nostrUsers/generateNpubs.js",
       "arguments": false,
       "parent": "npubManager",
       "priority": "low",
@@ -834,6 +864,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/updateNpubsInNeo4j.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/nostrUsers/updateNpubsInNeo4j.sh",
+      "script_relative_path": "manage/nostrUsers/updateNpubsInNeo4j.sh",
       "arguments": false,
       "parent": "npubManager", 
       "priority": "low",
