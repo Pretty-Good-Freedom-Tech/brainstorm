@@ -107,6 +107,7 @@ async function calculateTaskExecution(task, registry) {
  * Process launch result and enhance response object with launch-specific information
  */
 function enhanceResponseWithLaunchResult(baseResponse, launchResult) {
+    console.log(`qwerty:: enhanceResponseWithLaunchResult launchResult: ${JSON.stringify(launchResult)}`)
     if (!launchResult) {
         return baseResponse;
     }
@@ -118,19 +119,21 @@ function enhanceResponseWithLaunchResult(baseResponse, launchResult) {
     };
     
     if (launchResult.launch_action === 'prevented') {
+        console.log(`qwerty:: enhanceResponseWithLaunchResult; prevented`)
         enhanced.existingPid = launchResult.existing_pid;
         enhanced.errorState = launchResult.error_state;
         enhanced.statusMessage = `Task already running (PID: ${launchResult.existing_pid}). Launch prevented by policy.`;
         enhanced.message = `Task already running in background (PID: ${launchResult.existing_pid}). Check Task Explorer for progress updates.`;
         enhanced.pid = launchResult.existing_pid; // Use existing PID instead of launcher PID
     } else if (launchResult.launch_action === 'launched') {
+        console.log(`qwerty:: enhanceResponseWithLaunchResult; launched`)
         enhanced.newPid = launchResult.new_pid;
         enhanced.statusMessage = `Task launched successfully in background (PID: ${launchResult.new_pid}).`;
         enhanced.message = `Task started successfully in background (PID: ${launchResult.new_pid})`;
         enhanced.pid = launchResult.new_pid; // Use actual task PID instead of launcher PID
     }
 
-    console.log(`qwerty: enhanceResponseWithLaunchResult enhanced: ${JSON.stringify(enhanced)}`)
+    console.log(`qwerty:: enhanceResponseWithLaunchResult enhanced: ${JSON.stringify(enhanced)}`)
     
     return enhanced;
 }
@@ -197,7 +200,7 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                     if (jsonStart.startsWith('{') && jsonStart.endsWith('}')) {
                         try {
                             launchResult = JSON.parse(jsonStart);
-                            console.log(`[RunTask] Parsed single-line launch result:`, launchResult);
+                            console.log(`qwerty:: Parsed single-line launch result:`, launchResult);
                             collectingJson = false;
                             jsonBuffer = '';
                         } catch (error) {
@@ -251,8 +254,9 @@ async function executeTask(command, args, taskName, task, registry, executionCon
             };
             
             // Enhance result with launch information using helper function
+            console.log(`qwerty:: about to use enhanceResponseWithLaunchResult A launchResult: ${JSON.stringify(launchResult)}`)
             const result = enhanceResponseWithLaunchResult(baseResult, launchResult);
-            console.log(`qwerty: enhanceResponseWithLaunchResult result: ${JSON.stringify(result)}`)
+            console.log(`qwerty:: enhanceResponseWithLaunchResult A result: ${JSON.stringify(result)}`)
             if (code === 0) {
                 console.log(`[RunTask] Sync task ${taskName} completed successfully`);
                 resolve(result);
@@ -294,8 +298,9 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                 };
                 
                 // Enhance response with launch result information
+                console.log(`qwerty:: about to use enhanceResponseWithLaunchResult B launchResult: ${JSON.stringify(launchResult)}`)
                 const response = enhanceResponseWithLaunchResult(baseResponse, launchResult);
-                console.log(`qwerty: enhanceResponseWithLaunchResult response: ${JSON.stringify(response)}`)
+                console.log(`qwerty:: enhanceResponseWithLaunchResult B response: ${JSON.stringify(response)}`)
                 
                 // Fallback message if no launch result available yet
                 if (!launchResult) {
@@ -392,7 +397,7 @@ async function handleRunTask(req, res) {
         // Execute task
         console.log(`[RunTask] Starting task: ${taskName}`);
         const result = await executeTask(command, args, taskName, task, registry, executionConfig);
-        console.log(`qwerty: executeTask result: ${JSON.stringify(result)}`)
+        console.log(`qwerty:: executeTask result: ${JSON.stringify(result)}`)
         
         // Return result with enhanced async task information
         // Use launch-specific message if available, otherwise fall back to generic message
