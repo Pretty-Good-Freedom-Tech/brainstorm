@@ -24,12 +24,16 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 check_task_already_running() {
     local task_name="$1"
     
+    echo "$(date): Checking if task $task_name is already running" >> ${LOG_FILE}
+    
     # Look for processes running the task script
     # Use pgrep to find processes by script name pattern
     local task_script_pattern="$task_name"
     
     # Search for bash processes running scripts containing the task name
     local pids=$(pgrep -f "$task_script_pattern" 2>/dev/null || echo "")
+    
+    echo "$(date): Found pids: $pids" >> ${LOG_FILE}
     
     # Filter out our own process and parent processes
     local filtered_pids=""
@@ -39,6 +43,7 @@ check_task_already_running() {
             if ps -p "$pid" >/dev/null 2>&1; then
                 local cmd=$(ps -p "$pid" -o cmd= 2>/dev/null || echo "")
                 if [[ "$cmd" == *"$task_name"* ]]; then
+                    echo "$(date): Found matching PID: $pid; cmd: $cmd" >> ${LOG_FILE}
                     filtered_pids="$pid"
                     break  # Return first matching PID
                 fi
