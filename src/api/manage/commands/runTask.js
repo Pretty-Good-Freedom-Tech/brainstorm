@@ -104,7 +104,7 @@ async function calculateTaskExecution(task, registry) {
 }
 
 // Execute task with support for both sync and async modes using launchChildTask.sh
-async function executeTask(command, args, task, registry, executionConfig) {
+async function executeTask(command, args, taskName, task, registry, executionConfig) {
     return new Promise(async (resolve, reject) => {
         // Use launchChildTask.sh for unified launch control
         const launchChildTaskPath = brainstormConfig.expandScriptPath('$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh');
@@ -124,10 +124,12 @@ async function executeTask(command, args, task, registry, executionConfig) {
         // Prepare child args (combine original args into single string if needed)
         const childArgs = args.length > 0 ? args.join(' ') : '';
         
-        console.log(`[RunTask] Using launchChildTask for: ${task.name}`);
+        console.log(`[RunTask] Using launchChildTask for: ${taskName}`);
         console.log(`[RunTask] Options: ${optionsJson}`);
+        console.log(`[RunTask] Command: ${command}`)
+        console.log(`[RunTask] launchChildTaskPath: ${launchChildTaskPath}`)
         
-        const childProcess = spawn('bash', [launchChildTaskPath, task.name, 'api-handler', optionsJson, childArgs], {
+        const childProcess = spawn('bash', [launchChildTaskPath, taskName, 'api-handler', optionsJson, childArgs], {
             stdio: ['pipe', 'pipe', 'pipe'],
             env: {
                 ...process.env,
@@ -149,7 +151,7 @@ async function executeTask(command, args, task, registry, executionConfig) {
         
         childProcess.on('close', (code) => {
             const result = {
-                taskName: task.name,
+                taskName: taskName,
                 command: `${command} ${args.join(' ')}`,
                 exitCode: code,
                 stdout: stdout.trim(),
@@ -162,18 +164,18 @@ async function executeTask(command, args, task, registry, executionConfig) {
             };
             
             if (code === 0) {
-                console.log(`[RunTask] Task ${task.name} completed successfully`);
+                console.log(`[RunTask] Task ${taskName} completed successfully`);
                 resolve(result);
             } else {
-                console.error(`[RunTask] Task ${task.name} failed with exit code ${code}`);
+                console.error(`[RunTask] Task ${taskName} failed with exit code ${code}`);
                 resolve(result); // Still resolve, but with error info
             }
         });
         
         childProcess.on('error', (error) => {
-            console.error(`[RunTask] Process error for ${task.name}:`, error);
+            console.error(`[RunTask] Process error for ${taskName}:`, error);
             reject({
-                taskName: task.name,
+                taskName: taskName,
                 command: `${command} ${args.join(' ')}`,
                 error: error.message,
                 success: false,
@@ -185,9 +187,9 @@ async function executeTask(command, args, task, registry, executionConfig) {
         
         // For async tasks, resolve immediately with process info
         if (executionConfig.executionMode.shouldRunAsync) {
-            console.log(`[RunTask] Task ${task.name} started asynchronously (PID: ${childProcess.pid})`);
+            console.log(`[RunTask] Task ${taskName} started asynchronously (PID: ${childProcess.pid})`);
             resolve({
-                taskName: task.name,
+                taskName: taskName,
                 command: `${command} ${args.join(' ')}`,
                 success: true,
                 async: true,
@@ -212,10 +214,10 @@ async function executeTask(command, args, task, registry, executionConfig) {
         
         setTimeout(async () => {
             if (!childProcess.killed) {
-                console.warn(`[RunTask] Timeout reached for ${task.name}, terminating process`);
+                console.warn(`[RunTask] Timeout reached for ${taskName}, terminating process`);
                 childProcess.kill('SIGTERM');
                 reject({
-                    taskName: task.name,
+                    taskName: taskName,
                     command: `${command} ${args.join(' ')}`,
                     error: `Task execution timeout (${timeoutMinutes} minutes)`,
                     success: false,
@@ -290,7 +292,7 @@ async function handleRunTask(req, res) {
         
         // Execute task
         console.log(`[RunTask] Starting task: ${taskName}`);
-        const result = await executeTask(command, args, task, registry, executionConfig);
+        const result = await executeTask(command, args, taskName, task, registry, executionConfig);
         
         // Return result with enhanced async task information
         const responseMessage = result.async ? 
