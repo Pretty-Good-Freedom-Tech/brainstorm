@@ -107,7 +107,7 @@ async function calculateTaskExecution(task, registry) {
  * Process launch result and enhance response object with launch-specific information
  */
 function enhanceResponseWithLaunchResult(baseResponse, launchResult) {
-    console.log(`qwerty:: enhanceResponseWithLaunchResult launchResult: ${JSON.stringify(launchResult)}`)
+    console.log(`qwerty::: enhanceResponseWithLaunchResult launchResult: ${JSON.stringify(launchResult)}`)
     if (!launchResult) {
         return baseResponse;
     }
@@ -119,21 +119,21 @@ function enhanceResponseWithLaunchResult(baseResponse, launchResult) {
     };
     
     if (launchResult.launch_action === 'prevented') {
-        console.log(`qwerty:: enhanceResponseWithLaunchResult; prevented`)
+        console.log(`qwerty::: enhanceResponseWithLaunchResult; prevented`)
         enhanced.existingPid = launchResult.existing_pid;
         enhanced.errorState = launchResult.error_state;
         enhanced.statusMessage = `Task already running (PID: ${launchResult.existing_pid}). Launch prevented by policy.`;
         enhanced.message = `Task already running in background (PID: ${launchResult.existing_pid}). Check Task Explorer for progress updates.`;
         enhanced.pid = launchResult.existing_pid; // Use existing PID instead of launcher PID
     } else if (launchResult.launch_action === 'launched') {
-        console.log(`qwerty:: enhanceResponseWithLaunchResult; launched`)
+        console.log(`qwerty::: enhanceResponseWithLaunchResult; launched`)
         enhanced.newPid = launchResult.new_pid;
         enhanced.statusMessage = `Task launched successfully in background (PID: ${launchResult.new_pid}).`;
         enhanced.message = `Task started successfully in background (PID: ${launchResult.new_pid})`;
         enhanced.pid = launchResult.new_pid; // Use actual task PID instead of launcher PID
     }
 
-    console.log(`qwerty:: enhanceResponseWithLaunchResult enhanced: ${JSON.stringify(enhanced)}`)
+    console.log(`qwerty::: enhanceResponseWithLaunchResult enhanced: ${JSON.stringify(enhanced)}`)
     
     return enhanced;
 }
@@ -200,7 +200,7 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                     if (jsonStart.startsWith('{') && jsonStart.endsWith('}')) {
                         try {
                             launchResult = JSON.parse(jsonStart);
-                            console.log(`qwerty:: Parsed single-line launch result:`, launchResult);
+                            console.log(`qwerty::: Parsed single-line launch result:`, launchResult);
                             collectingJson = false;
                             jsonBuffer = '';
                         } catch (error) {
@@ -254,9 +254,9 @@ async function executeTask(command, args, taskName, task, registry, executionCon
             };
             
             // Enhance result with launch information using helper function
-            console.log(`qwerty:: about to use enhanceResponseWithLaunchResult A launchResult: ${JSON.stringify(launchResult)}`)
+            console.log(`qwerty::: about to use enhanceResponseWithLaunchResult A launchResult: ${JSON.stringify(launchResult)}`)
             const result = enhanceResponseWithLaunchResult(baseResult, launchResult);
-            console.log(`qwerty:: enhanceResponseWithLaunchResult A result: ${JSON.stringify(result)}`)
+            console.log(`qwerty::: enhanceResponseWithLaunchResult A result: ${JSON.stringify(result)}`)
             if (code === 0) {
                 console.log(`[RunTask] Sync task ${taskName} completed successfully`);
                 resolve(result);
@@ -283,33 +283,41 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         if (executionConfig.executionMode.shouldRunAsync) {
             console.log(`[RunTask] Task ${taskName} started asynchronously (PID: ${childProcess.pid})`);
             
-            // Wait a moment for launchResult to be parsed
-            setTimeout(() => {
-                let baseResponse = {
-                    taskName: taskName,
-                    command: `${command} ${args.join(' ')}`,
-                    success: true,
-                    async: true,
-                    pid: childProcess.pid,
-                    timestamp: startTime,
-                    status: 'running',
-                    estimatedDuration: `${executionConfig.timeoutConfig.timeoutMinutes} minutes`,
-                    executionMode: 'async'
-                };
-                
-                // Enhance response with launch result information
-                console.log(`qwerty:: about to use enhanceResponseWithLaunchResult B launchResult: ${JSON.stringify(launchResult)}`)
-                const response = enhanceResponseWithLaunchResult(baseResponse, launchResult);
-                console.log(`qwerty:: enhanceResponseWithLaunchResult B response: ${JSON.stringify(response)}`)
-                
-                // Fallback message if no launch result available yet
-                if (!launchResult) {
-                    response.statusMessage = 'Task is running in background. Check Task Explorer for progress updates.';
-                    response.message = `Task started successfully in background (PID: ${childProcess.pid})`;
+            // Wait for launchResult to be parsed with proper retry logic
+            const waitForLaunchResult = (attempt = 0) => {
+                if (launchResult || attempt >= 10) { // Max 10 attempts (1 second total)
+                    let baseResponse = {
+                        taskName: taskName,
+                        command: `${command} ${args.join(' ')}`,
+                        success: true,
+                        async: true,
+                        pid: childProcess.pid,
+                        timestamp: startTime,
+                        status: 'running',
+                        estimatedDuration: `${executionConfig.timeoutConfig.timeoutMinutes} minutes`,
+                        executionMode: 'async'
+                    };
+                    
+                    // Enhance response with launch result information
+                    console.log(`qwerty::: about to use enhanceResponseWithLaunchResult B launchResult: ${JSON.stringify(launchResult)}`)
+                    const response = enhanceResponseWithLaunchResult(baseResponse, launchResult);
+                    console.log(`qwerty::: enhanceResponseWithLaunchResult B response: ${JSON.stringify(response)}`)
+                    
+                    // Fallback message if no launch result available yet
+                    if (!launchResult) {
+                        response.statusMessage = 'Task is running in background. Check Task Explorer for progress updates.';
+                        response.message = `Task started successfully in background (PID: ${childProcess.pid})`;
+                    }
+                    
+                    resolve(response);
+                } else {
+                    // Wait another 100ms and try again
+                    setTimeout(() => waitForLaunchResult(attempt + 1), 100);
                 }
-                
-                resolve(response);
-            }, 100); // Small delay to allow stdout parsing
+            };
+            
+            // Start waiting after initial delay
+            setTimeout(() => waitForLaunchResult(), 50);
         }
         
         // For sync tasks, set timeout and wait for completion
@@ -397,7 +405,7 @@ async function handleRunTask(req, res) {
         // Execute task
         console.log(`[RunTask] Starting task: ${taskName}`);
         const result = await executeTask(command, args, taskName, task, registry, executionConfig);
-        console.log(`qwerty:: executeTask result: ${JSON.stringify(result)}`)
+        console.log(`qwerty::: executeTask result: ${JSON.stringify(result)}`)
         
         // Return result with enhanced async task information
         // Use launch-specific message if available, otherwise fall back to generic message
