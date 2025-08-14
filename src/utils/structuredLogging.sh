@@ -145,12 +145,13 @@ log_warn() { log_structured "WARN" "$1" "$2"; }
 log_error() { log_structured "ERROR" "$1" "$2"; }
 
 # Emit structured task event
-# Usage: emit_task_event "EVENT_TYPE" "TASK_NAME" "TARGET" '{"key":"value"}'
+# Usage: emit_task_event "EVENT_TYPE" "TASK_NAME" "TARGET" '{"key":"value"}' ["PARENT_TASK_NAME"]
 emit_task_event() {
     local event_type="$1"
     local task_name="$2"
     local target="${3:-}"
     local metadata="$4"
+    local parent_task_name="${5:-}"
     # Default to empty object if no metadata provided
     [[ -z "$metadata" ]] && metadata='{}'
     local timestamp=$(get_iso_timestamp)
@@ -176,15 +177,54 @@ emit_task_event() {
 
     # Ensure metadata is valid JSON, default to empty object if invalid
     # Also compact metadata to single line for proper JSONL formatting
-    if ! echo "$metadata" | jq empty 2>/dev/null; then
-        metadata='{}'
+    if command -v jq >/dev/null 2>&1; then
+        if ! echo "$metadata" | jq empty 2>/dev/null; then
+            metadata='{}'
+        else
+            # Compact metadata JSON to single line for JSONL compatibility
+            metadata=$(echo "$metadata" | jq -c .)
+        fi
     else
-        # Compact metadata JSON to single line for JSONL compatibility
-        metadata=$(echo "$metadata" | jq -c .)
+        # Fallback: basic JSON validation and compacting without jq
+        if [[ "$metadata" =~ ^[[:space:]]*\{.*\}[[:space:]]*$ ]]; then
+            # Remove newlines and extra spaces for basic compacting
+            metadata=$(echo "$metadata" | tr -d '\n' | sed 's/[[:space:]]\+/ /g')
+        else
+            metadata='{}'
+        fi
+    fi
+    
+    # Enhance metadata with system context for critical events
+    local enhanced_metadata="$metadata"
+    if [[ "$event_type" =~ ^(TASK_START|TASK_END|TASK_ERROR|CHILD_TASK_START|CHILD_TASK_END|CHILD_TASK_ERROR)$ ]]; then
+        enhanced_metadata=$(enhance_metadata_with_system_context "$metadata")
+    fi
+    
+    # Add parent task context if provided
+    if [[ -n "$parent_task_name" ]]; then
+        if command -v jq >/dev/null 2>&1; then
+            enhanced_metadata=$(echo "$enhanced_metadata" | jq -c '. + {"parentTask": "'$parent_task_name'"}')
+        else
+            # Fallback: simple string replacement for parent task
+            enhanced_metadata=$(echo "$enhanced_metadata" | sed 's/}$/,"parentTask":"'$parent_task_name'"}/')
+        fi
+    fi
+    
+    # Add task duration expectations for Health Monitor analysis
+    if [[ "$event_type" == "TASK_START" ]]; then
+        local expected_duration=$(get_task_expected_duration "$task_name")
+        if [[ -n "$expected_duration" ]]; then
+            if command -v jq >/dev/null 2>&1; then
+                enhanced_metadata=$(echo "$enhanced_metadata" | jq -c '. + {"expectedDurationMinutes": '$expected_duration'}')
+            else
+                # Fallback: simple string replacement for expected duration
+                enhanced_metadata=$(echo "$enhanced_metadata" | sed 's/}$/,"expectedDurationMinutes":'$expected_duration'}/')
+            fi
+        fi
     fi
     
     # Create event JSON as single line for JSONL format
-    local event_json="{\"timestamp\":\"$timestamp\",\"eventType\":\"$event_type\",\"taskName\":\"$task_name\",\"target\":\"$target\",\"metadata\":$metadata,\"scriptName\":\"$script_name\",\"pid\":$pid}"
+    local event_json="{\"timestamp\":\"$timestamp\",\"eventType\":\"$event_type\",\"taskName\":\"$task_name\",\"target\":\"$target\",\"metadata\":$enhanced_metadata,\"scriptName\":\"$script_name\",\"pid\":$pid}"
     
     # Append to events file
     echo "$event_json" >> "$EVENTS_FILE"
@@ -216,6 +256,124 @@ rotate_events_file_if_needed() {
         
         log_info "Events file rotated" "kept_lines=$keep_lines"
     fi
+}
+
+# Enhance metadata with system resource context for Health Monitor analysis
+# Usage: enhanced_metadata=$(enhance_metadata_with_system_context "$original_metadata")
+enhance_metadata_with_system_context() {
+    local original_metadata="$1"
+    
+    # Collect system resource information efficiently
+    local load_avg=""
+    local memory_usage=""
+    local disk_usage=""
+    local neo4j_status=""
+    local parent_pid=""
+    
+    # Get system load (1-minute average)
+    if command -v uptime >/dev/null 2>&1; then
+        load_avg=$(uptime | awk -F'load average:' '{print $2}' | awk -F',' '{print $1}' | xargs)
+    fi
+    
+    # Get memory usage percentage
+    if command -v free >/dev/null 2>&1; then
+        memory_usage=$(free | awk 'NR==2{printf "%.1f", $3*100/$2}')
+    elif command -v vm_stat >/dev/null 2>&1; then
+        # macOS alternative
+        memory_usage=$(vm_stat | awk '/Pages free:/{free=$3} /Pages active:/{active=$3} /Pages inactive:/{inactive=$3} /Pages speculative:/{spec=$3} /Pages wired down:/{wired=$4} END{total=free+active+inactive+spec+wired; used=active+inactive+wired; printf "%.1f", used*100/total}')
+    fi
+    
+    # Get disk usage for root filesystem
+    if command -v df >/dev/null 2>&1; then
+        disk_usage=$(df / | awk 'NR==2{print $5}' | sed 's/%//')
+    fi
+    
+    # Check Neo4j status (basic connectivity test)
+    if command -v curl >/dev/null 2>&1; then
+        if curl -s -f "http://localhost:7474" >/dev/null 2>&1; then
+            neo4j_status="accessible"
+        else
+            neo4j_status="inaccessible"
+        fi
+    fi
+    
+    # Get parent process PID for orchestration tracking
+    parent_pid=$(ps -o ppid= -p $$ 2>/dev/null | xargs)
+    
+    # Create system context object
+    local system_context=$(cat <<EOF
+{
+    "loadAverage": "$load_avg",
+    "memoryUsagePercent": "$memory_usage",
+    "diskUsagePercent": "$disk_usage",
+    "neo4jStatus": "$neo4j_status",
+    "parentPid": "$parent_pid"
+}
+EOF
+)
+    
+    # Merge original metadata with system context
+    local enhanced_metadata
+    if command -v jq >/dev/null 2>&1; then
+        if [[ "$original_metadata" == "{}" ]]; then
+            # If original metadata is empty, just add system context
+            enhanced_metadata=$(echo "$system_context" | jq -c '. + {"systemContext": .} | del(.loadAverage, .memoryUsagePercent, .diskUsagePercent, .neo4jStatus, .parentPid)')
+        else
+            # Merge original metadata with system context
+            enhanced_metadata=$(echo "$original_metadata" "$system_context" | jq -c -s '.[0] + {"systemContext": .[1]}')
+        fi
+    else
+        # Fallback: simple string concatenation for system context
+        if [[ "$original_metadata" == "{}" ]]; then
+            enhanced_metadata='{"systemContext":'"$system_context"'}'
+        else
+            # Remove closing brace, add system context, add closing brace
+            enhanced_metadata=$(echo "$original_metadata" | sed 's/}$/,"systemContext":'"$(echo "$system_context" | sed 's/"/\\"/g')"'}/')
+        fi
+    fi
+    
+    echo "$enhanced_metadata"
+}
+
+# Get expected duration for a task (in minutes) for Health Monitor analysis
+# Usage: expected_duration=$(get_task_expected_duration "taskName")
+get_task_expected_duration() {
+    local task_name="$1"
+    
+    # Define expected durations based on historical data and task complexity
+    # These values help the Health Monitor detect when tasks are taking unusually long
+    case "$task_name" in
+        # Quick tasks (< 5 minutes)
+        "neo4jConstraintsAndIndexes") echo "3" ;;
+        "exportOwnerKind30382") echo "2" ;;
+        "exportWhitelist") echo "1" ;;
+        
+        # Medium tasks (5-30 minutes)
+        "callBatchTransferIfNeeded") echo "10" ;;
+        "calculateOwnerHops") echo "15" ;;
+        "calculateOwnerPageRank") echo "20" ;;
+        "calculateOwnerGrapeRank") echo "25" ;;
+        "calculateReportScores") echo "15" ;;
+        "processOwnerFollowsMutesReports") echo "20" ;;
+        "queryMissingNpubs") echo "10" ;;
+        "generateNpubs") echo "5" ;;
+        "updateNpubsInNeo4j") echo "15" ;;
+        
+        # Long tasks (30+ minutes)
+        "syncWoT") echo "45" ;;
+        "reconciliation") echo "60" ;;
+        "processNpubsUpToMaxNumBlocks") echo "90" ;;
+        "processAllActiveCustomers") echo "120" ;;
+        "calculatePersonalizedPageRank") echo "30" ;;
+        "calculatePersonalizedGrapeRank") echo "45" ;;
+        
+        # Orchestrator tasks (variable, but long)
+        "processAllTasks") echo "300" ;;  # 5 hours for full pipeline
+        "npubManager") echo "60" ;;
+        
+        # Default for unknown tasks
+        *) echo "" ;;  # No expectation for unknown tasks
+    esac
 }
 
 # Task timing helpers
@@ -295,4 +453,4 @@ ensure_logging_dirs
 # Export functions for use in other scripts
 export -f log_structured log_debug log_info log_warn log_error
 export -f emit_task_event start_task_timer end_task_timer
-export -f legacy_log_with_event ensure_logging_dirs
+export -f legacy_log_with_event ensure_logging_dirs enhance_metadata_with_system_context get_task_expected_duration
