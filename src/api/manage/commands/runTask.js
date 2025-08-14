@@ -381,11 +381,12 @@ async function handleRunTask(req, res) {
         const result = await executeTask(command, args, taskName, task, registry, executionConfig);
         
         // Return result with enhanced async task information
-        const responseMessage = result.async ? 
+        // Use launch-specific message if available, otherwise fall back to generic message
+        const responseMessage = result.message || (result.async ? 
             `Task '${taskName}' started successfully in background` :
             result.success ? 
                 `Task '${taskName}' completed successfully` : 
-                `Task '${taskName}' completed with errors`;
+                `Task '${taskName}' completed with errors`);
         
         res.json({
             success: result.success,
