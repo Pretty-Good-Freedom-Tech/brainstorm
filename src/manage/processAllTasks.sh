@@ -97,20 +97,6 @@ launchChildTask "syncWoT" "processAllTasks" "" ""
 
 sleep 5
 
-# temporarily disable; perform manually for now
-# sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncProfiles.sh
-# echo "$(date): Continuing processAllTasks; syncProfiles.sh completed"
-# echo "$(date): Continuing processAllTasks; syncProfiles.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-
-# sleep 5
-
-# temporarily disable
-# sudo $BRAINSTORM_MODULE_MANAGE_DIR/negentropySync/syncPersonal.sh
-# echo "$(date): Continuing processAllTasks; syncPersonal.sh completed"
-# echo "$(date): Continuing processAllTasks; syncPersonal.sh completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-
-# sleep 5
-
 #################### callBatchTransferIfNeeded: start  ##############
 # Child Task 3: Batch Transfer
 launch_child_task "callBatchTransferIfNeeded" "processAllTasks" "" ""
@@ -123,6 +109,68 @@ sleep 5
 launch_child_task "reconciliation" "processAllTasks" "" ""
 #################### reconciliation: complete  ##############
 
+sleep 5
+
+#################### processNpubsUpToMaxNumBlocks: start  ##############
+# Child Task 5: Process Npubs
+launch_child_task "processNpubsUpToMaxNumBlocks" "processAllTasks" "" ""
+#################### processNpubsUpToMaxNumBlocks: complete  ##############
+
+sleep 5
+
+#################### calculateOwnerHops: start  ##############
+# Child Task 6: Calculate Owner Hops
+launch_child_task "calculateOwnerHops" "processAllTasks" "" ""
+#################### calculateOwnerHops: complete  ##############
+
+sleep 5
+
+#################### calculateOwnerPageRank: start  ##############
+# Child Task 6: Calculate Owner PageRank
+launch_child_task "calculateOwnerPageRank" "processAllTasks" "" ""
+#################### calculateOwnerPageRank: complete  ##############
+
+sleep 5
+
+#################### calculateOwnerGrapeRank: start  ##############
+# Child Task 6: Calculate Owner PageRank
+launch_child_task "calculateOwnerGrapeRank" "processAllTasks" "" ""
+#################### calculateOwnerGrapeRank: complete  ##############
+
+sleep 5
+
+#################### processOwnerFollowsMutesReports: start  ##############
+# Child Task 6: Process Owner Follows Mutes Reports
+launch_child_task "processOwnerFollowsMutesReports" "processAllTasks" "" ""
+#################### processOwnerFollowsMutesReports: complete  ##############
+
+sleep 5
+
+#################### calculateReportScores: start  ##############
+# Child Task 6: calculate Owner Report Scores
+launch_child_task "calculateReportScores" "processAllTasks" "" ""
+#################### calculateReportScores: complete  ##############
+
+sleep 5
+
+#################### exportWhitelist: start  ##############
+# Child Task 6: Export Owner Whitelist
+launch_child_task "exportWhitelist" "processAllTasks" "" ""
+#################### exportWhitelist: complete  ##############
+
+sleep 5
+
+#################### exportOwnerKind30382: start  ##############
+# Child Task 6: Export Owner Kind 30382
+launch_child_task "exportOwnerKind30382" "processAllTasks" "" ""
+#################### exportOwnerKind30382: complete  ##############
+
+sleep 5
+
+#################### processAllActiveCustomers: start  ##############
+# Child Task 6: Process All Active Customers
+launch_child_task "processAllActiveCustomers" "processAllTasks" "" ""
+#################### processAllActiveCustomers: complete  ##############
 
 echo "$(date): Finished processAllTasks"
 echo "$(date): Finished processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
