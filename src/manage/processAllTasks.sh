@@ -157,7 +157,9 @@ sleep 5
 
 #################### exportWhitelist: start  ##############
 # Child Task 6: Export Owner Whitelist
-launch_child_task "exportWhitelist" "processAllTasks" "" ""
+# TODO: may rewrite this task to integrate with get-whitelist api endpoint
+# Should also rename to exportOwnerWhitelist
+# launch_child_task "exportWhitelist" "processAllTasks" "" ""
 #################### exportWhitelist: complete  ##############
 
 sleep 5
