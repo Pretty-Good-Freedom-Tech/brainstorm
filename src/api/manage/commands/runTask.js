@@ -139,10 +139,26 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         
         let stdout = '';
         let stderr = '';
+        let launchResult = null;
         const startTime = new Date().toISOString();
         
         childProcess.stdout.on('data', (data) => {
-            stdout += data.toString();
+            const output = data.toString();
+            stdout += output;
+            
+            // Parse structured output from launchChildTask
+            const lines = output.split('\n');
+            for (const line of lines) {
+                if (line.startsWith('LAUNCHCHILDTASK_RESULT:')) {
+                    try {
+                        const jsonStr = line.substring('LAUNCHCHILDTASK_RESULT:'.length).trim();
+                        launchResult = JSON.parse(jsonStr);
+                        console.log(`[RunTask] Parsed launch result:`, launchResult);
+                    } catch (error) {
+                        console.warn(`[RunTask] Failed to parse launch result:`, error);
+                    }
+                }
+            }
         });
         
         childProcess.stderr.on('data', (data) => {
@@ -150,7 +166,8 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         });
         
         childProcess.on('close', (code) => {
-            const result = {
+            // Build base result
+            let result = {
                 taskName: taskName,
                 command: `${command} ${args.join(' ')}`,
                 exitCode: code,
@@ -162,6 +179,21 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                 pid: childProcess.pid,
                 executionMode: executionConfig.executionMode.shouldRunAsync ? 'async' : 'sync'
             };
+            
+            // Enhance result with launch information if available
+            if (launchResult) {
+                result.launchAction = launchResult.launch_action;
+                result.launchMessage = launchResult.message;
+                
+                if (launchResult.launch_action === 'prevented') {
+                    result.existingPid = launchResult.existing_pid;
+                    result.errorState = launchResult.error_state;
+                    result.statusMessage = `Task already running (PID: ${launchResult.existing_pid}). Launch prevented by policy.`;
+                } else if (launchResult.launch_action === 'launched') {
+                    result.newPid = launchResult.new_pid;
+                    result.statusMessage = `Task launched successfully in background (PID: ${launchResult.new_pid}).`;
+                }
+            }
             
             if (code === 0) {
                 console.log(`[RunTask] Task ${taskName} completed successfully`);
@@ -188,24 +220,46 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         // For async tasks, resolve immediately with process info
         if (executionConfig.executionMode.shouldRunAsync) {
             console.log(`[RunTask] Task ${taskName} started asynchronously (PID: ${childProcess.pid})`);
-            resolve({
-                taskName: taskName,
-                command: `${command} ${args.join(' ')}`,
-                success: true,
-                async: true,
-                pid: childProcess.pid,
-                timestamp: startTime,
-                status: 'running',
-                statusMessage: 'Task is running in background. Check Task Explorer for progress updates.',
-                message: `Task started successfully in background (PID: ${childProcess.pid})`,
-                estimatedDuration: `${executionConfig.timeoutConfig.timeoutMinutes} minutes`,
-                executionMode: 'async',
-                // Explicitly exclude exitCode for async tasks to avoid UI confusion
-                exitCode: null,
-                stdout: '',
-                stderr: ''
-            });
-            return;
+            
+            // Wait a moment for launchResult to be parsed
+            setTimeout(() => {
+                let response = {
+                    taskName: taskName,
+                    command: `${command} ${args.join(' ')}`,
+                    success: true,
+                    async: true,
+                    pid: childProcess.pid,
+                    timestamp: startTime,
+                    status: 'running',
+                    estimatedDuration: `${executionConfig.timeoutConfig.timeoutMinutes} minutes`,
+                    executionMode: 'async'
+                };
+                
+                // Customize response based on launch action
+                if (launchResult) {
+                    response.launchAction = launchResult.launch_action;
+                    response.launchMessage = launchResult.message;
+                    
+                    if (launchResult.launch_action === 'prevented') {
+                        response.existingPid = launchResult.existing_pid;
+                        response.errorState = launchResult.error_state;
+                        response.statusMessage = `Task already running (PID: ${launchResult.existing_pid}). Launch prevented by policy.`;
+                        response.message = `Task already running in background (PID: ${launchResult.existing_pid}). Check Task Explorer for progress updates.`;
+                        response.pid = launchResult.existing_pid; // Use existing PID instead of launcher PID
+                    } else if (launchResult.launch_action === 'launched') {
+                        response.newPid = launchResult.new_pid;
+                        response.statusMessage = `Task launched successfully in background (PID: ${launchResult.new_pid}).`;
+                        response.message = `Task started successfully in background (PID: ${launchResult.new_pid})`;
+                        response.pid = launchResult.new_pid; // Use actual task PID instead of launcher PID
+                    }
+                } else {
+                    // Fallback for when launchResult is not available yet
+                    response.statusMessage = 'Task is running in background. Check Task Explorer for progress updates.';
+                    response.message = `Task started successfully in background (PID: ${childProcess.pid})`;
+                }
+                
+                resolve(response);
+            }, 100); // Small delay to allow stdout parsing
         }
         
         // For sync tasks, set timeout and wait for completion

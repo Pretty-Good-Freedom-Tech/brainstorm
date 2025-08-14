@@ -19,7 +19,8 @@ LOG_FILE="$BRAINSTORM_LOG_DIR/launchChildTask.log"
 touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
-# Check if a task is already running by name
+# Check if a task is already running by looking for rscript_relative_path
+# Potential alternative method (not implemented): check the structured logs
 # Returns PID if running, empty string if not
 check_task_already_running() {
     local task_name="$1"
@@ -284,6 +285,22 @@ EOF
         if [[ "$launch_new" == "false" ]]; then
             echo "$(date): Launch policy prevents new instance of $task_name, returning existing PID $existing_pid" >> ${LOG_FILE}
             
+            # Output structured result for API handler
+            local launch_result=$(cat <<EOF
+{
+    "launch_action": "prevented",
+    "task_name": "$task_name",
+    "existing_pid": $existing_pid,
+    "error_state": "$error_state",
+    "kill_preexisting": $kill_preexisting,
+    "launch_new": false,
+    "message": "Task is already running. Launch prevented by policy.",
+    "success": true
+}
+EOF
+)
+            echo "LAUNCHCHILDTASK_RESULT: $launch_result"
+            
             # Emit event for launch prevention
             local preventEventMetadata=$(cat <<EOF
 {
@@ -314,6 +331,21 @@ EOF
     fi
     
     child_pid=$!
+    
+    # Output structured result for API handler (successful launch)
+    local launch_result=$(cat <<EOF
+{
+    "launch_action": "launched",
+    "task_name": "$task_name",
+    "new_pid": $child_pid,
+    "child_script": "$child_script",
+    "child_args": "$child_args",
+    "message": "Task launched successfully in background.",
+    "success": true
+}
+EOF
+)
+    echo "LAUNCHCHILDTASK_RESULT: $launch_result"
     
     # Get timeout from options (default 60 seconds)
     local timeout_duration=$(echo "$resolved_options" | jq -r '.failure.timeout.duration // 60000')
