@@ -26,14 +26,22 @@ check_task_already_running() {
     
     echo "$(date): Checking if task $task_name is already running" >> ${LOG_FILE}
     
-    # Look for processes running the task script
-    # Use pgrep to find processes by script name pattern
-    local task_script_pattern="$task_name"
+    # Get task script path from registry for precise matching
+    local task_registry="${BRAINSTORM_MODULE_MANAGE_DIR}/taskQueue/taskRegistry.json"
+    local script_relative_path=$(jq -r ".tasks.\"$task_name\".script_relative_path // empty" "$task_registry" 2>/dev/null)
     
-    # Search for bash processes running scripts containing the task name
-    local pids=$(pgrep -f "$task_script_pattern" 2>/dev/null || echo "")
+    if [[ -z "$script_relative_path" ]]; then
+        echo "$(date): No script_relative_path found for $task_name, falling back to task name matching" >> ${LOG_FILE}
+        local search_pattern="$task_name"
+    else
+        echo "$(date): Using script_relative_path for $task_name: $script_relative_path" >> ${LOG_FILE}
+        local search_pattern="$script_relative_path"
+    fi
     
-    echo "$(date): Found pids: $pids" >> ${LOG_FILE}
+    # Search for bash processes running scripts containing the pattern
+    local pids=$(pgrep -f "$search_pattern" 2>/dev/null || echo "")
+    
+    echo "$(date): Found pids for pattern '$search_pattern': $pids" >> ${LOG_FILE}
     
     # Filter out our own process and parent processes
     local filtered_pids=""
@@ -42,7 +50,9 @@ check_task_already_running() {
             # Verify the process is still running and is actually our task
             if ps -p "$pid" >/dev/null 2>&1; then
                 local cmd=$(ps -p "$pid" -o cmd= 2>/dev/null || echo "")
-                if [[ "$cmd" == *"$task_name"* ]]; then
+                
+                # Check if command contains the script pattern and is not launchChildTask itself
+                if [[ "$cmd" == *"$search_pattern"* && "$cmd" != *"launchChildTask.sh"* ]]; then
                     echo "$(date): Found matching PID: $pid; cmd: $cmd" >> ${LOG_FILE}
                     filtered_pids="$pid"
                     break  # Return first matching PID
@@ -51,6 +61,7 @@ check_task_already_running() {
         fi
     done
     
+    echo "$(date): Final filtered PID: $filtered_pids" >> ${LOG_FILE}
     echo "$filtered_pids"
 }
 

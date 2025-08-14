@@ -66,6 +66,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/manage/processAllTasks.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/processAllTasks.sh",
+      "script_relative_path": "manage/processAllTasks.sh",
       "arguments": false,
       "children": [
         "neo4jConstraintsAndIndexes",
@@ -490,6 +491,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/calculateHops.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/calculateHops.sh",
+      "script_relative_path": "algos/calculateHops.sh",
       "enforcedTimeout": 600000,
       "arguments": false,
       "parent": "processAllTasks",
@@ -509,6 +511,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/calculateHops.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/calculateHops.sh",
+      "script_relative_path": "algos/customers/calculateHops.sh",
       "arguments": {
         "customer": true
       },
@@ -529,6 +532,7 @@
         "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/processFollowsMutesReports.sh"
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/follows-mutes-reports/processFollowsMutesReports.sh",
+      "script_relative_path": "algos/customers/follows-mutes-reports/processFollowsMutesReports.sh",
       "arguments": {
         "customer": true
       },
