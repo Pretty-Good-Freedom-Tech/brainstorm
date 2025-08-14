@@ -228,7 +228,13 @@ async function executeTask(command, args, taskName, task, registry, executionCon
         });
         
         childProcess.on('close', (code) => {
-            // Build base result
+            // Only handle sync tasks in the close handler - async tasks resolve immediately
+            if (executionConfig.executionMode.shouldRunAsync) {
+                console.log(`[RunTask] Async task ${taskName} process closed with code ${code} (already resolved)`);
+                return;
+            }
+            
+            // Build base result for sync tasks
             let baseResult = {
                 taskName: taskName,
                 command: `${command} ${args.join(' ')}`,
@@ -239,17 +245,17 @@ async function executeTask(command, args, taskName, task, registry, executionCon
                 timestamp: new Date().toISOString(),
                 startTime,
                 pid: childProcess.pid,
-                executionMode: executionConfig.executionMode.shouldRunAsync ? 'async' : 'sync'
+                executionMode: 'sync'
             };
             
             // Enhance result with launch information using helper function
             const result = enhanceResponseWithLaunchResult(baseResult, launchResult);
             
             if (code === 0) {
-                console.log(`[RunTask] Task ${taskName} completed successfully`);
+                console.log(`[RunTask] Sync task ${taskName} completed successfully`);
                 resolve(result);
             } else {
-                console.error(`[RunTask] Task ${taskName} failed with exit code ${code}`);
+                console.error(`[RunTask] Sync task ${taskName} failed with exit code ${code}`);
                 resolve(result); // Still resolve, but with error info
             }
         });
