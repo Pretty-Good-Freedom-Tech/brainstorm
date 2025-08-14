@@ -899,6 +899,41 @@
       "structuredLogging": true,
       "options":{},
       "notes":"Phase 2 structured logging implemented with comprehensive Neo4j APOC batch update workflow events: TASK_START, 4-phase processing (initialization and validation with import file checking and JSON validation, JSON processing and counting with record enumeration, APOC batch update execution using apoc.periodic.iterate with batch size 250 and sequential processing, verification and completion with post-update NostrUser npub property verification), robust error handling for file operations and Neo4j query failures, APOC performance metrics with committed/failed operations and execution time tracking, and TASK_END with complete batch update summary."
+    },
+
+    "taskWatchdog": {
+      "name": "Task Watchdog",
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Brainstorm Health Monitor component that analyzes structured logging data to detect stuck, failed, and orphaned tasks",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/taskWatchdog.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/taskWatchdog.sh",
+      "script_relative_path": "manage/healthMonitor/taskWatchdog.sh",
+      "arguments": false,
+      "children": [],
+      "scope": "system",
+      "priority": "high",
+      "frequency": "periodic",
+      "status": "active",
+      "timeout": "10 minutes",
+      "retries": 2,
+      "structuredLogging": true,
+      "options": {
+        "launch": {
+          "processAlreadyRunning": {
+            "withoutError": {
+              "killPreexisting": false,
+              "launchNew": false
+            },
+            "withError": {
+              "killPreexisting": true,
+              "launchNew": true
+            }
+          }
+        }
+      },
+      "notes": "First component of Brainstorm Health Monitor (BHM) system. Analyzes events.jsonl to detect: tasks running longer than expected duration (2x threshold), orphaned child processes (parent died but child still running), tasks with TASK_START but no TASK_END/TASK_ERROR, resource-related failures (high memory usage, Neo4j connectivity issues). Emits HEALTH_ALERT events with alertType: STUCK_TASK, DEAD_TASK_NO_COMPLETION, ORPHANED_TASK, HIGH_MEMORY_USAGE, NEO4J_CONNECTIVITY_ISSUES."
     }
   },
 
