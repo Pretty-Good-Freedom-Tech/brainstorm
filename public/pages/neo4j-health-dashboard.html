@@ -376,11 +376,11 @@
                 document.body.classList.add('loading');
                 
                 // Fetch Neo4j health data
-                const healthResponse = await fetch('/api/neo4j-health');
+                const healthResponse = await fetch('/api/neo4j-health/complete');
                 const healthData = await healthResponse.json();
                 
                 // Fetch recent alerts
-                const alertsResponse = await fetch('/api/health-alerts?component=neo4j&limit=20');
+                const alertsResponse = await fetch('/api/neo4j-health/alerts?component=neo4j&limit=20');
                 const alertsData = await alertsResponse.json();
                 
                 // Update dashboard
