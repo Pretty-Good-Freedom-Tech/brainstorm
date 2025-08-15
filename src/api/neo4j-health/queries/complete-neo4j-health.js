@@ -2,6 +2,8 @@
  * Complete Neo4j Health Handler
  * Returns comprehensive Neo4j health data for the dashboard
  * Aggregates data from systemResourceMonitor, neo4jCrashPatternDetector, and neo4jStabilityMonitor
+ * 
+ * handles endpoint: /api/neo4j-health/complete
  */
 
 const fs = require('fs');
