@@ -17,9 +17,10 @@ class TaskPerformanceBaseline {
         
         // Paths for structured logging data
         this.logDir = process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm';
-        this.eventsFile = path.join(this.logDir, 'events.jsonl');
-        this.baselinesFile = path.join(this.logDir, 'taskBaselines.json');
-        this.stateFile = path.join(this.logDir, 'taskBaselineState.json');
+        this.taskDir = path.join(this.logDir, 'taskQueue');
+        this.eventsFile = path.join(this.taskDir, 'events.jsonl');
+        this.baselinesFile = path.join(this.taskDir, 'taskBaselines.json');
+        this.stateFile = path.join(this.taskDir, 'taskBaselineState.json');
         
         this.baselines = new Map();
         this.taskExecutions = new Map();

@@ -17,8 +17,9 @@ class TaskAnomalyDetector {
         
         // Paths for structured logging data
         this.logDir = process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm';
-        this.eventsFile = path.join(this.logDir, 'events.jsonl');
-        this.stateFile = path.join(this.logDir, 'taskAnomalyState.json');
+        this.taskDir = path.join(this.logDir, 'taskQueue');
+        this.eventsFile = path.join(this.taskDir, 'events.jsonl');
+        this.stateFile = path.join(this.taskDir, 'taskAnomalyState.json');
         
         this.anomalies = [];
         this.runningTasks = new Map();
@@ -47,7 +48,7 @@ class TaskAnomalyDetector {
 
     async loadTaskBaselines() {
         try {
-            const baselineFile = path.join(this.logDir, 'taskBaselines.json');
+            const baselineFile = path.join(this.taskDir, 'taskBaselines.json');
             if (fs.existsSync(baselineFile)) {
                 const data = JSON.parse(fs.readFileSync(baselineFile, 'utf8'));
                 this.taskBaselines = new Map(Object.entries(data));
