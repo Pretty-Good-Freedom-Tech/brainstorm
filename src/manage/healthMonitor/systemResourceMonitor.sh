@@ -66,17 +66,21 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-emit_metadata=$(cat <<EOF
-{
-    "message": "Starting System Resource Monitor",
-    "component": "healthMonitor",
-    "monitorType": "systemResources",
-    "checkIntervalMinutes": "$CHECK_INTERVAL_MINUTES",
-    "neo4jMemoryThresholdMB": "$NEO4J_MEMORY_THRESHOLD_MB",
-    "focus": "neo4j_health_monitoring"
-}
-EOF
-)
+emit_metadata=$(jq -n \
+    --arg message "Starting System Resource Monitor" \
+    --arg component "healthMonitor" \
+    --arg monitorType "systemResources" \
+    --arg checkIntervalMinutes "$CHECK_INTERVAL_MINUTES" \
+    --arg neo4jMemoryThresholdMB "$NEO4J_MEMORY_THRESHOLD_MB" \
+    --arg focus "neo4j_health_monitoring" \
+    '{
+        message: $message,
+        component: $component,
+        monitorType: $monitorType,
+        checkIntervalMinutes: $checkIntervalMinutes,
+        neo4jMemoryThresholdMB: $neo4jMemoryThresholdMB,
+        focus: $focus
+    }')
 
 emit_task_event "TASK_START" "systemResourceMonitor" "system" "$emit_metadata"
 

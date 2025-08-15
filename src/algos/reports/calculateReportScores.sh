@@ -47,20 +47,26 @@ report_type_count=0
 total_report_types=$(echo $REPORT_TYPES | wc -w)
 
 # Emit structured event for Phase 1 completion and Phase 2 start
-progressMetadata=$(cat <<EOF
-{
-    "message": "Phase 1 completed, starting Phase 2: Per-type processing",
-    "phase": "per_type_processing",
-    "step": "phase_2_start",
-    "algorithm": "report_scoring",
-    "report_types": "$REPORT_TYPES",
-    "report_types_count": $total_report_types,
-    "report_types_loaded": true,
-    "operations_per_type": ["influence_weighted_scoring", "verified_report_counting"],
-    "scope": "owner"
-}
-EOF
-)
+progressMetadata=$(jq -n \
+    --arg message "Phase 1 completed, starting Phase 2: Per-type processing" \
+    --arg phase "per_type_processing" \
+    --arg step "phase_2_start" \
+    --arg algorithm "report_scoring" \
+    --arg report_types "$REPORT_TYPES" \
+    --argjson report_types_count "$total_report_types" \
+    --argjson report_types_loaded true \
+    --arg scope "owner" \
+    '{
+        message: $message,
+        phase: $phase,
+        step: $step,
+        algorithm: $algorithm,
+        report_types: $report_types,
+        report_types_count: $report_types_count,
+        report_types_loaded: $report_types_loaded,
+        operations_per_type: ["influence_weighted_scoring", "verified_report_counting"],
+        scope: $scope
+    }')
 emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
 
 for reportType in $REPORT_TYPES; do
@@ -84,39 +90,50 @@ RETURN COUNT(u) AS numReportedUsers")
     numReportedUsers="${cypherResults2:11}"
 
     # Emit structured event for individual report type completion
-    progressMetadata=$(cat <<EOF
-{
-    "message": "Completed processing report type: $reportType",
-    "phase": "per_type_processing",
-    "step": "report_type_complete",
-    "algorithm": "report_scoring",
-    "report_type": "$reportType",
-    "report_type_index": $report_type_count,
-    "total_report_types": $total_report_types,
-    "reported_users_count": $numReportedUsers,
-    "operations_completed": ["influence_weighted_scoring", "verified_report_counting"],
-    "scope": "owner"
-}
-EOF
-)
+    progressMetadata=$(jq -n \
+        --arg message "Completed processing report type: $reportType" \
+        --arg phase "per_type_processing" \
+        --arg step "report_type_complete" \
+        --arg algorithm "report_scoring" \
+        --arg report_type "$reportType" \
+        --argjson report_type_index "$report_type_count" \
+        --argjson total_report_types "$total_report_types" \
+        --argjson reported_users_count "$numReportedUsers" \
+        --arg scope "owner" \
+        '{
+            message: $message,
+            phase: $phase,
+            step: $step,
+            algorithm: $algorithm,
+            report_type: $report_type,
+            report_type_index: $report_type_index,
+            total_report_types: $total_report_types,
+            reported_users_count: $reported_users_count,
+            operations_completed: ["influence_weighted_scoring", "verified_report_counting"],
+            scope: $scope
+        }')
 done
 
 echo "$(date): Continuing calculateReportScores; completed per-type processing"
 echo "$(date): Continuing calculateReportScores; completed per-type processing" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
 # Emit structured event for Phase 2 completion and Phase 3 start
-progressMetadata=$(cat <<EOF
-{
-    "message": "Phase 2 completed, starting Phase 3: Total aggregation",
-    "phase": "total_aggregation",
-    "step": "phase_3_start",
-    "algorithm": "report_scoring",
-    "report_types_processed": $total_report_types,
-    "aggregation_operations": ["total_report_count", "total_verified_count", "total_grape_rank_score"],
-    "scope": "owner"
-}
-EOF
-)
+progressMetadata=$(jq -n \
+    --arg message "Phase 2 completed, starting Phase 3: Total aggregation" \
+    --arg phase "total_aggregation" \
+    --arg step "phase_3_start" \
+    --arg algorithm "report_scoring" \
+    --argjson report_types_processed "$total_report_types" \
+    --arg scope "owner" \
+    '{
+        message: $message,
+        phase: $phase,
+        step: $step,
+        algorithm: $algorithm,
+        report_types_processed: $report_types_processed,
+        aggregation_operations: ["total_report_count", "total_verified_count", "total_grape_rank_score"],
+        scope: $scope
+    }')
 emit_task_event "PROGRESS" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
 
 # for each reported user, calculate the total number of reports of all types and save results using properties: nip56_totalReportCount, nip56_totalVerifiedReportCount, nip56_totalGrapeRankScore
@@ -154,24 +171,32 @@ cypherResults3=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_P
 numReportedUsers="${cypherResults3:11}"
 
 # Emit structured event for successful completion
-progressMetadata=$(cat <<EOF
-{
-    "message": "Report scores calculation completed successfully",
-    "status": "success",
-    "task_type": "owner_algorithm",
-    "algorithm": "report_scoring",
-    "phases_completed": ["report_types_update", "per_type_processing", "total_aggregation"],
-    "total_report_types_processed": $total_report_types,
-    "final_reported_users_count": $numReportedUsers,
-    "operations_completed": ["influence_weighted_scoring", "verified_report_counting", "property_aggregation"],
-    "neo4j_properties_updated": ["nip56_totalReportCount", "nip56_totalVerifiedReportCount", "nip56_totalGrapeRankScore"],
-    "database": "neo4j",
-    "category": "algorithms",
-    "scope": "owner",
-    "parent_task": "processAllTasks"
-}
-EOF
-)
+progressMetadata=$(jq -n \
+    --arg message "Report scores calculation completed successfully" \
+    --arg status "success" \
+    --arg task_type "owner_algorithm" \
+    --arg algorithm "report_scoring" \
+    --argjson total_report_types_processed "$total_report_types" \
+    --argjson final_reported_users_count "$numReportedUsers" \
+    --arg database "neo4j" \
+    --arg category "algorithms" \
+    --arg scope "owner" \
+    --arg parent_task "processAllTasks" \
+    '{
+        message: $message,
+        status: $status,
+        task_type: $task_type,
+        algorithm: $algorithm,
+        phases_completed: ["report_types_update", "per_type_processing", "total_aggregation"],
+        total_report_types_processed: $total_report_types_processed,
+        final_reported_users_count: $final_reported_users_count,
+        operations_completed: ["influence_weighted_scoring", "verified_report_counting", "property_aggregation"],
+        neo4j_properties_updated: ["nip56_totalReportCount", "nip56_totalVerifiedReportCount", "nip56_totalGrapeRankScore"],
+        database: $database,
+        category: $category,
+        scope: $scope,
+        parent_task: $parent_task
+    }')
 emit_task_event "TASK_END" "calculateReportScores" "$BRAINSTORM_OWNER_PUBKEY" "$progressMetadata"
 
 echo "$(date): Finished calculateReportScores"

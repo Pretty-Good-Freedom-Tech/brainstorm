@@ -222,17 +222,21 @@ launchChildTask() {
     local error_type=""
     
     # Emit CHILD_TASK_START event
-    local eventMetadata=$(cat <<EOF
-{
-    "child_task": "$task_name",
-    "child_task_id": "$child_task_id",
-    "child_script": "$child_script",
-    "child_args": "$child_args",
-    "parent_task": "$parent_task_name",
-    "start_time": "$start_time"
-}
-EOF
-)
+    local eventMetadata=$(jq -n \
+        --arg child_task "$task_name" \
+        --arg child_task_id "$child_task_id" \
+        --arg child_script "$child_script" \
+        --arg child_args "$child_args" \
+        --arg parent_task "$parent_task_name" \
+        --arg start_time "$start_time" \
+        '{
+            child_task: $child_task,
+            child_task_id: $child_task_id,
+            child_script: $child_script,
+            child_args: $child_args,
+            parent_task: $parent_task,
+            start_time: $start_time
+        }')
     emit_task_event "CHILD_TASK_START" "$parent_task_name" "$child_task_id" "$eventMetadata"
     
     # Check if task is already running and handle according to launch policy
@@ -267,18 +271,23 @@ EOF
             fi
             
             # Emit event for process replacement
-            local replaceEventMetadata=$(cat <<EOF
-{
-    "child_task": "$task_name",
-    "child_task_id": "$child_task_id",
-    "action": "process_replaced",
-    "old_pid": $existing_pid,
-    "error_state": "$error_state",
-    "kill_preexisting": true,
-    "launch_new": $launch_new
-}
-EOF
-)
+            local replaceEventMetadata=$(jq -n \
+                --arg child_task "$task_name" \
+                --arg child_task_id "$child_task_id" \
+                --arg action "process_replaced" \
+                --argjson old_pid "$existing_pid" \
+                --arg error_state "$error_state" \
+                --argjson kill_preexisting true \
+                --argjson launch_new "$launch_new" \
+                '{
+                    child_task: $child_task,
+                    child_task_id: $child_task_id,
+                    action: $action,
+                    old_pid: $old_pid,
+                    error_state: $error_state,
+                    kill_preexisting: $kill_preexisting,
+                    launch_new: $launch_new
+                }')
             emit_task_event "TASK_LAUNCH_REPLACED" "$parent_task_name" "$child_task_id" "$replaceEventMetadata"
         fi
         
@@ -299,18 +308,23 @@ EOF
             echo "LAUNCHCHILDTASK_RESULT: $launch_result"
             
             # Emit event for launch prevention
-            local preventEventMetadata=$(cat <<EOF
-{
-    "child_task": "$task_name",
-    "child_task_id": "$child_task_id",
-    "action": "launch_prevented",
-    "existing_pid": $existing_pid,
-    "error_state": "$error_state",
-    "kill_preexisting": $kill_preexisting,
-    "launch_new": false
-}
-EOF
-)
+            local preventEventMetadata=$(jq -n \
+                --arg child_task "$task_name" \
+                --arg child_task_id "$child_task_id" \
+                --arg action "launch_prevented" \
+                --argjson existing_pid "$existing_pid" \
+                --arg error_state "$error_state" \
+                --argjson kill_preexisting "$kill_preexisting" \
+                --argjson launch_new false \
+                '{
+                    child_task: $child_task,
+                    child_task_id: $child_task_id,
+                    action: $action,
+                    existing_pid: $existing_pid,
+                    error_state: $error_state,
+                    kill_preexisting: $kill_preexisting,
+                    launch_new: $launch_new
+                }')
             emit_task_event "TASK_LAUNCH_PREVENTED" "$parent_task_name" "$child_task_id" "$preventEventMetadata"
             return 0  # Exit successfully, task is already running
         fi
@@ -381,19 +395,25 @@ EOF
         
         exit_code=124  # Standard timeout exit code
         
-        local eventMetadata=$(cat <<EOF
-{
-    "child_task": "$task_name",
-    "child_task_id": "$child_task_id",
-    "parent_task": "$parent_task_name",
-    "error_type": "timeout",
-    "timeout_duration": $timeout_duration,
-    "elapsed_time": $((elapsed * 1000)),
-    "child_pid": $child_pid,
-    "end_time": "$end_time"
-}
-EOF
-)
+        local eventMetadata=$(jq -n \
+            --arg child_task "$task_name" \
+            --arg child_task_id "$child_task_id" \
+            --arg parent_task "$parent_task_name" \
+            --arg error_type "timeout" \
+            --argjson timeout_duration "$timeout_duration" \
+            --argjson elapsed_time "$((elapsed * 1000))" \
+            --argjson child_pid "$child_pid" \
+            --arg end_time "$end_time" \
+            '{
+                child_task: $child_task,
+                child_task_id: $child_task_id,
+                parent_task: $parent_task,
+                error_type: $error_type,
+                timeout_duration: $timeout_duration,
+                elapsed_time: $elapsed_time,
+                child_pid: $child_pid,
+                end_time: $end_time
+            }')
         emit_task_event "CHILD_TASK_ERROR" "$parent_task_name" "$child_task_id" "$eventMetadata"
     else
         # Process completed normally
@@ -403,17 +423,21 @@ EOF
         if [[ $exit_code -eq 0 ]]; then
             completion_status="success"
             
-            local eventMetadata=$(cat <<EOF
-{
-    "child_task": "$task_name",
-    "child_task_id": "$child_task_id",
-    "parent_task": "$parent_task_name",
-    "exit_code": $exit_code,
-    "completion_status": "success",
-    "end_time": "$end_time"
-}
-EOF
-)
+            local eventMetadata=$(jq -n \
+                --arg child_task "$task_name" \
+                --arg child_task_id "$child_task_id" \
+                --arg parent_task "$parent_task_name" \
+                --argjson exit_code "$exit_code" \
+                --arg completion_status "success" \
+                --arg end_time "$end_time" \
+                '{
+                    child_task: $child_task,
+                    child_task_id: $child_task_id,
+                    parent_task: $parent_task,
+                    exit_code: $exit_code,
+                    completion_status: $completion_status,
+                    end_time: $end_time
+                }')
             emit_task_event "CHILD_TASK_END" "$parent_task_name" "$child_task_id" "$eventMetadata"
         else
             # Check if this was a caught or uncaught error
@@ -428,18 +452,23 @@ EOF
                 completion_status="uncaught_failure"
             fi
             
-            local eventMetadata=$(cat <<EOF
-{
-    "child_task": "$task_name",
-    "child_task_id": "$child_task_id",
-    "parent_task": "$parent_task_name",
-    "error_type": "$error_type",
-    "exit_code": $exit_code,
-    "completion_status": "$completion_status",
-    "end_time": "$end_time"
-}
-EOF
-)
+            local eventMetadata=$(jq -n \
+                --arg child_task "$task_name" \
+                --arg child_task_id "$child_task_id" \
+                --arg parent_task "$parent_task_name" \
+                --arg error_type "$error_type" \
+                --argjson exit_code "$exit_code" \
+                --arg completion_status "$completion_status" \
+                --arg end_time "$end_time" \
+                '{
+                    child_task: $child_task,
+                    child_task_id: $child_task_id,
+                    parent_task: $parent_task,
+                    error_type: $error_type,
+                    exit_code: $exit_code,
+                    completion_status: $completion_status,
+                    end_time: $end_time
+                }')
             emit_task_event "CHILD_TASK_ERROR" "$parent_task_name" "$child_task_id" "$eventMetadata"
         fi
     fi

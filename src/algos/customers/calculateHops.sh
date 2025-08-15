@@ -47,27 +47,31 @@ echo "$(date): Starting calculateHops"
 echo "$(date): Starting calculateHops" >> ${LOG_FILE}
 
 # Emit structured event for task start
-startMetadata=$(cat <<EOF
-{
-    "customer_id": "$CUSTOMER_ID",
-    "customer_pubkey": "$CUSTOMER_PUBKEY",
-    "customer_name": "$CUSTOMER_NAME",
-    "algorithm": "customer_hop_distance"
-}
-EOF
-)
+startMetadata=$(jq -n \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg algorithm "customer_hop_distance" \
+    '{
+        customer_id: $customer_id,
+        customer_pubkey: $customer_pubkey,
+        customer_name: $customer_name,
+        algorithm: $algorithm
+    }')
 emit_task_event "TASK_START" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$startMetadata"
 
 # Initialize hop distances (set all to 999, then customer to 0)
-progressMetadata=$(cat <<EOF
-{
-    "customer_id": "$CUSTOMER_ID",
-    "customer_name": "$CUSTOMER_NAME",
-    "step": "initialization",
-    "message": "Setting initial hop distances"
-}
-EOF
-)
+progressMetadata=$(jq -n \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg step "initialization" \
+    --arg message "Setting initial hop distances" \
+    '{
+        customer_id: $customer_id,
+        customer_name: $customer_name,
+        step: $step,
+        message: $message
+    }')
 emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
 
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1"
@@ -79,17 +83,21 @@ echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHo
 echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
 
 # Emit structured event for initial iteration
-progressMetadata=$(cat <<EOF
-{
-    "customer_id": "$CUSTOMER_ID",
-    "customer_name": "$CUSTOMER_NAME",
-    "step": "iteration",
-    "hop_level": $numHops,
-    "updates_count": $numUpdates,
-    "message": "Initial hop calculation iteration"
-}
-EOF
-)
+progressMetadata=$(jq -n \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg step "iteration" \
+    --argjson hop_level "$numHops" \
+    --argjson updates_count "$numUpdates" \
+    --arg message "Initial hop calculation iteration" \
+    '{
+        customer_id: $customer_id,
+        customer_name: $customer_name,
+        step: $step,
+        hop_level: $hop_level,
+        updates_count: $updates_count,
+        message: $message
+    }')
 emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
 
 while [[ "$numUpdates" -gt 0 ]] && [[ "$numHops" -lt 12 ]];
@@ -97,16 +105,19 @@ do
     ((numHops++))
     
     # Emit structured event for iteration start
-    progressMetadata=$(cat <<EOF
-{
-    "customer_id": "$CUSTOMER_ID",
-    "customer_name": "$CUSTOMER_NAME",
-    "step": "iteration",
-    "hop_level": $numHops,
-    "message": "Processing hop level $numHops"
-}
-EOF
-)
+    progressMetadata=$(jq -n \
+        --arg customer_id "$CUSTOMER_ID" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg step "iteration" \
+        --argjson hop_level "$numHops" \
+        --arg message "Processing hop level $numHops" \
+        '{
+            customer_id: $customer_id,
+            customer_name: $customer_name,
+            step: $step,
+            hop_level: $hop_level,
+            message: $message
+        }')
     emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
     
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER3")
@@ -116,17 +127,21 @@ EOF
     echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHops" >> ${LOG_FILE}
     
     # Emit structured event for iteration completion
-    progressMetadata=$(cat <<EOF
-{
-    "customer_id": "$CUSTOMER_ID",
-    "customer_name": "$CUSTOMER_NAME",
-    "step": "iteration_complete",
-    "hop_level": $numHops,
-    "updates_count": $numUpdates,
-    "message": "Completed hop level $numHops with $numUpdates updates"
-}
-EOF
-)
+    progressMetadata=$(jq -n \
+        --arg customer_id "$CUSTOMER_ID" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg step "iteration_complete" \
+        --argjson hop_level "$numHops" \
+        --argjson updates_count "$numUpdates" \
+        --arg message "Completed hop level $numHops with $numUpdates updates" \
+        '{
+            customer_id: $customer_id,
+            customer_name: $customer_name,
+            step: $step,
+            hop_level: $hop_level,
+            updates_count: $updates_count,
+            message: $message
+        }')
     emit_task_event "PROGRESS" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$progressMetadata"
 done
 
@@ -146,17 +161,23 @@ else
 fi
 
 # Emit structured event for task completion
-endMetadata=$(cat <<EOF
-{
-    "customer_id": "$CUSTOMER_ID",
-    "customer_pubkey": "$CUSTOMER_PUBKEY",
-    "customer_name": "$CUSTOMER_NAME",
-    "status": "success",
-    "final_hop_level": $numHops,
-    "final_updates_count": $numUpdates,
-    "completion_reason": "$completion_reason",
-    "message": "$completion_message"
-}
-EOF
-)
+endMetadata=$(jq -n \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg status "success" \
+    --argjson final_hop_level "$numHops" \
+    --argjson final_updates_count "$numUpdates" \
+    --arg completion_reason "$completion_reason" \
+    --arg message "$completion_message" \
+    '{
+        customer_id: $customer_id,
+        customer_pubkey: $customer_pubkey,
+        customer_name: $customer_name,
+        status: $status,
+        final_hop_level: $final_hop_level,
+        final_updates_count: $final_updates_count,
+        completion_reason: $completion_reason,
+        message: $message
+    }')
 emit_task_event "TASK_END" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$endMetadata"
