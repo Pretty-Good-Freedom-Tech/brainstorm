@@ -105,8 +105,9 @@ check_neo4j_status() {
             # Memory usage in MB
             neo4j_memory_mb=$(ps -p "$neo4j_pid" -o rss= 2>/dev/null | awk '{print int($1/1024)}' || echo "0")
             
-            # Try to get Java heap information
+            # Try to get Java heap information using multiple methods
             if command -v jstat >/dev/null 2>&1; then
+                # Method 1: Use jstat if available (JDK installed)
                 neo4j_heap_usage=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
                     used = ($3 + $4 + $6 + $8) * 1024
                     total = ($1 + $2 + $5 + $7) * 1024
@@ -122,6 +123,38 @@ check_neo4j_status() {
                 neo4j_gc_info=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
                     printf "YGC:%d,YGCT:%.2fs,FGC:%d,FGCT:%.2fs", $12, $13, $14, $15
                 }' || echo "unknown")
+            else
+                # Method 2: Try Neo4j HTTP API for heap info
+                if command -v curl >/dev/null 2>&1; then
+                    local heap_info=$(curl -s -f "http://localhost:7474/db/manage/server/jmx/domain/java.lang/bean/type=Memory/attribute/HeapMemoryUsage" 2>/dev/null)
+                    if [[ -n "$heap_info" && "$heap_info" != *"error"* ]]; then
+                        # Parse heap info from Neo4j JMX endpoint
+                        neo4j_heap_usage=$(echo "$heap_info" | grep -o '"used":[0-9]*' | cut -d':' -f2 | head -1)
+                        local heap_max=$(echo "$heap_info" | grep -o '"max":[0-9]*' | cut -d':' -f2 | head -1)
+                        if [[ -n "$neo4j_heap_usage" && -n "$heap_max" && "$heap_max" -gt 0 ]]; then
+                            local heap_used_mb=$((neo4j_heap_usage / 1024 / 1024))
+                            local heap_max_mb=$((heap_max / 1024 / 1024))
+                            local heap_percent=$(( (neo4j_heap_usage * 100) / heap_max ))
+                            neo4j_heap_usage="${heap_percent}% (${heap_used_mb}MB/${heap_max_mb}MB)"
+                        else
+                            neo4j_heap_usage="unknown"
+                        fi
+                    else
+                        # Method 3: Estimate from process memory (rough approximation)
+                        if [[ "$neo4j_memory_mb" -gt 0 ]]; then
+                            # Assume heap is roughly 70% of total process memory (typical for Neo4j)
+                            local estimated_heap_mb=$((neo4j_memory_mb * 70 / 100))
+                            neo4j_heap_usage="~${estimated_heap_mb}MB (estimated from process memory)"
+                        else
+                            neo4j_heap_usage="unavailable (no JDK tools)"
+                        fi
+                    fi
+                else
+                    neo4j_heap_usage="unavailable (no JDK tools, no curl)"
+                fi
+                
+                # GC info not available without jstat
+                neo4j_gc_info="unavailable (requires JDK tools)"
             fi
         fi
         

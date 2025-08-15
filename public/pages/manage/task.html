@@ -1086,9 +1086,17 @@
                     if (metadata.error_message) {
                         return metadata.error_message;
                     }
+                    if (metadata.message) {
+                        return metadata.message;
+                    }
                 } catch (e) {
                     // If metadata parsing fails, continue to fallback
                 }
+            }
+
+            // use event.target if available
+            if (event.target) {
+                return event.target;
             }
             
             // Fallback descriptions based on event type
