@@ -57,6 +57,7 @@ const lists = require('./lists');
 const status = require('./status');
 const customers = require('./customers');
 const neo4jHealth = require('./neo4j-health/index.js');
+const taskWatchdog = require('./task-watchdog/index.js');
 
 const { handleNeo4jSetupConstraintsAndIndexes } = require('./neo4j/commands/setupConstraintsAndIndexes.js');
 
@@ -294,6 +295,12 @@ function register(app) {
     // Neo4j Health Dashboard endpoints
     app.get('/api/neo4j-health/complete', neo4jHealth.handleCompleteNeo4jHealth);
     app.get('/api/neo4j-health/alerts', neo4jHealth.handleAlertsNeo4jHealth);
+
+    // Task Watchdog Dashboard endpoints
+    app.get('/api/task-watchdog/status', taskWatchdog.handleTaskWatchdogStatus);
+    app.get('/api/task-watchdog/alerts', taskWatchdog.handleTaskWatchdogAlerts);
+    app.get('/api/task-watchdog/stuck-tasks', taskWatchdog.handleStuckTasks);
+    app.get('/api/task-watchdog/orphaned-processes', taskWatchdog.handleOrphanedProcesses);
 
     console.log('Registered all Brainstorm API endpoints');
 }
