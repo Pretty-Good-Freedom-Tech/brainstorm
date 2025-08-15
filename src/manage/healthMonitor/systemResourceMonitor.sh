@@ -108,6 +108,7 @@ check_neo4j_status() {
             # Try to get Java heap information using multiple methods
             if command -v jstat >/dev/null 2>&1; then
                 # Method 1: Use jstat if available (JDK installed)
+                # Try as current user first, then as neo4j user if permission denied
                 neo4j_heap_usage=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
                     used = ($3 + $4 + $6 + $8) * 1024
                     total = ($1 + $2 + $5 + $7) * 1024
@@ -117,12 +118,23 @@ check_neo4j_status() {
                     } else {
                         print "unknown"
                     }
-                }' || echo "unknown")
+                }' 2>/dev/null || sudo -u neo4j jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
+                    used = ($3 + $4 + $6 + $8) * 1024
+                    total = ($1 + $2 + $5 + $7) * 1024
+                    if (total > 0) {
+                        percent = (used / total) * 100
+                        printf "%.1f%% (%.1fMB/%.1fMB)", percent, used/1024/1024, total/1024/1024
+                    } else {
+                        print "unknown"
+                    }
+                }' || echo "permission_denied")
                 
-                # Get GC information
+                # Get GC information with same permission handling
                 neo4j_gc_info=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
                     printf "YGC:%d,YGCT:%.2fs,FGC:%d,FGCT:%.2fs", $12, $13, $14, $15
-                }' || echo "unknown")
+                }' 2>/dev/null || sudo -u neo4j jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
+                    printf "YGC:%d,YGCT:%.2fs,FGC:%d,FGCT:%.2fs", $12, $13, $14, $15
+                }' || echo "permission_denied")
             else
                 # Method 2: Try Neo4j HTTP API for heap info
                 if command -v curl >/dev/null 2>&1; then
