@@ -969,6 +969,41 @@
         }
       },
       "notes": "Second component of Brainstorm Health Monitor (BHM) system. Monitors system resources with special focus on Neo4j health: service status, memory usage, heap utilization, GC metrics, connection testing, and response times. Also monitors strfry service health and general system resources (memory, disk, load). Emits HEALTH_ALERT events with alertType: NEO4J_SERVICE_DOWN, NEO4J_CONNECTION_FAILED, NEO4J_HIGH_MEMORY_USAGE, NEO4J_HEAP_CRITICAL, NEO4J_HEAP_WARNING, STRFRY_SERVICE_DOWN, SYSTEM_MEMORY_CRITICAL, SYSTEM_MEMORY_WARNING, SYSTEM_DISK_CRITICAL, SYSTEM_DISK_WARNING."
+    },
+
+    "taskBehaviorMonitor": {
+      "name": "Task Behavior Monitor",
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Brainstorm Health Monitor component that analyzes task execution patterns and detects behavioral anomalies",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/taskBehaviorMonitor.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/taskBehaviorMonitor.sh",
+      "script_relative_path": "manage/healthMonitor/taskBehaviorMonitor.sh",
+      "arguments": false,
+      "children": [],
+      "scope": "system",
+      "priority": "medium",
+      "frequency": "periodic",
+      "status": "active",
+      "timeout": "10 minutes",
+      "retries": 2,
+      "structuredLogging": true,
+      "options": {
+        "launch": {
+          "processAlreadyRunning": {
+            "withoutError": {
+              "killPreexisting": false,
+              "launchNew": false
+            },
+            "withError": {
+              "killPreexisting": true,
+              "launchNew": true
+            }
+          }
+        }
+      },
+      "notes": "Third component of Brainstorm Health Monitor (BHM) system. Orchestrates task anomaly detection and performance baseline tracking. Analyzes structured logging events to detect stuck tasks (>60min runtime), excessive runtimes (>3x baseline), silent failures (no progress >30min), and performance deviations (>2σ from baseline). Maintains rolling 7-day performance baselines with outlier filtering. Emits HEALTH_ALERT events with alertType: STUCK_TASK, EXCESSIVE_RUNTIME, SILENT_FAILURE, PERFORMANCE_DEVIATION. Coordinates taskAnomalyDetector.js and taskPerformanceBaseline.js components."
     }
   },
 
