@@ -66,14 +66,19 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-emit_task_event "TASK_START" "systemResourceMonitor" "system" '{
+emit_metadata=$(cat <<EOF
+{
     "message": "Starting System Resource Monitor",
     "component": "healthMonitor",
     "monitorType": "systemResources",
-    "checkIntervalMinutes": '$CHECK_INTERVAL_MINUTES',
-    "neo4jMemoryThresholdMB": '$NEO4J_MEMORY_THRESHOLD_MB',
+    "checkIntervalMinutes": "$CHECK_INTERVAL_MINUTES",
+    "neo4jMemoryThresholdMB": "$NEO4J_MEMORY_THRESHOLD_MB",
     "focus": "neo4j_health_monitoring"
-}'
+}
+EOF
+)
+
+emit_task_event "TASK_START" "systemResourceMonitor" "system" "$emit_metadata"
 
 # Function to check Neo4j service status
 check_neo4j_status() {
@@ -136,74 +141,91 @@ check_neo4j_status() {
     fi
     
     # Emit Neo4j health status
-    local neo4j_metadata='{
-        "status": "'$neo4j_status'",
-        "pid": "'$neo4j_pid'",
-        "memoryUsageMB": '$neo4j_memory_mb',
-        "heapUsage": "'$neo4j_heap_usage'",
-        "gcInfo": "'$neo4j_gc_info'",
-        "connectionTest": "'$connection_test'",
-        "responseTime": "'$query_response_time'"
-    }'
+    local neo4j_metadata=$(cat <<EOF
+{
+    "status": "'$neo4j_status'",
+    "pid": "'$neo4j_pid'",
+    "memoryUsageMB": '$neo4j_memory_mb',
+    "heapUsage": "'$neo4j_heap_usage'",
+    "gcInfo": "'$neo4j_gc_info'",
+    "connectionTest": "'$connection_test'",
+    "responseTime": "'$query_response_time'"
+}
+EOF
     
     emit_task_event "PROGRESS" "systemResourceMonitor" "neo4j" "$neo4j_metadata"
     
     # Generate alerts for Neo4j issues
     if [[ "$neo4j_status" != "running" ]]; then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" '{
-            "alertType": "NEO4J_SERVICE_DOWN",
-            "severity": "critical",
-            "message": "Neo4j service is not running",
-            "component": "neo4j",
-            "status": "'$neo4j_status'",
-            "recommendedAction": "Check Neo4j logs and restart service"
-        }'
+        local neo4j_alert_metadata=$(cat <<EOF
+{
+    "alertType": "NEO4J_SERVICE_DOWN",
+    "severity": "critical",
+    "message": "Neo4j service is not running",
+    "component": "neo4j",
+    "status": "'$neo4j_status'",
+    "recommendedAction": "Check Neo4j logs and restart service"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" "$neo4j_alert_metadata"
     elif [[ "$connection_test" == "failed" ]]; then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" '{
-            "alertType": "NEO4J_CONNECTION_FAILED",
-            "severity": "critical",
-            "message": "Neo4j service running but not responding to HTTP requests",
-            "component": "neo4j",
-            "pid": "'$neo4j_pid'",
-            "recommendedAction": "Check Neo4j HTTP connector configuration and logs"
-        }'
+        local neo4j_alert_metadata=$(cat <<EOF
+{
+    "alertType": "NEO4J_CONNECTION_FAILED",
+    "severity": "critical",
+    "message": "Neo4j service running but not responding to HTTP requests",
+    "component": "neo4j",
+    "pid": "'$neo4j_pid'",
+    "recommendedAction": "Check Neo4j HTTP connector configuration and logs"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" "$neo4j_alert_metadata"
     elif [[ "$neo4j_memory_mb" -gt "$NEO4J_MEMORY_THRESHOLD_MB" ]]; then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" '{
-            "alertType": "NEO4J_HIGH_MEMORY_USAGE",
-            "severity": "warning",
-            "message": "Neo4j memory usage exceeds threshold",
-            "component": "neo4j",
-            "memoryUsageMB": '$neo4j_memory_mb',
-            "thresholdMB": '$NEO4J_MEMORY_THRESHOLD_MB',
-            "recommendedAction": "Monitor for memory leaks, consider heap tuning"
-        }'
+        local neo4j_alert_metadata=$(cat <<EOF
+{
+    "alertType": "NEO4J_HIGH_MEMORY_USAGE",
+    "severity": "warning",
+    "message": "Neo4j memory usage exceeds threshold",
+    "component": "neo4j",
+    "memoryUsageMB": '$neo4j_memory_mb',
+    "thresholdMB": '$NEO4J_MEMORY_THRESHOLD_MB',
+    "recommendedAction": "Monitor for memory leaks, consider heap tuning"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" "$neo4j_alert_metadata"
     fi
     
     # Check heap usage percentage if available
     if [[ "$neo4j_heap_usage" != "unknown" && "$neo4j_heap_usage" != "" ]]; then
         local heap_percent=$(echo "$neo4j_heap_usage" | grep -o '^[0-9.]*' || echo "0")
         if (( $(echo "$heap_percent > $NEO4J_HEAP_CRITICAL_PERCENT" | bc -l 2>/dev/null || echo "0") )); then
-            emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" '{
-                "alertType": "NEO4J_HEAP_CRITICAL",
-                "severity": "critical",
-                "message": "Neo4j heap usage critically high",
-                "component": "neo4j",
-                "heapUsage": "'$neo4j_heap_usage'",
-                "heapPercent": '$heap_percent',
-                "threshold": '$NEO4J_HEAP_CRITICAL_PERCENT',
-                "recommendedAction": "Immediate attention required - increase heap size or restart Neo4j"
-            }'
+            local neo4j_alert_metadata=$(cat <<EOF
+{
+    "alertType": "NEO4J_HEAP_CRITICAL",
+    "severity": "critical",
+    "message": "Neo4j heap usage critically high",
+    "component": "neo4j",
+    "heapUsage": "'$neo4j_heap_usage'",
+    "heapPercent": '$heap_percent',
+    "threshold": '$NEO4J_HEAP_CRITICAL_PERCENT',
+    "recommendedAction": "Immediate attention required - increase heap size or restart Neo4j"
+}
+EOF
+            emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" "$neo4j_alert_metadata"
         elif (( $(echo "$heap_percent > $NEO4J_HEAP_WARNING_PERCENT" | bc -l 2>/dev/null || echo "0") )); then
-            emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" '{
-                "alertType": "NEO4J_HEAP_WARNING",
-                "severity": "warning",
-                "message": "Neo4j heap usage high",
-                "component": "neo4j",
-                "heapUsage": "'$neo4j_heap_usage'",
-                "heapPercent": '$heap_percent',
-                "threshold": '$NEO4J_HEAP_WARNING_PERCENT',
-                "recommendedAction": "Monitor heap usage trends, consider optimization"
-            }'
+            local neo4j_alert_metadata=$(cat <<EOF
+{
+    "alertType": "NEO4J_HEAP_WARNING",
+    "severity": "warning",
+    "message": "Neo4j heap usage high",
+    "component": "neo4j",
+    "heapUsage": "'$neo4j_heap_usage'",
+    "heapPercent": '$heap_percent',
+    "threshold": '$NEO4J_HEAP_WARNING_PERCENT',
+    "recommendedAction": "Monitor heap usage trends, consider optimization"
+}
+EOF
+            emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "neo4j" "$neo4j_alert_metadata"
         fi
     fi
 }
@@ -233,22 +255,28 @@ check_strfry_status() {
     fi
     
     # Emit strfry health status
-    emit_task_event "PROGRESS" "systemResourceMonitor" "strfry" '{
-        "status": "'$strfry_status'",
-        "pid": "'$strfry_pid'",
-        "memoryUsageMB": '$strfry_memory_mb'
-    }'
+    local strfry_metadata=$(cat <<EOF
+{
+    "status": "'$strfry_status'",
+    "pid": "'$strfry_pid'",
+    "memoryUsageMB": '$strfry_memory_mb'
+}
+EOF
+    emit_task_event "PROGRESS" "systemResourceMonitor" "strfry" "$strfry_metadata"
     
     # Generate alert if strfry is down
     if [[ "$strfry_status" != "running" ]]; then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "strfry" '{
-            "alertType": "STRFRY_SERVICE_DOWN",
-            "severity": "critical",
-            "message": "strfry service is not running",
-            "component": "strfry",
-            "status": "'$strfry_status'",
-            "recommendedAction": "Check strfry configuration and restart service"
-        }'
+        local strfry_alert_metadata=$(cat <<EOF
+{
+    "alertType": "STRFRY_SERVICE_DOWN",
+    "severity": "critical",
+    "message": "strfry service is not running",
+    "component": "strfry",
+    "status": "'$strfry_status'",
+    "recommendedAction": "Check strfry configuration and restart service"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "strfry" "$strfry_alert_metadata"
     fi
 }
 
@@ -303,62 +331,91 @@ check_system_resources() {
     local load_avg=$(uptime | awk -F'load average:' '{print $2}' | sed 's/^ *//')
     
     # Emit system resource status
-    emit_task_event "PROGRESS" "systemResourceMonitor" "system" '{
-        "memoryUsage": "'$memory_info'",
-        "memoryPercent": '$memory_percent',
-        "diskUsage": "'$disk_info'",
-        "diskPercent": '$disk_percent',
-        "loadAverage": "'$load_avg'"
-    }'
+    local system_metadata=$(cat <<EOF
+{
+    "memoryUsage": "'$memory_info'",
+    "memoryPercent": '$memory_percent',
+    "diskUsage": "'$disk_info'",
+    "diskPercent": '$disk_percent',
+    "loadAverage": "'$load_avg'"
+}
+EOF
+    emit_task_event "PROGRESS" "systemResourceMonitor" "system" "$system_metadata"
     
     # Generate memory alerts
     if (( $(echo "$memory_percent > $SYSTEM_MEMORY_CRITICAL_PERCENT" | bc -l 2>/dev/null || echo "0") )); then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" '{
-            "alertType": "SYSTEM_MEMORY_CRITICAL",
-            "severity": "critical",
-            "message": "System memory usage critically high",
-            "component": "system",
-            "memoryUsage": "'$memory_info'",
-            "memoryPercent": '$memory_percent',
-            "threshold": '$SYSTEM_MEMORY_CRITICAL_PERCENT',
-            "recommendedAction": "Free memory immediately or restart services"
-        }'
+        local system_alert_metadata=$(cat <<EOF
+{
+    "alertType": "SYSTEM_MEMORY_CRITICAL",
+    "severity": "critical",
+    "message": "System memory usage critically high",
+    "component": "system",
+    "memoryUsage": "'$memory_info'",
+    "memoryPercent": '$memory_percent',
+    "threshold": '$SYSTEM_MEMORY_CRITICAL_PERCENT',
+    "recommendedAction": "Free memory immediately or restart services"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" "$system_alert_metadata"
     elif (( $(echo "$memory_percent > $SYSTEM_MEMORY_WARNING_PERCENT" | bc -l 2>/dev/null || echo "0") )); then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" '{
-            "alertType": "SYSTEM_MEMORY_WARNING",
-            "severity": "warning",
-            "message": "System memory usage high",
-            "component": "system",
-            "memoryUsage": "'$memory_info'",
-            "memoryPercent": '$memory_percent',
-            "threshold": '$SYSTEM_MEMORY_WARNING_PERCENT',
-            "recommendedAction": "Monitor memory usage and consider optimization"
-        }'
+        local system_alert_metadata=$(cat <<EOF
+{
+    "alertType": "SYSTEM_MEMORY_WARNING",
+    "severity": "warning",
+    "message": "System memory usage high",
+    "component": "system",
+    "memoryUsage": "'$memory_info'",
+    "memoryPercent": '$memory_percent',
+    "threshold": '$SYSTEM_MEMORY_WARNING_PERCENT',
+    "recommendedAction": "Monitor memory usage and consider optimization"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" "$system_alert_metadata"
     fi
     
     # Generate disk alerts
     if (( disk_percent > DISK_CRITICAL_PERCENT )); then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" '{
-            "alertType": "SYSTEM_DISK_CRITICAL",
-            "severity": "critical",
-            "message": "System disk usage critically high",
-            "component": "system",
-            "diskUsage": "'$disk_info'",
-            "diskPercent": '$disk_percent',
-            "threshold": '$DISK_CRITICAL_PERCENT',
-            "recommendedAction": "Free disk space immediately"
-        }'
+        local system_alert_metadata=$(cat <<EOF
+{
+    "alertType": "SYSTEM_DISK_CRITICAL",
+    "severity": "critical",
+    "message": "System disk usage critically high",
+    "component": "system",
+    "diskUsage": "'$disk_info'",
+    "diskPercent": '$disk_percent',
+    "threshold": '$DISK_CRITICAL_PERCENT',
+    "recommendedAction": "Free disk space immediately"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" "$system_alert_metadata"
     elif (( disk_percent > DISK_WARNING_PERCENT )); then
-        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" '{
-            "alertType": "SYSTEM_DISK_WARNING",
-            "severity": "warning",
-            "message": "System disk usage high",
-            "component": "system",
-            "diskUsage": "'$disk_info'",
-            "diskPercent": '$disk_percent',
-            "threshold": '$DISK_WARNING_PERCENT',
-            "recommendedAction": "Clean up disk space"
-        }'
+        local system_alert_metadata=$(cat <<EOF
+{
+    "alertType": "SYSTEM_DISK_WARNING",
+    "severity": "critical",
+    "message": "System disk usage critically high",
+    "component": "system",
+    "diskUsage": "'$disk_info'",
+    "diskPercent": '$disk_percent',
+    "threshold": '$DISK_CRITICAL_PERCENT',
+    "recommendedAction": "Free disk space immediately"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" "$system_alert_metadata"
+    elif (( disk_percent > DISK_WARNING_PERCENT )); then
+        local system_alert_metadata=$(cat <<EOF
+{
+    "alertType": "SYSTEM_DISK_WARNING",
+    "severity": "warning",
+    "message": "System disk usage high",
+    "component": "system",
+    "diskUsage": "'$disk_info'",
+    "diskPercent": '$disk_percent',
+    "threshold": '$DISK_WARNING_PERCENT',
+    "recommendedAction": "Clean up disk space"
+}
+EOF
+        emit_task_event "HEALTH_ALERT" "systemResourceMonitor" "system" "$system_alert_metadata"
     fi
 }
 
