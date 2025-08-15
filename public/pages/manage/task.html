@@ -856,9 +856,6 @@
             // Setup raw events toggle
             setupRawEventsToggle(rawEvents);
 
-            // Store task data globally for run task functionality
-            window.currentTaskData = taskData;
-
             // Show run task section
             document.getElementById('run-task-section').style.display = 'block';
 
@@ -1284,13 +1281,11 @@
 
         // Handle run task button click
         async function handleRunTask() {
-            const taskData = window.currentTaskData;
             if (!taskData) {
                 alert('Task data not loaded');
                 return;
             }
 
-            const taskName = taskData.name;
             const taskScope = taskData.scope;
 
             // Check if task requires customer selection
