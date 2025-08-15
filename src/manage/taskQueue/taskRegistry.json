@@ -934,6 +934,41 @@
         }
       },
       "notes": "First component of Brainstorm Health Monitor (BHM) system. Analyzes events.jsonl to detect: tasks running longer than expected duration (2x threshold), orphaned child processes (parent died but child still running), tasks with TASK_START but no TASK_END/TASK_ERROR, resource-related failures (high memory usage, Neo4j connectivity issues). Emits HEALTH_ALERT events with alertType: STUCK_TASK, DEAD_TASK_NO_COMPLETION, ORPHANED_TASK, HIGH_MEMORY_USAGE, NEO4J_CONNECTIVITY_ISSUES."
+    },
+
+    "systemResourceMonitor": {
+      "name": "System Resource Monitor",
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Brainstorm Health Monitor component that monitors system resources with special emphasis on Neo4j health",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/systemResourceMonitor.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/systemResourceMonitor.sh",
+      "script_relative_path": "manage/healthMonitor/systemResourceMonitor.sh",
+      "arguments": false,
+      "children": [],
+      "scope": "system",
+      "priority": "high",
+      "frequency": "periodic",
+      "status": "active",
+      "timeout": "5 minutes",
+      "retries": 2,
+      "structuredLogging": true,
+      "options": {
+        "launch": {
+          "processAlreadyRunning": {
+            "withoutError": {
+              "killPreexisting": false,
+              "launchNew": false
+            },
+            "withError": {
+              "killPreexisting": true,
+              "launchNew": true
+            }
+          }
+        }
+      },
+      "notes": "Second component of Brainstorm Health Monitor (BHM) system. Monitors system resources with special focus on Neo4j health: service status, memory usage, heap utilization, GC metrics, connection testing, and response times. Also monitors strfry service health and general system resources (memory, disk, load). Emits HEALTH_ALERT events with alertType: NEO4J_SERVICE_DOWN, NEO4J_CONNECTION_FAILED, NEO4J_HIGH_MEMORY_USAGE, NEO4J_HEAP_CRITICAL, NEO4J_HEAP_WARNING, STRFRY_SERVICE_DOWN, SYSTEM_MEMORY_CRITICAL, SYSTEM_MEMORY_WARNING, SYSTEM_DISK_CRITICAL, SYSTEM_DISK_WARNING."
     }
   },
 

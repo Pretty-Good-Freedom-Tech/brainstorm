@@ -69,6 +69,47 @@
             font-size: 0.9rem;
         }
 
+        /* Run Task Button Styles */
+        .run-task-section {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .run-task-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .run-task-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .run-task-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .run-task-btn.running {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            animation: pulse 2s infinite;
+        }
+
         .status-indicator {
             display: inline-flex;
             align-items: center;
@@ -675,6 +716,17 @@
                 <div id="task-description" style="color: #666; font-size: 0.95rem; text-align: center;">
                     Loading task description...
                 </div>
+
+                <!-- Run Task Section -->
+                <div class="run-task-section" id="run-task-section" style="display: none;">
+                    <button class="run-task-btn" id="run-task-btn" onclick="handleRunTask()">
+                        <span id="run-task-icon">▶️</span>
+                        <span id="run-task-text">Run Task</span>
+                    </button>
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;" id="run-task-hint">
+                        Execute this task now
+                    </div>
+                </div>
             </div>
 
             <!-- Execution Sessions -->
@@ -803,6 +855,16 @@
 
             // Setup raw events toggle
             setupRawEventsToggle(rawEvents);
+
+            // Store task data globally for run task functionality
+            window.currentTaskData = taskData;
+
+            // Show run task section
+            document.getElementById('run-task-section').style.display = 'block';
+
+            // Show content
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('task-content').style.display = 'block';
         }
 
         // Render execution sessions
@@ -1218,6 +1280,307 @@
             
             document.getElementById('loading').style.display = 'none';
             document.getElementById('task-content').style.display = 'none';
+        }
+
+        // Handle run task button click
+        async function handleRunTask() {
+            const taskData = window.currentTaskData;
+            if (!taskData) {
+                alert('Task data not loaded');
+                return;
+            }
+
+            const taskName = taskData.name;
+            const taskScope = taskData.scope;
+
+            // Check if task requires customer selection
+            if (taskScope === 'customer') {
+                await showCustomerModal(taskName);
+            } else {
+                // System/owner task - run directly
+                await executeTask(taskName);
+            }
+        }
+
+        // Show customer selection modal for customer-scoped tasks
+        async function showCustomerModal(taskName) {
+            const modalHTML = `
+                <div class="modal-overlay" id="customer-modal">
+                    <div class="modal customer-modal">
+                        <div class="modal-header">
+                            <div class="modal-title">Select Customer</div>
+                            <div class="modal-subtitle">Choose a customer to run task: <strong>${taskName}</strong></div>
+                        </div>
+                        
+                        <div class="customer-search">
+                            <input type="text" id="customer-search-input" placeholder="Search customers..." class="customer-search-input">
+                        </div>
+                        
+                        <div class="customer-list" id="customer-list">
+                            Loading customers...
+                        </div>
+                        
+                        <div class="modal-actions">
+                            <button class="modal-btn modal-btn-secondary" onclick="closeCustomerModal()">Cancel</button>
+                            <button class="modal-btn modal-btn-primary" id="run-with-customer-btn" onclick="runTaskWithCustomer('${taskName}')" disabled>Run Task</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Load customers
+            await loadCustomers();
+            
+            // Setup search functionality
+            setupCustomerSearch();
+        }
+
+        // Load customers for selector
+        async function loadCustomers() {
+            try {
+                const response = await fetch('/api/get-customers');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const customers = data.customers || [];
+                
+                const customerList = document.getElementById('customer-list');
+                
+                if (customers.length === 0) {
+                    customerList.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">No customers found</div>';
+                    return;
+                }
+                
+                // Render customer list
+                customerList.innerHTML = customers.map(customer => `
+                    <div class="customer-item" data-pubkey="${customer.pubkey}" data-name="${customer.customerName || 'Unknown'}" onclick="selectCustomer(this)">
+                        <div class="customer-name">${customer.name || 'Unknown Customer'}</div>
+                        <div class="customer-pubkey">${customer.pubkey}</div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                const customerList = document.getElementById('customer-list');
+                customerList.innerHTML = '<div style="padding: 2rem; text-align: center; color: #dc3545;">Error loading customers</div>';
+            }
+        }
+
+        // Setup customer search functionality
+        function setupCustomerSearch() {
+            const searchInput = document.getElementById('customer-search-input');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const customerItems = document.querySelectorAll('.customer-item');
+                
+                customerItems.forEach(item => {
+                    const name = item.dataset.name.toLowerCase();
+                    const pubkey = item.dataset.pubkey.toLowerCase();
+                    const matches = name.includes(query) || pubkey.includes(query);
+                    item.style.display = matches ? 'block' : 'none';
+                });
+            });
+        }
+
+        // Select customer in modal
+        function selectCustomer(element) {
+            // Remove previous selection
+            document.querySelectorAll('.customer-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Select current item
+            element.classList.add('selected');
+            
+            // Enable run button
+            document.getElementById('run-with-customer-btn').disabled = false;
+        }
+
+        // Run task with selected customer
+        async function runTaskWithCustomer(taskName) {
+            const selectedCustomer = document.querySelector('.customer-item.selected');
+            if (!selectedCustomer) {
+                alert('Please select a customer');
+                return;
+            }
+            
+            const pubkey = selectedCustomer.dataset.pubkey;
+            const customerName = selectedCustomer.dataset.name;
+            
+            // Close customer modal
+            closeCustomerModal();
+            
+            // Execute task with customer
+            await executeTask(taskName, { pubkey, customerName });
+        }
+
+        // Close customer selector modal
+        function closeCustomerModal() {
+            const modal = document.getElementById('customer-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Execute task
+        async function executeTask(taskName, customerData = null) {
+            // Update button state
+            updateRunTaskButton(true);
+
+            // Build API URL
+            let apiUrl = `/api/run-task?taskName=${encodeURIComponent(taskName)}`;
+            if (customerData) {
+                apiUrl += `&pubkey=${encodeURIComponent(customerData.pubkey)}`;
+                if (customerData.customerName && customerData.customerName !== 'Unknown') {
+                    apiUrl += `&customerName=${encodeURIComponent(customerData.customerName)}`;
+                }
+            }
+            
+            // Show execution modal
+            showExecutionModal(taskName, customerData);
+            
+            try {
+                const response = await fetch(apiUrl, { method: 'POST' });
+                const result = await response.json();
+                
+                // Update execution modal with results
+                updateExecutionModal(result);
+                
+                // Refresh task data to show updated execution status
+                setTimeout(() => {
+                    loadTaskData();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error executing task:', error);
+                updateExecutionModal({
+                    success: false,
+                    message: `Error executing task: ${error.message}`,
+                    execution: {
+                        stdout: '',
+                        stderr: error.message,
+                        exitCode: -1
+                    }
+                });
+            } finally {
+                // Reset button state
+                updateRunTaskButton(false);
+            }
+        }
+
+        // Update run task button state
+        function updateRunTaskButton(isRunning) {
+            const button = document.getElementById('run-task-btn');
+            const icon = document.getElementById('run-task-icon');
+            const text = document.getElementById('run-task-text');
+            const hint = document.getElementById('run-task-hint');
+            
+            if (isRunning) {
+                button.classList.add('running');
+                button.disabled = true;
+                icon.textContent = '🔄';
+                text.textContent = 'Running...';
+                hint.textContent = 'Task execution in progress';
+            } else {
+                button.classList.remove('running');
+                button.disabled = false;
+                icon.textContent = '▶️';
+                text.textContent = 'Run Task';
+                hint.textContent = 'Execute this task now';
+            }
+        }
+
+        // Show execution modal
+        function showExecutionModal(taskName, customerData) {
+            const customerInfo = customerData ? 
+                `<div><strong>Customer:</strong> ${customerData.customerName} (${customerData.pubkey.substring(0, 16)}...)</div>` : 
+                '';
+            
+            const modalHTML = `
+                <div class="modal-overlay" id="execution-modal">
+                    <div class="modal execution-modal">
+                        <div class="modal-header">
+                            <div class="modal-title">Task Execution: ${taskName}</div>
+                            ${customerInfo}
+                        </div>
+                        
+                        <div class="execution-status running" id="execution-status">
+                            <span>🔄</span>
+                            <span>Task is running...</span>
+                        </div>
+                        
+                        <div class="execution-output" id="execution-output">
+                            Initializing task execution...
+                        </div>
+                        
+                        <div class="modal-actions">
+                            <button class="modal-btn modal-btn-secondary" onclick="closeExecutionModal()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Update execution modal with results
+        function updateExecutionModal(result) {
+            const statusElement = document.getElementById('execution-status');
+            const outputElement = document.getElementById('execution-output');
+            
+            if (!statusElement || !outputElement) return;
+            
+            // Update status
+            statusElement.className = `execution-status ${result.success ? 'success' : 'error'}`;
+            statusElement.innerHTML = `
+                <span>${result.success ? '✅' : '❌'}</span>
+                <span>${result.message || (result.success ? 'Task completed successfully' : 'Task failed')}</span>
+            `;
+            
+            // Update output
+            let output = '';
+            if (result.execution) {
+                // Handle async tasks differently
+                if (result.execution.async) {
+                    output += `Status: ${result.execution.status || 'Running'}\n\n`;
+                    if (result.execution.statusMessage) {
+                        output += `${result.execution.statusMessage}\n\n`;
+                    }
+                    if (result.execution.pid) {
+                        output += `Process ID: ${result.execution.pid}\n`;
+                    }
+                    if (result.execution.estimatedDuration) {
+                        output += `Estimated Duration: ${result.execution.estimatedDuration}\n`;
+                    }
+                } else {
+                    // Handle sync tasks with traditional output
+                    if (result.execution.stdout) {
+                        output += `STDOUT:\n${result.execution.stdout}\n\n`;
+                    }
+                    if (result.execution.stderr) {
+                        output += `STDERR:\n${result.execution.stderr}\n\n`;
+                    }
+                    if (result.execution.exitCode !== null && result.execution.exitCode !== undefined) {
+                        output += `Exit Code: ${result.execution.exitCode}`;
+                    }
+                }
+            } else {
+                output = result.message || 'No execution details available';
+            }
+            
+            outputElement.textContent = output;
+        }
+
+        // Close execution modal
+        function closeExecutionModal() {
+            const modal = document.getElementById('execution-modal');
+            if (modal) {
+                modal.remove();
+            }
         }
 
         // Initialize on page load
