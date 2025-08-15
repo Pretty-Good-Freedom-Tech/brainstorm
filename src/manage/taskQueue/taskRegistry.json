@@ -1004,6 +1004,76 @@
         }
       },
       "notes": "Third component of Brainstorm Health Monitor (BHM) system. Orchestrates task anomaly detection and performance baseline tracking. Analyzes structured logging events to detect stuck tasks (>60min runtime), excessive runtimes (>3x baseline), silent failures (no progress >30min), and performance deviations (>2σ from baseline). Maintains rolling 7-day performance baselines with outlier filtering. Emits HEALTH_ALERT events with alertType: STUCK_TASK, EXCESSIVE_RUNTIME, SILENT_FAILURE, PERFORMANCE_DEVIATION. Coordinates taskAnomalyDetector.js and taskPerformanceBaseline.js components."
+    },
+
+    "neo4jStabilityMonitor": {
+      "name": "Neo4j Stability Monitor",
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Comprehensive Neo4j stability monitoring that orchestrates crash pattern detection and performance analysis",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/neo4jStabilityMonitor.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/neo4jStabilityMonitor.sh",
+      "script_relative_path": "manage/healthMonitor/neo4jStabilityMonitor.sh",
+      "arguments": false,
+      "children": ["neo4jCrashPatternDetector"],
+      "scope": "system",
+      "priority": "high",
+      "frequency": "periodic",
+      "status": "active",
+      "timeout": "15 minutes",
+      "retries": 2,
+      "structuredLogging": true,
+      "options": {
+        "launch": {
+          "processAlreadyRunning": {
+            "withoutError": {
+              "killPreexisting": false,
+              "launchNew": false
+            },
+            "withError": {
+              "killPreexisting": true,
+              "launchNew": true
+            }
+          }
+        }
+      },
+      "notes": "Fourth component of Brainstorm Health Monitor (BHM) system. Orchestrates comprehensive Neo4j stability monitoring including crash pattern detection, index health validation, connection performance testing, and crash history analysis. Addresses common Neo4j failure modes: OutOfMemoryError patterns (heap space, GC overhead, metaspace), APOC procedure stalling, missing indexes, and performance degradation. Emits HEALTH_ALERT events with alertType: HEAP_SPACE_OOM, GC_OVERHEAD_OOM, NEO4J_HEAP_CRITICAL, APOC_STALLING, NEO4J_FAILED_INDEXES, NEO4J_QUERY_TIMEOUT, NEO4J_FREQUENT_RESTARTS. Coordinates neo4jCrashPatternDetector component."
+    },
+
+    "neo4jCrashPatternDetector": {
+      "name": "Neo4j Crash Pattern Detector",
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Specialized detector for Neo4j crash patterns and memory issues",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/neo4jCrashPatternDetector.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/neo4jCrashPatternDetector.sh",
+      "script_relative_path": "manage/healthMonitor/neo4jCrashPatternDetector.sh",
+      "arguments": false,
+      "parent": "neo4jStabilityMonitor",
+      "scope": "system",
+      "priority": "high",
+      "frequency": "periodic",
+      "status": "active",
+      "timeout": "10 minutes",
+      "retries": 1,
+      "structuredLogging": true,
+      "options": {
+        "launch": {
+          "processAlreadyRunning": {
+            "withoutError": {
+              "killPreexisting": false,
+              "launchNew": false
+            },
+            "withError": {
+              "killPreexisting": true,
+              "launchNew": true
+            }
+          }
+        }
+      },
+      "notes": "Specialized Neo4j crash pattern detector that analyzes logs and runtime metrics for specific failure modes. Detects OutOfMemoryError patterns: Java heap space exhaustion, GC overhead limit exceeded (>98% GC time), Metaspace/Compressed class space errors, native thread creation failures. Monitors real-time heap utilization, GC overhead, and full GC frequency. Detects APOC procedure stalling and long-running transactions (>5min). Uses jstat for detailed JVM metrics and log pattern analysis. Emits detailed HEALTH_ALERT events with specific crash pattern types and remediation guidance."
     }
   },
 
