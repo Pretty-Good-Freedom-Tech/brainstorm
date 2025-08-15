@@ -39,6 +39,7 @@ const {
 
 const { handleGetGrapeRankConfig, handleUpdateGrapeRankConfig } = require('./algos/config');
 const { handleGetConfig, handleUpdateConfig } = require('./algos/config');
+const { neo4jHealth } = require('./neo4j-health');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
@@ -56,7 +57,6 @@ const manage = require('./manage');
 const lists = require('./lists');
 const status = require('./status');
 const customers = require('./customers');
-const neo4jHealth = require('./neo4j-health');
 
 const { handleNeo4jSetupConstraintsAndIndexes } = require('./neo4j/commands/setupConstraintsAndIndexes.js');
 
