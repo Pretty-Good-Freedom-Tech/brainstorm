@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Watchdog Dashboard - Brainstorm</title>
-    <link rel="stylesheet" href="/css/common.css">
+    <link rel="shortcut icon" href="/img/brainstorm010.svg">
     <link rel="stylesheet" href="/css/task-watchdog-dashboard.css">
 </head>
 <body>
-    <div id="header-placeholder"></div>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
     
+    <!-- Main content wrapper -->
     <div class="page-content">
         <div class="dashboard-header">
             <h1>Task Watchdog Dashboard</h1>
@@ -143,7 +145,8 @@
         </div>
     </div>
 
-    <div id="footer-placeholder"></div>
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
 
     <!-- Action Modal -->
     <div id="action-modal" class="modal">
@@ -163,8 +166,8 @@
         </div>
     </div>
 
-    <script src="/components/header/header.js"></script>
-    <script src="/components/footer/footer.js"></script>
-    <script src="/js/task-watchdog-dashboard.js"></script>
+    <script src="./js/task-watchdog-dashboard.js"></script>
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
 </body>
 </html>

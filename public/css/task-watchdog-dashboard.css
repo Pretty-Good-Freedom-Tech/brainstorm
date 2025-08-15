@@ -1,5 +1,5 @@
 /* Task Watchdog Dashboard Styles */
-
+@import "./common.css";
 .dashboard-header {
     display: flex;
     justify-content: space-between;
