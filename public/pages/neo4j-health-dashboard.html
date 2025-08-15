@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neo4j Health Dashboard - Brainstorm</title>
     <link rel="stylesheet" href="../css/common.css">
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
     <style>
         .dashboard-container {
             max-width: 1400px;
@@ -194,7 +196,12 @@
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+    
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="dashboard-container">
         <header>
             <h1>🔍 Neo4j Health Dashboard</h1>
             <p>Comprehensive Neo4j stability monitoring and crash pattern detection</p>
@@ -550,5 +557,9 @@
             alertsList.innerHTML = `<div class="alert-item alert-critical">${message}</div>`;
         }
     </script>
+    </div>
+    
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
 </body>
 </html>

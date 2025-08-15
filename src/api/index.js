@@ -294,8 +294,6 @@ function register(app) {
     // Neo4j Health Dashboard endpoints
     app.get('/api/neo4j-health/complete', neo4jHealth.handleCompleteNeo4jHealth);
     app.get('/api/neo4j-health/alerts', neo4jHealth.handleAlertsNeo4jHealth);
-    app.get('/api/neo4j-health/heap', neo4jHealth.handleHeapNeo4jHealth);
-    app.get('/api/neo4j-health/service', neo4jHealth.handleServiceNeo4jHealth);
 
     console.log('Registered all Brainstorm API endpoints');
 }
