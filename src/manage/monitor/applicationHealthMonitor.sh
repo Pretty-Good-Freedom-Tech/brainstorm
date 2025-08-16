@@ -93,17 +93,27 @@ send_health_alert() {
     local message="$3"
     local additional_data="${4:-{}}"
     
-    local metadata=$(cat <<EOF
-{
-  "alertType": "$alert_type",
-  "severity": "$severity",
-  "component": "application_health",
-  "message": "$message",
-  "recommendedAction": "Review application component status and logs",
-  "additionalData": $additional_data
-}
-EOF
-)
+    # Ensure additional_data is valid JSON
+    if ! echo "$additional_data" | jq . >/dev/null 2>&1; then
+        additional_data="{}"
+    fi
+    
+    local metadata=$(jq -n \
+        --arg alertType "$alert_type" \
+        --arg severity "$severity" \
+        --arg component "application_health" \
+        --arg message "$message" \
+        --arg recommendedAction "Review application component status and logs" \
+        --argjson additionalData "$additional_data" \
+        '{
+            "alertType": $alertType,
+            "severity": $severity,
+            "component": $component,
+            "message": $message,
+            "recommendedAction": $recommendedAction,
+            "additionalData": $additionalData
+        }'
+    )
     
     emit_monitoring_event "HEALTH_ALERT" "$message" "$metadata"
 }
@@ -209,7 +219,6 @@ check_recent_errors() {
 
 # Monitor application health
 monitor_application_health() {
-    emit_monitoring_event "TASK_START" "Starting application health monitoring"
     
     local service_results=()
     local failed_services=0
