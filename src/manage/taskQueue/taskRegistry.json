@@ -1074,6 +1074,93 @@
         }
       },
       "notes": "Specialized Neo4j crash pattern detector that analyzes logs and runtime metrics for specific failure modes. Detects OutOfMemoryError patterns: Java heap space exhaustion, GC overhead limit exceeded (>98% GC time), Metaspace/Compressed class space errors, native thread creation failures. Monitors real-time heap utilization, GC overhead, and full GC frequency. Detects APOC procedure stalling and long-running transactions (>5min). Uses jstat for detailed JVM metrics and log pattern analysis. Emits detailed HEALTH_ALERT events with specific crash pattern types and remediation guidance."
+    },
+
+    "applicationHealthMonitor": {
+      "name": "Application Health Monitor",
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Brainstorm Health Monitor component that monitors application services and endpoints",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/algos/applicationHealthMonitor.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/applicationHealthMonitor.sh",
+      "script_relative_path": "algos/applicationHealthMonitor.sh",
+      "arguments": false,
+      "children": [],
+      "scope": "system",
+      "priority": "high",
+      "frequency": "periodic",
+      "status": "active",
+      "structuredLogging": true,
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "duration": 600000,
+              "forceKill": false
+            }
+          }
+        }
+      },
+      "notes": "Monitors Brainstorm application health including service processes, port availability, HTTP endpoints, and application-specific metrics. Emits HEALTH_ALERT events for service failures and performance issues."
+    },
+
+    "databasePerformanceMonitor": {
+      "name": "Database Performance Monitor", 
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Brainstorm Health Monitor component that monitors Neo4j database performance metrics",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/algos/databasePerformanceMonitor.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/databasePerformanceMonitor.sh",
+      "script_relative_path": "algos/databasePerformanceMonitor.sh",
+      "arguments": false,
+      "children": [],
+      "scope": "system",
+      "priority": "high",
+      "frequency": "periodic",
+      "status": "active",
+      "structuredLogging": true,
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "duration": 600000,
+              "forceKill": false
+            }
+          }
+        }
+      },
+      "notes": "Monitors Neo4j database performance including query execution times, heap utilization, transaction metrics, and connection health. Emits HEALTH_ALERT events for performance degradation and resource constraints."
+    },
+
+    "networkConnectivityMonitor": {
+      "name": "Network Connectivity Monitor",
+      "categories": ["maintenance", "healthMonitor"],
+      "description": "Brainstorm Health Monitor component that monitors network connectivity and external services",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/algos/networkConnectivityMonitor.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/networkConnectivityMonitor.sh", 
+      "script_relative_path": "algos/networkConnectivityMonitor.sh",
+      "arguments": false,
+      "children": [],
+      "scope": "system",
+      "priority": "medium",
+      "frequency": "periodic",
+      "status": "active",
+      "structuredLogging": true,
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "duration": 600000,
+              "forceKill": false
+            }
+          }
+        }
+      },
+      "notes": "Monitors network connectivity to critical endpoints including DNS resolution, Nostr relays, external APIs, and internet connectivity. Emits HEALTH_ALERT events for network failures and connectivity issues."
     }
   },
 
