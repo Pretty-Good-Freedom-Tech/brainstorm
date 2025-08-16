@@ -133,7 +133,7 @@ analyze_task_health() {
         
         if [[ -n "$task_name" && -n "$pid" && -n "$timestamp" ]]; then
             # Check if this task has a corresponding END or ERROR event
-            local has_completion=$(grep -c "\"eventType\":\"TASK_\(END\|ERROR\)\".*\"taskName\":\"$task_name\".*\"pid\":$pid" "$events_file" || echo "0")
+            local has_completion=$(grep -c "\"eventType\":\"TASK_\(END\|ERROR\)\".*\"taskName\":\"$task_name\".*\"pid\":$pid" "$events_file" 2>/dev/null | tr -d '\n' || echo "0")
             
             if [[ "$has_completion" -eq 0 ]]; then
                 # Task is potentially still running
