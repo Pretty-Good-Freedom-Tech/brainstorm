@@ -15,8 +15,8 @@ class Neo4jHealthDataParser {
         this.eventsFile = path.join(this.logDir, 'taskQueue', 'events.jsonl');
     }
 
-    // Get recent events for a specific task and target
-    async getRecentEvents(taskName, target, limit = 10) {
+    // Get recent events for a specific task, with optional filtering by target or eventType
+    async getRecentEvents(taskName, filter = null, limit = 10, filterType = 'target') {
         if (!fs.existsSync(this.eventsFile)) {
             return [];
         }
@@ -31,9 +31,22 @@ class Neo4jHealthDataParser {
             
             try {
                 const event = JSON.parse(line);
-                if (event.taskName === taskName && event.eventType === target) {
-                    events.push(event);
+                
+                // Always match taskName
+                if (event.taskName !== taskName) {
+                    continue;
                 }
+                
+                // Apply filter if provided
+                if (filter !== null) {
+                    if (filterType === 'eventType' && event.eventType !== filter) {
+                        continue;
+                    } else if (filterType === 'target' && event.target !== filter) {
+                        continue;
+                    }
+                }
+                
+                events.push(event);
             } catch (error) {
                 // Skip malformed lines
                 continue;
@@ -88,7 +101,7 @@ class Neo4jHealthDataParser {
     // Get response time from database performance monitor events
     async getResponseTimeFromEvents() {
         // Look for CONNECTION_CHECK events specifically, as that's where responseTime is stored
-        const recentEvents = await this.getRecentEvents('databasePerformanceMonitor', 'CONNECTION_CHECK', 1);
+        const recentEvents = await this.getRecentEvents('databasePerformanceMonitor', 'CONNECTION_CHECK', 1, 'eventType');
         
         if (recentEvents.length === 0) {
             return null;
@@ -124,7 +137,7 @@ class Neo4jHealthDataParser {
         }
         
         // Fallback to event-based data
-        const recentEvents = await this.getRecentEvents('systemResourceMonitor', 'neo4j', 1);
+        const recentEvents = await this.getRecentEvents('systemResourceMonitor', 'neo4j', 1, 'target');
         
         if (recentEvents.length === 0) {
             return {
@@ -200,7 +213,7 @@ class Neo4jHealthDataParser {
         }
         
         // Fallback to event-based data
-        const recentEvents = await this.getRecentEvents('neo4jCrashPatternDetector', 'heap_gc_analysis', 1);
+        const recentEvents = await this.getRecentEvents('neo4jCrashPatternDetector', 'heap_gc_analysis', 1, 'target');
         
         if (recentEvents.length === 0) {
             return {
@@ -226,7 +239,7 @@ class Neo4jHealthDataParser {
 
     // Get index health from neo4jStabilityMonitor events
     async getIndexHealth() {
-        const recentEvents = await this.getRecentEvents('neo4jStabilityMonitor', 'index_health', 1);
+        const recentEvents = await this.getRecentEvents('neo4jStabilityMonitor', 'index_health', 1, 'target');
         
         if (recentEvents.length === 0) {
             return {
