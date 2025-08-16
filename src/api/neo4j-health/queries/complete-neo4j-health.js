@@ -85,8 +85,30 @@ class Neo4jHealthDataParser {
         return alerts.slice(0, limit);
     }
 
+    // Get response time from database performance monitor events
+    async getResponseTimeFromEvents() {
+        const recentEvents = await this.getRecentEvents('databasePerformanceMonitor', 'owner', 1);
+        
+        if (recentEvents.length === 0) {
+            return null;
+        }
+
+        const latestEvent = recentEvents[0];
+        
+        // Look for response time in the combined metrics
+        if (latestEvent.metadata && latestEvent.metadata.responseTime) {
+            const responseTime = parseFloat(latestEvent.metadata.responseTime);
+            return isNaN(responseTime) ? null : `${responseTime.toFixed(3)}s`;
+        }
+        
+        return null;
+    }
+
     // Get service status from enhanced metrics or fallback to events
     async getServiceStatus() {
+        // Get response time from database performance monitor events
+        const responseTime = await this.getResponseTimeFromEvents();
+        
         // Try enhanced metrics first
         const enhancedMetrics = await this.getEnhancedMetrics();
         if (enhancedMetrics) {
@@ -95,7 +117,7 @@ class Neo4jHealthDataParser {
                 pid: enhancedMetrics.pid || null,
                 memoryMB: enhancedMetrics.memory ? Math.round(enhancedMetrics.memory.rssBytes / (1024 * 1024)) : 0,
                 connectionTest: enhancedMetrics.status === 'running' ? 'success' : 'failed',
-                responseTime: null, // Response time comes from database performance monitor
+                responseTime: responseTime,
                 source: 'enhanced'
             };
         }
@@ -109,7 +131,7 @@ class Neo4jHealthDataParser {
                 pid: null,
                 memoryMB: 0,
                 connectionTest: 'unknown',
-                responseTime: null,
+                responseTime: responseTime,
                 source: 'events'
             };
         }
@@ -122,7 +144,7 @@ class Neo4jHealthDataParser {
             pid: metadata.pid || null,
             memoryMB: metadata.memoryUsageMB || 0,
             connectionTest: metadata.connectionTest || 'unknown',
-            responseTime: metadata.responseTime || null,
+            responseTime: responseTime,
             source: 'events'
         };
     }
