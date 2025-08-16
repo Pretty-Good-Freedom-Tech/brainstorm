@@ -87,14 +87,14 @@ EOF
 get_cpu_usage() {
     # Get 1-minute load average and CPU count
     local load_avg=$(uptime | awk -F'load average:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
-    local cpu_count=$(nproc)
-    local cpu_percent=$(echo "scale=2; $load_avg * 100 / $cpu_count" | bc)
+    local cpu_count=$(sysctl -n hw.ncpu 2>/dev/null || echo "1")
+    local cpu_percent=$(awk "BEGIN {printf \"%.2f\", $load_avg * 100 / $cpu_count}")
     
     # Get detailed CPU stats using iostat if available
     local cpu_idle=""
     if command -v iostat >/dev/null 2>&1; then
         cpu_idle=$(iostat -c 1 2 | tail -1 | awk '{print $6}')
-        local cpu_used=$(echo "scale=2; 100 - $cpu_idle" | bc)
+        local cpu_used=$(awk "BEGIN {printf \"%.2f\", 100 - $cpu_idle}")
     else
         local cpu_used="$cpu_percent"
     fi

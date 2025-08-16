@@ -190,7 +190,7 @@ check_recent_errors() {
 
 # Monitor application health
 monitor_application_health() {
-    log_event "TASK_START" "Starting application health monitoring"
+    emit_monitoring_event "TASK_START" "Starting application health monitoring"
     
     local service_results=()
     local failed_services=0
@@ -265,7 +265,7 @@ EOF
             send_health_alert "APPLICATION_HIGH_ERRORS" "warning" "High error count for $service_name: $error_count errors in last hour" "$error_info"
         fi
         
-        log_event "SERVICE_CHECK" "Checked service: $service_name" "$service_result"
+        emit_monitoring_event "SERVICE_CHECK" "Checked service: $service_name" "$service_result"
     done
     
     # Check overall application health

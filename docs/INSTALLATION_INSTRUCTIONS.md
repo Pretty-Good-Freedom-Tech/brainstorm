@@ -63,6 +63,8 @@ sudo apt upgrade -y
 # Install necessary dependencies
 sudo apt install -y curl git pv
 
+sudo apt-get install -y bc jq sysstat
+
 # Install JDK for enhanced Neo4j monitoring (heap usage, GC metrics)
 # This provides jstat and other Java monitoring tools for system health monitoring
 # Neo4j 5.26.3 requires Java 17 or later
