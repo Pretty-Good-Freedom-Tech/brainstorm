@@ -6,11 +6,22 @@
 set -euo pipefail
 
 # Source configuration and logging
-source "$(dirname "$0")/../lib/config.js" 2>/dev/null || {
-    BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}"
-    BRAINSTORM_DATA_DIR="${BRAINSTORM_DATA_DIR:-/var/lib/brainstorm}"
-    BRAINSTORM_MODULE_BASE_DIR="${BRAINSTORM_MODULE_BASE_DIR:-/usr/local/lib/node_modules/brainstorm}"
-}
+# Try to source Brainstorm configuration
+if [ -f "/etc/brainstorm/brainstorm.conf" ]; then
+    source "/etc/brainstorm/brainstorm.conf"
+elif [ -f "${BRAINSTORM_MODULE_BASE_DIR:-/usr/local/lib/node_modules/brainstorm}/config/brainstorm.conf" ]; then
+    source "${BRAINSTORM_MODULE_BASE_DIR:-/usr/local/lib/node_modules/brainstorm}/config/brainstorm.conf"
+fi
+
+# Set default values if not already set
+BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}"
+BRAINSTORM_DATA_DIR="${BRAINSTORM_DATA_DIR:-/var/lib/brainstorm}"
+BRAINSTORM_MODULE_BASE_DIR="${BRAINSTORM_MODULE_BASE_DIR:-/usr/local/lib/node_modules/brainstorm}"
+
+# Set default Neo4j configuration if not already set
+NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}"
+NEO4J_USER="${NEO4J_USER:-neo4j}"
+NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4j}"
 
 # Set monitoring verbosity (full, alerts, minimal)
 MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"

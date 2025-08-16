@@ -91,12 +91,12 @@ get_cpu_usage() {
     local cpu_percent=$(awk "BEGIN {printf \"%.2f\", $load_avg * 100 / $cpu_count}")
     
     # Get detailed CPU stats using iostat if available
-    local cpu_idle=""
+    local cpu_used="$cpu_percent"
     if command -v iostat >/dev/null 2>&1; then
-        cpu_idle=$(iostat -c 1 2 | tail -1 | awk '{print $6}')
-        local cpu_used=$(awk "BEGIN {printf \"%.2f\", 100 - $cpu_idle}")
-    else
-        local cpu_used="$cpu_percent"
+        local cpu_idle=$(iostat -c 1 2 2>/dev/null | tail -1 | awk '{print $6}' 2>/dev/null || echo "")
+        if [[ -n "$cpu_idle" && "$cpu_idle" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+            cpu_used=$(awk "BEGIN {printf \"%.2f\", 100 - $cpu_idle}")
+        fi
     fi
     
     echo "{\"loadAverage\": $load_avg, \"cpuCount\": $cpu_count, \"cpuPercent\": $cpu_percent, \"cpuUsed\": ${cpu_used:-$cpu_percent}}"

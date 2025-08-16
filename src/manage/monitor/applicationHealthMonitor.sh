@@ -86,13 +86,35 @@ emit_monitoring_event() {
     esac
 }
 
+# Health alert function
+send_health_alert() {
+    local alert_type="$1"
+    local severity="$2"
+    local message="$3"
+    local additional_data="${4:-{}}"
+    
+    local metadata=$(cat <<EOF
+{
+  "alertType": "$alert_type",
+  "severity": "$severity",
+  "component": "application_health",
+  "message": "$message",
+  "recommendedAction": "Review application component status and logs",
+  "additionalData": $additional_data
+}
+EOF
+)
+    
+    emit_monitoring_event "HEALTH_ALERT" "$message" "$metadata"
+}
+
 # Check if process is running
 check_process() {
     local service_name="$1"
     local process_pattern="$2"
     
     local pids=$(pgrep -f "$process_pattern" 2>/dev/null || echo "")
-    local process_count=$(echo "$pids" | grep -c . || echo "0")
+    local process_count=$(echo "$pids" | grep -c . 2>/dev/null | tr -d '\n' || echo "0")
     
     local process_info="{\"service\": \"$service_name\", \"pattern\": \"$process_pattern\", \"processCount\": $process_count"
     
