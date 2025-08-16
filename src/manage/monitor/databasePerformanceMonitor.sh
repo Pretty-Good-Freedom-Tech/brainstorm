@@ -136,8 +136,32 @@ check_neo4j_connection() {
     fi
 }
 
-# Get database metrics
+# Get database metrics (enhanced with neo4j-metrics-collector integration)
 get_database_metrics() {
+    local enhanced_metrics_file="/var/lib/brainstorm/monitoring/neo4j_metrics.json"
+    
+    # Try to use enhanced metrics from neo4j-metrics-collector first
+    if [[ -f "$enhanced_metrics_file" ]]; then
+        local file_age=$(($(date +%s) - $(stat -c %Y "$enhanced_metrics_file" 2>/dev/null || echo 0)))
+        
+        # Use enhanced metrics if file is fresh (less than 2 minutes old)
+        if [[ $file_age -lt 120 ]]; then
+            local enhanced_data=$(cat "$enhanced_metrics_file" 2>/dev/null)
+            if [[ -n "$enhanced_data" ]]; then
+                # Extract and reformat enhanced metrics for compatibility
+                local heap_used=$(echo "$enhanced_data" | jq -r '.heap.usedBytes // 0' 2>/dev/null || echo "0")
+                local heap_total=$(echo "$enhanced_data" | jq -r '.heap.totalBytes // 0' 2>/dev/null || echo "0")
+                local heap_percent=$(echo "$enhanced_data" | jq -r '.heap.percentUsed // 0' 2>/dev/null || echo "0")
+                local gc_time=$(echo "$enhanced_data" | jq -r '.gc.totalGCTime // 0' 2>/dev/null || echo "0")
+                local threads=$(echo "$enhanced_data" | jq -r '.threads // 0' 2>/dev/null || echo "0")
+                
+                echo "{\"heapUsed\": $heap_used, \"heapMax\": $heap_total, \"heapUtilization\": $heap_percent, \"gcTime\": $gc_time, \"threads\": $threads, \"source\": \"enhanced\"}"
+                return 0
+            fi
+        fi
+    fi
+    
+    # Fallback to legacy JMX query method
     local metrics_file=$(mktemp)
     
     if cypher-shell -u neo4j -p "$NEO4J_PASSWORD" --format plain "
@@ -158,7 +182,7 @@ get_database_metrics() {
         
         if [[ "$heap_used" =~ ^[0-9]+$ ]] && [[ "$heap_max" =~ ^[0-9]+$ ]]; then
             local heap_utilization=$(echo "scale=2; $heap_used * 100 / $heap_max" | bc)
-            echo "{\"heapUsed\": $heap_used, \"heapMax\": $heap_max, \"heapCommitted\": $heap_committed, \"heapUtilization\": $heap_utilization}"
+            echo "{\"heapUsed\": $heap_used, \"heapMax\": $heap_max, \"heapCommitted\": $heap_committed, \"heapUtilization\": $heap_utilization, \"source\": \"legacy\"}"
         else
             echo "{\"error\": \"Failed to parse heap metrics\"}"
         fi
