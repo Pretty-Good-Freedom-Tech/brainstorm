@@ -1279,9 +1279,9 @@ async function setupNeo4jMetricsCollectorService() {
     // Create monitoring directory if it doesn't exist
     const monitoringDir = '/var/lib/brainstorm/monitoring';
     if (!fs.existsSync(monitoringDir)) {
-      execSync(`mkdir -p ${monitoringDir}`);
-      execSync(`chown neo4j:brainstorm ${monitoringDir}`);
-      execSync(`chmod 775 ${monitoringDir}`);
+      execSync(`sudo mkdir -p ${monitoringDir}`);
+      execSync(`sudo chown neo4j:brainstorm ${monitoringDir}`);
+      execSync(`sudo chmod 775 ${monitoringDir}`);
       console.log(`Monitoring directory created at ${monitoringDir}`);
     }
 
