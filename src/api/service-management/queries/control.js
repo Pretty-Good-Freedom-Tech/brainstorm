@@ -29,28 +29,58 @@ class ServiceController {
     // Execute systemctl command
     executeSystemctl(action, service) {
         try {
-            let command;
+            let commands = [];
+            let outputs = [];
             
-            if (action === 'trigger' && service === 'brainstorm-monitoring-scheduler.service') {
-                // Special case: trigger scheduler immediately
-                command = 'sudo systemctl start brainstorm-monitoring-scheduler.service';
+            // Special handling for brainstorm-monitoring-scheduler
+            if (service === 'brainstorm-monitoring-scheduler.service') {
+                if (action === 'stop') {
+                    // Stop both timer and service
+                    commands = [
+                        'sudo systemctl stop brainstorm-monitoring-scheduler.timer',
+                        'sudo systemctl stop brainstorm-monitoring-scheduler.service'
+                    ];
+                } else if (action === 'start') {
+                    // Start both service and timer
+                    commands = [
+                        'sudo systemctl start brainstorm-monitoring-scheduler.service',
+                        'sudo systemctl start brainstorm-monitoring-scheduler.timer'
+                    ];
+                } else if (action === 'restart') {
+                    // Restart both timer and service
+                    commands = [
+                        'sudo systemctl stop brainstorm-monitoring-scheduler.timer',
+                        'sudo systemctl restart brainstorm-monitoring-scheduler.service',
+                        'sudo systemctl start brainstorm-monitoring-scheduler.timer'
+                    ];
+                } else if (action === 'trigger') {
+                    // Trigger scheduler immediately
+                    commands = ['sudo systemctl start brainstorm-monitoring-scheduler.service'];
+                } else {
+                    commands = [`sudo systemctl ${action} ${service}`];
+                }
             } else {
-                command = `sudo systemctl ${action} ${service}`;
+                // Standard single command for other services
+                commands = [`sudo systemctl ${action} ${service}`];
             }
             
-            console.log(`Executing: ${command}`);
-            const output = execSync(command, { encoding: 'utf8', timeout: 30000 });
+            // Execute all commands
+            for (const command of commands) {
+                console.log(`Executing: ${command}`);
+                const output = execSync(command, { encoding: 'utf8', timeout: 30000 });
+                outputs.push(`${command}: ${output.trim()}`);
+            }
             
             return {
                 success: true,
-                output: output.trim(),
-                command
+                output: outputs.join('\n'),
+                command: commands.join(' && ')
             };
         } catch (error) {
             return {
                 success: false,
                 error: error.message,
-                command: `sudo systemctl ${action} ${service}`
+                command: commands ? commands.join(' && ') : `sudo systemctl ${action} ${service}`
             };
         }
     }
