@@ -99,9 +99,23 @@ EOF
 # Function to run continuous collection
 run_collector() {
     echo "Starting Neo4j metrics collector (interval: ${COLLECTION_INTERVAL}s)"
+    local collection_count=0
     
     while true; do
         collect_neo4j_metrics
+        collection_count=$((collection_count + 1))
+        
+        # Log status every 10th collection (~6-7 minutes)
+        if (( collection_count % 10 == 0 )); then
+            local heap_percent=""
+            local status=""
+            if [[ -f "$METRICS_FILE" ]]; then
+                heap_percent=$(grep -o '"percentUsed":[0-9.]*' "$METRICS_FILE" 2>/dev/null | cut -d: -f2 || echo "unknown")
+                status=$(grep -o '"status":"[^"]*"' "$METRICS_FILE" 2>/dev/null | cut -d: -f2 | tr -d '"' || echo "unknown")
+            fi
+            echo "Neo4j metrics collected (count: $collection_count, status: $status, heap: ${heap_percent}%)"
+        fi
+        
         sleep "$COLLECTION_INTERVAL"
     done
 }
