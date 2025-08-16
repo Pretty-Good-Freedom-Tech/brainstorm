@@ -10,7 +10,7 @@ set -o pipefail
 # Configuration
 METRICS_OUTPUT_DIR="/var/lib/brainstorm/monitoring"
 METRICS_FILE="$METRICS_OUTPUT_DIR/neo4j_metrics.json"
-COLLECTION_INTERVAL=${1:-30}  # Default 30 seconds
+COLLECTION_INTERVAL=${2:-30}  # Default 30 seconds
 
 # Ensure output directory exists
 mkdir -p "$METRICS_OUTPUT_DIR"
