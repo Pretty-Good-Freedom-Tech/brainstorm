@@ -195,6 +195,7 @@ check_index_health() {
             "Check Neo4j logs and consider restart if persistent"
     fi
     
+    
     # Cleanup temp files
     rm -f /tmp/neo4j_indexes.txt /tmp/neo4j_constraints.txt
 }
@@ -209,8 +210,8 @@ validate_connection_performance() {
     if ! pgrep -f "neo4j" > /dev/null 2>&1; then
         emit_stability_alert "NEO4J_SERVICE_DOWN" "critical" \
             "Neo4j service is not running" \
-            "service_failure" \
-            "Start Neo4j service and investigate startup issues"
+            "service_unavailable" \
+            "Check Neo4j service status and restart if necessary"
         return
     fi
     

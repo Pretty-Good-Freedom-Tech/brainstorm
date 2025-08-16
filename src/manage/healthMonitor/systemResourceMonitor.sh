@@ -109,68 +109,91 @@ check_neo4j_status() {
             # Memory usage in MB
             neo4j_memory_mb=$(ps -p "$neo4j_pid" -o rss= 2>/dev/null | awk '{print int($1/1024)}' || echo "0")
             
-            # Try to get Java heap information using multiple methods
-            if command -v jstat >/dev/null 2>&1; then
-                # Method 1: Use jstat if available (JDK installed)
-                # Try as current user first, then as neo4j user if permission denied
-                neo4j_heap_usage=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
-                    used = ($3 + $4 + $6 + $8) * 1024
-                    total = ($1 + $2 + $5 + $7) * 1024
-                    if (total > 0) {
-                        percent = (used / total) * 100
-                        printf "%.1f%% (%.1fMB/%.1fMB)", percent, used/1024/1024, total/1024/1024
-                    } else {
-                        print "unknown"
-                    }
-                }' 2>/dev/null || sudo -u neo4j jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
-                    used = ($3 + $4 + $6 + $8) * 1024
-                    total = ($1 + $2 + $5 + $7) * 1024
-                    if (total > 0) {
-                        percent = (used / total) * 100
-                        printf "%.1f%% (%.1fMB/%.1fMB)", percent, used/1024/1024, total/1024/1024
-                    } else {
-                        print "unknown"
-                    }
-                }' || echo "permission_denied")
+            # Enhanced Neo4j metrics collection with fallback methods
+            local metrics_file="/var/lib/brainstorm/monitoring/neo4j_metrics.json"
+            local enhanced_metrics_available=false
+            
+            # Method 1: Try enhanced metrics from dedicated collector
+            if [[ -f "$metrics_file" && -r "$metrics_file" ]]; then
+                local metrics_age=$(stat -c %Y "$metrics_file" 2>/dev/null || echo "0")
+                local current_time=$(date +%s)
+                local age_diff=$((current_time - metrics_age))
                 
-                # Get GC information with same permission handling
-                neo4j_gc_info=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
-                    printf "YGC:%d,YGCT:%.2fs,FGC:%d,FGCT:%.2fs", $12, $13, $14, $15
-                }' 2>/dev/null || sudo -u neo4j jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
-                    printf "YGC:%d,YGCT:%.2fs,FGC:%d,FGCT:%.2fs", $12, $13, $14, $15
-                }' || echo "permission_denied")
-            else
-                # Method 2: Try Neo4j HTTP API for heap info
-                if command -v curl >/dev/null 2>&1; then
-                    local heap_info=$(curl -s -f "http://localhost:7474/db/manage/server/jmx/domain/java.lang/bean/type=Memory/attribute/HeapMemoryUsage" 2>/dev/null)
-                    if [[ -n "$heap_info" && "$heap_info" != *"error"* ]]; then
-                        # Parse heap info from Neo4j JMX endpoint
-                        neo4j_heap_usage=$(echo "$heap_info" | grep -o '"used":[0-9]*' | cut -d':' -f2 | head -1)
-                        local heap_max=$(echo "$heap_info" | grep -o '"max":[0-9]*' | cut -d':' -f2 | head -1)
-                        if [[ -n "$neo4j_heap_usage" && -n "$heap_max" && "$heap_max" -gt 0 ]]; then
-                            local heap_used_mb=$((neo4j_heap_usage / 1024 / 1024))
-                            local heap_max_mb=$((heap_max / 1024 / 1024))
-                            local heap_percent=$(( (neo4j_heap_usage * 100) / heap_max ))
-                            neo4j_heap_usage="${heap_percent}% (${heap_used_mb}MB/${heap_max_mb}MB)"
+                # Use metrics if they're less than 2 minutes old
+                if [[ $age_diff -lt 120 ]]; then
+                    local heap_data=$(jq -r '.heap // empty' "$metrics_file" 2>/dev/null)
+                    local gc_data=$(jq -r '.gc // empty' "$metrics_file" 2>/dev/null)
+                    
+                    if [[ -n "$heap_data" && "$heap_data" != "null" && "$heap_data" != "empty" ]]; then
+                        local heap_used_mb=$(echo "$heap_data" | jq -r '.usedMB')
+                        local heap_total_mb=$(echo "$heap_data" | jq -r '.totalMB')
+                        local heap_percent=$(echo "$heap_data" | jq -r '.percentUsed' | awk '{printf "%.1f", $1}')
+                        neo4j_heap_usage="${heap_percent}% (${heap_used_mb}MB/${heap_total_mb}MB)"
+                        enhanced_metrics_available=true
+                    fi
+                    
+                    if [[ -n "$gc_data" && "$gc_data" != "null" && "$gc_data" != "empty" ]]; then
+                        local young_gc=$(echo "$gc_data" | jq -r '.youngGC')
+                        local young_gc_time=$(echo "$gc_data" | jq -r '.youngGCTime')
+                        local full_gc=$(echo "$gc_data" | jq -r '.fullGC')
+                        local full_gc_time=$(echo "$gc_data" | jq -r '.fullGCTime')
+                        neo4j_gc_info="YGC:${young_gc},YGCT:${young_gc_time}s,FGC:${full_gc},FGCT:${full_gc_time}s"
+                    fi
+                fi
+            fi
+            
+            # Method 2: Fallback to direct jstat if enhanced metrics unavailable
+            if [[ "$enhanced_metrics_available" == "false" ]]; then
+                if command -v jstat >/dev/null 2>&1; then
+                    # Try direct jstat (may fail due to permissions)
+                    neo4j_heap_usage=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
+                        used = ($3 + $4 + $6 + $8) * 1024
+                        total = ($1 + $2 + $5 + $7) * 1024
+                        if (total > 0) {
+                            percent = (used / total) * 100
+                            printf "%.1f%% (%.1fMB/%.1fMB)", percent, used/1024/1024, total/1024/1024
+                        } else {
+                            print "unknown"
+                        }
+                    }' 2>/dev/null || echo "permission_denied")
+                    
+                    # Get GC information with same permission handling
+                    neo4j_gc_info=$(jstat -gc "$neo4j_pid" 2>/dev/null | tail -1 | awk '{
+                        printf "YGC:%d,YGCT:%.2fs,FGC:%d,FGCT:%.2fs", $12, $13, $14, $15
+                    }' 2>/dev/null || echo "permission_denied")
+                else
+                    # Method 3: Try Neo4j HTTP API for heap info
+                    if command -v curl >/dev/null 2>&1; then
+                        local heap_info=$(curl -s -f "http://localhost:7474/db/manage/server/jmx/domain/java.lang/bean/type=Memory/attribute/HeapMemoryUsage" 2>/dev/null)
+                        if [[ -n "$heap_info" && "$heap_info" != *"error"* ]]; then
+                            # Parse heap info from Neo4j JMX endpoint
+                            neo4j_heap_usage=$(echo "$heap_info" | grep -o '"used":[0-9]*' | cut -d':' -f2 | head -1)
+                            local heap_max=$(echo "$heap_info" | grep -o '"max":[0-9]*' | cut -d':' -f2 | head -1)
+                            if [[ -n "$neo4j_heap_usage" && -n "$heap_max" && "$heap_max" -gt 0 ]]; then
+                                local heap_used_mb=$((neo4j_heap_usage / 1024 / 1024))
+                                local heap_max_mb=$((heap_max / 1024 / 1024))
+                                local heap_percent=$(( (neo4j_heap_usage * 100) / heap_max ))
+                                neo4j_heap_usage="${heap_percent}% (${heap_used_mb}MB/${heap_max_mb}MB)"
+                            else
+                                neo4j_heap_usage="unknown"
+                            fi
                         else
-                            neo4j_heap_usage="unknown"
+                            # Method 4: Estimate from process memory (rough approximation)
+                            if [[ "$neo4j_memory_mb" -gt 0 ]]; then
+                                # Assume heap is roughly 70% of total process memory (typical for Neo4j)
+                                local estimated_heap_mb=$((neo4j_memory_mb * 70 / 100))
+                                neo4j_heap_usage="~${estimated_heap_mb}MB (estimated from process memory)"
+                            else
+                                neo4j_heap_usage="unavailable (no JDK tools)"
+                            fi
                         fi
                     else
-                        # Method 3: Estimate from process memory (rough approximation)
-                        if [[ "$neo4j_memory_mb" -gt 0 ]]; then
-                            # Assume heap is roughly 70% of total process memory (typical for Neo4j)
-                            local estimated_heap_mb=$((neo4j_memory_mb * 70 / 100))
-                            neo4j_heap_usage="~${estimated_heap_mb}MB (estimated from process memory)"
-                        else
-                            neo4j_heap_usage="unavailable (no JDK tools)"
-                        fi
+                        neo4j_heap_usage="unavailable (no JDK tools, no curl)"
                     fi
-                else
-                    neo4j_heap_usage="unavailable (no JDK tools, no curl)"
+                    
+                    # GC info not available without jstat
+                    neo4j_gc_info="unavailable (requires JDK tools)"
                 fi
-                
-                # GC info not available without jstat
-                neo4j_gc_info="unavailable (requires JDK tools)"
             fi
         fi
         

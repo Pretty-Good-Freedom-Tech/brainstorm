@@ -1,0 +1,33 @@
+[Unit]
+Description=Neo4j Metrics Collector for Brainstorm Health Monitor
+After=neo4j.service
+Wants=neo4j.service
+PartOf=brainstorm-monitoring.target
+
+[Service]
+Type=simple
+User=neo4j
+Group=neo4j
+ExecStart=/usr/local/lib/node_modules/brainstorm/src/manage/healthMonitor/neo4jMetricsCollector.sh run 30
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/brainstorm/monitoring
+ReadOnlyPaths=/usr/local/lib/node_modules/brainstorm
+
+# Resource limits
+MemoryMax=64M
+CPUQuota=5%
+
+# Environment
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=brainstorm-monitoring.target

@@ -163,50 +163,95 @@ check_heap_and_gc_health() {
         return
     fi
     
-    # Get detailed heap and GC information
-    if command -v jstat >/dev/null 2>&1; then
-        # Get heap utilization
-        local heap_info=$(jstat -gc "$neo4j_pid" 2>/dev/null || sudo -u neo4j jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+    # Get detailed heap and GC information from enhanced metrics collector or fallback to direct jstat
+    local heap_percent=0
+    local heap_used=0
+    local heap_total=0
+    local young_gc_count=0
+    local young_gc_time=0
+    local full_gc_count=0
+    local full_gc_time=0
+    local metrics_source="unavailable"
+    
+    # Method 1: Try enhanced metrics from dedicated collector
+    local metrics_file="/var/lib/brainstorm/monitoring/neo4j_metrics.json"
+    if [[ -f "$metrics_file" && -r "$metrics_file" ]]; then
+        local metrics_age=$(stat -c %Y "$metrics_file" 2>/dev/null || echo "0")
+        local current_time=$(date +%s)
+        local age_diff=$((current_time - metrics_age))
         
-        if [[ -n "$heap_info" ]]; then
-            # Parse heap utilization
-            local heap_data=$(echo "$heap_info" | tail -1)
-            local heap_used=$(echo "$heap_data" | awk '{print ($3 + $4 + $6 + $8) * 1024}')
-            local heap_total=$(echo "$heap_data" | awk '{print ($1 + $2 + $5 + $7) * 1024}')
-            local heap_percent=0
+        # Use metrics if they're less than 2 minutes old
+        if [[ $age_diff -lt 120 ]]; then
+            local heap_data=$(jq -r '.heap // empty' "$metrics_file" 2>/dev/null)
+            local gc_data=$(jq -r '.gc // empty' "$metrics_file" 2>/dev/null)
             
-            if [[ "$heap_total" -gt 0 ]]; then
-                heap_percent=$(echo "$heap_used $heap_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+            if [[ -n "$heap_data" && "$heap_data" != "null" && "$heap_data" != "empty" ]]; then
+                heap_used=$(echo "$heap_data" | jq -r '.usedBytes')
+                heap_total=$(echo "$heap_data" | jq -r '.totalBytes')
+                heap_percent=$(echo "$heap_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
+                metrics_source="enhanced_collector"
             fi
             
-            # Parse GC metrics
-            local young_gc_count=$(echo "$heap_data" | awk '{print $12}')
-            local young_gc_time=$(echo "$heap_data" | awk '{print $13}')
-            local full_gc_count=$(echo "$heap_data" | awk '{print $14}')
-            local full_gc_time=$(echo "$heap_data" | awk '{print $15}')
-            
-            # Calculate GC overhead (time spent in GC)
-            local total_gc_time=$(echo "$young_gc_time $full_gc_time" | awk '{print $1 + $2}')
-            local gc_overhead_percent=0
-            
-            # Estimate runtime (this is approximate)
-            local uptime_seconds=$(ps -o etime= -p "$neo4j_pid" 2>/dev/null | awk -F: '{if(NF==3) print $1*3600+$2*60+$3; else if(NF==2) print $1*60+$2; else print $1}' || echo "0")
-            if [[ "$uptime_seconds" -gt 0 ]]; then
-                gc_overhead_percent=$(echo "$total_gc_time $uptime_seconds" | awk '{printf "%.1f", ($1 * 100) / $2}')
+            if [[ -n "$gc_data" && "$gc_data" != "null" && "$gc_data" != "empty" ]]; then
+                young_gc_count=$(echo "$gc_data" | jq -r '.youngGC')
+                young_gc_time=$(echo "$gc_data" | jq -r '.youngGCTime')
+                full_gc_count=$(echo "$gc_data" | jq -r '.fullGC')
+                full_gc_time=$(echo "$gc_data" | jq -r '.fullGCTime')
             fi
+        fi
+    fi
+    
+    # Method 2: Fallback to direct jstat if enhanced metrics unavailable
+    if [[ "$metrics_source" == "unavailable" && -n "$neo4j_pid" ]]; then
+        if command -v jstat >/dev/null 2>&1; then
+            local heap_info=$(jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
             
-            # Emit detailed metrics
-            emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
-                --argjson heapPercent "$heap_percent" \
-                --argjson heapUsedMB "$(echo "$heap_used" | awk '{printf "%.0f", $1/1024/1024}')" \
-                --argjson heapTotalMB "$(echo "$heap_total" | awk '{printf "%.0f", $1/1024/1024}')" \
-                --argjson youngGcCount "$young_gc_count" \
-                --arg youngGcTime "$young_gc_time" \
-                --argjson fullGcCount "$full_gc_count" \
-                --arg fullGcTime "$full_gc_time" \
-                --arg gcOverheadPercent "$gc_overhead_percent" \
-                '{
-                    "message": "Current heap and GC metrics analyzed",
+            if [[ -n "$heap_info" ]]; then
+                # Parse heap utilization
+                local heap_data=$(echo "$heap_info" | tail -1)
+                heap_used=$(echo "$heap_data" | awk '{print ($3 + $4 + $6 + $8) * 1024}')
+                heap_total=$(echo "$heap_data" | awk '{print ($1 + $2 + $5 + $7) * 1024}')
+                
+                if [[ "$heap_total" -gt 0 ]]; then
+                    heap_percent=$(echo "$heap_used $heap_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                fi
+                
+                # Parse GC metrics
+                young_gc_count=$(echo "$heap_data" | awk '{print $12}')
+                young_gc_time=$(echo "$heap_data" | awk '{print $13}')
+                full_gc_count=$(echo "$heap_data" | awk '{print $14}')
+                full_gc_time=$(echo "$heap_data" | awk '{print $15}')
+                metrics_source="direct_jstat"
+            fi
+        fi
+            
+    fi
+    
+    # Only proceed with analysis if we have valid metrics
+    if [[ "$metrics_source" != "unavailable" ]]; then
+        # Calculate GC overhead (time spent in GC)
+        local total_gc_time=$(echo "$young_gc_time $full_gc_time" | awk '{print $1 + $2}')
+        local gc_overhead_percent=0
+        
+        # Estimate runtime (this is approximate)
+        local uptime_seconds=$(ps -o etime= -p "$neo4j_pid" 2>/dev/null | awk -F: '{if(NF==3) print $1*3600+$2*60+$3; else if(NF==2) print $1*60+$2; else print $1}' || echo "0")
+        if [[ "$uptime_seconds" -gt 0 ]]; then
+            gc_overhead_percent=$(echo "$total_gc_time $uptime_seconds" | awk '{printf "%.1f", ($1 * 100) / $2}')
+        fi
+        
+        # Emit detailed metrics with source information
+        emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+            --argjson heapPercent "$heap_percent" \
+            --argjson heapUsedMB "$(echo "$heap_used" | awk '{printf "%.0f", $1/1024/1024}')" \
+            --argjson heapTotalMB "$(echo "$heap_total" | awk '{printf "%.0f", $1/1024/1024}')" \
+            --argjson youngGcCount "$young_gc_count" \
+            --arg youngGcTime "$young_gc_time" \
+            --argjson fullGcCount "$full_gc_count" \
+            --arg fullGcTime "$full_gc_time" \
+            --arg gcOverheadPercent "$gc_overhead_percent" \
+            --arg metricsSource "$metrics_source" \
+            '{
+                "message": "Current heap and GC metrics analyzed",
                     "phase": "heap_gc_health_check",
                     "metrics": {
                         "heapUtilizationPercent": $heapPercent,
