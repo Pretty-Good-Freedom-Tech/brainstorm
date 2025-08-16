@@ -62,16 +62,16 @@ emit_monitoring_event() {
     
     case "$MONITORING_VERBOSITY" in
         "full")
-            emit_task_event "$event_type" "$message" "$metadata"
+            emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             ;;
         "alerts")
             if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" || "$event_type" == "TASK_END" || "$event_type" == "TASK_ERROR" ]]; then
-                emit_task_event "$event_type" "$message" "$metadata"
+                emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             fi
             ;;
         "minimal")
             if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_ERROR" ]]; then
-                emit_task_event "$event_type" "$message" "$metadata"
+                emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             fi
             ;;
     esac

@@ -71,18 +71,15 @@ emit_monitoring_event() {
     
     case "$MONITORING_VERBOSITY" in
         "full")
-            # Emit all events for debugging
             emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             ;;
         "alerts")
-            # Only emit HEALTH_ALERT and TASK_START events
-            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" ]]; then
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" || "$event_type" == "TASK_END" || "$event_type" == "TASK_ERROR" ]]; then
                 emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             fi
             ;;
         "minimal")
-            # Only emit HEALTH_ALERT events
-            if [[ "$event_type" == "HEALTH_ALERT" ]]; then
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_ERROR" ]]; then
                 emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             fi
             ;;
