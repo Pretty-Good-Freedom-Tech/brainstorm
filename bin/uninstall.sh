@@ -41,11 +41,14 @@ SERVICES=(
   "processQueue"
   "strfry-router"
   "strfry"
+  "brainstorm-monitoring-scheduler"
+  "neo4j-metrics-collector"
   "processAllTasks.timer"
   "reconcile.timer"
   "calculateHops.timer"
   "calculatePersonalizedPageRank.timer"
   "calculatePersonalizedGrapeRank.timer"
+  "brainstorm-monitoring-scheduler.timer"
 )
 
 # same as SERVICES minue strfry
@@ -56,11 +59,14 @@ SYSTEMD_SERVICES_TO_REMOVE=(
   "addToQueue"
   "processQueue"
   "strfry-router"
+  "neo4j-metrics-collector"
+  "brainstorm-monitoring-scheduler"
   "processAllTasks.timer"
   "reconcile.timer"
   "calculateHops.timer"
   "calculatePersonalizedPageRank.timer"
   "calculatePersonalizedGrapeRank.timer"
+  "brainstorm-monitoring-scheduler.timer"
 )
 
 # Stop services

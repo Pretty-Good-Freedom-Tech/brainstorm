@@ -133,19 +133,25 @@ class Neo4jHealthDataParser {
         
         try {
             if (!fs.existsSync(metricsFile)) {
+                console.log('Enhanced metrics file not found:', metricsFile);
                 return null;
             }
             
             const stats = fs.statSync(metricsFile);
             const fileAge = (Date.now() - stats.mtime.getTime()) / 1000;
             
+            console.log(`Enhanced metrics file age: ${fileAge}s`);
+            
             // Only use if file is fresh (less than 2 minutes old)
             if (fileAge > 120) {
+                console.log('Enhanced metrics file too old, using fallback');
                 return null;
             }
             
             const data = fs.readFileSync(metricsFile, 'utf8');
-            return JSON.parse(data);
+            const parsed = JSON.parse(data);
+            console.log('Successfully loaded enhanced metrics');
+            return parsed;
         } catch (error) {
             console.error('Failed to read enhanced metrics:', error);
             return null;
