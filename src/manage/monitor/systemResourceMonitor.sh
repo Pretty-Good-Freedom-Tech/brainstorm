@@ -25,8 +25,8 @@ mkdir -p "$(dirname "$LOG_FILE")"
 mkdir -p "$(dirname "$EVENTS_LOG")"
 
 # Source structured logging utilities
-if [ -f "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh" ]; then
-    source "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh"
+if [ -f "${BRAINSTORM_MODULE_BASE_DIR}/src/utils/structuredLogging.sh" ]; then
+    source "${BRAINSTORM_MODULE_BASE_DIR}/src/utils/structuredLogging.sh"
 else
     # Fallback emit_task_event function if structuredLogging.sh not found
     emit_task_event() {

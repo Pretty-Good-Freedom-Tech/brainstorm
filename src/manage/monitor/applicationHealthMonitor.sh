@@ -167,20 +167,20 @@ check_recent_errors() {
     
     # Check systemd logs if available
     if command -v journalctl >/dev/null 2>&1; then
-        local journal_errors=$(journalctl -u "$service_name" --since="${hours} hours ago" --no-pager -q 2>/dev/null | grep -i error | wc -l || echo "0")
+        local journal_errors=$(journalctl -u "$service_name" --since="${hours} hours ago" --no-pager -q 2>/dev/null | grep -i error | wc -l 2>/dev/null | tr -d '\n' || echo "0")
         error_count=$((error_count + journal_errors))
         
-        local journal_warnings=$(journalctl -u "$service_name" --since="${hours} hours ago" --no-pager -q 2>/dev/null | grep -i warning | wc -l || echo "0")
+        local journal_warnings=$(journalctl -u "$service_name" --since="${hours} hours ago" --no-pager -q 2>/dev/null | grep -i warning | wc -l 2>/dev/null | tr -d '\n' || echo "0")
         warning_count=$((warning_count + journal_warnings))
     fi
     
     # Check log files
     for log_file in "${log_files[@]}"; do
         if [[ -f "$log_file" ]]; then
-            local file_errors=$(find "$log_file" -newermt "${hours} hours ago" -exec grep -i error {} \; 2>/dev/null | wc -l || echo "0")
+            local file_errors=$(find "$log_file" -newermt "${hours} hours ago" -exec grep -i error {} \; 2>/dev/null | wc -l 2>/dev/null | tr -d '\n' || echo "0")
             error_count=$((error_count + file_errors))
             
-            local file_warnings=$(find "$log_file" -newermt "${hours} hours ago" -exec grep -i warning {} \; 2>/dev/null | wc -l || echo "0")
+            local file_warnings=$(find "$log_file" -newermt "${hours} hours ago" -exec grep -i warning {} \; 2>/dev/null | wc -l 2>/dev/null | tr -d '\n' || echo "0")
             warning_count=$((warning_count + file_warnings))
         fi
     done
