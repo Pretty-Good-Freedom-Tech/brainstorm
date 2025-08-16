@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Behavior Analytics Dashboard - Brainstorm</title>
+    <link rel="shortcut icon" href="/img/brainstorm010.svg">
+    <link rel="stylesheet" href="/css/task-behavior-analytics-dashboard.css">
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+    
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Task Behavior Analytics Dashboard</h1>
+                <div class="dashboard-controls">
+                    <select id="time-range-select">
+                        <option value="1h">Last Hour</option>
+                        <option value="6h">Last 6 Hours</option>
+                        <option value="24h" selected>Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d">Last 30 Days</option>
+                    </select>
+                    <select id="task-filter">
+                        <option value="">All Tasks</option>
+                    </select>
+                    <button id="refresh-btn" class="btn btn-primary">Refresh</button>
+                    <span id="last-updated" class="last-updated">Never</span>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="analytics">Analytics</button>
+                <button class="tab-btn" data-tab="trends">Trends</button>
+                <button class="tab-btn" data-tab="predictions">Predictions</button>
+                <button class="tab-btn" data-tab="performance">Performance</button>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics-tab" class="tab-content active">
+                <!-- Overview Cards -->
+                <div class="overview-section">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">📊</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="total-tasks">0</div>
+                                <div class="metric-label">Total Tasks</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">✅</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="success-rate">100%</div>
+                                <div class="metric-label">Success Rate</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">⏱️</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="avg-duration">0s</div>
+                                <div class="metric-label">Avg Duration</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">🔄</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="total-executions">0</div>
+                                <div class="metric-label">Total Executions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Breakdown -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Task Execution Breakdown</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="task-breakdown-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Task Name</th>
+                                    <th>Target</th>
+                                    <th>Executions</th>
+                                    <th>Success Rate</th>
+                                    <th>Avg Duration</th>
+                                    <th>Last Run</th>
+                                </tr>
+                            </thead>
+                            <tbody id="task-breakdown-tbody">
+                                <tr class="no-data">
+                                    <td colspan="6">Loading task data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Execution Patterns -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Execution Patterns</h2>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>Hourly Distribution</h3>
+                            <canvas id="hourly-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Task Frequency</h3>
+                            <canvas id="frequency-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trends Tab -->
+            <div id="trends-tab" class="tab-content">
+                <div class="trends-controls">
+                    <select id="trend-metric">
+                        <option value="duration">Duration</option>
+                        <option value="success_rate">Success Rate</option>
+                        <option value="frequency">Frequency</option>
+                    </select>
+                    <select id="trend-granularity">
+                        <option value="hour" selected>Hourly</option>
+                        <option value="day">Daily</option>
+                    </select>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Task Performance Trends</h2>
+                    </div>
+                    <div class="chart-container large">
+                        <canvas id="trends-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Trend Analysis</h2>
+                    </div>
+                    <div id="trend-analysis" class="analysis-content">
+                        <div class="loading">Loading trend analysis...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictions Tab -->
+            <div id="predictions-tab" class="tab-content">
+                <div class="predictions-controls">
+                    <select id="prediction-type">
+                        <option value="failure">Failure Prediction</option>
+                        <option value="duration">Duration Prediction</option>
+                        <option value="resource">Resource Prediction</option>
+                    </select>
+                    <input type="number" id="prediction-horizon" value="24" min="1" max="168" placeholder="Hours ahead">
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Predictive Analytics</h2>
+                    </div>
+                    <div id="predictions-content" class="predictions-grid">
+                        <div class="loading">Loading predictions...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="performance-tab" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Performance Metrics</h2>
+                    </div>
+                    <div id="performance-metrics" class="performance-grid">
+                        <div class="loading">Loading performance metrics...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Bottlenecks Analysis</h2>
+                    </div>
+                    <div id="bottlenecks-list" class="bottlenecks-container">
+                        <div class="loading">Loading bottlenecks analysis...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Optimization Recommendations</h2>
+                    </div>
+                    <div id="recommendations-list" class="recommendations-container">
+                        <div class="loading">Loading recommendations...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/task-behavior-analytics-dashboard.js"></script>
+    <script src="/components/header/header.js"></script>
+    <script src="/components/footer/footer.js"></script>
+</body>
+</html>

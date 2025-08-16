@@ -13,134 +13,136 @@
     
     <!-- Main content wrapper -->
     <div class="page-content">
-        <div class="dashboard-header">
-            <h1>Task Watchdog Dashboard</h1>
-            <div class="refresh-controls">
-                <button id="refresh-btn" class="btn btn-primary">Refresh</button>
-                <span id="last-updated" class="last-updated">Never</span>
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Task Watchdog Dashboard</h1>
+                <div class="refresh-controls">
+                    <button id="refresh-btn" class="btn btn-primary">Refresh</button>
+                    <span id="last-updated" class="last-updated">Never</span>
+                </div>
             </div>
-        </div>
 
-        <!-- Task Health Overview -->
-        <div class="overview-section">
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-icon">🔄</div>
-                    <div class="metric-content">
-                        <div class="metric-value" id="active-tasks-count">0</div>
-                        <div class="metric-label">Active Tasks</div>
+            <!-- Task Health Overview -->
+            <div class="overview-section">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">🔄</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="active-tasks-count">0</div>
+                            <div class="metric-label">Active Tasks</div>
+                        </div>
+                    </div>
+                    <div class="metric-card alert-card">
+                        <div class="metric-icon">⚠️</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="stuck-tasks-count">0</div>
+                            <div class="metric-label">Stuck Tasks</div>
+                        </div>
+                    </div>
+                    <div class="metric-card warning-card">
+                        <div class="metric-icon">👻</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="orphaned-processes-count">0</div>
+                            <div class="metric-label">Orphaned Processes</div>
+                        </div>
+                    </div>
+                    <div class="metric-card success-card">
+                        <div class="metric-icon">✅</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="completion-rate">100%</div>
+                            <div class="metric-label">Completion Rate</div>
+                        </div>
                     </div>
                 </div>
-                <div class="metric-card alert-card">
-                    <div class="metric-icon">⚠️</div>
-                    <div class="metric-content">
-                        <div class="metric-value" id="stuck-tasks-count">0</div>
-                        <div class="metric-label">Stuck Tasks</div>
+                <div class="health-indicator">
+                    <div id="health-status" class="health-badge healthy">Healthy</div>
+                    <div id="health-message" class="health-message">All systems operating normally</div>
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Recent Alerts</h2>
+                    <div class="section-controls">
+                        <select id="alert-severity-filter">
+                            <option value="">All Severities</option>
+                            <option value="critical">Critical</option>
+                            <option value="warning">Warning</option>
+                            <option value="info">Info</option>
+                        </select>
+                        <select id="alert-hours-filter">
+                            <option value="1">Last Hour</option>
+                            <option value="6">Last 6 Hours</option>
+                            <option value="24" selected>Last 24 Hours</option>
+                            <option value="168">Last Week</option>
+                        </select>
                     </div>
                 </div>
-                <div class="metric-card warning-card">
-                    <div class="metric-icon">👻</div>
-                    <div class="metric-content">
-                        <div class="metric-value" id="orphaned-processes-count">0</div>
-                        <div class="metric-label">Orphaned Processes</div>
+                <div id="alerts-container" class="alerts-container">
+                    <div class="loading">Loading alerts...</div>
+                </div>
+            </div>
+
+            <!-- Stuck Tasks Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Stuck Tasks</h2>
+                    <div class="section-info">
+                        <span id="stuck-tasks-info">Tasks running longer than expected</span>
                     </div>
                 </div>
-                <div class="metric-card success-card">
-                    <div class="metric-icon">✅</div>
-                    <div class="metric-content">
-                        <div class="metric-value" id="completion-rate">100%</div>
-                        <div class="metric-label">Completion Rate</div>
+                <div class="table-container">
+                    <table id="stuck-tasks-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Task Name</th>
+                                <th>Target</th>
+                                <th>Started</th>
+                                <th>Duration</th>
+                                <th>Expected</th>
+                                <th>Severity</th>
+                                <th>PID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stuck-tasks-tbody">
+                            <tr class="no-data">
+                                <td colspan="8">No stuck tasks found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orphaned Processes Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Orphaned Processes</h2>
+                    <div class="section-info">
+                        <span id="orphaned-info">Processes without parent tasks</span>
                     </div>
                 </div>
-            </div>
-            <div class="health-indicator">
-                <div id="health-status" class="health-badge healthy">Healthy</div>
-                <div id="health-message" class="health-message">All systems operating normally</div>
-            </div>
-        </div>
-
-        <!-- Alerts Section -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Recent Alerts</h2>
-                <div class="section-controls">
-                    <select id="alert-severity-filter">
-                        <option value="">All Severities</option>
-                        <option value="critical">Critical</option>
-                        <option value="warning">Warning</option>
-                        <option value="info">Info</option>
-                    </select>
-                    <select id="alert-hours-filter">
-                        <option value="1">Last Hour</option>
-                        <option value="6">Last 6 Hours</option>
-                        <option value="24" selected>Last 24 Hours</option>
-                        <option value="168">Last Week</option>
-                    </select>
+                <div class="table-container">
+                    <table id="orphaned-processes-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Task Name</th>
+                                <th>Command</th>
+                                <th>CPU %</th>
+                                <th>Memory %</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orphaned-processes-tbody">
+                            <tr class="no-data">
+                                <td colspan="7">No orphaned processes found</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            <div id="alerts-container" class="alerts-container">
-                <div class="loading">Loading alerts...</div>
-            </div>
-        </div>
-
-        <!-- Stuck Tasks Section -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Stuck Tasks</h2>
-                <div class="section-info">
-                    <span id="stuck-tasks-info">Tasks running longer than expected</span>
-                </div>
-            </div>
-            <div class="table-container">
-                <table id="stuck-tasks-table" class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Task Name</th>
-                            <th>Target</th>
-                            <th>Started</th>
-                            <th>Duration</th>
-                            <th>Expected</th>
-                            <th>Severity</th>
-                            <th>PID</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stuck-tasks-tbody">
-                        <tr class="no-data">
-                            <td colspan="8">No stuck tasks found</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Orphaned Processes Section -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Orphaned Processes</h2>
-                <div class="section-info">
-                    <span id="orphaned-info">Processes without parent tasks</span>
-                </div>
-            </div>
-            <div class="table-container">
-                <table id="orphaned-processes-table" class="data-table">
-                    <thead>
-                        <tr>
-                            <th>PID</th>
-                            <th>Task Name</th>
-                            <th>Command</th>
-                            <th>CPU %</th>
-                            <th>Memory %</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orphaned-processes-tbody">
-                        <tr class="no-data">
-                            <td colspan="7">No orphaned processes found</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>

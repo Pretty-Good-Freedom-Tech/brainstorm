@@ -1,0 +1,12 @@
+[Unit]
+Description=Brainstorm Health Monitor - Monitoring Scheduler Timer
+Documentation=https://github.com/wds4/brainstorm
+Requires=brainstorm-monitoring-scheduler.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=24h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

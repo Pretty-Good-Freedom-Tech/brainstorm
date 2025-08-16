@@ -1,0 +1,38 @@
+[Unit]
+Description=Brainstorm Health Monitor - Monitoring Scheduler
+Documentation=https://github.com/wds4/brainstorm
+After=network.target neo4j.service
+Wants=neo4j.service
+
+[Service]
+Type=simple
+User=brainstorm
+Group=brainstorm
+WorkingDirectory=/home/brainstorm/brainstorm
+ExecStart=/usr/bin/node src/algos/monitoringScheduler.js owner
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brainstorm-monitoring-scheduler
+
+# Environment variables
+Environment=NODE_ENV=production
+Environment=BRAINSTORM_LOG_DIR=/var/log/brainstorm
+Environment=BRAINSTORM_DATA_DIR=/var/lib/brainstorm
+EnvironmentFile=-/etc/brainstorm/brainstorm.env
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log/brainstorm /var/lib/brainstorm /tmp
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
