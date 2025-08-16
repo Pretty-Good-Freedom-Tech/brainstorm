@@ -146,7 +146,7 @@ analyze_task_health() {
                 if [[ -n "$expected_duration" && "$expected_duration" -gt 0 ]]; then
                     local alert_threshold=$(echo "$expected_duration * $ALERT_THRESHOLD_MULTIPLIER" | bc -l 2>/dev/null || echo "$expected_duration")
                     
-                    if (( duration_minutes > ${alert_threshold%.*} )); then
+                    if [[ "$duration_minutes" -gt "${alert_threshold%.*}" ]]; then
                         # Task is running longer than expected - check if process is still alive
                         if is_process_alive "$pid"; then
                             emit_task_event "HEALTH_ALERT" "taskWatchdog" "system" '{

@@ -131,14 +131,24 @@ check_index_health() {
     local constraint_query_result=""
     local query_success=false
     
-    # Try to query indexes with timeout
-    if timeout 30 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "SHOW INDEXES" > /tmp/neo4j_indexes.txt 2>/dev/null; then
+    # Try to query indexes with timeout - disable exit on error temporarily
+    set +e
+    timeout 30 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "SHOW INDEXES" > /tmp/neo4j_indexes.txt 2>/dev/null
+    local indexes_exit_code=$?
+    set -e
+    
+    if [[ $indexes_exit_code -eq 0 ]]; then
         query_success=true
         local index_count=$(grep -c "ONLINE\|POPULATING\|FAILED" /tmp/neo4j_indexes.txt 2>/dev/null || echo "0")
         local failed_indexes=$(grep -c "FAILED" /tmp/neo4j_indexes.txt 2>/dev/null | tr -d '\n' || echo "0")
         
-        # Check constraints
-        if timeout 30 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "SHOW CONSTRAINTS" > /tmp/neo4j_constraints.txt 2>/dev/null; then
+        # Check constraints - disable exit on error temporarily
+        set +e
+        timeout 30 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "SHOW CONSTRAINTS" > /tmp/neo4j_constraints.txt 2>/dev/null
+        local constraints_exit_code=$?
+        set -e
+        
+        if [[ $constraints_exit_code -eq 0 ]]; then
             local constraint_count=$(wc -l < /tmp/neo4j_constraints.txt 2>/dev/null || echo "0")
             
             emit_task_event "PROGRESS" "neo4jStabilityMonitor" "index_health" "$(jq -n \
@@ -209,10 +219,16 @@ validate_connection_performance() {
     local query_result=""
     local query_success=false
     
-    if query_result=$(timeout 10 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "RETURN 1 as test" 2>/dev/null); then
+    # Test simple query performance - disable exit on error temporarily
+    set +e
+    query_result=$(timeout 10 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "RETURN 1 as test" 2>/dev/null)
+    local query_exit_code=$?
+    set -e
+    
+    if [[ $query_exit_code -eq 0 ]]; then
         local end_time=$(date +%s.%N)
-        local response_time=$(echo "$end_time - $start_time" | bc -l)
-        local response_time_ms=$(echo "$response_time * 1000" | bc -l | cut -d. -f1)
+        local response_time=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "0")
+        local response_time_ms=$(echo "$response_time * 1000" | bc -l 2>/dev/null | cut -d. -f1 || echo "0")
         
         emit_task_event "PROGRESS" "neo4jStabilityMonitor" "connection_validation" "$(jq -n \
             --argjson responseTimeMs "$response_time_ms" \

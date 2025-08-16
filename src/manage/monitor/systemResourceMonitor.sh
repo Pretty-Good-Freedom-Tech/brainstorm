@@ -216,9 +216,9 @@ monitor_system_resources() {
     
     # Check CPU usage
     local cpu_percent=$(echo "$cpu_metrics" | jq -r '.cpuUsed // .cpuPercent' 2>/dev/null || echo "0")
-    if (( $(echo "$cpu_percent > 90" | bc -l) )); then
+    if (( $(echo "$cpu_percent > 90" | bc -l 2>/dev/null || echo "0") )); then
         send_health_alert "SYSTEM_CPU_CRITICAL" "critical" "CPU usage critical: ${cpu_percent}%" "$cpu_metrics"
-    elif (( $(echo "$cpu_percent > 80" | bc -l) )); then
+    elif (( $(echo "$cpu_percent > 80" | bc -l 2>/dev/null || echo "0") )); then
         send_health_alert "SYSTEM_CPU_WARNING" "warning" "CPU usage high: ${cpu_percent}%" "$cpu_metrics"
     fi
     
@@ -228,9 +228,9 @@ monitor_system_resources() {
     
     # Check memory usage
     local mem_percent=$(echo "$memory_metrics" | jq -r '.percentUsed' 2>/dev/null || echo "0")
-    if (( $(echo "$mem_percent > 95" | bc -l) )); then
+    if (( $(echo "$mem_percent > 95" | bc -l 2>/dev/null || echo "0") )); then
         send_health_alert "SYSTEM_MEMORY_CRITICAL" "critical" "Memory usage critical: ${mem_percent}%" "$memory_metrics"
-    elif (( $(echo "$mem_percent > 85" | bc -l) )); then
+    elif (( $(echo "$mem_percent > 85" | bc -l 2>/dev/null || echo "0") )); then
         send_health_alert "SYSTEM_MEMORY_WARNING" "warning" "Memory usage high: ${mem_percent}%" "$memory_metrics"
     fi
     
@@ -263,9 +263,9 @@ monitor_system_resources() {
     local cpu_count=$(echo "$cpu_metrics" | jq -r '.cpuCount' 2>/dev/null || echo "1")
     local load_percent=$(echo "scale=2; $load_1min * 100 / $cpu_count" | bc)
     
-    if (( $(echo "$load_percent > 200" | bc -l) )); then
+    if (( $(echo "$load_percent > 200" | bc -l 2>/dev/null || echo "0") )); then
         send_health_alert "SYSTEM_LOAD_CRITICAL" "critical" "System load critical: ${load_1min} (${load_percent}%)" "$system_metrics"
-    elif (( $(echo "$load_percent > 150" | bc -l) )); then
+    elif (( $(echo "$load_percent > 150" | bc -l 2>/dev/null || echo "0") )); then
         send_health_alert "SYSTEM_LOAD_WARNING" "warning" "System load high: ${load_1min} (${load_percent}%)" "$system_metrics"
     fi
     
