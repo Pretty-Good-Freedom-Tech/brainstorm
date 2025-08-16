@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn, exec } = require('child_process');
+const brainstormConfig = require('../../utils/brainstormConfig');
 
 // Load task registry for script paths
 const TASK_REGISTRY_PATH = path.join(__dirname, '../taskQueue/taskRegistry.json');
@@ -314,34 +315,100 @@ class TaskExecutor {
 
     runScript(task) {
         return new Promise((resolve, reject) => {
-            // Use the script path directly from task registry (already resolved)
-            const scriptPath = task.script;
+            // Use launchChildTask.sh for consistent execution environment like runTask.js
+            const launchChildTaskPath = brainstormConfig.expandScriptPath('$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh');
             
             // Log the resolved path for debugging
-            logEvent('SCRIPT_EXECUTION', `Attempting to execute script: ${scriptPath}`, {
-                scriptPath,
+            logEvent('SCRIPT_EXECUTION', `Using launchChildTask for: ${task.name}`, {
+                scriptPath: task.script,
+                launchChildTaskPath,
                 workingDirectory: process.cwd(),
-                scriptExists: fs.existsSync(scriptPath),
+                launchChildTaskExists: fs.existsSync(launchChildTaskPath),
                 taskName: task.name
             });
             
-            if (!fs.existsSync(scriptPath)) {
-                const error = `Script not found: ${scriptPath} (working dir: ${process.cwd()})`;
-                logEvent('SCRIPT_ERROR', error, { scriptPath, taskName: task.name });
+            if (!fs.existsSync(launchChildTaskPath)) {
+                const error = `launchChildTask.sh not found: ${launchChildTaskPath}`;
+                logEvent('SCRIPT_ERROR', error, { launchChildTaskPath, taskName: task.name });
                 reject(new Error(error));
                 return;
             }
 
-            const child = spawn('bash', [scriptPath, TARGET], {
-                stdio: ['ignore', 'pipe', 'pipe'],
-                env: { ...process.env }
+            // Build options JSON for launchChildTask
+            const optionsJson = JSON.stringify({
+                completion: {
+                    failure: {
+                        timeout: {
+                            duration: task.timeout,
+                            forceKill: false
+                        }
+                    }
+                }
+            });
+            
+            // Prepare child args - monitoring tasks don't need additional arguments beyond TARGET
+            const childArgs = TARGET;
+            
+            logEvent('SCRIPT_EXECUTION', `Launching monitoring task via launchChildTask`, {
+                taskName: task.name,
+                options: optionsJson,
+                childArgs
+            });
+
+            const child = spawn('bash', [launchChildTaskPath, task.name, 'monitoring-scheduler', optionsJson, childArgs], {
+                stdio: ['pipe', 'pipe', 'pipe'],
+                env: {
+                    ...process.env,
+                    BRAINSTORM_STRUCTURED_LOGGING: 'true'
+                }
             });
 
             let stdout = '';
             let stderr = '';
+            let launchResult = null;
+            
+            let jsonBuffer = '';
+            let collectingJson = false;
 
             child.stdout.on('data', (data) => {
-                stdout += data.toString();
+                const output = data.toString();
+                stdout += output;
+                
+                // Parse structured output from launchChildTask
+                const lines = output.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('LAUNCHCHILDTASK_RESULT:')) {
+                        // Start collecting JSON
+                        collectingJson = true;
+                        const jsonStart = line.substring('LAUNCHCHILDTASK_RESULT:'.length).trim();
+                        jsonBuffer = jsonStart;
+                        
+                        // Try to parse immediately in case it's a single line
+                        if (jsonStart.startsWith('{') && jsonStart.endsWith('}')) {
+                            try {
+                                launchResult = JSON.parse(jsonStart);
+                                collectingJson = false;
+                                jsonBuffer = '';
+                            } catch (error) {
+                                // Continue collecting multi-line JSON
+                            }
+                        }
+                    } else if (collectingJson) {
+                        // Continue collecting JSON lines
+                        jsonBuffer += '\n' + line;
+                        
+                        // Try to parse when we have what looks like complete JSON
+                        if (line.trim() === '}' && jsonBuffer.includes('{')) {
+                            try {
+                                launchResult = JSON.parse(jsonBuffer);
+                                collectingJson = false;
+                                jsonBuffer = '';
+                            } catch (error) {
+                                // Continue collecting
+                            }
+                        }
+                    }
+                }
             });
 
             child.stderr.on('data', (data) => {
@@ -357,8 +424,22 @@ class TaskExecutor {
             child.on('close', (code) => {
                 clearTimeout(timeout);
                 
+                // Log launch result for debugging
+                if (launchResult) {
+                    logEvent('SCRIPT_EXECUTION', `Launch result received`, {
+                        taskName: task.name,
+                        launchAction: launchResult.launch_action,
+                        exitCode: code
+                    });
+                }
+                
                 if (code === 0) {
-                    resolve({ exitCode: code, stdout, stderr });
+                    resolve({ 
+                        exitCode: code, 
+                        stdout, 
+                        stderr,
+                        launchResult
+                    });
                 } else {
                     reject(new Error(`Script exited with code ${code}: ${stderr}`));
                 }
