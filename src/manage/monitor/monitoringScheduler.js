@@ -318,13 +318,16 @@ class TaskExecutor {
             const scriptPath = task.script;
             
             // Log the resolved path for debugging
-            this.logger.log(`Attempting to execute script: ${scriptPath}`);
-            this.logger.log(`Working directory: ${process.cwd()}`);
-            this.logger.log(`Script exists: ${fs.existsSync(scriptPath)}`);
+            logEvent('SCRIPT_EXECUTION', `Attempting to execute script: ${scriptPath}`, {
+                scriptPath,
+                workingDirectory: process.cwd(),
+                scriptExists: fs.existsSync(scriptPath),
+                taskName: task.name
+            });
             
             if (!fs.existsSync(scriptPath)) {
                 const error = `Script not found: ${scriptPath} (working dir: ${process.cwd()})`;
-                this.logger.log(`ERROR: ${error}`);
+                logEvent('SCRIPT_ERROR', error, { scriptPath, taskName: task.name });
                 reject(new Error(error));
                 return;
             }
