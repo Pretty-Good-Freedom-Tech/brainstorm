@@ -335,13 +335,24 @@ launchChildTask() {
     
     # Execute child script in background
     echo "$(date): Launching child task: $child_script" >> ${LOG_FILE}
+    echo "$(date): child_args='$child_args'" >> ${LOG_FILE}
+    echo "$(date): temp_log='$temp_log'" >> ${LOG_FILE}
+    echo "$(date): About to execute bash command..." >> ${LOG_FILE}
+    
     if [[ -n "$child_args" ]]; then
+        echo "$(date): Executing with args: bash '$child_script' $child_args" >> ${LOG_FILE}
         bash "$child_script" $child_args > "$temp_log" 2>&1 &
+        local bash_exit_code=$?
+        echo "$(date): bash command exit code: $bash_exit_code" >> ${LOG_FILE}
     else
+        echo "$(date): Executing without args: bash '$child_script'" >> ${LOG_FILE}
         bash "$child_script" > "$temp_log" 2>&1 &
+        local bash_exit_code=$?
+        echo "$(date): bash command exit code: $bash_exit_code" >> ${LOG_FILE}
     fi
     
     child_pid=$!
+    echo "$(date): Background process PID: $child_pid" >> ${LOG_FILE}
     
     # Output structured result for API handler (compact single-line JSON)
     local launch_result=$(jq -nc --arg task_name "$task_name" --argjson new_pid "$child_pid" --arg child_script "$child_script" --arg child_args "$child_args" '{
@@ -364,15 +375,21 @@ launchChildTask() {
     local check_interval=5
     local timed_out=false
     
+    echo "$(date): Starting monitoring loop for PID $child_pid (timeout: ${timeout_seconds}s)" >> ${LOG_FILE}
+    
     while ps -p "$child_pid" >/dev/null 2>&1; do
+        echo "$(date): Process $child_pid still running (elapsed: ${elapsed}s)" >> ${LOG_FILE}
         sleep $check_interval
         elapsed=$((elapsed + check_interval))
         
         if [[ $elapsed -ge $timeout_seconds ]]; then
+            echo "$(date): Process $child_pid timed out after ${elapsed}s" >> ${LOG_FILE}
             timed_out=true
             break
         fi
     done
+    
+    echo "$(date): Monitoring loop ended for PID $child_pid (elapsed: ${elapsed}s, timed_out: $timed_out)" >> ${LOG_FILE}
     
     local end_time=$(date -Iseconds)
     
@@ -384,6 +401,7 @@ launchChildTask() {
         
         # Check if we should force kill
         local force_kill=$(echo "$resolved_options" | jq -r '.failure.timeout.forceKill // false')
+        echo "$(date): Task timed out, force_kill=$force_kill" >> ${LOG_FILE}
         if [[ "$force_kill" == "true" ]]; then
             # Try to force kill the process with cross-user compatibility
             if ! kill -9 "$child_pid" 2>/dev/null; then
@@ -416,28 +434,25 @@ launchChildTask() {
             }')
         emit_task_event "CHILD_TASK_ERROR" "$parent_task_name" "$child_task_id" "$eventMetadata"
     else
-        # Process completed normally
+        # Normal completion - check exit code
+        echo "$(date): Process $child_pid completed normally, checking exit code..." >> ${LOG_FILE}
         wait "$child_pid"
         exit_code=$?
+        echo "$(date): Process $child_pid exit code: $exit_code" >> ${LOG_FILE}
         
         if [[ $exit_code -eq 0 ]]; then
             completion_status="success"
+            echo "$(date): Task completed successfully" >> ${LOG_FILE}
             
-            local eventMetadata=$(jq -n \
-                --arg child_task "$task_name" \
-                --arg child_task_id "$child_task_id" \
-                --arg parent_task "$parent_task_name" \
-                --argjson exit_code "$exit_code" \
-                --arg completion_status "success" \
-                --arg end_time "$end_time" \
-                '{
-                    child_task: $child_task,
-                    child_task_id: $child_task_id,
-                    parent_task: $parent_task,
-                    exit_code: $exit_code,
-                    completion_status: $completion_status,
-                    end_time: $end_time
-                }')
+            # Emit success event
+            local eventMetadata=$(jq -nc --arg child_task "$child_task" --arg child_task_id "$child_task_id" --arg parent_task "$parent_task" --argjson exit_code "$exit_code" --arg completion_status "$completion_status" --arg end_time "$end_time" '{
+                child_task: $child_task,
+                child_task_id: $child_task_id,
+                parent_task: $parent_task,
+                exit_code: $exit_code,
+                completion_status: $completion_status,
+                end_time: $end_time
+            }')
             emit_task_event "CHILD_TASK_END" "$parent_task_name" "$child_task_id" "$eventMetadata"
         else
             # Check if this was a caught or uncaught error
@@ -448,8 +463,9 @@ launchChildTask() {
                 error_type="caught"
                 completion_status="caught_failure"
             else
-                error_type="uncaught" 
-                completion_status="uncaught_failure"
+                error_type="execution"
+                completion_status="error"
+                echo "$(date): Task failed with uncaught error" >> ${LOG_FILE}
             fi
             
             local eventMetadata=$(jq -n \
