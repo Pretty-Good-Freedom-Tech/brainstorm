@@ -111,6 +111,11 @@ const configPaths = {
   processAllTasksServiceFileDestination: path.join(systemdServiceDir, 'processAllTasks.service'),
   processAllTasksTimerFileDestination: path.join(systemdServiceDir, 'processAllTasks.timer'),
 
+  brainstormMonitoringSchedulerServiceFileSource: path.join(packageRoot, 'systemd', 'brainstorm-monitoring-scheduler.service'),
+  brainstormMonitoringSchedulerTimerFileSource: path.join(packageRoot, 'systemd', 'brainstorm-monitoring-scheduler.timer'),
+  brainstormMonitoringSchedulerServiceFileDestination: path.join(systemdServiceDir, 'brainstorm-monitoring-scheduler.service'),
+  brainstormMonitoringSchedulerTimerFileDestination: path.join(systemdServiceDir, 'brainstorm-monitoring-scheduler.timer'),
+
   calculateHopsServiceFileSource: path.join(packageRoot, 'systemd', 'calculateHops.service'),
   calculateHopsTimerFileSource: path.join(packageRoot, 'systemd', 'calculateHops.timer'),
   calculateHopsServiceFileDestination: path.join(systemdServiceDir, 'calculateHops.service'),
@@ -222,6 +227,7 @@ async function install() {
     await setupCalculatePersonalizedPageRankService();
     await setupCalculateHopsService();
     await setupCalculatePersonalizedGrapeRankService();
+    await setupBrainstormMonitoringSchedulerService();
 
     // Step 7: Setup Strfry Neo4j Pipeline
     await installPipeline();
@@ -829,6 +835,68 @@ async function setupStrfryPlugins() {
 }
 
 // Set up systemd services
+// brainstorm-monitoring-scheduler.service and brainstorm-monitoring-scheduler.timer
+// (enable the timer, but not the service)
+async function setupBrainstormMonitoringSchedulerService() {
+  console.log('\x1b[36m=== Setting Up Brainstorm Monitoring Scheduler Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up brainstorm monitoring scheduler systemd service without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if brainstorm monitoring scheduler service file already exists
+  if (fs.existsSync(configPaths.brainstormMonitoringSchedulerServiceFileDestination)) {
+    console.log(`brainstorm monitoring scheduler service file ${configPaths.brainstormMonitoringSchedulerServiceFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.brainstormMonitoringSchedulerServiceFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.brainstormMonitoringSchedulerServiceFileDestination, serviceFileContent);
+    console.log(`brainstorm monitoring scheduler service file created at ${configPaths.brainstormMonitoringSchedulerServiceFileDestination}`);
+
+    // do not enable the service; the timer will take care of that
+    // execSync(`systemctl enable brainstorm-monitoring-scheduler.service`);
+    // console.log('brainstorm monitoring scheduler service enabled');
+
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up brainstorm monitoring scheduler service: ${error.message}`);
+    console.log(`Source file: ${configPaths.brainstormMonitoringSchedulerServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.brainstormMonitoringSchedulerServiceFileDestination}`);
+  }
+
+  // check if brainstorm monitoring scheduler timer file already exists
+  if (fs.existsSync(configPaths.brainstormMonitoringSchedulerTimerFileDestination)) {
+    console.log(`brainstorm monitoring scheduler timer file ${configPaths.brainstormMonitoringSchedulerTimerFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    let timerFileContent = fs.readFileSync(configPaths.brainstormMonitoringSchedulerTimerFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.brainstormMonitoringSchedulerTimerFileDestination, timerFileContent);
+    console.log(`brainstorm monitoring scheduler timer file created at ${configPaths.brainstormMonitoringSchedulerTimerFileDestination}`);
+
+    // enable the timer
+    execSync(`systemctl enable brainstorm-monitoring-scheduler.timer`);
+    console.log('brainstorm monitoring scheduler timer enabled');
+  } catch (error) {
+    console.error(`Error setting up brainstorm monitoring scheduler timer: ${error.message}`);
+    console.log(`Source file: ${configPaths.brainstormMonitoringSchedulerTimerFileSource}`);
+    console.log(`Destination file: ${configPaths.brainstormMonitoringSchedulerTimerFileDestination}`);
+  }
+}
+
 async function setupStrfryRouterService() {
   console.log('\x1b[36m=== Setting Up Strfry Router Systemd Service ===\x1b[0m');
 
