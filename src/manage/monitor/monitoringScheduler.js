@@ -10,7 +10,7 @@ const path = require('path');
 const { spawn, exec } = require('child_process');
 
 // Load task registry for script paths
-const TASK_REGISTRY_PATH = path.join(__dirname, '../manage/taskQueue/taskRegistry.json');
+const TASK_REGISTRY_PATH = path.join(__dirname, '../taskQueue/taskRegistry.json');
 let taskRegistry = {};
 try {
     taskRegistry = JSON.parse(fs.readFileSync(TASK_REGISTRY_PATH, 'utf8'));

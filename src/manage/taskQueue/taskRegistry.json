@@ -1081,10 +1081,10 @@
       "categories": ["maintenance", "healthMonitor"],
       "description": "Brainstorm Health Monitor component that monitors application services and endpoints",
       "scripts": [
-        "$BRAINSTORM_MODULE_SRC_DIR/algos/applicationHealthMonitor.sh"
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/applicationHealthMonitor.sh"
       ],
-      "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/applicationHealthMonitor.sh",
-      "script_relative_path": "algos/applicationHealthMonitor.sh",
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/applicationHealthMonitor.sh",
+      "script_relative_path": "manage/monitor/applicationHealthMonitor.sh",
       "arguments": false,
       "children": [],
       "scope": "system",
@@ -1110,10 +1110,10 @@
       "categories": ["maintenance", "healthMonitor"],
       "description": "Brainstorm Health Monitor component that monitors Neo4j database performance metrics",
       "scripts": [
-        "$BRAINSTORM_MODULE_SRC_DIR/algos/databasePerformanceMonitor.sh"
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/databasePerformanceMonitor.sh"
       ],
-      "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/databasePerformanceMonitor.sh",
-      "script_relative_path": "algos/databasePerformanceMonitor.sh",
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/databasePerformanceMonitor.sh",
+      "script_relative_path": "manage/monitor/databasePerformanceMonitor.sh",
       "arguments": false,
       "children": [],
       "scope": "system",
@@ -1139,10 +1139,10 @@
       "categories": ["maintenance", "healthMonitor"],
       "description": "Brainstorm Health Monitor component that monitors network connectivity and external services",
       "scripts": [
-        "$BRAINSTORM_MODULE_SRC_DIR/algos/networkConnectivityMonitor.sh"
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/networkConnectivityMonitor.sh"
       ],
-      "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/networkConnectivityMonitor.sh", 
-      "script_relative_path": "algos/networkConnectivityMonitor.sh",
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/networkConnectivityMonitor.sh", 
+      "script_relative_path": "manage/monitor/networkConnectivityMonitor.sh",
       "arguments": false,
       "children": [],
       "scope": "system",

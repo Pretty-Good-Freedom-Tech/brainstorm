@@ -9,7 +9,11 @@ set -euo pipefail
 source "$(dirname "$0")/../lib/config.js" 2>/dev/null || {
     BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}"
     BRAINSTORM_DATA_DIR="${BRAINSTORM_DATA_DIR:-/var/lib/brainstorm}"
+    BRAINSTORM_MODULE_BASE_DIR="${BRAINSTORM_MODULE_BASE_DIR:-/usr/local/lib/node_modules/brainstorm}"
 }
+
+# Set monitoring verbosity (full, alerts, minimal)
+MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
 
 SCRIPT_NAME="databasePerformanceMonitor"
 TARGET="${1:-owner}"
@@ -20,27 +24,41 @@ EVENTS_LOG="${BRAINSTORM_LOG_DIR}/taskQueue/events.jsonl"
 mkdir -p "$(dirname "$LOG_FILE")"
 mkdir -p "$(dirname "$EVENTS_LOG")"
 
-# Logging function with structured output
-log_event() {
+# Source structured logging utilities
+if [ -f "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh" ]; then
+    source "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh"
+else
+    # Fallback emit_task_event function if structuredLogging.sh not found
+    emit_task_event() {
+        local event_type="$1"
+        local message="$2"
+        local metadata="${3:-{}}"
+        local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+        echo "{\"timestamp\": \"$timestamp\", \"taskName\": \"$SCRIPT_NAME\", \"target\": \"$TARGET\", \"eventType\": \"$event_type\", \"message\": \"$message\", \"metadata\": $metadata}" >> "$EVENTS_LOG"
+    }
+fi
+
+# Configurable monitoring event emission
+emit_monitoring_event() {
     local event_type="$1"
     local message="$2"
     local metadata="${3:-{}}"
     
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
-    local log_entry=$(cat <<EOF
-{
-  "timestamp": "$timestamp",
-  "taskName": "$SCRIPT_NAME",
-  "target": "$TARGET",
-  "eventType": "$event_type",
-  "message": "$message",
-  "metadata": $metadata
-}
-EOF
-)
-    
-    echo "$log_entry" >> "$EVENTS_LOG"
-    echo "[$timestamp] $SCRIPT_NAME ($TARGET): $event_type - $message" >> "$LOG_FILE"
+    case "$MONITORING_VERBOSITY" in
+        "full")
+            emit_task_event "$event_type" "$message" "$metadata"
+            ;;
+        "alerts")
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" || "$event_type" == "TASK_END" || "$event_type" == "TASK_ERROR" ]]; then
+                emit_task_event "$event_type" "$message" "$metadata"
+            fi
+            ;;
+        "minimal")
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_ERROR" ]]; then
+                emit_task_event "$event_type" "$message" "$metadata"
+            fi
+            ;;
+    esac
 }
 
 # Health alert function
@@ -62,7 +80,7 @@ send_health_alert() {
 EOF
 )
     
-    log_event "HEALTH_ALERT" "$message" "$metadata"
+    emit_monitoring_event "HEALTH_ALERT" "$message" "$metadata"
 }
 
 # Get Neo4j process information
@@ -174,23 +192,23 @@ get_transaction_metrics() {
 
 # Monitor database performance
 monitor_database_performance() {
-    log_event "TASK_START" "Starting database performance monitoring"
+    emit_monitoring_event "TASK_START" "Starting database performance monitoring"
     
     # Get Neo4j PID
     local neo4j_pid=$(get_neo4j_pid)
     if [[ -z "$neo4j_pid" ]]; then
         send_health_alert "NEO4J_PROCESS_NOT_FOUND" "critical" "Neo4j process not found"
-        log_event "TASK_ERROR" "Neo4j process not found"
+        emit_monitoring_event "TASK_ERROR" "Neo4j process not found"
         return 1
     fi
     
-    log_event "PROCESS_FOUND" "Neo4j process found" "{\"pid\": $neo4j_pid}"
+    emit_monitoring_event "PROCESS_FOUND" "Neo4j process found" "{\"pid\": $neo4j_pid}"
     
     # Check connection and response time
     local response_time=$(check_neo4j_connection)
     if [[ "$response_time" == "-1" ]]; then
         send_health_alert "NEO4J_CONNECTION_FAILED" "critical" "Failed to connect to Neo4j database"
-        log_event "TASK_ERROR" "Database connection failed"
+        emit_monitoring_event "TASK_ERROR" "Database connection failed"
         return 1
     fi
     
@@ -199,11 +217,11 @@ monitor_database_performance() {
         send_health_alert "NEO4J_SLOW_RESPONSE" "warning" "Database response time is slow: ${response_time}s" "{\"responseTime\": $response_time}"
     fi
     
-    log_event "CONNECTION_CHECK" "Database connection successful" "{\"responseTime\": $response_time}"
+    emit_monitoring_event "CONNECTION_CHECK" "Database connection successful" "{\"responseTime\": $response_time}"
     
     # Get database metrics
     local db_metrics=$(get_database_metrics)
-    log_event "DATABASE_METRICS" "Retrieved database metrics" "$db_metrics"
+    emit_monitoring_event "DATABASE_METRICS" "Retrieved database metrics" "$db_metrics"
     
     # Check heap utilization
     local heap_util=$(echo "$db_metrics" | jq -r '.heapUtilization // 0' 2>/dev/null || echo "0")
@@ -215,7 +233,7 @@ monitor_database_performance() {
     
     # Get query performance metrics
     local query_metrics=$(get_query_performance)
-    log_event "QUERY_METRICS" "Retrieved query performance metrics" "$query_metrics"
+    emit_monitoring_event "QUERY_METRICS" "Retrieved query performance metrics" "$query_metrics"
     
     # Check for long-running queries
     local long_queries=$(echo "$query_metrics" | jq -r '.longRunningQueries // 0' 2>/dev/null || echo "0")
@@ -225,7 +243,7 @@ monitor_database_performance() {
     
     # Get transaction metrics
     local tx_metrics=$(get_transaction_metrics)
-    log_event "TRANSACTION_METRICS" "Retrieved transaction metrics" "$tx_metrics"
+    emit_monitoring_event "TRANSACTION_METRICS" "Retrieved transaction metrics" "$tx_metrics"
     
     # Check for long transactions
     local long_tx=$(echo "$tx_metrics" | jq -r '.longTransactions // 0' 2>/dev/null || echo "0")
@@ -246,8 +264,8 @@ monitor_database_performance() {
 EOF
 )
     
-    log_event "PERFORMANCE_REPORT" "Database performance monitoring completed" "$combined_metrics"
-    log_event "TASK_END" "Database performance monitoring completed successfully"
+    emit_monitoring_event "PERFORMANCE_REPORT" "Database performance monitoring completed" "$combined_metrics"
+    emit_monitoring_event "TASK_END" "Database performance monitoring completed successfully"
 }
 
 # Main execution
@@ -260,7 +278,7 @@ main() {
     
     # Validate Neo4j password is set
     if [[ -z "${NEO4J_PASSWORD:-}" ]]; then
-        log_event "TASK_ERROR" "NEO4J_PASSWORD environment variable not set"
+        emit_monitoring_event "TASK_ERROR" "NEO4J_PASSWORD environment variable not set"
         exit 1
     fi
     

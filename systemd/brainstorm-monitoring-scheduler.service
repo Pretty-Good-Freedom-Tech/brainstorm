@@ -9,7 +9,7 @@ Type=simple
 User=brainstorm
 Group=brainstorm
 WorkingDirectory=/usr/local/lib/node_modules/brainstorm
-ExecStart=/usr/bin/node src/algos/monitoringScheduler.js owner
+ExecStart=/usr/bin/node src/manage/monitor/monitoringScheduler.js owner
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -20,6 +20,7 @@ SyslogIdentifier=brainstorm-monitoring-scheduler
 Environment=NODE_ENV=production
 Environment=BRAINSTORM_LOG_DIR=/var/log/brainstorm
 Environment=BRAINSTORM_DATA_DIR=/var/lib/brainstorm
+Environment=BRAINSTORM_MONITORING_VERBOSITY=full
 EnvironmentFile=-/etc/brainstorm/brainstorm.env
 
 # Security settings

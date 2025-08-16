@@ -1,18 +1,45 @@
 #!/bin/bash
 
-# Application Health Monitor
-# Monitors Brainstorm application components (strfry, brainstorm-control-panel, etc.)
+# Brainstorm Health Monitor - Application Health Monitor
+# Monitors application services, processes, and endpoints
 
-set -euo pipefail
+set -e
+set -o pipefail
 
-# Source configuration and logging
-source "$(dirname "$0")/../lib/config.js" 2>/dev/null || {
-    BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}"
-    BRAINSTORM_DATA_DIR="${BRAINSTORM_DATA_DIR:-/var/lib/brainstorm}"
-}
+# Configuration
+CONFIG_FILE="/etc/brainstorm.conf"
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+fi
+
+# Determine base directory for development vs production
+if [[ -z "$BRAINSTORM_MODULE_BASE_DIR" ]]; then
+    # Development mode - determine from script location
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BRAINSTORM_MODULE_BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+fi
+
+# Source structured logging utilities
+STRUCTURED_LOGGING_PATH="$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
+if [[ ! -f "$STRUCTURED_LOGGING_PATH" ]]; then
+    echo "Error: Cannot find structured logging utilities at $STRUCTURED_LOGGING_PATH"
+    echo "BRAINSTORM_MODULE_BASE_DIR: $BRAINSTORM_MODULE_BASE_DIR"
+    echo "SCRIPT_DIR: $SCRIPT_DIR"
+    exit 1
+fi
+source "$STRUCTURED_LOGGING_PATH"
 
 SCRIPT_NAME="applicationHealthMonitor"
 TARGET="${1:-owner}"
+
+# Configurable verbosity for monitoring tasks
+# BRAINSTORM_MONITORING_VERBOSITY: full, alerts, minimal
+MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
+
+# Source configuration and logging
+BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}"
+BRAINSTORM_DATA_DIR="${BRAINSTORM_DATA_DIR:-/var/lib/brainstorm}"
+
 LOG_FILE="${BRAINSTORM_LOG_DIR}/${SCRIPT_NAME}.log"
 EVENTS_LOG="${BRAINSTORM_LOG_DIR}/taskQueue/events.jsonl"
 
@@ -36,49 +63,30 @@ declare -A SERVICE_PORTS=(
     ["neo4j"]="7474,7687"
 )
 
-# Logging function with structured output
-log_event() {
+# Configurable logging based on verbosity level
+emit_monitoring_event() {
     local event_type="$1"
     local message="$2"
     local metadata="${3:-{}}"
     
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
-    local log_entry=$(cat <<EOF
-{
-  "timestamp": "$timestamp",
-  "taskName": "$SCRIPT_NAME",
-  "target": "$TARGET",
-  "eventType": "$event_type",
-  "message": "$message",
-  "metadata": $metadata
-}
-EOF
-)
-    
-    echo "$log_entry" >> "$EVENTS_LOG"
-    echo "[$timestamp] $SCRIPT_NAME ($TARGET): $event_type - $message" >> "$LOG_FILE"
-}
-
-# Health alert function
-send_health_alert() {
-    local alert_type="$1"
-    local severity="$2"
-    local message="$3"
-    local additional_data="${4:-{}}"
-    
-    local metadata=$(cat <<EOF
-{
-  "alertType": "$alert_type",
-  "severity": "$severity",
-  "component": "application_health",
-  "message": "$message",
-  "recommendedAction": "Check application logs and restart services if needed",
-  "additionalData": $additional_data
-}
-EOF
-)
-    
-    log_event "HEALTH_ALERT" "$message" "$metadata"
+    case "$MONITORING_VERBOSITY" in
+        "full")
+            # Emit all events for debugging
+            emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
+            ;;
+        "alerts")
+            # Only emit HEALTH_ALERT and TASK_START events
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" ]]; then
+                emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
+            fi
+            ;;
+        "minimal")
+            # Only emit HEALTH_ALERT events
+            if [[ "$event_type" == "HEALTH_ALERT" ]]; then
+                emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
+            fi
+            ;;
+    esac
 }
 
 # Check if process is running
@@ -306,12 +314,19 @@ EOF
 EOF
 )
     
-    log_event "APPLICATION_REPORT" "Application health monitoring completed" "$combined_results"
-    log_event "TASK_END" "Application health monitoring completed successfully"
+    emit_monitoring_event "PROGRESS" "Application health monitoring completed" "$combined_results"
 }
 
 # Main execution
 main() {
+    # Emit task start event for debugging
+    emit_monitoring_event "TASK_START" "Starting Brainstorm Application Health Monitor" '{
+        "message": "Starting application health monitoring",
+        "component": "healthMonitor",
+        "verbosity": "'$MONITORING_VERBOSITY'",
+        "target": "'$TARGET'"
+    }'
+    
     if [[ $# -eq 0 ]]; then
         echo "Usage: $0 <target>"
         echo "Example: $0 owner"
@@ -319,6 +334,13 @@ main() {
     fi
     
     monitor_application_health
+    
+    # Emit task end event for debugging
+    emit_monitoring_event "TASK_END" "Application health monitoring completed successfully" '{
+        "status": "success",
+        "message": "Application health monitoring completed",
+        "component": "healthMonitor"
+    }'
 }
 
 # Execute main function

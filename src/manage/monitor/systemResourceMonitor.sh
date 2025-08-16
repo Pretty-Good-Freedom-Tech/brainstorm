@@ -9,7 +9,11 @@ set -euo pipefail
 source "$(dirname "$0")/../lib/config.js" 2>/dev/null || {
     BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}"
     BRAINSTORM_DATA_DIR="${BRAINSTORM_DATA_DIR:-/var/lib/brainstorm}"
+    BRAINSTORM_MODULE_BASE_DIR="${BRAINSTORM_MODULE_BASE_DIR:-/usr/local/lib/node_modules/brainstorm}"
 }
+
+# Set monitoring verbosity (full, alerts, minimal)
+MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
 
 SCRIPT_NAME="systemResourceMonitor"
 TARGET="${1:-owner}"
@@ -20,27 +24,41 @@ EVENTS_LOG="${BRAINSTORM_LOG_DIR}/taskQueue/events.jsonl"
 mkdir -p "$(dirname "$LOG_FILE")"
 mkdir -p "$(dirname "$EVENTS_LOG")"
 
-# Logging function with structured output
-log_event() {
+# Source structured logging utilities
+if [ -f "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh" ]; then
+    source "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh"
+else
+    # Fallback emit_task_event function if structuredLogging.sh not found
+    emit_task_event() {
+        local event_type="$1"
+        local message="$2"
+        local metadata="${3:-{}}"
+        local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+        echo "{\"timestamp\": \"$timestamp\", \"taskName\": \"$SCRIPT_NAME\", \"target\": \"$TARGET\", \"eventType\": \"$event_type\", \"message\": \"$message\", \"metadata\": $metadata}" >> "$EVENTS_LOG"
+    }
+fi
+
+# Configurable monitoring event emission
+emit_monitoring_event() {
     local event_type="$1"
     local message="$2"
     local metadata="${3:-{}}"
     
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
-    local log_entry=$(cat <<EOF
-{
-  "timestamp": "$timestamp",
-  "taskName": "$SCRIPT_NAME",
-  "target": "$TARGET",
-  "eventType": "$event_type",
-  "message": "$message",
-  "metadata": $metadata
-}
-EOF
-)
-    
-    echo "$log_entry" >> "$EVENTS_LOG"
-    echo "[$timestamp] $SCRIPT_NAME ($TARGET): $event_type - $message" >> "$LOG_FILE"
+    case "$MONITORING_VERBOSITY" in
+        "full")
+            emit_task_event "$event_type" "$message" "$metadata"
+            ;;
+        "alerts")
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" || "$event_type" == "TASK_END" || "$event_type" == "TASK_ERROR" ]]; then
+                emit_task_event "$event_type" "$message" "$metadata"
+            fi
+            ;;
+        "minimal")
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_ERROR" ]]; then
+                emit_task_event "$event_type" "$message" "$metadata"
+            fi
+            ;;
+    esac
 }
 
 # Health alert function
@@ -62,7 +80,7 @@ send_health_alert() {
 EOF
 )
     
-    log_event "HEALTH_ALERT" "$message" "$metadata"
+    emit_monitoring_event "HEALTH_ALERT" "$message" "$metadata"
 }
 
 # Get CPU usage
@@ -175,11 +193,11 @@ get_system_info() {
 
 # Monitor system resources
 monitor_system_resources() {
-    log_event "TASK_START" "Starting system resource monitoring"
+    emit_monitoring_event "TASK_START" "Starting system resource monitoring"
     
     # Get CPU usage
     local cpu_metrics=$(get_cpu_usage)
-    log_event "CPU_METRICS" "Retrieved CPU metrics" "$cpu_metrics"
+    emit_monitoring_event "CPU_METRICS" "Retrieved CPU metrics" "$cpu_metrics"
     
     # Check CPU usage
     local cpu_percent=$(echo "$cpu_metrics" | jq -r '.cpuUsed // .cpuPercent' 2>/dev/null || echo "0")
@@ -191,7 +209,7 @@ monitor_system_resources() {
     
     # Get memory usage
     local memory_metrics=$(get_memory_usage)
-    log_event "MEMORY_METRICS" "Retrieved memory metrics" "$memory_metrics"
+    emit_monitoring_event "MEMORY_METRICS" "Retrieved memory metrics" "$memory_metrics"
     
     # Check memory usage
     local mem_percent=$(echo "$memory_metrics" | jq -r '.percentUsed' 2>/dev/null || echo "0")
@@ -203,7 +221,7 @@ monitor_system_resources() {
     
     # Get disk usage
     local disk_metrics=$(get_disk_usage)
-    log_event "DISK_METRICS" "Retrieved disk metrics" "$disk_metrics"
+    emit_monitoring_event "DISK_METRICS" "Retrieved disk metrics" "$disk_metrics"
     
     # Check disk usage
     local disk_percent=$(echo "$disk_metrics" | jq -r '.percentUsed' 2>/dev/null || echo "0")
@@ -215,15 +233,15 @@ monitor_system_resources() {
     
     # Get network stats
     local network_metrics=$(get_network_stats)
-    log_event "NETWORK_METRICS" "Retrieved network metrics" "$network_metrics"
+    emit_monitoring_event "NETWORK_METRICS" "Retrieved network metrics" "$network_metrics"
     
     # Get process information
     local process_metrics=$(get_process_info)
-    log_event "PROCESS_METRICS" "Retrieved process metrics" "$process_metrics"
+    emit_monitoring_event "PROCESS_METRICS" "Retrieved process metrics" "$process_metrics"
     
     # Get system information
     local system_metrics=$(get_system_info)
-    log_event "SYSTEM_METRICS" "Retrieved system information" "$system_metrics"
+    emit_monitoring_event "SYSTEM_METRICS" "Retrieved system information" "$system_metrics"
     
     # Check system load
     local load_1min=$(echo "$system_metrics" | jq -r '.load1min' 2>/dev/null || echo "0")
@@ -250,8 +268,8 @@ monitor_system_resources() {
 EOF
 )
     
-    log_event "RESOURCE_REPORT" "System resource monitoring completed" "$combined_metrics"
-    log_event "TASK_END" "System resource monitoring completed successfully"
+    emit_monitoring_event "RESOURCE_REPORT" "System resource monitoring completed" "$combined_metrics"
+    emit_monitoring_event "TASK_END" "System resource monitoring completed successfully"
 }
 
 # Main execution

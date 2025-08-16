@@ -9,7 +9,11 @@ set -euo pipefail
 source "$(dirname "$0")/../lib/config.js" 2>/dev/null || {
     BRAINSTORM_LOG_DIR="${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}"
     BRAINSTORM_DATA_DIR="${BRAINSTORM_DATA_DIR:-/var/lib/brainstorm}"
+    BRAINSTORM_MODULE_BASE_DIR="${BRAINSTORM_MODULE_BASE_DIR:-/usr/local/lib/node_modules/brainstorm}"
 }
+
+# Set monitoring verbosity (full, alerts, minimal)
+MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
 
 SCRIPT_NAME="networkConnectivityMonitor"
 TARGET="${1:-owner}"
@@ -36,27 +40,41 @@ NOSTR_RELAYS=(
     "relay.snort.social:443:wss"
 )
 
-# Logging function with structured output
-log_event() {
+# Source structured logging utilities
+if [ -f "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh" ]; then
+    source "${BRAINSTORM_MODULE_BASE_DIR}/src/lib/structuredLogging.sh"
+else
+    # Fallback emit_task_event function if structuredLogging.sh not found
+    emit_task_event() {
+        local event_type="$1"
+        local message="$2"
+        local metadata="${3:-{}}"
+        local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+        echo "{\"timestamp\": \"$timestamp\", \"taskName\": \"$SCRIPT_NAME\", \"target\": \"$TARGET\", \"eventType\": \"$event_type\", \"message\": \"$message\", \"metadata\": $metadata}" >> "$EVENTS_LOG"
+    }
+fi
+
+# Configurable monitoring event emission
+emit_monitoring_event() {
     local event_type="$1"
     local message="$2"
     local metadata="${3:-{}}"
     
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
-    local log_entry=$(cat <<EOF
-{
-  "timestamp": "$timestamp",
-  "taskName": "$SCRIPT_NAME",
-  "target": "$TARGET",
-  "eventType": "$event_type",
-  "message": "$message",
-  "metadata": $metadata
-}
-EOF
-)
-    
-    echo "$log_entry" >> "$EVENTS_LOG"
-    echo "[$timestamp] $SCRIPT_NAME ($TARGET): $event_type - $message" >> "$LOG_FILE"
+    case "$MONITORING_VERBOSITY" in
+        "full")
+            emit_task_event "$event_type" "$message" "$metadata"
+            ;;
+        "alerts")
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" || "$event_type" == "TASK_END" || "$event_type" == "TASK_ERROR" ]]; then
+                emit_task_event "$event_type" "$message" "$metadata"
+            fi
+            ;;
+        "minimal")
+            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_ERROR" ]]; then
+                emit_task_event "$event_type" "$message" "$metadata"
+            fi
+            ;;
+    esac
 }
 
 # Health alert function
@@ -78,7 +96,7 @@ send_health_alert() {
 EOF
 )
     
-    log_event "HEALTH_ALERT" "$message" "$metadata"
+    emit_monitoring_event "HEALTH_ALERT" "$message" "$metadata"
 }
 
 # Test TCP connectivity
@@ -202,17 +220,17 @@ test_endpoint() {
 
 # Monitor network connectivity
 monitor_network_connectivity() {
-    log_event "TASK_START" "Starting network connectivity monitoring"
+    emit_monitoring_event "TASK_START" "Starting network connectivity monitoring"
     
     # Get network interface information
     local interfaces=$(get_network_interfaces)
-    log_event "NETWORK_INTERFACES" "Retrieved network interface information" "$interfaces"
+    emit_monitoring_event "NETWORK_INTERFACES" "Retrieved network interface information" "$interfaces"
     
     # Check if any interfaces are up
     local active_interfaces=$(echo "$interfaces" | jq '[.[] | select(.status == "up")] | length' 2>/dev/null || echo "0")
     if [[ "$active_interfaces" -eq 0 ]]; then
         send_health_alert "NETWORK_NO_INTERFACES" "critical" "No active network interfaces found" "$interfaces"
-        log_event "TASK_ERROR" "No active network interfaces"
+        emit_monitoring_event "TASK_ERROR" "No active network interfaces"
         return 1
     fi
     
@@ -278,7 +296,7 @@ monitor_network_connectivity() {
     done
     
     local ping_json=$(IFS=','; echo "[${ping_results[*]}]")
-    log_event "PING_RESULTS" "Internet connectivity test completed" "$ping_json"
+    emit_monitoring_event "PING_RESULTS" "Internet connectivity test completed" "$ping_json"
     
     # Combine all results
     local endpoint_json=$(IFS=','; echo "[${endpoint_results[*]}]")
@@ -304,8 +322,8 @@ monitor_network_connectivity() {
 EOF
 )
     
-    log_event "CONNECTIVITY_REPORT" "Network connectivity monitoring completed" "$combined_results"
-    log_event "TASK_END" "Network connectivity monitoring completed successfully"
+    emit_monitoring_event "CONNECTIVITY_REPORT" "Network connectivity monitoring completed" "$combined_results"
+    emit_monitoring_event "TASK_END" "Network connectivity monitoring completed successfully"
 }
 
 # Main execution
