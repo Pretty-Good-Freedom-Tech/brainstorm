@@ -96,18 +96,17 @@ send_health_alert() {
     # Escape quotes in message for JSON
     local escaped_message=$(echo "$message" | sed 's/"/\\"/g')
     
-    # Construct metadata with proper JSON escaping
-    local metadata=$(cat <<EOF
-{
-    "alertType": "$alert_type",
-    "severity": "$severity", 
-    "component": "application_health",
-    "message": "$escaped_message",
-    "recommendedAction": "Review application component status and logs",
-    "additionalData": $additional_data
-}
-EOF
-)
+    # Construct metadata as single-line JSON to avoid formatting issues
+    local metadata="{\"alertType\":\"$alert_type\",\"severity\":\"$severity\",\"component\":\"application_health\",\"message\":\"$escaped_message\",\"recommendedAction\":\"Review application component status and logs\",\"additionalData\":$additional_data}"
+    
+    # Validate and compact JSON if jq is available
+    if command -v jq >/dev/null 2>&1; then
+        if echo "$metadata" | jq empty 2>/dev/null; then
+            metadata=$(echo "$metadata" | jq -c .)
+        else
+            metadata="{\"alertType\":\"$alert_type\",\"severity\":\"$severity\",\"component\":\"application_health\",\"message\":\"$escaped_message\",\"recommendedAction\":\"Review application component status and logs\",\"additionalData\":{}}"
+        fi
+    fi
     
     emit_monitoring_event "HEALTH_ALERT" "$message" "$metadata"
 }
