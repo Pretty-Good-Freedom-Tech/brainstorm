@@ -380,7 +380,7 @@ get_task_expected_duration() {
 start_task_timer() {
     local task_name="$1"
     local target="${2:-}"
-    local metadata="$3"
+    local metadata="${3:-}"
     
     # Ensure metadata is not empty or null
     if [[ -z "$metadata" ]]; then
@@ -403,7 +403,7 @@ end_task_timer() {
     local target="${2:-}"
     local exit_code="${3:-0}"
     local timer_file="$4"
-    local additional_metadata="$5"
+    local additional_metadata="${5:-}"
     
     # Ensure additional_metadata is not empty or null
     if [[ -z "$additional_metadata" ]]; then

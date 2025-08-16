@@ -48,7 +48,7 @@ else
     emit_task_event() {
         local event_type="$1"
         local message="$2"
-        local metadata="$3"
+        local metadata="${3:-}"
         
         # Ensure metadata is not empty or null
         if [[ -z "$metadata" ]]; then
@@ -92,7 +92,7 @@ send_health_alert() {
     local alert_type="$1"
     local severity="$2"
     local message="$3"
-    local additional_data="$4"
+    local additional_data="${4:-}"
     
     # Ensure additional_data is not empty or null
     if [[ -z "$additional_data" ]]; then
