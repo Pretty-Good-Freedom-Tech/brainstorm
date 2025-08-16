@@ -7,6 +7,7 @@
  * - All files in /usr/local/lib/strfry/plugins/data/
  * - Customer data in /var/lib/brainstorm/customers/
  * - Secure relay keys in /var/lib/brainstorm/secure-keys/
+ * - Monitoring data in /var/lib/brainstorm/monitoring/
  * - Log files in /var/log/brainstorm/
  * - System configuration files:
  *   - /etc/strfry.conf
@@ -36,7 +37,8 @@ const SOURCE_DIRS = [
   '/usr/local/lib/strfry/plugins/data/',
   '/var/log/brainstorm',
   '/var/lib/brainstorm/customers',
-  '/var/lib/brainstorm/secure-keys'
+  '/var/lib/brainstorm/secure-keys',
+  '/var/lib/brainstorm/monitoring'
 ];
 
 // Determine the actual user's home directory, even when run with sudo

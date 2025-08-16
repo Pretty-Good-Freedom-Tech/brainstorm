@@ -37,11 +37,17 @@ const TARGET_FILES = [
   '/etc/blacklist.conf'
 ];
 
-const TARGET_DIRS = [
+const TARGET_DIRS_BRAINSTORM = [
   '/usr/local/lib/strfry/plugins/data/',
   '/var/log/brainstorm',
   '/var/lib/brainstorm/customers',
-  '/var/lib/brainstorm/secure-keys'
+  '/var/lib/brainstorm/secure-keys',
+  '/var/lib/brainstorm/monitoring'
+];
+
+// Neo4j monitoring data; need to chown neorj:brainstorm and chmod 775
+const TARGET_DIRS_NEO4J = [
+  '/var/lib/brainstorm/monitoring'
 ];
 
 // Determine the actual user's home directory, even when run with sudo
@@ -220,7 +226,7 @@ function performRestore() {
     
     // Restore directories
     console.log('\nRestoring directories:');
-    TARGET_DIRS.forEach(dir => {
+    TARGET_DIRS_BRAINSTORM.forEach(dir => {
       // Remove trailing slash if present
       const trimmedDir = dir.endsWith('/') ? dir.slice(0, -1) : dir;
       const dirName = path.basename(trimmedDir);
