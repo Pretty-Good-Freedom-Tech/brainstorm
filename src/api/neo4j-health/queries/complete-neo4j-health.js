@@ -87,7 +87,8 @@ class Neo4jHealthDataParser {
 
     // Get response time from database performance monitor events
     async getResponseTimeFromEvents() {
-        const recentEvents = await this.getRecentEvents('databasePerformanceMonitor', 'owner', 1);
+        // Look for CONNECTION_CHECK events specifically, as that's where responseTime is stored
+        const recentEvents = await this.getRecentEvents('databasePerformanceMonitor', 'CONNECTION_CHECK', 1);
         
         if (recentEvents.length === 0) {
             return null;
@@ -95,7 +96,7 @@ class Neo4jHealthDataParser {
 
         const latestEvent = recentEvents[0];
         
-        // Look for response time in the combined metrics
+        // Look for response time in the CONNECTION_CHECK event metadata
         if (latestEvent.metadata && latestEvent.metadata.responseTime) {
             const responseTime = parseFloat(latestEvent.metadata.responseTime);
             return isNaN(responseTime) ? null : `${responseTime.toFixed(3)}s`;
