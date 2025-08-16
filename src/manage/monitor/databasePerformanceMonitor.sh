@@ -43,7 +43,12 @@ else
     emit_task_event() {
         local event_type="$1"
         local message="$2"
-        local metadata="${3:-{}}"
+        local metadata="$3"
+        
+        # Ensure metadata is not empty or null
+        if [[ -z "$metadata" ]]; then
+            metadata="{}"
+        fi
         local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
         echo "{\"timestamp\": \"$timestamp\", \"taskName\": \"$SCRIPT_NAME\", \"target\": \"$TARGET\", \"eventType\": \"$event_type\", \"message\": \"$message\", \"metadata\": $metadata}" >> "$EVENTS_LOG"
     }
@@ -53,7 +58,12 @@ fi
 emit_monitoring_event() {
     local event_type="$1"
     local message="$2"
-    local metadata="${3:-{}}"
+    local metadata="$3"
+    
+    # Ensure metadata is not empty or null
+    if [[ -z "$metadata" ]]; then
+        metadata="{}"
+    fi
     
     case "$MONITORING_VERBOSITY" in
         "full")
@@ -77,7 +87,12 @@ send_health_alert() {
     local alert_type="$1"
     local severity="$2"
     local message="$3"
-    local additional_data="${4:-{}}"
+    local additional_data="$4"
+    
+    # Ensure additional_data is not empty or null
+    if [[ -z "$additional_data" ]]; then
+        additional_data="{}"
+    fi
     
     local metadata=$(cat <<EOF
 {

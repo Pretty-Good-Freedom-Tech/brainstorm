@@ -96,7 +96,12 @@ send_health_alert() {
     local alert_type="$1"
     local severity="$2"
     local message="$3"
-    local additional_data="${4:-{}}"
+    local additional_data="$4"
+    
+    # Ensure additional_data is not empty or null
+    if [[ -z "$additional_data" ]]; then
+        additional_data="{}"
+    fi
     
     # Escape quotes in message for JSON
     local escaped_message=$(echo "$message" | sed 's/"/\\"/g')
