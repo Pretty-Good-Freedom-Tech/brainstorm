@@ -31,7 +31,7 @@ class Neo4jHealthDataParser {
             
             try {
                 const event = JSON.parse(line);
-                if (event.taskName === taskName && event.target === target) {
+                if (event.taskName === taskName && event.eventType === target) {
                     events.push(event);
                 }
             } catch (error) {
