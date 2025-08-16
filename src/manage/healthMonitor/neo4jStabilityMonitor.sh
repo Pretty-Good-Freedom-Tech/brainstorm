@@ -135,7 +135,7 @@ check_index_health() {
     if timeout 30 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "SHOW INDEXES" > /tmp/neo4j_indexes.txt 2>/dev/null; then
         query_success=true
         local index_count=$(grep -c "ONLINE\|POPULATING\|FAILED" /tmp/neo4j_indexes.txt 2>/dev/null || echo "0")
-        local failed_indexes=$(grep -c "FAILED" /tmp/neo4j_indexes.txt 2>/dev/null || echo "0")
+        local failed_indexes=$(grep -c "FAILED" /tmp/neo4j_indexes.txt 2>/dev/null | tr -d '\n' || echo "0")
         
         # Check constraints
         if timeout 30 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "SHOW CONSTRAINTS" > /tmp/neo4j_constraints.txt 2>/dev/null; then

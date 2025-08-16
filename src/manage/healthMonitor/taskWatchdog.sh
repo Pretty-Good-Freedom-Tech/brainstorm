@@ -233,7 +233,7 @@ analyze_resource_trends() {
     if [[ -n "$recent_events" ]]; then
         # Extract memory usage trends (simplified analysis)
         local high_memory_count=$(echo "$recent_events" | grep -o '"memoryUsagePercent":"[0-9.]*"' | sed 's/.*"\([0-9.]*\)".*/\1/' | awk '$1 > 85 {count++} END {print count+0}')
-        local neo4j_down_count=$(echo "$recent_events" | grep -c '"neo4jStatus":"inaccessible"' || echo "0")
+        local neo4j_down_count=$(echo "$recent_events" | grep -c '"neo4jStatus":"inaccessible"' 2>/dev/null | tr -d '\n' || echo "0")
         
         if [[ "$high_memory_count" -gt 5 ]]; then
             emit_task_event "HEALTH_ALERT" "taskWatchdog" "system" '{
