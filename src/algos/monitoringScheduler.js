@@ -9,6 +9,16 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, exec } = require('child_process');
 
+// Load task registry for script paths
+const TASK_REGISTRY_PATH = path.join(__dirname, '../manage/taskQueue/taskRegistry.json');
+let taskRegistry = {};
+try {
+    taskRegistry = JSON.parse(fs.readFileSync(TASK_REGISTRY_PATH, 'utf8'));
+} catch (error) {
+    console.error(`Failed to load task registry: ${error.message}`);
+    process.exit(1);
+}
+
 // Configuration
 const BRAINSTORM_LOG_DIR = process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm';
 const BRAINSTORM_DATA_DIR = process.env.BRAINSTORM_DATA_DIR || '/var/lib/brainstorm';
@@ -26,7 +36,30 @@ const STATE_FILE = path.join(BRAINSTORM_LOG_DIR, 'taskQueue', 'monitoringState.j
     }
 });
 
-// Monitoring tiers configuration
+// Function to get script path from task registry
+function getScriptPath(taskName) {
+    const task = taskRegistry.tasks[taskName];
+    if (!task || !task.script) {
+        throw new Error(`Task '${taskName}' not found in registry or missing script path`);
+    }
+    
+    // Resolve environment variables in the script path
+    let scriptPath = task.script;
+    
+    // Replace common environment variables
+    const envVars = {
+        '$BRAINSTORM_MODULE_SRC_DIR': process.env.BRAINSTORM_MODULE_SRC_DIR || path.join(process.cwd(), 'src'),
+        '$BRAINSTORM_MODULE_BASE_DIR': process.env.BRAINSTORM_MODULE_BASE_DIR || process.cwd()
+    };
+    
+    for (const [envVar, value] of Object.entries(envVars)) {
+        scriptPath = scriptPath.replace(envVar, value);
+    }
+    
+    return scriptPath;
+}
+
+// Monitoring tiers configuration using task registry
 const MONITORING_TIERS = {
     // Tier 1: Critical Infrastructure (every 2-5 minutes)
     tier1: {
@@ -35,13 +68,13 @@ const MONITORING_TIERS = {
         tasks: [
             {
                 name: 'neo4jStabilityMonitor',
-                script: 'src/algos/neo4jStabilityMonitor.sh',
+                script: getScriptPath('neo4jStabilityMonitor'),
                 timeout: 15 * 60 * 1000, // 15 minutes
                 description: 'Neo4j crash pattern detection and stability monitoring'
             },
             {
                 name: 'systemResourceMonitor',
-                script: 'src/algos/systemResourceMonitor.sh',
+                script: getScriptPath('systemResourceMonitor'),
                 timeout: 5 * 60 * 1000, // 5 minutes
                 description: 'System resource monitoring (CPU, memory, disk)'
             }
@@ -55,13 +88,13 @@ const MONITORING_TIERS = {
         tasks: [
             {
                 name: 'applicationHealthMonitor',
-                script: 'src/algos/applicationHealthMonitor.sh',
+                script: getScriptPath('applicationHealthMonitor'),
                 timeout: 10 * 60 * 1000, // 10 minutes
                 description: 'Brainstorm application component health monitoring'
             },
             {
                 name: 'databasePerformanceMonitor',
-                script: 'src/algos/databasePerformanceMonitor.sh',
+                script: getScriptPath('databasePerformanceMonitor'),
                 timeout: 10 * 60 * 1000, // 10 minutes
                 description: 'Neo4j database performance monitoring'
             }
@@ -75,7 +108,7 @@ const MONITORING_TIERS = {
         tasks: [
             {
                 name: 'networkConnectivityMonitor',
-                script: 'src/algos/networkConnectivityMonitor.sh',
+                script: getScriptPath('networkConnectivityMonitor'),
                 timeout: 10 * 60 * 1000, // 10 minutes
                 description: 'Network connectivity and external service monitoring'
             }
@@ -89,7 +122,7 @@ const MONITORING_TIERS = {
         tasks: [
             {
                 name: 'taskWatchdog',
-                script: 'src/algos/taskWatchdog.sh',
+                script: getScriptPath('taskWatchdog'),
                 timeout: 10 * 60 * 1000, // 10 minutes
                 description: 'Task monitoring and stuck task detection'
             }
@@ -281,10 +314,18 @@ class TaskExecutor {
 
     runScript(task) {
         return new Promise((resolve, reject) => {
-            const scriptPath = path.resolve(task.script);
+            // Use the script path directly from task registry (already resolved)
+            const scriptPath = task.script;
+            
+            // Log the resolved path for debugging
+            this.logger.log(`Attempting to execute script: ${scriptPath}`);
+            this.logger.log(`Working directory: ${process.cwd()}`);
+            this.logger.log(`Script exists: ${fs.existsSync(scriptPath)}`);
             
             if (!fs.existsSync(scriptPath)) {
-                reject(new Error(`Script not found: ${scriptPath}`));
+                const error = `Script not found: ${scriptPath} (working dir: ${process.cwd()})`;
+                this.logger.log(`ERROR: ${error}`);
+                reject(new Error(error));
                 return;
             }
 
