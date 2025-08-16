@@ -23,7 +23,7 @@ class ServiceLogsRetriever {
     // Get service logs using journalctl
     getServiceLogs(service, lines = 100) {
         try {
-            const command = `journalctl -u ${service}.service -n ${lines} --no-pager`;
+            const command = `sudo journalctl -u ${service}.service -n ${lines} --no-pager`;
             console.log(`Executing: ${command}`);
             
             const output = execSync(command, { 
