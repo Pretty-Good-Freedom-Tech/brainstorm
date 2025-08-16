@@ -33,9 +33,9 @@ class ServiceController {
             
             if (action === 'trigger' && service === 'brainstorm-monitoring-scheduler.service') {
                 // Special case: trigger scheduler immediately
-                command = 'systemctl start brainstorm-monitoring-scheduler.service';
+                command = 'sudo systemctl start brainstorm-monitoring-scheduler.service';
             } else {
-                command = `systemctl ${action} ${service}`;
+                command = `sudo systemctl ${action} ${service}`;
             }
             
             console.log(`Executing: ${command}`);
@@ -50,7 +50,7 @@ class ServiceController {
             return {
                 success: false,
                 error: error.message,
-                command: `systemctl ${action} ${service}`
+                command: `sudo systemctl ${action} ${service}`
             };
         }
     }
