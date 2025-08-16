@@ -85,8 +85,22 @@ class Neo4jHealthDataParser {
         return alerts.slice(0, limit);
     }
 
-    // Get service status from systemResourceMonitor events
+    // Get service status from enhanced metrics or fallback to events
     async getServiceStatus() {
+        // Try enhanced metrics first
+        const enhancedMetrics = await this.getEnhancedMetrics();
+        if (enhancedMetrics) {
+            return {
+                status: enhancedMetrics.status || 'unknown',
+                pid: enhancedMetrics.pid || null,
+                memoryMB: enhancedMetrics.memory ? Math.round(enhancedMetrics.memory.rssBytes / (1024 * 1024)) : 0,
+                connectionTest: enhancedMetrics.status === 'running' ? 'success' : 'failed',
+                responseTime: null, // Response time comes from database performance monitor
+                source: 'enhanced'
+            };
+        }
+        
+        // Fallback to event-based data
         const recentEvents = await this.getRecentEvents('systemResourceMonitor', 'neo4j', 1);
         
         if (recentEvents.length === 0) {
@@ -95,7 +109,8 @@ class Neo4jHealthDataParser {
                 pid: null,
                 memoryMB: 0,
                 connectionTest: 'unknown',
-                responseTime: null
+                responseTime: null,
+                source: 'events'
             };
         }
 
@@ -107,12 +122,55 @@ class Neo4jHealthDataParser {
             pid: metadata.pid || null,
             memoryMB: metadata.memoryUsageMB || 0,
             connectionTest: metadata.connectionTest || 'unknown',
-            responseTime: metadata.responseTime || null
+            responseTime: metadata.responseTime || null,
+            source: 'events'
         };
     }
 
-    // Get heap health from neo4jCrashPatternDetector events
+    // Get enhanced metrics from neo4j-metrics-collector
+    async getEnhancedMetrics() {
+        const metricsFile = '/var/lib/brainstorm/monitoring/neo4j_metrics.json';
+        
+        try {
+            if (!fs.existsSync(metricsFile)) {
+                return null;
+            }
+            
+            const stats = fs.statSync(metricsFile);
+            const fileAge = (Date.now() - stats.mtime.getTime()) / 1000;
+            
+            // Only use if file is fresh (less than 2 minutes old)
+            if (fileAge > 120) {
+                return null;
+            }
+            
+            const data = fs.readFileSync(metricsFile, 'utf8');
+            return JSON.parse(data);
+        } catch (error) {
+            console.error('Failed to read enhanced metrics:', error);
+            return null;
+        }
+    }
+
+    // Get heap health from enhanced metrics or fallback to events
     async getHeapHealth() {
+        // Try enhanced metrics first
+        const enhancedMetrics = await this.getEnhancedMetrics();
+        if (enhancedMetrics && enhancedMetrics.heap) {
+            const heap = enhancedMetrics.heap;
+            const gc = enhancedMetrics.gc || {};
+            
+            return {
+                utilizationPercent: parseFloat(heap.percentUsed || 0),
+                usedMB: Math.round((heap.usedBytes || 0) / (1024 * 1024)),
+                totalMB: Math.round((heap.totalBytes || 0) / (1024 * 1024)),
+                gcOverheadPercent: gc.totalGCTime ? parseFloat((gc.totalGCTime / 1000).toFixed(2)) : 0,
+                fullGcCount: gc.fullGC || 0,
+                source: 'enhanced'
+            };
+        }
+        
+        // Fallback to event-based data
         const recentEvents = await this.getRecentEvents('neo4jCrashPatternDetector', 'heap_gc_analysis', 1);
         
         if (recentEvents.length === 0) {
