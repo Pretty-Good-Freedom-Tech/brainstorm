@@ -24,7 +24,7 @@ Environment=BRAINSTORM_MONITORING_VERBOSITY=full
 EnvironmentFile=-/etc/brainstorm/brainstorm.env
 
 # Security settings
-NoNewPrivileges=yes
+NoNewPrivileges=no
 PrivateTmp=yes
 ProtectSystem=strict
 ProtectHome=yes
