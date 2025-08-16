@@ -11,109 +11,62 @@
 #
 # Usage: ./taskWatchdog.sh [--check-interval MINUTES] [--alert-threshold-multiplier X]
 
-# DEBUG: Create debug log file
-DEBUG_LOG="/tmp/taskWatchdog_debug.log"
-exec 19>"$DEBUG_LOG"
-
-# DEBUG: Function to log both to console and file
-debug_log() {
-    local message="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
-    echo "$message" >&2
-    echo "$message" >&19
-}
-
-debug_log "=== TASKWATCHDOG DEBUG START ==="
-debug_log "Script called with arguments: $*"
-debug_log "Current working directory: $(pwd)"
-debug_log "Current user: $(whoami)"
-debug_log "Process ID: $$"
-
 set -e
 set -o pipefail
 
-debug_log "Bash options set successfully"
-
 # Configuration
 CONFIG_FILE="/etc/brainstorm.conf"
-debug_log "Checking for config file: $CONFIG_FILE"
 if [[ -f "$CONFIG_FILE" ]]; then
-    debug_log "Config file found, sourcing it"
     source "$CONFIG_FILE"
-    debug_log "Config file sourced successfully"
-else
-    debug_log "Config file not found"
 fi
 
 # Determine base directory for development vs production
-debug_log "BRAINSTORM_MODULE_BASE_DIR before: '$BRAINSTORM_MODULE_BASE_DIR'"
 if [[ -z "$BRAINSTORM_MODULE_BASE_DIR" ]]; then
-    debug_log "BRAINSTORM_MODULE_BASE_DIR not set, determining from script location"
     # Development mode - determine from script location
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    debug_log "SCRIPT_DIR: $SCRIPT_DIR"
     BRAINSTORM_MODULE_BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-    debug_log "Calculated BRAINSTORM_MODULE_BASE_DIR: $BRAINSTORM_MODULE_BASE_DIR"
-else
-    debug_log "BRAINSTORM_MODULE_BASE_DIR already set: $BRAINSTORM_MODULE_BASE_DIR"
 fi
 
 # Source structured logging utilities
 STRUCTURED_LOGGING_PATH="$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
-debug_log "Looking for structured logging at: $STRUCTURED_LOGGING_PATH"
 if [[ ! -f "$STRUCTURED_LOGGING_PATH" ]]; then
-    debug_log "ERROR: Cannot find structured logging utilities at $STRUCTURED_LOGGING_PATH"
-    debug_log "BRAINSTORM_MODULE_BASE_DIR: $BRAINSTORM_MODULE_BASE_DIR"
-    debug_log "SCRIPT_DIR: $SCRIPT_DIR"
-    echo "Error: Cannot find structured logging utilities at $STRUCTURED_LOGGING_PATH" >&2
-    echo "BRAINSTORM_MODULE_BASE_DIR: $BRAINSTORM_MODULE_BASE_DIR" >&2
-    echo "SCRIPT_DIR: $SCRIPT_DIR" >&2
+    echo "Error: Cannot find structured logging utilities at $STRUCTURED_LOGGING_PATH"
+    echo "BRAINSTORM_MODULE_BASE_DIR: $BRAINSTORM_MODULE_BASE_DIR"
+    echo "SCRIPT_DIR: $SCRIPT_DIR"
     exit 1
 fi
-debug_log "Structured logging file found, sourcing it"
 source "$STRUCTURED_LOGGING_PATH"
-debug_log "Structured logging sourced successfully"
 
 # Default configuration
-debug_log "Setting default configuration values"
 CHECK_INTERVAL_MINUTES=${1:-5}  # How often to run checks
 ALERT_THRESHOLD_MULTIPLIER=${2:-2.0}  # Alert when task exceeds expected duration by this factor
 MAX_ORPHAN_AGE_MINUTES=30  # Consider processes orphaned after parent missing this long
-debug_log "Default config: CHECK_INTERVAL_MINUTES=$CHECK_INTERVAL_MINUTES, ALERT_THRESHOLD_MULTIPLIER=$ALERT_THRESHOLD_MULTIPLIER, MAX_ORPHAN_AGE_MINUTES=$MAX_ORPHAN_AGE_MINUTES"
 
 # Parse command line arguments
-debug_log "Parsing command line arguments: $*"
 while [[ $# -gt 0 ]]; do
-    debug_log "Processing argument: $1"
     case $1 in
         --check-interval)
             CHECK_INTERVAL_MINUTES="$2"
-            debug_log "Set CHECK_INTERVAL_MINUTES to $2"
             shift 2
             ;;
         --alert-threshold-multiplier)
             ALERT_THRESHOLD_MULTIPLIER="$2"
-            debug_log "Set ALERT_THRESHOLD_MULTIPLIER to $2"
             shift 2
             ;;
         --help)
-            debug_log "Help requested, exiting"
             echo "Usage: $0 [--check-interval MINUTES] [--alert-threshold-multiplier X]"
             echo "  --check-interval: How often to run checks (default: 5 minutes)"
             echo "  --alert-threshold-multiplier: Alert when task exceeds expected duration by this factor (default: 2.0)"
             exit 0
             ;;
         *)
-            debug_log "Unknown option: $1"
             echo "Unknown option: $1"
             exit 1
             ;;
     esac
 done
-debug_log "Command line parsing completed"
 
 # Emit structured event for watchdog start
-debug_log "About to emit TASK_START event"
-debug_log "Calling emit_task_event function..."
 emit_task_event "TASK_START" "taskWatchdog" "system" '{
     "message": "Starting Brainstorm Health Monitor Task Watchdog",
     "checkIntervalMinutes": '$CHECK_INTERVAL_MINUTES',
@@ -122,23 +75,16 @@ emit_task_event "TASK_START" "taskWatchdog" "system" '{
     "component": "healthMonitor",
     "watchdogType": "taskMonitor"
 }'
-debug_log "TASK_START event emitted successfully"
 
 # Function to get current timestamp in seconds since epoch
 get_current_epoch() {
-    debug_log "Getting current epoch timestamp"
-    local epoch=$(date +%s)
-    debug_log "Current epoch: $epoch"
-    echo "$epoch"
+    date +%s
 }
 
 # Function to convert ISO timestamp to epoch seconds
 iso_to_epoch() {
     local iso_timestamp="$1"
-    debug_log "Converting ISO timestamp to epoch: $iso_timestamp"
-    local result=$(date -d "$iso_timestamp" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S%z" "$iso_timestamp" +%s 2>/dev/null || echo "0")
-    debug_log "Converted result: $result"
-    echo "$result"
+    date -d "$iso_timestamp" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S%z" "$iso_timestamp" +%s 2>/dev/null || echo "0"
 }
 
 # Function to check if a process is still running

@@ -99,8 +99,8 @@
                             </div>
                         </div>
                         <div class="service-actions">
-                            <button class="btn btn-success" onclick="startTimer('brainstorm-monitoring-scheduler')">▶️ Start Scheduler</button>
-                            <button class="btn btn-warning" onclick="stopTimer('brainstorm-monitoring-scheduler')">⏹️ Stop Scheduler</button>
+                            <button class="btn btn-success" onclick="startTimer('brainstorm-monitoring-scheduler')">▶️ Start Scheduler (Timer)</button>
+                            <button class="btn btn-warning" onclick="stopTimerAndService('brainstorm-monitoring-scheduler')">⏹️ Stop Scheduler (Service & Timer)</button>
                             <button class="btn btn-info" onclick="triggerScheduler()">🚀 Trigger Now</button>
                             <button class="btn btn-secondary" onclick="viewLogs('brainstorm-monitoring-scheduler')">📋 Logs</button>
                         </div>
@@ -256,6 +256,10 @@
         
         async function stopTimer(timerName) {
             await executeServiceAction('stop', timerName + '.timer');
+        }
+        async function stopTimerAndService(timerName) {
+            await executeServiceAction('stop', timerName + '.timer');
+            await executeServiceAction('stop', timerName + '.service');
         }
         
         async function triggerScheduler() {
