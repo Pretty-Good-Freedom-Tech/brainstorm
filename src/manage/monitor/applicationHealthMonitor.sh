@@ -67,7 +67,12 @@ declare -A SERVICE_PORTS=(
 emit_monitoring_event() {
     local event_type="$1"
     local message="$2"
-    local metadata="${3:-{}}"
+    local metadata="$3"
+    
+    # Ensure metadata is not empty or null
+    if [[ -z "$metadata" ]]; then
+        metadata="{}"
+    fi
     
     case "$MONITORING_VERBOSITY" in
         "full")
