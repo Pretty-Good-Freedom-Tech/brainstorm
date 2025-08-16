@@ -1,0 +1,139 @@
+{
+  "_metadata": {
+    "version": "0.1.0",
+    "description": "Registry of continuous services in the Brainstorm system",
+    "created": "2025-08-16",
+    "status": "provisional",
+    "notes": "This registry tracks long-running services as distinct from discrete tasks in taskRegistry.json"
+  },
+
+  "neo4jMetricsCollector": {
+    "name": "Neo4j Metrics Collector",
+    "description": "Continuous JVM metrics collection service for Neo4j monitoring",
+    "type": "metrics_collector",
+    "status": "active",
+    "systemdService": "neo4j-metrics-collector.service",
+    "systemdTimer": null,
+    "user": "neo4j",
+    "group": "brainstorm",
+    "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/neo4jMetricsCollector.sh",
+    "script_relative_path": "manage/healthMonitor/neo4jMetricsCollector.sh",
+    "dependencies": {
+      "services": ["neo4j"],
+      "commands": ["jstat", "jq"],
+      "directories": ["/var/lib/brainstorm/monitoring"]
+    },
+    "outputs": {
+      "metrics_file": "/var/lib/brainstorm/monitoring/neo4j_metrics.json",
+      "update_interval": "30 seconds"
+    },
+    "consumers": [
+      "neo4jCrashPatternDetector",
+      "neo4jStabilityMonitor", 
+      "systemResourceMonitor"
+    ],
+    "healthCheck": {
+      "method": "file_freshness",
+      "target": "/var/lib/brainstorm/monitoring/neo4j_metrics.json",
+      "max_age_seconds": 120
+    },
+    "restart_policy": "always",
+    "security": {
+      "privileged": true,
+      "reason": "Requires access to Neo4j JVM process metrics"
+    }
+  },
+
+  "monitoringScheduler": {
+    "name": "Monitoring Scheduler",
+    "description": "Orchestrates periodic execution of health monitoring tasks",
+    "type": "task_scheduler",
+    "status": "active",
+    "systemdService": "brainstorm-monitoring-scheduler.service",
+    "systemdTimer": "brainstorm-monitoring-scheduler.timer",
+    "user": "brainstorm",
+    "group": "brainstorm",
+    "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/monitoringScheduler.js",
+    "script_relative_path": "manage/monitor/monitoringScheduler.js",
+    "dependencies": {
+      "services": ["neo4j"],
+      "commands": ["node", "bash"],
+      "directories": ["/var/log/brainstorm", "/var/lib/brainstorm"]
+    },
+    "manages_tasks": [
+      "neo4jStabilityMonitor",
+      "systemResourceMonitor", 
+      "databasePerformanceMonitor",
+      "applicationHealthMonitor",
+      "networkConnectivityMonitor",
+      "taskWatchdog"
+    ],
+    "schedule": {
+      "activation": "timer_based",
+      "frequency": "24 hours",
+      "delay_after_boot": "2 minutes"
+    },
+    "execution_tiers": {
+      "tier1": {
+        "interval": "2 minutes",
+        "tasks": ["neo4jStabilityMonitor", "systemResourceMonitor"]
+      },
+      "tier2": {
+        "interval": "5 minutes", 
+        "tasks": ["applicationHealthMonitor", "databasePerformanceMonitor"]
+      },
+      "tier3": {
+        "interval": "10 minutes",
+        "tasks": ["networkConnectivityMonitor"]
+      },
+      "tier4": {
+        "interval": "30 seconds",
+        "tasks": ["taskWatchdog"]
+      }
+    },
+    "healthCheck": {
+      "method": "process_check",
+      "target": "monitoringScheduler"
+    },
+    "restart_policy": "on_failure"
+  },
+
+  "taskQueueManager": {
+    "name": "Task Queue Manager",
+    "description": "Orchestrates execution of discrete tasks from taskRegistry.json",
+    "type": "task_orchestrator",
+    "status": "planned",
+    "systemdService": "brainstorm-task-queue-manager.service",
+    "systemdTimer": null,
+    "user": "brainstorm",
+    "group": "brainstorm",
+    "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/taskQueue/taskQueueManager.js",
+    "script_relative_path": "manage/taskQueue/taskQueueManager.js",
+    "dependencies": {
+      "services": ["neo4j", "brainstorm-control-panel"],
+      "commands": ["node", "bash"],
+      "directories": ["/var/log/brainstorm", "/var/lib/brainstorm"]
+    },
+    "manages_tasks": [
+      "processAllTasks",
+      "processCustomer",
+      "calculateOwnerGrapeRank",
+      "calculateOwnerPageRank"
+    ],
+    "apis": [
+      "/api/manage/commands/runTask"
+    ],
+    "execution_model": {
+      "queue_based": true,
+      "supports_scheduling": true,
+      "supports_dependencies": true,
+      "retry_logic": true
+    },
+    "healthCheck": {
+      "method": "api_endpoint",
+      "target": "/api/manage/commands/runTask"
+    },
+    "restart_policy": "always",
+    "notes": "Future replacement for processAllTasks service pattern. Will manage discrete task execution with proper queuing, scheduling, and dependency resolution."
+  }
+}
