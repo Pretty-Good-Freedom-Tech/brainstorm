@@ -945,7 +945,9 @@
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/healthMonitor/systemResourceMonitor.sh",
       "script_relative_path": "manage/healthMonitor/systemResourceMonitor.sh",
-      "arguments": false,
+      "arguments": {
+        "target": true
+      },
       "children": [],
       "scope": "system",
       "priority": "high",
@@ -1085,7 +1087,9 @@
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/applicationHealthMonitor.sh",
       "script_relative_path": "manage/monitor/applicationHealthMonitor.sh",
-      "arguments": false,
+      "arguments": {
+        "target": true
+      },
       "children": [],
       "scope": "system",
       "priority": "high",
@@ -1114,7 +1118,9 @@
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/databasePerformanceMonitor.sh",
       "script_relative_path": "manage/monitor/databasePerformanceMonitor.sh",
-      "arguments": false,
+      "arguments": {
+        "target": true
+      },
       "children": [],
       "scope": "system",
       "priority": "high",
@@ -1143,7 +1149,9 @@
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/networkConnectivityMonitor.sh", 
       "script_relative_path": "manage/monitor/networkConnectivityMonitor.sh",
-      "arguments": false,
+      "arguments": {
+        "target": true
+      },
       "children": [],
       "scope": "system",
       "priority": "medium",

@@ -128,7 +128,10 @@ const configPaths = {
   calculatePersonalizedGrapeRankServiceFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.service'),
   calculatePersonalizedGrapeRankTimerFileSource: path.join(packageRoot, 'systemd', 'calculatePersonalizedGrapeRank.timer'),
   calculatePersonalizedGrapeRankServiceFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.service'),
-  calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer')
+  calculatePersonalizedGrapeRankTimerFileDestination: path.join(systemdServiceDir, 'calculatePersonalizedGrapeRank.timer'),
+
+  neo4jMetricsCollectorServiceFileSource: path.join(packageRoot, 'systemd', 'neo4j-metrics-collector.service'),
+  neo4jMetricsCollectorServiceFileDestination: path.join(systemdServiceDir, 'neo4j-metrics-collector.service')
 };
 
 // Configure sudo privileges for brainstorm user and control panel
@@ -228,6 +231,7 @@ async function install() {
     await setupCalculateHopsService();
     await setupCalculatePersonalizedGrapeRankService();
     await setupBrainstormMonitoringSchedulerService();
+    await setupNeo4jMetricsCollectorService();
 
     // Step 7: Setup Strfry Neo4j Pipeline
     await installPipeline();
@@ -1240,6 +1244,52 @@ async function setupProcessQueueService() {
     console.error(`Error setting up processQueue service: ${error.message}`);
     console.log(`Source file: ${configPaths.processQueueServiceFileSource}`);
     console.log(`Destination file: ${configPaths.processQueueServiceFileDestination}`);
+  }
+}
+
+async function setupNeo4jMetricsCollectorService() {
+  console.log('\x1b[36m=== Setting Up Neo4j Metrics Collector Systemd Service ===\x1b[0m');
+
+  if (!isRoot) {
+    console.log('\x1b[33mCannot set up Neo4j Metrics Collector systemd service without root privileges.\x1b[0m');
+    
+    // Wait for user acknowledgment
+    await askQuestion('Press Enter to continue...');
+    return;
+  }
+
+  // Check if neo4j-metrics-collector service file already exists
+  if (fs.existsSync(configPaths.neo4jMetricsCollectorServiceFileDestination)) {
+    console.log(`Neo4j Metrics Collector service file ${configPaths.neo4jMetricsCollectorServiceFileDestination} already exists.`);
+    return;
+  }
+
+  try {
+    // Read the content of the source file
+    const serviceFileContent = fs.readFileSync(configPaths.neo4jMetricsCollectorServiceFileSource, 'utf8');
+    
+    // Write the content to the destination file
+    fs.writeFileSync(configPaths.neo4jMetricsCollectorServiceFileDestination, serviceFileContent);
+    console.log(`Neo4j Metrics Collector service file created at ${configPaths.neo4jMetricsCollectorServiceFileDestination}`);
+
+    // enable the service
+    execSync(`systemctl enable neo4j-metrics-collector.service`);
+    console.log('Neo4j Metrics Collector service enabled');
+
+    // Create monitoring directory if it doesn't exist
+    const monitoringDir = '/var/lib/brainstorm/monitoring';
+    if (!fs.existsSync(monitoringDir)) {
+      execSync(`mkdir -p ${monitoringDir}`);
+      execSync(`chown neo4j:brainstorm ${monitoringDir}`);
+      execSync(`chmod 755 ${monitoringDir}`);
+      console.log(`Monitoring directory created at ${monitoringDir}`);
+    }
+
+    // starting the service will be performed at the control panel
+  } catch (error) {
+    console.error(`Error setting up Neo4j Metrics Collector service: ${error.message}`);
+    console.log(`Source file: ${configPaths.neo4jMetricsCollectorServiceFileSource}`);
+    console.log(`Destination file: ${configPaths.neo4jMetricsCollectorServiceFileDestination}`);
   }
 }
 
