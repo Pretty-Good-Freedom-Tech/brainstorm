@@ -24,7 +24,7 @@ try {
 const BRAINSTORM_LOG_DIR = process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm';
 const BRAINSTORM_DATA_DIR = process.env.BRAINSTORM_DATA_DIR || '/var/lib/brainstorm';
 const SCRIPT_NAME = 'monitoringScheduler';
-const TARGET = process.argv[2] || 'owner';
+// Removed TARGET argument - not needed for single-instance monitoring
 
 // Ensure log directories exist
 const LOG_FILE = path.join(BRAINSTORM_LOG_DIR, `${SCRIPT_NAME}.log`);
@@ -199,7 +199,7 @@ function logEvent(eventType, message, metadata = {}) {
     const logEntry = {
         timestamp,
         taskName: SCRIPT_NAME,
-        target: TARGET,
+        target: 'system',
         eventType,
         message,
         metadata
@@ -214,7 +214,7 @@ function logEvent(eventType, message, metadata = {}) {
 
     // Write to regular log
     try {
-        const logMessage = `[${timestamp}] ${SCRIPT_NAME} (${TARGET}): ${eventType} - ${message}\n`;
+        const logMessage = `[${timestamp}] ${SCRIPT_NAME}: ${eventType} - ${message}\n`;
         fs.appendFileSync(LOG_FILE, logMessage);
     } catch (error) {
         console.error('Error writing to log file:', error);
@@ -243,7 +243,7 @@ class TaskExecutor {
     }
 
     async executeTask(task, tier) {
-        const taskKey = `${task.name}_${TARGET}`;
+        const taskKey = task.name;
         const startTime = Date.now();
 
         // Check if task is already running
@@ -346,8 +346,8 @@ class TaskExecutor {
                 }
             });
             
-            // Prepare child args - monitoring tasks don't need additional arguments beyond TARGET
-            const childArgs = TARGET;
+            // Monitoring tasks don't need additional arguments
+            const childArgs = '';
             
             logEvent('SCRIPT_EXECUTION', `Launching monitoring task via launchChildTask`, {
                 taskName: task.name,

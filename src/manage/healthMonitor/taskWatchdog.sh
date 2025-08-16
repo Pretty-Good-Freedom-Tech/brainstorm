@@ -103,9 +103,9 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         *)
-            debug_log "Unknown option: $1"
-            echo "Unknown option: $1"
-            exit 1
+            debug_log "Unknown option: $1 (ignoring)"
+            echo "Warning: Unknown option '$1' ignored"
+            shift
             ;;
     esac
 done
