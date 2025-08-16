@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Management Dashboard - Brainstorm</title>
+    <link rel="stylesheet" href="../css/service-management-dashboard.css">
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+    
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="dashboard-container">
+                <header>
+                    <h1>⚙️ Service Management Dashboard</h1>
+                    <p>Monitor and control Brainstorm monitoring services</p>
+                </header>
+                
+                <div class="refresh-controls">
+                    <div class="auto-refresh">
+                        <label>
+                            <input type="checkbox" id="autoRefresh" checked> Auto-refresh (10s)
+                        </label>
+                        <button class="btn btn-primary" onclick="refreshDashboard()">🔄 Refresh Now</button>
+                    </div>
+                    <div>
+                        <span id="lastUpdated">Last updated: Never</span>
+                    </div>
+                </div>
+                
+                <div class="services-grid">
+                    <!-- Neo4j Metrics Collector Service -->
+                    <div class="service-card" id="neo4jMetricsCard">
+                        <div class="card-header">
+                            <h3 class="card-title">📊 Neo4j Metrics Collector</h3>
+                            <span class="status-badge" id="neo4jMetricsStatus">Loading...</span>
+                        </div>
+                        <div class="service-details">
+                            <div class="metric-row">
+                                <span class="metric-label">Service Status:</span>
+                                <span class="metric-value" id="neo4jMetricsServiceStatus">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Process ID:</span>
+                                <span class="metric-value" id="neo4jMetricsPid">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Uptime:</span>
+                                <span class="metric-value" id="neo4jMetricsUptime">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Last Collection:</span>
+                                <span class="metric-value" id="neo4jMetricsLastCollection">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Metrics File:</span>
+                                <span class="metric-value" id="neo4jMetricsFile">-</span>
+                            </div>
+                        </div>
+                        <div class="service-actions">
+                            <button class="btn btn-success" onclick="startService('neo4j-metrics-collector')">▶️ Start</button>
+                            <button class="btn btn-warning" onclick="stopService('neo4j-metrics-collector')">⏹️ Stop</button>
+                            <button class="btn btn-info" onclick="restartService('neo4j-metrics-collector')">🔄 Restart</button>
+                            <button class="btn btn-secondary" onclick="viewLogs('neo4j-metrics-collector')">📋 Logs</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Monitoring Scheduler Service -->
+                    <div class="service-card" id="monitoringSchedulerCard">
+                        <div class="card-header">
+                            <h3 class="card-title">⏰ Monitoring Scheduler</h3>
+                            <span class="status-badge" id="monitoringSchedulerStatus">Loading...</span>
+                        </div>
+                        <div class="service-details">
+                            <div class="metric-row">
+                                <span class="metric-label">Timer Status:</span>
+                                <span class="metric-value" id="schedulerTimerStatus">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Service Status:</span>
+                                <span class="metric-value" id="schedulerServiceStatus">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Last Execution:</span>
+                                <span class="metric-value" id="schedulerLastExecution">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Next Execution:</span>
+                                <span class="metric-value" id="schedulerNextExecution">-</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Active Tasks:</span>
+                                <span class="metric-value" id="schedulerActiveTasks">-</span>
+                            </div>
+                        </div>
+                        <div class="service-actions">
+                            <button class="btn btn-success" onclick="startTimer('brainstorm-monitoring-scheduler')">▶️ Start Timer</button>
+                            <button class="btn btn-warning" onclick="stopTimer('brainstorm-monitoring-scheduler')">⏹️ Stop Timer</button>
+                            <button class="btn btn-info" onclick="triggerScheduler()">🚀 Trigger Now</button>
+                            <button class="btn btn-secondary" onclick="viewLogs('brainstorm-monitoring-scheduler')">📋 Logs</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service Logs Modal -->
+                <div id="logsModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="logsModalTitle">Service Logs</h3>
+                            <button class="close-btn" onclick="closeLogsModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="logs-controls">
+                                <button class="btn btn-secondary" onclick="refreshLogs()">🔄 Refresh</button>
+                                <label>
+                                    Lines: <select id="logLines">
+                                        <option value="50">50</option>
+                                        <option value="100" selected>100</option>
+                                        <option value="200">200</option>
+                                        <option value="500">500</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <pre id="logsContent">Loading logs...</pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Results -->
+                <div id="actionResults" class="action-results" style="display: none;">
+                    <div class="alert" id="actionAlert">
+                        <span id="actionMessage"></span>
+                        <button class="close-btn" onclick="closeActionResults()">&times;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval;
+        let currentLogsService = null;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshDashboard();
+            setupAutoRefresh();
+        });
+        
+        // Setup auto-refresh
+        function setupAutoRefresh() {
+            const autoRefreshCheckbox = document.getElementById('autoRefresh');
+            
+            if (autoRefreshCheckbox.checked) {
+                autoRefreshInterval = setInterval(refreshDashboard, 10000);
+            }
+            
+            autoRefreshCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    autoRefreshInterval = setInterval(refreshDashboard, 10000);
+                } else {
+                    clearInterval(autoRefreshInterval);
+                }
+            });
+        }
+        
+        // Main refresh function
+        async function refreshDashboard() {
+            try {
+                document.body.classList.add('loading');
+                
+                // Fetch service status
+                const response = await fetch('/api/service-management/status');
+                const data = await response.json();
+                
+                updateNeo4jMetricsService(data.neo4jMetricsCollector || {});
+                updateMonitoringScheduler(data.monitoringScheduler || {});
+                
+                // Update timestamp
+                document.getElementById('lastUpdated').textContent = 
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+                
+            } catch (error) {
+                console.error('Failed to refresh dashboard:', error);
+                showActionResult('error', 'Failed to fetch service status');
+            } finally {
+                document.body.classList.remove('loading');
+            }
+        }
+        
+        // Update Neo4j Metrics Collector display
+        function updateNeo4jMetricsService(data) {
+            const card = document.getElementById('neo4jMetricsCard');
+            const statusBadge = document.getElementById('neo4jMetricsStatus');
+            
+            if (data.status === 'active') {
+                card.className = 'service-card success';
+                statusBadge.className = 'status-badge status-running';
+                statusBadge.textContent = 'Active';
+            } else {
+                card.className = 'service-card critical';
+                statusBadge.className = 'status-badge status-critical';
+                statusBadge.textContent = 'Inactive';
+            }
+            
+            document.getElementById('neo4jMetricsServiceStatus').textContent = data.status || 'Unknown';
+            document.getElementById('neo4jMetricsPid').textContent = data.pid || 'N/A';
+            document.getElementById('neo4jMetricsUptime').textContent = data.uptime || 'N/A';
+            document.getElementById('neo4jMetricsLastCollection').textContent = data.lastCollection || 'N/A';
+            document.getElementById('neo4jMetricsFile').textContent = data.metricsFileStatus || 'N/A';
+        }
+        
+        // Update Monitoring Scheduler display
+        function updateMonitoringScheduler(data) {
+            const card = document.getElementById('monitoringSchedulerCard');
+            const statusBadge = document.getElementById('monitoringSchedulerStatus');
+            
+            if (data.timerStatus === 'active') {
+                card.className = 'service-card success';
+                statusBadge.className = 'status-badge status-running';
+                statusBadge.textContent = 'Active';
+            } else {
+                card.className = 'service-card warning';
+                statusBadge.className = 'status-badge status-warning';
+                statusBadge.textContent = 'Inactive';
+            }
+            
+            document.getElementById('schedulerTimerStatus').textContent = data.timerStatus || 'Unknown';
+            document.getElementById('schedulerServiceStatus').textContent = data.serviceStatus || 'Unknown';
+            document.getElementById('schedulerLastExecution').textContent = data.lastExecution || 'N/A';
+            document.getElementById('schedulerNextExecution').textContent = data.nextExecution || 'N/A';
+            document.getElementById('schedulerActiveTasks').textContent = data.activeTasks || '0';
+        }
+        
+        // Service control functions
+        async function startService(serviceName) {
+            await executeServiceAction('start', serviceName);
+        }
+        
+        async function stopService(serviceName) {
+            await executeServiceAction('stop', serviceName);
+        }
+        
+        async function restartService(serviceName) {
+            await executeServiceAction('restart', serviceName);
+        }
+        
+        async function startTimer(timerName) {
+            await executeServiceAction('start', timerName + '.timer');
+        }
+        
+        async function stopTimer(timerName) {
+            await executeServiceAction('stop', timerName + '.timer');
+        }
+        
+        async function triggerScheduler() {
+            await executeServiceAction('trigger', 'brainstorm-monitoring-scheduler');
+        }
+        
+        // Execute service action
+        async function executeServiceAction(action, service) {
+            try {
+                const response = await fetch('/api/service-management/control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, service })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showActionResult('success', `${action} ${service}: ${result.message}`);
+                    setTimeout(refreshDashboard, 2000); // Refresh after 2 seconds
+                } else {
+                    showActionResult('error', `Failed to ${action} ${service}: ${result.error}`);
+                }
+            } catch (error) {
+                showActionResult('error', `Error executing ${action} on ${service}: ${error.message}`);
+            }
+        }
+        
+        // View logs
+        async function viewLogs(serviceName) {
+            currentLogsService = serviceName;
+            document.getElementById('logsModalTitle').textContent = `${serviceName} Logs`;
+            document.getElementById('logsModal').style.display = 'block';
+            await refreshLogs();
+        }
+        
+        // Refresh logs
+        async function refreshLogs() {
+            if (!currentLogsService) return;
+            
+            try {
+                const lines = document.getElementById('logLines').value;
+                const response = await fetch(`/api/service-management/logs?service=${currentLogsService}&lines=${lines}`);
+                const data = await response.json();
+                
+                document.getElementById('logsContent').textContent = data.logs || 'No logs available';
+            } catch (error) {
+                document.getElementById('logsContent').textContent = `Error loading logs: ${error.message}`;
+            }
+        }
+        
+        // Close logs modal
+        function closeLogsModal() {
+            document.getElementById('logsModal').style.display = 'none';
+            currentLogsService = null;
+        }
+        
+        // Show action result
+        function showActionResult(type, message) {
+            const alert = document.getElementById('actionAlert');
+            alert.className = `alert alert-${type}`;
+            document.getElementById('actionMessage').textContent = message;
+            document.getElementById('actionResults').style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(closeActionResults, 5000);
+        }
+        
+        // Close action results
+        function closeActionResults() {
+            document.getElementById('actionResults').style.display = 'none';
+        }
+    </script>
+    
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
+</body>
+</html>

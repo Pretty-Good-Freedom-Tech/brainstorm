@@ -58,7 +58,8 @@ const status = require('./status');
 const customers = require('./customers');
 const neo4jHealth = require('./neo4j-health/index.js');
 const taskWatchdog = require('./task-watchdog/index.js');
-const taskAnalytics = require('./task-analytics/index.js');
+const taskBehaviorAnalytics = require('./task-behavior-analytics/index.js');
+const serviceManagement = require('./service-management/index.js');
 
 const { handleNeo4jSetupConstraintsAndIndexes } = require('./neo4j/commands/setupConstraintsAndIndexes.js');
 
@@ -305,6 +306,11 @@ function register(app) {
 
     // Task Analytics Dashboard endpoints
     app.get('/api/task-analytics/analytics', taskAnalytics.handleTaskAnalytics);
+
+    // Service Management Dashboard endpoints
+    app.get('/api/service-management/status', serviceManagement.handleServiceStatus);
+    app.post('/api/service-management/control', serviceManagement.handleServiceControl);
+    app.get('/api/service-management/logs', serviceManagement.handleServiceLogs);
     app.get('/api/task-analytics/trends', taskAnalytics.handleTaskTrends);
     app.get('/api/task-analytics/predictions', taskAnalytics.handleTaskPredictions);
     app.get('/api/task-analytics/performance', taskAnalytics.handleTaskPerformance);
