@@ -36,6 +36,25 @@
                 </div>
             </div>
             
+            <!-- Heap Usage Time Series -->
+            <div class="health-card">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Heap Usage Over Time</h3>
+                    <div class="chart-controls">
+                        <select id="timeRangeSelect" onchange="updateTimeRange()">
+                            <option value="6">Last 6 hours</option>
+                            <option value="12">Last 12 hours</option>
+                            <option value="24" selected>Last 24 hours</option>
+                            <option value="48">Last 48 hours</option>
+                            <option value="168">Last week</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="heapChart"></canvas>
+                </div>
+            </div>
+
             <div class="dashboard-grid">
                 <!-- Service Status Card -->
                 <div class="health-card" id="serviceStatusCard">
@@ -163,28 +182,11 @@
                     <p>Loading alerts...</p>
                 </div>
             </div>
-            
-            <!-- Heap Usage Time Series -->
-            <div class="health-card">
-                <div class="card-header">
-                    <h3 class="card-title">📈 Heap Usage Over Time</h3>
-                    <div class="chart-controls">
-                        <select id="timeRangeSelect" onchange="updateTimeRange()">
-                            <option value="6">Last 6 hours</option>
-                            <option value="12">Last 12 hours</option>
-                            <option value="24" selected>Last 24 hours</option>
-                            <option value="48">Last 48 hours</option>
-                            <option value="168">Last week</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="chart-container" style="height: 400px;">
-                    <canvas id="heapChart"></canvas>
-                </div>
-            </div>
         </div>
     </div>
-
+    
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
     <script>
         let autoRefreshInterval;
         let dashboardData = {};
@@ -374,9 +376,15 @@
                 const alertClass = alert.severity === 'critical' ? 'alert-critical' : 'alert-warning';
                 const timestamp = new Date(alert.timestamp).toLocaleString();
                 
+                // Add clickable link for NEO4J_HIGH_ERROR_RATE alerts
+                let alertContent = `<strong>${alert.alertType}</strong>: ${alert.message}`;
+                if (alert.alertType === 'NEO4J_HIGH_ERROR_RATE') {
+                    alertContent = `<strong>${alert.alertType}</strong>: ${alert.message} <a href="/neo4j-error-logs.html?hours=24&severity=all" target="_blank" style="color: #007bff; text-decoration: underline; margin-left: 8px;">📋 View Error Logs</a>`;
+                }
+                
                 return `
                     <div class="alert-item ${alertClass}">
-                        <strong>${alert.alertType}</strong>: ${alert.message}
+                        ${alertContent}
                         <div class="alert-timestamp">${timestamp}</div>
                         ${alert.recommendedAction ? `<div><em>Action: ${alert.recommendedAction}</em></div>` : ''}
                     </div>
@@ -560,8 +568,5 @@
         }
     </script>
     </div>
-    
-    <!-- Include the footer component -->
-    <div id="footerContainer"></div>
 </body>
 </html>

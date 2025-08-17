@@ -57,6 +57,7 @@ const lists = require('./lists');
 const status = require('./status');
 const customers = require('./customers');
 const neo4jHealth = require('./neo4j-health/index.js');
+const neo4jLogs = require('./neo4j-logs/index.js');
 const taskWatchdog = require('./task-watchdog/index.js');
 const taskAnalytics = require('./task-analytics/index.js');
 const serviceManagement = require('./service-management/index.js');
@@ -298,6 +299,9 @@ function register(app) {
     app.get('/api/neo4j-health/complete', neo4jHealth.handleCompleteNeo4jHealth);
     app.get('/api/neo4j-health/alerts', neo4jHealth.handleAlertsNeo4jHealth);
     app.get('/api/neo4j-health/heap-metrics-history', neo4jHealth.handleHeapMetricsHistory);
+
+    // Neo4j Error Logs endpoints
+    app.get('/api/neo4j-logs/errors', neo4jLogs.getNeo4jErrors);
 
     // Task Watchdog Dashboard endpoints
     app.get('/api/task-watchdog/status', taskWatchdog.handleTaskWatchdogStatus);

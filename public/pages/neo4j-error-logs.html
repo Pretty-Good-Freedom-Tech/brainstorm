@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo4j Error Logs - Brainstorm</title>
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <link rel="stylesheet" href="/css/neo4j-error-logs.css">
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+    
+        <!-- Main content wrapper -->
+        <div class="page-content">
+            <div class="container">
+
+                <div class="error-logs-container">
+                    <div class="error-logs-header">
+                        <h1>🚨 Neo4j Error Logs</h1>
+                        <p>Monitor and analyze Neo4j database errors and warnings</p>
+                    </div>
+
+                    <!-- Controls Panel -->
+                    <div class="controls-panel">
+                        <div class="control-group">
+                            <label for="timeRange">Time Range</label>
+                            <select id="timeRange" class="control-input">
+                                <option value="1">Last hour</option>
+                                <option value="6">Last 6 hours</option>
+                                <option value="24" selected>Last 24 hours</option>
+                                <option value="48">Last 48 hours</option>
+                                <option value="168">Last week</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="severityFilter">Severity</label>
+                            <select id="severityFilter" class="control-input">
+                                <option value="all">All Severities</option>
+                                <option value="critical">Critical</option>
+                                <option value="error">Error</option>
+                                <option value="warning">Warning</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="categoryFilter">Category</label>
+                            <select id="categoryFilter" class="control-input">
+                                <option value="all">All Categories</option>
+                                <option value="memory">Memory</option>
+                                <option value="connection">Connection</option>
+                                <option value="query">Query</option>
+                                <option value="transaction">Transaction</option>
+                                <option value="apoc">APOC</option>
+                                <option value="schema">Schema</option>
+                                <option value="security">Security</option>
+                                <option value="lifecycle">Lifecycle</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="searchInput">Search</label>
+                            <input type="text" id="searchInput" class="control-input" placeholder="Search error messages...">
+                        </div>
+
+                        <div class="control-group">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary" onclick="loadErrors()">🔍 Search</button>
+                        </div>
+
+                        <div class="control-group">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Reset</button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Panel -->
+                    <div class="summary-panel" id="summaryPanel" style="display: none;">
+                        <!-- Summary cards will be populated here -->
+                    </div>
+
+                    <!-- Errors Table -->
+                    <div class="errors-table-container">
+                        <div id="loadingIndicator" class="loading">
+                            <p>Loading Neo4j error logs...</p>
+                        </div>
+
+                        <div id="errorMessage" class="error-message-container" style="display: none;">
+                            <!-- Error messages will be displayed here -->
+                        </div>
+
+                        <div id="errorsContent" style="display: none;">
+                            <table class="errors-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Severity</th>
+                                        <th>Category</th>
+                                        <th>Exception</th>
+                                        <th>Message</th>
+                                        <th>Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="errorsTableBody">
+                                    <!-- Error rows will be populated here -->
+                                </tbody>
+                            </table>
+
+                            <div class="pagination" id="paginationControls">
+                                <!-- Pagination controls will be populated here -->
+                            </div>
+                        </div>
+
+                        <div id="noErrors" class="no-errors" style="display: none;">
+                            <h3>✅ No Errors Found</h3>
+                            <p>No errors match your current filters for the selected time range.</p>
+                            <p>This could mean your Neo4j instance is running smoothly!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
+
+    <script>
+        let currentPage = 1;
+        let currentData = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for URL parameters (e.g., from alert links)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('hours')) {
+                document.getElementById('timeRange').value = urlParams.get('hours');
+            }
+            if (urlParams.get('severity')) {
+                document.getElementById('severityFilter').value = urlParams.get('severity');
+            }
+
+            // Load initial data
+            loadErrors();
+
+            // Set up auto-refresh
+            setInterval(loadErrors, 30000); // Refresh every 30 seconds
+        });
+
+        // Load errors from API
+        async function loadErrors(page = 1) {
+            try {
+                showLoading();
+                
+                const timeRange = document.getElementById('timeRange').value;
+                const severity = document.getElementById('severityFilter').value;
+                const category = document.getElementById('categoryFilter').value;
+                const search = document.getElementById('searchInput').value;
+
+                const params = new URLSearchParams({
+                    hours: timeRange,
+                    severity: severity,
+                    category: category,
+                    search: search,
+                    page: page,
+                    limit: 25
+                });
+
+                const response = await fetch(`/api/neo4j-logs/errors?${params}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load errors');
+                }
+
+                currentData = data;
+                currentPage = page;
+                
+                displayErrors(data);
+                displaySummary(data.summary);
+                displayPagination(data.pagination);
+
+            } catch (error) {
+                console.error('Error loading Neo4j errors:', error);
+                showError(`Failed to load error logs: ${error.message}`);
+            }
+        }
+
+        // Display errors in table
+        function displayErrors(data) {
+            const tableBody = document.getElementById('errorsTableBody');
+            tableBody.innerHTML = '';
+
+            if (!data.errors || data.errors.length === 0) {
+                showNoErrors();
+                return;
+            }
+
+            showErrorsTable();
+
+            data.errors.forEach(error => {
+                const row = tableBody.insertRow();
+                
+                // Timestamp
+                const timestampCell = row.insertCell();
+                timestampCell.innerHTML = `
+                    <div class="error-timestamp">${error.timestampFormatted}</div>
+                `;
+
+                // Severity
+                const severityCell = row.insertCell();
+                severityCell.innerHTML = `
+                    <span class="error-severity ${error.severity}">${error.severity}</span>
+                `;
+
+                // Category
+                const categoryCell = row.insertCell();
+                categoryCell.innerHTML = `
+                    <span class="error-category">${error.category}</span>
+                `;
+
+                // Exception
+                const exceptionCell = row.insertCell();
+                exceptionCell.innerHTML = `
+                    <div class="error-exception">${error.exception}</div>
+                `;
+
+                // Message
+                const messageCell = row.insertCell();
+                const messageId = `message-${Math.random().toString(36).substr(2, 9)}`;
+                const truncatedMessage = error.message.length > 100 ? 
+                    error.message.substring(0, 100) + '...' : error.message;
+                
+                messageCell.innerHTML = `
+                    <div class="error-message">
+                        <div id="${messageId}">${truncatedMessage}</div>
+                        ${error.message.length > 100 ? 
+                            `<button class="expand-btn" onclick="toggleMessage('${messageId}', '${error.message.replace(/'/g, "\\'")}')">Show more</button>` : 
+                            ''
+                        }
+                        ${error.stackTrace ? 
+                            `<div class="stack-trace" style="display: none;">${error.stackTrace}</div>
+                             <button class="expand-btn" onclick="toggleStackTrace(this)">Show stack trace</button>` : 
+                            ''
+                        }
+                    </div>
+                `;
+
+                // Source
+                const sourceCell = row.insertCell();
+                sourceCell.textContent = error.source;
+            });
+        }
+
+        // Display summary statistics
+        function displaySummary(summary) {
+            const summaryPanel = document.getElementById('summaryPanel');
+            summaryPanel.innerHTML = '';
+
+            if (!summary) return;
+
+            // Total errors card
+            const totalCard = document.createElement('div');
+            totalCard.className = 'summary-card';
+            totalCard.innerHTML = `
+                <h3>📊 Total Errors</h3>
+                <div style="font-size: 2rem; font-weight: bold; color: #dc3545;">${summary.total}</div>
+                <div style="font-size: 0.9rem; color: #6c757d; margin-top: 0.5rem;">
+                    Trend: ${summary.recentTrends.trend} 
+                    (${summary.recentTrends.lastHour} in last hour)
+                </div>
+            `;
+            summaryPanel.appendChild(totalCard);
+
+            // Severity breakdown
+            const severityCard = document.createElement('div');
+            severityCard.className = 'summary-card';
+            severityCard.innerHTML = `
+                <h3>🚨 By Severity</h3>
+                <div class="summary-stats">
+                    ${Object.entries(summary.bySeverity).map(([severity, count]) => 
+                        `<span class="stat-badge ${severity}">${severity}: ${count}</span>`
+                    ).join('')}
+                </div>
+            `;
+            summaryPanel.appendChild(severityCard);
+
+            // Category breakdown
+            const categoryCard = document.createElement('div');
+            categoryCard.className = 'summary-card';
+            categoryCard.innerHTML = `
+                <h3>📂 By Category</h3>
+                <div class="summary-stats">
+                    ${Object.entries(summary.byCategory).map(([category, count]) => 
+                        `<span class="stat-badge info">${category}: ${count}</span>`
+                    ).join('')}
+                </div>
+            `;
+            summaryPanel.appendChild(categoryCard);
+
+            // Top exceptions
+            const exceptionCard = document.createElement('div');
+            exceptionCard.className = 'summary-card';
+            const topExceptions = Object.entries(summary.byException)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            exceptionCard.innerHTML = `
+                <h3>⚠️ Top Exceptions</h3>
+                <div class="summary-stats">
+                    ${topExceptions.map(([exception, count]) => 
+                        `<span class="stat-badge error">${exception}: ${count}</span>`
+                    ).join('')}
+                </div>
+            `;
+            summaryPanel.appendChild(exceptionCard);
+
+            summaryPanel.style.display = 'grid';
+        }
+
+        // Display pagination controls
+        function displayPagination(pagination) {
+            const paginationControls = document.getElementById('paginationControls');
+            paginationControls.innerHTML = '';
+
+            if (pagination.totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '← Previous';
+            prevBtn.disabled = pagination.page === 1;
+            prevBtn.onclick = () => loadErrors(pagination.page - 1);
+            paginationControls.appendChild(prevBtn);
+
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'current-page';
+            pageInfo.textContent = `Page ${pagination.page} of ${pagination.totalPages} (${pagination.total} total)`;
+            paginationControls.appendChild(pageInfo);
+
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next →';
+            nextBtn.disabled = pagination.page === pagination.totalPages;
+            nextBtn.onclick = () => loadErrors(pagination.page + 1);
+            paginationControls.appendChild(nextBtn);
+        }
+
+        // Toggle message expansion
+        function toggleMessage(messageId, fullMessage) {
+            const messageDiv = document.getElementById(messageId);
+            const button = messageDiv.nextElementSibling;
+            
+            if (button.textContent === 'Show more') {
+                messageDiv.textContent = fullMessage;
+                button.textContent = 'Show less';
+            } else {
+                const truncated = fullMessage.length > 100 ? fullMessage.substring(0, 100) + '...' : fullMessage;
+                messageDiv.textContent = truncated;
+                button.textContent = 'Show more';
+            }
+        }
+
+        // Toggle stack trace visibility
+        function toggleStackTrace(button) {
+            const stackTrace = button.previousElementSibling;
+            if (stackTrace.style.display === 'none') {
+                stackTrace.style.display = 'block';
+                button.textContent = 'Hide stack trace';
+            } else {
+                stackTrace.style.display = 'none';
+                button.textContent = 'Show stack trace';
+            }
+        }
+
+        // Reset all filters
+        function resetFilters() {
+            document.getElementById('timeRange').value = '24';
+            document.getElementById('severityFilter').value = 'all';
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('searchInput').value = '';
+            currentPage = 1;
+            loadErrors();
+        }
+
+        // UI state management
+        function showLoading() {
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('errorsContent').style.display = 'none';
+            document.getElementById('noErrors').style.display = 'none';
+            document.getElementById('summaryPanel').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('errorMessage').innerHTML = `<strong>Error:</strong> ${message}`;
+            document.getElementById('errorsContent').style.display = 'none';
+            document.getElementById('noErrors').style.display = 'none';
+            document.getElementById('summaryPanel').style.display = 'none';
+        }
+
+        function showErrorsTable() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('errorsContent').style.display = 'block';
+            document.getElementById('noErrors').style.display = 'none';
+        }
+
+        function showNoErrors() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('errorsContent').style.display = 'none';
+            document.getElementById('noErrors').style.display = 'block';
+        }
+
+        // Handle enter key in search input
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                currentPage = 1;
+                loadErrors();
+            }
+        });
+    </script>
+</body>
+</html>
