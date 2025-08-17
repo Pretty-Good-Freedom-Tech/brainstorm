@@ -439,7 +439,8 @@ function highlightCurrentPage() {
         '/service-management-dashboard.html': '/service-management-dashboard',
         '/task-watchdog-dashboard.html': '/task-watchdog-dashboard',
         '/task-behavior-analytics-dashboard.html': '/task-behavior-analytics-dashboard',
-        '/neo4j-error-logs.html': '/neo4j-error-logs',
+        'neo4j-error-logs.html': 'Neo4j Error Logs',
+        'neo4j-resource-config.html': 'Neo4j Resource Config',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',

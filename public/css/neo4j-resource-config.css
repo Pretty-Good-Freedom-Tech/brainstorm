@@ -1,0 +1,345 @@
+/* Neo4j Resource Configuration Page Styles */
+@import url('common.css');
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.page-header p {
+    margin: 0 0 1rem 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.config-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.config-section h2 {
+    margin: 0 0 1.5rem 0;
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+}
+
+/* Resource Grid Layout */
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.resource-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resource-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.resource-card h3 {
+    margin: 0 0 1rem 0;
+    color: #4a5568;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.resource-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.resource-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resource-item .label {
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.resource-item .value {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* Progress Bars */
+.progress-bar {
+    width: 100px;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.progress-fill.normal {
+    background: linear-gradient(90deg, #48bb78, #38a169);
+}
+
+.progress-fill.warning {
+    background: linear-gradient(90deg, #ed8936, #dd6b20);
+}
+
+.progress-fill.critical {
+    background: linear-gradient(90deg, #f56565, #e53e3e);
+}
+
+/* Configuration Grid */
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.config-item:hover {
+    background: #edf2f7;
+}
+
+.config-label {
+    font-weight: 500;
+    color: #4a5568;
+    flex: 1;
+}
+
+.config-value {
+    font-weight: 600;
+    color: #2d3748;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background: #edf2f7;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+/* Recommendations */
+.recommendation-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #cbd5e0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.recommendation-card.priority-high {
+    border-left-color: #f56565;
+    background: #fef5f5;
+}
+
+.recommendation-card.priority-medium {
+    border-left-color: #ed8936;
+    background: #fffaf0;
+}
+
+.recommendation-card.priority-low {
+    border-left-color: #48bb78;
+    background: #f0fff4;
+}
+
+.recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.recommendation-header h3 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-badge.priority-high {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.priority-badge.priority-medium {
+    background: #feebc8;
+    color: #c05621;
+}
+
+.priority-badge.priority-low {
+    background: #c6f6d5;
+    color: #2f855a;
+}
+
+.recommendation-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.recommendation-item strong {
+    color: #4a5568;
+    min-width: 120px;
+    font-weight: 600;
+}
+
+.recommendation-item code {
+    background: #edf2f7;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    color: #2d3748;
+}
+
+.recommendation-reasoning {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid #cbd5e0;
+    margin-top: 0.5rem;
+}
+
+.recommendation-reasoning strong {
+    color: #4a5568;
+    font-weight: 600;
+}
+
+/* Loading and Empty States */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #718096;
+    font-style: italic;
+}
+
+.no-recommendations {
+    text-align: center;
+    padding: 2rem;
+    color: #718096;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px dashed #cbd5e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    .resource-grid,
+    .config-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .resource-item,
+    .config-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .recommendation-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .recommendation-item {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .recommendation-item strong {
+        min-width: auto;
+    }
+}
+
+/* Button Styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}

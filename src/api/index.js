@@ -58,6 +58,7 @@ const status = require('./status');
 const customers = require('./customers');
 const neo4jHealth = require('./neo4j-health/index.js');
 const neo4jLogs = require('./neo4j-logs/index.js');
+const neo4jConfig = require('./neo4j-config/index.js');
 const taskWatchdog = require('./task-watchdog/index.js');
 const taskAnalytics = require('./task-analytics/index.js');
 const serviceManagement = require('./service-management/index.js');
@@ -302,6 +303,9 @@ function register(app) {
 
     // Neo4j Error Logs endpoints
     app.get('/api/neo4j-logs/errors', neo4jLogs.getNeo4jErrors);
+
+    // Neo4j Resource Configuration endpoints
+    app.get('/api/neo4j-config/overview', neo4jConfig.handleNeo4jConfigOverview);
 
     // Task Watchdog Dashboard endpoints
     app.get('/api/task-watchdog/status', taskWatchdog.handleTaskWatchdogStatus);

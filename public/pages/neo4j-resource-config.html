@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo4j Resource Configuration - Brainstorm</title>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <link rel="stylesheet" href="/css/neo4j-resource-config.css">
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1>🔧 Neo4j Resource Configuration Overview</h1>
+            <p>Current system resources, Neo4j configuration, and optimization recommendations</p>
+            <button onclick="refreshData()" class="btn btn-primary">🔄 Refresh Data</button>
+        </div>
+
+        <!-- System Resources Section -->
+        <div class="config-section">
+            <h2>💻 System Resources</h2>
+            <div class="resource-grid">
+                <div class="resource-card">
+                    <h3>Memory</h3>
+                    <div class="resource-details">
+                        <div class="resource-item">
+                            <span class="label">Total Memory:</span>
+                            <span class="value" id="totalMemory">Loading...</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="label">Available Memory:</span>
+                            <span class="value" id="availableMemory">Loading...</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="label">Memory Usage:</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="memoryProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="resource-card">
+                    <h3>CPU</h3>
+                    <div class="resource-details">
+                        <div class="resource-item">
+                            <span class="label">CPU Cores:</span>
+                            <span class="value" id="cpuCores">Loading...</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="label">CPU Model:</span>
+                            <span class="value" id="cpuModel">Loading...</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="label">Load Average (5min):</span>
+                            <span class="value" id="loadAverage">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="resource-card">
+                    <h3>Storage</h3>
+                    <div class="resource-details">
+                        <div class="resource-item">
+                            <span class="label">Neo4j Disk:</span>
+                            <span class="value" id="diskUsage">Loading...</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="label">Available Space:</span>
+                            <span class="value" id="diskAvailable">Loading...</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="label">Disk Usage:</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="diskProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Java Configuration Section -->
+        <div class="config-section">
+            <h2>☕ Java Configuration</h2>
+            <div class="config-grid">
+                <div class="config-item">
+                    <span class="config-label">Java Version:</span>
+                    <span class="config-value" id="javaVersion">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Heap Initial Size (-Xms):</span>
+                    <span class="config-value" id="heapInit">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Heap Max Size (-Xmx):</span>
+                    <span class="config-value" id="heapMax">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Max Metaspace:</span>
+                    <span class="config-value" id="maxMetaspace">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">GC Algorithm:</span>
+                    <span class="config-value" id="gcAlgorithm">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Current Heap Usage:</span>
+                    <span class="config-value" id="currentHeapUsage">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Neo4j Configuration Section -->
+        <div class="config-section">
+            <h2>🗄️ Neo4j Configuration</h2>
+            <div class="config-grid">
+                <div class="config-item">
+                    <span class="config-label">Neo4j Version:</span>
+                    <span class="config-value" id="neo4jVersion">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Heap Initial Size:</span>
+                    <span class="config-value" id="neo4jHeapInit">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Heap Max Size:</span>
+                    <span class="config-value" id="neo4jHeapMax">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Pagecache Size:</span>
+                    <span class="config-value" id="pagecacheSize">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Transaction Timeout:</span>
+                    <span class="config-value" id="transactionTimeout">Loading...</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Default Database:</span>
+                    <span class="config-value" id="defaultDatabase">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimization Recommendations Section -->
+        <div class="config-section">
+            <h2>💡 Optimization Recommendations</h2>
+            <div id="recommendationsContainer">
+                <div class="loading">Loading recommendations...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script>
+        let configData = null;
+
+        // Load page components and data
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadComponents();
+            await loadConfigData();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(loadConfigData, 5 * 60 * 1000);
+        });
+
+        // Load header and footer components
+        async function loadComponents() {
+            try {
+                const [headerResponse, footerResponse] = await Promise.all([
+                    fetch('/components/header/header.html'),
+                    fetch('/components/footer/footer.html')
+                ]);
+                
+                document.getElementById('header-container').innerHTML = await headerResponse.text();
+                document.getElementById('footer-container').innerHTML = await footerResponse.text();
+                
+                // Load header script
+                const headerScript = document.createElement('script');
+                headerScript.src = '/components/header/header.js';
+                document.head.appendChild(headerScript);
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
+        }
+
+        // Load configuration data
+        async function loadConfigData() {
+            try {
+                const response = await fetch('/api/neo4j-config/overview');
+                const result = await response.json();
+                
+                if (!result.success) {
+                    console.error('Failed to load config data:', result.error);
+                    return;
+                }
+                
+                configData = result.data;
+                updateSystemResources(configData.systemResources);
+                updateJavaConfig(configData.javaConfig);
+                updateNeo4jConfig(configData.neo4jConfig);
+                updateRecommendations(configData.recommendations);
+                
+            } catch (error) {
+                console.error('Error loading config data:', error);
+            }
+        }
+
+        // Update system resources display
+        function updateSystemResources(resources) {
+            document.getElementById('totalMemory').textContent = `${resources.totalMemoryGB || 'Unknown'} GB`;
+            document.getElementById('availableMemory').textContent = `${resources.availableMemoryGB || 'Unknown'} GB`;
+            document.getElementById('cpuCores').textContent = resources.cpuCores || 'Unknown';
+            document.getElementById('cpuModel').textContent = resources.cpuModel || 'Unknown';
+            
+            if (resources.loadAverage) {
+                document.getElementById('loadAverage').textContent = resources.loadAverage['5min'] || 'Unknown';
+            }
+            
+            // Memory usage progress bar
+            if (resources.totalMemoryGB && resources.availableMemoryGB) {
+                const usedMemory = resources.totalMemoryGB - resources.availableMemoryGB;
+                const usagePercent = (usedMemory / resources.totalMemoryGB) * 100;
+                document.getElementById('memoryProgress').style.width = `${usagePercent}%`;
+                document.getElementById('memoryProgress').className = `progress-fill ${getUsageClass(usagePercent)}`;
+            }
+            
+            // Disk usage
+            if (resources.neo4jDisk && !resources.neo4jDisk.error) {
+                document.getElementById('diskUsage').textContent = `${resources.neo4jDisk.used}/${resources.neo4jDisk.size}`;
+                document.getElementById('diskAvailable').textContent = resources.neo4jDisk.available;
+                
+                const diskPercent = parseInt(resources.neo4jDisk.usePercent);
+                document.getElementById('diskProgress').style.width = resources.neo4jDisk.usePercent;
+                document.getElementById('diskProgress').className = `progress-fill ${getUsageClass(diskPercent)}`;
+            }
+        }
+
+        // Update Java configuration display
+        function updateJavaConfig(javaConfig) {
+            document.getElementById('javaVersion').textContent = javaConfig.version || 'Unknown';
+            document.getElementById('heapInit').textContent = javaConfig.heapInit || 'Not set';
+            document.getElementById('heapMax').textContent = javaConfig.heapMax || 'Not set';
+            document.getElementById('maxMetaspace').textContent = javaConfig.maxMetaspace || 'Not set';
+            document.getElementById('gcAlgorithm').textContent = javaConfig.gcAlgorithm || 'Default';
+            document.getElementById('currentHeapUsage').textContent = javaConfig.currentHeapUsageKB ? 
+                `${Math.round(javaConfig.currentHeapUsageKB / 1024)} MB` : 'Unknown';
+        }
+
+        // Update Neo4j configuration display
+        function updateNeo4jConfig(neo4jConfig) {
+            document.getElementById('neo4jVersion').textContent = neo4jConfig.version || 'Unknown';
+            document.getElementById('neo4jHeapInit').textContent = neo4jConfig.heapInitialSize || 'Not configured';
+            document.getElementById('neo4jHeapMax').textContent = neo4jConfig.heapMaxSize || 'Not configured';
+            document.getElementById('pagecacheSize').textContent = neo4jConfig.pagecacheSize || 'Auto-configured';
+            document.getElementById('transactionTimeout').textContent = neo4jConfig.transactionTimeout || 'Not configured';
+            document.getElementById('defaultDatabase').textContent = neo4jConfig.defaultDatabase || 'neo4j';
+        }
+
+        // Update recommendations display
+        function updateRecommendations(recommendations) {
+            const container = document.getElementById('recommendationsContainer');
+            
+            if (!recommendations || recommendations.length === 0) {
+                container.innerHTML = '<div class="no-recommendations">No specific recommendations at this time.</div>';
+                return;
+            }
+            
+            const recommendationsHtml = recommendations.map(rec => `
+                <div class="recommendation-card priority-${rec.priority.toLowerCase()}">
+                    <div class="recommendation-header">
+                        <h3>${rec.title}</h3>
+                        <span class="priority-badge priority-${rec.priority.toLowerCase()}">${rec.priority}</span>
+                    </div>
+                    <div class="recommendation-body">
+                        <div class="recommendation-item">
+                            <strong>Category:</strong> ${rec.category}
+                        </div>
+                        <div class="recommendation-item">
+                            <strong>Current:</strong> ${rec.current}
+                        </div>
+                        <div class="recommendation-item">
+                            <strong>Recommended:</strong> ${rec.recommended}
+                        </div>
+                        <div class="recommendation-item">
+                            <strong>Configuration:</strong> <code>${rec.configLocation}</code>
+                        </div>
+                        <div class="recommendation-reasoning">
+                            <strong>Why:</strong> ${rec.reasoning}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = recommendationsHtml;
+        }
+
+        // Get CSS class based on usage percentage
+        function getUsageClass(percent) {
+            if (percent >= 90) return 'critical';
+            if (percent >= 75) return 'warning';
+            return 'normal';
+        }
+
+        // Refresh data manually
+        async function refreshData() {
+            await loadConfigData();
+        }
+    </script>
+</body>
+</html>
