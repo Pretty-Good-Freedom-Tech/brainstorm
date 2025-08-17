@@ -614,11 +614,13 @@ function setupSignalHandlers(scheduler) {
 
 // Main execution
 function main() {
+    /*
     if (process.argv.length < 3) {
         console.error('Usage: node monitoringScheduler.js <target>');
         console.error('Example: node monitoringScheduler.js owner');
         process.exit(1);
     }
+    */
 
     const scheduler = new MonitoringScheduler();
     setupSignalHandlers(scheduler);
