@@ -180,10 +180,35 @@ check_heap_and_gc_health() {
         local current_time=$(date +%s)
         local age_diff=$((current_time - metrics_age))
         
+        emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+            --arg file "$metrics_file" \
+            --argjson age "$age_diff" \
+            '{
+                "message": "Checking enhanced metrics file",
+                "phase": "metrics_collection_debug",
+                "debug": {
+                    "metricsFile": $file,
+                    "ageSeconds": $age,
+                    "ageThreshold": 120
+                }
+            }')"
+        
         # Use metrics if they're less than 2 minutes old
         if [[ $age_diff -lt 120 ]]; then
             local heap_data=$(jq -r '.heap // empty' "$metrics_file" 2>/dev/null)
             local gc_data=$(jq -r '.gc // empty' "$metrics_file" 2>/dev/null)
+            
+            emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+                --arg heapData "$heap_data" \
+                --arg gcData "$gc_data" \
+                '{
+                    "message": "Parsed enhanced metrics data",
+                    "phase": "metrics_collection_debug",
+                    "debug": {
+                        "heapDataPresent": ($heapData != "empty" and $heapData != "null" and $heapData != ""),
+                        "gcDataPresent": ($gcData != "empty" and $gcData != "null" and $gcData != "")
+                    }
+                }')"
             
             if [[ -n "$heap_data" && "$heap_data" != "null" && "$heap_data" != "empty" ]]; then
                 heap_used=$(echo "$heap_data" | jq -r '.usedBytes')
@@ -199,12 +224,48 @@ check_heap_and_gc_health() {
                 full_gc_time=$(echo "$gc_data" | jq -r '.fullGCTime')
             fi
         fi
+    else
+        emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+            --arg file "$metrics_file" \
+            --argjson exists "$(test -f "$metrics_file" && echo true || echo false)" \
+            --argjson readable "$(test -r "$metrics_file" && echo true || echo false)" \
+            '{
+                "message": "Enhanced metrics file not available",
+                "phase": "metrics_collection_debug",
+                "debug": {
+                    "metricsFile": $file,
+                    "exists": $exists,
+                    "readable": $readable
+                }
+            }')"
     fi
     
     # Method 2: Fallback to direct jstat if enhanced metrics unavailable
     if [[ "$metrics_source" == "unavailable" && -n "$neo4j_pid" ]]; then
+        emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+            --argjson pid "$neo4j_pid" \
+            --argjson jstatAvailable "$(command -v jstat >/dev/null 2>&1 && echo true || echo false)" \
+            '{
+                "message": "Attempting jstat fallback method",
+                "phase": "metrics_collection_debug",
+                "debug": {
+                    "neo4jPid": $pid,
+                    "jstatAvailable": $jstatAvailable
+                }
+            }')"
+        
         if command -v jstat >/dev/null 2>&1; then
             local heap_info=$(jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+            
+            emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+                --argjson hasHeapInfo "$(test -n "$heap_info" && echo true || echo false)" \
+                '{
+                    "message": "jstat command executed",
+                    "phase": "metrics_collection_debug",
+                    "debug": {
+                        "heapInfoRetrieved": $hasHeapInfo
+                    }
+                }')"
             
             if [[ -n "$heap_info" ]]; then
                 # Parse heap utilization
@@ -222,9 +283,23 @@ check_heap_and_gc_health() {
                 full_gc_count=$(echo "$heap_data" | awk '{print $14}')
                 full_gc_time=$(echo "$heap_data" | awk '{print $15}')
                 metrics_source="direct_jstat"
+                
+                emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+                    --argjson heapUsed "$heap_used" \
+                    --argjson heapTotal "$heap_total" \
+                    --argjson heapPercent "$heap_percent" \
+                    '{
+                        "message": "jstat metrics parsed successfully",
+                        "phase": "metrics_collection_debug",
+                        "debug": {
+                            "heapUsedBytes": $heapUsed,
+                            "heapTotalBytes": $heapTotal,
+                            "heapPercent": $heapPercent,
+                            "metricsSource": "direct_jstat"
+                        }
+                    }')"
             fi
         fi
-            
     fi
     
     # Only proceed with analysis if we have valid metrics

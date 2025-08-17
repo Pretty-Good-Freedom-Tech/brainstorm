@@ -98,6 +98,12 @@ const MONITORING_TIERS = {
                 script: getScriptPath('databasePerformanceMonitor'),
                 timeout: 10 * 60 * 1000, // 10 minutes
                 description: 'Neo4j database performance monitoring'
+            },
+            {
+                name: 'taskBehaviorMonitor',
+                script: getScriptPath('taskBehaviorMonitor'),
+                timeout: 10 * 60 * 1000, // 10 minutes
+                description: 'Task execution pattern analysis and behavioral anomaly detection'
             }
         ]
     },
