@@ -1529,7 +1529,11 @@
             let badges = '';
             
             if (execution.isRunning) {
-                badges += '<span class="task-badge badge-running">🔄 Running</span>';
+                let runningText = '🔄 Running';
+                if (execution.timeSinceLastInitiatedFormatted) {
+                    runningText += `<br><small style="font-size: 0.8em; opacity: 0.8;">${execution.timeSinceLastInitiatedFormatted}</small>`;
+                }
+                badges += `<span class="task-badge badge-running">${runningText}</span>`;
             } else if (execution.hasExecutionData) {
                 if (execution.lastStatus === 'success') {
                     badges += '<span class="task-badge badge-success">✅ Last: Success</span>';

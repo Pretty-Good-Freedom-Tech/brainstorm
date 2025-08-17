@@ -204,6 +204,10 @@ class StructuredEventsAnalyzer {
                 lastRunFormatted: null,
                 timeSinceLastRun: null,
                 timeSinceLastRunMinutes: null,
+                lastInitiated: null,
+                lastInitiatedFormatted: null,
+                timeSinceLastInitiated: null,
+                timeSinceLastInitiatedFormatted: null,
                 lastDuration: null,
                 lastDurationFormatted: null,
                 averageDuration: null,
@@ -255,6 +259,10 @@ class StructuredEventsAnalyzer {
                         // Process is genuinely running
                         taskExecutionData[taskName].isRunning = true;
                         taskExecutionData[taskName].lastStatus = 'running';
+                        taskExecutionData[taskName].lastInitiated = startEvent.timestamp;
+                        taskExecutionData[taskName].lastInitiatedFormatted = new Date(startEvent.timestamp).toLocaleString();
+                        taskExecutionData[taskName].timeSinceLastInitiated = this.getTimeAgo(startEvent.timestamp);
+                        taskExecutionData[taskName].timeSinceLastInitiatedFormatted = this.getTimeAgo(startEvent.timestamp);
                     } else {
                         // Silent failure detected: TASK_START without TASK_END and dead PID
                         // console.warn(`[StructuredEventsAnalyzer] Silent failure detected for ${taskName} (PID ${session.pid})`);
@@ -265,6 +273,10 @@ class StructuredEventsAnalyzer {
                         taskExecutionData[taskName].lastRunFormatted = new Date(startEvent.timestamp).toLocaleString();
                         taskExecutionData[taskName].timeSinceLastRun = this.getTimeAgo(startEvent.timestamp);
                         taskExecutionData[taskName].timeSinceLastRunMinutes = Math.floor((now - new Date(startEvent.timestamp)) / (1000 * 60));
+                        taskExecutionData[taskName].lastInitiated = startEvent.timestamp;
+                        taskExecutionData[taskName].lastInitiatedFormatted = new Date(startEvent.timestamp).toLocaleString();
+                        taskExecutionData[taskName].timeSinceLastInitiated = this.getTimeAgo(startEvent.timestamp);
+                        taskExecutionData[taskName].timeSinceLastInitiatedFormatted = this.getTimeAgo(startEvent.timestamp);
                         taskExecutionData[taskName].lastDuration = null; // Unknown duration for silent failures
                         taskExecutionData[taskName].lastDurationFormatted = 'Unknown (silent failure)';
                         taskExecutionData[taskName].totalRuns += 1;
@@ -285,6 +297,10 @@ class StructuredEventsAnalyzer {
                     taskExecutionData[taskName].lastRunFormatted = new Date(finalEvent.timestamp).toLocaleString();
                     taskExecutionData[taskName].timeSinceLastRun = this.getTimeAgo(finalEvent.timestamp);
                     taskExecutionData[taskName].timeSinceLastRunMinutes = Math.floor((now - new Date(finalEvent.timestamp)) / (1000 * 60));
+                    taskExecutionData[taskName].lastInitiated = startEvent.timestamp;
+                    taskExecutionData[taskName].lastInitiatedFormatted = new Date(startEvent.timestamp).toLocaleString();
+                    taskExecutionData[taskName].timeSinceLastInitiated = this.getTimeAgo(startEvent.timestamp);
+                    taskExecutionData[taskName].timeSinceLastInitiatedFormatted = this.getTimeAgo(startEvent.timestamp);
                     taskExecutionData[taskName].lastDuration = duration;
                     taskExecutionData[taskName].lastDurationFormatted = this.formatDuration(duration);
                     taskExecutionData[taskName].totalRuns += 1;
