@@ -8,6 +8,7 @@
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Include the header component -->
@@ -154,13 +155,22 @@
                 </div>
             </div>
             
-            <!-- Stability Trends Section -->
+            <!-- Heap Usage Time Series -->
             <div class="health-card">
                 <div class="card-header">
-                    <h3 class="card-title">📈 Stability Trends</h3>
+                    <h3 class="card-title">📈 Heap Usage Over Time</h3>
+                    <div class="chart-controls">
+                        <select id="timeRangeSelect" onchange="updateTimeRange()">
+                            <option value="6">Last 6 hours</option>
+                            <option value="12">Last 12 hours</option>
+                            <option value="24" selected>Last 24 hours</option>
+                            <option value="48">Last 48 hours</option>
+                            <option value="168">Last week</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="chart-container" id="stabilityChart">
-                    <p>Stability trend chart will be displayed here</p>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="heapChart"></canvas>
                 </div>
             </div>
         </div>
@@ -169,11 +179,13 @@
     <script>
         let autoRefreshInterval;
         let dashboardData = {};
+        let heapChart = null;
         
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             refreshDashboard();
             setupAutoRefresh();
+            initializeHeapChart();
         });
         
         // Setup auto-refresh
@@ -197,6 +209,11 @@
         async function refreshDashboard() {
             try {
                 document.body.classList.add('loading');
+                
+                // Also update heap chart on refresh
+                if (heapChart) {
+                    await updateHeapChart();
+                }
                 
                 // Fetch Neo4j health data
                 const healthResponse = await fetch('/api/neo4j-health/complete');
@@ -365,6 +382,163 @@
             } catch (error) {
                 console.error('Failed to clear alerts:', error);
             }
+        }
+        
+        // Initialize heap usage chart
+        async function initializeHeapChart() {
+            const ctx = document.getElementById('heapChart').getContext('2d');
+            
+            heapChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Heap Utilization %',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'GC Overhead %',
+                        data: [],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    minute: 'HH:mm',
+                                    hour: 'MMM DD HH:mm'
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Heap Utilization %'
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: true,
+                            },
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'GC Overhead %'
+                            },
+                            min: 0,
+                            max: 20,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const dataIndex = context[0].dataIndex;
+                                    const data = heapChart.data.datasets[0].rawData;
+                                    if (data && data[dataIndex]) {
+                                        const point = data[dataIndex];
+                                        return [
+                                            `Heap Used: ${point.heapUsedMB} MB`,
+                                            `Heap Total: ${point.heapTotalMB} MB`,
+                                            `Young GC: ${point.youngGcCount}`,
+                                            `Full GC: ${point.fullGcCount}`
+                                        ];
+                                    }
+                                    return [];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Load initial data
+            await updateHeapChart();
+        }
+        
+        // Update heap chart with new data
+        async function updateHeapChart() {
+            try {
+                const timeRange = document.getElementById('timeRangeSelect').value;
+                const response = await fetch(`/api/neo4j-health/heap-metrics-history?hours=${timeRange}&maxPoints=100`);
+                const result = await response.json();
+                
+                if (!result.success) {
+                    console.error('Failed to fetch heap metrics:', result.error);
+                    return;
+                }
+                
+                const data = result.data;
+                if (data.length === 0) {
+                    heapChart.data.labels = [];
+                    heapChart.data.datasets[0].data = [];
+                    heapChart.data.datasets[1].data = [];
+                    heapChart.update();
+                    return;
+                }
+                
+                // Prepare chart data
+                const labels = data.map(point => new Date(point.timestamp));
+                const heapUtilization = data.map(point => point.heapUtilizationPercent);
+                const gcOverhead = data.map(point => point.gcOverheadPercent);
+                
+                // Store raw data for tooltips
+                heapChart.data.datasets[0].rawData = data;
+                
+                // Update chart
+                heapChart.data.labels = labels;
+                heapChart.data.datasets[0].data = heapUtilization;
+                heapChart.data.datasets[1].data = gcOverhead;
+                heapChart.update();
+                
+                console.log(`Updated heap chart with ${data.length} data points`);
+                
+            } catch (error) {
+                console.error('Error updating heap chart:', error);
+            }
+        }
+        
+        // Update time range
+        async function updateTimeRange() {
+            await updateHeapChart();
         }
         
         // Show error message

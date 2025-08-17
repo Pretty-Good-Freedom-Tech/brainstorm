@@ -297,6 +297,7 @@ function register(app) {
     // Neo4j Health Dashboard endpoints
     app.get('/api/neo4j-health/complete', neo4jHealth.handleCompleteNeo4jHealth);
     app.get('/api/neo4j-health/alerts', neo4jHealth.handleAlertsNeo4jHealth);
+    app.get('/api/neo4j-health/heap-metrics-history', neo4jHealth.handleHeapMetricsHistory);
 
     // Task Watchdog Dashboard endpoints
     app.get('/api/task-watchdog/status', taskWatchdog.handleTaskWatchdogStatus);

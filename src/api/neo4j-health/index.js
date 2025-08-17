@@ -5,11 +5,13 @@
 
 const { handleCompleteNeo4jHealth } = require('./queries/complete-neo4j-health.js');
 const { handleAlertsNeo4jHealth } = require('./queries/alerts-neo4j-health.js');
+const { handleHeapMetricsHistory } = require('./queries/heap-metrics-history.js');
 
 // Export handlers directly - this allows the central router 
 // to register endpoints without creating multiple routers
 module.exports = {
     // Queries (read operations)
     handleCompleteNeo4jHealth,
-    handleAlertsNeo4jHealth
+    handleAlertsNeo4jHealth,
+    handleHeapMetricsHistory
 };
