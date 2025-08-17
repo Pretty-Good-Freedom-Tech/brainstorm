@@ -7,6 +7,9 @@
 set -e
 set -o pipefail
 
+# Source launchChildTask function
+source "$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh"
+
 # Configuration
 CONFIG_FILE="/etc/brainstorm.conf"
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -84,29 +87,13 @@ run_crash_pattern_detection() {
         "message": "Running Neo4j crash pattern detection",
         "phase": "crash_pattern_analysis"
     }'
-    
-    local crash_detector_script="$SCRIPT_DIR/neo4jCrashPatternDetector.sh"
-    if [[ -f "$crash_detector_script" ]]; then
-        if bash "$crash_detector_script" --neo4j-log-dir "$NEO4J_LOG_DIR"; then
-            emit_task_event "PROGRESS" "neo4jStabilityMonitor" "crash_detection" '{
-                "message": "Crash pattern detection completed successfully",
-                "phase": "crash_pattern_analysis",
-                "status": "success"
-            }'
-        else
-            emit_task_event "PROGRESS" "neo4jStabilityMonitor" "crash_detection" '{
-                "message": "Crash pattern detection failed",
-                "phase": "crash_pattern_analysis",
-                "status": "failed"
-            }'
-        fi
-    else
-        emit_task_event "PROGRESS" "neo4jStabilityMonitor" "crash_detection" '{
-            "message": "Crash pattern detector script not found",
-            "phase": "crash_pattern_analysis",
-            "status": "missing_component"
-        }'
-    fi
+
+    launch_child_task "neo4jStabilityMonitor" "neo4jStabilityMonitor" "" ""
+
+    emit_task_event "PROGRESS" "neo4jStabilityMonitor" "crash_detection" '{
+        "message": "Neo4j crash pattern detection completed",
+        "phase": "crash_pattern_analysis"
+    }'
 }
 
 # Function to check Neo4j index health (addresses your APOC stalling issue)
