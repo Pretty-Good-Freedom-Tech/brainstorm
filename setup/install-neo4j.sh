@@ -76,9 +76,21 @@ sed -i 's/#dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.expor
 
 # Step 5: Update memory settings
 # Jun 2025: removing defining heap size and transaction total
+#Aug 2025: reinstating memory setting changes based on:
+# 1. sudo neo4j-admin server memory-recommendation
+# 2. also informed by Brainstorm neo4j-resource-config.html
 echo "=== Updating Neo4j memory settings (commented out) ==="
-# sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=2g/' "$NEO4J_CONF"
-# sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=2g/' "$NEO4J_CONF"
+
+sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=4g/' "$NEO4J_CONF"
+sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=4g/' "$NEO4J_CONF"
+sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=6g/' "$NEO4J_CONF"
+# JVM hardening options
+# sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError/' "$NEO4J_CONF"
+# More aggressive JVM hardening options
+sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\/var\/log\/neo4j\//' "$NEO4J_CONF"
+
+
+
 # sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
 echo "=== Updating Neo4j tx log rotation settings ==="
 # sed -i 's/db.tx_log.rotation.retention_policy=2 days 2G/db.tx_log.rotation.retention_policy=1 hours 100M/' "$NEO4J_CONF"

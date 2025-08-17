@@ -319,6 +319,203 @@
     }
 }
 
+/* Command Reference Styles */
+.command-reference {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background: #f1f5f9;
+    border-radius: 4px;
+    border-left: 3px solid #3b82f6;
+}
+
+.command-reference small {
+    color: #475569;
+    font-size: 0.8rem;
+}
+
+.command-reference code {
+    background: #e2e8f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.75rem;
+    color: #1e293b;
+}
+
+.command-list {
+    margin-top: 0.5rem;
+    line-height: 1.6;
+}
+
+.command-list code {
+    display: inline-block;
+    margin-right: 0.5rem;
+    background: #e2e8f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.75rem;
+    color: #1e293b;
+}
+
+/* Database Analysis Styles */
+.db-analysis-available {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.db-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.db-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.db-summary-label {
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.db-summary-value {
+    font-weight: 600;
+    color: #2d3748;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background: #edf2f7;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.db-databases h4 {
+    margin: 0 0 0.75rem 0;
+    color: #4a5568;
+    font-size: 1rem;
+}
+
+.db-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+
+.db-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.db-name {
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.db-size {
+    font-weight: 600;
+    color: #2d3748;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.db-analysis-note {
+    background: #e6fffa;
+    border: 1px solid #38b2ac;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+    color: #234e52;
+}
+
+.db-analysis-unavailable {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #991b1b;
+}
+
+.db-analysis-unavailable code {
+    background: #fee2e2;
+    color: #7f1d1d;
+}
+
+/* Admin Recommendations Styles */
+.admin-recommendations {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.admin-rec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.admin-rec-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.admin-rec-label {
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.admin-rec-value {
+    font-weight: 600;
+    color: #2d3748;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background: #edf2f7;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.admin-rec-warning {
+    background: #fef3cd;
+    border: 1px solid #fbbf24;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+    color: #92400e;
+}
+
+.admin-rec-unavailable {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #991b1b;
+}
+
+.admin-rec-unavailable code {
+    background: #fee2e2;
+    color: #7f1d1d;
+}
+
 /* Button Styles */
 .btn {
     display: inline-flex;

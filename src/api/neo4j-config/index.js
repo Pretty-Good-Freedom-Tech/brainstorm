@@ -121,6 +121,117 @@ class Neo4jConfigAnalyzer {
         }
     }
 
+    // Get Neo4j database size analysis
+    async getDatabaseSizeAnalysis() {
+        try {
+            const dbAnalysis = {};
+            
+            // Get database directory sizes
+            try {
+                const dbPath = '/var/lib/neo4j/data/databases';
+                const duOutput = execSync(`du -sh ${dbPath}/* 2>/dev/null | sort -hr`, { encoding: 'utf8' });
+                const lines = duOutput.trim().split('\n');
+                
+                dbAnalysis.databases = [];
+                let totalSizeMB = 0;
+                
+                lines.forEach(line => {
+                    const parts = line.split('\t');
+                    if (parts.length === 2) {
+                        const size = parts[0];
+                        const path = parts[1];
+                        const dbName = path.split('/').pop();
+                        
+                        // Convert size to MB for calculations
+                        let sizeMB = 0;
+                        if (size.includes('G')) {
+                            sizeMB = parseFloat(size) * 1024;
+                        } else if (size.includes('M')) {
+                            sizeMB = parseFloat(size);
+                        } else if (size.includes('K')) {
+                            sizeMB = parseFloat(size) / 1024;
+                        }
+                        
+                        dbAnalysis.databases.push({
+                            name: dbName,
+                            size: size,
+                            sizeMB: Math.round(sizeMB)
+                        });
+                        
+                        totalSizeMB += sizeMB;
+                    }
+                });
+                
+                dbAnalysis.totalSizeMB = Math.round(totalSizeMB);
+                dbAnalysis.totalSizeGB = Math.round(totalSizeMB / 1024 * 100) / 100;
+                dbAnalysis.available = true;
+                
+                // Parse neo4j-admin output for more detailed analysis
+                try {
+                    const adminOutput = execSync('neo4j-admin server memory-recommendation 2>/dev/null', { encoding: 'utf8' });
+                    const luceneMatch = adminOutput.match(/Total size of lucene indexes in all databases: (\d+)([kmg]?)/i);
+                    const dataMatch = adminOutput.match(/Total size of data and native indexes in all databases: (\d+)([kmg]?)/i);
+                    
+                    if (luceneMatch) {
+                        const size = parseInt(luceneMatch[1]);
+                        const unit = luceneMatch[2]?.toLowerCase() || '';
+                        dbAnalysis.luceneIndexesMB = unit === 'g' ? size * 1024 : unit === 'k' ? size / 1024 : size;
+                    }
+                    
+                    if (dataMatch) {
+                        const size = parseInt(dataMatch[1]);
+                        const unit = dataMatch[2]?.toLowerCase() || '';
+                        dbAnalysis.dataAndIndexesMB = unit === 'g' ? size * 1024 : unit === 'k' ? size / 1024 : size;
+                    }
+                } catch (error) {
+                    // Admin command failed, use directory sizes only
+                }
+                
+            } catch (error) {
+                dbAnalysis.available = false;
+                dbAnalysis.error = 'Unable to analyze database sizes';
+            }
+            
+            return dbAnalysis;
+        } catch (error) {
+            console.error('Error getting database size analysis:', error);
+            return { available: false, error: error.message };
+        }
+    }
+
+    // Get Neo4j admin memory recommendations
+    async getNeo4jAdminRecommendations() {
+        try {
+            const adminRecommendations = {};
+            
+            // Run neo4j-admin server memory-recommendation
+            try {
+                const output = execSync('neo4j-admin server memory-recommendation 2>/dev/null', { encoding: 'utf8' });
+                const lines = output.split('\n');
+                
+                lines.forEach(line => {
+                    if (line.includes('server.memory.heap.initial_size=')) {
+                        adminRecommendations.heapInitial = line.split('=')[1];
+                    } else if (line.includes('server.memory.heap.max_size=')) {
+                        adminRecommendations.heapMax = line.split('=')[1];
+                    } else if (line.includes('server.memory.pagecache.size=')) {
+                        adminRecommendations.pagecache = line.split('=')[1];
+                    }
+                });
+                
+                adminRecommendations.available = true;
+            } catch (error) {
+                adminRecommendations.available = false;
+                adminRecommendations.error = 'neo4j-admin command not available or failed';
+            }
+            
+            return adminRecommendations;
+        } catch (error) {
+            console.error('Error getting Neo4j admin recommendations:', error);
+            return { available: false, error: error.message };
+        }
+    }
+
     // Get Neo4j configuration
     async getNeo4jConfig() {
         try {
@@ -176,14 +287,74 @@ class Neo4jConfigAnalyzer {
     }
 
     // Generate optimization recommendations
-    generateRecommendations(systemResources, javaConfig, neo4jConfig) {
+    generateRecommendations(systemResources, javaConfig, neo4jConfig, dbAnalysis) {
         const recommendations = [];
         
-        // Memory recommendations
-        if (systemResources.totalMemoryGB) {
+        // Database-aware memory recommendations
+        if (systemResources.totalMemoryGB && dbAnalysis?.available) {
             const totalMemGB = systemResources.totalMemoryGB;
-            const recommendedHeapGB = Math.floor(totalMemGB * 0.3); // 30% for heap
-            const recommendedPagecacheGB = Math.floor(totalMemGB * 0.4); // 40% for pagecache
+            const availableMemGB = systemResources.availableMemoryGB || totalMemGB * 0.6;
+            const dbSizeGB = dbAnalysis.totalSizeGB || 0;
+            
+            // Calculate optimal memory allocation based on database size
+            const minHeapGB = Math.max(2, Math.floor(totalMemGB * 0.2)); // At least 2GB, max 20%
+            const optimalPagecacheGB = Math.ceil(dbSizeGB * 1.1); // 110% of database size for growth
+            const totalNeo4jMemory = minHeapGB + optimalPagecacheGB;
+            
+            // Check if current system can handle optimal configuration
+            if (totalNeo4jMemory > availableMemGB) {
+                // System upgrade recommendation
+                const recommendedSystemMemGB = Math.ceil((totalNeo4jMemory + 2) / 4) * 4; // Round up to nearest 4GB
+                
+                recommendations.push({
+                    category: 'System Resources',
+                    priority: 'Critical',
+                    title: 'Memory Upgrade Required',
+                    current: `Available: ${availableMemGB}GB, Database: ${dbSizeGB}GB`,
+                    recommended: `Upgrade to ${recommendedSystemMemGB}GB total memory`,
+                    configLocation: 'AWS EC2 Instance Type / System Hardware',
+                    reasoning: `Your database (${dbSizeGB}GB) requires ${optimalPagecacheGB}GB pagecache for optimal performance, but current available memory (${availableMemGB}GB) is insufficient`
+                });
+                
+                // Compromise configuration for current system
+                const compromisePagecacheGB = Math.max(2, Math.floor(availableMemGB - minHeapGB - 1));
+                
+                recommendations.push({
+                    category: 'Memory Configuration',
+                    priority: 'High',
+                    title: 'Compromise Memory Configuration',
+                    current: `Heap: ${javaConfig.heapMax || 'Unknown'}, Pagecache: ${neo4jConfig.pagecacheSize || 'Unknown'}`,
+                    recommended: `Heap: ${minHeapGB}g, Pagecache: ${compromisePagecacheGB}g (limited by available memory)`,
+                    configLocation: 'neo4j.conf: server.memory settings',
+                    reasoning: `Temporary configuration until memory upgrade. ${Math.round((dbSizeGB - compromisePagecacheGB) / dbSizeGB * 100)}% of database will require disk I/O`
+                });
+            } else {
+                // Optimal configuration fits in current system
+                recommendations.push({
+                    category: 'Memory Configuration',
+                    priority: 'High',
+                    title: 'Database-Optimized Heap Size',
+                    current: `Heap Max: ${javaConfig.heapMax || 'Unknown'}`,
+                    recommended: `Set heap to ${minHeapGB}g`,
+                    configLocation: 'neo4j.conf: server.memory.heap.max_size',
+                    reasoning: `Conservative heap size to maximize pagecache for your ${dbSizeGB}GB database`
+                });
+                
+                recommendations.push({
+                    category: 'Memory Configuration',
+                    priority: 'High',
+                    title: 'Database-Sized Pagecache',
+                    current: `Pagecache: ${neo4jConfig.pagecacheSize || 'Auto-configured'}`,
+                    recommended: `Set pagecache to ${optimalPagecacheGB}g`,
+                    configLocation: 'neo4j.conf: server.memory.pagecache.size',
+                    reasoning: `Sized to hold your entire ${dbSizeGB}GB database in memory with 10% growth buffer`
+                });
+            }
+        } else if (systemResources.totalMemoryGB) {
+            // Fallback to percentage-based recommendations
+            const totalMemGB = systemResources.totalMemoryGB;
+            const recommendedHeapGB = Math.floor(totalMemGB * 0.3);
+            const recommendedPagecacheGB = Math.floor(totalMemGB * 0.4);
             
             recommendations.push({
                 category: 'Memory Configuration',
@@ -272,9 +443,11 @@ async function handleNeo4jConfigOverview(req, res) {
         const systemResources = await analyzer.getSystemResources();
         const javaConfig = await analyzer.getJavaConfig();
         const neo4jConfig = await analyzer.getNeo4jConfig();
+        const neo4jAdminRecommendations = await analyzer.getNeo4jAdminRecommendations();
+        const databaseSizeAnalysis = await analyzer.getDatabaseSizeAnalysis();
         
         // Generate recommendations
-        const recommendations = analyzer.generateRecommendations(systemResources, javaConfig, neo4jConfig);
+        const recommendations = analyzer.generateRecommendations(systemResources, javaConfig, neo4jConfig, databaseSizeAnalysis);
         
         res.json({
             success: true,
@@ -282,6 +455,8 @@ async function handleNeo4jConfigOverview(req, res) {
                 systemResources,
                 javaConfig,
                 neo4jConfig,
+                neo4jAdminRecommendations,
+                databaseSizeAnalysis,
                 recommendations,
                 timestamp: new Date().toISOString()
             }
