@@ -246,13 +246,6 @@ async function install() {
     // Step 9: Configure sudo privileges
     await configureSudoPrivileges();
 
-    // misc
-    targetMonitoringDir='/var/lib/brainstorm/monitoring';
-    console.log("Creating directory: " + targetMonitoringDir);
-    execSync(`sudo mkdir -p ${targetMonitoringDir}`);
-    execSync(`sudo chown -R neo4j:brainstorm ${targetMonitoringDir}`);
-    execSync(`sudo chmod -R 755 ${targetMonitoringDir}`);
-
     // Step 10: Setup secure storage
     await setupSecureStorage();
 
@@ -267,7 +260,7 @@ async function install() {
       console.warn('sudo systemctl restart brainstorm-control-panel');
     }
     
-    // Step 9: Final setup and instructions
+    // Step 11: Final setup and instructions
     await finalSetup();
     
     console.log('\x1b[32m=== ' + (isUpdateMode ? 'Update' : 'Installation') + ' Complete ===\x1b[0m');

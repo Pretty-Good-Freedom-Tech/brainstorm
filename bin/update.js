@@ -316,6 +316,14 @@ async function main() {
     // Step 6: Restore from backup
     restoreFromBackup(backupDir);
     
+    // misc -- need to do this after restore to make sure permissions are correct
+    // should create a special step for this and related directories and files with special permissions issues
+    targetMonitoringDir='/var/lib/brainstorm/monitoring';
+    console.log("Creating directory: " + targetMonitoringDir);
+    execSync(`sudo mkdir -p ${targetMonitoringDir}`);
+    execSync(`sudo chown -R neo4j:brainstorm ${targetMonitoringDir}`);
+    execSync(`sudo chmod -R 755 ${targetMonitoringDir}`);
+    
     // Step 7: Restart services
     restartServices();
     

@@ -432,6 +432,8 @@ function highlightCurrentPage() {
         '/task-dashboard.html': '/task-dashboard',
         '/task-explorer.html': '/task-explorer',
         '/task.html': '/task',
+        '/neo4j-health-dashboard.html': '/neo4j-health-dashboard',
+        '/service-management-dashboard.html': '/service-management-dashboard',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
