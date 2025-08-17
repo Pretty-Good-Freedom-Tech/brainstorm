@@ -133,6 +133,10 @@ app.use(express.static(path.join(__dirname, '../public'), {
     }
 }));
 
+// Serve Chart.js from node_modules
+app.use('/libs/chart.js', express.static(path.join(__dirname, '../node_modules/chart.js/dist')));
+app.use('/libs/chartjs-adapter-date-fns', express.static(path.join(__dirname, '../node_modules/chartjs-adapter-date-fns/dist')));
+
 // Session middleware
 app.use(session({
     secret: getConfigFromFile('SESSION_SECRET', 'brainstorm-default-session-secret-please-change-in-production'),
