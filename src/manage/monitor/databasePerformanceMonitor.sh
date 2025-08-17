@@ -27,7 +27,7 @@ NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4j}"
 MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
 
 SCRIPT_NAME="databasePerformanceMonitor"
-TARGET="${1:-owner}"
+TARGET="${1:-system}"
 LOG_FILE="${BRAINSTORM_LOG_DIR}/${SCRIPT_NAME}.log"
 EVENTS_LOG="${BRAINSTORM_LOG_DIR}/taskQueue/events.jsonl"
 
@@ -320,11 +320,7 @@ EOF
 
 # Main execution
 main() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: $0 <target>"
-        echo "Example: $0 owner"
-        exit 1
-    fi
+    # Target argument is optional - defaults to 'system' for monitoring tasks
     
     # Validate Neo4j password is set
     if [[ -z "${NEO4J_PASSWORD:-}" ]]; then

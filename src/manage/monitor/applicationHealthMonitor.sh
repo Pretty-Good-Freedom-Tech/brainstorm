@@ -30,7 +30,7 @@ fi
 source "$STRUCTURED_LOGGING_PATH"
 
 SCRIPT_NAME="applicationHealthMonitor"
-TARGET="${1:-owner}"
+TARGET="${1:-system}"
 
 # Configurable verbosity for monitoring tasks
 # BRAINSTORM_MONITORING_VERBOSITY: full, alerts, minimal
@@ -358,11 +358,7 @@ main() {
         "target": "'$TARGET'"
     }'
     
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: $0 <target>"
-        echo "Example: $0 owner"
-        exit 1
-    fi
+    # Target argument is optional - defaults to 'system' for monitoring tasks
     
     monitor_application_health
     

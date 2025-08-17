@@ -16,7 +16,7 @@ source "$(dirname "$0")/../lib/config.js" 2>/dev/null || {
 MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
 
 SCRIPT_NAME="networkConnectivityMonitor"
-TARGET="${1:-owner}"
+TARGET="${1:-system}"
 LOG_FILE="${BRAINSTORM_LOG_DIR}/${SCRIPT_NAME}.log"
 EVENTS_LOG="${BRAINSTORM_LOG_DIR}/taskQueue/events.jsonl"
 
@@ -343,11 +343,7 @@ EOF
 
 # Main execution
 main() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: $0 <target>"
-        echo "Example: $0 owner"
-        exit 1
-    fi
+    # Target argument is optional - defaults to 'system' for monitoring tasks
     
     monitor_network_connectivity
 }
