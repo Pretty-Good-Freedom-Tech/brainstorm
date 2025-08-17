@@ -50,7 +50,21 @@ class HeapMetricsHistoryParser {
                         heapTotalMB: metrics.heapTotalMB || 0,
                         youngGcCount: metrics.youngGcCount || 0,
                         fullGcCount: metrics.fullGcCount || 0,
-                        gcOverheadPercent: parseFloat(metrics.gcOverheadPercent || 0)
+                        gcOverheadPercent: parseFloat(metrics.gcOverheadPercent || 0),
+                        // New Metaspace and memory metrics
+                        metaspaceUtilizationPercent: parseFloat(metrics.metaspaceUtilizationPercent || 0),
+                        metaspaceUsedMB: parseFloat(metrics.metaspaceUsedMB || 0),
+                        metaspaceCapacityMB: parseFloat(metrics.metaspaceCapacityMB || 0),
+                        metaspaceMaxMB: parseFloat(metrics.metaspaceMaxMB || 0),
+                        // Additional JVM memory areas
+                        oldGenUsedMB: parseFloat(metrics.oldGenUsedMB || 0),
+                        oldGenCapacityMB: parseFloat(metrics.oldGenCapacityMB || 0),
+                        youngGenUsedMB: parseFloat(metrics.youngGenUsedMB || 0),
+                        youngGenCapacityMB: parseFloat(metrics.youngGenCapacityMB || 0),
+                        // GC performance metrics
+                        youngGcTimeSec: parseFloat(metrics.youngGcTimeSec || 0),
+                        fullGcTimeSec: parseFloat(metrics.fullGcTimeSec || 0),
+                        avgGcTimeMs: parseFloat(metrics.avgGcTimeMs || 0)
                     });
                 }
             } catch (error) {

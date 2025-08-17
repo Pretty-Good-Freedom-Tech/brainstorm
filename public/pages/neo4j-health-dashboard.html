@@ -40,7 +40,7 @@
             <div class="health-card">
                 <div class="card-header">
                     <h3 class="card-title">📈 Heap Usage Over Time</h3>
-                    <div class="chart-controls">
+                    <div class="chart-controls" style="margin-left: auto;">
                         <select id="timeRangeSelect" onchange="updateTimeRange()">
                             <option value="6">Last 6 hours</option>
                             <option value="12">Last 12 hours</option>
@@ -422,6 +422,24 @@
                         tension: 0.4,
                         yAxisID: 'y'
                     }, {
+                        label: 'Metaspace Utilization %',
+                        data: [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Old Gen Utilization %',
+                        data: [],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
                         label: 'GC Overhead %',
                         data: [],
                         borderColor: '#ef4444',
@@ -460,7 +478,7 @@
                             position: 'left',
                             title: {
                                 display: true,
-                                text: 'Heap Utilization %'
+                                text: 'Memory Utilization %'
                             },
                             min: 0,
                             max: 100,
@@ -496,10 +514,12 @@
                                     if (data && data[dataIndex]) {
                                         const point = data[dataIndex];
                                         return [
-                                            `Heap Used: ${point.heapUsedMB} MB`,
-                                            `Heap Total: ${point.heapTotalMB} MB`,
-                                            `Young GC: ${point.youngGcCount}`,
-                                            `Full GC: ${point.fullGcCount}`
+                                            `Heap: ${point.heapUsedMB}/${point.heapTotalMB} MB (${point.heapUtilizationPercent}%)`,
+                                            `Metaspace: ${point.metaspaceUsedMB}/${point.metaspaceCapacityMB} MB (${point.metaspaceUtilizationPercent}%)`,
+                                            `Old Gen: ${point.oldGenUsedMB}/${point.oldGenCapacityMB} MB`,
+                                            `Young Gen: ${point.youngGenUsedMB}/${point.youngGenCapacityMB} MB`,
+                                            `GC Counts - Young: ${point.youngGcCount}, Full: ${point.fullGcCount}`,
+                                            `GC Times - Young: ${point.youngGcTimeSec}s, Full: ${point.fullGcTimeSec}s`
                                         ];
                                     }
                                     return [];
@@ -531,6 +551,8 @@
                     heapChart.data.labels = [];
                     heapChart.data.datasets[0].data = [];
                     heapChart.data.datasets[1].data = [];
+                    heapChart.data.datasets[2].data = [];
+                    heapChart.data.datasets[3].data = [];
                     heapChart.update();
                     return;
                 }
@@ -538,6 +560,11 @@
                 // Prepare chart data
                 const labels = data.map(point => new Date(point.timestamp));
                 const heapUtilization = data.map(point => point.heapUtilizationPercent);
+                const metaspaceUtilization = data.map(point => point.metaspaceUtilizationPercent);
+                const oldGenUtilization = data.map(point => {
+                    return point.oldGenCapacityMB > 0 ? 
+                        Math.round((point.oldGenUsedMB / point.oldGenCapacityMB) * 100) : 0;
+                });
                 const gcOverhead = data.map(point => point.gcOverheadPercent);
                 
                 // Store raw data for tooltips
@@ -546,7 +573,9 @@
                 // Update chart
                 heapChart.data.labels = labels;
                 heapChart.data.datasets[0].data = heapUtilization;
-                heapChart.data.datasets[1].data = gcOverhead;
+                heapChart.data.datasets[1].data = metaspaceUtilization;
+                heapChart.data.datasets[2].data = oldGenUtilization;
+                heapChart.data.datasets[3].data = gcOverhead;
                 heapChart.update();
                 
                 console.log(`Updated heap chart with ${data.length} data points`);

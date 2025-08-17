@@ -256,14 +256,17 @@ check_heap_and_gc_health() {
         
         if command -v jstat >/dev/null 2>&1; then
             local heap_info=$(jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+            local metaspace_info=$(jstat -class "$neo4j_pid" 2>/dev/null || echo "")
             
             emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
                 --argjson hasHeapInfo "$(test -n "$heap_info" && echo true || echo false)" \
+                --argjson hasMetaspaceInfo "$(test -n "$metaspace_info" && echo true || echo false)" \
                 '{
                     "message": "jstat command executed",
                     "phase": "metrics_collection_debug",
                     "debug": {
-                        "heapInfoRetrieved": $hasHeapInfo
+                        "heapInfoRetrieved": $hasHeapInfo,
+                        "metaspaceInfoRetrieved": $hasMetaspaceInfo
                     }
                 }')"
             
@@ -275,6 +278,28 @@ check_heap_and_gc_health() {
                 
                 if [[ "$heap_total" -gt 0 ]]; then
                     heap_percent=$(echo "$heap_used $heap_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                fi
+                
+                # Parse metaspace utilization if available
+                local metaspace_used=0
+                local metaspace_total=0
+                local metaspace_percent=0
+                
+                if [[ -n "$metaspace_info" ]]; then
+                    local metaspace_data=$(echo "$metaspace_info" | tail -1)
+                    # jstat -class shows: Loaded Bytes Unloaded Bytes Time
+                    metaspace_used=$(echo "$metaspace_data" | awk '{print $2}')
+                    # For metaspace total, we need to check jstat -gccapacity or estimate
+                    local capacity_info=$(jstat -gccapacity "$neo4j_pid" 2>/dev/null || echo "")
+                    if [[ -n "$capacity_info" ]]; then
+                        local capacity_data=$(echo "$capacity_info" | tail -1)
+                        # MC column is metaspace capacity in KB
+                        metaspace_total=$(echo "$capacity_data" | awk '{print $10 * 1024}' 2>/dev/null || echo "0")
+                    fi
+                    
+                    if [[ "$metaspace_total" -gt 0 && "$metaspace_used" -gt 0 ]]; then
+                        metaspace_percent=$(echo "$metaspace_used $metaspace_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                    fi
                 fi
                 
                 # Parse GC metrics
@@ -314,11 +339,14 @@ check_heap_and_gc_health() {
             gc_overhead_percent=$(echo "$total_gc_time $uptime_seconds" | awk '{printf "%.1f", ($1 * 100) / $2}')
         fi
         
-        # Emit detailed metrics with source information
+        # Emit detailed metrics with source information including metaspace
         emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
             --argjson heapPercent "$heap_percent" \
             --argjson heapUsedMB "$(echo "$heap_used" | awk '{printf "%.0f", $1/1024/1024}')" \
             --argjson heapTotalMB "$(echo "$heap_total" | awk '{printf "%.0f", $1/1024/1024}')" \
+            --argjson metaspacePercent "$metaspace_percent" \
+            --argjson metaspaceUsedMB "$(echo "$metaspace_used" | awk '{printf "%.0f", $1/1024/1024}')" \
+            --argjson metaspaceTotalMB "$(echo "$metaspace_total" | awk '{printf "%.0f", $1/1024/1024}')" \
             --argjson youngGcCount "$young_gc_count" \
             --arg youngGcTime "$young_gc_time" \
             --argjson fullGcCount "$full_gc_count" \
@@ -326,12 +354,15 @@ check_heap_and_gc_health() {
             --arg gcOverheadPercent "$gc_overhead_percent" \
             --arg metricsSource "$metrics_source" \
             '{
-                "message": "Current heap and GC metrics analyzed",
+                "message": "Current heap, metaspace and GC metrics analyzed",
                     "phase": "heap_gc_health_check",
                     "metrics": {
                         "heapUtilizationPercent": $heapPercent,
                         "heapUsedMB": $heapUsedMB,
                         "heapTotalMB": $heapTotalMB,
+                        "metaspaceUtilizationPercent": $metaspacePercent,
+                        "metaspaceUsedMB": $metaspaceUsedMB,
+                        "metaspaceTotalMB": $metaspaceTotalMB,
                         "youngGcCount": $youngGcCount,
                         "youngGcTimeSeconds": $youngGcTime,
                         "fullGcCount": $fullGcCount,
