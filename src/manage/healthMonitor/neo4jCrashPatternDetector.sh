@@ -151,14 +151,14 @@ check_oom_patterns() {
 check_heap_and_gc_health() {
     emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" '{
         "message": "Analyzing current Neo4j heap and GC metrics",
-        "phase": "heap_gc_health_check"
+        "phase": "metrics_collection_debug"
     }'
     
     local neo4j_pid=$(pgrep -f "neo4j" | head -1)
     if [[ -z "$neo4j_pid" ]]; then
         emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" '{
             "message": "Neo4j process not found, skipping heap analysis",
-            "phase": "heap_gc_health_check"
+            "phase": "metrics_collection_debug"
         }'
         return
     fi

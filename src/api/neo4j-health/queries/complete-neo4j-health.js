@@ -295,7 +295,7 @@ class Neo4jHealthDataParser {
 
         // Also get latest metrics from neo4jCrashPatternDetector PROGRESS events
         const progressEvents = await this.getProgressEvents('neo4jCrashPatternDetector', cutoffTime);
-        
+        console.log(`progressEvents: ${JSON.stringify(progressEvents, null, 4)}`)
         // Find the most recent heap/GC analysis for current metrics
         const heapAnalysisEvent = progressEvents.find(event => 
             event.target === 'heap_gc_analysis' && 
@@ -322,16 +322,19 @@ class Neo4jHealthDataParser {
 
     // Get progress events for a specific task
     async getProgressEvents(taskName, cutoffTime) {
+        console.log(`Getting progress events for ${taskName}, cutoff time: ${cutoffTime}`);
         // Use existing getRecentEvents with PROGRESS filter and higher limit
         const events = await this.getRecentEvents(taskName, 'PROGRESS', 100, 'eventType');
-        
+        console.log(`Found ${events.length} progress events`);
         // Apply time filter if provided
         if (cutoffTime) {
+            console.log(`Filtering progress events by cutoff time: ${cutoffTime}`);
             return events.filter(event => {
                 const eventTime = new Date(event.timestamp);
                 return eventTime >= cutoffTime;
             });
         }
+        console.log(`Returning ${events.length} progress events`);
         
         return events;
     }
