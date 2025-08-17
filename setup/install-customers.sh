@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # This script installs the customers directory and its default contents
-# This includes the monitoring directory for neo4j metrics
 
 set -e  # Exit on error
 
@@ -15,12 +14,6 @@ echo "Copying default customers from ${sourceCustomersDir} to ${targetCustomersD
 cp -r ${sourceCustomersDir}/* ${targetCustomersDir}/;
 sudo chown -R brainstorm:brainstorm ${targetCustomersDir};
 sudo chmod -R 644 ${targetCustomersDir};
-
-targetMonitoringDir='/var/lib/brainstorm/monitoring';
-echo "Creating directory: ${targetMonitoringDir}";
-mkdir -p ${targetMonitoringDir};
-sudo chown -R neo4j:brainstorm ${targetMonitoringDir};
-sudo chmod -R 755 ${targetMonitoringDir};
 
 # create a default relay pubkey for each customer
 # run createAllCustomerRelays.js

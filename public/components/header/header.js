@@ -103,6 +103,8 @@ function loadNavbar() {
         || currentPath === '/test.html'
         || currentPath === '/search.html'
         || currentPath === '/follow-recs.html'
+        || currentPath === '/neo4j-health-dashboard.html'
+        || currentPath === '/service-management-dashboard.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 

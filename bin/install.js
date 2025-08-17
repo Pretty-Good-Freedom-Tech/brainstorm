@@ -246,6 +246,13 @@ async function install() {
     // Step 9: Configure sudo privileges
     await configureSudoPrivileges();
 
+    // misc
+    targetMonitoringDir='/var/lib/brainstorm/monitoring';
+    console.log("Creating directory: " + targetMonitoringDir);
+    execSync(`sudo mkdir -p ${targetMonitoringDir}`);
+    execSync(`sudo chown -R neo4j:brainstorm ${targetMonitoringDir}`);
+    execSync(`sudo chmod -R 755 ${targetMonitoringDir}`);
+
     // Step 10: Setup secure storage
     await setupSecureStorage();
 
