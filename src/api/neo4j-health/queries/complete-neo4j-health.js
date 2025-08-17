@@ -322,11 +322,18 @@ class Neo4jHealthDataParser {
 
     // Get progress events for a specific task
     async getProgressEvents(taskName, cutoffTime) {
-        const events = await this.getEventsFromFile(cutoffTime);
-        return events.filter(event => 
-            event.eventType === 'PROGRESS' && 
-            event.taskName === taskName
-        );
+        // Use existing getRecentEvents with PROGRESS filter and higher limit
+        const events = await this.getRecentEvents(taskName, 'PROGRESS', 100, 'eventType');
+        
+        // Apply time filter if provided
+        if (cutoffTime) {
+            return events.filter(event => {
+                const eventTime = new Date(event.timestamp);
+                return eventTime >= cutoffTime;
+            });
+        }
+        
+        return events;
     }
 }
 
