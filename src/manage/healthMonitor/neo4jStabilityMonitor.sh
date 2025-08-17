@@ -88,7 +88,7 @@ run_crash_pattern_detection() {
         "phase": "crash_pattern_analysis"
     }'
 
-    launch_child_task "neo4jStabilityMonitor" "neo4jStabilityMonitor" "" ""
+    launchChildTask "neo4jStabilityMonitor" "neo4jStabilityMonitor" "" ""
 
     emit_task_event "PROGRESS" "neo4jStabilityMonitor" "crash_detection" '{
         "message": "Neo4j crash pattern detection completed",
