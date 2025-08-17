@@ -7,14 +7,14 @@
 set -e
 set -o pipefail
 
-# Source launchChildTask function
-source "$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh"
-
 # Configuration
 CONFIG_FILE="/etc/brainstorm.conf"
 if [[ -f "$CONFIG_FILE" ]]; then
     source "$CONFIG_FILE"
 fi
+
+# Source launchChildTask function
+source "$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh"
 
 # Find project root and source structured logging utilities
 if [[ -z "$BRAINSTORM_MODULE_BASE_DIR" ]]; then
