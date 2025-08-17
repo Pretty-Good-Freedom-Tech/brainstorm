@@ -106,6 +106,7 @@ function loadNavbar() {
         || currentPath === '/neo4j-health-dashboard.html'
         || currentPath === '/service-management-dashboard.html'
         || currentPath === '/task-watchdog-dashboard.html'
+        || currentPath === '/task-behavior-analytics-dashboard.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
@@ -436,6 +437,7 @@ function highlightCurrentPage() {
         '/neo4j-health-dashboard.html': '/neo4j-health-dashboard',
         '/service-management-dashboard.html': '/service-management-dashboard',
         '/task-watchdog-dashboard.html': '/task-watchdog-dashboard',
+        '/task-behavior-analytics-dashboard.html': '/task-behavior-analytics-dashboard',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
