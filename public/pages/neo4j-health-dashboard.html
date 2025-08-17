@@ -134,6 +134,14 @@
                             <span class="metric-value" id="gcOverheadOom">-</span>
                         </div>
                         <div class="metric-row">
+                            <span class="metric-label">Metaspace OOM:</span>
+                            <span class="metric-value" id="metaspaceOom">-</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Native Thread OOM:</span>
+                            <span class="metric-value" id="nativeThreadOom">-</span>
+                        </div>
+                        <div class="metric-row">
                             <span class="metric-label">APOC Stalling:</span>
                             <span class="metric-value" id="apocStalling">-</span>
                         </div>
@@ -332,6 +340,7 @@
             const statusBadge = document.getElementById('crashPatternStatus');
             
             const totalIssues = (data.heapSpaceOom || 0) + (data.gcOverheadOom || 0) + 
+                              (data.metaspaceOom || 0) + (data.nativeThreadOom || 0) +
                               (data.apocStalling || 0) + (data.longTransactions || 0);
             
             if (totalIssues > 0) {
@@ -346,6 +355,8 @@
             
             document.getElementById('heapSpaceOom').textContent = data.heapSpaceOom || '0';
             document.getElementById('gcOverheadOom').textContent = data.gcOverheadOom || '0';
+            document.getElementById('metaspaceOom').textContent = data.metaspaceOom || '0';
+            document.getElementById('nativeThreadOom').textContent = data.nativeThreadOom || '0';
             document.getElementById('apocStalling').textContent = data.apocStalling || '0';
             document.getElementById('longTransactions').textContent = data.longTransactions || '0';
         }
