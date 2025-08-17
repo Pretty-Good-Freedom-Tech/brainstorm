@@ -104,7 +104,7 @@ check_oom_patterns() {
     
     # Pattern 1: Java heap space errors
     if [[ -f "$neo4j_log" ]]; then
-        local heap_errors=$(grep -c "java.lang.OutOfMemoryError: Java heap space" "$neo4j_log" 2>/dev/null || echo "0")
+        local heap_errors=$(grep -c "java.lang.OutOfMemoryError: Java heap space" "$neo4j_log" 2>/dev/null | tr -d '\n' || echo "0")
         if [[ "$heap_errors" -gt 0 ]]; then
             emit_crash_alert "HEAP_SPACE_OOM" "critical" \
                 "Detected $heap_errors Java heap space OutOfMemoryError(s) in Neo4j logs" \
@@ -115,7 +115,7 @@ check_oom_patterns() {
     
     # Pattern 2: GC overhead limit exceeded
     if [[ -f "$debug_log" ]]; then
-        local gc_overhead_errors=$(grep -c "java.lang.OutOfMemoryError: GC overhead limit exceeded" "$debug_log" 2>/dev/null || echo "0")
+        local gc_overhead_errors=$(grep -c "java.lang.OutOfMemoryError: GC overhead limit exceeded" "$debug_log" 2>/dev/null | tr -d '\n' || echo "0")
         if [[ "$gc_overhead_errors" -gt 0 ]]; then
             emit_crash_alert "GC_OVERHEAD_OOM" "critical" \
                 "Detected $gc_overhead_errors GC overhead limit exceeded error(s)" \
@@ -126,7 +126,7 @@ check_oom_patterns() {
     
     # Pattern 3: Metaspace errors
     if [[ -f "$neo4j_log" ]]; then
-        local metaspace_errors=$(grep -c "java.lang.OutOfMemoryError: Metaspace\|java.lang.OutOfMemoryError: Compressed class space" "$neo4j_log" 2>/dev/null || echo "0")
+        local metaspace_errors=$(grep -c "java.lang.OutOfMemoryError: Metaspace\|java.lang.OutOfMemoryError: Compressed class space" "$neo4j_log" 2>/dev/null | tr -d '\n' || echo "0")
         if [[ "$metaspace_errors" -gt 0 ]]; then
             emit_crash_alert "METASPACE_OOM" "warning" \
                 "Detected $metaspace_errors Metaspace/Compressed class space error(s)" \
@@ -137,7 +137,7 @@ check_oom_patterns() {
     
     # Pattern 4: Native thread creation failures
     if [[ -f "$neo4j_log" ]]; then
-        local thread_errors=$(grep -c "java.lang.OutOfMemoryError: Unable to create new native thread" "$neo4j_log" 2>/dev/null || echo "0")
+        local thread_errors=$(grep -c "java.lang.OutOfMemoryError: Unable to create new native thread" "$neo4j_log" 2>/dev/null | tr -d '\n' || echo "0")
         if [[ "$thread_errors" -gt 0 ]]; then
             emit_crash_alert "NATIVE_THREAD_OOM" "critical" \
                 "Detected $thread_errors native thread creation failure(s)" \
@@ -295,7 +295,6 @@ check_heap_and_gc_health() {
                     "Frequent full GCs indicate memory pressure. Consider heap tuning"
             fi
         fi
-    fi
 }
 
 # Function to check for APOC-related stalling patterns
@@ -310,7 +309,7 @@ check_apoc_stalling_patterns() {
     
     # Check for APOC periodic iterate stalling (based on your experience)
     if [[ -f "$debug_log" ]]; then
-        local apoc_stalls=$(grep -c "apoc.periodic.iterate.*timeout\|apoc.periodic.*stalled\|Transaction timeout" "$debug_log" 2>/dev/null || echo "0")
+        local apoc_stalls=$(grep -c "apoc.periodic.iterate.*timeout\|apoc.periodic.*stalled\|Transaction timeout" "$debug_log" 2>/dev/null | tr -d '\n' || echo "0")
         if [[ "$apoc_stalls" -gt 0 ]]; then
             emit_crash_alert "APOC_STALLING" "warning" \
                 "Detected $apoc_stalls APOC procedure stalling/timeout event(s)" \
@@ -320,7 +319,7 @@ check_apoc_stalling_patterns() {
     fi
     
     # Check for long-running transactions that might indicate stalling
-    local long_transactions=$(cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "CALL dbms.listTransactions() YIELD transactionId, elapsedTimeMillis WHERE elapsedTimeMillis > 300000 RETURN count(*) as longRunning" 2>/dev/null | tail -1 || echo "0")
+    local long_transactions=$(cypher-shell -u neo4j -p "$NEO4J_PASSWORD" "CALL dbms.listTransactions() YIELD transactionId, elapsedTimeMillis WHERE elapsedTimeMillis > 300000 RETURN count(*) as longRunning" 2>/dev/null | tail -1 | tr -d '\n' || echo "0")
     
     if [[ "$long_transactions" -gt 0 ]]; then
         emit_crash_alert "LONG_RUNNING_TRANSACTIONS" "warning" \

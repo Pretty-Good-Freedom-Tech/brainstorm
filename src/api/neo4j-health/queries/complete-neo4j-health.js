@@ -261,7 +261,7 @@ class Neo4jHealthDataParser {
         };
     }
 
-    // Get crash pattern statistics from health alerts
+    // Get crash pattern statistics from health alerts and progress events
     async getCrashPatterns() {
         const cutoffTime = new Date(Date.now() - (24 * 60 * 60 * 1000)); // Last 24 hours
         const alertEvents = await this.getHealthAlerts(cutoffTime);
@@ -273,6 +273,7 @@ class Neo4jHealthDataParser {
             longTransactions: 0
         };
 
+        // Count HEALTH_ALERT events for crash patterns
         for (const event of alertEvents) {
             const alertType = event.alertType;
             
@@ -292,7 +293,40 @@ class Neo4jHealthDataParser {
             }
         }
 
+        // Also get latest metrics from neo4jCrashPatternDetector PROGRESS events
+        const progressEvents = await this.getProgressEvents('neo4jCrashPatternDetector', cutoffTime);
+        
+        // Find the most recent heap/GC analysis for current metrics
+        const heapAnalysisEvent = progressEvents.find(event => 
+            event.target === 'heap_gc_analysis' && 
+            event.metadata?.metrics
+        );
+        
+        if (heapAnalysisEvent) {
+            const metrics = heapAnalysisEvent.metadata.metrics;
+            
+            // Add current heap utilization as a pattern indicator
+            if (metrics.heapUtilizationPercent >= 95) {
+                patterns.heapSpaceOom += 1;
+            }
+            
+            // Add GC overhead as pattern indicator
+            const gcOverhead = parseFloat(metrics.gcOverheadPercent || 0);
+            if (gcOverhead >= 50) {
+                patterns.gcOverheadOom += 1;
+            }
+        }
+
         return patterns;
+    }
+
+    // Get progress events for a specific task
+    async getProgressEvents(taskName, cutoffTime) {
+        const events = await this.getEventsFromFile(cutoffTime);
+        return events.filter(event => 
+            event.eventType === 'PROGRESS' && 
+            event.taskName === taskName
+        );
     }
 }
 
