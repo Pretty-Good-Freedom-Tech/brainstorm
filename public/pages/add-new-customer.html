@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm - Add New Customer</title>
+    <link rel="stylesheet" href="/css/search.css">
+    <link rel="shortcut icon" href="/img/brainstorm010.svg">
+    <style>
+        .search-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem 0;
+        }
+        
+        .search-header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .search-description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .search-sections {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (min-width: 768px) {
+            .search-sections {
+                grid-template-columns: 1fr 1fr;
+                gap: 2.5rem;
+            }
+        }
+        
+        .search-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .search-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .search-section-title {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        @media (min-width: 480px) {
+            .search-container {
+                flex-direction: row;
+                align-items: flex-end;
+            }
+        }
+        
+        .search-input-wrapper {
+            flex: 1;
+        }
+        
+        .search-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .search-button:active {
+            transform: translateY(0);
+        }
+        
+        .help-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0;
+            font-style: italic;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-left: 4px solid #28a745;
+        }
+        
+        .result-card.error {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .result-card.warning {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .result-details {
+            display: grid;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .result-value {
+            color: #6c757d;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 767px) {
+            .search-header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-section {
+                padding: 1rem;
+            }
+            
+            .coming-soon {
+                padding: 1.5rem;
+                margin-top: 2rem;
+            }
+            
+            .coming-soon h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="search-header">
+                <h1>Add New Customer</h1>
+                <p class="search-description">Add a new customer to the system using their pubkey</p>
+            </div>
+            
+            <div class="search-sections">
+                <div class="search-section">
+                    <h3 class="search-section-title">👤 Add Customer by Pubkey</h3>
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="pubkeyInput" class="search-input" placeholder="Enter 64-character hex pubkey">
+                        </div>
+                        <button id="addCustomerButton" class="search-button">Add Customer</button>
+                    </div>
+                    <p class="help-text">Enter the customer's pubkey to add them with default settings (free tier, active status)</p>
+                </div>
+            </div>
+            
+            <div id="customerResult" class="search-results" style="display: none;">
+                <!-- Customer addition results will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
+
+    <script>
+        // Function to display customer addition results
+        function displayResult(result, isError = false, isWarning = false) {
+            const resultContainer = document.getElementById('customerResult');
+            let cardClass = 'result-card';
+            if (isError) cardClass += ' error';
+            if (isWarning) cardClass += ' warning';
+            
+            let resultHTML = `<div class="${cardClass}">`;
+            
+            if (isError) {
+                resultHTML += `
+                    <div class="result-title">❌ Error Adding Customer</div>
+                    <p>${result.error}</p>
+                `;
+                if (result.customer) {
+                    resultHTML += `
+                        <div class="result-details">
+                            <div class="result-item">
+                                <span class="result-label">Existing Customer:</span>
+                                <span class="result-value">${result.customer.name}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Status:</span>
+                                <span class="result-value">${result.customer.status}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Customer ID:</span>
+                                <span class="result-value">${result.customer.id}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                resultHTML += `
+                    <div class="result-title">✅ Customer Added Successfully</div>
+                    <p>${result.message}</p>
+                    <div class="result-details">
+                        <div class="result-item">
+                            <span class="result-label">Customer Name:</span>
+                            <span class="result-value">${result.customer.name}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Customer ID:</span>
+                            <span class="result-value">${result.customer.id}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Status:</span>
+                            <span class="result-value">${result.customer.status}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Service Tier:</span>
+                            <span class="result-value">${result.customer.service_tier}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Pubkey:</span>
+                            <span class="result-value">${result.customer.pubkey}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Npub:</span>
+                            <span class="result-value">${result.customer.npub}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Directory:</span>
+                            <span class="result-value">${result.customer.directory}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultHTML += '</div>';
+            resultContainer.innerHTML = resultHTML;
+            resultContainer.style.display = 'block';
+        }
+
+        // Add customer button event listener
+        document.getElementById('addCustomerButton').addEventListener('click', async () => {
+            const pubkeyInput = document.getElementById('pubkeyInput');
+            const pubkey = pubkeyInput.value.trim();
+
+            // Clear previous results
+            document.getElementById('customerResult').innerHTML = '';
+            document.getElementById('customerResult').style.display = 'none';
+
+            // Validate pubkey format
+            if (!pubkey) {
+                alert('Please enter a pubkey');
+                return;
+            }
+
+            if (pubkey.length !== 64 || !/^[a-fA-F0-9]+$/i.test(pubkey)) {
+                alert('Please enter a valid 64-character hex pubkey');
+                return;
+            }
+
+            // Disable button during request
+            const button = document.getElementById('addCustomerButton');
+            const originalText = button.textContent;
+            button.textContent = 'Adding...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/api/add-new-customer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ pubkey: pubkey })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    displayResult(result);
+                    pubkeyInput.value = ''; // Clear input on success
+                } else {
+                    displayResult(result, true);
+                }
+
+            } catch (error) {
+                console.error('Error adding customer:', error);
+                displayResult({ 
+                    error: 'Network error occurred while adding customer. Please try again.' 
+                }, true);
+            } finally {
+                // Re-enable button
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+
+        // Allow Enter key to trigger add customer
+        document.getElementById('pubkeyInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('addCustomerButton').click();
+            }
+        });
+    </script>
+</body>
+</html>

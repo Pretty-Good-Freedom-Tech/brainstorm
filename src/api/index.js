@@ -280,6 +280,9 @@ function register(app) {
     // Process All Active Customers endpoint; creates all scores for all active customers
     app.post('/api/process-all-active-customers', customers.handleProcessAllActiveCustomers);
     
+    // Add New Customer endpoint; owner-only complete customer creation
+    app.post('/api/add-new-customer', customers.handleAddNewCustomer);
+    
     // Delete Customer endpoint; owner-only complete customer deletion
     app.post('/api/delete-customer', customers.handleDeleteCustomer);
     
