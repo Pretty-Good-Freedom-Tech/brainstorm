@@ -33,7 +33,7 @@ function handleGetPubkeyFromNpub(req, res) {
 
     res.status(200).json({
       success: true,
-      data
+      nip19decode: data
     });
   } catch (error) {
     console.error('Error in handleGetPubkeyFromNpub:', error);

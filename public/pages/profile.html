@@ -306,11 +306,11 @@
             // if both pubkey and npub are specified, use pubkey
             // if npub is specified but not pubkey, then use npub to calculate pubkey
             if (!pubkey && npub) {
-                fetch(`/api/get-pubkey?npub=${npub}`)
+                fetch(`/api/get-pubkey-from-npub?npub=${npub}`)
                     .then(response => response.json())
                     .then(result => {
-                        if (result.success && result.data) {
-                            pubkey = result.data;
+                        if (result.success && result.nip19decode) {
+                            pubkey = result.nip19decode.data;
                         }
                     });
             }
