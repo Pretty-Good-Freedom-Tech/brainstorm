@@ -289,16 +289,45 @@ check_heap_and_gc_health() {
                     local metaspace_data=$(echo "$metaspace_info" | tail -1)
                     # jstat -class shows: Loaded Bytes Unloaded Bytes Time
                     metaspace_used=$(echo "$metaspace_data" | awk '{print $2}')
-                    # For metaspace total, we need to check jstat -gccapacity or estimate
-                    local capacity_info=$(jstat -gccapacity "$neo4j_pid" 2>/dev/null || echo "")
-                    if [[ -n "$capacity_info" ]]; then
-                        local capacity_data=$(echo "$capacity_info" | tail -1)
-                        # MC column is metaspace capacity in KB
-                        metaspace_total=$(echo "$capacity_data" | awk '{print $10 * 1024}' 2>/dev/null || echo "0")
+                    
+                    # Use jstat -gc for more reliable metaspace data (MU and MC columns)
+                    local gc_info=$(jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+                    if [[ -n "$gc_info" ]]; then
+                        local gc_data=$(echo "$gc_info" | tail -1)
+                        # Try to find MU (Metaspace Used) and MC (Metaspace Capacity) columns
+                        # jstat -gc typically has these as later columns
+                        local mu_value=$(echo "$gc_data" | awk '{print $(NF-3)}' 2>/dev/null || echo "0")
+                        local mc_value=$(echo "$gc_data" | awk '{print $(NF-2)}' 2>/dev/null || echo "0")
+                        
+                        # Convert from KB to bytes for consistency
+                        if [[ "$mc_value" =~ ^[0-9]+\.?[0-9]*$ ]] && [[ $(echo "$mc_value > 0" | bc -l 2>/dev/null || echo "0") == "1" ]]; then
+                            metaspace_total=$(echo "$mc_value * 1024" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
+                        fi
+                        
+                        # Alternative: use metaspace_used from jstat -class and capacity from -gc
+                        if [[ "$metaspace_total" -gt 0 && "$metaspace_used" -gt 0 ]]; then
+                            metaspace_percent=$(echo "$metaspace_used $metaspace_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                        fi
                     fi
                     
-                    if [[ "$metaspace_total" -gt 0 && "$metaspace_used" -gt 0 ]]; then
-                        metaspace_percent=$(echo "$metaspace_used $metaspace_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                    # Fallback: if we still don't have capacity, try jstat -gccapacity with better column detection
+                    if [[ "$metaspace_total" -eq 0 ]]; then
+                        local capacity_info=$(jstat -gccapacity "$neo4j_pid" 2>/dev/null || echo "")
+                        if [[ -n "$capacity_info" ]]; then
+                            # Get header to identify MC column position
+                            local header=$(echo "$capacity_info" | head -1)
+                            local capacity_data=$(echo "$capacity_info" | tail -1)
+                            
+                            # Find MC column position dynamically
+                            local mc_col=$(echo "$header" | tr ' ' '\n' | grep -n "MC" | cut -d: -f1 2>/dev/null || echo "0")
+                            if [[ "$mc_col" -gt 0 ]]; then
+                                metaspace_total=$(echo "$capacity_data" | awk -v col="$mc_col" '{print $col * 1024}' 2>/dev/null || echo "0")
+                                
+                                if [[ "$metaspace_total" -gt 0 && "$metaspace_used" -gt 0 ]]; then
+                                    metaspace_percent=$(echo "$metaspace_used $metaspace_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                                fi
+                            fi
+                        fi
                     fi
                 fi
                 
