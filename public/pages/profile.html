@@ -298,10 +298,23 @@
         // Get pubkey from URL
         const urlParams = new URLSearchParams(window.location.search);
         const pubkey = urlParams.get('pubkey');
+        const npub = urlParams.get('npub');
         
-        if (!pubkey) {
-            showError('No pubkey specified. Please provide a valid pubkey parameter.');
+        if (!pubkey && !npub) {
+            showError('No pubkey or npub specified. Please provide a valid pubkey or npub parameter.');
         } else {
+            // if both pubkey and npub are specified, use pubkey
+            // if npub is specified but not pubkey, then use npub to calculate pubkey
+            if (!pubkey && npub) {
+                fetch(`/api/get-pubkey?npub=${npub}`)
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success && result.data) {
+                            pubkey = result.data;
+                        }
+                    });
+            }
+            
             // Configure GrapeRank Review link
             document.getElementById('grapeRankReviewLink').href = `graperank-calculations-review.html?pubkey=${pubkey}`;
             document.getElementById('profileNjumpLink').href = `https://njump.me/p/${pubkey}`;

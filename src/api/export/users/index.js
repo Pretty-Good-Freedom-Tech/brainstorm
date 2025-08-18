@@ -9,6 +9,7 @@ const { handleGetNip56Profiles } = require('./queries/nip56-profiles');
 const { handleGetUserData } = require('./queries/userdata');
 const { handleGetNetworkProximity } = require('./queries/proximity');
 const { handleGetNpubFromPubkey } = require('./queries/get-npub-from-pubkey');
+const { handleGetPubkeyFromNpub } = require('./queries/get-pubkey-from-npub');
 
 // Export handlers directly - this allows the central router 
 // to register endpoints without creating multiple routers
@@ -19,5 +20,6 @@ module.exports = {
     handleGetNip56Profiles,
     handleGetUserData,
     handleGetNetworkProximity,
-    handleGetNpubFromPubkey
+    handleGetNpubFromPubkey,
+    handleGetPubkeyFromNpub
 };
