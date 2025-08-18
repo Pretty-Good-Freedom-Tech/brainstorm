@@ -55,6 +55,9 @@
                             <div class="profile-info">
                                 <h2 id="customerName" class="customer-name">Loading...</h2>
                                 <div id="customerStatus" class="customer-status">Loading...</div>
+                                <a id="profileLink" href="#" target="_blank" class="profile-link" style="display: none;">
+                                    🔗 View Full Profile
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -446,7 +449,6 @@
                             </div>
                             <div class="calculation-actions">
                                 <button id="refreshHopsBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
-                                <button id="triggerHopsBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
                                 <button class="btn btn-primary" onclick="recalculateMetric('hops')">
                                     🔄 Recalculate Hops
                                 </button>
@@ -480,7 +482,6 @@
                             </div>
                             <div class="calculation-actions">
                                 <button id="refreshPageRankBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
-                                <button id="triggerPageRankBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
                                 <button class="btn btn-primary" onclick="recalculateMetric('pagerank')">
                                     🔄 Recalculate PageRank
                                 </button>
@@ -514,7 +515,6 @@
                             </div>
                             <div class="calculation-actions">
                                 <button id="refreshGrapeRankBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
-                                <button id="triggerGrapeRankBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger Calculation</button>
                                 <button class="btn btn-primary" onclick="recalculateMetric('graperank')">
                                     🔄 Recalculate GrapeRank
                                 </button>
@@ -527,7 +527,6 @@
                                 <h4>🔍 Analyze Follows, Mutes, and Reports</h4>
                                 <div class="calculation-actions">
                                     <button id="refreshAnalyzeFollowsMutesReportsBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
-                                    <button id="triggerAnalyzeFollowsMutesReportsBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger</button>
                                     <button class="btn btn-primary" onclick="recalculateMetric('followsmutesreports')">
                                         🔄 Recalculate Follows, Mutes, and Reports
                                     </button>
@@ -563,7 +562,6 @@
                                 <h4>📤 Kind 30382 Export</h4>
                                 <div class="calculation-actions">
                                     <button id="refreshKind30382ExportBtn" class="btn btn-sm btn-outline">🔄 Refresh</button>
-                                    <button id="triggerKind30382ExportBtn" class="btn btn-sm btn-primary" disabled>▶️ Trigger</button>
                                     <button class="btn btn-info" onclick="exportKind30382()">
                                         📤 Export Kind 30382
                                     </button>
@@ -757,6 +755,11 @@
             document.getElementById('customerAvatar').onerror = function() { this.src = '/img/default-avatar.png'; };
             
             document.getElementById('customerName').textContent = displayName;
+            
+            // Set up profile link
+            const profileLink = document.getElementById('profileLink');
+            profileLink.href = `/profile.html?pubkey=${customerPubkey}`;
+            profileLink.style.display = 'inline-block';
             
             const statusElement = document.getElementById('customerStatus');
             statusElement.textContent = customerData.status.toUpperCase();
@@ -1677,16 +1680,6 @@
             } else {
                 logFileElement.textContent = 'Not configured';
             }
-            
-            // Enable trigger button if not in progress
-            /*
-            const triggerBtn = document.getElementById('triggerHopsBtn');
-            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
-                triggerBtn.disabled = false;
-            } else {
-                triggerBtn.disabled = true;
-            }
-            */
         }
         
         /**
@@ -1762,16 +1755,6 @@
             } else {
                 logFileElement.textContent = 'Not configured';
             }
-            
-            // Enable trigger button if not in progress
-            /*
-            const triggerBtn = document.getElementById('triggerPageRankBtn');
-            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
-                triggerBtn.disabled = false;
-            } else {
-                triggerBtn.disabled = true;
-            }
-            */
         }
         
         /**
@@ -1847,16 +1830,6 @@
             } else {
                 logFileElement.textContent = 'Not configured';
             }
-            
-            // Enable trigger button if not in progress
-            /*
-            const triggerBtn = document.getElementById('triggerGrapeRankBtn');
-            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
-                triggerBtn.disabled = false;
-            } else {
-                triggerBtn.disabled = true;
-            }
-            */
         }
         
         /**
@@ -1932,16 +1905,6 @@
             } else {
                 logFileElement.textContent = 'Not configured';
             }
-            
-            // Enable trigger button if not in progress
-            /*
-            const triggerBtn = document.getElementById('triggerKind30382ExportBtn');
-            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
-                triggerBtn.disabled = false;
-            } else {
-                triggerBtn.disabled = true;
-            }
-            */
         }
         
         /**
@@ -2100,16 +2063,6 @@
             } else {
                 logFileElement.textContent = 'Not configured';
             }
-            
-            // Enable trigger button if not in progress
-            /*
-            const triggerBtn = document.getElementById('triggerAnalyzeFollowsMutesReportsBtn');
-            if (data.status !== 'In Progress' && data.status !== 'Stalled') {
-                triggerBtn.disabled = false;
-            } else {
-                triggerBtn.disabled = true;
-            }
-            */
         }
         
         /**
@@ -2401,13 +2354,6 @@
                 });
             });
             
-            // Trigger hops calculation (placeholder)
-            /*
-            document.getElementById('triggerHopsBtn')?.addEventListener('click', function() {
-                alert('Trigger calculation functionality will be implemented in a future update.');
-            });
-            */
-            
             // Refresh PageRank calculation status
             document.getElementById('refreshPageRankBtn')?.addEventListener('click', function() {
                 this.disabled = true;
@@ -2419,13 +2365,6 @@
                 });
             });
             
-            // Trigger PageRank calculation (placeholder)
-            /*
-            document.getElementById('triggerPageRankBtn')?.addEventListener('click', function() {
-                alert('Trigger calculation functionality will be implemented in a future update.');
-            });
-            */
-            
             // Refresh GrapeRank calculation status
             document.getElementById('refreshGrapeRankBtn')?.addEventListener('click', function() {
                 this.disabled = true;
@@ -2436,13 +2375,6 @@
                     this.textContent = '🔄 Refresh';
                 });
             });
-            
-            // Trigger GrapeRank calculation (placeholder)
-            /*
-            document.getElementById('triggerGrapeRankBtn')?.addEventListener('click', function() {
-                alert('Trigger calculation functionality will be implemented in a future update.');
-            });
-            */
 
             // Refresh Kind 30382 Export calculation status
             document.getElementById('refreshKind30382ExportBtn')?.addEventListener('click', function() {
@@ -2454,13 +2386,6 @@
                     this.textContent = '🔄 Refresh';
                 });
             });
-            
-            // Trigger Kind 30382 Export calculation (placeholder)
-            /*
-            document.getElementById('triggerKind30382ExportBtn')?.addEventListener('click', function() {
-                alert('Trigger calculation functionality will be implemented in a future update.');
-            });
-            */
             
             // Refresh Process All Trust Metrics calculation status
             document.getElementById('refreshProcessAllTrustMetricsBtn')?.addEventListener('click', function() {
@@ -2488,13 +2413,6 @@
                     this.textContent = '🔄 Refresh';
                 });
             });
-            
-            // Trigger Analyze Follows, Mutes, and Reports calculation (placeholder)
-            /*
-            document.getElementById('triggerAnalyzeFollowsMutesReportsBtn')?.addEventListener('click', function() {
-                alert('Trigger calculation functionality will be implemented in a future update.');
-            });
-            */
             
             // Setup event listeners for all configuration types using generalized system
             setupConfigEventListeners('graperank');

@@ -102,6 +102,7 @@ function loadNavbar() {
         || currentPath === '/grapevine-analysis.html'
         || currentPath === '/test.html'
         || currentPath === '/search.html'
+        || currentPath === '/npub-or-pubkey-search.html'
         || currentPath === '/follow-recs.html'
         || currentPath === '/neo4j-health-dashboard.html'
         || currentPath === '/service-management-dashboard.html'
@@ -427,6 +428,7 @@ function highlightCurrentPage() {
         '/personalized-recommendations.html': '/personalized-recommendations',
         '/subscribe.html': '/subscribe',
         '/search.html': '/search',
+        '/npub-or-pubkey-search.html': '/npub-or-pubkey-search',
         '/follow-recs.html': '/follow-recs',
         '/customer.html': '/customer',
         '/customers.html': '/customers',
