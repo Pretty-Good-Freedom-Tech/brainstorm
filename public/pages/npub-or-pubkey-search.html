@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm - Profile Search</title>
+    <link rel="stylesheet" href="/css/search.css">
+    <link rel="shortcut icon" href="/img/brainstorm010.svg">
+    <style>
+        .search-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem 0;
+        }
+        
+        .search-header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .search-description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .search-sections {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (min-width: 768px) {
+            .search-sections {
+                grid-template-columns: 1fr 1fr;
+                gap: 2.5rem;
+            }
+        }
+        
+        .search-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .search-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .search-section-title {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        @media (min-width: 480px) {
+            .search-container {
+                flex-direction: row;
+                align-items: flex-end;
+            }
+        }
+        
+        .search-input-wrapper {
+            flex: 1;
+        }
+        
+        .search-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .search-button:active {
+            transform: translateY(0);
+        }
+        
+        .coming-soon {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 12px;
+            color: white;
+            margin-top: 3rem;
+        }
+        
+        .coming-soon h2 {
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .coming-soon p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 767px) {
+            .search-header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-section {
+                padding: 1rem;
+            }
+            
+            .coming-soon {
+                padding: 1.5rem;
+                margin-top: 2rem;
+            }
+            
+            .coming-soon h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="search-header">
+                <h1>Profile Search</h1>
+                <p class="search-description">Search for Nostr profiles using npub or pubkey</p>
+            </div>
+            
+            <div class="search-sections">
+                <div class="search-section">
+                    <h3 class="search-section-title">🔍 Search by npub</h3>
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchInput1" class="search-input" placeholder="Enter npub (e.g., npub1...)">
+                        </div>
+                        <button id="searchButton1" class="search-button">Search</button>
+                    </div>
+                </div>
+                
+                <div class="search-section">
+                    <h3 class="search-section-title">🔑 Search by pubkey</h3>
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchInput2" class="search-input" placeholder="Enter 64-character hex pubkey">
+                        </div>
+                        <button id="searchButton2" class="search-button">Search</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="searchResultsPubkey" class="search-results" style="display: none;">
+                <!-- Search results (pubkey) will be dynamically added here -->
+            </div>
+            <div id="searchResultsProfileCard" class="search-results" style="display: none;">
+                <!-- Search results (full profile) will be dynamically added here -->
+            </div>
+            
+            <div class="coming-soon">
+                <h2>🚀 Keyword Search</h2>
+                <p>Search by name, username, or bio content - coming soon!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
+
+    <script>
+        // function to get profile data from pubkey and display it in the profile card
+        function displayProfile(pubkey,npub) {
+            fetch(`/api/get-kind0?pubkey=${pubkey}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && result.data) {
+                        // Parse the kind 0 event content
+                        const event = result.data;
+                        const content = JSON.parse(event.content);
+                        // Extract profile details
+                        const picture = content.picture || '/control/img/default-avatar.svg';
+                        const name = content.name || 'Unknown';
+                        const displayName = content.display_name || content.displayName || name;
+                        // Display the profile card
+                        const profileCard = document.getElementById('searchResultsProfileCard');
+                        // style profile card similarly to the landing page (index.html)
+                        const profileHTML = `
+                            <div class="profile-card">
+                                <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                                    <div class="profile-image">
+                                        <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/control/img/default-avatar.svg'">
+                                    </div>
+                                    <div class="profile-info">
+                                        <h3 class="profile-name">${displayName}</h3>
+                                        <p class="profile-handle">@${name}</p>
+                                        <p class="profile-npub">${npub.substring(0, 8)}...${npub.substring(npub.length - 4)}</p>
+                                    </div>
+                                </a>
+                            </div>
+                        `;
+                        profileCard.innerHTML = profileHTML;
+                        profileCard.style.display = 'block';
+                    } else {
+                        console.error('Failed to get profile data:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting profile data:', error);
+                });
+        }
+        // Search by npub
+        document.getElementById('searchButton1').addEventListener('click', () => {
+            document.getElementById('searchResultsPubkey').innerHTML = '';
+            document.getElementById('searchResultsProfileCard').innerHTML = '';
+            const searchInput1 = document.getElementById('searchInput1').value;
+
+            // Check if the input is a valid npub
+            if (!searchInput1.startsWith('npub1')) {
+                alert('Please enter a valid npub');
+                return;
+            }
+            const searchNpub = searchInput1;
+
+            const apiEndpoint = `/api/search/profiles?searchType=npub&searchString=${searchNpub}`;
+            
+            // Send a GET request to the API endpoint
+            fetch(apiEndpoint)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Display search results
+                        const searchResultPubkey = data.pubkey;
+                        const searchResultsPubkeyElem = document.getElementById('searchResultsPubkey');
+                        searchResultsPubkeyElem.innerHTML = searchResultPubkey;
+                        // turn this element off for now; may deprecate
+                        // searchResultsPubkeyElem.style.display = 'block';
+                        // Now use the get-kind0 endpoint to get the profile data
+                        displayProfile(searchResultPubkey, searchNpub);
+                    } else {
+                        console.error('Search failed:', 'No profile data found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during search:', error);
+                });
+        });
+
+        // Search by pubkey
+        document.getElementById('searchButton2').addEventListener('click', () => {
+            document.getElementById('searchResultsPubkey').innerHTML = '';
+            document.getElementById('searchResultsProfileCard').innerHTML = '';
+            const searchInput2 = document.getElementById('searchInput2').value;
+
+            // Basic pubkey validation (64 character hex string)
+            if (!searchInput2 || searchInput2.length !== 64 || !/^[a-fA-F0-9]+$/.test(searchInput2)) {
+                alert('Please enter a valid 64-character hex pubkey');
+                return;
+            }
+            const searchPubkey = searchInput2;
+
+            // Get npub from pubkey first
+            fetch(`/api/get-npub-from-pubkey?pubkey=${searchPubkey}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const npub = data.npub;
+                        // Now get and display the profile
+                        displayProfile(searchPubkey, npub);
+                    } else {
+                        alert('Invalid pubkey or profile not found');
+                        console.error('Pubkey conversion failed:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error converting pubkey to npub:', error);
+                    alert('Error processing pubkey');
+                });
+        });
+    </script>
+</body>
+</html>
