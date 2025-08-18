@@ -81,9 +81,9 @@ sed -i 's/#dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.expor
 # 2. also informed by Brainstorm neo4j-resource-config.html
 echo "=== Updating Neo4j memory settings (commented out) ==="
 
-sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=4g/' "$NEO4J_CONF"
-sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=4g/' "$NEO4J_CONF"
-sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=6g/' "$NEO4J_CONF"
+sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=5g/' "$NEO4J_CONF"
+sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=5g/' "$NEO4J_CONF"
+sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=8g/' "$NEO4J_CONF"
 # JVM hardening options
 # sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError/' "$NEO4J_CONF"
 # More aggressive JVM hardening options

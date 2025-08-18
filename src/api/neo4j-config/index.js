@@ -86,17 +86,37 @@ class Neo4jConfigAnalyzer {
                 if (neo4jPid) {
                     const jvmArgs = execSync(`ps -p ${neo4jPid} -o args --no-headers`, { encoding: 'utf8' });
                     
-                    // Extract key JVM settings
-                    const heapInitMatch = jvmArgs.match(/-Xms(\w+)/);
-                    const heapMaxMatch = jvmArgs.match(/-Xmx(\w+)/);
-                    const metaspaceMatch = jvmArgs.match(/-XX:MaxMetaspaceSize=(\w+)/);
+                    // Log the full JVM args for debugging
+                    console.log('Neo4j JVM Args:', jvmArgs);
+                    
+                    // Extract key JVM settings - improved regex patterns
+                    const heapInitMatch = jvmArgs.match(/-Xms(\d+[kmgKMG]?)/);
+                    const heapMaxMatch = jvmArgs.match(/-Xmx(\d+[kmgKMG]?)/);
+                    const metaspaceMatch = jvmArgs.match(/-XX:MaxMetaspaceSize=(\d+[kmgKMG]?)/);
                     const gcMatch = jvmArgs.match(/-XX:\+Use(\w+GC)/);
                     
-                    javaConfig.heapInit = heapInitMatch ? heapInitMatch[1] : 'Not set';
-                    javaConfig.heapMax = heapMaxMatch ? heapMaxMatch[1] : 'Not set';
+                    javaConfig.heapInit = heapInitMatch ? heapInitMatch[1] : 'Dynamic (not explicitly set)';
+                    javaConfig.heapMax = heapMaxMatch ? heapMaxMatch[1] : 'Dynamic (not explicitly set)';
                     javaConfig.maxMetaspace = metaspaceMatch ? metaspaceMatch[1] : 'Not set';
                     javaConfig.gcAlgorithm = gcMatch ? gcMatch[1] : 'Default';
                     javaConfig.pid = neo4jPid;
+                    
+                    // If heap is dynamic, try to get actual heap size from jstat
+                    if (!heapMaxMatch) {
+                        try {
+                            const jstatOutput = execSync(`jstat -gccapacity ${neo4jPid}`, { encoding: 'utf8' });
+                            const lines = jstatOutput.trim().split('\n');
+                            if (lines.length >= 2) {
+                                const values = lines[1].trim().split(/\s+/);
+                                // OGCMX is Old Generation Capacity Max, NGCMX is New Generation Capacity Max
+                                const maxHeapKB = (parseFloat(values[1]) + parseFloat(values[3])) / 1024; // Convert to MB
+                                javaConfig.actualMaxHeapMB = Math.round(maxHeapKB);
+                                javaConfig.heapMax = `${Math.round(maxHeapKB)}MB (dynamic)`;
+                            }
+                        } catch (jstatError) {
+                            console.log('Could not get dynamic heap size from jstat:', jstatError.message);
+                        }
+                    }
                     
                     // Get current heap usage
                     try {
