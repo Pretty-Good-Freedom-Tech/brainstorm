@@ -327,65 +327,65 @@ check_heap_and_gc_health() {
         fi
     fi
     
-    # Calculate GC overhead (time spent in GC) - this can work even with partial metrics
-    local total_gc_time=$(echo "$young_gc_time $full_gc_time" | awk '{print $1 + $2}')
+    # Calculate GC overhead (time spent in GC) - preserve original calculation logic
+    local total_gc_time=$(echo "${young_gc_time:-0} ${full_gc_time:-0}" | awk '{print $1 + $2}')
     local gc_overhead_percent=0
     
     # Estimate runtime (this is approximate)
     local uptime_seconds=$(ps -o etime= -p "$neo4j_pid" 2>/dev/null | awk -F: '{if(NF==3) print $1*3600+$2*60+$3; else if(NF==2) print $1*60+$2; else print $1}' || echo "0")
-    if [[ "$uptime_seconds" -gt 0 && "$total_gc_time" != "0" ]]; then
+    if [[ "$uptime_seconds" -gt 0 && $(echo "$total_gc_time > 0" | bc -l 2>/dev/null || echo "0") -eq 1 ]]; then
         gc_overhead_percent=$(echo "$total_gc_time $uptime_seconds" | awk '{printf "%.1f", ($1 * 100) / $2}')
     fi
     
-    # Only emit detailed metrics if we have comprehensive data
-    if [[ "$metrics_source" != "unavailable" ]]; then
-        # Emit detailed metrics with source information including metaspace
-        emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
-            --argjson heapPercent "$heap_percent" \
-            --argjson heapUsedMB "$(echo "$heap_used" | awk '{printf "%.0f", $1/1024/1024}')" \
-            --argjson heapTotalMB "$(echo "$heap_total" | awk '{printf "%.0f", $1/1024/1024}')" \
-            --argjson metaspacePercent "$metaspace_percent" \
-            --argjson metaspaceUsedMB "$(echo "$metaspace_used" | awk '{printf "%.0f", $1/1024/1024}')" \
-            --argjson metaspaceTotalMB "$(echo "$metaspace_total" | awk '{printf "%.0f", $1/1024/1024}')" \
-            --argjson youngGcCount "$young_gc_count" \
-            --arg youngGcTime "$young_gc_time" \
-            --argjson fullGcCount "$full_gc_count" \
-            --arg fullGcTime "$full_gc_time" \
-            --arg gcOverheadPercent "$gc_overhead_percent" \
-            --arg metricsSource "$metrics_source" \
-            '{
-                "message": "Current heap, metaspace and GC metrics analyzed",
-                "phase": "heap_gc_health_check",
-                "metrics": {
-                    "heapUtilizationPercent": $heapPercent,
-                    "heapUsedMB": $heapUsedMB,
-                    "heapTotalMB": $heapTotalMB,
-                    "metaspaceUtilizationPercent": $metaspacePercent,
-                    "metaspaceUsedMB": $metaspaceUsedMB,
-                    "metaspaceTotalMB": $metaspaceTotalMB,
-                    "youngGcCount": $youngGcCount,
-                    "youngGcTimeSeconds": $youngGcTime,
-                    "fullGcCount": $fullGcCount,
-                    "fullGcTimeSeconds": $fullGcTime,
-                    "gcOverheadPercent": $gcOverheadPercent
-                }
-            }')"
-    else
-        # Emit limited metrics when comprehensive data unavailable but some metrics exist
-        emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
-            --arg gcOverheadPercent "$gc_overhead_percent" \
-            --arg metricsSource "$metrics_source" \
-            --argjson partialData "$(test "$total_gc_time" != "0" && echo true || echo false)" \
-            '{
-                "message": "Limited metrics available for analysis",
-                "phase": "heap_gc_health_check",
-                "metricsSource": $metricsSource,
-                "partialData": $partialData,
-                "limitedMetrics": {
-                    "gcOverheadPercent": $gcOverheadPercent
-                }
-            }')"
-    fi
+    # Always emit heap_gc_analysis with complete metrics structure, using null for unavailable data
+    emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+        --argjson heapPercent "$(test -n "$heap_percent" && test "$heap_percent" -gt 0 && echo "$heap_percent" || echo "null")" \
+        --argjson heapUsedMB "$(test -n "$heap_used" && test "$heap_used" -gt 0 && echo "$heap_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson heapTotalMB "$(test -n "$heap_total" && test "$heap_total" -gt 0 && echo "$heap_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson metaspacePercent "$(test -n "$metaspace_percent" && test "$metaspace_percent" -gt 0 && echo "$metaspace_percent" || echo "null")" \
+        --argjson metaspaceUsedMB "$(test -n "$metaspace_used" && test "$metaspace_used" -gt 0 && echo "$metaspace_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson metaspaceTotalMB "$(test -n "$metaspace_total" && test "$metaspace_total" -gt 0 && echo "$metaspace_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson youngGcCount "$(test -n "$young_gc_count" && echo "$young_gc_count" || echo "null")" \
+        --arg youngGcTime "${young_gc_time:-null}" \
+        --argjson fullGcCount "$(test -n "$full_gc_count" && echo "$full_gc_count" || echo "null")" \
+        --arg fullGcTime "${full_gc_time:-null}" \
+        --arg gcOverheadPercent "$gc_overhead_percent" \
+        --arg metricsSource "$metrics_source" \
+        --argjson oldGenUsedMB "$(test -n "$old_gen_used" && echo "$old_gen_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson oldGenCapacityMB "$(test -n "$old_gen_capacity" && echo "$old_gen_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson youngGenUsedMB "$(test -n "$young_gen_used" && echo "$young_gen_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson youngGenCapacityMB "$(test -n "$young_gen_capacity" && echo "$young_gen_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson metaspaceCapacityMB "$(test -n "$metaspace_capacity" && echo "$metaspace_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        '{
+            "message": "Current heap, metaspace and GC metrics analyzed",
+            "phase": "heap_gc_health_check",
+            "metrics": {
+                "heapUtilizationPercent": $heapPercent,
+                "heapUsedMB": $heapUsedMB,
+                "heapTotalMB": $heapTotalMB,
+                "metaspaceUtilizationPercent": $metaspacePercent,
+                "metaspaceUsedMB": $metaspaceUsedMB,
+                "metaspaceTotalMB": $metaspaceTotalMB,
+                "metaspaceCapacityMB": $metaspaceCapacityMB,
+                "oldGenUsedMB": $oldGenUsedMB,
+                "oldGenCapacityMB": $oldGenCapacityMB,
+                "youngGenUsedMB": $youngGenUsedMB,
+                "youngGenCapacityMB": $youngGenCapacityMB,
+                "youngGcCount": $youngGcCount,
+                "youngGcTimeSeconds": $youngGcTime,
+                "fullGcCount": $fullGcCount,
+                "fullGcTimeSeconds": $fullGcTime,
+                "gcTimePercent": $gcOverheadPercent,
+                "gcOverheadPercent": $gcOverheadPercent
+            },
+            "metricsSource": $metricsSource,
+            "dataAvailability": {
+                "heapData": ($heapPercent != null),
+                "metaspaceData": ($metaspacePercent != null),
+                "gcData": ($youngGcCount != null or $fullGcCount != null),
+                "gcOverheadCalculated": ($gcOverheadPercent != "0")
+            }
+        }')"
     
     # Generate alerts based on available thresholds (moved outside metrics availability check)
     # Heap alerts - only if we have valid heap data
@@ -404,7 +404,7 @@ check_heap_and_gc_health() {
     fi
     
     # GC overhead alerts - can work with partial metrics if GC data is available
-    if [[ "$total_gc_time" != "0" && "$gc_overhead_percent" != "0" ]]; then
+    if [[ $(echo "$gc_overhead_percent > 0" | bc -l 2>/dev/null || echo "0") -eq 1 ]]; then
         local gc_overhead_int=$(echo "$gc_overhead_percent" | awk '{printf "%.0f", $1}')
         if [[ "$gc_overhead_int" -ge "$NEO4J_GC_OVERHEAD_THRESHOLD" ]]; then
             emit_crash_alert "NEO4J_GC_THRASHING" "critical" \
