@@ -543,12 +543,8 @@
                 const timeRange = document.getElementById('timeRangeSelect').value;
                 const hoursBack = parseInt(timeRange);
                 
-                // Use preserved data endpoint for longer time ranges (>48 hours)
-                // or regular endpoint for recent data
-                const usePreservedData = hoursBack > 48;
-                const endpoint = usePreservedData ? 
-                    '/api/neo4j-health/preserved-heap-metrics' : 
-                    '/api/neo4j-health/heap-metrics-history';
+                // Always use heap-metrics-history which now combines all available data
+                const endpoint = '/api/neo4j-health/heap-metrics-history';
                 
                 const response = await fetch(`${endpoint}?hours=${timeRange}&maxPoints=200`);
                 const result = await response.json();
@@ -559,18 +555,11 @@
                     return;
                 }
                 
-                let data;
-                let preservationStats = null;
-                
-                if (usePreservedData) {
-                    data = result.data.metrics || [];
-                    preservationStats = result.data.preservationStats;
-                } else {
-                    data = result.data || [];
-                }
+                const data = result.data || [];
+                const preservationStats = result.metadata?.preservationStats || null;
                 
                 // Update data source indicator
-                updateDataSourceIndicator(data, usePreservedData, preservationStats);
+                updateDataSourceIndicator(data, preservationStats);
                 
                 if (data.length === 0) {
                     heapChart.data.labels = [];
@@ -622,7 +611,7 @@
                 heapChart.data.datasets[3].data = gcOverhead;
                 heapChart.update();
                 
-                console.log(`Updated heap chart with ${data.length} data points from ${usePreservedData ? 'preserved' : 'current'} data`);
+                console.log(`Updated heap chart with ${data.length} data points from combined data sources`);
                 console.log(`GC Overhead range: 0% - ${maxGcOverhead.toFixed(1)}%, Y-axis max: ${gcAxisMax}`);
                 
             } catch (error) {
@@ -647,7 +636,7 @@
         }
         
         // Update data source indicator
-        function updateDataSourceIndicator(data, usePreservedData, preservationStats) {
+        function updateDataSourceIndicator(data, preservationStats) {
             const indicator = document.getElementById('dataSourceIndicator');
             
             if (data === 'Error loading data' || data === 'Network error') {
@@ -656,30 +645,34 @@
                 return;
             }
             
-            if (usePreservedData) {
-                const dataLength = Array.isArray(data) ? data.length : 0;
-                let statusText = `📚 Extended data (${dataLength} points)`;
-                
-                if (preservationStats && preservationStats.available) {
-                    const currentCount = preservationStats.heap_metrics?.current || 0;
-                    const preservedCount = preservationStats.heap_metrics?.preserved || 0;
-                    statusText += ` - ${currentCount} current, ${preservedCount} preserved`;
-                    
-                    if (preservationStats.preservedDataRange) {
-                        const oldestDate = new Date(preservationStats.preservedDataRange.oldest);
-                        statusText += ` (oldest: ${oldestDate.toLocaleDateString()})`;
-                    }
-                } else if (preservationStats && !preservationStats.available) {
-                    statusText += ' - No preserved data available';
-                }
-                
-                indicator.innerHTML = statusText;
-                indicator.style.color = '#10b981';
+            const dataLength = Array.isArray(data) ? data.length : 0;
+            
+            // Count data sources
+            const currentCount = data.filter(d => d.source === 'current').length;
+            const preservedCount = data.filter(d => d.source === 'preserved').length;
+            
+            let statusText = `📊 Combined data (${dataLength} points)`;
+            
+            if (currentCount > 0 && preservedCount > 0) {
+                statusText += ` - ${currentCount} current, ${preservedCount} preserved`;
+                indicator.style.color = '#10b981'; // Green for combined data
+            } else if (currentCount > 0) {
+                statusText += ` - current data only`;
+                indicator.style.color = '#3b82f6'; // Blue for current only
+            } else if (preservedCount > 0) {
+                statusText += ` - preserved data only`;
+                indicator.style.color = '#f59e0b'; // Orange for preserved only
             } else {
-                const dataLength = Array.isArray(data) ? data.length : 0;
-                indicator.innerHTML = `🔄 Live data (${dataLength} points)`;
-                indicator.style.color = '#3b82f6';
+                statusText = `📊 Data (${dataLength} points)`;
+                indicator.style.color = '#6b7280'; // Gray for unknown source
             }
+            
+            if (preservationStats && preservationStats.preservedDataRange) {
+                const oldestDate = new Date(preservationStats.preservedDataRange.oldest);
+                statusText += ` (oldest: ${oldestDate.toLocaleDateString()})`;
+            }
+            
+            indicator.innerHTML = statusText;
         }
         
         // Update time range

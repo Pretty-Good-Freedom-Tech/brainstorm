@@ -6,7 +6,7 @@
  * Owner-only endpoint for adding customers to the system
  */
 
-const { CustomerManager } = require('../../../utils/customerManager');
+const CustomerManager = require('../../../utils/customerManager');
 const nostrTools = require('nostr-tools');
 
 /**
