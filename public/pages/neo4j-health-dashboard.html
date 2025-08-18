@@ -47,7 +47,10 @@
                             <option value="24" selected>Last 24 hours</option>
                             <option value="48">Last 48 hours</option>
                             <option value="168">Last week</option>
+                            <option value="720">Last 30 days</option>
+                            <option value="2160">Last 90 days</option>
                         </select>
+                        <div class="data-source-indicator" id="dataSourceIndicator" style="font-size: 0.8em; color: #666; margin-top: 4px;"></div>
                     </div>
                 </div>
                 <div class="chart-container" style="height: 400px;">
@@ -538,15 +541,37 @@
         async function updateHeapChart() {
             try {
                 const timeRange = document.getElementById('timeRangeSelect').value;
-                const response = await fetch(`/api/neo4j-health/heap-metrics-history?hours=${timeRange}&maxPoints=100`);
+                const hoursBack = parseInt(timeRange);
+                
+                // Use preserved data endpoint for longer time ranges (>48 hours)
+                // or regular endpoint for recent data
+                const usePreservedData = hoursBack > 48;
+                const endpoint = usePreservedData ? 
+                    '/api/neo4j-health/preserved-heap-metrics' : 
+                    '/api/neo4j-health/heap-metrics-history';
+                
+                const response = await fetch(`${endpoint}?hours=${timeRange}&maxPoints=200`);
                 const result = await response.json();
                 
                 if (!result.success) {
                     console.error('Failed to fetch heap metrics:', result.error);
+                    updateDataSourceIndicator('Error loading data', 'error');
                     return;
                 }
                 
-                const data = result.data;
+                let data;
+                let preservationStats = null;
+                
+                if (usePreservedData) {
+                    data = result.data.metrics || [];
+                    preservationStats = result.data.preservationStats;
+                } else {
+                    data = result.data || [];
+                }
+                
+                // Update data source indicator
+                updateDataSourceIndicator(data, usePreservedData, preservationStats);
+                
                 if (data.length === 0) {
                     heapChart.data.labels = [];
                     heapChart.data.datasets[0].data = [];
@@ -565,7 +590,7 @@
                     return point.oldGenCapacityMB > 0 ? 
                         Math.round((point.oldGenUsedMB / point.oldGenCapacityMB) * 100) : 0;
                 });
-                const gcOverhead = data.map(point => point.gcOverheadPercent);
+                const gcOverhead = data.map(point => point.gcOverheadPercent || point.gcTimePercent || 0);
                 
                 // Store raw data for tooltips
                 heapChart.data.datasets[0].rawData = data;
@@ -578,10 +603,47 @@
                 heapChart.data.datasets[3].data = gcOverhead;
                 heapChart.update();
                 
-                console.log(`Updated heap chart with ${data.length} data points`);
+                console.log(`Updated heap chart with ${data.length} data points from ${usePreservedData ? 'preserved' : 'current'} data`);
                 
             } catch (error) {
                 console.error('Error updating heap chart:', error);
+                updateDataSourceIndicator('Network error', 'error');
+            }
+        }
+        
+        // Update data source indicator
+        function updateDataSourceIndicator(data, usePreservedData, preservationStats) {
+            const indicator = document.getElementById('dataSourceIndicator');
+            
+            if (data === 'Error loading data' || data === 'Network error') {
+                indicator.innerHTML = `⚠️ ${data}`;
+                indicator.style.color = '#ef4444';
+                return;
+            }
+            
+            if (usePreservedData) {
+                const dataLength = Array.isArray(data) ? data.length : 0;
+                let statusText = `📚 Extended data (${dataLength} points)`;
+                
+                if (preservationStats && preservationStats.available) {
+                    const currentCount = preservationStats.heap_metrics?.current || 0;
+                    const preservedCount = preservationStats.heap_metrics?.preserved || 0;
+                    statusText += ` - ${currentCount} current, ${preservedCount} preserved`;
+                    
+                    if (preservationStats.preservedDataRange) {
+                        const oldestDate = new Date(preservationStats.preservedDataRange.oldest);
+                        statusText += ` (oldest: ${oldestDate.toLocaleDateString()})`;
+                    }
+                } else if (preservationStats && !preservationStats.available) {
+                    statusText += ' - No preserved data available';
+                }
+                
+                indicator.innerHTML = statusText;
+                indicator.style.color = '#10b981';
+            } else {
+                const dataLength = Array.isArray(data) ? data.length : 0;
+                indicator.innerHTML = `🔄 Live data (${dataLength} points)`;
+                indicator.style.color = '#3b82f6';
             }
         }
         

@@ -249,12 +249,39 @@ rotate_events_file_if_needed() {
     if [[ "$line_count" -gt "$BRAINSTORM_EVENTS_MAX_SIZE" ]]; then
         log_info "Rotating events file" "current_lines=$line_count max_lines=$BRAINSTORM_EVENTS_MAX_SIZE"
         
-        # Keep the most recent half of the events
-        local keep_lines=$((BRAINSTORM_EVENTS_MAX_SIZE / 2))
-        tail -n "$keep_lines" "$EVENTS_FILE" > "${EVENTS_FILE}.tmp"
-        mv "${EVENTS_FILE}.tmp" "$EVENTS_FILE"
+        # Preserve critical data before rotation
+        local preserver_script="${BRAINSTORM_LOG_DIR%/*}/src/utils/criticalDataPreserver.sh"
+        if [[ -f "$preserver_script" ]]; then
+            log_info "Preserving critical monitoring data before rotation"
+            bash "$preserver_script" 2>/dev/null || log_warn "Critical data preservation failed"
+        fi
         
-        log_info "Events file rotated" "kept_lines=$keep_lines"
+        # Enhanced rotation: preserve high-value events + keep recent events
+        local temp_file="${EVENTS_FILE}.rotation_tmp"
+        local keep_lines=$((BRAINSTORM_EVENTS_MAX_SIZE / 2))
+        
+        # Extract and preserve critical events that should never be lost
+        grep -E '"taskName":"(neo4jCrashPatternDetector|neo4jStabilityMonitor)".*"eventType":"(HEALTH_ALERT|TASK_ERROR)"' "$EVENTS_FILE" > "${temp_file}.critical" 2>/dev/null || touch "${temp_file}.critical"
+        
+        # Keep most recent events
+        tail -n "$keep_lines" "$EVENTS_FILE" > "${temp_file}.recent"
+        
+        # Combine critical events + recent events, remove duplicates, sort by timestamp
+        cat "${temp_file}.critical" "${temp_file}.recent" | \
+        jq -s 'sort_by(.timestamp) | unique_by(.timestamp + .taskName + .eventType)' | \
+        jq -r '.[]' > "$temp_file" 2>/dev/null || {
+            # Fallback if jq fails: just use recent events
+            cat "${temp_file}.recent" > "$temp_file"
+        }
+        
+        # Replace original file
+        mv "$temp_file" "$EVENTS_FILE"
+        
+        # Cleanup temp files
+        rm -f "${temp_file}.critical" "${temp_file}.recent"
+        
+        local final_lines=$(wc -l < "$EVENTS_FILE" 2>/dev/null || echo "0")
+        log_info "Events file rotated with critical data preservation" "kept_lines=$final_lines original_lines=$line_count"
     fi
 }
 
