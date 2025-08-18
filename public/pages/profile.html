@@ -300,29 +300,6 @@
         let pubkey = urlParams.get('pubkey');
         const npub = urlParams.get('npub');
         
-        if (!pubkey && !npub) {
-            showError('No pubkey or npub specified. Please provide a valid pubkey or npub parameter.');
-        } else {
-            // if both pubkey and npub are specified, use pubkey
-            // if npub is specified but not pubkey, then use npub to calculate pubkey
-            if (!pubkey && npub) {
-                fetch(`/api/get-pubkey-from-npub?npub=${npub}`)
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success && result.nip19decode) {
-                            pubkey = result.nip19decode.data;
-                        }
-                    });
-            }
-            
-            // Base URL for API calls
-            const baseUrl = '/api';
-            
-            // Load data
-            // deprecating this line -- this function is called below; here it causes an error with a broken api call
-            // loadProfileDataSequentially(pubkey, baseUrl);
-        }
-        
         // Get DOM elements
         const profileContainer = document.getElementById('profileContainer');
         const errorMessage = document.getElementById('errorMessage');
@@ -331,17 +308,17 @@
         // Determine the base URL for API calls
         const baseUrl = window.location.pathname.includes('/control/') ? '/control' : '';
         
-        // Update network visualization link with the pubkey
-        const networkLink = document.getElementById('networkLink');
-        if (networkLink && pubkey) {
-            networkLink.href = `network-visualization-lite.html?pubkey=${encodeURIComponent(pubkey)}`;
-        }
-        
-        // Load profile data if pubkey is provided
-        if (pubkey) {
+        // Function to initialize profile with pubkey
+        function initializeProfile(resolvedPubkey) {
+            // Update network visualization link with the pubkey
+            const networkLink = document.getElementById('networkLink');
+            if (networkLink) {
+                networkLink.href = `network-visualization-lite.html?pubkey=${encodeURIComponent(resolvedPubkey)}`;
+            }
+            
             // Configure GrapeRank Review link
-            document.getElementById('grapeRankReviewLink').href = `graperank-calculations-review.html?pubkey=${pubkey}`;
-            document.getElementById('profileNjumpLink').href = `https://njump.me/p/${pubkey}`;
+            document.getElementById('grapeRankReviewLink').href = `graperank-calculations-review.html?pubkey=${resolvedPubkey}`;
+            document.getElementById('profileNjumpLink').href = `https://njump.me/p/${resolvedPubkey}`;
             
             // Hide error message
             errorMessage.style.display = 'none';
@@ -351,10 +328,33 @@
             profileContainer.style.display = 'none';
             
             // Set the pubkey in the display
-            pubkeyDisplay.textContent = pubkey;
+            pubkeyDisplay.textContent = resolvedPubkey;
 
             // Sequential API calls to prevent concurrent request issues
-            loadProfileDataSequentially(pubkey, baseUrl);
+            loadProfileDataSequentially(resolvedPubkey, baseUrl);
+        }
+        
+        if (!pubkey && !npub) {
+            showError('No pubkey or npub specified. Please provide a valid pubkey or npub parameter.');
+        } else if (pubkey) {
+            // Direct pubkey provided
+            initializeProfile(pubkey);
+        } else if (npub) {
+            // Convert npub to pubkey first
+            fetch(`/api/get-pubkey-from-npub?npub=${npub}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && result.nip19decode) {
+                        const derivedPubkey = result.nip19decode.data;
+                        initializeProfile(derivedPubkey);
+                    } else {
+                        showError('Failed to convert npub to pubkey. Please check the npub format.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error converting npub to pubkey:', error);
+                    showError('Error converting npub to pubkey.');
+                });
         }
         
         // Function to load profile data sequentially
