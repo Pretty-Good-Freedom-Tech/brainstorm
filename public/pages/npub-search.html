@@ -44,6 +44,46 @@
     <div id="footerContainer"></div>
 
     <script>
+        // function to get profile data from pubkey and display it in the profile card
+        function getProfileDataUsingPubkey(pubkey) {
+            fetch(`/api/get-kind0?pubkey=${pubkey}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && result.data) {
+                        // Parse the kind 0 event content
+                        const event = result.data;
+                        const content = JSON.parse(event.content);
+                        // Extract profile details
+                        const picture = content.picture || '/control/img/default-avatar.svg';
+                        const name = content.name || 'Unknown';
+                        const displayName = content.display_name || content.displayName || name;
+                        // Display the profile card
+                        const profileCard = document.getElementById('searchResultsProfileCard');
+                        // style profile card similarly to the landing page (index.html)
+                        const profileHTML = `
+                            <div class="profile-card">
+                                <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                                    <div class="profile-image">
+                                        <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/control/img/default-avatar.svg'">
+                                    </div>
+                                    <div class="profile-info">
+                                        <h3 class="profile-name">${displayName}</h3>
+                                        <p class="profile-handle">@${name}</p>
+                                        <p class="profile-npub">${searchNpub.substring(0, 8)}...${searchNpub.substring(searchNpub.length - 4)}</p>
+                                    </div>
+                                </a>
+                            </div>
+                        `;
+                        profileCard.innerHTML = profileHTML;
+                        profileCard.style.display = 'block';
+                    } else {
+                        console.error('Failed to get profile data:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting profile data:', error);
+                });
+        }
         // Search by npub
         document.getElementById('searchButton').addEventListener('click', () => {
             searchResultsPubkey.innerHTML = '';
@@ -75,43 +115,7 @@
                         // turn this element off for now; may deprecate
                         // searchResultsPubkeyElem.style.display = 'block';
                         // Now use the get-kind0 endpoint to get the profile data
-                        fetch(`/api/get-kind0?pubkey=${searchResultPubkey}`)
-                            .then(response => response.json())
-                            .then(result => {
-                                if (result.success && result.data) {
-                                    // Parse the kind 0 event content
-                                    const event = result.data;
-                                    const content = JSON.parse(event.content);
-                                    // Extract profile details
-                                    const picture = content.picture || '/control/img/default-avatar.svg';
-                                    const name = content.name || 'Unknown';
-                                    const displayName = content.display_name || content.displayName || name;
-                                    // Display the profile card
-                                    const profileCard = document.getElementById('searchResultsProfileCard');
-                                    // style profile card similarly to the landing page (index.html)
-                                    const profileHTML = `
-                                        <div class="profile-card">
-                                            <a href="/profile.html?pubkey=${searchResultPubkey}" target="_blank" class="profile-link">
-                                                <div class="profile-image">
-                                                    <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/control/img/default-avatar.svg'">
-                                                </div>
-                                                <div class="profile-info">
-                                                    <h3 class="profile-name">${displayName}</h3>
-                                                    <p class="profile-handle">@${name}</p>
-                                                    <p class="profile-npub">${searchNpub.substring(0, 8)}...${searchNpub.substring(searchNpub.length - 4)}</p>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    `;
-                                    profileCard.innerHTML = profileHTML;
-                                    profileCard.style.display = 'block';
-                                } else {
-                                    console.error('Failed to get profile data:', data.error);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error getting profile data:', error);
-                            });
+                        getProfileDataUsingPubkey(searchResultPubkey);
                     } else {
                         console.error('Search failed:', 'No profile data found');
                     }

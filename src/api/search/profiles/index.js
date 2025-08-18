@@ -1,5 +1,7 @@
 /**
  * Search Profiles API
+ * handler for /api/search/profiles
+ * 
  * Provides data for searching profiles
  * 
  * Search kind0 notes in strfry database
