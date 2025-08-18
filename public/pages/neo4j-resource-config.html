@@ -4,195 +4,202 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neo4j Resource Configuration - Brainstorm</title>
-    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <link rel="stylesheet" href="/css/neo4j-resource-config.css">
+    <script src="./components/header/header.js"></script>
+    <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
+    <script src="./components/footer/footer.js"></script>
 </head>
 <body>
-    <div id="header-container"></div>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
     
-    <div class="container">
-        <div class="page-header">
-            <h1>🔧 Neo4j Resource Configuration Overview</h1>
-            <p>Current system resources, Neo4j configuration, and optimization recommendations</p>
-            <button onclick="refreshData()" class="btn btn-primary">🔄 Refresh Data</button>
-        </div>
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="page-header">
+                <h1>🔧 Neo4j Resource Configuration Overview</h1>
+                <p>Current system resources, Neo4j configuration, and optimization recommendations</p>
+                <button onclick="refreshData()" class="btn btn-primary">🔄 Refresh Data</button>
+            </div>
 
-        <!-- System Resources Section -->
-        <div class="config-section">
-            <h2>💻 System Resources</h2>
-            <div class="resource-grid">
-                <div class="resource-card">
-                    <h3>Memory</h3>
-                    <div class="resource-details">
-                        <div class="resource-item">
-                            <span class="label">Total Memory:</span>
-                            <span class="value" id="totalMemory">Loading...</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="label">Available Memory:</span>
-                            <span class="value" id="availableMemory">Loading...</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="label">Memory Usage:</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="memoryProgress"></div>
+            <!-- System Resources Section -->
+            <div class="config-section">
+                <h2>💻 System Resources</h2>
+                <div class="resource-grid">
+                    <div class="resource-card">
+                        <h3>Memory</h3>
+                        <div class="resource-details">
+                            <div class="resource-item">
+                                <span class="label">Total Memory:</span>
+                                <span class="value" id="totalMemory">Loading...</span>
+                            </div>
+                            <div class="resource-item">
+                                <span class="label">Available Memory:</span>
+                                <span class="value" id="availableMemory">Loading...</span>
+                            </div>
+                            <div class="resource-item">
+                                <span class="label">Memory Usage:</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="memoryProgress"></div>
+                                </div>
+                            </div>
+                            <div class="command-reference">
+                                <small><strong>💡 Command Line:</strong> <code>free -h</code></small>
                             </div>
                         </div>
-                        <div class="command-reference">
-                            <small><strong>💡 Command Line:</strong> <code>free -h</code></small>
-                        </div>
                     </div>
-                </div>
 
-                <div class="resource-card">
-                    <h3>CPU</h3>
-                    <div class="resource-details">
-                        <div class="resource-item">
-                            <span class="label">CPU Cores:</span>
-                            <span class="value" id="cpuCores">Loading...</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="label">CPU Model:</span>
-                            <span class="value" id="cpuModel">Loading...</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="label">Load Average (5min):</span>
-                            <span class="value" id="loadAverage">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="resource-card">
-                    <h3>Storage</h3>
-                    <div class="resource-details">
-                        <div class="resource-item">
-                            <span class="label">Neo4j Disk:</span>
-                            <span class="value" id="diskUsage">Loading...</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="label">Available Space:</span>
-                            <span class="value" id="diskAvailable">Loading...</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="label">Disk Usage:</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="diskProgress"></div>
+                    <div class="resource-card">
+                        <h3>CPU</h3>
+                        <div class="resource-details">
+                            <div class="resource-item">
+                                <span class="label">CPU Cores:</span>
+                                <span class="value" id="cpuCores">Loading...</span>
+                            </div>
+                            <div class="resource-item">
+                                <span class="label">CPU Model:</span>
+                                <span class="value" id="cpuModel">Loading...</span>
+                            </div>
+                            <div class="resource-item">
+                                <span class="label">Load Average (5min):</span>
+                                <span class="value" id="loadAverage">Loading...</span>
                             </div>
                         </div>
-                        <div class="command-reference">
-                            <small><strong>💡 Command Line:</strong> <code>df -h /var/lib/neo4j</code></small>
+                    </div>
+
+                    <div class="resource-card">
+                        <h3>Storage</h3>
+                        <div class="resource-details">
+                            <div class="resource-item">
+                                <span class="label">Neo4j Disk:</span>
+                                <span class="value" id="diskUsage">Loading...</span>
+                            </div>
+                            <div class="resource-item">
+                                <span class="label">Available Space:</span>
+                                <span class="value" id="diskAvailable">Loading...</span>
+                            </div>
+                            <div class="resource-item">
+                                <span class="label">Disk Usage:</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="diskProgress"></div>
+                                </div>
+                            </div>
+                            <div class="command-reference">
+                                <small><strong>💡 Command Line:</strong> <code>df -h /var/lib/neo4j</code></small>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Java Configuration Section -->
-        <div class="config-section">
-            <h2>☕ Java Configuration</h2>
-            <div class="config-grid">
-                <div class="config-item">
-                    <span class="config-label">Java Version:</span>
-                    <span class="config-value" id="javaVersion">Loading...</span>
+            <!-- Java Configuration Section -->
+            <div class="config-section">
+                <h2>☕ Java Configuration</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <span class="config-label">Java Version:</span>
+                        <span class="config-value" id="javaVersion">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Heap Initial Size (-Xms):</span>
+                        <span class="config-value" id="heapInit">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Heap Max Size (-Xmx):</span>
+                        <span class="config-value" id="heapMax">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Max Metaspace:</span>
+                        <span class="config-value" id="maxMetaspace">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">GC Algorithm:</span>
+                        <span class="config-value" id="gcAlgorithm">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Current Heap Usage:</span>
+                        <span class="config-value" id="currentHeapUsage">Loading...</span>
+                    </div>
                 </div>
-                <div class="config-item">
-                    <span class="config-label">Heap Initial Size (-Xms):</span>
-                    <span class="config-value" id="heapInit">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Heap Max Size (-Xmx):</span>
-                    <span class="config-value" id="heapMax">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Max Metaspace:</span>
-                    <span class="config-value" id="maxMetaspace">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">GC Algorithm:</span>
-                    <span class="config-value" id="gcAlgorithm">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Current Heap Usage:</span>
-                    <span class="config-value" id="currentHeapUsage">Loading...</span>
+                <div class="command-reference">
+                    <strong>💡 Command Line Checks:</strong>
+                    <div class="command-list">
+                        <code>ps aux | grep neo4j | grep -v grep | head -1 | tr ' ' '\n' | grep -E '^-Xmx'</code> - Check heap max<br>
+                        <code>jstat -gc $(pgrep -f 'java.*neo4j' | head -1)</code> - Current heap usage<br>
+                        <code>systemctl status neo4j --no-pager -l</code> - Neo4j service status
+                    </div>
                 </div>
             </div>
-            <div class="command-reference">
-                <strong>💡 Command Line Checks:</strong>
-                <div class="command-list">
-                    <code>ps aux | grep neo4j | grep -v grep | head -1 | tr ' ' '\n' | grep -E '^-Xmx'</code> - Check heap max<br>
-                    <code>jstat -gc $(pgrep -f 'java.*neo4j' | head -1)</code> - Current heap usage<br>
-                    <code>systemctl status neo4j --no-pager -l</code> - Neo4j service status
-                </div>
-            </div>
-        </div>
 
-        <!-- Database Size Analysis Section -->
-        <div class="config-section">
-            <h2>📊 Database Size Analysis</h2>
-            <div id="databaseAnalysisContainer">
-                <div class="loading">Loading database size analysis...</div>
-            </div>
-            <div class="command-reference">
-                <strong>💡 Command Line Checks:</strong>
-                <div class="command-list">
-                    <code>du -sh /var/lib/neo4j/data/databases/*</code> - Database sizes<br>
-                    <code>sudo neo4j-admin server memory-recommendation</code> - Detailed size analysis
+            <!-- Database Size Analysis Section -->
+            <div class="config-section">
+                <h2>📊 Database Size Analysis</h2>
+                <div id="databaseAnalysisContainer">
+                    <div class="loading">Loading database size analysis...</div>
+                </div>
+                <div class="command-reference">
+                    <strong>💡 Command Line Checks:</strong>
+                    <div class="command-list">
+                        <code>du -sh /var/lib/neo4j/data/databases/*</code> - Database sizes<br>
+                        <code>sudo neo4j-admin server memory-recommendation</code> - Detailed size analysis
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Neo4j Configuration Section -->
-        <div class="config-section">
-            <h2>🗄️ Neo4j Configuration</h2>
-            <div class="config-grid">
-                <div class="config-item">
-                    <span class="config-label">Neo4j Version:</span>
-                    <span class="config-value" id="neo4jVersion">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Heap Initial Size:</span>
-                    <span class="config-value" id="neo4jHeapInit">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Heap Max Size:</span>
-                    <span class="config-value" id="neo4jHeapMax">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Pagecache Size:</span>
-                    <span class="config-value" id="pagecacheSize">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Transaction Timeout:</span>
-                    <span class="config-value" id="transactionTimeout">Loading...</span>
-                </div>
-                <div class="config-item">
-                    <span class="config-label">Default Database:</span>
-                    <span class="config-value" id="defaultDatabase">Loading...</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Neo4j Admin Recommendations Section -->
-        <div class="config-section">
-            <h2>⚙️ Neo4j Admin Memory Recommendations</h2>
-            <div class="admin-recommendations">
-                <p><strong>Command:</strong> <code>sudo neo4j-admin server memory-recommendation</code></p>
-                <div id="adminRecommendationsContainer">
-                    <div class="loading">Loading Neo4j admin recommendations...</div>
+            <!-- Neo4j Configuration Section -->
+            <div class="config-section">
+                <h2>🗄️ Neo4j Configuration</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <span class="config-label">Neo4j Version:</span>
+                        <span class="config-value" id="neo4jVersion">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Heap Initial Size:</span>
+                        <span class="config-value" id="neo4jHeapInit">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Heap Max Size:</span>
+                        <span class="config-value" id="neo4jHeapMax">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Pagecache Size:</span>
+                        <span class="config-value" id="pagecacheSize">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Transaction Timeout:</span>
+                        <span class="config-value" id="transactionTimeout">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Default Database:</span>
+                        <span class="config-value" id="defaultDatabase">Loading...</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Optimization Recommendations Section -->
-        <div class="config-section">
-            <h2>💡 Brainstorm System Recommendations</h2>
-            <div id="recommendationsContainer">
-                <div class="loading">Loading recommendations...</div>
+            <!-- Neo4j Admin Recommendations Section -->
+            <div class="config-section">
+                <h2>⚙️ Neo4j Admin Memory Recommendations</h2>
+                <div class="admin-recommendations">
+                    <p><strong>Command:</strong> <code>sudo neo4j-admin server memory-recommendation</code></p>
+                    <div id="adminRecommendationsContainer">
+                        <div class="loading">Loading Neo4j admin recommendations...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Recommendations Section -->
+            <div class="config-section">
+                <h2>💡 Brainstorm System Recommendations</h2>
+                <div id="recommendationsContainer">
+                    <div class="loading">Loading recommendations...</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="footer-container"></div>
+    <!-- Include the footer component -->
+    <div id="footerContainer"></div>
 
     <script>
         let configData = null;
@@ -208,22 +215,8 @@
 
         // Load header and footer components
         async function loadComponents() {
-            try {
-                const [headerResponse, footerResponse] = await Promise.all([
-                    fetch('/components/header/header.html'),
-                    fetch('/components/footer/footer.html')
-                ]);
-                
-                document.getElementById('header-container').innerHTML = await headerResponse.text();
-                document.getElementById('footer-container').innerHTML = await footerResponse.text();
-                
-                // Load header script
-                const headerScript = document.createElement('script');
-                headerScript.src = '/components/header/header.js';
-                document.head.appendChild(headerScript);
-            } catch (error) {
-                console.error('Error loading components:', error);
-            }
+            // Components are automatically loaded by header.js and footer.js scripts
+            // No manual loading needed
         }
 
         // Load configuration data
