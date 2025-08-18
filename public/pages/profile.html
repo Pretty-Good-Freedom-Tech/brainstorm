@@ -297,7 +297,7 @@
         
         // Get pubkey from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const pubkey = urlParams.get('pubkey');
+        let pubkey = urlParams.get('pubkey');
         const npub = urlParams.get('npub');
         
         if (!pubkey && !npub) {
@@ -314,10 +314,6 @@
                         }
                     });
             }
-            
-            // Configure GrapeRank Review link
-            document.getElementById('grapeRankReviewLink').href = `graperank-calculations-review.html?pubkey=${pubkey}`;
-            document.getElementById('profileNjumpLink').href = `https://njump.me/p/${pubkey}`;
             
             // Base URL for API calls
             const baseUrl = '/api';
@@ -343,6 +339,10 @@
         
         // Load profile data if pubkey is provided
         if (pubkey) {
+            // Configure GrapeRank Review link
+            document.getElementById('grapeRankReviewLink').href = `graperank-calculations-review.html?pubkey=${pubkey}`;
+            document.getElementById('profileNjumpLink').href = `https://njump.me/p/${pubkey}`;
+            
             // Hide error message
             errorMessage.style.display = 'none';
             
@@ -355,9 +355,6 @@
 
             // Sequential API calls to prevent concurrent request issues
             loadProfileDataSequentially(pubkey, baseUrl);
-        } else {
-            // Show error message if no pubkey is provided
-            showError('No pubkey provided');
         }
         
         // Function to load profile data sequentially
