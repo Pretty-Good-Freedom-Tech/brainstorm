@@ -1,7 +1,7 @@
 /**
  * NostrUser Data Queries
  * Handles retrieval of individual NostrUser data from Neo4j
- * able to pull from NostrUser nodes or from NostrUserWotMetricsCard nodes depending on whether a valid observerPubkey is provided.
+ * handles endpoint: /api/get-npub-from-pubkey
  */
 
 const neo4j = require('neo4j-driver');
