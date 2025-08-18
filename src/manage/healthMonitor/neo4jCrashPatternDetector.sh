@@ -327,18 +327,18 @@ check_heap_and_gc_health() {
         fi
     fi
     
-    # Only proceed with analysis if we have valid metrics
+    # Calculate GC overhead (time spent in GC) - this can work even with partial metrics
+    local total_gc_time=$(echo "$young_gc_time $full_gc_time" | awk '{print $1 + $2}')
+    local gc_overhead_percent=0
+    
+    # Estimate runtime (this is approximate)
+    local uptime_seconds=$(ps -o etime= -p "$neo4j_pid" 2>/dev/null | awk -F: '{if(NF==3) print $1*3600+$2*60+$3; else if(NF==2) print $1*60+$2; else print $1}' || echo "0")
+    if [[ "$uptime_seconds" -gt 0 && "$total_gc_time" != "0" ]]; then
+        gc_overhead_percent=$(echo "$total_gc_time $uptime_seconds" | awk '{printf "%.1f", ($1 * 100) / $2}')
+    fi
+    
+    # Only emit detailed metrics if we have comprehensive data
     if [[ "$metrics_source" != "unavailable" ]]; then
-        # Calculate GC overhead (time spent in GC)
-        local total_gc_time=$(echo "$young_gc_time $full_gc_time" | awk '{print $1 + $2}')
-        local gc_overhead_percent=0
-        
-        # Estimate runtime (this is approximate)
-        local uptime_seconds=$(ps -o etime= -p "$neo4j_pid" 2>/dev/null | awk -F: '{if(NF==3) print $1*3600+$2*60+$3; else if(NF==2) print $1*60+$2; else print $1}' || echo "0")
-        if [[ "$uptime_seconds" -gt 0 ]]; then
-            gc_overhead_percent=$(echo "$total_gc_time $uptime_seconds" | awk '{printf "%.1f", ($1 * 100) / $2}')
-        fi
-        
         # Emit detailed metrics with source information including metaspace
         emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
             --argjson heapPercent "$heap_percent" \
@@ -355,52 +355,74 @@ check_heap_and_gc_health() {
             --arg metricsSource "$metrics_source" \
             '{
                 "message": "Current heap, metaspace and GC metrics analyzed",
-                    "phase": "heap_gc_health_check",
-                    "metrics": {
-                        "heapUtilizationPercent": $heapPercent,
-                        "heapUsedMB": $heapUsedMB,
-                        "heapTotalMB": $heapTotalMB,
-                        "metaspaceUtilizationPercent": $metaspacePercent,
-                        "metaspaceUsedMB": $metaspaceUsedMB,
-                        "metaspaceTotalMB": $metaspaceTotalMB,
-                        "youngGcCount": $youngGcCount,
-                        "youngGcTimeSeconds": $youngGcTime,
-                        "fullGcCount": $fullGcCount,
-                        "fullGcTimeSeconds": $fullGcTime,
-                        "gcOverheadPercent": $gcOverheadPercent
-                    }
-                }')"
-            
-            # Generate alerts based on thresholds
-            if [[ "$heap_percent" -ge "$NEO4J_HEAP_CRITICAL_THRESHOLD" ]]; then
-                emit_crash_alert "NEO4J_HEAP_CRITICAL" "critical" \
-                    "Neo4j heap utilization at ${heap_percent}% (critical threshold: ${NEO4J_HEAP_CRITICAL_THRESHOLD}%)" \
-                    "heap_near_exhaustion" \
-                    "Immediate action required: increase heap size or reduce memory usage"
-            elif [[ "$heap_percent" -ge "$NEO4J_HEAP_WARNING_THRESHOLD" ]]; then
-                emit_crash_alert "NEO4J_HEAP_WARNING" "warning" \
-                    "Neo4j heap utilization at ${heap_percent}% (warning threshold: ${NEO4J_HEAP_WARNING_THRESHOLD}%)" \
-                    "heap_high_utilization" \
-                    "Monitor closely, consider heap tuning or query optimization"
-            fi
-            
-            # Check for excessive GC overhead
-            local gc_overhead_int=$(echo "$gc_overhead_percent" | awk '{printf "%.0f", $1}')
-            if [[ "$gc_overhead_int" -ge "$NEO4J_GC_OVERHEAD_THRESHOLD" ]]; then
-                emit_crash_alert "NEO4J_GC_THRASHING" "critical" \
-                    "Neo4j GC overhead at ${gc_overhead_percent}% (threshold: ${NEO4J_GC_OVERHEAD_THRESHOLD}%)" \
-                    "gc_thrashing" \
-                    "JVM spending too much time in garbage collection. Increase heap or optimize queries"
-            fi
-            
-            # Check for excessive full GC frequency
-            if [[ "$full_gc_count" -gt "$NEO4J_FULL_GC_FREQUENCY_THRESHOLD" ]]; then
-                emit_crash_alert "NEO4J_EXCESSIVE_FULL_GC" "warning" \
-                    "Neo4j has performed $full_gc_count full GC cycles (threshold: $NEO4J_FULL_GC_FREQUENCY_THRESHOLD)" \
-                    "frequent_full_gc" \
-                    "Frequent full GCs indicate memory pressure. Consider heap tuning"
-            fi
+                "phase": "heap_gc_health_check",
+                "metrics": {
+                    "heapUtilizationPercent": $heapPercent,
+                    "heapUsedMB": $heapUsedMB,
+                    "heapTotalMB": $heapTotalMB,
+                    "metaspaceUtilizationPercent": $metaspacePercent,
+                    "metaspaceUsedMB": $metaspaceUsedMB,
+                    "metaspaceTotalMB": $metaspaceTotalMB,
+                    "youngGcCount": $youngGcCount,
+                    "youngGcTimeSeconds": $youngGcTime,
+                    "fullGcCount": $fullGcCount,
+                    "fullGcTimeSeconds": $fullGcTime,
+                    "gcOverheadPercent": $gcOverheadPercent
+                }
+            }')"
+    else
+        # Emit limited metrics when comprehensive data unavailable but some metrics exist
+        emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
+            --arg gcOverheadPercent "$gc_overhead_percent" \
+            --arg metricsSource "$metrics_source" \
+            --argjson partialData "$(test "$total_gc_time" != "0" && echo true || echo false)" \
+            '{
+                "message": "Limited metrics available for analysis",
+                "phase": "heap_gc_health_check",
+                "metricsSource": $metricsSource,
+                "partialData": $partialData,
+                "limitedMetrics": {
+                    "gcOverheadPercent": $gcOverheadPercent
+                }
+            }')"
+    fi
+    
+    # Generate alerts based on available thresholds (moved outside metrics availability check)
+    # Heap alerts - only if we have valid heap data
+    if [[ "$metrics_source" != "unavailable" && "$heap_percent" -gt 0 ]]; then
+        if [[ "$heap_percent" -ge "$NEO4J_HEAP_CRITICAL_THRESHOLD" ]]; then
+            emit_crash_alert "NEO4J_HEAP_CRITICAL" "critical" \
+                "Neo4j heap utilization at ${heap_percent}% (critical threshold: ${NEO4J_HEAP_CRITICAL_THRESHOLD}%)" \
+                "heap_near_exhaustion" \
+                "Immediate action required: increase heap size or reduce memory usage"
+        elif [[ "$heap_percent" -ge "$NEO4J_HEAP_WARNING_THRESHOLD" ]]; then
+            emit_crash_alert "NEO4J_HEAP_WARNING" "warning" \
+                "Neo4j heap utilization at ${heap_percent}% (warning threshold: ${NEO4J_HEAP_WARNING_THRESHOLD}%)" \
+                "heap_high_utilization" \
+                "Monitor closely, consider heap tuning or query optimization"
         fi
+    fi
+    
+    # GC overhead alerts - can work with partial metrics if GC data is available
+    if [[ "$total_gc_time" != "0" && "$gc_overhead_percent" != "0" ]]; then
+        local gc_overhead_int=$(echo "$gc_overhead_percent" | awk '{printf "%.0f", $1}')
+        if [[ "$gc_overhead_int" -ge "$NEO4J_GC_OVERHEAD_THRESHOLD" ]]; then
+            emit_crash_alert "NEO4J_GC_THRASHING" "critical" \
+                "Neo4j GC overhead at ${gc_overhead_percent}% (threshold: ${NEO4J_GC_OVERHEAD_THRESHOLD}%)" \
+                "gc_thrashing" \
+                "JVM spending too much time in garbage collection. Increase heap or optimize queries"
+        fi
+    fi
+    
+    # Full GC frequency alerts - only if we have valid GC count data
+    if [[ "$metrics_source" != "unavailable" && "$full_gc_count" -gt 0 ]]; then
+        if [[ "$full_gc_count" -gt "$NEO4J_FULL_GC_FREQUENCY_THRESHOLD" ]]; then
+            emit_crash_alert "NEO4J_EXCESSIVE_FULL_GC" "warning" \
+                "Neo4j has performed $full_gc_count full GC cycles (threshold: $NEO4J_FULL_GC_FREQUENCY_THRESHOLD)" \
+                "frequent_full_gc" \
+                "Frequent full GCs indicate memory pressure. Consider heap tuning"
+        fi
+    fi
 }
 
 # Function to check for APOC-related stalling patterns

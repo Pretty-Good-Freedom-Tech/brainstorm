@@ -109,6 +109,7 @@ function loadNavbar() {
         || currentPath === '/task-behavior-analytics-dashboard.html'
         || currentPath === '/neo4j-error-logs.html'
         || currentPath === '/neo4j-resource-config.html'
+        || currentPath === '/add-customer.html'
         || currentPath === '/control/home.html' 
         || currentPath === '/control/nip85.html' 
         || currentPath === '/control/nip87.html' 
@@ -443,6 +444,7 @@ function highlightCurrentPage() {
         '/neo4j-error-logs.html': '/neo4j-error-logs',
         '/neo4j-resource-config.html': '/neo4j-resource-config',
         '/neo4j-control-panel.html': '/neo4j-control-panel',
+        '/add-customer.html': '/add-customer',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
