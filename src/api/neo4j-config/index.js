@@ -344,56 +344,32 @@ class Neo4jConfigAnalyzer {
                     priority: 'High',
                     title: 'Compromise Memory Configuration',
                     current: `Heap: ${javaConfig.heapMax || 'Unknown'}, Pagecache: ${neo4jConfig.pagecacheSize || 'Unknown'}`,
-                    recommended: `Heap: ${minHeapGB}g, Pagecache: ${compromisePagecacheGB}g (limited by available memory)`,
-                    configLocation: 'neo4j.conf: server.memory settings',
-                    reasoning: `Temporary configuration until memory upgrade. ${Math.round((dbSizeGB - compromisePagecacheGB) / dbSizeGB * 100)}% of database will require disk I/O`
+                    recommended: `Use Neo4j Admin Memory Recommendations (see section above)`,
+                    configLocation: 'Run: sudo neo4j-admin server memory-recommendation',
+                    reasoning: `Neo4j's built-in recommendation tool provides optimal settings based on your system resources and database size`
                 });
             } else {
                 // Optimal configuration fits in current system
                 recommendations.push({
                     category: 'Memory Configuration',
                     priority: 'High',
-                    title: 'Database-Optimized Heap Size',
-                    current: `Heap Max: ${javaConfig.heapMax || 'Unknown'}`,
-                    recommended: `Set heap to ${minHeapGB}g`,
-                    configLocation: 'neo4j.conf: server.memory.heap.max_size',
-                    reasoning: `Conservative heap size to maximize pagecache for your ${dbSizeGB}GB database`
-                });
-                
-                recommendations.push({
-                    category: 'Memory Configuration',
-                    priority: 'High',
-                    title: 'Database-Sized Pagecache',
-                    current: `Pagecache: ${neo4jConfig.pagecacheSize || 'Auto-configured'}`,
-                    recommended: `Set pagecache to ${optimalPagecacheGB}g`,
-                    configLocation: 'neo4j.conf: server.memory.pagecache.size',
-                    reasoning: `Sized to hold your entire ${dbSizeGB}GB database in memory with 10% growth buffer`
+                    title: 'Memory Configuration',
+                    current: `Heap: ${javaConfig.heapMax || 'Unknown'}, Pagecache: ${neo4jConfig.pagecacheSize || 'Unknown'}`,
+                    recommended: `Use Neo4j Admin Memory Recommendations (see section above)`,
+                    configLocation: 'Run: sudo neo4j-admin server memory-recommendation',
+                    reasoning: `Neo4j's built-in recommendation tool provides optimal settings based on your system resources and database size`
                 });
             }
         } else if (systemResources.totalMemoryGB) {
-            // Fallback to percentage-based recommendations
-            const totalMemGB = systemResources.totalMemoryGB;
-            const recommendedHeapGB = Math.floor(totalMemGB * 0.3);
-            const recommendedPagecacheGB = Math.floor(totalMemGB * 0.4);
-            
+            // Fallback recommendation - defer to Neo4j admin tool
             recommendations.push({
                 category: 'Memory Configuration',
                 priority: 'High',
-                title: 'Heap Size Optimization',
-                current: `Heap Max: ${javaConfig.heapMax || 'Unknown'}`,
-                recommended: `Set heap to ${recommendedHeapGB}g (30% of ${totalMemGB}GB total memory)`,
-                configLocation: 'neo4j.conf: server.memory.heap.max_size',
-                reasoning: 'Neo4j performs best with heap size around 30% of total memory, leaving room for pagecache and OS'
-            });
-            
-            recommendations.push({
-                category: 'Memory Configuration',
-                priority: 'High',
-                title: 'Pagecache Size Optimization',
-                current: `Pagecache: ${neo4jConfig.pagecacheSize || 'Auto-configured'}`,
-                recommended: `Set pagecache to ${recommendedPagecacheGB}g (40% of ${totalMemGB}GB total memory)`,
-                configLocation: 'neo4j.conf: server.memory.pagecache.size',
-                reasoning: 'Pagecache should be sized to hold your entire graph in memory for optimal performance'
+                title: 'Memory Configuration',
+                current: `Heap: ${javaConfig.heapMax || 'Unknown'}, Pagecache: ${neo4jConfig.pagecacheSize || 'Unknown'}`,
+                recommended: `Use Neo4j Admin Memory Recommendations (see section above)`,
+                configLocation: 'Run: sudo neo4j-admin server memory-recommendation',
+                reasoning: `Neo4j's built-in recommendation tool provides optimal settings based on your system resources`
             });
         }
         
