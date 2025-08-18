@@ -45,7 +45,7 @@
 
     <script>
         // function to get profile data from pubkey and display it in the profile card
-        function getProfileDataUsingPubkey(pubkey) {
+        function displayProfile(pubkey,npub) {
             fetch(`/api/get-kind0?pubkey=${pubkey}`)
                 .then(response => response.json())
                 .then(result => {
@@ -69,7 +69,7 @@
                                     <div class="profile-info">
                                         <h3 class="profile-name">${displayName}</h3>
                                         <p class="profile-handle">@${name}</p>
-                                        <p class="profile-npub">${searchNpub.substring(0, 8)}...${searchNpub.substring(searchNpub.length - 4)}</p>
+                                        <p class="profile-npub">${npub.substring(0, 8)}...${searchNpub.substring(searchNpub.length - 4)}</p>
                                     </div>
                                 </a>
                             </div>
@@ -115,7 +115,7 @@
                         // turn this element off for now; may deprecate
                         // searchResultsPubkeyElem.style.display = 'block';
                         // Now use the get-kind0 endpoint to get the profile data
-                        getProfileDataUsingPubkey(searchResultPubkey);
+                        displayProfile(searchResultPubkey,searchNpub);
                     } else {
                         console.error('Search failed:', 'No profile data found');
                     }

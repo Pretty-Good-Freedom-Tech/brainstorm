@@ -1,6 +1,7 @@
 /**
  * Nostr Profiles Kind 0 Queries
  * Handles retrieval of kind 0 profile events
+ * handler for /api/get-kind0
  */
 
 const { exec } = require('child_process');
