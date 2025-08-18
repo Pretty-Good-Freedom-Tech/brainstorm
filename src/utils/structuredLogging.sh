@@ -250,10 +250,20 @@ rotate_events_file_if_needed() {
         log_info "Rotating events file" "current_lines=$line_count max_lines=$BRAINSTORM_EVENTS_MAX_SIZE"
         
         # Preserve critical data before rotation
-        local preserver_script="${BRAINSTORM_LOG_DIR%/*}/src/utils/criticalDataPreserver.sh"
+        local preserver_script
+        if [[ -n "$BRAINSTORM_MODULE_BASE_DIR" ]]; then
+            preserver_script="${BRAINSTORM_MODULE_BASE_DIR}/src/utils/criticalDataPreserver.sh"
+        else
+            # Fallback: try to find the script relative to this script's location
+            local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+            preserver_script="${script_dir}/criticalDataPreserver.sh"
+        fi
+        
         if [[ -f "$preserver_script" ]]; then
-            log_info "Preserving critical monitoring data before rotation"
+            log_info "Preserving critical monitoring data before rotation" "script_path=$preserver_script"
             bash "$preserver_script" 2>/dev/null || log_warn "Critical data preservation failed"
+        else
+            log_warn "Critical data preservation script not found" "expected_path=$preserver_script"
         fi
         
         # Enhanced rotation: preserve high-value events + keep recent events

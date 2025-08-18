@@ -592,6 +592,25 @@
                 });
                 const gcOverhead = data.map(point => point.gcOverheadPercent || point.gcTimePercent || 0);
                 
+                // Calculate dynamic Y-axis range for GC Overhead
+                const maxGcOverhead = Math.max(...gcOverhead.filter(val => val > 0));
+                const gcAxisMax = calculateGcAxisMax(maxGcOverhead);
+                
+                // Update GC Overhead axis dynamically
+                heapChart.options.scales.y1.max = gcAxisMax;
+                
+                // Add warning annotation if GC overhead is critically high
+                if (maxGcOverhead > 100) {
+                    heapChart.options.scales.y1.title.text = `⚠️ GC Overhead % (Max: ${maxGcOverhead.toFixed(1)}%)`;
+                    heapChart.options.scales.y1.title.color = '#ef4444';
+                } else if (maxGcOverhead > 50) {
+                    heapChart.options.scales.y1.title.text = `⚠️ GC Overhead % (Max: ${maxGcOverhead.toFixed(1)}%)`;
+                    heapChart.options.scales.y1.title.color = '#f59e0b';
+                } else {
+                    heapChart.options.scales.y1.title.text = 'GC Overhead %';
+                    heapChart.options.scales.y1.title.color = '#666';
+                }
+                
                 // Store raw data for tooltips
                 heapChart.data.datasets[0].rawData = data;
                 
@@ -604,11 +623,27 @@
                 heapChart.update();
                 
                 console.log(`Updated heap chart with ${data.length} data points from ${usePreservedData ? 'preserved' : 'current'} data`);
+                console.log(`GC Overhead range: 0% - ${maxGcOverhead.toFixed(1)}%, Y-axis max: ${gcAxisMax}`);
                 
             } catch (error) {
                 console.error('Error updating heap chart:', error);
                 updateDataSourceIndicator('Network error', 'error');
             }
+        }
+        
+        // Calculate appropriate Y-axis maximum for GC Overhead based on data range
+        function calculateGcAxisMax(maxValue) {
+            if (maxValue <= 0) return 20; // Default range for normal conditions
+            if (maxValue <= 20) return 25;
+            if (maxValue <= 50) return 60;
+            if (maxValue <= 100) return 120;
+            if (maxValue <= 200) return 250;
+            if (maxValue <= 500) return 600;
+            if (maxValue <= 1000) return 1200;
+            if (maxValue <= 2000) return 2500;
+            
+            // For extremely high values, round up to nearest 1000
+            return Math.ceil(maxValue / 1000) * 1000 + 500;
         }
         
         // Update data source indicator
