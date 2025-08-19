@@ -175,6 +175,11 @@ check_heap_and_gc_health() {
         return
     fi
     
+    # DEBUG: Output PID detection results to console
+    echo "DEBUG: Neo4j PID detected: $neo4j_pid"
+    echo "DEBUG: Process details:"
+    ps aux | grep "$neo4j_pid" | grep -v grep || echo "  No process found for PID $neo4j_pid"
+    
     # Get detailed heap and GC information from enhanced metrics collector or fallback to direct jstat
     local heap_percent=0
     local heap_used=0
@@ -267,8 +272,16 @@ check_heap_and_gc_health() {
             }')"
         
         if command -v jstat >/dev/null 2>&1; then
+            # DEBUG: Output jstat commands and results
+            echo "DEBUG: Executing jstat commands for PID $neo4j_pid"
+            echo "DEBUG: Command 1: sudo jstat -gc $neo4j_pid"
             local heap_info=$(sudo jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+            echo "DEBUG: jstat -gc result:"
+            echo "$heap_info"
+            echo "DEBUG: Command 2: sudo jstat -class $neo4j_pid"
             local metaspace_info=$(sudo jstat -class "$neo4j_pid" 2>/dev/null || echo "")
+            echo "DEBUG: jstat -class result:"
+            echo "$metaspace_info"
             
             emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
                 --argjson hasHeapInfo "$(test -n "$heap_info" && echo true || echo false)" \
@@ -301,24 +314,59 @@ check_heap_and_gc_health() {
                     local metaspace_data=$(echo "$metaspace_info" | tail -1)
                     # jstat -class shows: Loaded Bytes Unloaded Bytes Time
                     metaspace_used=$(echo "$metaspace_data" | awk '{print $2}')
+                    echo "DEBUG: Metaspace from jstat -class: used=$metaspace_used bytes"
                     
                     # Use jstat -gc for more reliable metaspace data (MU and MC columns)
+                    echo "DEBUG: Command 3: sudo jstat -gc $neo4j_pid (for metaspace MC/MU)"
                     local gc_info=$(sudo jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+                    echo "DEBUG: jstat -gc result for metaspace:"
+                    echo "$gc_info"
                     if [[ -n "$gc_info" ]]; then
+                        local gc_header=$(echo "$gc_info" | head -1)
                         local gc_data=$(echo "$gc_info" | tail -1)
-                        # Try to find MU (Metaspace Used) and MC (Metaspace Capacity) columns
-                        # jstat -gc typically has these as later columns
-                        local mu_value=$(echo "$gc_data" | awk '{print $(NF-3)}' 2>/dev/null || echo "0")
-                        local mc_value=$(echo "$gc_data" | awk '{print $(NF-2)}' 2>/dev/null || echo "0")
+                        
+                        echo "DEBUG: jstat -gc header: $gc_header"
+                        echo "DEBUG: jstat -gc data: $gc_data"
+                        
+                        # Find MC and MU column positions dynamically
+                        local mc_col=$(echo "$gc_header" | tr ' ' '\n' | grep -n "^MC$" | cut -d: -f1 2>/dev/null || echo "0")
+                        local mu_col=$(echo "$gc_header" | tr ' ' '\n' | grep -n "^MU$" | cut -d: -f1 2>/dev/null || echo "0")
+                        
+                        echo "DEBUG: MC column position: $mc_col"
+                        echo "DEBUG: MU column position: $mu_col"
+                        
+                        local mc_value="0"
+                        local mu_value="0"
+                        
+                        if [[ "$mc_col" -gt 0 ]]; then
+                            mc_value=$(echo "$gc_data" | awk -v col="$mc_col" '{print $col}' 2>/dev/null || echo "0")
+                        fi
+                        
+                        if [[ "$mu_col" -gt 0 ]]; then
+                            mu_value=$(echo "$gc_data" | awk -v col="$mu_col" '{print $col}' 2>/dev/null || echo "0")
+                        fi
+                        
+                        echo "DEBUG: Parsed MC (metaspace capacity): $mc_value KB"
+                        echo "DEBUG: Parsed MU (metaspace used): $mu_value KB"
                         
                         # Convert from KB to bytes for consistency
                         if [[ "$mc_value" =~ ^[0-9]+\.?[0-9]*$ ]] && [[ $(echo "$mc_value > 0" | bc -l 2>/dev/null || echo "0") == "1" ]]; then
                             metaspace_total=$(echo "$mc_value * 1024" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
+                            echo "DEBUG: Converted MC to bytes: $metaspace_total"
                         fi
                         
-                        # Alternative: use metaspace_used from jstat -class and capacity from -gc
+                        # Use MU from jstat -gc if available, otherwise fall back to jstat -class
+                        if [[ "$mu_value" =~ ^[0-9]+\.?[0-9]*$ ]] && [[ $(echo "$mu_value > 0" | bc -l 2>/dev/null || echo "0") == "1" ]]; then
+                            metaspace_used=$(echo "$mu_value * 1024" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
+                            echo "DEBUG: Using MU from jstat -gc, converted to bytes: $metaspace_used"
+                        fi
+                        
+                        # Calculate metaspace percentage
                         if [[ "$metaspace_total" -gt 0 && "$metaspace_used" -gt 0 ]]; then
                             metaspace_percent=$(echo "$metaspace_used $metaspace_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                            echo "DEBUG: Calculated metaspace percentage: $metaspace_percent% (used: $metaspace_used, total: $metaspace_total)"
+                        else
+                            echo "DEBUG: Cannot calculate metaspace percentage - used: $metaspace_used, total: $metaspace_total"
                         fi
                     fi
                     
