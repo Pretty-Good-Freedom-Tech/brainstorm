@@ -38,9 +38,17 @@ async function getTaskExplorerData(req, res) {
         const events = eventsAnalyzer.loadEvents();
         const executionData = eventsAnalyzer.analyzeTaskExecution(events);
 
+        // Load preserved task execution history for enhanced analytics
+        const preservedHistoryPath = path.join(config.BRAINSTORM_LOG_DIR, 'preserved', 'system_metrics_history.jsonl');
+        const preservedExecutionData = loadPreservedTaskHistory(preservedHistoryPath);
+
         // Transform tasks for the explorer - only process the 'tasks' section
         const tasks = Object.entries(taskRegistry.tasks || {}).map(([taskName, taskData]) => {
             const execData = executionData[taskName];
+            const preservedData = preservedExecutionData[taskName];
+            
+            // Merge current execution data with preserved historical data
+            const mergedExecution = mergeExecutionData(execData, preservedData);
             
             return {
                 name: taskName,
@@ -58,28 +66,21 @@ async function getTaskExplorerData(req, res) {
                 isCustomerTask: !!(taskData.categories && taskData.categories.includes('customer')),
                 isOwnerTask: !!(taskData.categories && taskData.categories.includes('owner')),
                 childCount: taskData.children ? taskData.children.length : 0,
-                // Execution data from structured logging - using the correct analyzer data
-                execution: execData || {
-                    hasExecutionData: false,
-                    isRunning: false,
-                    lastStatus: null,
-                    lastRun: null,
-                    lastRunFormatted: null,
-                    timeSinceLastRun: null,
-                    timeSinceLastRunMinutes: null,
-                    lastInitiated: null,
-                    lastInitiatedFormatted: null,
-                    timeSinceLastInitiated: null,
-                    timeSinceLastInitiatedFormatted: null,
-                    lastDuration: null,
-                    lastDurationFormatted: null,
-                    averageDuration: null,
-                    averageDurationFormatted: null,
-                    totalRuns: 0,
-                    successfulRuns: 0,
-                    failedRuns: 0,
-                    successRate: '0.0'
-                }
+                // Enhanced execution data combining current and historical data
+                execution: mergedExecution,
+                // Historical execution patterns from preserved data
+                history: preservedData ? {
+                    totalHistoricalRuns: preservedData.totalRuns,
+                    historicalSuccessRate: preservedData.successRate,
+                    historicalFailureRate: preservedData.failureRate,
+                    averageHistoricalDuration: preservedData.averageDuration,
+                    longestHistoricalDuration: preservedData.longestDuration,
+                    shortestHistoricalDuration: preservedData.shortestDuration,
+                    firstRecordedRun: preservedData.firstRun,
+                    lastHistoricalRun: preservedData.lastRun,
+                    executionTrend: preservedData.trend,
+                    recentFailures: preservedData.recentFailures
+                } : null
             };
         });
 
@@ -102,6 +103,209 @@ async function getTaskExplorerData(req, res) {
             details: error.message 
         });
     }
+}
+
+/**
+ * Load and analyze preserved task execution history from system_metrics_history.jsonl
+ */
+function loadPreservedTaskHistory(preservedHistoryPath) {
+    if (!fs.existsSync(preservedHistoryPath)) {
+        return {};
+    }
+
+    try {
+        const historyData = fs.readFileSync(preservedHistoryPath, 'utf8');
+        const historyLines = historyData.trim().split('\n').filter(line => line.trim());
+        
+        const taskHistory = {};
+        
+        // Process each execution record
+        historyLines.forEach(line => {
+            try {
+                const record = JSON.parse(line);
+                const taskName = record.taskName;
+                
+                if (!taskHistory[taskName]) {
+                    taskHistory[taskName] = {
+                        starts: [],
+                        ends: [],
+                        durations: [],
+                        failures: [],
+                        successes: []
+                    };
+                }
+                
+                if (record.eventType === 'TASK_START') {
+                    taskHistory[taskName].starts.push({
+                        timestamp: record.timestamp,
+                        tier: record.tier,
+                        priority: record.priority
+                    });
+                } else if (record.eventType === 'TASK_END') {
+                    taskHistory[taskName].ends.push({
+                        timestamp: record.timestamp,
+                        duration: record.duration,
+                        exitCode: record.exitCode,
+                        failure: record.failure,
+                        tier: record.tier,
+                        priority: record.priority
+                    });
+                    
+                    if (record.duration) {
+                        taskHistory[taskName].durations.push(record.duration);
+                    }
+                    
+                    if (record.failure) {
+                        taskHistory[taskName].failures.push({
+                            timestamp: record.timestamp,
+                            exitCode: record.exitCode
+                        });
+                    } else {
+                        taskHistory[taskName].successes.push({
+                            timestamp: record.timestamp,
+                            duration: record.duration
+                        });
+                    }
+                }
+            } catch (parseError) {
+                // Skip malformed lines
+                console.warn('Skipping malformed history line:', parseError.message);
+            }
+        });
+        
+        // Calculate analytics for each task
+        const analyzedHistory = {};
+        Object.entries(taskHistory).forEach(([taskName, history]) => {
+            analyzedHistory[taskName] = analyzeTaskHistory(history);
+        });
+        
+        return analyzedHistory;
+    } catch (error) {
+        console.error('Error loading preserved task history:', error);
+        return {};
+    }
+}
+
+/**
+ * Analyze historical execution data for a single task
+ */
+function analyzeTaskHistory(history) {
+    const totalRuns = history.ends.length;
+    const totalFailures = history.failures.length;
+    const totalSuccesses = history.successes.length;
+    
+    if (totalRuns === 0) {
+        return null;
+    }
+    
+    const successRate = ((totalSuccesses / totalRuns) * 100).toFixed(1);
+    const failureRate = ((totalFailures / totalRuns) * 100).toFixed(1);
+    
+    // Duration analysis
+    const durations = history.durations.filter(d => d > 0);
+    let averageDuration = 0;
+    let longestDuration = 0;
+    let shortestDuration = 0;
+    
+    if (durations.length > 0) {
+        averageDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+        longestDuration = Math.max(...durations);
+        shortestDuration = Math.min(...durations);
+    }
+    
+    // Time range analysis
+    const allTimestamps = [...history.starts, ...history.ends].map(e => new Date(e.timestamp));
+    const firstRun = allTimestamps.length > 0 ? new Date(Math.min(...allTimestamps)) : null;
+    const lastRun = allTimestamps.length > 0 ? new Date(Math.max(...allTimestamps)) : null;
+    
+    // Recent failure analysis (last 7 days)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentFailures = history.failures.filter(f => new Date(f.timestamp) > sevenDaysAgo);
+    
+    // Execution trend (comparing first half vs second half of data)
+    let trend = 'stable';
+    if (history.ends.length >= 10) {
+        const midpoint = Math.floor(history.ends.length / 2);
+        const firstHalf = history.ends.slice(0, midpoint);
+        const secondHalf = history.ends.slice(midpoint);
+        
+        const firstHalfFailureRate = firstHalf.filter(e => e.failure).length / firstHalf.length;
+        const secondHalfFailureRate = secondHalf.filter(e => e.failure).length / secondHalf.length;
+        
+        if (secondHalfFailureRate > firstHalfFailureRate + 0.1) {
+            trend = 'degrading';
+        } else if (secondHalfFailureRate < firstHalfFailureRate - 0.1) {
+            trend = 'improving';
+        }
+    }
+    
+    return {
+        totalRuns,
+        successRate: parseFloat(successRate),
+        failureRate: parseFloat(failureRate),
+        averageDuration: Math.round(averageDuration * 100) / 100,
+        longestDuration: Math.round(longestDuration * 100) / 100,
+        shortestDuration: Math.round(shortestDuration * 100) / 100,
+        firstRun: firstRun ? firstRun.toISOString() : null,
+        lastRun: lastRun ? lastRun.toISOString() : null,
+        trend,
+        recentFailures: recentFailures.length
+    };
+}
+
+/**
+ * Merge current execution data with preserved historical data
+ */
+function mergeExecutionData(currentData, preservedData) {
+    const defaultExecution = {
+        hasExecutionData: false,
+        isRunning: false,
+        lastStatus: null,
+        lastRun: null,
+        lastRunFormatted: null,
+        timeSinceLastRun: null,
+        timeSinceLastRunMinutes: null,
+        lastInitiated: null,
+        lastInitiatedFormatted: null,
+        timeSinceLastInitiated: null,
+        timeSinceLastInitiatedFormatted: null,
+        lastDuration: null,
+        lastDurationFormatted: null,
+        averageDuration: null,
+        averageDurationFormatted: null,
+        totalRuns: 0,
+        successfulRuns: 0,
+        failedRuns: 0,
+        successRate: '0.0'
+    };
+    
+    // Start with current data or defaults
+    const merged = currentData || defaultExecution;
+    
+    // Enhance with preserved historical data if available
+    if (preservedData) {
+        merged.hasHistoricalData = true;
+        merged.totalHistoricalRuns = preservedData.totalRuns;
+        merged.historicalSuccessRate = preservedData.successRate;
+        merged.historicalAverageDuration = preservedData.averageDuration;
+        
+        // If no current data, use historical data as fallback
+        if (!currentData || !currentData.hasExecutionData) {
+            merged.hasExecutionData = true;
+            merged.totalRuns = preservedData.totalRuns;
+            merged.successRate = preservedData.successRate.toString();
+            merged.averageDuration = preservedData.averageDuration;
+            merged.averageDurationFormatted = `${preservedData.averageDuration}s`;
+            
+            if (preservedData.lastRun) {
+                merged.lastRun = preservedData.lastRun;
+                merged.lastRunFormatted = new Date(preservedData.lastRun).toLocaleString();
+                merged.timeSinceLastRun = getTimeSinceLastRun(preservedData.lastRun);
+            }
+        }
+    }
+    
+    return merged;
 }
 
 /**
