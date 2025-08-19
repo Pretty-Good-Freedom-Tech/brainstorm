@@ -568,7 +568,7 @@
                 const hoursBack = 24;
                 
                 // Use the enhanced heap-metrics-history endpoint
-                const endpoint = '/api/neo4j-health/queries/heap-metrics-history';
+                const endpoint = '/api/neo4j-health/heap-metrics-history';
                 
                 const response = await fetch(`${endpoint}?hours=${hoursBack}&maxPoints=200`);
                 const result = await response.json();

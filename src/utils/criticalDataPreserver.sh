@@ -61,21 +61,31 @@ preserve_crash_alerts() {
     fi
 }
 
-# Extract and preserve system resource metrics for trend analysis
-preserve_system_metrics() {
+# Extract and preserve compact task execution history
+preserve_task_execution_history() {
     if [[ ! -f "$EVENTS_FILE" ]]; then
         return 0
     fi
     
-    echo "Preserving system resource metrics..."
+    echo "Preserving task execution history..."
     
-    # Extract system resource monitoring events
-    grep -E '"taskName":"systemResourceMonitor".*"eventType":"PROGRESS"' "$EVENTS_FILE" | \
-    jq -c 'select(.metadata.systemMetrics != null)' >> "$SYSTEM_METRICS_FILE" 2>/dev/null
+    # Extract TASK_START and TASK_END events for all tasks
+    # Create compact execution records with minimal data
+    grep -E '"eventType":"(TASK_START|TASK_END)"' "$EVENTS_FILE" | \
+    jq -c '{
+        timestamp: .timestamp,
+        taskName: .taskName,
+        eventType: .eventType,
+        duration: (if .eventType == "TASK_END" then .metadata.duration else null end),
+        exitCode: (if .eventType == "TASK_END" then .metadata.exitCode else null end),
+        tier: .metadata.tier,
+        priority: .metadata.priority,
+        failure: (if .eventType == "TASK_END" and (.metadata.exitCode != 0 or .metadata.exitCode == null) then true else false end)
+    }' >> "$SYSTEM_METRICS_FILE" 2>/dev/null
     
-    # Keep only last 7 days of system metrics (high frequency data)
+    # Keep only last 30 days of task execution history (compact data)
     if [[ -f "$SYSTEM_METRICS_FILE" ]]; then
-        local cutoff_date=$(date -d "7 days ago" -Iseconds)
+        local cutoff_date=$(date -d "30 days ago" -Iseconds)
         local temp_file="${SYSTEM_METRICS_FILE}.tmp"
         
         jq -c "select(.timestamp >= \"$cutoff_date\")" "$SYSTEM_METRICS_FILE" > "$temp_file" 2>/dev/null
@@ -111,7 +121,7 @@ create_preservation_summary() {
             }
         }' > "$summary_file"
     
-    echo "Preservation summary: $heap_count heap metrics, $alerts_count alerts, $system_count system metrics"
+    echo "Preservation summary: $heap_count heap metrics, $alerts_count alerts, $system_count task execution records"
 }
 
 # Main preservation function - called before log rotation
@@ -120,7 +130,7 @@ preserve_critical_data() {
     
     preserve_heap_metrics
     preserve_crash_alerts
-    preserve_system_metrics
+    preserve_task_execution_history
     create_preservation_summary
     
     echo "Critical data preservation completed"
