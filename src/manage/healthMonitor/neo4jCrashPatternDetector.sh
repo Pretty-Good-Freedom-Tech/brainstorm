@@ -154,7 +154,19 @@ check_heap_and_gc_health() {
         "phase": "metrics_collection_debug"
     }'
     
-    local neo4j_pid=$(pgrep -f "neo4j" | head -1)
+    # Get the main Neo4j server process (not the boot process)
+    # Look for the process with CommunityEntryPoint or EntryPoint (main server)
+    local neo4j_pid=$(pgrep -f "CommunityEntryPoint\|EntryPoint" | head -1)
+    
+    # Fallback: if EntryPoint search fails, use neo4j status command
+    if [[ -z "$neo4j_pid" ]]; then
+        neo4j_pid=$(sudo neo4j status 2>/dev/null | grep -o "pid [0-9]*" | awk '{print $2}' || echo "")
+    fi
+    
+    # Final fallback: look for java process with larger memory allocation (main server)
+    if [[ -z "$neo4j_pid" ]]; then
+        neo4j_pid=$(ps aux | grep neo4j | grep java | grep -v grep | awk '$6 > 1000000 {print $2}' | head -1)
+    fi
     if [[ -z "$neo4j_pid" ]]; then
         emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" '{
             "message": "Neo4j process not found, skipping heap analysis",
@@ -255,8 +267,8 @@ check_heap_and_gc_health() {
             }')"
         
         if command -v jstat >/dev/null 2>&1; then
-            local heap_info=$(jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
-            local metaspace_info=$(jstat -class "$neo4j_pid" 2>/dev/null || echo "")
+            local heap_info=$(sudo jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+            local metaspace_info=$(sudo jstat -class "$neo4j_pid" 2>/dev/null || echo "")
             
             emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
                 --argjson hasHeapInfo "$(test -n "$heap_info" && echo true || echo false)" \
@@ -291,7 +303,7 @@ check_heap_and_gc_health() {
                     metaspace_used=$(echo "$metaspace_data" | awk '{print $2}')
                     
                     # Use jstat -gc for more reliable metaspace data (MU and MC columns)
-                    local gc_info=$(jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
+                    local gc_info=$(sudo jstat -gc "$neo4j_pid" 2>/dev/null || echo "")
                     if [[ -n "$gc_info" ]]; then
                         local gc_data=$(echo "$gc_info" | tail -1)
                         # Try to find MU (Metaspace Used) and MC (Metaspace Capacity) columns
@@ -312,7 +324,7 @@ check_heap_and_gc_health() {
                     
                     # Fallback: if we still don't have capacity, try jstat -gccapacity with better column detection
                     if [[ "$metaspace_total" -eq 0 ]]; then
-                        local capacity_info=$(jstat -gccapacity "$neo4j_pid" 2>/dev/null || echo "")
+                        local capacity_info=$(sudo jstat -gccapacity "$neo4j_pid" 2>/dev/null || echo "")
                         if [[ -n "$capacity_info" ]]; then
                             # Get header to identify MC column position
                             local header=$(echo "$capacity_info" | head -1)

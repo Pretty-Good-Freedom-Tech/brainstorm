@@ -16,9 +16,11 @@
     <!-- Main content wrapper -->
     <div class="page-content">
         <div class="container">
-            <h1>Brainstorm: a personalized Webs of Trust Nostr Relay</h1>
+            <h1 style="text-align: center;">Brainstorm: a personalized Webs of Trust Nostr Relay</h1>
             <div class="section">
-                Brainstorm calculates personalized trust scores and makes them available to the Nostr network.
+                Brainstorm relies on your trusted community's interactions to calculate <i>personalized trust scores</i>.
+                Personalized scores are calculated for the <i>owner</i> of the Brainstorm instance. 
+                Brainstorm also supports personalized trust score calculation for up to 10 friends of the owner (or more based on system specs).
             </div>
             <div class="section">
                 Algorithms and scores include:
@@ -26,13 +28,27 @@
                 <li>PageRank</li>
                 <li>Hops</li>
                 <li>verified Follower Count</li>
+                <li>and more!</li>
+            </div>
+            <div class="section">
+                GrapeRank data sources:
+                <li>Follows</li>
+                <li>Mutes</li>
+                <li>Reports</li>
+                <li>... with more to come</li>
             </div>
             <div class="section">
                 These scores are made available to nostr clients using a variety of methods, most notably 
                 <a href="/about-trusted-assertions.html" target="_blank">NIP-85: Trusted Assertions</a>.
             </div>
             <div class="section">
-                Brainstorm is currently in alpha and is not yet available for widespread public use.
+                Why personalized trust scores?
+                <li>screen out spam</li>
+                <li>stratify content</li>
+                <li>content discovery</li>
+            </div>
+            <div class="section">
+                Brainstorm is currently in alpha and is not yet available for widespread use.
             </div>
         </div>
     </div>
