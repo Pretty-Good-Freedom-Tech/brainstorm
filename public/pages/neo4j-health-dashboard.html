@@ -554,9 +554,10 @@
                         y2: {
                             type: 'linear',
                             display: true, // Show axis for debugging
-                            position: 'left',
-                            min: -100, // Accommodate negative values for timeline
-                            max: 0,
+                            position: 'right',
+                            min: 0, // Start at 0 (bottom)
+                            max: 100, // Go to 100 (top) 
+                            reverse: true, // Reverse so 0 is at bottom, 100 at top
                             grid: {
                                 display: true,
                                 color: 'rgba(255, 0, 0, 0.1)' // Red grid for debugging
@@ -789,7 +790,7 @@
             // Create a dataset for each task execution
             taskTimelineData.forEach((task, index) => {
                 const taskIndex = taskNames.indexOf(task.taskName);
-                const yPosition = -(taskIndex + 1) * 10; // Negative values, spaced by 10
+                const yPosition = 90 - (taskIndex * 10); // Position from 90 down to lower values
 
                 console.log(`Task ${task.taskName} positioned at Y=${yPosition}`);
 

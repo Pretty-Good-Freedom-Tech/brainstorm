@@ -35,6 +35,11 @@ async function getTaskTimeline(req, res) {
         // Load data from both current events and preserved history
         const timelineData = await loadTaskTimelineData(config, cutoffTime, DB_INTENSIVE_TASKS);
 
+        // Debug logging
+        const currentData = timelineData.filter(t => t.source === 'current');
+        const preservedData = timelineData.filter(t => t.source === 'preserved');
+        console.log(`Timeline data loaded: ${currentData.length} current, ${preservedData.length} preserved`);
+
         res.json({
             success: true,
             timestamp: new Date().toISOString(),
@@ -47,6 +52,8 @@ async function getTaskTimeline(req, res) {
             timeline: timelineData,
             metadata: {
                 totalExecutions: timelineData.length,
+                currentExecutions: currentData.length,
+                preservedExecutions: preservedData.length,
                 taskTypes: [...new Set(timelineData.map(t => t.taskName))],
                 dataSource: 'combined'
             }
@@ -102,6 +109,11 @@ async function loadTimelineFromEvents(eventsFile, cutoffTime, dbIntensiveTasks) 
             try {
                 const event = JSON.parse(line);
                 const eventTime = new Date(event.timestamp);
+                
+                // Debug logging
+                if (dbIntensiveTasks[event.taskName]) {
+                    console.log(`Processing current event: ${event.taskName} at ${event.timestamp}, cutoff: ${cutoffTime.toISOString()}`);
+                }
                 
                 // Only process events within our time range
                 if (eventTime < cutoffTime) return;
