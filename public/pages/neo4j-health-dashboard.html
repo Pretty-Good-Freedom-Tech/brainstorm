@@ -553,12 +553,17 @@
                         },
                         y2: {
                             type: 'linear',
-                            display: false, // Hidden axis for timeline positioning
+                            display: true, // Show axis for debugging
                             position: 'left',
                             min: -100, // Accommodate negative values for timeline
                             max: 0,
                             grid: {
-                                display: false
+                                display: true,
+                                color: 'rgba(255, 0, 0, 0.1)' // Red grid for debugging
+                            },
+                            title: {
+                                display: true,
+                                text: 'Task Timeline'
                             }
                         }
                     },
@@ -778,17 +783,22 @@
             const taskNames = [...new Set(taskTimelineData.map(t => t.taskName))];
             taskNames.sort();
 
+            console.log('Creating timeline datasets for tasks:', taskNames);
+            console.log('Task timeline data:', taskTimelineData);
+
             // Create a dataset for each task execution
             taskTimelineData.forEach((task, index) => {
                 const taskIndex = taskNames.indexOf(task.taskName);
                 const yPosition = -(taskIndex + 1) * 10; // Negative values, spaced by 10
+
+                console.log(`Task ${task.taskName} positioned at Y=${yPosition}`);
 
                 const startTime = new Date(task.startTime);
                 const endTime = task.endTime ? new Date(task.endTime) : new Date();
 
                 // Create line segment for task execution
                 datasets.push({
-                    label: `${task.taskName} (${task.category})`,
+                    label: '', // Empty label to hide from legend
                     data: [
                         { x: startTime, y: yPosition },
                         { x: endTime, y: yPosition }
@@ -805,6 +815,7 @@
                 });
             });
 
+            console.log('Created timeline datasets:', datasets.length);
             return datasets;
         }
 
@@ -1082,9 +1093,13 @@
                 // Store raw data in first dataset
                 config.datasets[0].rawData = rawData;
                 
+                // Create timeline datasets and merge with metric datasets
+                const timelineDatasets = createTimelineDatasets(labels);
+                const allDatasets = [...config.datasets, ...timelineDatasets];
+                
                 // Update chart
                 heapChart.data.labels = labels;
-                heapChart.data.datasets = config.datasets;
+                heapChart.data.datasets = allDatasets;
                 heapChart.update();
             }
         }
