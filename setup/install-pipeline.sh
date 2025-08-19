@@ -23,7 +23,7 @@ echo "=== Webs of Trust Calculations Installation ==="
 
 mkdir -p /var/log/brainstorm
 sudo chown brainstorm:brainstorm -R /var/log/brainstorm
-sudo chmod 644 /var/log/brainstorm
+sudo chmod 755 /var/log/brainstorm
 touch /var/log/brainstorm/calculateHops.log
 cd /usr/local/lib/node_modules/brainstorm/src/algos
 sudo chmod +x *.sh

@@ -13,7 +13,7 @@ mkdir -p ${targetCustomersDir};
 echo "Copying default customers from ${sourceCustomersDir} to ${targetCustomersDir}";
 cp -r ${sourceCustomersDir}/* ${targetCustomersDir}/;
 sudo chown -R brainstorm:brainstorm ${targetCustomersDir};
-sudo chmod -R 644 ${targetCustomersDir};
+sudo chmod -R 755 ${targetCustomersDir};
 
 # create a default relay pubkey for each customer
 # run createAllCustomerRelays.js
