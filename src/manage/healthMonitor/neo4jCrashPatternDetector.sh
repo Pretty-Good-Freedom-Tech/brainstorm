@@ -234,9 +234,18 @@ check_heap_and_gc_health() {
                 heap_used=$(echo "$heap_data" | jq -r '.usedBytes')
                 heap_total=$(echo "$heap_data" | jq -r '.totalBytes')
                 heap_percent=$(echo "$heap_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
+                
+                # Extract Old Gen and Young Gen data
+                local old_gen_used=$(echo "$heap_data" | jq -r '.oldUsed // 0')
+                local old_gen_capacity=$(echo "$heap_data" | jq -r '.oldTotal // 0')
+                local young_gen_used=$(echo "$heap_data" | jq -r '.youngUsed // 0')
+                local young_gen_capacity=$(echo "$heap_data" | jq -r '.youngTotal // 0')
+                
                 metrics_source="enhanced_collector"
                 echo "DEBUG: Using enhanced metrics collector for heap data"
                 echo "DEBUG: Heap used: $heap_used bytes, total: $heap_total bytes, percent: $heap_percent%"
+                echo "DEBUG: Old Gen used: $old_gen_used bytes, capacity: $old_gen_capacity bytes"
+                echo "DEBUG: Young Gen used: $young_gen_used bytes, capacity: $young_gen_capacity bytes"
             fi
             
             # Process metaspace data from enhanced metrics
