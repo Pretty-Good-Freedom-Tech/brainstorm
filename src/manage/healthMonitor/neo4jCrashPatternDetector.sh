@@ -213,16 +213,19 @@ check_heap_and_gc_health() {
         # Use metrics if they're less than 2 minutes old
         if [[ $age_diff -lt 120 ]]; then
             local heap_data=$(jq -r '.heap // empty' "$metrics_file" 2>/dev/null)
+            local metaspace_data=$(jq -r '.metaspace // empty' "$metrics_file" 2>/dev/null)
             local gc_data=$(jq -r '.gc // empty' "$metrics_file" 2>/dev/null)
             
             emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
                 --arg heapData "$heap_data" \
+                --arg metaspaceData "$metaspace_data" \
                 --arg gcData "$gc_data" \
                 '{
                     "message": "Parsed enhanced metrics data",
                     "phase": "metrics_collection_debug",
                     "debug": {
                         "heapDataPresent": ($heapData != "empty" and $heapData != "null" and $heapData != ""),
+                        "metaspaceDataPresent": ($metaspaceData != "empty" and $metaspaceData != "null" and $metaspaceData != ""),
                         "gcDataPresent": ($gcData != "empty" and $gcData != "null" and $gcData != "")
                     }
                 }')"
@@ -232,6 +235,23 @@ check_heap_and_gc_health() {
                 heap_total=$(echo "$heap_data" | jq -r '.totalBytes')
                 heap_percent=$(echo "$heap_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
                 metrics_source="enhanced_collector"
+                echo "DEBUG: Using enhanced metrics collector for heap data"
+                echo "DEBUG: Heap used: $heap_used bytes, total: $heap_total bytes, percent: $heap_percent%"
+            fi
+            
+            # Process metaspace data from enhanced metrics
+            local metaspace_used=0
+            local metaspace_total=0
+            local metaspace_percent=0
+            
+            if [[ -n "$metaspace_data" && "$metaspace_data" != "null" && "$metaspace_data" != "empty" ]]; then
+                metaspace_used=$(echo "$metaspace_data" | jq -r '.usedBytes')
+                metaspace_total=$(echo "$metaspace_data" | jq -r '.totalBytes')
+                metaspace_percent=$(echo "$metaspace_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
+                echo "DEBUG: Using enhanced metrics collector for metaspace data"
+                echo "DEBUG: Metaspace used: $metaspace_used bytes, total: $metaspace_total bytes, percent: $metaspace_percent%"
+            else
+                echo "DEBUG: No metaspace data in enhanced metrics, will use fallback jstat method"
             fi
             
             if [[ -n "$gc_data" && "$gc_data" != "null" && "$gc_data" != "empty" ]]; then

@@ -56,6 +56,19 @@ EOF
                 heap_percent = (total_used * 100) / total_heap
                 printf "{\"totalBytes\":%d,\"usedBytes\":%d,\"percentUsed\":%.2f,\"youngTotal\":%d,\"youngUsed\":%d,\"oldTotal\":%d,\"oldUsed\":%d}", total_heap, total_used, heap_percent, young_total, young_used, old_total, old_used
             }')
+            
+            # Collect metaspace data separately
+            metaspace_data=$(echo "$heap_raw" | awk '{
+                mc=$9; mu=$10
+                if (mc > 0) {
+                    metaspace_total = mc * 1024
+                    metaspace_used = mu * 1024
+                    metaspace_percent = (metaspace_used * 100) / metaspace_total
+                    printf "{\"totalBytes\":%d,\"usedBytes\":%d,\"percentUsed\":%.2f}", metaspace_total, metaspace_used, metaspace_percent
+                } else {
+                    printf "null"
+                }
+            }')
         fi
         
         # Get GC statistics
@@ -85,6 +98,7 @@ EOF
   "status": "running",
   "pid": $neo4j_pid,
   "heap": ${heap_data:-null},
+  "metaspace": ${metaspace_data:-null},
   "gc": ${gc_data:-null},
   "threads": ${thread_count:-null},
   "memory": ${proc_memory:-null},
