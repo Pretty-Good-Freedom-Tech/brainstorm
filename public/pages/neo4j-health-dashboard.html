@@ -77,26 +77,21 @@
                         <div class="data-source-indicator" id="dataSourceIndicator" style="font-size: 0.8em; color: #666; margin-top: 4px;"></div>
                     </div>
                 </div>
-                <div class="chart-container" style="height: 400px;">
+                <div class="chart-container" style="height: 500px;">
                     <canvas id="heapChart"></canvas>
                 </div>
             </div>
 
-            <!-- Task Execution Timeline Panel -->
-            <div class="chart-section">
-                <div class="chart-header">
-                    <h3>🔄 Database-Intensive Task Timeline</h3>
-                    <div class="timeline-controls">
-                        <span class="timeline-legend">
-                            <span class="legend-item"><span class="legend-color" style="background: #ef4444;"></span> Orchestrator</span>
-                            <span class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Graph Calc</span>
-                            <span class="legend-item"><span class="legend-color" style="background: #8b5cf6;"></span> Ranking</span>
-                            <span class="legend-item"><span class="legend-color" style="background: #f59e0b;"></span> Monitoring</span>
-                        </span>
-                    </div>
-                </div>
-                <div class="timeline-container" style="height: 120px; position: relative;">
-                    <canvas id="taskTimeline"></canvas>
+            <!-- Task Timeline Legend -->
+            <div class="timeline-legend-panel">
+                <h4>🔄 Database-Intensive Task Timeline</h4>
+                <div class="timeline-controls">
+                    <span class="timeline-legend">
+                        <span class="legend-item"><span class="legend-color" style="background: #ef4444;"></span> Orchestrator</span>
+                        <span class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Graph Calc</span>
+                        <span class="legend-item"><span class="legend-color" style="background: #8b5cf6;"></span> Ranking</span>
+                        <span class="legend-item"><span class="legend-color" style="background: #f59e0b;"></span> Monitoring</span>
+                    </span>
                     <div class="timeline-status" id="timelineStatus">Loading task timeline...</div>
                 </div>
             </div>
@@ -271,6 +266,17 @@
                 if (heapChart) {
                     await updateHeapChart();
                 }
+                
+                // Also load task timeline data for the combined chart
+                await loadTaskTimelineData();
+
+                // Load and analyze structured events using the correct analyzer method
+                const events = eventsAnalyzer.loadEvents();
+                const executionData = eventsAnalyzer.analyzeTaskExecution(events);
+
+                // Load preserved task execution history for enhanced analytics
+                const preservedHistoryPath = path.join(config.BRAINSTORM_LOG_DIR, 'preserved', 'system_metrics_history.jsonl');
+                const preservedExecutionData = loadPreservedTaskHistory(preservedHistoryPath);
                 
                 // Fetch Neo4j health data
                 const healthResponse = await fetch('/api/neo4j-health/complete');
@@ -540,11 +546,20 @@
                                 display: true,
                                 text: 'GC Overhead %'
                             },
-                            min: 0,
-                            max: 20,
                             grid: {
                                 drawOnChartArea: false,
                             },
+                            max: 20
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false, // Hidden axis for timeline positioning
+                            position: 'left',
+                            min: -100, // Accommodate negative values for timeline
+                            max: 0,
+                            grid: {
+                                display: false
+                            }
                         }
                     },
                     plugins: {
@@ -554,19 +569,50 @@
                         },
                         tooltip: {
                             callbacks: {
-                                afterBody: function(context) {
-                                    const dataIndex = context[0].dataIndex;
-                                    const data = heapChart.data.datasets[0].rawData;
-                                    if (data && data[dataIndex]) {
-                                        const point = data[dataIndex];
+                                title: function(context) {
+                                    const point = context[0];
+                                    // Check if this is a timeline dataset (negative Y values)
+                                    if (point.dataset.taskData) {
+                                        return `${point.dataset.taskData.taskName}`;
+                                    }
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    // Handle timeline tooltips
+                                    if (context.dataset.taskData) {
+                                        const task = context.dataset.taskData;
+                                        const startTime = new Date(task.startTime).toLocaleTimeString();
+                                        const endTime = task.endTime ? new Date(task.endTime).toLocaleTimeString() : 'Running';
+                                        const duration = task.duration ? `${task.duration.toFixed(1)}s` : 'Ongoing';
+                                        const status = task.success === null ? 'Running' : (task.success ? 'Success' : 'Failed');
+                                        
                                         return [
-                                            `Heap: ${point.heapUsedMB}/${point.heapTotalMB} MB (${point.heapUtilizationPercent}%)`,
-                                            `Metaspace: ${point.metaspaceUsedMB}/${point.metaspaceCapacityMB} MB (${point.metaspaceUtilizationPercent}%)`,
-                                            `Old Gen: ${point.oldGenUsedMB}/${point.oldGenCapacityMB} MB`,
-                                            `Young Gen: ${point.youngGenUsedMB}/${point.youngGenCapacityMB} MB`,
-                                            `GC Counts - Young: ${point.youngGcCount}, Full: ${point.fullGcCount}`,
-                                            `GC Times - Young: ${point.youngGcTimeSec}s, Full: ${point.fullGcTimeSec}s`
+                                            `Start: ${startTime}`,
+                                            `End: ${endTime}`,
+                                            `Duration: ${duration}`,
+                                            `Status: ${status}`,
+                                            `Category: ${task.category}`
                                         ];
+                                    }
+                                    // Handle memory metric tooltips
+                                    return `${context.dataset.label}: ${context.parsed.y}%`;
+                                },
+                                afterBody: function(context) {
+                                    // Only show detailed memory info for memory datasets
+                                    if (!context[0].dataset.taskData) {
+                                        const dataIndex = context[0].dataIndex;
+                                        const data = heapChart.data.datasets[0].rawData;
+                                        if (data && data[dataIndex]) {
+                                            const point = data[dataIndex];
+                                            return [
+                                                `Heap: ${point.heapUsedMB}/${point.heapTotalMB} MB (${point.heapUtilizationPercent}%)`,
+                                                `Metaspace: ${point.metaspaceUsedMB}/${point.metaspaceCapacityMB} MB (${point.metaspaceUtilizationPercent}%)`,
+                                                `Old Gen: ${point.oldGenUsedMB}/${point.oldGenCapacityMB} MB`,
+                                                `Young Gen: ${point.youngGenUsedMB}/${point.youngGenCapacityMB} MB`,
+                                                `GC Counts - Young: ${point.youngGcCount}, Full: ${point.fullGcCount}`,
+                                                `GC Times - Young: ${point.youngGcTimeSec}s, Full: ${point.fullGcTimeSec}s`
+                                            ];
+                                        }
                                     }
                                     return [];
                                 }
@@ -646,12 +692,45 @@
                 // Store raw data for tooltips
                 heapChart.data.datasets[0].rawData = data;
                 
-                // Update chart
+                // Add task timeline datasets to the chart using negative values
+                const timelineDatasets = createTimelineDatasets(labels);
+                
+                // Update chart with both memory metrics and timeline data
                 heapChart.data.labels = labels;
-                heapChart.data.datasets[0].data = heapUtilization;
-                heapChart.data.datasets[1].data = metaspaceUtilization;
-                heapChart.data.datasets[2].data = oldGenUtilization;
-                heapChart.data.datasets[3].data = gcOverhead;
+                heapChart.data.datasets = [
+                    // Memory metrics datasets (positive values)
+                    {
+                        label: 'Heap Utilization %',
+                        data: heapUtilization,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        yAxisID: 'y',
+                        rawData: data
+                    },
+                    {
+                        label: 'Metaspace Utilization %',
+                        data: metaspaceUtilization,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Old Gen Utilization %',
+                        data: oldGenUtilization,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'GC Overhead %',
+                        data: gcOverhead,
+                        borderColor: 'rgb(255, 206, 86)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                        yAxisID: 'y1'
+                    },
+                    // Task timeline datasets (negative values)
+                    ...timelineDatasets
+                ];
                 heapChart.update();
                 
                 console.log(`Updated heap chart with ${data.length} data points from combined data sources`);
@@ -665,7 +744,79 @@
 
         // Global variables
         let currentMetricView = 'overview';
-        let taskTimelineChart = null;
+        let taskTimelineData = [];
+
+        // Load task timeline data
+        async function loadTaskTimelineData() {
+            try {
+                const hoursBack = 24;
+                const response = await fetch(`/api/neo4j-health/task-timeline?hours=${hoursBack}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    taskTimelineData = result.timeline || [];
+                    updateTimelineStatus(`${taskTimelineData.length} task executions in last ${hoursBack}h`, 'success');
+                } else {
+                    console.error('Failed to fetch task timeline:', result.error);
+                    updateTimelineStatus('Error loading timeline data', 'error');
+                    taskTimelineData = [];
+                }
+            } catch (error) {
+                console.error('Error loading task timeline:', error);
+                updateTimelineStatus('Network error', 'error');
+                taskTimelineData = [];
+            }
+        }
+
+        // Create timeline datasets using negative Y-values for perfect alignment
+        function createTimelineDatasets(chartLabels) {
+            if (!taskTimelineData || taskTimelineData.length === 0) {
+                return [];
+            }
+
+            const datasets = [];
+            const taskNames = [...new Set(taskTimelineData.map(t => t.taskName))];
+            taskNames.sort();
+
+            // Create a dataset for each task execution
+            taskTimelineData.forEach((task, index) => {
+                const taskIndex = taskNames.indexOf(task.taskName);
+                const yPosition = -(taskIndex + 1) * 10; // Negative values, spaced by 10
+
+                const startTime = new Date(task.startTime);
+                const endTime = task.endTime ? new Date(task.endTime) : new Date();
+
+                // Create line segment for task execution
+                datasets.push({
+                    label: `${task.taskName} (${task.category})`,
+                    data: [
+                        { x: startTime, y: yPosition },
+                        { x: endTime, y: yPosition }
+                    ],
+                    borderColor: task.color,
+                    backgroundColor: task.color + '60',
+                    borderWidth: task.ongoing ? 6 : 4,
+                    borderDash: task.ongoing ? [5, 5] : [],
+                    pointRadius: 0,
+                    showLine: true,
+                    tension: 0,
+                    yAxisID: 'y2', // Use separate Y-axis for timeline
+                    taskData: task // Store task data for tooltips
+                });
+            });
+
+            return datasets;
+        }
+
+        // Update timeline status indicator
+        function updateTimelineStatus(message, type) {
+            const indicator = document.getElementById('timelineStatus');
+            if (indicator) {
+                indicator.textContent = message;
+                indicator.style.color = type === 'error' ? '#ef4444' : 
+                                      type === 'warning' ? '#f59e0b' : '#10b981';
+            }
+        }
 
         // Metric view switching functionality
         function switchMetricView(view) {
@@ -1170,18 +1321,21 @@
                 });
             });
 
-            // Initialize charts
+            // Initialize with overview view
             switchMetricView('overview');
-            initializeTaskTimeline();
             
             // Start data loading
-            updateHeapChart();
-            updateTaskTimeline();
+            async function initializeData() {
+                await loadTaskTimelineData();
+                await updateHeapChart();
+            }
+            
+            initializeData();
             
             // Set up auto-refresh
-            setInterval(() => {
-                updateHeapChart();
-                updateTaskTimeline();
+            setInterval(async () => {
+                await loadTaskTimelineData();
+                await updateHeapChart();
             }, 30000); // Refresh every 30 seconds
         });
     </script>
