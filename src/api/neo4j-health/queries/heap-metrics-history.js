@@ -60,6 +60,16 @@ class HeapMetricsHistoryParser {
                             oldGenCapacityMB: parseFloat(metrics.oldGenCapacityMB || 0),
                             youngGenUsedMB: parseFloat(metrics.youngGenUsedMB || 0),
                             youngGenCapacityMB: parseFloat(metrics.youngGenCapacityMB || 0),
+                            // Compressed class space
+                            compressedClassUsedMB: parseFloat(metrics.compressedClassUsedMB || 0),
+                            compressedClassCapacityMB: parseFloat(metrics.compressedClassCapacityMB || 0),
+                            // Survivor spaces
+                            survivorUsedMB: parseFloat(metrics.survivorUsedMB || 0),
+                            survivorCapacityMB: parseFloat(metrics.survivorCapacityMB || 0),
+                            s0UsedMB: parseFloat(metrics.s0UsedMB || 0),
+                            s0CapacityMB: parseFloat(metrics.s0CapacityMB || 0),
+                            s1UsedMB: parseFloat(metrics.s1UsedMB || 0),
+                            s1CapacityMB: parseFloat(metrics.s1CapacityMB || 0),
                             // GC performance metrics
                             youngGcTimeSec: parseFloat(metrics.youngGcTimeSec || 0),
                             fullGcTimeSec: parseFloat(metrics.fullGcTimeSec || 0),
@@ -105,6 +115,16 @@ class HeapMetricsHistoryParser {
                             oldGenCapacityMB: parseFloat(metrics.oldGenCapacityMB || 0),
                             youngGenUsedMB: parseFloat(metrics.youngGenUsedMB || 0),
                             youngGenCapacityMB: parseFloat(metrics.youngGenCapacityMB || 0),
+                            // Compressed class space (preserved data fallback)
+                            compressedClassUsedMB: parseFloat(metrics.compressedClassUsedMB || 0),
+                            compressedClassCapacityMB: parseFloat(metrics.compressedClassCapacityMB || 0),
+                            // Survivor spaces (preserved data fallback)
+                            survivorUsedMB: parseFloat(metrics.survivorUsedMB || 0),
+                            survivorCapacityMB: parseFloat(metrics.survivorCapacityMB || 0),
+                            s0UsedMB: parseFloat(metrics.s0UsedMB || 0),
+                            s0CapacityMB: parseFloat(metrics.s0CapacityMB || 0),
+                            s1UsedMB: parseFloat(metrics.s1UsedMB || 0),
+                            s1CapacityMB: parseFloat(metrics.s1CapacityMB || 0),
                             // GC performance metrics
                             youngGcTimeSec: parseFloat(metrics.youngGcTimeSec || 0),
                             fullGcTimeSec: parseFloat(metrics.fullGcTimeSec || 0),

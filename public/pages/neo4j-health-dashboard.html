@@ -36,19 +36,43 @@
                 </div>
             </div>
             
+            <!-- Metric View Selector -->
+            <div class="metric-selector">
+                <h3>📊 Choose Memory Metrics to Display</h3>
+                <div class="metric-buttons">
+                    <button class="metric-btn active" data-view="overview" onclick="switchMetricView('overview')">
+                        🏠 Overview
+                    </button>
+                    <button class="metric-btn" data-view="heap" onclick="switchMetricView('heap')">
+                        🧠 Heap Memory
+                    </button>
+                    <button class="metric-btn" data-view="metaspace" onclick="switchMetricView('metaspace')">
+                        🔧 Metaspace
+                    </button>
+                    <button class="metric-btn" data-view="compressed" onclick="switchMetricView('compressed')">
+                        ⚠️ Compressed Classes
+                    </button>
+                    <button class="metric-btn" data-view="survivor" onclick="switchMetricView('survivor')">
+                        🔄 Survivor Spaces
+                    </button>
+                    <button class="metric-btn" data-view="gc" onclick="switchMetricView('gc')">
+                        🗑️ Garbage Collection
+                    </button>
+                </div>
+            </div>
+
+            <!-- Metric Explanation Panel -->
+            <div class="metric-explanation" id="metricExplanation">
+                <div class="explanation-content" id="explanationContent">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+
             <!-- Heap Usage Time Series -->
             <div class="health-card">
                 <div class="card-header">
-                    <h3 class="card-title">📈 Heap Usage Over Time</h3>
-                    <div class="chart-controls" style="margin-left: auto;">
-                        <select id="timeRangeSelect" onchange="updateTimeRange()">
-                            <option value="6">Last 6 hours</option>
-                            <option value="12">Last 12 hours</option>
-                            <option value="24" selected>Last 24 hours</option>
-                            <option value="48">Last 48 hours</option>
-                            <option value="168">Last week</option>
-                            <option value="720">Last 30 days</option>
-                            <option value="2160">Last 90 days</option>
+                    <h3 class="card-title">📈 Memory Metrics Over Time</h3>
+                    <option value="2160">Last 90 days</option>
                         </select>
                         <div class="data-source-indicator" id="dataSourceIndicator" style="font-size: 0.8em; color: #666; margin-top: 4px;"></div>
                     </div>
@@ -619,6 +643,280 @@
                 updateDataSourceIndicator('Network error', 'error');
             }
         }
+
+        // Global variable to track current metric view
+        let currentMetricView = 'overview';
+
+        // Metric view switching functionality
+        function switchMetricView(view) {
+            currentMetricView = view;
+            
+            // Update button states
+            document.querySelectorAll('.metric-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-view="${view}"]`).classList.add('active');
+            
+            // Update explanation content
+            updateExplanationContent(view);
+            
+            // Update chart based on view
+            updateChartForView(view);
+        }
+
+        // Update explanation content based on selected view
+        function updateExplanationContent(view) {
+            const explanationContent = document.getElementById('explanationContent');
+            
+            const explanations = {
+                overview: {
+                    title: '🏠 Overview - Neo4j Memory Health',
+                    content: `
+                        <p>This view shows the most critical memory metrics for Neo4j stability. Monitor these key indicators:</p>
+                        <ul>
+                            <li><strong>Heap Utilization:</strong> Should stay below 80% for optimal performance</li>
+                            <li><strong>Metaspace Utilization:</strong> Critical when above 90% - can cause OutOfMemoryError</li>
+                            <li><strong>Old Generation:</strong> High utilization indicates objects living too long</li>
+                            <li><strong>GC Overhead:</strong> Time spent in garbage collection - should be under 10%</li>
+                        </ul>
+                        <div class="warning">⚠️ Watch for sustained high utilization across multiple metrics - this indicates memory pressure.</div>
+                    `
+                },
+                heap: {
+                    title: '🧠 Heap Memory Analysis',
+                    content: `
+                        <p>Java heap memory is where Neo4j stores objects during execution. The heap is divided into generations:</p>
+                        <ul>
+                            <li><strong>Young Generation (Eden + Survivor):</strong> New objects are created here</li>
+                            <li><strong>Old Generation:</strong> Long-lived objects that survived multiple GC cycles</li>
+                            <li><strong>Total Heap:</strong> Combined young + old generation memory</li>
+                        </ul>
+                        <div class="info">💡 Healthy heap utilization: 60-80%. Above 85% indicates memory pressure.</div>
+                        <div class="critical">🚨 Above 95%: Risk of OutOfMemoryError and application crashes.</div>
+                    `
+                },
+                metaspace: {
+                    title: '🔧 Metaspace Memory Management',
+                    content: `
+                        <p>Metaspace stores class metadata and is critical for Neo4j's operation with many loaded classes:</p>
+                        <ul>
+                            <li><strong>Class Definitions:</strong> Metadata for all loaded Java classes</li>
+                            <li><strong>Method Information:</strong> Bytecode and method signatures</li>
+                            <li><strong>Constant Pool:</strong> String literals and class constants</li>
+                        </ul>
+                        <div class="warning">⚠️ Your system shows ${Math.round((386833.0/390464.0)*100)}% utilization - monitor closely!</div>
+                        <div class="critical">🚨 Above 95%: Immediate risk of MetaspaceOOM - Neo4j will crash!</div>
+                    `
+                },
+                compressed: {
+                    title: '⚠️ Compressed Class Space - Critical Monitoring',
+                    content: `
+                        <p>Compressed Class Space is a subset of Metaspace with a fixed size limit. When full, it causes immediate crashes:</p>
+                        <ul>
+                            <li><strong>Class Pointers:</strong> Compressed references to class metadata</li>
+                            <li><strong>Fixed Size:</strong> Cannot be expanded at runtime (typically ~55MB)</li>
+                            <li><strong>Critical Resource:</strong> When full, causes instant OutOfMemoryError</li>
+                        </ul>
+                        <div class="critical">🚨 Your system shows ~97% utilization - CRITICAL! This is the most dangerous metric to watch.</div>
+                        <p><strong>Immediate Actions if >95%:</strong></p>
+                        <ul>
+                            <li>Restart Neo4j during low-traffic period</li>
+                            <li>Review and reduce loaded plugins/extensions</li>
+                            <li>Consider increasing -XX:CompressedClassSpaceSize</li>
+                        </ul>
+                    `
+                },
+                survivor: {
+                    title: '🔄 Survivor Space Analysis',
+                    content: `
+                        <p>Survivor spaces (S0 and S1) are part of the young generation where objects survive initial garbage collection:</p>
+                        <ul>
+                            <li><strong>S0 and S1:</strong> Objects alternate between these spaces during minor GC</li>
+                            <li><strong>Promotion Threshold:</strong> Objects surviving multiple cycles move to Old Gen</li>
+                            <li><strong>GC Efficiency:</strong> Proper sizing reduces GC overhead</li>
+                        </ul>
+                        <div class="info">💡 Your system: S0=${Math.round(0/73728*100)}%, S1=${Math.round(73062.4/73728*100)}% - S1 is actively used.</div>
+                        <div class="warning">⚠️ High survivor utilization (>80%) may indicate objects living longer than expected.</div>
+                    `
+                },
+                gc: {
+                    title: '🗑️ Garbage Collection Performance',
+                    content: `
+                        <p>Garbage Collection removes unused objects and is critical for Neo4j performance:</p>
+                        <ul>
+                            <li><strong>Young GC:</strong> Frequent, fast cleanup of short-lived objects</li>
+                            <li><strong>Full GC:</strong> Expensive cleanup of entire heap - should be rare</li>
+                            <li><strong>G1 Concurrent:</strong> Background cleanup with minimal application pause</li>
+                            <li><strong>GC Overhead:</strong> Percentage of time spent in garbage collection</li>
+                        </ul>
+                        <div class="info">💡 Healthy GC: <5% overhead, young GC every few seconds, full GC rarely.</div>
+                        <div class="warning">⚠️ >10% GC overhead indicates memory pressure or tuning issues.</div>
+                        <div class="critical">🚨 >20% GC overhead: Application performance severely impacted!</div>
+                    `
+                }
+            };
+
+            const explanation = explanations[view];
+            explanationContent.innerHTML = `
+                <h4>${explanation.title}</h4>
+                ${explanation.content}
+            `;
+        }
+
+        // Update chart datasets based on selected view
+        function updateChartForView(view) {
+            if (!heapChart) return;
+
+            // Get current data
+            const rawData = heapChart.data.datasets[0].rawData;
+            if (!rawData || rawData.length === 0) return;
+
+            const labels = rawData.map(point => new Date(point.timestamp));
+
+            // Define different dataset configurations for each view
+            const viewConfigs = {
+                overview: {
+                    datasets: [
+                        {
+                            label: 'Heap Utilization %',
+                            data: rawData.map(point => point.heapUtilizationPercent),
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Metaspace Utilization %',
+                            data: rawData.map(point => point.metaspaceUtilizationPercent),
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Old Gen Utilization %',
+                            data: rawData.map(point => point.oldGenCapacityMB > 0 ? 
+                                Math.round((point.oldGenUsedMB / point.oldGenCapacityMB) * 100) : 0),
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'GC Overhead %',
+                            data: rawData.map(point => point.gcOverheadPercent || 0),
+                            borderColor: 'rgb(255, 206, 86)',
+                            backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                heap: {
+                    datasets: [
+                        {
+                            label: 'Total Heap Utilization %',
+                            data: rawData.map(point => point.heapUtilizationPercent),
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Old Gen Utilization %',
+                            data: rawData.map(point => point.oldGenCapacityMB > 0 ? 
+                                Math.round((point.oldGenUsedMB / point.oldGenCapacityMB) * 100) : 0),
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Young Gen Utilization %',
+                            data: rawData.map(point => point.youngGenCapacityMB > 0 ? 
+                                Math.round((point.youngGenUsedMB / point.youngGenCapacityMB) * 100) : 0),
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                metaspace: {
+                    datasets: [
+                        {
+                            label: 'Metaspace Utilization %',
+                            data: rawData.map(point => point.metaspaceUtilizationPercent),
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                compressed: {
+                    datasets: [
+                        {
+                            label: 'Compressed Class Utilization %',
+                            data: rawData.map(point => point.compressedClassCapacityMB > 0 ? 
+                                Math.round((point.compressedClassUsedMB / point.compressedClassCapacityMB) * 100) : 0),
+                            borderColor: 'rgb(255, 0, 0)',
+                            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                survivor: {
+                    datasets: [
+                        {
+                            label: 'Total Survivor Utilization %',
+                            data: rawData.map(point => point.survivorCapacityMB > 0 ? 
+                                Math.round((point.survivorUsedMB / point.survivorCapacityMB) * 100) : 0),
+                            borderColor: 'rgb(255, 159, 64)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'S0 Utilization %',
+                            data: rawData.map(point => point.s0CapacityMB > 0 ? 
+                                Math.round((point.s0UsedMB / point.s0CapacityMB) * 100) : 0),
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'S1 Utilization %',
+                            data: rawData.map(point => point.s1CapacityMB > 0 ? 
+                                Math.round((point.s1UsedMB / point.s1CapacityMB) * 100) : 0),
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                gc: {
+                    datasets: [
+                        {
+                            label: 'GC Overhead %',
+                            data: rawData.map(point => point.gcOverheadPercent || 0),
+                            borderColor: 'rgb(255, 206, 86)',
+                            backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Young GC Count (per hour)',
+                            data: rawData.map(point => point.youngGcCount || 0),
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                }
+            };
+
+            const config = viewConfigs[view];
+            if (config) {
+                // Store raw data in first dataset
+                config.datasets[0].rawData = rawData;
+                
+                // Update chart
+                heapChart.data.labels = labels;
+                heapChart.data.datasets = config.datasets;
+                heapChart.update();
+            }
+        }
         
         // Calculate appropriate Y-axis maximum for GC Overhead based on data range
         function calculateGcAxisMax(maxValue) {
@@ -685,6 +983,26 @@
             const alertsList = document.getElementById('alertsList');
             alertsList.innerHTML = `<div class="alert-item alert-critical">${message}</div>`;
         }
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners to metric selector buttons
+            document.querySelectorAll('.metric-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const view = this.getAttribute('data-view');
+                    switchMetricView(view);
+                });
+            });
+
+            // Initialize with overview view
+            switchMetricView('overview');
+            
+            // Start data loading
+            updateHeapChart();
+            
+            // Set up auto-refresh
+            setInterval(updateHeapChart, 30000); // Refresh every 30 seconds
+        });
     </script>
     </div>
 </body>

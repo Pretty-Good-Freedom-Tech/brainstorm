@@ -5,6 +5,111 @@
     padding: 20px;
 }
 
+/* Metric Selector Styles */
+.metric-selector {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #007bff;
+}
+
+.metric-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.metric-btn {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 140px;
+    text-align: center;
+}
+
+.metric-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+}
+
+.metric-btn.active {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+}
+
+/* Metric Explanation Panel */
+.metric-explanation {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 4px solid #007bff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.explanation-content h4 {
+    color: #007bff;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.3em;
+}
+
+.explanation-content p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.explanation-content .warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 15px 0;
+    color: #856404;
+    font-weight: 500;
+}
+
+.explanation-content .critical {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 15px 0;
+    color: #721c24;
+    font-weight: 500;
+}
+
+.explanation-content .info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 15px 0;
+    color: #0c5460;
+}
+
+.explanation-content ul {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.explanation-content li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));

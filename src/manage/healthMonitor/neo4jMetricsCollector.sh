@@ -69,12 +69,46 @@ EOF
                     printf "null"
                 }
             }')
+            
+            # Collect compressed class space data
+            compressed_class_data=$(echo "$heap_raw" | awk '{
+                ccsc=$11; ccsu=$12
+                if (ccsc > 0) {
+                    cc_total = ccsc * 1024
+                    cc_used = ccsu * 1024
+                    cc_percent = (cc_used * 100) / cc_total
+                    printf "{\"totalBytes\":%d,\"usedBytes\":%d,\"percentUsed\":%.2f}", cc_total, cc_used, cc_percent
+                } else {
+                    printf "null"
+                }
+            }')
+            
+            # Collect survivor space data
+            survivor_data=$(echo "$heap_raw" | awk '{
+                s0c=$1; s1c=$2; s0u=$3; s1u=$4
+                survivor_total = (s0c + s1c) * 1024
+                survivor_used = (s0u + s1u) * 1024
+                if (survivor_total > 0) {
+                    survivor_percent = (survivor_used * 100) / survivor_total
+                    printf "{\"totalBytes\":%d,\"usedBytes\":%d,\"percentUsed\":%.2f,\"s0Capacity\":%d,\"s0Used\":%d,\"s1Capacity\":%d,\"s1Used\":%d}", survivor_total, survivor_used, survivor_percent, s0c*1024, s0u*1024, s1c*1024, s1u*1024
+                } else {
+                    printf "null"
+                }
+            }')
         fi
         
-        # Get GC statistics
+        # Get GC statistics with G1GC concurrent cycles
         gc_data=$(echo "$heap_raw" | awk '{
-            ygc=$13; ygct=$14; fgc=$15; fgct=$16; gct=$17
-            printf "{\"youngGC\":%d,\"youngGCTime\":%.3f,\"fullGC\":%d,\"fullGCTime\":%.3f,\"totalGCTime\":%.3f}", ygc, ygct, fgc, fgct, gct
+            ygc=$13; ygct=$14; fgc=$15; fgct=$16; cgc=$17; cgct=$18; gct=$19
+            # Handle both G1GC format (with CGC) and other GC formats
+            if (NF >= 19) {
+                # G1GC format with concurrent GC cycles
+                printf "{\"youngGC\":%d,\"youngGCTime\":%.3f,\"fullGC\":%d,\"fullGCTime\":%.3f,\"concurrentGC\":%d,\"concurrentGCTime\":%.3f,\"totalGCTime\":%.3f}", ygc, ygct, fgc, fgct, cgc, cgct, gct
+            } else {
+                # Standard format without concurrent GC
+                gct=$17
+                printf "{\"youngGC\":%d,\"youngGCTime\":%.3f,\"fullGC\":%d,\"fullGCTime\":%.3f,\"totalGCTime\":%.3f}", ygc, ygct, fgc, fgct, gct
+            }
         }')
     fi
     
@@ -99,6 +133,8 @@ EOF
   "pid": $neo4j_pid,
   "heap": ${heap_data:-null},
   "metaspace": ${metaspace_data:-null},
+  "compressedClass": ${compressed_class_data:-null},
+  "survivor": ${survivor_data:-null},
   "gc": ${gc_data:-null},
   "threads": ${thread_count:-null},
   "memory": ${proc_memory:-null},

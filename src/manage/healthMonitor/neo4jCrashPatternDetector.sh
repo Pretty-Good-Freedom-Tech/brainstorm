@@ -214,11 +214,15 @@ check_heap_and_gc_health() {
         if [[ $age_diff -lt 120 ]]; then
             local heap_data=$(jq -r '.heap // empty' "$metrics_file" 2>/dev/null)
             local metaspace_data=$(jq -r '.metaspace // empty' "$metrics_file" 2>/dev/null)
+            local compressed_class_data=$(jq -r '.compressedClass // empty' "$metrics_file" 2>/dev/null)
+            local survivor_data=$(jq -r '.survivor // empty' "$metrics_file" 2>/dev/null)
             local gc_data=$(jq -r '.gc // empty' "$metrics_file" 2>/dev/null)
             
             emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" "$(jq -n \
                 --arg heapData "$heap_data" \
                 --arg metaspaceData "$metaspace_data" \
+                --arg compressedClassData "$compressed_class_data" \
+                --arg survivorData "$survivor_data" \
                 --arg gcData "$gc_data" \
                 '{
                     "message": "Parsed enhanced metrics data",
@@ -226,6 +230,8 @@ check_heap_and_gc_health() {
                     "debug": {
                         "heapDataPresent": ($heapData != "empty" and $heapData != "null" and $heapData != ""),
                         "metaspaceDataPresent": ($metaspaceData != "empty" and $metaspaceData != "null" and $metaspaceData != ""),
+                        "compressedClassDataPresent": ($compressedClassData != "empty" and $compressedClassData != "null" and $compressedClassData != ""),
+                        "survivorDataPresent": ($survivorData != "empty" and $survivorData != "null" and $survivorData != ""),
                         "gcDataPresent": ($gcData != "empty" and $gcData != "null" and $gcData != "")
                     }
                 }')"
@@ -261,6 +267,41 @@ check_heap_and_gc_health() {
                 echo "DEBUG: Metaspace used: $metaspace_used bytes, total: $metaspace_total bytes, percent: $metaspace_percent%"
             else
                 echo "DEBUG: No metaspace data in enhanced metrics, will use fallback jstat method"
+            fi
+            
+            # Process compressed class space data from enhanced metrics
+            local compressed_class_used=0
+            local compressed_class_total=0
+            local compressed_class_percent=0
+            
+            if [[ -n "$compressed_class_data" && "$compressed_class_data" != "null" && "$compressed_class_data" != "empty" ]]; then
+                compressed_class_used=$(echo "$compressed_class_data" | jq -r '.usedBytes')
+                compressed_class_total=$(echo "$compressed_class_data" | jq -r '.totalBytes')
+                compressed_class_percent=$(echo "$compressed_class_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
+                echo "DEBUG: Using enhanced metrics collector for compressed class space data"
+                echo "DEBUG: Compressed class used: $compressed_class_used bytes, total: $compressed_class_total bytes, percent: $compressed_class_percent%"
+            fi
+            
+            # Process survivor space data from enhanced metrics
+            local survivor_used=0
+            local survivor_total=0
+            local survivor_percent=0
+            local s0_used=0
+            local s0_capacity=0
+            local s1_used=0
+            local s1_capacity=0
+            
+            if [[ -n "$survivor_data" && "$survivor_data" != "null" && "$survivor_data" != "empty" ]]; then
+                survivor_used=$(echo "$survivor_data" | jq -r '.usedBytes')
+                survivor_total=$(echo "$survivor_data" | jq -r '.totalBytes')
+                survivor_percent=$(echo "$survivor_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
+                s0_used=$(echo "$survivor_data" | jq -r '.s0Used')
+                s0_capacity=$(echo "$survivor_data" | jq -r '.s0Capacity')
+                s1_used=$(echo "$survivor_data" | jq -r '.s1Used')
+                s1_capacity=$(echo "$survivor_data" | jq -r '.s1Capacity')
+                echo "DEBUG: Using enhanced metrics collector for survivor space data"
+                echo "DEBUG: Survivor used: $survivor_used bytes, total: $survivor_total bytes, percent: $survivor_percent%"
+                echo "DEBUG: S0: $s0_used/$s0_capacity bytes, S1: $s1_used/$s1_capacity bytes"
             fi
             
             if [[ -n "$gc_data" && "$gc_data" != "null" && "$gc_data" != "empty" ]]; then
@@ -474,6 +515,14 @@ check_heap_and_gc_health() {
         --argjson youngGenUsedMB "$(test -n "$young_gen_used" && echo "$young_gen_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson youngGenCapacityMB "$(test -n "$young_gen_capacity" && echo "$young_gen_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson metaspaceCapacityMB "$(test -n "$metaspace_capacity" && echo "$metaspace_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson compressedClassUsedMB "$(test -n "$compressed_class_used" && echo "$compressed_class_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson compressedClassCapacityMB "$(test -n "$compressed_class_total" && echo "$compressed_class_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson survivorUsedMB "$(test -n "$survivor_used" && echo "$survivor_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson survivorCapacityMB "$(test -n "$survivor_total" && echo "$survivor_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson s0UsedMB "$(test -n "$s0_used" && echo "$s0_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson s0CapacityMB "$(test -n "$s0_capacity" && echo "$s0_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson s1UsedMB "$(test -n "$s1_used" && echo "$s1_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson s1CapacityMB "$(test -n "$s1_capacity" && echo "$s1_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         '{
             "message": "Current heap, metaspace and GC metrics analyzed",
             "phase": "heap_gc_health_check",
@@ -489,6 +538,14 @@ check_heap_and_gc_health() {
                 "oldGenCapacityMB": $oldGenCapacityMB,
                 "youngGenUsedMB": $youngGenUsedMB,
                 "youngGenCapacityMB": $youngGenCapacityMB,
+                "compressedClassUsedMB": $compressedClassUsedMB,
+                "compressedClassCapacityMB": $compressedClassCapacityMB,
+                "survivorUsedMB": $survivorUsedMB,
+                "survivorCapacityMB": $survivorCapacityMB,
+                "s0UsedMB": $s0UsedMB,
+                "s0CapacityMB": $s0CapacityMB,
+                "s1UsedMB": $s1UsedMB,
+                "s1CapacityMB": $s1CapacityMB,
                 "youngGcCount": $youngGcCount,
                 "youngGcTimeSeconds": $youngGcTime,
                 "fullGcCount": $fullGcCount,
