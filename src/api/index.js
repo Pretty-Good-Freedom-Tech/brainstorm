@@ -305,6 +305,7 @@ function register(app) {
     app.get('/api/neo4j-health/alerts', neo4jHealth.handleAlertsNeo4jHealth);
     app.get('/api/neo4j-health/heap-metrics-history', neo4jHealth.handleHeapMetricsHistory);
     app.get('/api/neo4j-health/preserved-heap-metrics', neo4jHealth.handlePreservedHeapMetrics);
+    app.get('/api/neo4j-health/task-timeline', neo4jHealth.handleTaskTimeline);
 
     // Neo4j Error Logs endpoints
     app.get('/api/neo4j-logs/errors', neo4jLogs.getNeo4jErrors);

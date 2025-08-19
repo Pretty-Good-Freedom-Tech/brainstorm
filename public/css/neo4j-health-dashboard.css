@@ -48,6 +48,47 @@
     box-shadow: 0 4px 8px rgba(0,123,255,0.3);
 }
 
+/* Task Timeline Styles */
+.timeline-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    position: relative;
+}
+
+.timeline-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.timeline-legend {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85em;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.timeline-status {
+    font-size: 0.8em;
+    color: #666;
+}
+
 /* Metric Explanation Panel */
 .metric-explanation {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);

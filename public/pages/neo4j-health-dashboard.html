@@ -82,6 +82,25 @@
                 </div>
             </div>
 
+            <!-- Task Execution Timeline Panel -->
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h3>🔄 Database-Intensive Task Timeline</h3>
+                    <div class="timeline-controls">
+                        <span class="timeline-legend">
+                            <span class="legend-item"><span class="legend-color" style="background: #ef4444;"></span> Orchestrator</span>
+                            <span class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Graph Calc</span>
+                            <span class="legend-item"><span class="legend-color" style="background: #8b5cf6;"></span> Ranking</span>
+                            <span class="legend-item"><span class="legend-color" style="background: #f59e0b;"></span> Monitoring</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="timeline-container" style="height: 120px; position: relative;">
+                    <canvas id="taskTimeline"></canvas>
+                    <div class="timeline-status" id="timelineStatus">Loading task timeline...</div>
+                </div>
+            </div>
+
             <div class="dashboard-grid">
                 <!-- Service Status Card -->
                 <div class="health-card" id="serviceStatusCard">
@@ -644,8 +663,9 @@
             }
         }
 
-        // Global variable to track current metric view
+        // Global variables
         let currentMetricView = 'overview';
+        let taskTimelineChart = null;
 
         // Metric view switching functionality
         function switchMetricView(view) {
@@ -984,6 +1004,162 @@
             alertsList.innerHTML = `<div class="alert-item alert-critical">${message}</div>`;
         }
 
+        // Initialize task timeline chart
+        function initializeTaskTimeline() {
+            const ctx = document.getElementById('taskTimeline').getContext('2d');
+            
+            taskTimelineChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const point = context[0];
+                                    const task = point.raw.task;
+                                    return `${task.taskName}`;
+                                },
+                                label: function(context) {
+                                    const task = context.raw.task;
+                                    const startTime = new Date(task.startTime).toLocaleTimeString();
+                                    const endTime = task.endTime ? new Date(task.endTime).toLocaleTimeString() : 'Running';
+                                    const duration = task.duration ? `${task.duration.toFixed(1)}s` : 'Ongoing';
+                                    const status = task.success === null ? 'Running' : (task.success ? 'Success' : 'Failed');
+                                    
+                                    return [
+                                        `Start: ${startTime}`,
+                                        `End: ${endTime}`,
+                                        `Duration: ${duration}`,
+                                        `Status: ${status}`,
+                                        `Category: ${task.category}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    minute: 'HH:mm',
+                                    hour: 'HH:mm'
+                                }
+                            },
+                            title: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            type: 'category',
+                            labels: [],
+                            title: {
+                                display: true,
+                                text: 'Tasks'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 0
+                        },
+                        line: {
+                            borderWidth: 8,
+                            tension: 0
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update task timeline with execution data
+        async function updateTaskTimeline() {
+            try {
+                const hoursBack = 24;
+                const response = await fetch(`/api/neo4j-health/task-timeline?hours=${hoursBack}`);
+                const result = await response.json();
+                
+                if (!result.success) {
+                    console.error('Failed to fetch task timeline:', result.error);
+                    updateTimelineStatus('Error loading timeline data', 'error');
+                    return;
+                }
+                
+                const timelineData = result.timeline || [];
+                updateTimelineStatus(`${timelineData.length} task executions in last ${hoursBack}h`, 'success');
+                
+                // Group tasks by name for Y-axis positioning
+                const taskNames = [...new Set(timelineData.map(t => t.taskName))];
+                taskNames.sort();
+                
+                // Update Y-axis labels
+                taskTimelineChart.options.scales.y.labels = taskNames;
+                
+                // Create datasets for timeline bars
+                const datasets = [];
+                
+                timelineData.forEach((task, index) => {
+                    const yPosition = taskNames.indexOf(task.taskName);
+                    const startTime = new Date(task.startTime);
+                    const endTime = task.endTime ? new Date(task.endTime) : new Date();
+                    
+                    // Create a line segment representing the task execution
+                    datasets.push({
+                        label: task.taskName,
+                        data: [
+                            { x: startTime, y: yPosition, task: task },
+                            { x: endTime, y: yPosition, task: task }
+                        ],
+                        borderColor: task.color,
+                        backgroundColor: task.color + '40', // Add transparency
+                        borderWidth: task.ongoing ? 6 : 4,
+                        borderDash: task.ongoing ? [5, 5] : [],
+                        pointRadius: 0,
+                        showLine: true,
+                        tension: 0
+                    });
+                });
+                
+                // Update chart
+                taskTimelineChart.data.datasets = datasets;
+                
+                // Sync X-axis with heap chart if it exists
+                if (heapChart && heapChart.options.scales.x.min && heapChart.options.scales.x.max) {
+                    taskTimelineChart.options.scales.x.min = heapChart.options.scales.x.min;
+                    taskTimelineChart.options.scales.x.max = heapChart.options.scales.x.max;
+                }
+                
+                taskTimelineChart.update();
+                
+                console.log(`Updated task timeline with ${timelineData.length} executions`);
+                
+            } catch (error) {
+                console.error('Error updating task timeline:', error);
+                updateTimelineStatus('Network error', 'error');
+            }
+        }
+
+        // Update timeline status indicator
+        function updateTimelineStatus(message, type) {
+            const indicator = document.getElementById('timelineStatus');
+            if (indicator) {
+                indicator.textContent = message;
+                indicator.style.color = type === 'error' ? '#ef4444' : 
+                                      type === 'warning' ? '#f59e0b' : '#10b981';
+            }
+        }
+
         // Initialize dashboard when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             // Add event listeners to metric selector buttons
@@ -994,14 +1170,19 @@
                 });
             });
 
-            // Initialize with overview view
+            // Initialize charts
             switchMetricView('overview');
+            initializeTaskTimeline();
             
             // Start data loading
             updateHeapChart();
+            updateTaskTimeline();
             
             // Set up auto-refresh
-            setInterval(updateHeapChart, 30000); // Refresh every 30 seconds
+            setInterval(() => {
+                updateHeapChart();
+                updateTaskTimeline();
+            }, 30000); // Refresh every 30 seconds
         });
     </script>
     </div>
