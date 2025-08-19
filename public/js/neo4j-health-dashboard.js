@@ -297,6 +297,8 @@ async function initializeHeapChart() {
                     type: 'linear',
                     display: true,
                     position: 'left',
+                    stack: 'metrics',
+                    stackWeight: 10,
                     title: {
                         display: true,
                         text: 'Memory Utilization %'
@@ -311,6 +313,8 @@ async function initializeHeapChart() {
                     type: 'linear',
                     display: true,
                     position: 'right',
+                    stack: 'metrics',
+                    stackWeight: 10,
                     title: {
                         display: true,
                         text: 'GC Overhead %'
@@ -321,6 +325,17 @@ async function initializeHeapChart() {
                     max: 20
                 },
                 y2: {
+                    type: 'category',
+                    labels: ['START', 'END'],
+                    offset: true,
+                    position: 'left',
+                    stack: 'metrics',
+                    stackWeight: 4,
+                    border: {
+                      color: 'rgba(118, 3, 3, 0.1)'
+                    }
+                },
+                y2_old: {
                     type: 'linear',
                     display: true, // Show axis for debugging
                     position: 'right',
@@ -559,19 +574,19 @@ function createTimelineDatasets(chartLabels) {
     // Create a dataset for each task execution
     taskTimelineData.forEach((task, index) => {
         const taskIndex = taskNames.indexOf(task.taskName);
-        const yPosition = 90 - (taskIndex * 10); // Position from 90 down to lower values
-
-        console.log(`Task ${task.taskName} positioned at Y=${yPosition}`);
+        // const yPosition = 90 - (taskIndex * 10); // Position from 90 down to lower values
 
         const startTime = new Date(task.startTime);
         const endTime = task.endTime ? new Date(task.endTime) : new Date();
+
+        console.log(`Task ${task.taskName} start: ${startTime}, end: ${endTime}`);
 
         // Create line segment for task execution
         datasets.push({
             label: '', // Empty label to hide from legend
             data: [
-                { x: startTime, y: yPosition },
-                { x: endTime, y: yPosition }
+                { x: startTime, y: 'START' },
+                { x: endTime, y: 'END' }
             ],
             borderColor: task.color,
             backgroundColor: task.color + '60',
@@ -1046,7 +1061,7 @@ async function updateTaskTimeline() {
         const datasets = [];
         
         timelineData.forEach((task, index) => {
-            const yPosition = taskNames.indexOf(task.taskName);
+            // const yPosition = taskNames.indexOf(task.taskName);
             const startTime = new Date(task.startTime);
             const endTime = task.endTime ? new Date(task.endTime) : new Date();
             
@@ -1054,8 +1069,8 @@ async function updateTaskTimeline() {
             datasets.push({
                 label: task.taskName,
                 data: [
-                    { x: startTime, y: yPosition, task: task },
-                    { x: endTime, y: yPosition, task: task }
+                    { x: startTime, y: 'START', task: task },
+                    { x: endTime, y: 'END', task: task }
                 ],
                 borderColor: task.color,
                 backgroundColor: task.color + '40', // Add transparency

@@ -1,1 +1,0 @@
-The results directory will in general contain the results of WoT algorithmic calculations including GrapeRank, PageRank, DoS, etc. 

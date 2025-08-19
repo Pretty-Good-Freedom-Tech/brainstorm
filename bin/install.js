@@ -249,6 +249,11 @@ async function install() {
     // Step 10: Setup secure storage
     await setupSecureStorage();
 
+    // Step 11: Ensure directory ownership and permissions are correct
+    // This is a patch based on bugs encountered
+    // TODO: reorganize installation of all directories and files
+    await patchDirectoryPermissions();
+
     // make sure brainstorm-control-panel is running
     console.log('Waiting for system to stabilize before starting services...');
     execSync('sleep 5'); // 5-second delay
@@ -286,6 +291,13 @@ async function setupSecureStorage() {
   execSync('sudo bash ' + configPaths.setupSecureStorageScript, { stdio: 'inherit' });
   console.log('\x1b[32mSecure storage setup complete.\x1b[0m');
   console.log('\x1b[33mNote: Environment variables will be loaded automatically by the control panel.\x1b[0m');
+}
+
+async function patchDirectoryPermissions() {
+  console.log('\x1b[36m=== Reviewing directory permissions ===\x1b[0m');
+  execSync('sudo chown brainstorm:brainstorm /var/lib/brainstorm');
+  execSync('sudo chown neo4j:brainstorm /var/lib/brainstorm/monitoring');
+  execSync('sudo chown brainstorm:brainstorm /var/log/brainstorm');
 }
 
 // Create strfry router config file
