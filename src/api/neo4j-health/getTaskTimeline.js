@@ -76,9 +76,15 @@ async function loadTaskTimelineData(config, cutoffTime, dbIntensiveTasks) {
     
     // Load from current events.jsonl
     const eventsFile = path.join(config.BRAINSTORM_LOG_DIR, 'events.jsonl');
+    console.log(`Looking for events file at: ${eventsFile}`);
+    console.log(`Events file exists: ${fs.existsSync(eventsFile)}`);
+    
     if (fs.existsSync(eventsFile)) {
         const currentTimeline = await loadTimelineFromEvents(eventsFile, cutoffTime, dbIntensiveTasks);
+        console.log(`Loaded ${currentTimeline.length} current timeline entries`);
         timeline.push(...currentTimeline);
+    } else {
+        console.log(`Events file not found at ${eventsFile}`);
     }
     
     // Load from preserved history
@@ -105,21 +111,43 @@ async function loadTimelineFromEvents(eventsFile, cutoffTime, dbIntensiveTasks) 
         const eventsData = fs.readFileSync(eventsFile, 'utf8');
         const eventLines = eventsData.trim().split('\n').filter(line => line.trim());
         
+        console.log(`Processing ${eventLines.length} event lines from ${eventsFile}`);
+        console.log(`Cutoff time: ${cutoffTime.toISOString()}`);
+        console.log(`Looking for tasks: ${Object.keys(dbIntensiveTasks).join(', ')}`);
+        
+        let processedEvents = 0;
+        let filteredByTime = 0;
+        let filteredByTask = 0;
+        
         eventLines.forEach(line => {
             try {
                 const event = JSON.parse(line);
-                const eventTime = new Date(event.timestamp);
+                processedEvents++;
                 
-                // Debug logging
-                if (dbIntensiveTasks[event.taskName]) {
-                    console.log(`Processing current event: ${event.taskName} at ${event.timestamp}, cutoff: ${cutoffTime.toISOString()}`);
+                // Log first few events for debugging
+                if (processedEvents <= 5) {
+                    console.log(`Sample event ${processedEvents}:`, {
+                        taskName: event.taskName,
+                        eventType: event.eventType,
+                        timestamp: event.timestamp
+                    });
                 }
                 
-                // Only process events within our time range
-                if (eventTime < cutoffTime) return;
+                const eventTime = new Date(event.timestamp);
                 
-                // Only process database-intensive tasks
-                if (!dbIntensiveTasks[event.taskName]) return;
+                // Check time filter
+                if (eventTime < cutoffTime) {
+                    filteredByTime++;
+                    return;
+                }
+                
+                // Check task filter
+                if (!dbIntensiveTasks[event.taskName]) {
+                    filteredByTask++;
+                    return;
+                }
+                
+                console.log(`MATCHED event: ${event.taskName} ${event.eventType} at ${event.timestamp}`);
                 
                 if (event.eventType === 'TASK_START') {
                     pendingStarts.set(event.taskName, {
@@ -163,6 +191,13 @@ async function loadTimelineFromEvents(eventsFile, cutoffTime, dbIntensiveTasks) 
                 category: dbIntensiveTasks[startEvent.taskName].category
             });
         });
+        
+        console.log(`Event processing summary:`);
+        console.log(`- Total events processed: ${processedEvents}`);
+        console.log(`- Filtered by time (too old): ${filteredByTime}`);
+        console.log(`- Filtered by task (not DB-intensive): ${filteredByTask}`);
+        console.log(`- Pending starts: ${pendingStarts.size}`);
+        console.log(`- Timeline entries created: ${timeline.length}`);
         
     } catch (error) {
         console.error('Error loading timeline from events:', error);
