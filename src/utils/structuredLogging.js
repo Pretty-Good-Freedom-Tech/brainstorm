@@ -18,7 +18,7 @@ const path = require('path');
 const BRAINSTORM_STRUCTURED_LOGGING = process.env.BRAINSTORM_STRUCTURED_LOGGING || 'true';
 const BRAINSTORM_HUMAN_LOGS = process.env.BRAINSTORM_HUMAN_LOGS || 'true';
 const BRAINSTORM_HUMAN_LOG_VERBOSITY = process.env.BRAINSTORM_HUMAN_LOG_VERBOSITY || 'NORMAL';
-const BRAINSTORM_EVENTS_MAX_SIZE = parseInt(process.env.BRAINSTORM_EVENTS_MAX_SIZE || '10000');
+const BRAINSTORM_EVENTS_MAX_SIZE = parseInt(process.env.BRAINSTORM_EVENTS_MAX_SIZE || '100000');
 
 // Get log directory from environment or default
 const BRAINSTORM_LOG_DIR = process.env.BRAINSTORM_LOG_DIR || '/var/log/brainstorm';

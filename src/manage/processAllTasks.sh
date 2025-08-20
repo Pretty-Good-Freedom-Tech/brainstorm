@@ -74,14 +74,22 @@ launch_child_task() {
 echo "$(date): Starting processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "processAllTasks" "" '{
-    "message": "Starting complete Brainstorm pipeline execution",
-    "pipeline_type": "full_system",
-    "child_tasks": 12,
-    "description": "Top-level orchestrator for entire Brainstorm system",
-    "scope": "system_wide",
-    "orchestrator_level": "primary"
-}'
+oMetadata=$(jq -n \
+    --arg message "Starting complete Brainstorm pipeline execution" \
+    --arg pipeline_type "full_system" \
+    --arg child_tasks "12" \
+    --arg description "Top-level orchestrator for entire Brainstorm system" \
+    --arg scope "system_wide" \
+    --arg orchestrator_level "primary" \
+    '{
+        "message": $message,
+        "pipeline_type": $pipeline_type,
+        "child_tasks": $child_tasks,
+        "description": $description,
+        "scope": $scope,
+        "orchestrator_level": $orchestrator_level
+    }')
+emit_task_event "TASK_START" "processAllTasks" "" "$oMetadata"
 
 sleep 5
 
@@ -94,14 +102,26 @@ sleep 5
 
 #################### syncWoT: start  ##############
 # Child Task 2: Negentropy WoT Sync using launchChildTask
-launchChildTask "syncWoT" "processAllTasks" "" ""
+# override timeout duration to 3 hours
+oOptions_syncWoT=$(jq -n \
+    --argjson completion '{"failure": {"timeout": {"duration": 10800000, "forceKill": false}}}' \
+    '{
+        "completion": $completion
+    }')
+launch_child_task "syncWoT" "processAllTasks" "$oOptions_syncWoT" ""
 #################### syncWoT: complete  ##############
 
 sleep 5
 
 #################### syncProfiles: start  ##############
 # Child Task 2: Negentropy Profiles Sync using launchChildTask
-launchChildTask "syncProfiles" "processAllTasks" "" ""
+# override timeout duration to 1 hour
+oOptions_syncProfiles=$(jq -n \
+    --argjson completion '{"failure": {"timeout": {"duration": 3600000, "forceKill": false}}}' \
+    '{
+        "completion": $completion
+    }')
+launch_child_task "syncProfiles" "processAllTasks" "$oOptions_syncProfiles" ""
 #################### syncProfiles: complete  ##############
 
 sleep 5
