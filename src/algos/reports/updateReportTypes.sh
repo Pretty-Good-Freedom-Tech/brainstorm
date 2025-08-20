@@ -52,9 +52,10 @@ for reportType in $cypherResults1; do
         cypherCommand1="CREATE INDEX nostrUser_nip56_${reportType}_verifiedReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_${reportType}_verifiedReportCount)"
         cypherCommand2="CREATE INDEX nostrUser_nip56_${reportType}_reportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_${reportType}_reportCount)"
         cypherCommand3="CREATE INDEX nostrUser_nip56_${reportType}_grapeRankScore IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_${reportType}_grapeRankScore)"
-        sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$cypherCommand1"
-        sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$cypherCommand2"
-        sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$cypherCommand3"
+        # omitting this for now; too many indexes causes problems for neo4j
+        # sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$cypherCommand1"
+        # sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$cypherCommand2"
+        # sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$cypherCommand3"
         
         echo "$(date): Continuing updateReportTypes; added cypher index for reportType: $reportType"
         echo "$(date): Continuing updateReportTypes; added cypher index for reportType: $reportType" >> ${BRAINSTORM_LOG_DIR}/updateReportTypes.log
