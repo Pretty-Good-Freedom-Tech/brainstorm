@@ -13,15 +13,25 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupAutoRefresh() {
     const autoRefreshCheckbox = document.getElementById('autoRefresh');
     
+    // Clear any existing interval first
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+    
     if (autoRefreshCheckbox.checked) {
         autoRefreshInterval = setInterval(refreshDashboard, 30000);
     }
     
     autoRefreshCheckbox.addEventListener('change', function() {
+        // Always clear existing interval first
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+        
         if (this.checked) {
             autoRefreshInterval = setInterval(refreshDashboard, 30000);
-        } else {
-            clearInterval(autoRefreshInterval);
         }
     });
 }
