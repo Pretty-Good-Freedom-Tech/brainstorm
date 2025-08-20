@@ -124,16 +124,16 @@ oMetadata=$(jq -n \
    --argjson param_array "$param_array" \
    --argjson param_object "$param_object" \
    '{
-      key_hardcoded_string: $hardcoded_string,
-      key_hardcoded_integer: $hardcoded_integer,
-      key_hardcoded_boolean: $hardcoded_boolean,
-      key_hardcoded_array: $hardcoded_array,
-      key_hardcoded_object: $hardcoded_object,
-      key_param_boolean: $param_boolean,
-      key_param_integer: $param_integer,
-      key_param_string: $param_string,
-      key_param_array: $param_array,
-      key_param_object: $param_object
+      "key_hardcoded_string": $hardcoded_string,
+      "key_hardcoded_integer": $hardcoded_integer,
+      "key_hardcoded_boolean": $hardcoded_boolean,
+      "key_hardcoded_array": $hardcoded_array,
+      "key_hardcoded_object": $hardcoded_object,
+      "key_param_boolean": $param_boolean,
+      "key_param_integer": $param_integer,
+      "key_param_string": $param_string,
+      "key_param_array": $param_array,
+      "key_param_object": $param_object
    }')
 emit_task_event "EVENT_TYPE" "TASK_NAME" "TARGET" "$oMetadata"
 

@@ -134,9 +134,15 @@ if [ $SHOW_CONSTRAINTS_RESULT -ne 0 ]; then
 fi
 
 # Check if the primary constraint exists
-CONSTRAINT_COUNT_USER=$(grep -c "nostrUser_pubkey" /tmp/neo4j_constraints.txt || echo "0")
-CONSTRAINT_COUNT_EVENT=$(grep -c "nostrEvent_event_id" /tmp/neo4j_constraints.txt || echo "0")
-CONSTRAINT_COUNT=$(($CONSTRAINT_COUNT_USER + $CONSTRAINT_COUNT_EVENT))
+CONSTRAINT_COUNT_USER=$(grep -c "nostrUser_pubkey" /tmp/neo4j_constraints.txt 2>/dev/null || echo "0")
+CONSTRAINT_COUNT_EVENT=$(grep -c "nostrEvent_event_id" /tmp/neo4j_constraints.txt 2>/dev/null || echo "0")
+# Clean up any whitespace/newlines and ensure we have valid numbers
+CONSTRAINT_COUNT_USER=$(echo "$CONSTRAINT_COUNT_USER" | tr -d '\n\r' | grep -o '[0-9]*' | head -1)
+CONSTRAINT_COUNT_EVENT=$(echo "$CONSTRAINT_COUNT_EVENT" | tr -d '\n\r' | grep -o '[0-9]*' | head -1)
+# Set defaults if empty
+CONSTRAINT_COUNT_USER=${CONSTRAINT_COUNT_USER:-0}
+CONSTRAINT_COUNT_EVENT=${CONSTRAINT_COUNT_EVENT:-0}
+CONSTRAINT_COUNT=$((CONSTRAINT_COUNT_USER + CONSTRAINT_COUNT_EVENT))
 
 # Show the indexes
 if [ $SHOW_CONSTRAINTS_RESULT -eq 0 ]; then
@@ -144,9 +150,15 @@ if [ $SHOW_CONSTRAINTS_RESULT -eq 0 ]; then
     sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p neo4j "$SHOW_INDEXES" > /tmp/neo4j_indexes.txt 2>&1
     
     # Count indexes
-    INDEX_COUNT_USER=$(grep -c "nostrUser_" /tmp/neo4j_indexes.txt || echo "0")
-    INDEX_COUNT_EVENT=$(grep -c "nostrEvent_" /tmp/neo4j_indexes.txt || echo "0")
-    INDEX_COUNT=$(($INDEX_COUNT_USER + $INDEX_COUNT_EVENT))
+    INDEX_COUNT_USER=$(grep -c "nostrUser_" /tmp/neo4j_indexes.txt 2>/dev/null || echo "0")
+    INDEX_COUNT_EVENT=$(grep -c "nostrEvent_" /tmp/neo4j_indexes.txt 2>/dev/null || echo "0")
+    # Clean up any whitespace/newlines and ensure we have valid numbers
+    INDEX_COUNT_USER=$(echo "$INDEX_COUNT_USER" | tr -d '\n\r' | grep -o '[0-9]*' | head -1)
+    INDEX_COUNT_EVENT=$(echo "$INDEX_COUNT_EVENT" | tr -d '\n\r' | grep -o '[0-9]*' | head -1)
+    # Set defaults if empty
+    INDEX_COUNT_USER=${INDEX_COUNT_USER:-0}
+    INDEX_COUNT_EVENT=${INDEX_COUNT_EVENT:-0}
+    INDEX_COUNT=$((INDEX_COUNT_USER + INDEX_COUNT_EVENT))
 else
     INDEX_COUNT=0
 fi
@@ -155,19 +167,6 @@ fi
 rm -f /tmp/neo4j_constraints.txt /tmp/neo4j_indexes.txt
 
 # Emit structured event for verification results
-emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" '{
-    "message": "Verification results obtained",
-    "phase": "verification",
-    "step": "results_analysis",
-    "database": "neo4j",
-    "constraints_found": '$CONSTRAINT_COUNT',
-    "indexes_found": '$INDEX_COUNT',
-    "constraint_count_user": '$CONSTRAINT_COUNT_USER',
-    "constraint_count_event": '$CONSTRAINT_COUNT_EVENT',
-    "index_count_user": '$INDEX_COUNT_USER',
-    "index_count_event": '$INDEX_COUNT_EVENT'
-}'
-
 oMetadata=$(jq -n \
     --arg message "Verification results obtained" \
     --arg phase "verification" \
@@ -179,17 +178,17 @@ oMetadata=$(jq -n \
     --argjson constraint_count_event "$CONSTRAINT_COUNT_EVENT" \
     --argjson index_count_user "$INDEX_COUNT_USER" \
     --argjson index_count_event "$INDEX_COUNT_EVENT" \
-    ' {
-        message: $message,
-        phase: $phase,
-        step: $step,
-        database: $database,
-        constraints_found: $constraints_found,
-        indexes_found: $indexes_found,
-        constraint_count_user: $constraint_count_user,
-        constraint_count_event: $constraint_count_event,
-        index_count_user: $index_count_user,
-        index_count_event: $index_count_event
+    '{
+        "message": $message,
+        "phase": $phase,
+        "step": $step,
+        "database": $database,
+        "constraints_found": $constraints_found,
+        "indexes_found": $indexes_found,
+        "constraint_count_user": $constraint_count_user,
+        "constraint_count_event": $constraint_count_event,
+        "index_count_user": $index_count_user,
+        "index_count_event": $index_count_event
     }')
 emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" "$oMetadata"
 
@@ -229,17 +228,17 @@ if [ $STORED_PASSWORD_RESULT -eq 0 -o $DEFAULT_PASSWORD_RESULT -eq 0 ] && [ $CON
         --arg scope "system" \
         --arg parent_task "processAllTasks" \
         '{
-            message: $message,
-            status: $status,
-            task_type: $task_type,
-            database: $database,
-            constraints_created: $constraints_created,
-            indexes_created: $indexes_created,
-            config_updated: $config_updated,
-            timestamp: $timestamp,
-            category: $category,
-            scope: $scope,
-            parent_task: $parent_task
+            "message": $message,
+            "status": $status,
+            "task_type": $task_type,
+            "database": $database,
+            "constraints_created": $constraints_created,
+            "indexes_created": $indexes_created,
+            "config_updated": $config_updated,
+            "timestamp": $timestamp,
+            "category": $category,
+            "scope": $scope,
+            "parent_task": $parent_task
         }')
     emit_task_event "TASK_END" "neo4jConstraintsAndIndexes" "system" "$oMetadata"
     
@@ -261,19 +260,19 @@ else
         --arg category "maintenance" \
         --arg scope "system" \
         --arg parent_task "processAllTasks" \
-        ' {
-            message: $message,
-            status: $status,
-            task_type: $task_type,
-            database: $database,
-            stored_password_result: $stored_password_result,
-            default_password_result: $default_password_result,
-            constraints_found: $constraints_found,
-            indexes_found: $indexes_found,
-            error_reason: $error_reason,
-            category: $category,
-            scope: $scope,
-            parent_task: $parent_task
+        '{
+            "message": $message,
+            "status": $status,
+            "task_type": $task_type,
+            "database": $database,
+            "stored_password_result": $stored_password_result,
+            "default_password_result": $default_password_result,
+            "constraints_found": $constraints_found,
+            "indexes_found": $indexes_found,
+            "error_reason": $error_reason,
+            "category": $category,
+            "scope": $scope,
+            "parent_task": $parent_task
         }')
     emit_task_event "TASK_ERROR" "neo4jConstraintsAndIndexes" "system" "$oMetadata"
     
