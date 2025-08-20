@@ -89,6 +89,13 @@ echo "=== Updating Neo4j memory settings (commented out) ==="
 # More aggressive JVM hardening options
 sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\/var\/log\/neo4j\//' "$NEO4J_CONF"
 
+# recs for 32 GiB server:
+sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=11700m/' "$NEO4J_CONF"
+sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=11700m/' "$NEO4J_CONF"
+sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=12000m/' "$NEO4J_CONF"
+# JVM hardening
+sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\/var\/log\/neo4j\//' "$NEO4J_CONF"
+
 
 
 # sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
