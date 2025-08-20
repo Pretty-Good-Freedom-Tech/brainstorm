@@ -283,7 +283,8 @@ function initializeHeader() {
     loadNavbar();
 
     // Check Neo4j constraints and indexes
-    checkNeo4jConstraints();
+    // Aug 2025: managed by task explorer
+    // checkNeo4jConstraints();
 
     // Check authentication status and user classification
     fetch('/api/auth/user-classification')
