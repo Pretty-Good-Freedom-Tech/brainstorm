@@ -43,53 +43,16 @@ fi
 
 CYPHER_COMMAND="
 CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;
-# CREATE INDEX nostrUser_npub IF NOT EXISTS FOR (n:NostrUser) ON (n.npub);
-# CREATE INDEX nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) ON (n.pubkey);
-# CREATE INDEX nostrUser_kind3EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3EventId);
-# CREATE INDEX nostrUser_kind3CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind3CreatedAt);
-# CREATE INDEX nostrUser_kind1984EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind1984EventId);
-# CREATE INDEX nostrUser_kind1984CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind1984CreatedAt);
-# CREATE INDEX nostrUser_kind10000EventId IF NOT EXISTS FOR (n:NostrUser) ON (n.kind10000EventId);
-# CREATE INDEX nostrUser_kind10000CreatedAt IF NOT EXISTS FOR (n:NostrUser) ON (n.kind10000CreatedAt);
-
 CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);
 CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);
 
 CREATE INDEX nostrUser_influence IF NOT EXISTS FOR (n:NostrUser) ON (n.influence);
-# CREATE INDEX nostrUser_average IF NOT EXISTS FOR (n:NostrUser) ON (n.average);
-# CREATE INDEX nostrUser_confidence IF NOT EXISTS FOR (n:NostrUser) ON (n.confidence);
-# CREATE INDEX nostrUser_input IF NOT EXISTS FOR (n:NostrUser) ON (n.input);
-
-CREATE INDEX nostrUser_followingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.followingCount);
-CREATE INDEX nostrUser_followerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.followerCount);
-CREATE INDEX nostrUser_mutingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.mutingCount);
-CREATE INDEX nostrUser_muterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.muterCount);
-CREATE INDEX nostrUser_reportingCount IF NOT EXISTS FOR (n:NostrUser) ON (n.reportingCount);
-CREATE INDEX nostrUser_reporterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.reporterCount);
 
 CREATE INDEX nostrUser_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedFollowerCount);
 CREATE INDEX nostrUser_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedMuterCount);
 CREATE INDEX nostrUser_verifiedReporterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.verifiedReporterCount);
 
 CREATE INDEX nostrUser_followerInput IF NOT EXISTS FOR (n:NostrUser) ON (n.followerInput);
-CREATE INDEX nostrUser_muterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.muterInput);
-CREATE INDEX nostrUser_reporterInput IF NOT EXISTS FOR (n:NostrUser) ON (n.reporterInput);
-
-# CREATE INDEX nostrUser_nip56_totalGrapeRankScore IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalGrapeRankScore);
-# CREATE INDEX nostrUser_nip56_totalReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalReportCount);
-# CREATE INDEX nostrUser_nip56_totalVerifiedReportCount IF NOT EXISTS FOR (n:NostrUser) ON (n.nip56_totalVerifiedReportCount);
-
-CREATE INDEX nostrUser_blacklisted IF NOT EXISTS FOR (n:NostrUser) ON (n.blacklisted);
-
-# CREATE CONSTRAINT nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) REQUIRE n.event_id IS UNIQUE;
-# CREATE INDEX nostrEvent_event_id IF NOT EXISTS FOR (n:NostrEvent) ON (n.event_id);
-# CREATE INDEX nostrEvent_kind IF NOT EXISTS FOR (n:NostrEvent) ON (n.kind);
-# CREATE INDEX nostrEvent_created_at IF NOT EXISTS FOR (n:NostrEvent) ON (n.created_at);
-# CREATE INDEX nostrEvent_author IF NOT EXISTS FOR (n:NostrEvent) ON (n.author);
-
-# CREATE INDEX nostrUser_customer_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_personalizedPageRank);
-# CREATE INDEX nostrUser_customer_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_verifiedFollowerCount);
-# CREATE INDEX nostrUser_customer_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUser) ON (n.customer_verifiedMuterCount);
 
 CREATE CONSTRAINT SetOfNostrUserWotMetricsCards_observee_pubkey IF NOT EXISTS FOR (n:SetOfNostrUserWotMetricsCards) REQUIRE n.observee_pubkey IS UNIQUE;
 CREATE CONSTRAINT nostrUserWotMetricsCard_unique_combination_1 IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) REQUIRE (n.customer_id, n.observee_pubkey) IS UNIQUE;
@@ -101,20 +64,12 @@ CREATE INDEX nostrUserWotMetricsCard_observee_pubkey IF NOT EXISTS FOR (n:NostrU
 CREATE INDEX nostrUserWotMetricsCard_hops IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.hops);
 CREATE INDEX nostrUserWotMetricsCard_personalizedPageRank IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.personalizedPageRank);
 CREATE INDEX nostrUserWotMetricsCard_influence IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.influence);
-# CREATE INDEX nostrUserWotMetricsCard_average IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.average);
-# CREATE INDEX nostrUserWotMetricsCard_confidence IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.confidence);
-# CREATE INDEX nostrUserWotMetricsCard_input IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.input);
-CREATE INDEX nostrUserWotMetricsCard_totalVerifiedReportCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.totalVerifiedReportCount);
-CREATE INDEX nostrUserWotMetricsCard_whitelisted IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.whitelisted);
-CREATE INDEX nostrUserWotMetricsCard_blacklisted IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.blacklisted);
 
 CREATE INDEX nostrUserWotMetricsCard_verifiedFollowerCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.verifiedFollowerCount);
 CREATE INDEX nostrUserWotMetricsCard_verifiedMuterCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.verifiedMuterCount);
 CREATE INDEX nostrUserWotMetricsCard_verifiedReporterCount IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.verifiedReporterCount);
 
 CREATE INDEX nostrUserWotMetricsCard_followerInput IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.followerInput);
-CREATE INDEX nostrUserWotMetricsCard_muterInput IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.muterInput);
-CREATE INDEX nostrUserWotMetricsCard_reporterInput IF NOT EXISTS FOR (n:NostrUserWotMetricsCard) ON (n.reporterInput);
 "
 
 # Emit structured event for constraint/index creation phase

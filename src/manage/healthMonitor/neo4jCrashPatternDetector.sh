@@ -256,28 +256,48 @@ check_heap_and_gc_health() {
             
             # Process metaspace data from enhanced metrics
             local metaspace_used=0
-            local metaspace_total=0
+            local metaspace_committed=0
+            local metaspace_reserved=0
             local metaspace_percent=0
             
             if [[ -n "$metaspace_data" && "$metaspace_data" != "null" && "$metaspace_data" != "empty" ]]; then
                 metaspace_used=$(echo "$metaspace_data" | jq -r '.usedBytes')
-                metaspace_total=$(echo "$metaspace_data" | jq -r '.totalBytes')
-                metaspace_percent=$(echo "$metaspace_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
+                metaspace_committed=$(echo "$metaspace_data" | jq -r '.totalBytes')
+                
+                # Get reserved metaspace from JVM flags or use default (1GB)
+                local max_metaspace_size=$(sudo jcmd $neo4j_pid VM.flags 2>/dev/null | grep -oP 'MaxMetaspaceSize=\K\d+' || echo "1073741824")
+                metaspace_reserved=${max_metaspace_size:-1073741824}  # Default 1GB if not set
+                
+                # Calculate percentage of reserved space being used
+                if [[ "$metaspace_reserved" -gt 0 ]]; then
+                    metaspace_percent=$(echo "scale=2; ($metaspace_used / $metaspace_reserved) * 100" | bc | awk '{printf "%.0f", $1}')
+                fi
+                
                 echo "DEBUG: Using enhanced metrics collector for metaspace data"
-                echo "DEBUG: Metaspace used: $metaspace_used bytes, total: $metaspace_total bytes, percent: $metaspace_percent%"
+                echo "DEBUG: Metaspace used: $metaspace_used bytes, committed: $metaspace_committed bytes, reserved: $metaspace_reserved bytes, percent: $metaspace_percent%"
             else
                 echo "DEBUG: No metaspace data in enhanced metrics, will use fallback jstat method"
             fi
             
             # Process compressed class space data from enhanced metrics
             local compressed_class_used=0
-            local compressed_class_total=0
+            local compressed_class_committed=0
+            local compressed_class_reserved=0
             local compressed_class_percent=0
             
             if [[ -n "$compressed_class_data" && "$compressed_class_data" != "null" && "$compressed_class_data" != "empty" ]]; then
                 compressed_class_used=$(echo "$compressed_class_data" | jq -r '.usedBytes')
-                compressed_class_total=$(echo "$compressed_class_data" | jq -r '.totalBytes')
-                compressed_class_percent=$(echo "$compressed_class_data" | jq -r '.percentUsed' | awk '{printf "%.0f", $1}')
+                compressed_class_committed=$(echo "$compressed_class_data" | jq -r '.totalBytes')
+                
+                # Get reserved compressed class space from JVM flags or use default (1GB)
+                local compressed_class_size=$(sudo jcmd $neo4j_pid VM.flags 2>/dev/null | grep -oP 'CompressedClassSpaceSize=\K\d+' || echo "1073741824")
+                compressed_class_reserved=${compressed_class_size:-1073741824}  # Default 1GB if not set
+                
+                # Calculate percentage of reserved space being used
+                if [[ "$compressed_class_reserved" -gt 0 ]]; then
+                    compressed_class_percent=$(echo "scale=2; ($compressed_class_used / $compressed_class_reserved) * 100" | bc | awk '{printf "%.0f", $1}')
+                fi
+                
                 echo "DEBUG: Using enhanced metrics collector for compressed class space data"
                 echo "DEBUG: Compressed class used: $compressed_class_used bytes, total: $compressed_class_total bytes, percent: $compressed_class_percent%"
             fi
@@ -398,86 +418,46 @@ check_heap_and_gc_health() {
                         echo "DEBUG: jstat -gc header: $gc_header"
                         echo "DEBUG: jstat -gc data: $gc_data"
                         
-                        # Parse all jstat -gc columns
-                        # Columns: S0C S1C S0U S1U EC EU OC OU MC MU CCSC CCSU YGC YGCT FGC FGCT CGC CGCT GCT
-                        local s0c s1c s0u s1u ec eu oc ou mc mu ccsc ccsu ygc ygct fgc fgct cgc cgct gct
+                        # Find MC and MU column positions dynamically
+                        local mc_col=$(echo "$gc_header" | tr ' ' '\n' | grep -n "^MC$" | cut -d: -f1 2>/dev/null || echo "0")
+                        local mu_col=$(echo "$gc_header" | tr ' ' '\n' | grep -n "^MU$" | cut -d: -f1 2>/dev/null || echo "0")
                         
-                        # Read all columns in one go
-                        read -r s0c s1c s0u s1u ec eu oc ou mc mu ccsc ccsu ygc ygct fgc fgct cgc cgct gct <<< "$gc_data"
+                        echo "DEBUG: MC column position: $mc_col"
+                        echo "DEBUG: MU column position: $mu_col"
                         
-                        echo "DEBUG: Parsed jstat -gc values:"
-                        echo "  Survivor 0: ${s0u:-0}K/${s0c:-0}K"
-                        echo "  Survivor 1: ${s1u:-0}K/${s1c:-0}K"
-                        echo "  Eden: ${eu:-0}K/${ec:-0}K"
-                        echo "  Old Gen: ${ou:-0}K/${oc:-0}K"
-                        echo "  Metaspace: ${mu:-0}K/${mc:-0}K"
-                        echo "  Compressed Class: ${ccsu:-0}K/${ccsc:-0}K"
-                        echo "  GC Counts: YGC=${ygc:-0}, FGC=${fgc:-0}, CGC=${cgc:-0}"
+                        local mc_value="0"
+                        local mu_value="0"
                         
-                        # Set the values for further processing
-                        local mc_value="${mc:-0}"
-                        local mu_value="${mu:-0}"
-                        
-                        # Convert all metrics from KB to bytes and calculate percentages
-                        local kb_to_bytes() {
-                            local kb=$1
-                            echo "$kb * 1024" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}'
-                        }
-                        
-                        # Calculate heap metrics
-                        local old_gen_used=$(kb_to_bytes "$ou")
-                        local old_gen_capacity=$(kb_to_bytes "$oc")
-                        local young_gen_used=$(kb_to_bytes "$eu")
-                        local young_gen_capacity=$(kb_to_bytes "$ec")
-                        local survivor_used=$(echo "$s0u + $s1u" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
-                        local survivor_capacity=$(echo "$s0c + $s1c" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
-                        
-                        # Set heap metrics
-                        heap_used=$(kb_to_bytes "$(echo "$ou + $eu + $s0u + $s1u" | bc -l)")
-                        heap_total=$(kb_to_bytes "$(echo "$oc + $ec + $s0c + $s1c" | bc -l)")
-                        
-                        # Calculate heap utilization percentage
-                        if [[ "$heap_total" -gt 0 ]]; then
-                            heap_utilization=$(echo "scale=0; ($heap_used * 100) / $heap_total" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
+                        if [[ "$mc_col" -gt 0 ]]; then
+                            mc_value=$(echo "$gc_data" | awk -v col="$mc_col" '{print $col}' 2>/dev/null || echo "0")
                         fi
                         
-                        # Set metaspace metrics
-                        metaspace_used=$(kb_to_bytes "$mu")
-                        metaspace_total=$(kb_to_bytes "$mc")
-                        if [[ "$metaspace_total" -gt 0 ]]; then
+                        if [[ "$mu_col" -gt 0 ]]; then
+                            mu_value=$(echo "$gc_data" | awk -v col="$mu_col" '{print $col}' 2>/dev/null || echo "0")
+                        fi
+                        
+                        echo "DEBUG: Parsed MC (metaspace capacity): $mc_value KB"
+                        echo "DEBUG: Parsed MU (metaspace used): $mu_value KB"
+                        
+                        # Convert from KB to bytes for consistency
+                        if [[ "$mc_value" =~ ^[0-9]+\.?[0-9]*$ ]] && [[ $(echo "$mc_value > 0" | bc -l 2>/dev/null || echo "0") == "1" ]]; then
+                            metaspace_total=$(echo "$mc_value * 1024" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
+                            echo "DEBUG: Converted MC to bytes: $metaspace_total"
+                        fi
+                        
+                        # Use MU from jstat -gc if available, otherwise fall back to jstat -class
+                        if [[ "$mu_value" =~ ^[0-9]+\.?[0-9]*$ ]] && [[ $(echo "$mu_value > 0" | bc -l 2>/dev/null || echo "0") == "1" ]]; then
+                            metaspace_used=$(echo "$mu_value * 1024" | bc -l 2>/dev/null | awk '{printf "%.0f", $1}')
+                            echo "DEBUG: Using MU from jstat -gc, converted to bytes: $metaspace_used"
+                        fi
+                        
+                        # Calculate metaspace percentage
+                        if [[ "$metaspace_total" -gt 0 && "$metaspace_used" -gt 0 ]]; then
                             metaspace_percent=$(echo "$metaspace_used $metaspace_total" | awk '{printf "%.0f", ($1 * 100) / $2}')
+                            echo "DEBUG: Calculated metaspace percentage: $metaspace_percent% (used: $metaspace_used, total: $metaspace_total)"
+                        else
+                            echo "DEBUG: Cannot calculate metaspace percentage - used: $metaspace_used, total: $metaspace_total"
                         fi
-                        
-                        # Set compressed class space metrics
-                        compressed_class_used=$(kb_to_bytes "$ccsu")
-                        compressed_class_capacity=$(kb_to_bytes "$ccsc")
-                        
-                        # Set survivor space metrics
-                        s0_used=$(kb_to_bytes "$s0u")
-                        s0_capacity=$(kb_to_bytes "$s0c")
-                        s1_used=$(kb_to_bytes "$s1u")
-                        s1_capacity=$(kb_to_bytes "$s1c")
-                        
-                        # Set GC metrics
-                        young_gc_count=${ygc:-0}
-                        young_gc_time_seconds=${ygct:-0}
-                        full_gc_count=${fgc:-0}
-                        full_gc_time_seconds=${fgct:-0}
-                        
-                        # Calculate GC overhead percentage (time spent in GC as percentage of total time)
-                        if [[ -n "$gct" && "$(echo "$gct > 0" | bc -l 2>/dev/null || echo 0)" == "1" ]]; then
-                            gc_time_percent=$(echo "scale=1; ($gct * 100) / ($(date +%s) - $start_time)" | bc -l 2>/dev/null | awk '{printf "%.1f", $1}')
-                            gc_overhead_percent=$gc_time_percent
-                        fi
-                        
-                        echo "DEBUG: Calculated metrics:"
-                        echo "  Heap: ${heap_used:-0}/${heap_total:-0} (${heap_utilization:-0}%)"
-                        echo "  Old Gen: ${old_gen_used:-0}/${old_gen_capacity:-0}"
-                        echo "  Young Gen: ${young_gen_used:-0}/${young_gen_capacity:-0}"
-                        echo "  Survivor: ${survivor_used:-0}/${survivor_capacity:-0}"
-                        echo "  Metaspace: ${metaspace_used:-0}/${metaspace_total:-0} (${metaspace_percent:-0}%)"
-                        echo "  Compressed Class: ${compressed_class_used:-0}/${compressed_class_capacity:-0}"
-                        echo "  GC Overhead: ${gc_overhead_percent:-0}%"
                     fi
                     
                     # Fallback: if we still don't have capacity, try jstat -gccapacity with better column detection
@@ -543,7 +523,8 @@ check_heap_and_gc_health() {
         --argjson heapTotalMB "$(test -n "$heap_total" && test "$heap_total" -gt 0 && echo "$heap_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson metaspacePercent "$(test -n "$metaspace_percent" && test "$metaspace_percent" -gt 0 && echo "$metaspace_percent" || echo "null")" \
         --argjson metaspaceUsedMB "$(test -n "$metaspace_used" && test "$metaspace_used" -gt 0 && echo "$metaspace_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
-        --argjson metaspaceTotalMB "$(test -n "$metaspace_total" && test "$metaspace_total" -gt 0 && echo "$metaspace_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson metaspaceCommittedMB "$(test -n "$metaspace_committed" && echo "$metaspace_committed" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson metaspaceReservedMB "$(test -n "$metaspace_reserved" && echo "$metaspace_reserved" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson youngGcCount "$(test -n "$young_gc_count" && echo "$young_gc_count" || echo "null")" \
         --arg youngGcTime "${young_gc_time:-null}" \
         --argjson fullGcCount "$(test -n "$full_gc_count" && echo "$full_gc_count" || echo "null")" \
@@ -554,9 +535,9 @@ check_heap_and_gc_health() {
         --argjson oldGenCapacityMB "$(test -n "$old_gen_capacity" && echo "$old_gen_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson youngGenUsedMB "$(test -n "$young_gen_used" && echo "$young_gen_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson youngGenCapacityMB "$(test -n "$young_gen_capacity" && echo "$young_gen_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
-        --argjson metaspaceCapacityMB "$(test -n "$metaspace_capacity" && echo "$metaspace_capacity" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson compressedClassUsedMB "$(test -n "$compressed_class_used" && echo "$compressed_class_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
-        --argjson compressedClassCapacityMB "$(test -n "$compressed_class_total" && echo "$compressed_class_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson compressedClassCommittedMB "$(test -n "$compressed_class_committed" && echo "$compressed_class_committed" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
+        --argjson compressedClassReservedMB "$(test -n "$compressed_class_reserved" && echo "$compressed_class_reserved" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson survivorUsedMB "$(test -n "$survivor_used" && echo "$survivor_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson survivorCapacityMB "$(test -n "$survivor_total" && echo "$survivor_total" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
         --argjson s0UsedMB "$(test -n "$s0_used" && echo "$s0_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \
@@ -572,14 +553,15 @@ check_heap_and_gc_health() {
                 "heapTotalMB": $heapTotalMB,
                 "metaspaceUtilizationPercent": $metaspacePercent,
                 "metaspaceUsedMB": $metaspaceUsedMB,
-                "metaspaceTotalMB": $metaspaceTotalMB,
-                "metaspaceCapacityMB": $metaspaceCapacityMB,
+                "metaspaceCommittedMB": $metaspaceCommittedMB,
+                "metaspaceReservedMB": $metaspaceReservedMB,
                 "oldGenUsedMB": $oldGenUsedMB,
                 "oldGenCapacityMB": $oldGenCapacityMB,
                 "youngGenUsedMB": $youngGenUsedMB,
                 "youngGenCapacityMB": $youngGenCapacityMB,
                 "compressedClassUsedMB": $compressedClassUsedMB,
-                "compressedClassCapacityMB": $compressedClassCapacityMB,
+                "compressedClassCommittedMB": $compressedClassCommittedMB,
+                "compressedClassReservedMB": $compressedClassReservedMB,
                 "survivorUsedMB": $survivorUsedMB,
                 "survivorCapacityMB": $survivorCapacityMB,
                 "s0UsedMB": $s0UsedMB,
