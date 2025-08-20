@@ -438,7 +438,14 @@ async function initializeHeapChart() {
             plugins: {
                 legend: {
                     display: true,
-                    position: 'top'
+                    position: 'top',
+                    labels: {
+                        filter: function(legendItem, chartData) {
+                            // Only show legend items for y and y1 axes, hide y2 (timeline)
+                            const dataset = chartData.datasets[legendItem.datasetIndex];
+                            return dataset.yAxisID !== 'y2';
+                        }
+                    }
                 },
                 tooltip: {
                     callbacks: {
