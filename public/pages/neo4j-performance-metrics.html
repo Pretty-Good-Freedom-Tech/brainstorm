@@ -68,7 +68,7 @@
             <div class="health-card">
                 <div class="card-header">
                     <h3 class="card-title">📈 Memory Metrics Over Time</h3>
-                    <select id="timeRangeSelector">
+                    <select id="timeRangeSelector" onchange="updateHeapChart()" style="margin-left: 10px;">
                         <option value="168">Last 7 days</option>
                         <option value="24">Last 24 hours</option>
                         <option value="6">Last 6 hours</option>

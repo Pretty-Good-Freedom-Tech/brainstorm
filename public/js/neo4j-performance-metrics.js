@@ -565,11 +565,17 @@ async function updateHeapChart() {
         });
         const gcOverhead = data.map(point => point.gcOverheadPercent || point.gcTimePercent || 0);
         
-        // Calculate dynamic Y-axis range for GC Overhead
+        // Calculate dynamic Y-axis ranges
         const maxGcOverhead = Math.max(...gcOverhead.filter(val => val > 0));
         const gcAxisMax = calculateGcAxisMax(maxGcOverhead);
         
-        // Update GC Overhead axis dynamically
+        // Calculate max for memory utilization (y axis)
+        const allMemoryValues = [...heapUtilization, ...metaspaceUtilization, ...oldGenUtilization].filter(val => val > 0);
+        const maxMemoryUtil = Math.max(...allMemoryValues);
+        const memoryAxisMax = Math.max(100, Math.ceil(maxMemoryUtil / 10) * 10); // Round up to nearest 10, minimum 100
+        
+        // Update both axes dynamically
+        heapChart.options.scales.y.max = memoryAxisMax;
         heapChart.options.scales.y1.max = gcAxisMax;
         
         // Add warning annotation if GC overhead is critically high
@@ -1239,9 +1245,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initializeData();
     
+    /*
+    // moved to setupAutoRefresh()
     // Set up auto-refresh
     setInterval(async () => {
         await loadTaskTimelineData();
         await updateHeapChart();
     }, 30000); // Refresh every 30 seconds
+    */
 });
