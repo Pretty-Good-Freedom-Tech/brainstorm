@@ -86,15 +86,14 @@ echo "=== Updating Neo4j memory settings (commented out) ==="
 # sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=8g/' "$NEO4J_CONF"
 # JVM hardening options
 # sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError/' "$NEO4J_CONF"
-# More aggressive JVM hardening options
-sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\/var\/log\/neo4j\//' "$NEO4J_CONF"
+# More aggressive JVM hardening options with GC tuning
+sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\/var\/log\/neo4j\/ -XX:NewRatio=2/' "$NEO4J_CONF"
 
 # recs for 32 GiB server:
 sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=11700m/' "$NEO4J_CONF"
 sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=11700m/' "$NEO4J_CONF"
 sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=12000m/' "$NEO4J_CONF"
-# JVM hardening
-sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\/var\/log\/neo4j\//' "$NEO4J_CONF"
+# JVM hardening (already configured above with GC tuning)
 
 
 
