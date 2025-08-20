@@ -31,7 +31,12 @@ function setupAutoRefresh() {
         }
         
         if (this.checked) {
+            console.log('Auto-refresh enabled');
             autoRefreshInterval = setInterval(refreshDashboard, 30000);
+        } else {
+            console.log('Auto-refresh disabled');
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
         }
     });
 }
@@ -639,8 +644,9 @@ let taskTimelineData = [];
 // Load task timeline data
 async function loadTaskTimelineData() {
     try {
-        const hoursBack = 24;
-        const response = await fetch(`/api/neo4j-health/task-timeline?hours=${hoursBack}`);
+        const timeRangeSelector = document.getElementById('timeRangeSelector');
+        const selectedHours = timeRangeSelector.value;
+        const response = await fetch(`/api/neo4j-health/task-timeline?hours=${selectedHours}`);
         const result = await response.json();
         
         if (result.success) {
@@ -1137,8 +1143,9 @@ function initializeTaskTimeline() {
 // Update task timeline with execution data
 async function updateTaskTimeline() {
     try {
-        const hoursBack = 24;
-        const response = await fetch(`/api/neo4j-health/task-timeline?hours=${hoursBack}`);
+        const timeRangeSelector = document.getElementById('timeRangeSelector');
+        const selectedHours = timeRangeSelector.value;
+        const response = await fetch(`/api/neo4j-health/task-timeline?hours=${selectedHours}`);
         const result = await response.json();
         
         if (!result.success) {

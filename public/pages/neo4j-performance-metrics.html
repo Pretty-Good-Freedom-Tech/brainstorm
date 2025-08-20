@@ -68,10 +68,14 @@
             <div class="health-card">
                 <div class="card-header">
                     <h3 class="card-title">📈 Memory Metrics Over Time</h3>
-                    <option value="2160">Last 90 days</option>
-                        </select>
-                        <div class="data-source-indicator" id="dataSourceIndicator" style="font-size: 0.8em; color: #666; margin-top: 4px;"></div>
-                    </div>
+                    <select id="timeRangeSelector">
+                        <option value="168">Last 7 days</option>
+                        <option value="24">Last 24 hours</option>
+                        <option value="6">Last 6 hours</option>
+                        <option value="1">Last hour</option>
+                    </select>
+                    <div class="data-source-indicator" id="dataSourceIndicator" style="font-size: 0.8em; color: #666; margin-top: 4px;"></div>
+                </div>
                 </div>
                 <div class="chart-container" style="height: 500px;">
                     <canvas id="heapChart"></canvas>
