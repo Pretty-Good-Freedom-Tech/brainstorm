@@ -331,24 +331,12 @@ async function initializeHeapChart() {
                     position: 'left',
                     stack: 'metrics',
                     stackWeight: 4,
-                    border: {
-                      color: 'rgba(118, 3, 3, 0.1)'
-                    }
-                },
-                y2_old: {
-                    type: 'linear',
-                    display: true, // Show axis for debugging
-                    position: 'right',
-                    min: 0, // Start at 0 (bottom)
-                    max: 100, // Go to 100 (top) 
-                    reverse: true, // Reverse so 0 is at bottom, 100 at top
-                    grid: {
-                        display: true,
-                        color: 'rgba(255, 0, 0, 0.1)' // Red grid for debugging
-                    },
                     title: {
                         display: true,
                         text: 'Task Timeline'
+                    },
+                    border: {
+                      color: 'rgba(118, 3, 3, 0.1)'
                     }
                 }
             },
