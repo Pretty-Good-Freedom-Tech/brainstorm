@@ -99,6 +99,13 @@ launchChildTask "syncWoT" "processAllTasks" "" ""
 
 sleep 5
 
+#################### syncProfiles: start  ##############
+# Child Task 2: Negentropy Profiles Sync using launchChildTask
+launchChildTask "syncProfiles" "processAllTasks" "" ""
+#################### syncProfiles: complete  ##############
+
+sleep 5
+
 #################### callBatchTransferIfNeeded: start  ##############
 # Child Task 3: Batch Transfer
 launch_child_task "callBatchTransferIfNeeded" "processAllTasks" "" ""

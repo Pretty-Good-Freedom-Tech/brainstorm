@@ -71,6 +71,7 @@
       "children": [
         "neo4jConstraintsAndIndexes",
         "syncWoT",
+        "syncProfiles",
         "callBatchTransferIfNeeded",
         "reconciliation",
         "processNpubsUpToMaxNumBlocks",
@@ -211,6 +212,37 @@
       ],
       "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncWoT.sh",
       "script_relative_path": "manage/negentropySync/syncWoT.sh",
+      "arguments": false,
+      "averageDuration": 44500,
+      "parent": "processAllTasks",
+      "scope": "system",
+      "priority": "high",
+      "frequency": "daily",
+      "status": "active",
+      "estimatedDuration": "30-60 minutes",
+      "structuredLogging": true,
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "duration": 60000,
+              "forceKill": false
+            }
+          }
+        }
+      },
+      "notes": "Phase 2 structured events implemented - emits TASK_START, PROGRESS (initialization, relay_sync phases), and TASK_END with comprehensive metadata about relay synchronization, filter kinds, and sync status."
+    },
+
+    "syncProfiles": {
+      "name": "Sync Profiles",
+      "categories": ["network"],
+      "description": "Synchronizes Profiles data from relays",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncProfiles.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/negentropySync/syncProfiles.sh",
+      "script_relative_path": "manage/negentropySync/syncProfiles.sh",
       "arguments": false,
       "averageDuration": 44500,
       "parent": "processAllTasks",
@@ -1169,6 +1201,7 @@
       "description": "Current sequential execution via processAllTasks.sh",
       "sequence": [
         "syncWoT",
+        "syncProfiles",
         "processAllActiveCustomers"
       ],
       "customerSequence": [
@@ -1228,7 +1261,8 @@
       "processCustomer": "processCustomer.log",
       "calculatePersonalizedGrapeRank": "calculatePersonalizedGrapeRank.log",
       "processFollowsMutesReports": "processFollowsMutesReports.log",
-      "syncWoT": "syncWoT.log"
+      "syncWoT": "syncWoT.log",
+      "syncProfiles": "syncProfiles.log"
     },
     "structuredEvents": {
       "eventsFile": "taskQueue/events.jsonl",
