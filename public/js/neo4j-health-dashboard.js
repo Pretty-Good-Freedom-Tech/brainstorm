@@ -60,6 +60,8 @@ async function refreshDashboard() {
         updateHeapHealth(healthData.heap || {});
         updateIndexHealth(healthData.indexes || {});
         updateCrashPatterns(healthData.crashPatterns || {});
+        updateClassLoadingMetrics(healthData.classLoading || {});
+        updateJvmMetrics(healthData.jvm || {});
         updateAlerts(alertsData.alerts || []);
         
         // Update timestamp
@@ -72,6 +74,99 @@ async function refreshDashboard() {
     } finally {
         document.body.classList.remove('loading');
     }
+}
+
+// Update JVM internal metrics
+function updateJvmMetrics(data) {
+    const card = document.getElementById('jvmMetricsCard');
+    const statusBadge = document.getElementById('jvmMetricsStatus');
+    
+    if (!data || Object.keys(data).length === 0 || data.error) {
+        statusBadge.className = 'status-badge status-warning';
+        statusBadge.textContent = data?.error || 'No data';
+        return;
+    }
+    
+    // Update metrics
+    document.getElementById('threadCount').textContent = data.threadCount || '-';
+    document.getElementById('peakThreadCount').textContent = data.peakThreadCount || '-';
+    document.getElementById('safepointTime').textContent = data.safepointTime ? `${data.safepointTime}ms` : '-';
+    document.getElementById('safepointSyncTime').textContent = data.safepointSyncTime ? `${data.safepointSyncTime}ms` : '-';
+    
+    // Calculate and update safepoint overhead
+    const safepointOverhead = data.safepointOverhead || 0;
+    const overheadPercent = Math.min(100, Math.max(0, safepointOverhead));
+    const overheadBar = document.getElementById('safepointOverhead');
+    const overheadValue = document.getElementById('safepointOverheadValue');
+    
+    overheadBar.style.width = `${overheadPercent}%`;
+    overheadBar.className = 'progress ' + 
+        (overheadPercent > 10 ? 'critical' : overheadPercent > 5 ? 'warning' : 'normal');
+    overheadValue.textContent = `${overheadPercent.toFixed(1)}%`;
+    
+    // Update status badge
+    statusBadge.className = 'status-badge ' + 
+        (overheadPercent > 10 ? 'status-critical' : 
+         overheadPercent > 5 ? 'status-warning' : 'status-ok');
+    statusBadge.textContent = overheadPercent > 10 ? 'High Load' : 
+                             overheadPercent > 5 ? 'Moderate Load' : 'Normal';
+}
+
+// Format bytes to human-readable string
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+// Update class loading metrics
+function updateClassLoadingMetrics(data) {
+    const card = document.getElementById('classLoadingCard');
+    const statusBadge = document.getElementById('classLoadingStatus');
+    
+    if (!data || !data.summary || Object.keys(data.summary).length === 0) {
+        statusBadge.className = 'status-badge status-warning';
+        statusBadge.textContent = data?.error || 'No data';
+        return;
+    }
+    
+    const metrics = data.summary;
+    
+    // Update metrics with the new structure
+    document.getElementById('classLoaderCount').textContent = metrics.classLoaderCount || '-';
+    document.getElementById('loadedClassCount').textContent = metrics.loadedClassCount || '-';
+    document.getElementById('unloadedClassCount').textContent = metrics.unloadedClassCount || '-';
+    document.getElementById('classLoadTime').textContent = metrics.classLoadingTime ? `${metrics.classLoadingTime}s` : '-';
+    
+    // Update instance size if available
+    const instanceSizeElem = document.getElementById('instanceSize');
+    if (instanceSizeElem && metrics.instanceSizeBytes) {
+        instanceSizeElem.textContent = formatBytes(metrics.instanceSizeBytes);
+    }
+    
+    // Update progress bar
+    const overhead = data.classLoadingOverhead || 0;
+    const overheadPercent = Math.min(100, Math.max(0, overhead));
+    const overheadBar = document.getElementById('classLoadingOverhead');
+    const overheadValue = document.getElementById('classLoadingOverheadValue');
+    
+    overheadBar.style.width = `${overheadPercent}%`;
+    overheadBar.className = 'progress ' + 
+        (overhead > 20 ? 'critical' : overhead > 10 ? 'warning' : 'normal');
+    overheadValue.textContent = `${overheadPercent.toFixed(1)}%`;
+    
+    // Update status badge
+    statusBadge.className = 'status-badge ' + 
+        (overhead > 20 ? 'status-critical' : 
+         overhead > 10 ? 'status-warning' : 'status-ok');
+    statusBadge.textContent = overhead > 20 ? 'High Load' : 
+                             overhead > 10 ? 'Moderate Load' : 'Normal';
 }
 
 // Update service status card

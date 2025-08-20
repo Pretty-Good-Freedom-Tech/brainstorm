@@ -5,6 +5,174 @@
     padding: 20px;
 }
 
+/* JVM Metrics Card */
+#jvmMetricsCard .metric-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+#jvmMetricsCard .metric {
+    flex: 1;
+    padding: 0 8px;
+}
+
+#jvmMetricsCard .metric:first-child {
+    padding-left: 0;
+}
+
+#jvmMetricsCard .metric:last-child {
+    padding-right: 0;
+    border-left: 1px solid #e9ecef;
+    padding-left: 12px;
+}
+
+#jvmMetricsCard .metric-label {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+#jvmMetricsCard .metric-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #212529;
+}
+
+#jvmMetricsCard .progress-container {
+    margin-top: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+#jvmMetricsCard .progress-label {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+#jvmMetricsCard .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+#jvmMetricsCard .progress {
+    height: 100%;
+    transition: width 0.6s ease, background-color 0.3s ease;
+}
+
+#jvmMetricsCard .progress.normal {
+    background: #28a745;
+}
+
+#jvmMetricsCard .progress.warning {
+    background: #ffc107;
+}
+
+#jvmMetricsCard .progress.critical {
+    background: #dc3545;
+}
+
+#jvmMetricsCard .progress-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+    float: right;
+    margin-top: -24px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Class Loading Metrics */
+#classLoadingCard .progress-container {
+    margin-top: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+#classLoadingCard .progress-label {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+#classLoadingCard .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+#classLoadingCard .progress {
+    height: 100%;
+    transition: width 0.6s ease, background-color 0.3s ease;
+}
+
+#classLoadingCard .progress.normal {
+    background: #28a745;
+}
+
+#classLoadingCard .progress.warning {
+    background: #ffc107;
+}
+
+#classLoadingCard .progress.critical {
+    background: #dc3545;
+}
+
+#classLoadingCard .progress-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+    float: right;
+    margin-top: -24px;
+    position: relative;
+    z-index: 2;
+}
+
+#classLoadingCard .metric-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+#classLoadingCard .metric {
+    flex: 1;
+    padding: 0 8px;
+}
+
+#classLoadingCard .metric:first-child {
+    padding-left: 0;
+}
+
+#classLoadingCard .metric:last-child {
+    padding-right: 0;
+    border-left: 1px solid #e9ecef;
+    padding-left: 12px;
+}
+
+#classLoadingCard .metric-label {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+#classLoadingCard .metric-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #212529;
+}
+
 /* Metric Selector Styles */
 .metric-selector {
     background: white;

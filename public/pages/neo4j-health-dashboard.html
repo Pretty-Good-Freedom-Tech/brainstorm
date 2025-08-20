@@ -93,6 +93,84 @@
             </div>
 
             <div class="dashboard-grid">
+                <!-- Class Loading Metrics Card -->
+                <div class="health-card" id="classLoadingCard">
+                    <div class="card-header">
+                        <h3 class="card-title">📦 Class Loading</h3>
+                        <span class="status-badge" id="classLoadingStatus">Loading...</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-label">Class Loaders:</span>
+                                <span class="metric-value" id="classLoaderCount">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Loaded Classes:</span>
+                                <span class="metric-value" id="loadedClassCount">-</span>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-label">Unloaded Classes:</span>
+                                <span class="metric-value" id="unloadedClassCount">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Class Load Time:</span>
+                                <span class="metric-value" id="classLoadTime">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Instance Size:</span>
+                                <span class="metric-value" id="instanceSize">-</span>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-label">Class Loading Overhead</div>
+                            <div class="progress-bar">
+                                <div class="progress" id="classLoadingOverhead" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-value" id="classLoadingOverheadValue">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JVM Internal Metrics Card -->
+                <div class="health-card" id="jvmMetricsCard">
+                    <div class="card-header">
+                        <h3 class="card-title">⚙️ JVM Internals</h3>
+                        <span class="status-badge" id="jvmMetricsStatus">Loading...</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-label">Thread Count:</span>
+                                <span class="metric-value" id="threadCount">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Peak Threads:</span>
+                                <span class="metric-value" id="peakThreadCount">-</span>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-label">Safepoint Time (ms):</span>
+                                <span class="metric-value" id="safepointTime">-</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Safepoint Sync Time (ms):</span>
+                                <span class="metric-value" id="safepointSyncTime">-</span>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-label">Safepoint Overhead</div>
+                            <div class="progress-bar">
+                                <div class="progress" id="safepointOverhead" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-value" id="safepointOverheadValue">0%</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Service Status Card -->
                 <div class="health-card" id="serviceStatusCard">
                     <div class="card-header">

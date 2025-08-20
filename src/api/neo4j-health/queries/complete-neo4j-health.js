@@ -341,29 +341,166 @@ class Neo4jHealthDataParser {
         
         return events;
     }
+
+    // Get JVM metrics
+    async getJvmMetrics() {
+        try {
+            const { execSync } = require('child_process');
+            const pid = execSync('pgrep -f "org.neo4j.server.CommunityEntryPoint" || echo ""').toString().trim();
+            
+            if (!pid) {
+                return { error: 'Neo4j process not found' };
+            }
+            
+            // Get thread info
+            const threadDump = execSync(`sudo -u neo4j jcmd ${pid} Thread.print`).toString();
+            const threadCount = (threadDump.match(/^\s*java\.lang\.Thread\.State/gm) || []).length;
+            
+            // Get peak thread count from jstat
+            let peakThreadCount = threadCount;
+            try {
+                const jstatOutput = execSync(`sudo -u neo4j jstat -gcutil ${pid} 1 1 | tail -n 1`).toString().trim();
+                const fields = jstatOutput.split(/\s+/);
+                if (fields.length >= 1) {
+                    peakThreadCount = parseInt(fields[0], 10) || threadCount;
+                }
+            } catch (e) {
+                console.error('Error getting thread stats:', e.message);
+            }
+            
+            // Get safepoint info
+            let safepointTime = 0;
+            let safepointSyncTime = 0;
+            let safepointOverhead = 0;
+            
+            try {
+                const gcLogFile = '/var/log/neo4j/gc.log';
+                if (require('fs').existsSync(gcLogFile)) {
+                    const gcLog = execSync(`tail -n 100 ${gcLogFile} | grep -i safepoint || echo ""`).toString();
+                    const lastSafepoint = gcLog.trim().split('\n').pop();
+                    
+                    // Extract safepoint timing info (simplified example)
+                    const timeMatch = lastSafepoint.match(/total=([\d.]+)ms/);
+                    const syncMatch = lastSafepoint.match(/synch=([\d.]+)ms/);
+                    
+                    safepointTime = timeMatch ? parseFloat(timeMatch[1]) : 0;
+                    safepointSyncTime = syncMatch ? parseFloat(syncMatch[1]) : 0;
+                    
+                    // Calculate overhead (simplified - in a real system this would track over time)
+                    safepointOverhead = Math.min(100, (safepointTime / 1000) * 100);
+                }
+            } catch (e) {
+                console.error('Error getting safepoint info:', e.message);
+            }
+            
+            return {
+                threadCount,
+                peakThreadCount,
+                safepointTime: safepointTime.toFixed(1),
+                safepointSyncTime: safepointSyncTime.toFixed(1),
+                safepointOverhead: safepointOverhead.toFixed(1)
+            };
+            
+        } catch (error) {
+            console.error('Error getting JVM metrics:', error);
+            return { error: error.message };
+        }
+    }
+
+    // Get class loading metrics
+    async getClassLoadingMetrics() {
+        try {
+            const { execSync } = require('child_process');
+            const pid = execSync('pgrep -f "org.neo4j.server.CommunityEntryPoint" || echo ""').toString().trim();
+            
+            if (!pid) {
+                return { error: 'Neo4j process not found' };
+            }
+            
+            // Get detailed class loader statistics
+            const jcmdOutput = execSync(`sudo -u neo4j jcmd ${pid} VM.classloader_stats`).toString();
+            
+            // Extract detailed class loader statistics
+            const classLoaderMatches = jcmdOutput.match(/ClassLoader@[0-9a-f]+/g) || [];
+            const classLoaderCount = classLoaderMatches.length;
+            
+            // Extract loaded and unloaded class counts from the summary section
+            const loadedMatch = jcmdOutput.match(/Total loaded classes:\s*(\d+)/i);
+            const unloadedMatch = jcmdOutput.match(/Total unloaded classes:\s*(\d+)/i);
+            
+            const loadedClassCount = loadedMatch ? loadedMatch[1] : '0';
+            const unloadedClassCount = unloadedMatch ? unloadedMatch[1] : '0';
+            
+            // Extract additional metrics if available
+            const instanceSizeMatch = jcmdOutput.match(/Instance class size:\s*(\d+)/i);
+            const instanceSize = instanceSizeMatch ? instanceSizeMatch[1] : '0';
+            
+            // Get class loading time from jstat
+            let classLoadingTime = 0;
+            try {
+                const jstatOutput = execSync(`sudo -u neo4j jstat -class ${pid} 1 1 | tail -n 1`).toString().trim();
+                const fields = jstatOutput.split(/\s+/);
+                if (fields.length >= 3) {
+                    classLoadingTime = parseFloat(fields[2]) / 1000; // Convert to seconds
+                }
+            } catch (e) {
+                console.error('Error getting class loading time:', e.message);
+            }
+            
+            // Calculate metrics
+            const overhead = Math.min(100, (classLoadingTime / 10) * 100); // Scale to 0-100%
+            
+            return {
+                summary: {
+                    classLoaderCount: parseInt(classLoaderCount, 10) || 0,
+                    loadedClassCount: parseInt(loadedClassCount, 10) || 0,
+                    unloadedClassCount: parseInt(unloadedClassCount, 10) || 0,
+                    instanceSizeBytes: parseInt(instanceSize, 10) || 0,
+                    classLoadingTime: classLoadingTime.toFixed(3),
+                    overhead: overhead.toFixed(1)
+                },
+                raw: jcmdOutput // Include raw output for debugging
+            };
+            
+        } catch (error) {
+            console.error('Error getting class loading metrics:', error);
+            return { error: error.message };
+        }
+    }
 }
 
 async function handleCompleteNeo4jHealth(req, res) {
     try {
-        console.log('Getting complete Neo4j health data');
-        
         const parser = new Neo4jHealthDataParser();
         
-        // Aggregate health data from all monitoring components
-        const healthData = {
-            service: await parser.getServiceStatus(),
-            heap: await parser.getHeapHealth(),
-            indexes: await parser.getIndexHealth(),
-            crashPatterns: await parser.getCrashPatterns(),
-            timestamp: new Date().toISOString()
-        };
+        // Get all health data in parallel
+        const [service, heap, indexes, crashPatterns, classLoading, jvm] = await Promise.all([
+            parser.getServiceStatus(),
+            parser.getHeapHealth(),
+            parser.getIndexHealth(),
+            parser.getCrashPatterns(),
+            parser.getClassLoadingMetrics(),
+            parser.getJvmMetrics()
+        ]);
 
-        res.json(healthData);
+        res.json({
+            status: 'success',
+            data: {
+                service,
+                heap,
+                indexes,
+                crashPatterns,
+                classLoading,
+                jvm,
+                timestamp: new Date().toISOString()
+            }
+        });
     } catch (error) {
-        console.error('Complete Neo4j health API error:', error);
+        console.error('Error getting complete Neo4j health data:', error);
         res.status(500).json({
-            error: 'Failed to get complete Neo4j health data',
-            message: error.message
+            status: 'error',
+            message: 'Failed to get complete Neo4j health data',
+            error: error.message
         });
     }
 }
