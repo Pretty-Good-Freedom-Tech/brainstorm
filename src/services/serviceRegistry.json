@@ -65,7 +65,7 @@
       "systemResourceMonitor", 
       "neo4jPerformanceMonitor",
       "applicationHealthMonitor",
-      "networkConnectivityMonitor",
+      "externalNetworkConnectivityMonitor",
       "taskWatchdog"
     ],
     "schedule": {
@@ -84,7 +84,7 @@
       },
       "tier3": {
         "interval": "10 minutes",
-        "tasks": ["networkConnectivityMonitor"]
+        "tasks": ["externalNetworkConnectivityMonitor"]
       },
       "tier4": {
         "interval": "30 seconds",

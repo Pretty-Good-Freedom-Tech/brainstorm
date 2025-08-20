@@ -114,8 +114,8 @@ const MONITORING_TIERS = {
         priority: 'medium',
         tasks: [
             {
-                name: 'networkConnectivityMonitor',
-                script: getScriptPath('networkConnectivityMonitor'),
+                name: 'externalNetworkConnectivityMonitor',
+                script: getScriptPath('externalNetworkConnectivityMonitor'),
                 timeout: 6 * 60 * 60 * 1000, // 6 hours
                 description: 'Network connectivity and external service monitoring'
             }

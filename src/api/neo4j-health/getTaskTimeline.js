@@ -75,7 +75,7 @@ async function loadTaskTimelineData(config, cutoffTime, dbIntensiveTasks) {
     const timeline = [];
     
     // Load from current events.jsonl
-    const eventsFile = path.join(config.BRAINSTORM_LOG_DIR, 'events.jsonl');
+    const eventsFile = path.join(config.BRAINSTORM_LOG_DIR, 'taskQueue', 'events.jsonl');
     console.log(`Looking for events file at: ${eventsFile}`);
     console.log(`Events file exists: ${fs.existsSync(eventsFile)}`);
     
@@ -216,6 +216,8 @@ async function loadTimelineFromPreserved(preservedFile, cutoffTime, dbIntensiveT
     try {
         const preservedData = fs.readFileSync(preservedFile, 'utf8');
         const preservedLines = preservedData.trim().split('\n').filter(line => line.trim());
+        
+        console.log(`Processing ${preservedLines.length} preserved lines from ${preservedFile}`);
         
         preservedLines.forEach(line => {
             try {

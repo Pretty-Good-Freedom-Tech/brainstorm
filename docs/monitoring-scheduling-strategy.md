@@ -35,7 +35,7 @@
 
 #### **Tier 4: New Monitoring Tasks (Staggered)**
 - **neo4jPerformanceMonitor** - Every 3 minutes
-- **networkConnectivityMonitor** - Every 4 minutes
+- **externalNetworkConnectivityMonitor** - Every 4 minutes
 - **customerDataHealthMonitor** - Every 10 minutes
 - **algorithmPerformanceMonitor** - Every 15 minutes
 
@@ -48,7 +48,7 @@ neo4jCrashPatternDetector X         X         X         X         X
 neo4jStabilityMonitor         X         X         X         X
 taskWatchdog                  X         X         X         X
 neo4jPerformanceMonitor         X         X         X         X
-networkConnectivityMonitor              X              X
+externalNetworkConnectivityMonitor              X              X
 taskBehaviorMonitor                     X                     X
 customerDataHealthMonitor                                     X
 algorithmPerformanceMonitor                                        (15min)
@@ -62,7 +62,7 @@ algorithmPerformanceMonitor                                        (15min)
 3. **neo4jStabilityMonitor** (comprehensive analysis)
 4. **taskWatchdog** (task health)
 5. **neo4jPerformanceMonitor** (performance metrics)
-6. **networkConnectivityMonitor** (external connectivity)
+6. **externalNetworkConnectivityMonitor** (external connectivity)
 7. **taskBehaviorMonitor** (behavioral analysis)
 
 #### **Parent-Child Relationships:**
@@ -132,7 +132,7 @@ fi
 #### **Phase 2: Enhancement (Week 2)**
 1. **Build missing monitoring tasks:**
    - neo4jPerformanceMonitor.sh
-   - networkConnectivityMonitor.sh
+   - externalNetworkConnectivityMonitor.sh
    - customerDataHealthMonitor.sh
    - algorithmPerformanceMonitor.sh
 

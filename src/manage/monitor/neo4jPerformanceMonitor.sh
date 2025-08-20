@@ -157,7 +157,7 @@ get_database_metrics() {
     
     if cypher-shell -u neo4j -p "$NEO4J_PASSWORD" --format plain "
         CALL dbms.queryJmx('java.lang:type=Memory') YIELD attributes
-        WITH attributes.HeapMemoryUsage.value as heap
+        WITH attributes.HeapMemoryUsage.value.properties as heap
         RETURN 
             heap.used as heapUsed,
             heap.max as heapMax,

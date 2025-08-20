@@ -15,7 +15,7 @@ source "$(dirname "$0")/../lib/config.js" 2>/dev/null || {
 # Set monitoring verbosity (full, alerts, minimal)
 MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
 
-SCRIPT_NAME="networkConnectivityMonitor"
+SCRIPT_NAME="externalNetworkConnectivityMonitor"
 TARGET="${1:-system}"
 LOG_FILE="${BRAINSTORM_LOG_DIR}/${SCRIPT_NAME}.log"
 EVENTS_LOG="${BRAINSTORM_LOG_DIR}/taskQueue/events.jsonl"

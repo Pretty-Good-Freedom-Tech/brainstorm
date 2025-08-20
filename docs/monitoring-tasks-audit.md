@@ -119,7 +119,7 @@
 2. **Network Connectivity Monitor**
    - **Purpose:** Monitor strfry relay connectivity, external API availability
    - **Priority:** Medium
-   - **Script Needed:** `src/manage/healthMonitor/networkConnectivityMonitor.sh`
+   - **Script Needed:** `src/manage/healthMonitor/externalNetworkConnectivityMonitor.sh`
 
 3. **Customer Data Health Monitor**
    - **Purpose:** Monitor customer-specific data integrity and processing status

@@ -1134,15 +1134,15 @@
       "notes": "Monitors Neo4j database performance including query execution times, heap utilization, transaction metrics, and connection health. Emits HEALTH_ALERT events for performance degradation and resource constraints."
     },
 
-    "networkConnectivityMonitor": {
+    "externalNetworkConnectivityMonitor": {
       "name": "Network Connectivity Monitor",
       "categories": ["maintenance", "healthMonitor"],
       "description": "Brainstorm Health Monitor component that monitors network connectivity and external services",
       "scripts": [
-        "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/networkConnectivityMonitor.sh"
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/externalNetworkConnectivityMonitor.sh"
       ],
-      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/networkConnectivityMonitor.sh", 
-      "script_relative_path": "manage/monitor/networkConnectivityMonitor.sh",
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/externalNetworkConnectivityMonitor.sh", 
+      "script_relative_path": "manage/monitor/externalNetworkConnectivityMonitor.sh",
       "arguments": {},
       "children": [],
       "scope": "system",

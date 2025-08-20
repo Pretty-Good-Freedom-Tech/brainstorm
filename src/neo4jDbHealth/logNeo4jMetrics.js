@@ -113,11 +113,11 @@ function collectJvmMemoryMetrics() {
   const query = `
     CALL dbms.queryJmx('java.lang:type=Memory') YIELD attributes
     RETURN 
-      attributes.HeapMemoryUsage.value.used AS heapUsed,
-      attributes.HeapMemoryUsage.value.committed AS heapCommitted,
-      attributes.HeapMemoryUsage.value.max AS heapMax,
-      attributes.NonHeapMemoryUsage.value.used AS nonHeapUsed,
-      attributes.NonHeapMemoryUsage.value.committed AS nonHeapCommitted
+      attributes.HeapMemoryUsage.value.properties.used AS heapUsed,
+      attributes.HeapMemoryUsage.value.properties.committed AS heapCommitted,
+      attributes.HeapMemoryUsage.value.properties.max AS heapMax,
+      attributes.NonHeapMemoryUsage.value.properties.used AS nonHeapUsed,
+      attributes.NonHeapMemoryUsage.value.properties.committed AS nonHeapCommitted
   `;
   
   return executeCypher(query);
