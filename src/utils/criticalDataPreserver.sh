@@ -2,7 +2,7 @@
 
 # Critical Data Preservation System
 # Extracts and preserves high-value monitoring data before log rotation
-# Focuses on Neo4j Memory Metrics dependencies and crash pattern detection
+# Focuses on Neo4j Performance Metrics dependencies and crash pattern detection
 
 # Configuration
 BRAINSTORM_LOG_DIR=${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}

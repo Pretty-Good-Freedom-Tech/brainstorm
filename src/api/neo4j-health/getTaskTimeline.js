@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * API endpoint to serve task execution timeline data for Neo4j Memory Metrics
+ * API endpoint to serve task execution timeline data for Neo4j Performance Metrics
  * GET /api/neo4j-health/task-timeline?hours=24
  */
 async function getTaskTimeline(req, res) {

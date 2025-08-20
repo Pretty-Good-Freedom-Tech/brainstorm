@@ -3,7 +3,7 @@
 ## Current Visualization Status
 
 ### ✅ **Existing Dashboards:**
-1. **Neo4j Memory Metrics** - Covers systemResourceMonitor, neo4jStabilityMonitor, neo4jCrashPatternDetector
+1. **Neo4j Performance Metrics** - Covers systemResourceMonitor, neo4jStabilityMonitor, neo4jCrashPatternDetector
 2. **Task Dashboard** - Covers systemStateGatherer
 
 ### ❌ **Missing Visualizations:**
