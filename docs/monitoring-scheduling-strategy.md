@@ -34,7 +34,7 @@
 - **taskBehaviorMonitor** - Pattern analysis and anomaly detection
 
 #### **Tier 4: New Monitoring Tasks (Staggered)**
-- **databasePerformanceMonitor** - Every 3 minutes
+- **neo4jPerformanceMonitor** - Every 3 minutes
 - **networkConnectivityMonitor** - Every 4 minutes
 - **customerDataHealthMonitor** - Every 10 minutes
 - **algorithmPerformanceMonitor** - Every 15 minutes
@@ -47,7 +47,7 @@ systemResourceMonitor    X         X         X         X         X
 neo4jCrashPatternDetector X         X         X         X         X
 neo4jStabilityMonitor         X         X         X         X
 taskWatchdog                  X         X         X         X
-databasePerformanceMonitor         X         X         X         X
+neo4jPerformanceMonitor         X         X         X         X
 networkConnectivityMonitor              X              X
 taskBehaviorMonitor                     X                     X
 customerDataHealthMonitor                                     X
@@ -61,13 +61,13 @@ algorithmPerformanceMonitor                                        (15min)
 2. **neo4jCrashPatternDetector** (immediate issues)
 3. **neo4jStabilityMonitor** (comprehensive analysis)
 4. **taskWatchdog** (task health)
-5. **databasePerformanceMonitor** (performance metrics)
+5. **neo4jPerformanceMonitor** (performance metrics)
 6. **networkConnectivityMonitor** (external connectivity)
 7. **taskBehaviorMonitor** (behavioral analysis)
 
 #### **Parent-Child Relationships:**
 - **neo4jStabilityMonitor** → **neo4jCrashPatternDetector** (existing)
-- **systemResourceMonitor** → **databasePerformanceMonitor** (system context)
+- **systemResourceMonitor** → **neo4jPerformanceMonitor** (system context)
 - **taskWatchdog** → **taskBehaviorMonitor** (task context)
 
 ### **Resource Conflict Prevention**
@@ -131,7 +131,7 @@ fi
 
 #### **Phase 2: Enhancement (Week 2)**
 1. **Build missing monitoring tasks:**
-   - databasePerformanceMonitor.sh
+   - neo4jPerformanceMonitor.sh
    - networkConnectivityMonitor.sh
    - customerDataHealthMonitor.sh
    - algorithmPerformanceMonitor.sh
@@ -176,7 +176,7 @@ fi
   },
   "dependencies": {
     "neo4jStabilityMonitor": ["neo4jCrashPatternDetector"],
-    "databasePerformanceMonitor": ["systemResourceMonitor"]
+    "neo4jPerformanceMonitor": ["systemResourceMonitor"]
   },
   "resourceLimits": {
     "maxConcurrentTasks": 3,

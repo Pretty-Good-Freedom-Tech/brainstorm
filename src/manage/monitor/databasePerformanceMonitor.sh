@@ -24,9 +24,9 @@ NEO4J_USER="${NEO4J_USER:-neo4j}"
 NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4j}"
 
 # Set monitoring verbosity (full, alerts, minimal)
-MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-alerts}"
+MONITORING_VERBOSITY="${BRAINSTORM_MONITORING_VERBOSITY:-default}"
 
-SCRIPT_NAME="databasePerformanceMonitor"
+SCRIPT_NAME="neo4jPerformanceMonitor"
 TARGET="${1:-system}"
 LOG_FILE="${BRAINSTORM_LOG_DIR}/${SCRIPT_NAME}.log"
 EVENTS_LOG="${BRAINSTORM_LOG_DIR}/taskQueue/events.jsonl"
@@ -36,23 +36,7 @@ mkdir -p "$(dirname "$LOG_FILE")"
 mkdir -p "$(dirname "$EVENTS_LOG")"
 
 # Source structured logging utilities
-if [ -f "${BRAINSTORM_MODULE_BASE_DIR}/src/utils/structuredLogging.sh" ]; then
-    source "${BRAINSTORM_MODULE_BASE_DIR}/src/utils/structuredLogging.sh"
-else
-    # Fallback emit_task_event function if structuredLogging.sh not found
-    emit_task_event() {
-        local event_type="$1"
-        local message="$2"
-        local metadata="${3:-}"
-        
-        # Ensure metadata is not empty or null
-        if [[ -z "$metadata" ]]; then
-            metadata="{}"
-        fi
-        local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
-        echo "{\"timestamp\": \"$timestamp\", \"taskName\": \"$SCRIPT_NAME\", \"target\": \"$TARGET\", \"eventType\": \"$event_type\", \"message\": \"$message\", \"metadata\": $metadata}" >> "$EVENTS_LOG"
-    }
-fi
+source "${BRAINSTORM_MODULE_BASE_DIR}/src/utils/structuredLogging.sh"
 
 # Configurable monitoring event emission
 emit_monitoring_event() {
@@ -69,13 +53,18 @@ emit_monitoring_event() {
         "full")
             emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             ;;
+        "default")
+            if [[ "$event_type" == "PERFORMANCE_REPORT" || "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" || "$event_type" == "TASK_END" || "$event_type" == "TASK_ERROR" ]]; then
+                emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
+            fi
+            ;;
         "alerts")
             if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_START" || "$event_type" == "TASK_END" || "$event_type" == "TASK_ERROR" ]]; then
                 emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             fi
             ;;
         "minimal")
-            if [[ "$event_type" == "HEALTH_ALERT" || "$event_type" == "TASK_ERROR" ]]; then
+            if [[ "$event_type" == "TASK_START" || "$event_type" == "TASK_END" ]]; then
                 emit_task_event "$event_type" "$SCRIPT_NAME" "$TARGET" "$metadata"
             fi
             ;;
@@ -94,24 +83,26 @@ send_health_alert() {
         additional_data="{}"
     fi
     
-    local metadata=$(cat <<EOF
-{
-  "alertType": "$alert_type",
-  "severity": "$severity",
-  "component": "database_performance",
-  "message": "$message",
-  "recommendedAction": "Review database performance metrics and optimize queries",
-  "additionalData": $additional_data
-}
-EOF
-)
+    oMetadata=$(jq -n \
+    --arg alert_type "$alert_type" \
+    --arg severity "$severity" \
+    --arg message "$message" \
+    --argjson additional_data "$additional_data" \
+    ' {
+        alertType: $alert_type,
+        severity: $severity,
+        component: "database_performance",
+        message: $message,
+        recommendedAction: "Review database performance metrics and optimize queries",
+        additionalData: $additional_data
+    }')
     
-    emit_monitoring_event "HEALTH_ALERT" "$message" "$metadata"
+    emit_monitoring_event "HEALTH_ALERT" "$message" "$oMetadata"
 }
 
 # Get Neo4j process information
 get_neo4j_pid() {
-    pgrep -f "neo4j" | head -1 || echo ""
+    neo4j status 2>/dev/null | grep -o "pid [0-9]*" | awk '{print $2}' || echo ""
 }
 
 # Check Neo4j connection
@@ -251,8 +242,16 @@ monitor_database_performance() {
         emit_monitoring_event "TASK_ERROR" "Neo4j process not found"
         return 1
     fi
+
+    oMetadata=$(jq -n \
+    --arg neo4jPid "$neo4j_pid" \
+    --arg timestamp "$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")" \
+    ' {
+        neo4jPid: $neo4jPid,
+        timestamp: $timestamp
+    }')
     
-    emit_monitoring_event "PROCESS_FOUND" "Neo4j process found" "{\"pid\": $neo4j_pid}"
+    emit_monitoring_event "PROCESS_FOUND" "Neo4j process found" "$oMetadata"
     
     # Check connection and response time
     local response_time=$(check_neo4j_connection)
@@ -302,19 +301,23 @@ monitor_database_performance() {
     fi
     
     # Combine all metrics for final report
-    local combined_metrics=$(cat <<EOF
-{
-  "neo4jPid": $neo4j_pid,
-  "responseTime": $response_time,
-  "database": $db_metrics,
-  "queries": $query_metrics,
-  "transactions": $tx_metrics,
-  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
-}
-EOF
-)
+    oMetadata=$(jq -n \
+    --arg neo4jPid "$neo4j_pid" \
+    --arg responseTime "$response_time" \
+    --argjson database "$db_metrics" \
+    --argjson queries "$query_metrics" \
+    --argjson transactions "$tx_metrics" \
+    --arg timestamp "$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")" \
+    ' {
+        neo4jPid: $neo4jPid,
+        responseTime: $responseTime,
+        database: $database,
+        queries: $queries,
+        transactions: $transactions,
+        timestamp: $timestamp
+    }')
     
-    emit_monitoring_event "PERFORMANCE_REPORT" "Database performance monitoring completed" "$combined_metrics"
+    emit_monitoring_event "PERFORMANCE_REPORT" "Database performance monitoring completed" "$oMetadata"
     emit_monitoring_event "TASK_END" "Database performance monitoring completed successfully"
 }
 

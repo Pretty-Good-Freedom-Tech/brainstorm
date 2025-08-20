@@ -103,6 +103,48 @@ metadata=$(jq -n \
     }')
 ```
 
+More complex example:
+
+```bash
+param_string="This is a string"
+param_integer=123
+param_boolean=false
+param_array='[1, 2, 3]'
+param_object='{"key": "value"}'
+
+oMetadata=$(jq -n \
+   --arg hardcoded_string "This is a hardcoded message" \
+   --argjson hardcoded_integer 123 \
+   --argjson hardcoded_boolean false \
+   --argjson hardcoded_array '[1, 2, 3]' \
+   --argjson hardcoded_object '{"key": "value"}' \
+   --arg param_string "$param_string" \
+   --argjson param_integer "$param_integer" \
+   --argjson param_boolean "$param_boolean" \
+   --argjson param_array "$param_array" \
+   --argjson param_object "$param_object" \
+   '{
+      key_hardcoded_string: $hardcoded_string,
+      key_hardcoded_integer: $hardcoded_integer,
+      key_hardcoded_boolean: $hardcoded_boolean,
+      key_hardcoded_array: $hardcoded_array,
+      key_hardcoded_object: $hardcoded_object,
+      key_param_boolean: $param_boolean,
+      key_param_integer: $param_integer,
+      key_param_string: $param_string,
+      key_param_array: $param_array,
+      key_param_object: $param_object
+   }')
+emit_task_event "EVENT_TYPE" "TASK_NAME" "TARGET" "$oMetadata"
+
+# or
+
+EVENT_TYPE="eventType"
+TASK_NAME="taskName"
+TARGET="target"
+emit_task_event "$EVENT_TYPE" "$TASK_NAME" "$TARGET" "$oMetadata"
+```
+
 ## Benefits of Conversion
 - Prevents empty JSON metadata issues
 - Better variable escaping and quoting

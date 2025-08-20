@@ -22,7 +22,7 @@
 - **Frequency:** periodic
 - **Timeout:** 15 minutes
 - **Structured Logging:** ✅ Yes
-- **Visualization Status:** ✅ **PARTIALLY VISUALIZED** (Neo4j Health Dashboard)
+- **Visualization Status:** ✅ **PARTIALLY VISUALIZED** (Neo4j Memory Metrics)
 - **Alert Types:** NEO4J_SERVICE_DOWN, NEO4J_CONNECTION_FAILED, NEO4J_HIGH_MEMORY_USAGE, NEO4J_HEAP_CRITICAL, NEO4J_HEAP_WARNING, STRFRY_SERVICE_DOWN, SYSTEM_MEMORY_CRITICAL, SYSTEM_MEMORY_WARNING, SYSTEM_DISK_CRITICAL, SYSTEM_DISK_WARNING
 - **Data Source:** Real-time system metrics, jstat, Neo4j HTTP API
 
@@ -46,7 +46,7 @@
 - **Frequency:** periodic
 - **Timeout:** 15 minutes
 - **Structured Logging:** ✅ Yes
-- **Visualization Status:** ✅ **PARTIALLY VISUALIZED** (Neo4j Health Dashboard)
+- **Visualization Status:** ✅ **PARTIALLY VISUALIZED** (Neo4j Memory Metrics)
 - **Children:** neo4jCrashPatternDetector
 - **Alert Types:** NEO4J_FAILED_INDEXES, NEO4J_QUERY_TIMEOUT, NEO4J_FREQUENT_RESTARTS, NEO4J_HIGH_ERROR_RATE
 - **Data Source:** Neo4j logs, index health, connection validation
@@ -59,7 +59,7 @@
 - **Frequency:** periodic
 - **Timeout:** 15 minutes
 - **Structured Logging:** ✅ Yes
-- **Visualization Status:** ✅ **PARTIALLY VISUALIZED** (Neo4j Health Dashboard)
+- **Visualization Status:** ✅ **PARTIALLY VISUALIZED** (Neo4j Memory Metrics)
 - **Parent:** neo4jStabilityMonitor
 - **Alert Types:** HEAP_SPACE_OOM, GC_OVERHEAD_OOM, METASPACE_OOM, NATIVE_THREAD_OOM, NEO4J_HEAP_CRITICAL, NEO4J_HEAP_WARNING, NEO4J_GC_THRASHING, APOC_STALLING
 - **Data Source:** Neo4j logs, jstat heap analysis, APOC monitoring
@@ -77,7 +77,7 @@
 ## Visualization Coverage Analysis
 
 ### ✅ **Currently Visualized**
-1. **Neo4j Health Dashboard** (`public/pages/neo4j-health-dashboard.html`)
+1. **Neo4j Memory Metrics** (`public/pages/neo4j-memory-metrics.html`)
    - **API Endpoints:** `/api/neo4j-health/complete`, `/api/neo4j-health/alerts`
    - **Covers:** systemResourceMonitor, neo4jStabilityMonitor, neo4jCrashPatternDetector
    - **Metrics:** Service status, heap health, index health, crash patterns, alerts
@@ -114,7 +114,7 @@
 1. **Database Performance Monitor**
    - **Purpose:** Monitor Neo4j query performance, slow queries, connection pool
    - **Priority:** High
-   - **Script Needed:** `src/manage/healthMonitor/databasePerformanceMonitor.sh`
+   - **Script Needed:** `src/manage/healthMonitor/neo4jPerformanceMonitor.sh`
 
 2. **Network Connectivity Monitor**
    - **Purpose:** Monitor strfry relay connectivity, external API availability

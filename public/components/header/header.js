@@ -104,7 +104,7 @@ function loadNavbar() {
         || currentPath === '/search.html'
         || currentPath === '/npub-or-pubkey-search.html'
         || currentPath === '/follow-recs.html'
-        || currentPath === '/neo4j-health-dashboard.html'
+        || currentPath === '/neo4j-memory-metrics.html'
         || currentPath === '/service-management-dashboard.html'
         || currentPath === '/task-watchdog-dashboard.html'
         || currentPath === '/task-behavior-analytics-dashboard.html'
@@ -440,7 +440,7 @@ function highlightCurrentPage() {
         '/task-dashboard.html': '/task-dashboard',
         '/task-explorer.html': '/task-explorer',
         '/task.html': '/task',
-        '/neo4j-health-dashboard.html': '/neo4j-health-dashboard',
+        '/neo4j-memory-metrics.html': '/neo4j-memory-metrics',
         '/service-management-dashboard.html': '/service-management-dashboard',
         '/task-watchdog-dashboard.html': '/task-watchdog-dashboard',
         '/task-behavior-analytics-dashboard.html': '/task-behavior-analytics-dashboard',

@@ -63,7 +63,7 @@
     "manages_tasks": [
       "neo4jStabilityMonitor",
       "systemResourceMonitor", 
-      "databasePerformanceMonitor",
+      "neo4jPerformanceMonitor",
       "applicationHealthMonitor",
       "networkConnectivityMonitor",
       "taskWatchdog"
@@ -80,7 +80,7 @@
       },
       "tier2": {
         "interval": "5 minutes", 
-        "tasks": ["applicationHealthMonitor", "databasePerformanceMonitor"]
+        "tasks": ["applicationHealthMonitor", "neo4jPerformanceMonitor"]
       },
       "tier3": {
         "interval": "10 minutes",

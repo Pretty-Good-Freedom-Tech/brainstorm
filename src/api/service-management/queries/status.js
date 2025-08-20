@@ -151,7 +151,7 @@ class ServiceStatusChecker {
                 const activeTaskNames = new Set();
                 events.forEach(event => {
                     if (event.eventType === 'TASK_START' && 
-                        ['databasePerformanceMonitor', 'systemResourceMonitor', 'networkConnectivityMonitor', 'applicationHealthMonitor'].includes(event.taskName)) {
+                        ['neo4jPerformanceMonitor', 'systemResourceMonitor', 'networkConnectivityMonitor', 'applicationHealthMonitor'].includes(event.taskName)) {
                         activeTaskNames.add(event.taskName);
                     }
                 });

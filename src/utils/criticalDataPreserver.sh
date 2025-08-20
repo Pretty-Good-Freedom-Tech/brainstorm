@@ -2,7 +2,7 @@
 
 # Critical Data Preservation System
 # Extracts and preserves high-value monitoring data before log rotation
-# Focuses on Neo4j Health Dashboard dependencies and crash pattern detection
+# Focuses on Neo4j Memory Metrics dependencies and crash pattern detection
 
 # Configuration
 BRAINSTORM_LOG_DIR=${BRAINSTORM_LOG_DIR:-/var/log/brainstorm}
@@ -49,7 +49,7 @@ preserve_crash_alerts() {
     grep -E '"eventType":"HEALTH_ALERT".*"taskName":"neo4jCrashPatternDetector"' "$EVENTS_FILE" >> "$CRASH_ALERTS_FILE" 2>/dev/null
     
     # Also preserve critical TASK_ERROR events from Neo4j monitoring tasks
-    grep -E '"eventType":"TASK_ERROR".*"taskName":"(neo4jCrashPatternDetector|neo4jStabilityMonitor|databasePerformanceMonitor)"' "$EVENTS_FILE" >> "$CRASH_ALERTS_FILE" 2>/dev/null
+    grep -E '"eventType":"TASK_ERROR".*"taskName":"(neo4jCrashPatternDetector|neo4jStabilityMonitor|neo4jPerformanceMonitor)"' "$EVENTS_FILE" >> "$CRASH_ALERTS_FILE" 2>/dev/null
     
     # Keep only last 90 days of alerts
     if [[ -f "$CRASH_ALERTS_FILE" ]]; then

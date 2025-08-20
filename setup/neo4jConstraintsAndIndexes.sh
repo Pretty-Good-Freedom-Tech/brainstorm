@@ -168,6 +168,31 @@ emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" '{
     "index_count_event": '$INDEX_COUNT_EVENT'
 }'
 
+oMetadata=$(jq -n \
+    --arg message "Verification results obtained" \
+    --arg phase "verification" \
+    --arg step "results_analysis" \
+    --arg database "neo4j" \
+    --argjson constraints_found "$CONSTRAINT_COUNT" \
+    --argjson indexes_found "$INDEX_COUNT" \
+    --argjson constraint_count_user "$CONSTRAINT_COUNT_USER" \
+    --argjson constraint_count_event "$CONSTRAINT_COUNT_EVENT" \
+    --argjson index_count_user "$INDEX_COUNT_USER" \
+    --argjson index_count_event "$INDEX_COUNT_EVENT" \
+    ' {
+        message: $message,
+        phase: $phase,
+        step: $step,
+        database: $database,
+        constraints_found: $constraints_found,
+        indexes_found: $indexes_found,
+        constraint_count_user: $constraint_count_user,
+        constraint_count_event: $constraint_count_event,
+        index_count_user: $index_count_user,
+        index_count_event: $index_count_event
+    }')
+emit_task_event "PROGRESS" "neo4jConstraintsAndIndexes" "system" "$oMetadata"
+
 # Log results
 echo "$(date): Constraint check result: $CONSTRAINT_COUNT constraints found" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
 echo "$(date): Index check result: $INDEX_COUNT indexes found" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
@@ -191,39 +216,66 @@ if [ $STORED_PASSWORD_RESULT -eq 0 -o $DEFAULT_PASSWORD_RESULT -eq 0 ] && [ $CON
     sudo sed -i "s/^export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=.*$/export BRAINSTORM_CREATED_CONSTRAINTS_AND_INDEXES=$CURRENT_TIMESTAMP/" /etc/brainstorm.conf
     
     # Emit structured event for successful completion
-    emit_task_event "TASK_END" "neo4jConstraintsAndIndexes" "system" '{
-        "message": "Neo4j constraints and indexes setup completed successfully",
-        "status": "success",
-        "task_type": "database_maintenance",
-        "database": "neo4j",
-        "constraints_created": '$CONSTRAINT_COUNT',
-        "indexes_created": '$INDEX_COUNT',
-        "config_updated": true,
-        "timestamp": '$CURRENT_TIMESTAMP',
-        "category": "maintenance",
-        "scope": "system",
-        "parent_task": "processAllTasks"
-    }'
+    oMetadata=$(jq -n \
+        --arg message "Neo4j constraints and indexes setup completed successfully" \
+        --arg status "success" \
+        --arg task_type "database_maintenance" \
+        --arg database "neo4j" \
+        --argjson constraints_created "$CONSTRAINT_COUNT" \
+        --argjson indexes_created "$INDEX_COUNT" \
+        --argjson config_updated true \
+        --argjson timestamp "$CURRENT_TIMESTAMP" \
+        --arg category "maintenance" \
+        --arg scope "system" \
+        --arg parent_task "processAllTasks" \
+        '{
+            message: $message,
+            status: $status,
+            task_type: $task_type,
+            database: $database,
+            constraints_created: $constraints_created,
+            indexes_created: $indexes_created,
+            config_updated: $config_updated,
+            timestamp: $timestamp,
+            category: $category,
+            scope: $scope,
+            parent_task: $parent_task
+        }')
+    emit_task_event "TASK_END" "neo4jConstraintsAndIndexes" "system" "$oMetadata"
     
     echo "Neo4j constraints and indexes have been set up successfully."
     echo "$(date): Finished neo4jConstraintsAndIndexes - SUCCESS" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
     exit 0  # Explicit success exit code for parent script orchestration
 else
     # Emit structured event for failed completion
-    emit_task_event "TASK_ERROR" "neo4jConstraintsAndIndexes" "system" '{
-        "message": "Neo4j constraints and indexes setup failed",
-        "status": "failed",
-        "task_type": "database_maintenance",
-        "database": "neo4j",
-        "stored_password_result": '$STORED_PASSWORD_RESULT',
-        "default_password_result": '$DEFAULT_PASSWORD_RESULT',
-        "constraints_found": '$CONSTRAINT_COUNT',
-        "indexes_found": '$INDEX_COUNT',
-        "error_reason": "insufficient_constraints_or_indexes",
-        "category": "maintenance",
-        "scope": "system",
-        "parent_task": "processAllTasks"
-    }'
+    oMetadata=$(jq -n \
+        --arg message "Neo4j constraints and indexes setup failed" \
+        --arg status "failed" \
+        --arg task_type "database_maintenance" \
+        --arg database "neo4j" \
+        --argjson stored_password_result "$STORED_PASSWORD_RESULT" \
+        --argjson default_password_result "$DEFAULT_PASSWORD_RESULT" \
+        --argjson constraints_found "$CONSTRAINT_COUNT" \
+        --argjson indexes_found "$INDEX_COUNT" \
+        --arg error_reason "insufficient_constraints_or_indexes" \
+        --arg category "maintenance" \
+        --arg scope "system" \
+        --arg parent_task "processAllTasks" \
+        ' {
+            message: $message,
+            status: $status,
+            task_type: $task_type,
+            database: $database,
+            stored_password_result: $stored_password_result,
+            default_password_result: $default_password_result,
+            constraints_found: $constraints_found,
+            indexes_found: $indexes_found,
+            error_reason: $error_reason,
+            category: $category,
+            scope: $scope,
+            parent_task: $parent_task
+        }')
+    emit_task_event "TASK_ERROR" "neo4jConstraintsAndIndexes" "system" "$oMetadata"
     
     echo "Failed to set up Neo4j constraints and indexes. Check the log at ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log"
     echo "$(date): Finished neo4jConstraintsAndIndexes - FAILED" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
@@ -231,3 +283,6 @@ else
 fi
 
 echo "You can verify by running 'SHOW CONSTRAINTS;' and 'SHOW INDEXES;' in the Neo4j Browser."
+echo "$(date): Finished neo4jConstraintsAndIndexes - SUCCESS" >> ${BRAINSTORM_LOG_DIR}/neo4jConstraintsAndIndexes.log
+exit 0
+

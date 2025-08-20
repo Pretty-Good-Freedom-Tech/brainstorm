@@ -94,8 +94,8 @@ const MONITORING_TIERS = {
                 description: 'Brainstorm application component health monitoring'
             },
             {
-                name: 'databasePerformanceMonitor',
-                script: getScriptPath('databasePerformanceMonitor'),
+                name: 'neo4jPerformanceMonitor',
+                script: getScriptPath('neo4jPerformanceMonitor'),
                 timeout: 10 * 60 * 1000, // 10 minutes
                 description: 'Neo4j database performance monitoring'
             },
@@ -110,13 +110,13 @@ const MONITORING_TIERS = {
     
     // Tier 3: Network and External Dependencies (every 10-15 minutes)
     tier3: {
-        interval: 10 * 60 * 1000, // 10 minutes
+        interval: 6 * 60 * 60 * 1000, // 6 hours
         priority: 'medium',
         tasks: [
             {
                 name: 'networkConnectivityMonitor',
                 script: getScriptPath('networkConnectivityMonitor'),
-                timeout: 10 * 60 * 1000, // 10 minutes
+                timeout: 6 * 60 * 60 * 1000, // 6 hours
                 description: 'Network connectivity and external service monitoring'
             }
         ]

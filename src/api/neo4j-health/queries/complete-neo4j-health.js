@@ -101,7 +101,7 @@ class Neo4jHealthDataParser {
     // Get response time from database performance monitor events
     async getResponseTimeFromEvents() {
         // Look for CONNECTION_CHECK events specifically, as that's where responseTime is stored
-        const recentEvents = await this.getRecentEvents('databasePerformanceMonitor', 'CONNECTION_CHECK', 1, 'eventType');
+        const recentEvents = await this.getRecentEvents('neo4jPerformanceMonitor', 'CONNECTION_CHECK', 1, 'eventType');
         
         if (recentEvents.length === 0) {
             return null;

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * API endpoint to serve task execution timeline data for Neo4j Health Dashboard
+ * API endpoint to serve task execution timeline data for Neo4j Memory Metrics
  * GET /api/neo4j-health/task-timeline?hours=24
  */
 async function getTaskTimeline(req, res) {
@@ -25,7 +25,7 @@ async function getTaskTimeline(req, res) {
             
             // Database maintenance tasks
             'neo4jStabilityMonitor': { color: '#f59e0b', category: 'monitoring', priority: 4 },
-            'databasePerformanceMonitor': { color: '#d97706', category: 'monitoring', priority: 4 }
+            'neo4jPerformanceMonitor': { color: '#d97706', category: 'monitoring', priority: 4 }
         };
 
         const config = {

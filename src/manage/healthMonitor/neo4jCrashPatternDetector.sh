@@ -155,18 +155,8 @@ check_heap_and_gc_health() {
     }'
     
     # Get the main Neo4j server process (not the boot process)
-    # Look for the process with CommunityEntryPoint or EntryPoint (main server)
-    local neo4j_pid=$(pgrep -f "CommunityEntryPoint\|EntryPoint" | head -1)
+    neo4j_pid=$(sudo neo4j status 2>/dev/null | grep -o "pid [0-9]*" | awk '{print $2}' || echo "")
     
-    # Fallback: if EntryPoint search fails, use neo4j status command
-    if [[ -z "$neo4j_pid" ]]; then
-        neo4j_pid=$(sudo neo4j status 2>/dev/null | grep -o "pid [0-9]*" | awk '{print $2}' || echo "")
-    fi
-    
-    # Final fallback: look for java process with larger memory allocation (main server)
-    if [[ -z "$neo4j_pid" ]]; then
-        neo4j_pid=$(ps aux | grep neo4j | grep java | grep -v grep | awk '$6 > 1000000 {print $2}' | head -1)
-    fi
     if [[ -z "$neo4j_pid" ]]; then
         emit_task_event "PROGRESS" "neo4jCrashPatternDetector" "heap_gc_analysis" '{
             "message": "Neo4j process not found, skipping heap analysis",

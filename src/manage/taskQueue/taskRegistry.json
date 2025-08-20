@@ -1105,15 +1105,15 @@
       "notes": "Monitors Brainstorm application health including service processes, port availability, HTTP endpoints, and application-specific metrics. Emits HEALTH_ALERT events for service failures and performance issues."
     },
 
-    "databasePerformanceMonitor": {
+    "neo4jPerformanceMonitor": {
       "name": "Database Performance Monitor", 
       "categories": ["maintenance", "healthMonitor"],
       "description": "Brainstorm Health Monitor component that monitors Neo4j database performance metrics",
       "scripts": [
-        "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/databasePerformanceMonitor.sh"
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/neo4jPerformanceMonitor.sh"
       ],
-      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/databasePerformanceMonitor.sh",
-      "script_relative_path": "manage/monitor/databasePerformanceMonitor.sh",
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/monitor/neo4jPerformanceMonitor.sh",
+      "script_relative_path": "manage/monitor/neo4jPerformanceMonitor.sh",
       "arguments": {},
       "children": [],
       "scope": "system",
