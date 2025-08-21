@@ -539,13 +539,13 @@ async function initializeHeapChart() {
 // Update heap chart with new data
 async function updateHeapChart() {
     try {
-        // Default to 24 hours of data since no time range selector exists
-        const hoursBack = 24;
+        const timeRangeSelector = document.getElementById('timeRangeSelector');
+        const selectedHours = timeRangeSelector.value;
         
         // Use the enhanced heap-metrics-history endpoint
         const endpoint = '/api/neo4j-health/heap-metrics-history';
         
-        const response = await fetch(`${endpoint}?hours=${hoursBack}&maxPoints=200`);
+        const response = await fetch(`${endpoint}?hours=${selectedHours}&maxPoints=200`);
         const result = await response.json();
         
         if (!result.success) {
@@ -679,7 +679,7 @@ async function loadTaskTimelineData() {
         
         if (result.success) {
             taskTimelineData = result.timeline || [];
-            updateTimelineStatus(`${taskTimelineData.length} task executions in last ${hoursBack}h`, 'success');
+            updateTimelineStatus(`${taskTimelineData.length} task executions in last ${selectedHours}h`, 'success');
         } else {
             console.error('Failed to fetch task timeline:', result.error);
             updateTimelineStatus('Error loading timeline data', 'error');
@@ -1183,7 +1183,7 @@ async function updateTaskTimeline() {
         }
         
         const timelineData = result.timeline || [];
-        updateTimelineStatus(`${timelineData.length} task executions in last ${hoursBack}h`, 'success');
+        updateTimelineStatus(`${timelineData.length} task executions in last ${selectedHours}h`, 'success');
         
         // Group tasks by name for Y-axis positioning
         const taskNames = [...new Set(timelineData.map(t => t.taskName))];
