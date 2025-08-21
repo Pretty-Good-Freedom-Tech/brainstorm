@@ -18,9 +18,9 @@ echo "Required for Brainstorm to function properly"
 echo ""
 
 # Configuration variables
-NEO4J_VERSION="1:5.26.3" # 5.26.10
-GDS_VERSION="2.13.2" # 
-APOC_VERSION="5.26.2" # 5.26.1 ??
+NEO4J_VERSION="1:5.26.3" # change from 5.26.3 to 5.26.10
+GDS_VERSION="2.13.2" # change from 2.13.2 to 2.13.4
+APOC_VERSION="5.26.2" # change from 5.26.2 to 5.26.10
 BRAINSTORM_CONF="/etc/brainstorm.conf"
 NEO4J_CONF="/etc/neo4j/neo4j.conf"
 NEO4J_BACKUP="/etc/neo4j/neo4j.conf.backup"
