@@ -519,6 +519,8 @@ check_heap_and_gc_health() {
         --arg youngGcTime "${young_gc_time:-null}" \
         --argjson fullGcCount "$(test -n "$full_gc_count" && echo "$full_gc_count" || echo "null")" \
         --arg fullGcTime "${full_gc_time:-null}" \
+        --argjson concurrentGcCount "$(test -n "$concurrent_gc_count" && echo "$concurrent_gc_count" || echo "null")" \
+        --arg concurrentGcTime "${concurrent_gc_time:-null}" \
         --arg gcOverheadPercent "$gc_overhead_percent" \
         --arg metricsSource "$metrics_source" \
         --argjson oldGenUsedMB "$(test -n "$old_gen_used" && echo "$old_gen_used" | awk '{printf "%.0f", $1/1024/1024}' || echo "null")" \

@@ -18,9 +18,9 @@ echo "Required for Brainstorm to function properly"
 echo ""
 
 # Configuration variables
-NEO4J_VERSION="1:5.26.3"
-GDS_VERSION="2.13.2"
-APOC_VERSION="5.26.2"
+NEO4J_VERSION="1:5.26.3" # 5.26.10
+GDS_VERSION="2.13.2" # 
+APOC_VERSION="5.26.2" # 5.26.1 ??
 BRAINSTORM_CONF="/etc/brainstorm.conf"
 NEO4J_CONF="/etc/neo4j/neo4j.conf"
 NEO4J_BACKUP="/etc/neo4j/neo4j.conf.backup"
@@ -55,8 +55,15 @@ cd /var/lib/neo4j/plugins/
 wget https://github.com/neo4j/graph-data-science/releases/download/$GDS_VERSION/neo4j-graph-data-science-$GDS_VERSION.jar
 chown neo4j:neo4j /var/lib/neo4j/plugins/neo4j-graph-data-science-$GDS_VERSION.jar
 
-# Update Neo4j configuration for GDS
-sed -i 's/#dbms.security.procedures.unrestricted=my.extensions.example,my.procedures.*/dbms.security.procedures.unrestricted=gds.*/' "$NEO4J_CONF"
+# Update Neo4j configuration for GDS - robust approach
+# Remove any existing unrestricted lines to avoid duplicates
+sed -i '/^dbms.security.procedures.unrestricted=/d' "$NEO4J_CONF"
+sed -i '/^#dbms.security.procedures.unrestricted=/d' "$NEO4J_CONF"
+
+# Add our required unrestricted configuration
+echo "" >> "$NEO4J_CONF"
+echo "# GDS procedures unrestricted access" >> "$NEO4J_CONF"
+echo "dbms.security.procedures.unrestricted=gds.*" >> "$NEO4J_CONF"
 
 # Step 4: Install Neo4j APOC
 echo "=== Installing Neo4j APOC ==="
@@ -71,8 +78,15 @@ apoc.import.file.enabled=true
 apoc.import.file.use_neo4j_config=true
 EOF
 
-# Update Neo4j configuration for APOC
-sed -i 's/#dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.export.*,gds.*/dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.periodic.*,apoc.export.json.query,gds.*/' "$NEO4J_CONF"
+# Update Neo4j configuration for APOC and GDS - robust approach
+# Remove any existing allowlist lines to avoid duplicates
+sed -i '/^dbms.security.procedures.allowlist=/d' "$NEO4J_CONF"
+sed -i '/^#dbms.security.procedures.allowlist=/d' "$NEO4J_CONF"
+
+# Add our required allowlist configuration
+echo "" >> "$NEO4J_CONF"
+echo "# APOC and GDS procedures allowlist" >> "$NEO4J_CONF"
+echo "dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.periodic.*,apoc.export.json.query,gds.*" >> "$NEO4J_CONF"
 
 # Step 5: Update memory settings
 # Jun 2025: removing defining heap size and transaction total
@@ -86,16 +100,28 @@ echo "=== Updating Neo4j memory settings (commented out) ==="
 # sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=8g/' "$NEO4J_CONF"
 # JVM hardening options
 # sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError/' "$NEO4J_CONF"
-# More aggressive JVM hardening options with GC tuning
-sed -i 's/# server.jvm.additional=-XX:+ExitOnOutOfMemoryError/server.jvm.additional=-XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\/var\/log\/neo4j\/ -XX:NewRatio=2/' "$NEO4J_CONF"
+# Memory and JVM configuration - robust approach
+# Remove any existing memory/JVM lines to avoid duplicates
+sed -i '/^server.memory.heap.initial_size=/d' "$NEO4J_CONF"
+sed -i '/^server.memory.heap.max_size=/d' "$NEO4J_CONF"
+sed -i '/^server.memory.pagecache.size=/d' "$NEO4J_CONF"
+sed -i '/^server.jvm.additional=/d' "$NEO4J_CONF"
 
-# recs for 32 GiB server:
-sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=11700m/' "$NEO4J_CONF"
-sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=11700m/' "$NEO4J_CONF"
-sed -i 's/#server.memory.pagecache.size=10g/server.memory.pagecache.size=12000m/' "$NEO4J_CONF"
-# JVM hardening (already configured above with GC tuning)
-
-
+# Add our memory and JVM configuration
+echo "" >> "$NEO4J_CONF"
+echo "# Memory configuration for 32GB server" >> "$NEO4J_CONF"
+echo "server.memory.heap.initial_size=11700m" >> "$NEO4J_CONF"
+echo "server.memory.heap.max_size=11700m" >> "$NEO4J_CONF"
+echo "server.memory.pagecache.size=12000m" >> "$NEO4J_CONF"
+echo "" >> "$NEO4J_CONF"
+echo "# JVM configuration with G1GC tuning" >> "$NEO4J_CONF"
+echo "server.jvm.additional=-XX:+UseG1GC" >> "$NEO4J_CONF"
+echo "server.jvm.additional=-XX:+ExitOnOutOfMemoryError" >> "$NEO4J_CONF"
+echo "server.jvm.additional=-XX:+HeapDumpOnOutOfMemoryError" >> "$NEO4J_CONF"
+echo "server.jvm.additional=-XX:HeapDumpPath=/var/log/neo4j/" >> "$NEO4J_CONF"
+echo "server.jvm.additional=-XX:G1HeapRegionSize=16m" >> "$NEO4J_CONF"
+echo "server.jvm.additional=-XX:G1NewSizePercent=20" >> "$NEO4J_CONF"
+echo "server.jvm.additional=-XX:G1MaxNewSizePercent=40" >> "$NEO4J_CONF"
 
 # sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
 echo "=== Updating Neo4j tx log rotation settings ==="

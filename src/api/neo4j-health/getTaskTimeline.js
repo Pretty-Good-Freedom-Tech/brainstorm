@@ -12,24 +12,33 @@ async function getTaskTimeline(req, res) {
         
         // Database-intensive tasks to track on the timeline
         const DB_INTENSIVE_TASKS = {
-            // Orchestrator tasks (high impact)
-            'processCustomer': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'processAllTasks': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'syncWoT': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'syncProfiles': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'callBatchTransferIfNeeded': { color: '#ef4444', category: 'orchestrator', priority: 1 },
             'reconciliation': { color: '#ef4444', category: 'orchestrator', priority: 1 },
             'prepareNeo4jForCustomerData': { color: '#ef4444', category: 'orchestrator', priority: 1 },
             'processNpubsUpToMaxNumBlocks': { color: '#ef4444', category: 'orchestrator', priority: 1 },
-            'callBatchTransferIfNeeded': { color: '#ef4444', category: 'orchestrator', priority: 1 },
             
-            // Graph calculation tasks (very high memory usage)
+            // owner-specific tasks
             'calculateOwnerHops': { color: '#3b82f6', category: 'graph-calc', priority: 2 },
-            'calculateCustomerHops': { color: '#06b6d4', category: 'graph-calc', priority: 2 },
             'calculateOwnerGrapeRank': { color: '#8b5cf6', category: 'ranking', priority: 3 },
-            'calculateCustomerGrapeRank': { color: '#a855f7', category: 'ranking', priority: 3 },
             'calculateOwnerPageRank': { color: '#10b981', category: 'ranking', priority: 3 },
-            'calculateCustomerPageRank': { color: '#059669', category: 'ranking', priority: 3 },
-
             'processOwnerFollowsMutesReports': { color: '#ef4444', category: 'orchestrator', priority: 1 },
             'calculateReportScores': { color: '#ef4444', category: 'orchestrator', priority: 1 },
-            
+            'exportOwnerKind30382': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+
+            // customer-specific tasks
+            'processAllActiveCustomers': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'prepareNeo4jForCustomerData': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'updateAllScoresForSingleCustomer': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'processCustomer': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'calculateCustomerHops': { color: '#06b6d4', category: 'graph-calc', priority: 2 },
+            'calculateCustomerGrapeRank': { color: '#a855f7', category: 'ranking', priority: 3 },
+            'calculateCustomerPageRank': { color: '#059669', category: 'ranking', priority: 3 },
+            'processCustomerFollowsMutesReports': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'exportCustomerKind30382': { color: '#ef4444', category: 'orchestrator', priority: 1 }
+
             // Database maintenance tasks
             // 'neo4jStabilityMonitor': { color: '#f59e0b', category: 'monitoring', priority: 4 },
             // 'neo4jPerformanceMonitor': { color: '#d97706', category: 'monitoring', priority: 4 }

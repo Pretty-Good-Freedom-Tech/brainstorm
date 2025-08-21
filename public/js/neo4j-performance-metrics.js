@@ -545,7 +545,7 @@ async function updateHeapChart() {
         // Use the enhanced heap-metrics-history endpoint
         const endpoint = '/api/neo4j-health/heap-metrics-history';
         
-        const response = await fetch(`${endpoint}?hours=${selectedHours}&maxPoints=200`);
+        const response = await fetch(`${endpoint}?hours=${selectedHours}&maxPoints=20000`);
         const result = await response.json();
         
         if (!result.success) {
@@ -1001,6 +1001,20 @@ function updateChartForView(view) {
                     data: rawData.map(point => point.youngGcCount || 0),
                     borderColor: 'rgb(153, 102, 255)',
                     backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                    yAxisID: 'y_young_gc'
+                },
+                {
+                    label: 'Concurrent GC Count (per hour)',
+                    data: rawData.map(point => point.concurrentGcCount || 0),
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    yAxisID: 'y_young_gc'
+                },
+                {
+                    label: 'Full GC Count (per hour)',
+                    data: rawData.map(point => point.fullGcCount || 0),
+                    borderColor: 'rgb(255, 159, 64)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.1)',
                     yAxisID: 'y_young_gc'
                 }
             ]
