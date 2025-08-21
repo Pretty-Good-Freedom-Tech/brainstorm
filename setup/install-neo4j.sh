@@ -114,6 +114,7 @@ update_neo4j_conf() {
   sed -i '/^server.memory.heap.initial_size=/d' "$NEO4J_CONF"
   sed -i '/^server.memory.heap.max_size=/d' "$NEO4J_CONF"
   sed -i '/^server.memory.pagecache.size=/d' "$NEO4J_CONF"
+  # Commenting out this line because it removes all existing JVM options, including the ones we want to keep
   # sed -i '/^server.jvm.additional=/d' "$NEO4J_CONF"
 
   echo "" >> "$NEO4J_CONF"
@@ -130,6 +131,13 @@ update_neo4j_conf() {
   echo "server.jvm.additional=-XX:G1HeapRegionSize=16m" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:G1NewSizePercent=20" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:G1MaxNewSizePercent=40" >> "$NEO4J_CONF"
+  echo "" >> "$NEO4J_CONF"
+  # enable native memory tracking for debugging
+  echo "# enable native memory tracking for debugging" >> "$NEO4J_CONF"
+  echo "server.jvm.additional=-XX:NativeMemoryTracking=detail" >> "$NEO4J_CONF"
+  echo "server.jvm.additional=-XX:+UnlockDiagnosticVMOptions" >> "$NEO4J_CONF"
+  echo "server.jvm.additional=-XX:+PrintNMTStatistics" >> "$NEO4J_CONF"
+  echo "" >> "$NEO4J_CONF"
 
   # sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
   # echo "=== Updating Neo4j tx log rotation settings ==="

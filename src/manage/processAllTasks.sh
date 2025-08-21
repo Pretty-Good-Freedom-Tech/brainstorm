@@ -71,6 +71,7 @@ launch_child_task() {
     echo "$(date): Continuing $parent_task_name; $task_name completed" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 }
 
+echo "$(date): Starting processAllTasks"
 echo "$(date): Starting processAllTasks" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 # Emit structured event for task start
@@ -102,9 +103,23 @@ sleep 5
 
 #################### syncWoT: start  ##############
 # Child Task 2: Negentropy WoT Sync using launchChildTask
-# override timeout duration to 3 hours
+
+# use command: sudo strfry scan --count '{"kinds": [3]}' to determine how many kind 3 events exist in the local strfry database
+# if numKind3Events < 100, then set timeout to 3 hours
+# otherwise set timeout to 5 minutes
+numKind3Events=$(sudo strfry scan --count '{"kinds": [3]}' | jq -r '.count')
+if [ "$numKind3Events" -lt 100 ]; then
+    timeoutDuration=10800000
+else
+    timeoutDuration=300000
+fi
+
+echo "$(date): Continuing processAllTasks; preparing for syncWoT; numKind3Events: $numKind3Events; timeoutDuration: $timeoutDuration"
+echo "$(date): Continuing processAllTasks; preparing for syncWoT; numKind3Events: $numKind3Events; timeoutDuration: $timeoutDuration" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
+
+# override timeout duration
 oOptions_syncWoT=$(jq -n \
-    --argjson completion '{"failure": {"timeout": {"duration": 10800000, "forceKill": false}}}' \
+    --argjson completion '{"failure": {"timeout": {"duration": $timeoutDuration, "forceKill": false}}}' \
     '{
         "completion": $completion
     }')
@@ -115,9 +130,16 @@ sleep 5
 
 #################### syncProfiles: start  ##############
 # Child Task 2: Negentropy Profiles Sync using launchChildTask
-# override timeout duration to 1 hour
+# override timeout duration to 1 hour if numKind0Events < 100, otherwise set timeout to 5 minutes
+numKind0Events=$(sudo strfry scan --count '{"kinds": [0]}' | jq -r '.count')
+if [ "$numKind0Events" -lt 100 ]; then
+    timeoutDuration=3600000
+else
+    timeoutDuration=300000
+fi
+
 oOptions_syncProfiles=$(jq -n \
-    --argjson completion '{"failure": {"timeout": {"duration": 3600000, "forceKill": false}}}' \
+    --argjson completion '{"failure": {"timeout": {"duration": $timeoutDuration, "forceKill": false}}}' \
     '{
         "completion": $completion
     }')
