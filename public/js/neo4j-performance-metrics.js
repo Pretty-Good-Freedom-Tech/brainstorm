@@ -378,7 +378,7 @@ async function initializeHeapChart() {
                 borderWidth: 2,
                 fill: false,
                 tension: 0.4,
-                yAxisID: 'y1'
+                yAxisID: 'y_gc_overhead'
             }]
         },
         options: {
@@ -419,7 +419,7 @@ async function initializeHeapChart() {
                         drawOnChartArea: true,
                     },
                 },
-                y1: {
+                y_gc_overhead: {
                     type: 'linear',
                     display: true,
                     position: 'right',
@@ -434,7 +434,22 @@ async function initializeHeapChart() {
                     },
                     max: 20
                 },
-                y2: {
+                y_young_gc: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    stack: 'metrics',
+                    stackWeight: 10,
+                    title: {
+                        display: true,
+                        text: 'Young GC Count'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                    max: 20
+                },
+                y_tasks: {
                     type: 'category',
                     labels: ['START', 'END'],
                     offset: true,
@@ -456,9 +471,9 @@ async function initializeHeapChart() {
                     position: 'top',
                     labels: {
                         filter: function(legendItem, chartData) {
-                            // Only show legend items for y and y1 axes, hide y2 (timeline)
+                            // Only show legend items for y and y_gc_overhead axes, hide y_tasks (timeline)
                             const dataset = chartData.datasets[legendItem.datasetIndex];
-                            return dataset.yAxisID !== 'y2';
+                            return dataset.yAxisID !== 'y_tasks';
                         }
                     }
                 },
@@ -568,26 +583,33 @@ async function updateHeapChart() {
         // Calculate dynamic Y-axis ranges
         const maxGcOverhead = Math.max(...gcOverhead.filter(val => val > 0));
         const gcAxisMax = calculateGcAxisMax(maxGcOverhead);
+        console.log(`GC Axis Max: ${gcAxisMax}`);
         
         // Calculate max for memory utilization (y axis)
         const allMemoryValues = [...heapUtilization, ...metaspaceUtilization, ...oldGenUtilization].filter(val => val > 0);
         const maxMemoryUtil = Math.max(...allMemoryValues);
         const memoryAxisMax = Math.max(100, Math.ceil(maxMemoryUtil / 10) * 10); // Round up to nearest 10, minimum 100
         
-        // Update both axes dynamically
+        // Calculate max for Young GC Count (y_young_gc axis)
+        const youngGcCounts = data.map(point => point.youngGcCount || 0).filter(val => val > 0);
+        const maxYoungGc = Math.max(...youngGcCounts);
+        const youngGcAxisMax = Math.max(20, Math.ceil(maxYoungGc / 100) * 100); // Round up to nearest 100, minimum 20
+        
+        // Update all axes dynamically
         heapChart.options.scales.y.max = memoryAxisMax;
-        heapChart.options.scales.y1.max = gcAxisMax;
+        heapChart.options.scales.y_gc_overhead.max = gcAxisMax;
+        heapChart.options.scales.y_young_gc.max = youngGcAxisMax;
         
         // Add warning annotation if GC overhead is critically high
         if (maxGcOverhead > 100) {
-            heapChart.options.scales.y1.title.text = `⚠️ GC Overhead % (Max: ${maxGcOverhead.toFixed(1)}%)`;
-            heapChart.options.scales.y1.title.color = '#ef4444';
+            heapChart.options.scales.y_gc_overhead.title.text = `⚠️ GC Overhead % (Max: ${maxGcOverhead.toFixed(1)}%)`;
+            heapChart.options.scales.y_gc_overhead.title.color = '#ef4444';
         } else if (maxGcOverhead > 50) {
-            heapChart.options.scales.y1.title.text = `⚠️ GC Overhead % (Max: ${maxGcOverhead.toFixed(1)}%)`;
-            heapChart.options.scales.y1.title.color = '#f59e0b';
+            heapChart.options.scales.y_gc_overhead.title.text = `⚠️ GC Overhead % (Max: ${maxGcOverhead.toFixed(1)}%)`;
+            heapChart.options.scales.y_gc_overhead.title.color = '#f59e0b';
         } else {
-            heapChart.options.scales.y1.title.text = 'GC Overhead %';
-            heapChart.options.scales.y1.title.color = '#666';
+            heapChart.options.scales.y_gc_overhead.title.text = 'GC Overhead %';
+            heapChart.options.scales.y_gc_overhead.title.color = '#666';
         }
         
         // Store raw data for tooltips
@@ -627,7 +649,7 @@ async function updateHeapChart() {
                 data: gcOverhead,
                 borderColor: 'rgb(255, 206, 86)',
                 backgroundColor: 'rgba(255, 206, 86, 0.1)',
-                yAxisID: 'y1'
+                yAxisID: 'y_gc_overhead'
             },
             // Task timeline datasets (negative values)
             ...timelineDatasets
@@ -707,7 +729,7 @@ function createTimelineDatasets(chartLabels) {
             pointRadius: 0,
             showLine: true,
             tension: 0,
-            yAxisID: 'y2', // Use separate Y-axis for timeline
+            yAxisID: 'y_tasks', // Use separate Y-axis for timeline
             taskData: task // Store task data for tooltips
         });
     });
@@ -883,7 +905,7 @@ function updateChartForView(view) {
                     data: rawData.map(point => point.gcOverheadPercent || 0),
                     borderColor: 'rgb(255, 206, 86)',
                     backgroundColor: 'rgba(255, 206, 86, 0.1)',
-                    yAxisID: 'y1'
+                    yAxisID: 'y_gc_overhead'
                 }
             ]
         },
@@ -972,14 +994,14 @@ function updateChartForView(view) {
                     data: rawData.map(point => point.gcOverheadPercent || 0),
                     borderColor: 'rgb(255, 206, 86)',
                     backgroundColor: 'rgba(255, 206, 86, 0.1)',
-                    yAxisID: 'y'
+                    yAxisID: 'y_gc_overhead'
                 },
                 {
                     label: 'Young GC Count (per hour)',
                     data: rawData.map(point => point.youngGcCount || 0),
                     borderColor: 'rgb(153, 102, 255)',
                     backgroundColor: 'rgba(153, 102, 255, 0.1)',
-                    yAxisID: 'y1'
+                    yAxisID: 'y_young_gc'
                 }
             ]
         }
