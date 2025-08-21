@@ -93,7 +93,7 @@ echo "dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.periodic.*
 #Aug 2025: reinstating memory setting changes based on:
 # 1. sudo neo4j-admin server memory-recommendation
 # 2. also informed by Brainstorm neo4j-resource-config.html
-echo "=== Updating Neo4j memory settings (commented out) ==="
+echo "=== Updating Neo4j memory settings ==="
 
 # sed -i 's/#server.memory.heap.initial_size=512m/server.memory.heap.initial_size=5g/' "$NEO4J_CONF"
 # sed -i 's/#server.memory.heap.max_size=512m/server.memory.heap.max_size=5g/' "$NEO4J_CONF"
