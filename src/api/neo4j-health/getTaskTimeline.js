@@ -14,6 +14,10 @@ async function getTaskTimeline(req, res) {
         const DB_INTENSIVE_TASKS = {
             // Orchestrator tasks (high impact)
             'processCustomer': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'reconciliation': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'prepareNeo4jForCustomerData': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'processNpubsUpToMaxNumBlocks': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'callBatchTransferIfNeeded': { color: '#ef4444', category: 'orchestrator', priority: 1 },
             
             // Graph calculation tasks (very high memory usage)
             'calculateOwnerHops': { color: '#3b82f6', category: 'graph-calc', priority: 2 },
@@ -22,10 +26,13 @@ async function getTaskTimeline(req, res) {
             'calculateCustomerGrapeRank': { color: '#a855f7', category: 'ranking', priority: 3 },
             'calculateOwnerPageRank': { color: '#10b981', category: 'ranking', priority: 3 },
             'calculateCustomerPageRank': { color: '#059669', category: 'ranking', priority: 3 },
+
+            'processOwnerFollowsMutesReports': { color: '#ef4444', category: 'orchestrator', priority: 1 },
+            'calculateReportScores': { color: '#ef4444', category: 'orchestrator', priority: 1 },
             
             // Database maintenance tasks
-            'neo4jStabilityMonitor': { color: '#f59e0b', category: 'monitoring', priority: 4 },
-            'neo4jPerformanceMonitor': { color: '#d97706', category: 'monitoring', priority: 4 }
+            // 'neo4jStabilityMonitor': { color: '#f59e0b', category: 'monitoring', priority: 4 },
+            // 'neo4jPerformanceMonitor': { color: '#d97706', category: 'monitoring', priority: 4 }
         };
 
         const config = {
