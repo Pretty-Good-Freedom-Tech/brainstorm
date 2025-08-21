@@ -105,7 +105,7 @@ echo "=== Updating Neo4j memory settings (commented out) ==="
 sed -i '/^server.memory.heap.initial_size=/d' "$NEO4J_CONF"
 sed -i '/^server.memory.heap.max_size=/d' "$NEO4J_CONF"
 sed -i '/^server.memory.pagecache.size=/d' "$NEO4J_CONF"
-sed -i '/^server.jvm.additional=/d' "$NEO4J_CONF"
+# sed -i '/^server.jvm.additional=/d' "$NEO4J_CONF"
 
 # Add our memory and JVM configuration
 echo "" >> "$NEO4J_CONF"
