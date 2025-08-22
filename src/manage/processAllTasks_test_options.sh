@@ -19,7 +19,7 @@ source "$CONFIG_FILE" # BRAINSTORM_MODULE_MANAGE_DIR, BRAINSTORM_LOG_DIR, BRAINS
 source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
 
 # Source launchChildTask function
-source "$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask.sh"
+source "$BRAINSTORM_MODULE_MANAGE_DIR/taskQueue/launchChildTask_test_options.sh"
 
 touch ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/processAllTasks.log
@@ -87,9 +87,9 @@ sleep 5
 # otherwise set timeout to 5 minutes
 numKind3Events=$(sudo strfry scan --count '{"kinds": [3]}')
 if [ "$numKind3Events" -lt 100 ]; then
-    timeoutDuration=10800001
+    timeoutDuration=10800000
 else
-    timeoutDuration=300001
+    timeoutDuration=300000
 fi
 
 echo "$(date): Continuing processAllTasks; preparing for syncWoT; numKind3Events: $numKind3Events; timeoutDuration: $timeoutDuration"
@@ -97,115 +97,14 @@ echo "$(date): Continuing processAllTasks; preparing for syncWoT; numKind3Events
 
 # override timeout duration
 oOptions_syncWoT=$(jq -n \
-    --argjson completion "{\"failure\": {\"timeout\": {\"duration\": $timeoutDuration, \"forceKill\": false}}}" \
+    --argjson completion '{"failure": {"timeout": {"duration": $timeoutDuration, "forceKill": false}}}' \
     '{
         "completion": $completion
     }')
 echo "$(date): Continuing processAllTasks; about to launch syncWoT with options: $oOptions_syncWoT"
 echo "$(date): Continuing processAllTasks; about to launch syncWoT with options: $oOptions_syncWoT" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-launch_child_task "syncWoT" "processAllTasks" "$oOptions_syncWoT" ""
+# launch_child_task "syncWoT" "processAllTasks" "$oOptions_syncWoT" ""
 #################### syncWoT: complete  ##############
-
-sleep 5
-
-#################### syncProfiles: start  ##############
-# Child Task 2: Negentropy Profiles Sync using launchChildTask
-# override timeout duration to 1 hour if numKind0Events < 100, otherwise set timeout to 5 minutes
-numKind0Events=$(sudo strfry scan --count '{"kinds": [0]}')
-if [ "$numKind0Events" -lt 100 ]; then
-    timeoutDuration=3600001
-else
-    timeoutDuration=300001
-fi
-
-oOptions_syncProfiles=$(jq -n \
-    --argjson completion "{\"failure\": {\"timeout\": {\"duration\": $timeoutDuration, \"forceKill\": false}}}" \
-    '{
-        "completion": $completion
-    }')
-echo "$(date): Continuing processAllTasks; about to launch syncProfiles with options: $oOptions_syncProfiles"
-echo "$(date): Continuing processAllTasks; about to launch syncProfiles with options: $oOptions_syncProfiles" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-launch_child_task "syncProfiles" "processAllTasks" "$oOptions_syncProfiles" ""
-#################### syncProfiles: complete  ##############
-
-sleep 5
-
-#################### callBatchTransferIfNeeded: start  ##############
-# Child Task 3: Batch Transfer
-launch_child_task "callBatchTransferIfNeeded" "processAllTasks" "" ""
-#################### callBatchTransferIfNeeded: complete  ##############
-
-sleep 5
-
-#################### reconciliation: start  ##############
-# Child Task 4: Data Reconciliation
-launch_child_task "reconciliation" "processAllTasks" "" ""
-#################### reconciliation: complete  ##############
-
-sleep 5
-
-#################### processNpubsUpToMaxNumBlocks: start  ##############
-# Child Task 5: Process Npubs
-launch_child_task "processNpubsUpToMaxNumBlocks" "processAllTasks" "" ""
-#################### processNpubsUpToMaxNumBlocks: complete  ##############
-
-sleep 5
-
-#################### calculateOwnerHops: start  ##############
-# Child Task 6: Calculate Owner Hops
-launch_child_task "calculateOwnerHops" "processAllTasks" "" ""
-#################### calculateOwnerHops: complete  ##############
-
-sleep 5
-
-#################### calculateOwnerPageRank: start  ##############
-# Child Task 6: Calculate Owner PageRank
-launch_child_task "calculateOwnerPageRank" "processAllTasks" "" ""
-#################### calculateOwnerPageRank: complete  ##############
-
-sleep 5
-
-#################### calculateOwnerGrapeRank: start  ##############
-# Child Task 6: Calculate Owner PageRank
-launch_child_task "calculateOwnerGrapeRank" "processAllTasks" "" ""
-#################### calculateOwnerGrapeRank: complete  ##############
-
-sleep 5
-
-#################### processOwnerFollowsMutesReports: start  ##############
-# Child Task 6: Process Owner Follows Mutes Reports
-launch_child_task "processOwnerFollowsMutesReports" "processAllTasks" "" ""
-#################### processOwnerFollowsMutesReports: complete  ##############
-
-sleep 5
-
-#################### calculateReportScores: start  ##############
-# Child Task 6: calculate Owner Report Scores
-launch_child_task "calculateReportScores" "processAllTasks" "" ""
-#################### calculateReportScores: complete  ##############
-
-sleep 5
-
-#################### exportWhitelist: start  ##############
-# Child Task 6: Export Owner Whitelist
-# TODO: may rewrite this task to integrate with get-whitelist api endpoint
-# Should also rename to exportOwnerWhitelist
-# launch_child_task "exportWhitelist" "processAllTasks" "" ""
-#################### exportWhitelist: complete  ##############
-
-sleep 5
-
-#################### exportOwnerKind30382: start  ##############
-# Child Task 6: Export Owner Kind 30382
-launch_child_task "exportOwnerKind30382" "processAllTasks" "" ""
-#################### exportOwnerKind30382: complete  ##############
-
-sleep 5
-
-#################### processAllActiveCustomers: start  ##############
-# Child Task 6: Process All Active Customers
-launch_child_task "processAllActiveCustomers" "processAllTasks" "" ""
-#################### processAllActiveCustomers: complete  ##############
 
 sleep 5
 

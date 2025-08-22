@@ -345,7 +345,7 @@ async function initializeHeapChart() {
             labels: [],
             datasets: [{
                 label: 'Heap Utilization %',
-                data: heapUtilization,
+                data: [],
                 borderColor: 'rgb(255, 99, 132)',
                 backgroundColor: 'rgba(255, 99, 132, 0.1)',
                 borderWidth: 2,
@@ -355,7 +355,7 @@ async function initializeHeapChart() {
             },
             {
                 label: 'Metaspace Utilization %',
-                data: metaspaceUtilization,
+                data: [],
                 borderColor: 'rgb(54, 162, 235)',
                 backgroundColor: 'rgba(54, 162, 235, 0.1)',
                 borderWidth: 2,
@@ -365,7 +365,7 @@ async function initializeHeapChart() {
             },
             {
                 label: 'Old Generation Utilization %',
-                data: oldGenUtilization,
+                data: [],
                 borderColor: 'rgb(75, 192, 192)',
                 backgroundColor: 'rgba(75, 192, 192, 0.1)',
                 borderWidth: 2,
@@ -375,7 +375,7 @@ async function initializeHeapChart() {
             },
             {
                 label: 'G1GC Survivor Regions %',
-                data: totalSurvivorUtilization,
+                data: [],
                 borderColor: 'rgb(153, 102, 255)',
                 backgroundColor: 'rgba(153, 102, 255, 0.1)',
                 borderWidth: 2,
