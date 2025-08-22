@@ -60,6 +60,7 @@
                             <th data-sort="pubkey">Pubkey</th>
 
                             <th data-sort="influence" class="sort-desc">🍇-Rank</th>
+                            <th data-sort="hops" class="sort-desc">Hops</th>
 
                             <th data-sort="followingCount" class="sort-desc"> Follows</th>
                             <th data-sort="mutingCount" class="sort-desc"> Mutes</th>
@@ -80,7 +81,6 @@
                             <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
                             <th data-sort="nip56TotalVerifiedReportCount" class="sort-desc">🍇-Verified Reports</th>
                             <th data-sort="nip56TotalReportCount" class="sort-desc">Total Reports</th>  
-                            <th data-sort="hops" class="sort-desc">Hops</th>
                             <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
                             
                             <th data-sort="average" class="sort-desc">🍇-Average</th>
@@ -100,6 +100,12 @@
                                 <div class="filter-inputs filter-inputs-vertical">
                                     <input type="number" id="filterMinInfluence" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
                                     <input type="number" id="filterMaxInfluence" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinHops" placeholder="Min" min="0" max="20" class="table-filter small-input">
+                                    <input type="number" id="filterMaxHops" placeholder="Max" min="1" max="20" class="table-filter small-input">
                                 </div>
                             </th>
 
@@ -199,12 +205,6 @@
                             </th>
                             <th>
                                 <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinHops" placeholder="Min" min="0" max="20" class="table-filter small-input">
-                                    <input type="number" id="filterMaxHops" placeholder="Max" min="1" max="20" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
                                     <input type="number" id="filterMinPersonalizedPageRank" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
                                     <input type="number" id="filterMaxPersonalizedPageRank" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
                                 </div>
@@ -248,6 +248,7 @@
             { id: 'pubkey', name: 'Pubkey', defaultVisible: false },
 
             { id: 'influence', name: '🍇-Rank', defaultVisible: true },
+            { id: 'hops', name: 'Hops', defaultVisible: true },
             
             { id: 'followingCount', name: 'Following Count', defaultVisible: true},
             { id: 'mutingCount', name: 'Muting Count', defaultVisible: false },
@@ -268,7 +269,6 @@
             { id: 'nip56TotalGrapeRankScore', name: 'Report Input', defaultVisible: false },
             { id: 'nip56TotalVerifiedReportCount', name: '🍇-Verified Reports', defaultVisible: false },
             { id: 'nip56TotalReportCount', name: 'Total Reports', defaultVisible: false },
-            { id: 'hops', name: 'Hops', defaultVisible: true },
             { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
             { id: 'average', name: 'Average', defaultVisible: false },
             { id: 'confidence', name: 'Confidence', defaultVisible: false },
@@ -320,7 +320,7 @@
                 npub: '',
                 pubkey: '',
                 minHops: '',
-                maxHops: '',
+                maxHops: '100',
                 minPersonalizedPageRank: '',
                 maxPersonalizedPageRank: '',
                 minInfluence: '',
@@ -329,7 +329,7 @@
                 maxAverage: '',
                 minConfidence: '',
                 maxConfidence: '',
-                minInput: '',
+                minInput: '0.01',
                 maxInput: '',
 
                 minFollowerCount: '',
