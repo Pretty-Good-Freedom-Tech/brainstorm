@@ -67,7 +67,7 @@
             <!-- Heap Usage Time Series -->
             <div class="health-card">
                 <div class="card-header">
-                    <h3 class="card-title">📈 Memory Metrics Over Time</h3>
+                    <h3 class="card-title">📈 Memory Metrics Over Time (G1GC)</h3>
                     <select id="timeRangeSelector" onchange="updateHeapChart()" style="margin-left: 10px;">
                         <option value="168">Last 7 days</option>
                         <option value="24">Last 24 hours</option>
@@ -79,6 +79,10 @@
                 </div>
                 <div class="chart-container" style="height: 500px;">
                     <canvas id="heapChart"></canvas>
+                </div>
+                <div class="g1gc-info" style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; font-size: 0.9em;">
+                    <strong>G1GC Note:</strong> This Neo4j instance uses G1 Garbage Collector. "G1GC Survivor Regions %" shows total survivor utilization across all regions. 
+                    Individual S0/S1 spaces don't apply to G1GC - it uses dynamic region allocation instead.
                 </div>
             </div>
 

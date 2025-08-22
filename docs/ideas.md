@@ -9,3 +9,9 @@ ps aux | grep neo4j | grep -o '\-XX:[^[:space:]]*'
 ```bash
 sudo jstat -gc <pid> 1000
 ```
+
+## Install GCViewer tool
+
+# Download and analyze (if you want graphical analysis)
+wget https://github.com/chewiebug/GCViewer/releases/download/1.36/gcviewer-1.36.jar
+java -jar gcviewer-1.36.jar /var/log/neo4j/gc.log

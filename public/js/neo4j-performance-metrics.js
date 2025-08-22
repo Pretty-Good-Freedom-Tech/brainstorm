@@ -345,27 +345,39 @@ async function initializeHeapChart() {
             labels: [],
             datasets: [{
                 label: 'Heap Utilization %',
-                data: [],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                yAxisID: 'y'
-            }, {
-                label: 'Metaspace Utilization %',
-                data: [],
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                data: heapUtilization,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
                 borderWidth: 2,
                 fill: false,
                 tension: 0.4,
                 yAxisID: 'y'
-            }, {
-                label: 'Old Gen Utilization %',
-                data: [],
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            },
+            {
+                label: 'Metaspace Utilization %',
+                data: metaspaceUtilization,
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                yAxisID: 'y'
+            },
+            {
+                label: 'Old Generation Utilization %',
+                data: oldGenUtilization,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                yAxisID: 'y'
+            },
+            {
+                label: 'G1GC Survivor Regions %',
+                data: totalSurvivorUtilization,
+                borderColor: 'rgb(153, 102, 255)',
+                backgroundColor: 'rgba(153, 102, 255, 0.1)',
                 borderWidth: 2,
                 fill: false,
                 tension: 0.4,
@@ -578,6 +590,17 @@ async function updateHeapChart() {
             return point.oldGenCapacityMB > 0 ? 
                 Math.round((point.oldGenUsedMB / point.oldGenCapacityMB) * 100) : 0;
         });
+        
+        // Calculate total survivor utilization for G1GC (combines S0 + S1)
+        const totalSurvivorUtilization = data.map(point => {
+            const s0Used = point.s0UsedMB || 0;
+            const s1Used = point.s1UsedMB || 0;
+            const s0Capacity = point.s0CapacityMB || 0;
+            const s1Capacity = point.s1CapacityMB || 0;
+            const totalUsed = s0Used + s1Used;
+            const totalCapacity = s0Capacity + s1Capacity;
+            return totalCapacity > 0 ? Math.round((totalUsed / totalCapacity) * 100) : 0;
+        });
         const gcOverhead = data.map(point => point.gcOverheadPercent || point.gcTimePercent || 0);
         
         // Calculate dynamic Y-axis ranges
@@ -642,6 +665,13 @@ async function updateHeapChart() {
                 data: oldGenUtilization,
                 borderColor: 'rgb(54, 162, 235)',
                 backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                yAxisID: 'y'
+            },
+            {
+                label: 'G1GC Survivor Regions %',
+                data: totalSurvivorUtilization,
+                borderColor: 'rgb(153, 102, 255)',
+                backgroundColor: 'rgba(153, 102, 255, 0.1)',
                 yAxisID: 'y'
             },
             {
