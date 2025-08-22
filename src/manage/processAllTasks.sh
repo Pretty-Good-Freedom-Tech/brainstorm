@@ -108,6 +108,8 @@ launch_child_task "syncWoT" "processAllTasks" "$oOptions_syncWoT" ""
 
 sleep 5
 
+: <<'COMMENT_BLOCK'
+# Temporarily using syncWoT to obtain kind 0 events from all basic relays; no need for syncProfiles
 #################### syncProfiles: start  ##############
 # Child Task 2: Negentropy Profiles Sync using launchChildTask
 # override timeout duration to 1 hour if numKind0Events < 100, otherwise set timeout to 5 minutes
@@ -125,9 +127,9 @@ oOptions_syncProfiles=$(jq -n \
     }')
 echo "$(date): Continuing processAllTasks; about to launch syncProfiles with options: $oOptions_syncProfiles"
 echo "$(date): Continuing processAllTasks; about to launch syncProfiles with options: $oOptions_syncProfiles" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-# Temporarily use syncWoT to obtain kind 0 events
-# launch_child_task "syncProfiles" "processAllTasks" "$oOptions_syncProfiles" ""
+launch_child_task "syncProfiles" "processAllTasks" "$oOptions_syncProfiles" ""
 #################### syncProfiles: complete  ##############
+COMMENT_BLOCK
 
 sleep 5
 
