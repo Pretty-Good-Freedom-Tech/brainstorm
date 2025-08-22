@@ -17,6 +17,9 @@ class StructuredEventsAnalyzer {
         this.config = config;
         this.eventsFile = path.join(config.BRAINSTORM_LOG_DIR, 'taskQueue', 'events.jsonl');
         this.structuredLogFile = path.join(config.BRAINSTORM_LOG_DIR, 'taskQueue', 'structured.log');
+        this.preservedLogFile = path.join(config.BRAINSTORM_LOG_DIR, 'preserved', 'system_metrics_history.jsonl');
+        // join this.preservedLogFile and this.eventsFile into this.combinedLogFile
+        this.combinedLogFile = { ...this.eventsFile, ...this.preservedLogFile };
         this.taskRegistry = this.loadTaskRegistry();
         this.diagnostics = {
             filesChecked: [],
@@ -66,9 +69,9 @@ class StructuredEventsAnalyzer {
         this.diagnostics.eventsFound = 0;
         this.diagnostics.parseErrors = 0;
 
-        // Try events.jsonl first (preferred format)
-        if (fs.existsSync(this.eventsFile)) {
-            this.diagnostics.filesChecked.push({ file: 'events.jsonl', exists: true, size: fs.statSync(this.eventsFile).size });
+        // Try combinedLogFile.jsonl first (preferred format)
+        if (fs.existsSync(this.combinedLogFile)) {
+            this.diagnostics.filesChecked.push({ file: 'events.jsonl', exists: true, size: fs.statSync(this.combinedLogFile).size });
             events = this.loadJsonlEvents();
         } else {
             this.diagnostics.filesChecked.push({ file: 'events.jsonl', exists: false, size: 0 });
@@ -94,7 +97,7 @@ class StructuredEventsAnalyzer {
      */
     loadJsonlEvents() {
         try {
-            const content = fs.readFileSync(this.eventsFile, 'utf8');
+            const content = fs.readFileSync(this.combinedLogFile, 'utf8');
             return content.trim().split('\n')
                 .filter(line => line.trim())
                 .map(line => {
