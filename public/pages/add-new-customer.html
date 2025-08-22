@@ -311,21 +311,51 @@
                 document.getElementById('addCustomerSection').style.display = 'block';
             } else {
                 console.error('Failed to get profile data:', result.error);
+                // Show generic profile with default avatar when profile data not found
                 const profileDisplay = document.getElementById('profileDisplay');
-                profileDisplay.innerHTML = '<p>Profile not found</p>';
+                const genericProfileHTML = `
+                    <div class="profile-card">
+                        <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                            <div class="profile-image">
+                                <img src="/img/default-avatar.png" alt="Unknown User">
+                            </div>
+                            <div class="profile-info">
+                                <h3 class="profile-name">Unknown User</h3>
+                                <p class="profile-handle">No profile data found</p>
+                                <p class="profile-npub">${npub.substring(0, 8)}...${npub.substring(npub.length - 4)}</p>
+                            </div>
+                        </a>
+                    </div>
+                `;
+                profileDisplay.innerHTML = genericProfileHTML;
                 profileDisplay.style.display = 'block';
                 
-                // Hide the Add Customer button if profile not found
-                document.getElementById('addCustomerSection').style.display = 'none';
+                // Still show the Add Customer button - owner can add even without profile data
+                document.getElementById('addCustomerSection').style.display = 'block';
             }
         } catch (error) {
             console.error('Error getting profile data:', error);
+            // Show generic profile with default avatar on API error
             const profileDisplay = document.getElementById('profileDisplay');
-            profileDisplay.innerHTML = '<p>Error loading profile</p>';
+            const genericProfileHTML = `
+                <div class="profile-card">
+                    <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                        <div class="profile-image">
+                            <img src="/img/default-avatar.png" alt="Unknown User">
+                        </div>
+                        <div class="profile-info">
+                            <h3 class="profile-name">Unknown User</h3>
+                            <p class="profile-handle">Profile data unavailable</p>
+                            <p class="profile-npub">${npub.substring(0, 8)}...${npub.substring(npub.length - 4)}</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+            profileDisplay.innerHTML = genericProfileHTML;
             profileDisplay.style.display = 'block';
             
-            // Hide the Add Customer button on error
-            document.getElementById('addCustomerSection').style.display = 'none';
+            // Still show the Add Customer button - owner can add even with API errors
+            document.getElementById('addCustomerSection').style.display = 'block';
         }
     }
 
