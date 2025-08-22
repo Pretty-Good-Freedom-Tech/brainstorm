@@ -79,19 +79,17 @@ update_neo4j_conf() {
   sed -i 's/#server.http.listen_address=:7474/server.http.listen_address=0.0.0.0:7474/' "$NEO4J_CONF"
 
   echo "# GDS procedures unrestricted access" >> "$NEO4J_CONF"
-  echo "dbms.security.procedures.unrestricted=gds.*" >> "$NEO4J_CONF"
-  echo "" >> "$NEO4J_CONF"
-
-  # Update Neo4j configuration for GDS - robust approach
+    # Update Neo4j configuration for GDS - robust approach
   # Remove any existing unrestricted lines to avoid duplicates
   sed -i '/^dbms.security.procedures.unrestricted=/d' "$NEO4J_CONF"
   sed -i '/^#dbms.security.procedures.unrestricted=/d' "$NEO4J_CONF"
+  echo "dbms.security.procedures.unrestricted=gds.*" >> "$NEO4J_CONF"
+  echo "" >> "$NEO4J_CONF"
 
   # Update Neo4j configuration for APOC and GDS - robust approach
   # Remove any existing allowlist lines to avoid duplicates
   sed -i '/^dbms.security.procedures.allowlist=/d' "$NEO4J_CONF"
   sed -i '/^#dbms.security.procedures.allowlist=/d' "$NEO4J_CONF"
-
   echo "" >> "$NEO4J_CONF"
   echo "# APOC and GDS procedures allowlist" >> "$NEO4J_CONF"
   echo "dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.periodic.*,apoc.export.json.query,gds.*" >> "$NEO4J_CONF"
@@ -132,14 +130,17 @@ update_neo4j_conf() {
   echo "server.jvm.additional=-XX:G1NewSizePercent=20" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:G1MaxNewSizePercent=40" >> "$NEO4J_CONF"
   echo "" >> "$NEO4J_CONF"
-  # enable gc logging
-  echo "server.logs.gc.enabled=true" >> "$NEO4J_CONF"
-  echo "server.logs.gc.log_path=/var/log/neo4j/gc.log" >> "$NEO4J_CONF"
+
   # enable native memory tracking for debugging
   echo "# enable native memory tracking for debugging" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:NativeMemoryTracking=detail" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:+UnlockDiagnosticVMOptions" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:+PrintNMTStatistics" >> "$NEO4J_CONF"
+  echo "" >> "$NEO4J_CONF"
+
+  # enable gc logging
+  echo "# enable gc logging" >> "$NEO4J_CONF"
+  echo "server.logs.gc.enabled=true" >> "$NEO4J_CONF"
   echo "" >> "$NEO4J_CONF"
 
   # sed -i 's/#dbms.memory.transaction.total.max=0/dbms.memory.transaction.total.max=1G/' "$NEO4J_CONF"
