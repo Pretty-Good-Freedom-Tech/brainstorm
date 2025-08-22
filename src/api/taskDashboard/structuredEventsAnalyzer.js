@@ -16,7 +16,7 @@ class StructuredEventsAnalyzer {
     constructor(config) {
         this.config = config;
         this.eventsFile = path.join(config.BRAINSTORM_LOG_DIR, 'taskQueue', 'events.jsonl');
-        this.structuredLogFile = path.join(config.BRAINSTORM_LOG_DIR, 'structured.log');
+        this.structuredLogFile = path.join(config.BRAINSTORM_LOG_DIR, 'taskQueue', 'structured.log');
         this.taskRegistry = this.loadTaskRegistry();
         this.diagnostics = {
             filesChecked: [],

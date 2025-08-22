@@ -8,11 +8,6 @@ const StructuredEventsAnalyzer = require('../taskDashboard/structuredEventsAnaly
  */
 async function getTaskExplorerSingleTaskData(req, res) {
     try {
-        // TODO: Add owner authentication check
-        // if (!isOwner(req)) {
-        //     return res.status(403).json({ error: 'Access denied. Owner privileges required.' });
-        // }
-
         const { taskName } = req.query;
         
         if (!taskName) {

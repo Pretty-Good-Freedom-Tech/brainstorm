@@ -132,6 +132,9 @@ update_neo4j_conf() {
   echo "server.jvm.additional=-XX:G1NewSizePercent=20" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:G1MaxNewSizePercent=40" >> "$NEO4J_CONF"
   echo "" >> "$NEO4J_CONF"
+  # enable gc logging
+  echo "server.logs.gc.enabled=true" >> "$NEO4J_CONF"
+  echo "server.logs.gc.log_path=/var/log/neo4j/gc.log" >> "$NEO4J_CONF"
   # enable native memory tracking for debugging
   echo "# enable native memory tracking for debugging" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:NativeMemoryTracking=detail" >> "$NEO4J_CONF"
