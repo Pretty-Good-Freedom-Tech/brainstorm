@@ -209,7 +209,7 @@ fi
 # Verify some updates were made by checking a sample
 VERIFICATION_QUERY="
 MATCH (u:NostrUser) 
-WHERE u.pubkey IS NOT NULL AND u.npub IS NOT NULL 
+WHERE u.pubkey IS NOT NULL AND u.npub IS NOT NULL
 RETURN count(u) as users_with_npub
 LIMIT 1
 "
