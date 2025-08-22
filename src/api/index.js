@@ -42,6 +42,7 @@ const { handleGetConfig, handleUpdateConfig } = require('./algos/config');
 
 // Import domain-specific handler modules
 const nip85 = require('./export/nip85');
+const nip19 = require('./export/nip19');
 const profiles = require('./export/profiles');
 const relay = require('./export/relay');
 const users = require('./export/users');
@@ -164,6 +165,8 @@ function register(app) {
     app.get('/api/get-kind30382-info', nip85.handleGetKind30382Info);
     app.get('/api/get-nip85-status', nip85.handleGetNip85Status);
     app.get('/api/get-all-10040-authors', nip85.handleGetAll10040Authors);
+    
+    app.get('/api/validate-encoding', nip19.handleValidateEncoding);
 
     // Profiles endpoint
     app.get('/api/get-kind0', profiles.handleGetKind0Event);

@@ -195,12 +195,12 @@
             
             <div class="search-sections">
                 <div class="search-section">
-                    <h3 class="search-section-title">👤 Add Customer by Pubkey</h3>
+                    <h3 class="search-section-title">👤 Find Customer by Npub or Pubkey</h3>
                     <div class="search-container">
                         <div class="search-input-wrapper">
                             <input type="text" id="pubkeyInput" class="search-input" placeholder="Enter 64-character hex pubkey">
                         </div>
-                        <button id="addCustomerButton" class="search-button">Add Customer</button>
+                        <button id="findCustomerButton" class="search-button">Add Customer</button>
                     </div>
                     <p class="help-text">Enter the customer's pubkey to add them with default settings (free tier, active status)</p>
                 </div>
@@ -291,7 +291,7 @@
         }
 
         // Add customer button event listener
-        document.getElementById('addCustomerButton').addEventListener('click', async () => {
+        document.getElementById('findCustomerButton').addEventListener('click', async () => {
             const pubkeyInput = document.getElementById('pubkeyInput');
             const pubkey = pubkeyInput.value.trim();
 
@@ -311,7 +311,7 @@
             }
 
             // Disable button during request
-            const button = document.getElementById('addCustomerButton');
+            const button = document.getElementById('findCustomerButton');
             const originalText = button.textContent;
             button.textContent = 'Adding...';
             button.disabled = true;
@@ -349,7 +349,7 @@
         // Allow Enter key to trigger add customer
         document.getElementById('pubkeyInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                document.getElementById('addCustomerButton').click();
+                document.getElementById('findCustomerButton').click();
             }
         });
     </script>
