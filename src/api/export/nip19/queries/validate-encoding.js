@@ -1,16 +1,11 @@
 /**
  * NostrUser Validation Queries
  * handles endpoint: /api/validate-encoding?inputString=...
- * Uses nip19 to determine whether the input string is or is not a valid:
- * npub, pubkey, nsec, nprofile, nevent, naddr
- * returns:
- * success: true or false
- * type: npub, pubkey, nsec, nprofile, nevent, naddr, or null
- * inputString: the input string
- * pubkey: the pubkey if the input string is a valid pubkey
- * npub: the npub if the input string is a valid npub
- * validDecode: true or false
- * nip19DecodeData: the decoded data if the input string is a valid npub, pubkey, nsec, nprofile, nevent, or naddr
+ * Uses nip19 to determine whether the input string is a valid pubkey or npub
+ * If valid, returns npub and pubkey
+ * If not valid, returns null for both npub and pubkey
+ * TODO: support for nprofile
+ * TODO: support for note, nevent, naddr
  */
 
 const { nip19 } = require('nostr-tools');
@@ -26,46 +21,45 @@ function handleValidateEncoding(req, res) {
     const inputString = req.query.inputString;
     let validInputString = false
     let inputStringType = null
+    let nip19DecodeData = {}
+    let npubEncodeData = null
+    let nprofileEncodeData = null
     let encodings = {}
 
     if (!inputString) {
       return res.status(400).json({ error: 'Missing inputString parameter' });
     }
 
-    // Use nip19 to decode inputString
-    let nip19DecodeData = {}
-
-    try {
-        nip19DecodeData = nip19.decode(inputString)
-        validInputString = true
-        inputStringType = nip19DecodeData.type
-        if (inputStringType === 'npub') {
-            encodings.pubkey = nip19DecodeData.data
-            encodings.npub = inputString
-        }
-        if (inputStringType === 'nprofile') {
-          encodings.pubkey = nip19DecodeData.data
-          encodings.nprofile = inputString
-      }
-    } catch (error) {
-
-    }
-
-    // if inputString is a valid pubkey, encode it as npub and nprofile
-    // Use nip19 to encode inputString as npub
-    let npubEncodeData = {}
-    let nprofileEncodeData = {}
-
+    // First check if if inputString is a valid pubkey
+    // If so, then use nip19 to encode npub and nprofile
     try {
         npubEncodeData = nip19.npubEncode(inputString)
-        nprofileEncodeData = nip19.nprofileEncode(inputString)
         validInputString = true
         inputStringType = 'pubkey'
         encodings.pubkey = inputString
         encodings.npub = npubEncodeData
-        encodings.nprofile = nprofileEncodeData
     } catch (error) {
 
+    }
+
+    // If inputString is not a valid pubkey, then use nip19 to decode inputString
+    // Use nip19 to decode inputString
+    if (!validInputString) {
+      try {
+          nip19DecodeData = nip19.decode(inputString)
+          validInputString = true
+          inputStringType = nip19DecodeData.type
+          if (inputStringType === 'npub') {
+              encodings.pubkey = nip19DecodeData.data
+              encodings.npub = inputString
+          }
+          if (inputStringType === 'nprofile') {
+            encodings.pubkey = nip19DecodeData.data
+            encodings.nprofile = inputString
+        }
+      } catch (error) {
+
+      }
     }
 
     res.status(200).json({
@@ -74,10 +68,7 @@ function handleValidateEncoding(req, res) {
         inputString,
         valid: validInputString,
         inputStringType,
-        encodings,
-        nip19DecodeData,
-        npubEncodeData,
-        nprofileEncodeData
+        encodings
       }
     });
   } catch (error) {
