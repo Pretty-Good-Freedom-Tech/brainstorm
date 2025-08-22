@@ -37,8 +37,9 @@ emit_task_event "PROGRESS" "syncWoT" "system" '{
 }'
 
 # sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
-sudo strfry sync wss://wot.brainstorm.social --filter '{"kinds":[3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
-# sudo strfry sync wss://profiles.nostr1.com --filter '{"kinds":[3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
+sudo strfry sync wss://wot.brainstorm.social --filter '{"kinds":[0, 3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
+sudo strfry sync wss://profiles.nostr1.com --filter '{"kinds":[0, 3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
+sudo strfry sync wss://relay.hasenpfeffr.com --filter '{"kinds":[0, 3, 1984, 10000, 30000, 38000, 38172, 38173]}' --dir down
 # wss://relay.hasenpfeffr.com 
 # wss://wot.brainstorm.social
 # wss://profiles.nostr1.com

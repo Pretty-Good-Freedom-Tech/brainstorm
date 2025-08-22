@@ -125,7 +125,8 @@ oOptions_syncProfiles=$(jq -n \
     }')
 echo "$(date): Continuing processAllTasks; about to launch syncProfiles with options: $oOptions_syncProfiles"
 echo "$(date): Continuing processAllTasks; about to launch syncProfiles with options: $oOptions_syncProfiles" >> ${BRAINSTORM_LOG_DIR}/processAllTasks.log
-launch_child_task "syncProfiles" "processAllTasks" "$oOptions_syncProfiles" ""
+# Temporarily use syncWoT to obtain kind 0 events
+# launch_child_task "syncProfiles" "processAllTasks" "$oOptions_syncProfiles" ""
 #################### syncProfiles: complete  ##############
 
 sleep 5

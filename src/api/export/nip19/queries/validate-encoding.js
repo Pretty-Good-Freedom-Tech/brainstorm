@@ -26,8 +26,7 @@ function handleValidateEncoding(req, res) {
     const inputString = req.query.inputString;
     let validInputString = false
     let inputStringType = null
-    let pubkey = null
-    let npub = null
+    let encodings = {}
 
     if (!inputString) {
       return res.status(400).json({ error: 'Missing inputString parameter' });
@@ -35,41 +34,51 @@ function handleValidateEncoding(req, res) {
 
     // Use nip19 to decode inputString
     let nip19DecodeData = {}
-    let validDecode = false
+
     try {
         nip19DecodeData = nip19.decode(inputString)
-        validDecode = true
         validInputString = true
         inputStringType = nip19DecodeData.type
+        if (inputStringType === 'npub') {
+            encodings.pubkey = nip19DecodeData.data
+            encodings.npub = inputString
+        }
+        if (inputStringType === 'nprofile') {
+          encodings.pubkey = nip19DecodeData.data
+          encodings.nprofile = inputString
+      }
     } catch (error) {
-        validDecode = false
+
     }
 
+    // if inputString is a valid pubkey, encode it as npub and nprofile
     // Use nip19 to encode inputString as npub
     let npubEncodeData = {}
-    let validPubkey = false
+    let nprofileEncodeData = {}
+
     try {
         npubEncodeData = nip19.npubEncode(inputString)
-        validPubkey = true
+        nprofileEncodeData = nip19.nprofileEncode(inputString)
         validInputString = true
         inputStringType = 'pubkey'
-        pubkey = inputString
-        npub = npubEncodeData
+        encodings.pubkey = inputString
+        encodings.npub = npubEncodeData
+        encodings.nprofile = nprofileEncodeData
     } catch (error) {
-      validPubkey = false
+
     }
 
     res.status(200).json({
       success: true,
-      inputString,
-      validInputString,
-      inputStringType,
-      pubkey,
-      npub,
-      validDecode,
-      nip19DecodeData,
-      validPubkey,
-      npubEncodeData
+      data: {
+        inputString,
+        valid: validInputString,
+        inputStringType,
+        encodings,
+        nip19DecodeData,
+        npubEncodeData,
+        nprofileEncodeData
+      }
     });
   } catch (error) {
     console.error('Error in handleValidateEncoding:', error);

@@ -1364,8 +1364,11 @@
                         fetchProfiles();
                         
                         // Show status message
-                        const observerName = customerData.isOwner ? 'Global' : customerData.customerName;
-                        showStatusMessage(`Switched to ${observerName} perspective`, 'success');
+                        if (customerData.isOwner) {
+                            showStatusMessage('Showing Global perspective', 'success');
+                        } else {
+                            showStatusMessage(`Switched to ${customerData.customerName} perspective`, 'success');
+                        }
                     }
                 });
             }
