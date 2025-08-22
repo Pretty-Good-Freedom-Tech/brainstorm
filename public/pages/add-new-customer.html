@@ -177,50 +177,8 @@
                 font-size: 1.5rem;
             }
         }
-    </style>
-    <script src="./components/header/header.js"></script>
-    <script src="./components/footer/footer.js"></script>
-</head>
-<body>
-    <!-- Include the header component -->
-    <div id="headerContainer"></div>
 
-    <!-- Main content wrapper -->
-    <div class="page-content">
-        <div class="container">
-            <div class="search-header">
-                <h1>Add New Customer</h1>
-                <p class="search-description">Add a new customer to the system using their pubkey</p>
-            </div>
-            
-            <div class="search-sections">
-                <div class="search-section">
-                    <h3 class="search-section-title">👤 Find Profile by Npub or Pubkey</h3>
-                    <div class="search-container">
-                        <div class="search-input-wrapper">
-                            <input type="text" id="inputStringField" class="search-input" placeholder="Enter npub or 64-character hex pubkey">
-                        </div>
-                        <button id="findCustomerButton" class="search-button">Find Profile</button>
-                    </div>
-                    <p class="help-text">Enter the customer's npub or pubkey to add them with default settings (free tier, active status)</p>
-                </div>
-            </div>
-            
-            <div id="profileDisplay" class="search-results" style="display: none;">
-                <!-- Profile will be displayed here -->
-            </div>
-            
-            <div id="addCustomerSection" class="search-results" style="display: none;">
-                <button id="addCustomerButton" class="search-button">Add Customer</button>
-            </div>
-            
-            <div id="customerResult" class="search-results" style="display: none;">
-                <!-- Customer addition results will be displayed here -->
-            </div>
-        </div>
-    </div>
-
-    .profile-card:hover {
+        .profile-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
@@ -264,16 +222,95 @@
         font-size: 0.9rem;
         color: #6c757d;
     }
-</style>
 
-<!-- ... existing HTML ... -->
+    .customer-status-card {
+        background: #e8f5e8;
+        border: 1px solid #4caf50;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        text-align: center;
+    }
 
-<!-- Include the footer component -->
-<div id="footerContainer"></div>
+    .status-active {
+        color: #4caf50;
+        font-weight: bold;
+    }
 
-<script>
-    // Function to display profile data from pubkey
+    .status-inactive {
+        color: #ff9800;
+        font-weight: bold;
+    }
+    </style>
+    <script src="./components/header/header.js"></script>
+    <script src="./components/footer/footer.js"></script>
+</head>
+<body>
+    <!-- Include the header component -->
+    <div id="headerContainer"></div>
+
+    <!-- Main content wrapper -->
+    <div class="page-content">
+        <div class="container">
+            <div class="search-header">
+                <h1>Add New Customer</h1>
+                <p class="search-description">Add a new customer to the system using their pubkey</p>
+            </div>
+            
+            <div class="search-sections">
+                <div class="search-section">
+                    <h3 class="search-section-title">👤 Find Profile by Npub or Pubkey</h3>
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="inputStringField" class="search-input" placeholder="Enter npub or 64-character hex pubkey">
+                        </div>
+                        <button id="findCustomerButton" class="search-button">Find Profile</button>
+                    </div>
+                    <p class="help-text">Enter the customer's npub or pubkey to add them with default settings (free tier, active status)</p>
+                </div>
+            </div>
+            
+            <div id="profileDisplay" class="search-results" style="display: none;">
+                <!-- Profile will be displayed here -->
+            </div>
+            
+            <div id="addCustomerSection" class="search-results" style="display: none;">
+                <button id="addCustomerButton" class="search-button">Add Customer</button>
+            </div>
+            
+            <div id="customerResult" class="search-results" style="display: none;">
+                <!-- Customer addition results will be displayed here -->
+            </div>
+        </div>
+        <!-- Include the footer component -->
+        <div id="footerContainer"></div>
+    </div>
+    <script>
+    // Function to check if user is already a customer
+    async function checkIfCustomer(pubkey) {
+        try {
+            const response = await fetch('/api/get-customers');
+            const result = await response.json();
+            
+            if (result.success && result.customers) {
+                // Find customer with matching pubkey
+                const existingCustomer = result.customers.find(customer => customer.pubkey === pubkey);
+                return existingCustomer || null;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error checking customer status:', error);
+            return null;
+        }
+    }
+
+    // Function to display profile data from pubkey with customer status check
     async function displayProfile(pubkey, npub) {
+        let profileData = null;
+        
+        // First, check if user is already a customer
+        const existingCustomer = await checkIfCustomer(pubkey);
+        
         try {
             const response = await fetch(`/api/get-kind0?pubkey=${pubkey}`);
             const result = await response.json();
@@ -288,56 +325,36 @@
                 const name = content.name || 'Unknown';
                 const displayName = content.display_name || content.displayName || name;
                 
-                // Display the profile card
-                const profileDisplay = document.getElementById('profileDisplay');
-                const profileHTML = `
-                    <div class="profile-card">
-                        <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
-                            <div class="profile-image">
-                                <img src="${picture}" alt="${displayName}" onerror="this.src='/img/default-avatar.png'">
-                            </div>
-                            <div class="profile-info">
-                                <h3 class="profile-name">${displayName}</h3>
-                                <p class="profile-handle">@${name}</p>
-                                <p class="profile-npub">${npub.substring(0, 8)}...${npub.substring(npub.length - 4)}</p>
-                            </div>
-                        </a>
-                    </div>
-                `;
-                profileDisplay.innerHTML = profileHTML;
-                profileDisplay.style.display = 'block';
-                
-                // Show the Add Customer button after successful profile display
-                document.getElementById('addCustomerSection').style.display = 'block';
-            } else {
-                console.error('Failed to get profile data:', result.error);
-                // Show generic profile with default avatar when profile data not found
-                const profileDisplay = document.getElementById('profileDisplay');
-                const genericProfileHTML = `
-                    <div class="profile-card">
-                        <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
-                            <div class="profile-image">
-                                <img src="/img/default-avatar.png" alt="Unknown User">
-                            </div>
-                            <div class="profile-info">
-                                <h3 class="profile-name">Unknown User</h3>
-                                <p class="profile-handle">No profile data found</p>
-                                <p class="profile-npub">${npub.substring(0, 8)}...${npub.substring(npub.length - 4)}</p>
-                            </div>
-                        </a>
-                    </div>
-                `;
-                profileDisplay.innerHTML = genericProfileHTML;
-                profileDisplay.style.display = 'block';
-                
-                // Still show the Add Customer button - owner can add even without profile data
-                document.getElementById('addCustomerSection').style.display = 'block';
+                profileData = { picture, name, displayName };
             }
         } catch (error) {
             console.error('Error getting profile data:', error);
-            // Show generic profile with default avatar on API error
-            const profileDisplay = document.getElementById('profileDisplay');
-            const genericProfileHTML = `
+        }
+        
+        // Display profile (either with real data or generic)
+        const profileDisplay = document.getElementById('profileDisplay');
+        const addCustomerSection = document.getElementById('addCustomerSection');
+        
+        let profileHTML;
+        if (profileData) {
+            // Real profile data
+            profileHTML = `
+                <div class="profile-card">
+                    <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                        <div class="profile-image">
+                            <img src="${profileData.picture}" alt="${profileData.displayName}" onerror="this.src='/img/default-avatar.png'">
+                        </div>
+                        <div class="profile-info">
+                            <h3 class="profile-name">${profileData.displayName}</h3>
+                            <p class="profile-handle">@${profileData.name}</p>
+                            <p class="profile-npub">${npub.substring(0, 8)}...${npub.substring(npub.length - 4)}</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+        } else {
+            // Generic profile
+            profileHTML = `
                 <div class="profile-card">
                     <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
                         <div class="profile-image">
@@ -345,17 +362,40 @@
                         </div>
                         <div class="profile-info">
                             <h3 class="profile-name">Unknown User</h3>
-                            <p class="profile-handle">Profile data unavailable</p>
+                            <p class="profile-handle">No profile data found</p>
                             <p class="profile-npub">${npub.substring(0, 8)}...${npub.substring(npub.length - 4)}</p>
                         </div>
                     </a>
                 </div>
             `;
-            profileDisplay.innerHTML = genericProfileHTML;
-            profileDisplay.style.display = 'block';
+        }
+        
+        profileDisplay.innerHTML = profileHTML;
+        profileDisplay.style.display = 'block';
+        
+        // Handle customer status
+        if (existingCustomer) {
+            // User is already a customer - show management link instead of Add button
+            addCustomerSection.innerHTML = `
+                <div class="customer-status-card">
+                    <p><strong>✅ Already a Customer</strong></p>
+                    <p>Status: <span class="status-${existingCustomer.status}">${existingCustomer.status}</span></p>
+                    <p>Customer ID: ${existingCustomer.id}</p>
+                    <a href="/manage-customer.html?pubkey=${pubkey}" class="search-button" target="_blank">
+                        Manage Customer
+                    </a>
+                </div>
+            `;
+            addCustomerSection.style.display = 'block';
+        } else {
+            // User is not a customer - show Add Customer button
+            addCustomerSection.innerHTML = `
+                <button id="addCustomerButton" class="search-button">Add Customer</button>
+            `;
+            addCustomerSection.style.display = 'block';
             
-            // Still show the Add Customer button - owner can add even with API errors
-            document.getElementById('addCustomerSection').style.display = 'block';
+            // Re-attach event listener for the new button
+            document.getElementById('addCustomerButton').addEventListener('click', handleAddCustomer);
         }
     }
 
@@ -487,8 +527,8 @@
             }
         });
 
-        // Add Customer button event listener
-        document.getElementById('addCustomerButton').addEventListener('click', async () => {
+        // Handle Add Customer button click
+        async function handleAddCustomer() {
             if (!validatedData) {
                 alert('Please find a profile first');
                 return;
@@ -533,7 +573,7 @@
                 button.textContent = originalText;
                 button.disabled = false;
             }
-        });
+        }
 
         // Allow Enter key to trigger add customer
         document.getElementById('inputStringField').addEventListener('keypress', (e) => {
