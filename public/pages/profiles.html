@@ -59,6 +59,8 @@
                             <th data-sort="npub">Npub</th>
                             <th data-sort="pubkey">Pubkey</th>
 
+                            <th data-sort="influence" class="sort-desc">🍇-Rank</th>
+
                             <th data-sort="followingCount" class="sort-desc"> Follows</th>
                             <th data-sort="mutingCount" class="sort-desc"> Mutes</th>
                             <th data-sort="reportingCount" class="sort-desc"> Reports</th>
@@ -71,19 +73,19 @@
                             <th data-sort="verifiedMuterCount" class="sort-desc">Verified Muters</th>
                             <th data-sort="verifiedReporterCount" class="sort-desc">Verified Reporters</th>
 
-                            <th data-sort="followerInput" class="sort-desc">Followers: Weight (sum over 🍇-R)</th>
-                            <th data-sort="muterInput" class="sort-desc">Muters: Weight (sum over 🍇-R)</th>
-                            <th data-sort="reporterInput" class="sort-desc">Reporters: Weight (sum over 🍇-R)</th>
+                            <th data-sort="followerInput" class="sort-desc">Followers: 🍇-Weight (sum over 🍇-R)</th>
+                            <th data-sort="muterInput" class="sort-desc">Muters: 🍇-Weight (sum over 🍇-R)</th>
+                            <th data-sort="reporterInput" class="sort-desc">Reporters: 🍇-Weight (sum over 🍇-R)</th>
 
                             <th data-sort="nip56TotalGrapeRankScore" class="sort-desc">🍇-Report Score</th>
                             <th data-sort="nip56TotalVerifiedReportCount" class="sort-desc">🍇-Verified Reports</th>
                             <th data-sort="nip56TotalReportCount" class="sort-desc">Total Reports</th>  
                             <th data-sort="hops" class="sort-desc">Hops</th>
                             <th data-sort="personalizedPageRank" class="sort-desc">PageRank</th>
-                            <th data-sort="influence" class="sort-desc">🍇-Rank</th>
-                            <th data-sort="average" class="sort-desc">Average</th>
-                            <th data-sort="confidence" class="sort-desc">Confidence</th>
-                            <th data-sort="input" class="sort-desc">Input</th>
+                            
+                            <th data-sort="average" class="sort-desc">🍇-Average</th>
+                            <th data-sort="confidence" class="sort-desc">🍇-Confidence</th>
+                            <th data-sort="input" class="sort-desc">🍇-Input</th>
                         </tr>
                         <tr class="filter-row">
                             <th></th>
@@ -92,6 +94,13 @@
                             </th>
                             <th>
                                 <input type="text" id="filterPubkey" placeholder="Pubkey contains..." class="table-filter">
+                            </th>
+
+                            <th>
+                                <div class="filter-inputs filter-inputs-vertical">
+                                    <input type="number" id="filterMinInfluence" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
+                                    <input type="number" id="filterMaxInfluence" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
+                                </div>
                             </th>
 
                             <th>
@@ -202,12 +211,6 @@
                             </th>
                             <th>
                                 <div class="filter-inputs filter-inputs-vertical">
-                                    <input type="number" id="filterMinInfluence" placeholder="Min" min="0" step="0.000001" class="table-filter small-input">
-                                    <input type="number" id="filterMaxInfluence" placeholder="Max" min="0" step="0.000001" class="table-filter small-input">
-                                </div>
-                            </th>
-                            <th>
-                                <div class="filter-inputs filter-inputs-vertical">
                                     <input type="number" id="filterMinAverage" placeholder="Min" min="-1" max="1" step="0.01" class="table-filter small-input">
                                     <input type="number" id="filterMaxAverage" placeholder="Max" min="-1" max="1" step="0.01" class="table-filter small-input">
                                 </div>
@@ -244,6 +247,8 @@
             { id: 'npub', name: 'Npub', defaultVisible: true },
             { id: 'pubkey', name: 'Pubkey', defaultVisible: false },
 
+            { id: 'influence', name: '🍇-Rank', defaultVisible: true },
+            
             { id: 'followingCount', name: 'Following Count', defaultVisible: true},
             { id: 'mutingCount', name: 'Muting Count', defaultVisible: false },
             { id: 'reportingCount', name: 'Reporting Count', defaultVisible: false },
@@ -252,20 +257,19 @@
             { id: 'muterCount', name: 'Muter Count', defaultVisible: false },
             { id: 'reporterCount', name: 'Reporter Count', defaultVisible: false },
 
-            { id: 'verifiedFollowerCount', name: 'Verified Followers Count', defaultVisible: true },
-            { id: 'verifiedMuterCount', name: 'Verified Muters Count', defaultVisible: false },
-            { id: 'verifiedReporterCount', name: 'Verified Reporters Count', defaultVisible: false },
+            { id: 'verifiedFollowerCount', name: '🍇-Verified Followers Count', defaultVisible: true },
+            { id: 'verifiedMuterCount', name: '🍇-Verified Muters Count', defaultVisible: false },
+            { id: 'verifiedReporterCount', name: '🍇-Verified Reporters Count', defaultVisible: false },
 
-            { id: 'followerInput', name: 'Followers: Weight (sum over 🍇-R)', defaultVisible: true },
-            { id: 'muterInput', name: 'Muters: Weight (sum over 🍇-R)', defaultVisible: true },
-            { id: 'reporterInput', name: 'Reporters: Weight (sum over 🍇-R)', defaultVisible: true },
+            { id: 'followerInput', name: 'Followers: 🍇-Weight (sum over 🍇-R)', defaultVisible: true },
+            { id: 'muterInput', name: 'Muters: 🍇-Weight (sum over 🍇-R)', defaultVisible: true },
+            { id: 'reporterInput', name: 'Reporters: 🍇-Weight (sum over 🍇-R)', defaultVisible: true },
             
             { id: 'nip56TotalGrapeRankScore', name: 'Report Input', defaultVisible: false },
-            { id: 'nip56TotalVerifiedReportCount', name: 'Verified Reports', defaultVisible: false },
+            { id: 'nip56TotalVerifiedReportCount', name: '🍇-Verified Reports', defaultVisible: false },
             { id: 'nip56TotalReportCount', name: 'Total Reports', defaultVisible: false },
             { id: 'hops', name: 'Hops', defaultVisible: true },
             { id: 'personalizedPageRank', name: 'PageRank', defaultVisible: true },
-            { id: 'influence', name: '🍇-Rank', defaultVisible: true },
             { id: 'average', name: 'Average', defaultVisible: false },
             { id: 'confidence', name: 'Confidence', defaultVisible: false },
             { id: 'input', name: 'Input', defaultVisible: false }
@@ -294,7 +298,7 @@
                         col.id === 'influence'
                     );
                 } else {
-                    defaults[col.id] = true;
+                    defaults[col.id] = col.defaultVisible;
                 }
             });
             return defaults;
@@ -875,7 +879,7 @@
                                     col.id === 'influence'
                                 );
                             } else {
-                                state.columnVisibility[col.id] = true;
+                                state.columnVisibility[col.id] = col.defaultVisible;
                             }
                         });
                         saveColumnVisibility();

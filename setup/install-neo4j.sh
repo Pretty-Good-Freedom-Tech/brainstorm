@@ -90,7 +90,6 @@ update_neo4j_conf() {
   # Remove any existing allowlist lines to avoid duplicates
   sed -i '/^dbms.security.procedures.allowlist=/d' "$NEO4J_CONF"
   sed -i '/^#dbms.security.procedures.allowlist=/d' "$NEO4J_CONF"
-  echo "" >> "$NEO4J_CONF"
   echo "# APOC and GDS procedures allowlist" >> "$NEO4J_CONF"
   echo "dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*,apoc.periodic.*,apoc.export.json.query,gds.*" >> "$NEO4J_CONF"
   echo "" >> "$NEO4J_CONF"
@@ -115,7 +114,6 @@ update_neo4j_conf() {
   # Commenting out this line because it removes all existing JVM options, including the ones we want to keep
   # sed -i '/^server.jvm.additional=/d' "$NEO4J_CONF"
 
-  echo "" >> "$NEO4J_CONF"
   echo "# Memory configuration for 32GB server" >> "$NEO4J_CONF"
   echo "server.memory.heap.initial_size=11700m" >> "$NEO4J_CONF"
   echo "server.memory.heap.max_size=11700m" >> "$NEO4J_CONF"
