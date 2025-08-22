@@ -963,8 +963,9 @@
                             if (col.id === 'nip56TotalVerifiedReportCount') value = profile.nip56_totalVerifiedReportCount;
                             if (col.id === 'nip56TotalReportCount') value = profile.nip56_totalReportCount;
                             let decimals = 0;
-                            if (col.id === 'personalizedPageRank' || col.id === 'influence') decimals = 6;
-                            else if (col.id === 'average' || col.id === 'confidence' || col.id === 'input') decimals = 2;
+                            if (col.id === 'personalizedPageRank') decimals = 6;
+                            else if (col.id === 'influence') decimals = 3;
+                            else if (col.id === 'average' || col.id === 'confidence' || col.id === 'input') decimals = 3;
                             addNumericCell(row, value, decimals, col.id, col.name);
                         }
                     });
@@ -1232,16 +1233,16 @@
                                 row.push(profile.personalizedPageRank?.toFixed(6) || 0);
                                 break;
                             case 'influence':
-                                row.push(profile.influence?.toFixed(6) || 0);
+                                row.push(profile.influence?.toFixed(3) || 0);
                                 break;
                             case 'average':
-                                row.push(profile.average?.toFixed(2) || 0);
+                                row.push(profile.average?.toFixed(3) || 0);
                                 break;
                             case 'confidence':
-                                row.push(profile.confidence?.toFixed(2) || 0);
+                                row.push(profile.confidence?.toFixed(3) || 0);
                                 break;
                             case 'input':
-                                row.push(profile.input?.toFixed(2) || 0);
+                                row.push(profile.input?.toFixed(3) || 0);
                                 break;
                             default:
                                 row.push('');
