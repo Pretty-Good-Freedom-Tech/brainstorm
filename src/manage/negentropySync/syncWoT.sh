@@ -45,7 +45,7 @@ launch_relay_sync() {
     echo "$(date): Starting background syncWoT with $relay" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
     
     # Launch strfry sync in background, capturing output with timestamps
-    {
+    (
         while IFS= read -r line; do
             echo "$(date): [$relay] $line"
             echo "$(date): [$relay] $line" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
@@ -55,9 +55,12 @@ launch_relay_sync() {
         echo "$(date): Completed syncWoT with $relay"
         echo "$(date): Completed syncWoT with $relay" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
         echo "SYNC_COMPLETE" >> "$log_file"
-    } &
+    ) &
     
-    echo $!  # Return the PID of the background process
+    local pid=$!
+    echo "$(date): Launched $relay with PID $pid"
+    echo "$(date): Launched $relay with PID $pid" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
+    echo $pid  # Return the PID of the background process
 }
 
 # Monitor relay sync processes for activity
@@ -142,9 +145,23 @@ echo "$(date): Launching parallel relay synchronization"
 echo "$(date): Launching parallel relay synchronization" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
 
 pids=()
-pids+=($(launch_relay_sync "wot.brainstorm.social"))
-pids+=($(launch_relay_sync "profiles.nostr1.com"))
-pids+=($(launch_relay_sync "relay.hasenpfeffr.com"))
+echo "$(date): About to launch wot.brainstorm.social"
+echo "$(date): About to launch wot.brainstorm.social" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
+pid1=$(launch_relay_sync "wot.brainstorm.social")
+pids+=($pid1)
+
+echo "$(date): About to launch profiles.nostr1.com"
+echo "$(date): About to launch profiles.nostr1.com" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
+pid2=$(launch_relay_sync "profiles.nostr1.com")
+pids+=($pid2)
+
+echo "$(date): About to launch relay.hasenpfeffr.com"
+echo "$(date): About to launch relay.hasenpfeffr.com" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
+pid3=$(launch_relay_sync "relay.hasenpfeffr.com")
+pids+=($pid3)
+
+echo "$(date): All relays launched with PIDs: ${pids[*]}"
+echo "$(date): All relays launched with PIDs: ${pids[*]}" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
 
 # Monitor all processes
 monitor_relay_activity "${pids[@]}"
