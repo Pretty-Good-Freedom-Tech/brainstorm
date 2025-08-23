@@ -42,50 +42,91 @@ echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and custome
 echo "$(date): Starting calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "updateAllScoresForSingleCustomer" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-    "customer_name": "'$CUSTOMER_NAME'",
-    "description": "Updates all trust scores for a single customer",
-    "child_tasks": 5,
-    "scope": "customer_specific",
-    "orchestrator_level": "secondary"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg description "Updates all trust scores for a single customer" \
+    --arg child_tasks 5 \
+    --arg scope "customer_specific" \
+    --arg orchestrator_level "secondary" \
+    '{
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "description": $description,
+        "child_tasks": $child_tasks,
+        "scope": $scope,
+        "orchestrator_level": $orchestrator_level
+    }')
+emit_task_event "TASK_START" "updateAllScoresForSingleCustomer" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 echo "$(date): Continuing calculateAllScores; starting calculateHops.sh"
 echo "$(date): Continuing calculateAllScores; starting calculateHops.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "calculateCustomerHops" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_name": "'$CUSTOMER_NAME'",
-    "parent_task": "updateAllScoresForSingleCustomer",
-    "child_order": 1,
-    "algorithm": "hop_calculation",
-    "category": "algorithms"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 1 \
+    --arg algorithm "hop_calculation" \
+    --arg category "algorithms" \
+    '{
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category
+    }')
+emit_task_event "CHILD_TASK_START" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run calculateHops.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "calculateCustomerHops" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "success",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 1,
-        "algorithm": "hop_calculation",
-        "structured_logging": true
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 1 \
+        --arg algorithm "hop_calculation" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_END" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerHops" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "failed",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 1,
-        "algorithm": "hop_calculation",
-        "structured_logging": true
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 1 \
+        --arg algorithm "hop_calculation" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$oMetadata"
     echo "$(date): ERROR: calculateHops.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -93,37 +134,113 @@ echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedPageRank.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_name": "'$CUSTOMER_NAME'",
-    "parent_task": "updateAllScoresForSingleCustomer",
-    "child_order": 2,
-    "algorithm": "personalized_pagerank",
-    "category": "algorithms",
-    "structured_logging": true
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 2 \
+    --arg algorithm "personalized_pagerank" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    '{
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+emit_task_event "CHILD_TASK_START" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run personalizedPageRank.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "success",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 2,
-        "algorithm": "personalized_pagerank",
-        "structured_logging": true
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 2 \
+        --arg algorithm "personalized_pagerank" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "failed",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 2,
-        "algorithm": "personalized_pagerank",
-        "structured_logging": true
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 2 \
+        --arg algorithm "personalized_pagerank" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
+    echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+fi
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 2 \
+        --arg algorithm "personalized_pagerank" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
+else
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 2 \
+        --arg algorithm "personalized_pagerank" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
     echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -131,36 +248,113 @@ echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_name": "'$CUSTOMER_NAME'",
-    "parent_task": "updateAllScoresForSingleCustomer",
-    "child_order": 3,
-    "algorithm": "personalized_graperank",
-    "category": "algorithms"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 3 \
+    --arg algorithm "personalized_graperank" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    '{
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+emit_task_event "CHILD_TASK_START" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run personalizedGrapeRank.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "success",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 3,
-        "algorithm": "personalized_graperank",
-        "category": "algorithms"
-    }'
+    oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 3 \
+    --arg algorithm "personalized_graperank" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+    emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "failed",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 3,
-        "algorithm": "personalized_graperank",
-        "category": "algorithms"
-    }'
+    oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 3 \
+    --arg algorithm "personalized_graperank" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
+    echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+fi    
+    oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 3 \
+    --arg algorithm "personalized_graperank" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+    emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"   
+else
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 3 \
+        --arg algorithm "personalized_graperank" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
     echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -168,37 +362,70 @@ echo "$(date): Continuing calculateAllScores; starting processFollowsMutesReport
 echo "$(date): Continuing calculateAllScores; starting processFollowsMutesReports.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_name": "'$CUSTOMER_NAME'",
-    "parent_task": "updateAllScoresForSingleCustomer",
-    "child_order": 4,
-    "algorithm": "follows_mutes_reports",
-    "category": "algorithms",
-    "structured_logging": true
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 4 \
+    --arg algorithm "follows_mutes_reports" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    '{
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+emit_task_event "CHILD_TASK_START" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run processFollowsMutesReports.sh
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFollowsMutesReports.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "success",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 4,
-        "algorithm": "follows_mutes_reports",
-        "structured_logging": true
-    }'
+    oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 4 \
+    --arg algorithm "follows_mutes_reports" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+    emit_task_event "CHILD_TASK_END" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
-    emit_task_event "CHILD_TASK_ERROR" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_name": "'$CUSTOMER_NAME'",
-        "status": "failed",
-        "parent_task": "updateAllScoresForSingleCustomer",
-        "child_order": 4,
-        "algorithm": "follows_mutes_reports",
-        "structured_logging": true
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_name "$CUSTOMER_NAME" \
+        --arg parent_task "updateAllScoresForSingleCustomer" \
+        --argjson child_order 4 \
+        --arg algorithm "follows_mutes_reports" \
+        --arg category "algorithms" \
+        --argjson structured_logging true \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "customer_name": $customer_name,
+            "parent_task": $parent_task,
+            "child_order": $child_order,
+            "algorithm": $algorithm,
+            "category": $category,
+            "structured_logging": $structured_logging
+        }')
+    emit_task_event "CHILD_TASK_ERROR" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" "$oMetadata"
     echo "$(date): ERROR: processFollowsMutesReports.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
 
@@ -207,45 +434,105 @@ fi
 # create blacklist
 # create whitelist
 
-: <<'COMMENT_BLOCK'
 echo "$(date): Continuing calculateAllScores; starting publishNip85.sh"
 echo "$(date): Continuing calculateAllScores; starting publishNip85.sh" >> "$LOG_FILE"
 
 # Emit structured event for child task start
-emit_task_event "CHILD_TASK_START" "exportCustomerKind30382" \
-    "customer_id=$CUSTOMER_ID" \
-    "customer_name=$CUSTOMER_NAME" \
-    "parent_task=updateAllScoresForSingleCustomer"
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 5 \
+    --arg algorithm "nip85_export" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+emit_task_event "CHILD_TASK_START" "exportCustomerKind30382" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # generate nip-85 exports
 if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
-    emit_task_event "CHILD_TASK_END" "exportCustomerKind30382" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=success" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 5 \
+    --arg algorithm "nip85_export" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+    emit_task_event "CHILD_TASK_END" "exportCustomerKind30382" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
-    emit_task_event "CHILD_TASK_ERROR" "exportCustomerKind30382" \
-        "customer_id=$CUSTOMER_ID" \
-        "customer_name=$CUSTOMER_NAME" \
-        "status=failed" \
-        "parent_task=updateAllScoresForSingleCustomer"
+    oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --argjson child_order 5 \
+    --arg algorithm "nip85_export" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_order": $child_order,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+    emit_task_event "CHILD_TASK_ERROR" "exportCustomerKind30382" "$CUSTOMER_PUBKEY" "$oMetadata"
     echo "$(date): ERROR: publishNip85.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
-COMMENT_BLOCK
 
 # Log end time
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
 echo "$(date): Finished calculateAllScores for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
 
 # Emit structured event for task completion
-emit_task_event "TASK_END" "updateAllScoresForSingleCustomer" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-    "customer_name": "'$CUSTOMER_NAME'",
-    "status": "success",
-    "child_tasks_completed": 4,
-    "description": "Updates all trust scores for a single customer",
-    "scope": "customer_specific",
-    "orchestrator_level": "secondary"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_name "$CUSTOMER_NAME" \
+    --arg parent_task "updateAllScoresForSingleCustomer" \
+    --arg child_tasks_completed 5 \
+    --arg description "Updates all trust scores for a single customer" \
+    --arg scope "customer_specific" \
+    --arg orchestrator_level "secondary" \
+    --arg algorithm "update_all_scores" \
+    --arg category "algorithms" \
+    --argjson structured_logging true \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "customer_name": $customer_name,
+        "parent_task": $parent_task,
+        "child_tasks_completed": $child_tasks_completed,
+        "description": $description,
+        "scope": $scope,
+        "orchestrator_level": $orchestrator_level,
+        "algorithm": $algorithm,
+        "category": $category,
+        "structured_logging": $structured_logging
+    }')
+emit_task_event "TASK_END" "updateAllScoresForSingleCustomer" "$CUSTOMER_PUBKEY" "$oMetadata"

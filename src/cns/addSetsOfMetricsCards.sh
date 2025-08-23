@@ -8,7 +8,7 @@ source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_
 
 CYPHER1="MATCH (n:NostrUser)
 WHERE NOT (n) -[:WOT_METRICS_CARDS]-> (:Set:SetOfNostrUserWotMetricsCards)
-AND n.hops < 20
+AND (n.hops < 20 OR n.verifiedMuterCount > 0 OR n.verifiedReporterCount > 0)
 LIMIT 100000
 MERGE (n) -[:WOT_METRICS_CARDS]-> (s:Set:SetOfNostrUserWotMetricsCards)
 SET s.observee_pubkey = n.pubkey
