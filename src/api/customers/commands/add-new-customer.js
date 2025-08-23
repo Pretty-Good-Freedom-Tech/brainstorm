@@ -7,6 +7,7 @@
  */
 
 const CustomerManager = require('../../../utils/customerManager');
+const { createSingleCustomerRelay } = require('../../../utils/customerRelayKeys');
 const nostrTools = require('nostr-tools');
 
 /**
@@ -66,8 +67,8 @@ async function handleAddNewCustomer(req, res) {
             });
         }
 
-        // Generate a default customer name based on pubkey
-        const customerName = `customer_${pubkey.substring(0, 8)}`;
+        // Generate a unique customer name based on pubkey
+        const customerName = generateCustomerName(pubkey);
 
         // Create customer data with defaults
         const customerData = {
@@ -84,6 +85,21 @@ async function handleAddNewCustomer(req, res) {
         // Create the customer
         const newCustomer = await customerManager.createCustomer(customerData);
 
+        // Generate relay keys for the new customer
+        console.log('Generating relay keys for new customer...');
+        let relayKeys;
+        try {
+            relayKeys = await createSingleCustomerRelay(pubkey, newCustomer.id, customerName);
+            console.log(`Generated relay keys for customer ${customerName} (ID: ${newCustomer.id})`);
+        } catch (error) {
+            console.error('Error creating customer relay keys:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to generate relay keys for customer',
+                details: error.message
+            });
+        }
+
         res.json({
             success: true,
             message: 'Customer created successfully',
@@ -95,7 +111,8 @@ async function handleAddNewCustomer(req, res) {
                 status: newCustomer.status,
                 service_tier: newCustomer.subscription.service_tier,
                 directory: newCustomer.directory,
-                when_signed_up: newCustomer.subscription.when_signed_up
+                when_signed_up: newCustomer.subscription.when_signed_up,
+                relayPubkey: relayKeys.pubkey
             }
         });
 
@@ -116,6 +133,18 @@ async function handleAddNewCustomer(req, res) {
             details: error.message
         });
     }
+}
+
+/**
+ * Generate a unique customer name based on pubkey
+ * @param {string} pubkey - User's public key
+ * @returns {string} - Generated customer name
+ */
+function generateCustomerName(pubkey) {
+    // Use first 8 characters of pubkey + timestamp for uniqueness
+    const pubkeyPrefix = pubkey.substring(0, 8);
+    const timestamp = Date.now().toString(36); // Base36 for shorter string
+    return `customer_${pubkeyPrefix}_${timestamp}`;
 }
 
 module.exports = { handleAddNewCustomer };
