@@ -150,21 +150,21 @@
                     const batchResults = await Promise.all(batchPromises);
                     profileData.push(...batchResults.filter(data => data !== null));
                     
-                    /*
                     // Sort profiles by influence score (descending)
                     const sortedProfiles = profileData.sort((a, b) => {
                         const influenceA = a.influence || 0;
                         const influenceB = b.influence || 0;
                         return influenceB - influenceA; // Descending order
                     });
-                    */
                     
+                    /*
                     // Sort profiles by verifiedFollowerCount (descending)
                     const sortedProfiles = profileData.sort((a, b) => {
                         const verifiedFollowerCountA = parseInt(a.verifiedFollowerCount) || 0;
                         const verifiedFollowerCountB = parseInt(b.verifiedFollowerCount) || 0;
                         return verifiedFollowerCountB - verifiedFollowerCountA; // Descending order
                     });
+                    */
                     
                     // Display sorted profiles
                     container.innerHTML = sortedProfiles.map(data => data.html).join('');
