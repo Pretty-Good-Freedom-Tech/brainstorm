@@ -23,7 +23,7 @@ const { handleGetUserClassification } = require('./auth/getUserClassification');
 const { handleSignUpNewCustomer } = require('./auth/signUpNewCustomer');
 const { handleGetOwnerInfo } = require('./owner/ownerInfo');
 const { handleGetGrapevineInteraction } = require('./grapevineInteractions/queries');
-const { handleSearchProfiles } = require('./search/profiles');
+const { handleSearchProfiles, handleSearchProfilesStream } = require('./search/profiles');
 const { handleGetRecentlyActivePubkeys } = require('./content/queries/recentlyActivePubkeys');
 const getTaskDashboardState = require('./taskDashboard/getTaskDashboardState');
 const getTaskExplorerData = require('./taskExplorer/getTaskExplorerData');
@@ -268,6 +268,7 @@ function register(app) {
 
     // Search endpoint
     app.get('/api/search/profiles', handleSearchProfiles);
+    app.get('/api/search/profiles/stream', handleSearchProfilesStream);
 
     // Get Customers endpoint
     app.get('/api/get-customers', customers.handleGetCustomers);

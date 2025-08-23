@@ -21,6 +21,7 @@ const TIME_BUDGET_MS = 2500; // Hard time budget for search process
 const TARGETED_GREP_LIMIT = 6; // Small targeted pass limit per field
 const TARGETED_TIME_BUDGET_MS = 1500; // Time budget for exact-match boost
 const EXHAUSTIVE_BUDGET_MS = 30000; // Exhaustive fallback phase budget per search
+const STREAM_HARD_TIMEOUT_MS = 65000; // Hard cutoff to ensure SSE closes cleanly
 
 function getCachedSearch(searchString) {
     const cached = searchCache.get(searchString.toLowerCase());
@@ -464,5 +465,298 @@ async function handleSearchProfiles(req, res) {
 }
 
 module.exports = {
-    handleSearchProfiles
+    handleSearchProfiles,
+    handleSearchProfilesStream
 };
+
+/**
+ * Streaming version: /api/search/profiles/stream
+ * Streams initial results quickly, then exhaustive results later via SSE
+ */
+async function handleSearchProfilesStream(req, res) {
+    // Validate params before switching to SSE headers
+    const searchType = req.query.searchType;
+    const searchString = req.query.searchString;
+
+    if (!searchType || !searchString) {
+        return res.status(400).json({ success: false, error: 'Missing search parameter; expecting searchType and searchString' });
+    }
+    if (searchType !== 'kind0') {
+        return res.status(400).json({ success: false, error: 'Streaming supported only for searchType=kind0' });
+    }
+
+    // Configure long timeout and SSE headers
+    req.setTimeout(180000);
+    res.setTimeout(180000);
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no'
+    });
+    if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+    const send = (event, data) => {
+        try {
+            res.write(`event: ${event}\n`);
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+        } catch (_) { /* ignored */ }
+    };
+
+    const keepAlive = setInterval(() => {
+        try { res.write(': keep-alive\n\n'); } catch (_) { /* ignored */ }
+    }, 15000);
+
+    const children = new Set();
+    const timers = new Set();
+    let finished = false;
+    const seen = new Set();
+    // Hard cutoff to ensure connections close cleanly even if subprocesses misbehave
+    const hardTimeout = setTimeout(() => {
+        try { finish('hard_timeout'); } catch (_) { /* noop */ }
+    }, STREAM_HARD_TIMEOUT_MS);
+    timers.add(hardTimeout);
+
+    function cleanup(clientClosed = false) {
+        // Mark finished to stop any further emissions
+        finished = true;
+        for (const p of Array.from(children)) {
+            try { p.kill('SIGTERM'); } catch (_) {}
+        }
+        for (const t of Array.from(timers)) clearTimeout(t);
+        clearInterval(keepAlive);
+        if (!clientClosed) {
+            try { res.end(); } catch (_) {}
+        }
+    }
+
+    function finish(reason) {
+        if (finished) return;
+        finished = true;
+        send('done', { reason, total: seen.size });
+        cleanup(false);
+    }
+
+    req.on('close', () => cleanup(true));
+
+    const maybeEmit = (pk, source) => {
+        if (finished) return;
+        if (!pk || typeof pk !== 'string') return;
+        if (seen.has(pk)) return;
+        if (seen.size >= MAX_RESULTS) return finish('max_results');
+        seen.add(pk);
+        send('result', { pubkey: pk, source });
+        if (seen.size >= MAX_RESULTS) finish('max_results');
+    };
+
+    const spawnCmd = (cmd) => {
+        const p = spawn('sudo', ['bash', '-c', cmd]);
+        children.add(p);
+        const remove = () => children.delete(p);
+        p.on('close', remove);
+        p.on('error', remove);
+        return p;
+    };
+
+    const setBudget = (p, ms) => {
+        if (typeof ms !== 'number' || ms <= 0) return null;
+        const t = setTimeout(() => { try { if (!p.killed) p.kill('SIGTERM'); } catch (_) {} }, ms);
+        timers.add(t);
+        return t;
+    };
+    const clearBudget = (t) => { if (t) { clearTimeout(t); timers.delete(t); } };
+
+    // Helpers (SSE-local)
+    const escapeForEventContent = (s) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const buildExactLiteral = (field, value) => `\\\"${field}\\\":\\\"${escapeForEventContent(value)}\\\"`;
+    const regexEscape = (s) => s.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+    const buildExactRegex = (field, value) => `\\\"${field}\\\"[[:space:]]*:[[:space:]]*\\\"${regexEscape(value)}\\\"`;
+    const buildExactValueLiteral = (value) => `\\\"${escapeForEventContent(value)}\\\"`;
+
+    const runTargetedPassStream = (literal, budgetMs, source) => new Promise((resolve) => {
+        const singleQuoted = `'${literal.replace(/'/g, `"'"'`)}'`;
+        const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF -m ${TARGETED_GREP_LIMIT} ${singleQuoted}`;
+        const p = spawnCmd(cmd);
+        let buf = '';
+        const localSeen = new Set();
+        const timer = setBudget(p, budgetMs);
+        p.stdout.on('data', (data) => {
+            buf += data.toString();
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const evt = JSON.parse(line);
+                    if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                        localSeen.add(evt.pubkey);
+                        maybeEmit(evt.pubkey, source);
+                    }
+                } catch (_) { /* skip */ }
+            }
+        });
+        p.on('close', () => {
+            clearBudget(timer);
+            if (buf.trim()) {
+                try {
+                    const evt = JSON.parse(buf);
+                    if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                        maybeEmit(evt.pubkey, source);
+                    }
+                } catch (_) { /* skip */ }
+            }
+            resolve();
+        });
+        p.on('error', () => { clearBudget(timer); resolve(); });
+    });
+
+    const runBroadStream = (value, budgetMs) => new Promise((resolve) => {
+        const escaped = value.replace(/["'\\$`]/g, '\\$&');
+        const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF -m ${MAX_GREP_LINES} "${escaped}"`;
+        const p = spawnCmd(cmd);
+        let buf = '';
+        const timer = setBudget(p, budgetMs);
+        p.stdout.on('data', (data) => {
+            buf += data.toString();
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const evt = JSON.parse(line);
+                    if (evt && evt.pubkey) {
+                        maybeEmit(evt.pubkey, 'broad');
+                    }
+                } catch (_) { /* skip */ }
+            }
+        });
+        p.on('close', () => {
+            clearBudget(timer);
+            if (buf.trim()) {
+                try {
+                    const evt = JSON.parse(buf);
+                    if (evt && evt.pubkey) {
+                        maybeEmit(evt.pubkey, 'broad');
+                    }
+                } catch (_) { /* skip */ }
+            }
+            resolve();
+        });
+        p.on('error', () => { clearBudget(timer); resolve(); });
+    });
+
+    const runExhaustiveTargetedRegexStream = (pattern, budgetMs) => new Promise((resolve) => {
+        if (typeof budgetMs === 'number' && budgetMs <= 0) return resolve();
+        const singleQuoted = `'${pattern.replace(/'/g, `"'"'`)}'`;
+        const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iE ${singleQuoted}`;
+        const p = spawnCmd(cmd);
+        let buf = '';
+        const localSeen = new Set();
+        const timer = setBudget(p, budgetMs);
+        p.stdout.on('data', (data) => {
+            buf += data.toString();
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const evt = JSON.parse(line);
+                    if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                        localSeen.add(evt.pubkey);
+                        maybeEmit(evt.pubkey, 'exhaustive.regex');
+                    }
+                } catch (_) { /* skip */ }
+            }
+        });
+        p.on('close', () => {
+            clearBudget(timer);
+            if (buf.trim()) {
+                try {
+                    const evt = JSON.parse(buf);
+                    if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                        maybeEmit(evt.pubkey, 'exhaustive.regex');
+                    }
+                } catch (_) { /* skip */ }
+            }
+            resolve();
+        });
+        p.on('error', () => { clearBudget(timer); resolve(); });
+    });
+
+    const runExhaustiveFixedLiteralStream = (literal, budgetMs) => new Promise((resolve) => {
+        if (typeof budgetMs === 'number' && budgetMs <= 0) return resolve();
+        const singleQuoted = `'${literal.replace(/'/g, `"'"'`)}'`;
+        const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF ${singleQuoted}`;
+        const p = spawnCmd(cmd);
+        let buf = '';
+        const localSeen = new Set();
+        const timer = setBudget(p, budgetMs);
+        p.stdout.on('data', (data) => {
+            buf += data.toString();
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const evt = JSON.parse(line);
+                    if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                        localSeen.add(evt.pubkey);
+                        maybeEmit(evt.pubkey, 'exhaustive.literal');
+                    }
+                } catch (_) { /* skip */ }
+            }
+        });
+        p.on('close', () => {
+            clearBudget(timer);
+            if (buf.trim()) {
+                try {
+                    const evt = JSON.parse(buf);
+                    if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                        maybeEmit(evt.pubkey, 'exhaustive.literal');
+                    }
+                } catch (_) { /* skip */ }
+            }
+            resolve();
+        });
+        p.on('error', () => { clearBudget(timer); resolve(); });
+    });
+
+    // Stream start
+    send('start', { searchType, searchString });
+
+    try {
+        // Initial phase: targeted + broad in parallel, stream as we parse
+        const targetedBudget = (searchString && searchString.length <= 4) ? 4000 : TARGETED_TIME_BUDGET_MS;
+        const tp1 = runTargetedPassStream(buildExactLiteral('name', searchString), targetedBudget, 'boost.name');
+        const tp2 = runTargetedPassStream(buildExactLiteral('display_name', searchString), targetedBudget, 'boost.display_name');
+        const broad = runBroadStream(searchString, TIME_BUDGET_MS);
+
+        await Promise.all([tp1, tp2, broad]);
+        send('phase', { phase: 'initial_done', count: seen.size });
+
+        if (finished) return; // may have hit MAX_RESULTS
+
+        // Exhaustive phase with strict 30s budget
+        const exStart = Date.now();
+        const deadline = exStart + EXHAUSTIVE_BUDGET_MS;
+        const sizeBefore = seen.size;
+        const patterns = [
+            buildExactRegex('name', searchString),
+            buildExactRegex('display_name', searchString)
+        ];
+        const remainForRegex = Math.max(1, deadline - Date.now());
+        await Promise.all(patterns.map((patt) => runExhaustiveTargetedRegexStream(patt, remainForRegex)));
+
+        if (finished) return; // may have hit MAX_RESULTS
+
+        const exAdded = seen.size - sizeBefore;
+        const remain = Math.max(0, deadline - Date.now());
+        if (exAdded === 0 && remain > 0) {
+            await runExhaustiveFixedLiteralStream(buildExactValueLiteral(searchString), remain);
+        }
+        if (!finished) finish('complete');
+    } catch (err) {
+        send('error', { message: 'streaming search failure', error: String(err && err.message || err) });
+        finish('error');
+    }
+}
