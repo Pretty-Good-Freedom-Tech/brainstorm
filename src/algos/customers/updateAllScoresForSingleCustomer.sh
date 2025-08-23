@@ -47,7 +47,7 @@ oMetadata=$(jq -n \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg customer_name "$CUSTOMER_NAME" \
     --arg description "Updates all trust scores for a single customer" \
-    --arg child_tasks 5 \
+    --argjson child_tasks 5 \
     --arg scope "customer_specific" \
     --arg orchestrator_level "secondary" \
     '{
@@ -515,7 +515,7 @@ oMetadata=$(jq -n \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg customer_name "$CUSTOMER_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
-    --arg child_tasks_completed 5 \
+    --argjson child_tasks_completed 5 \
     --arg description "Updates all trust scores for a single customer" \
     --arg scope "customer_specific" \
     --arg orchestrator_level "secondary" \
