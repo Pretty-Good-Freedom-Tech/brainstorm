@@ -112,17 +112,17 @@ async function handleSearchProfiles(req, res) {
             console.log(`Starting optimized search for: ${searchString}`);
             const startTime = Date.now();
             
-            // Helpers for targeted exact-match boost
-            const regexEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const buildExactPattern = (field, value) => {
-                // Match escaped JSON within event content: \"field\"\s*:\s*\"value\"
-                const v = regexEscape(value);
-                return `\\\"${field}\\\"[[:space:]]*:[[:space:]]*\\\"${v}\\\"`;
+            // Helpers for targeted exact-match boost (fixed-string search)
+            const escapeForEventContent = (s) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            const buildExactLiteral = (field, value) => {
+                // Literal substring as it appears in the event JSON (within content string): \"field\":\"value\"
+                const v = escapeForEventContent(value);
+                return `\\\"${field}\\\":\\\"${v}\\\"`;
             };
-            const runTargetedPass = (pattern) => new Promise((resolveTP) => {
-                // Use single quotes to preserve backslashes; escape any single quotes in pattern
-                const singleQuoted = `'${pattern.replace(/'/g, `'"'"'`)}'`;
-                const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iE -m ${TARGETED_GREP_LIMIT} ${singleQuoted}`;
+            const runTargetedPass = (literal, budgetMs) => new Promise((resolveTP) => {
+                // Use single quotes to preserve backslashes; escape any single quotes in the literal (unlikely)
+                const singleQuoted = `'${literal.replace(/'/g, `"'"'`)}'`;
+                const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF -m ${TARGETED_GREP_LIMIT} ${singleQuoted}`;
                 const p = spawn('sudo', ['bash', '-c', cmd]);
                 let buf = '';
                 const outPubkeys = [];
@@ -131,7 +131,7 @@ async function handleSearchProfiles(req, res) {
                     if (!p.killed) {
                         try { p.kill('SIGTERM'); } catch (_) {}
                     }
-                }, TARGETED_TIME_BUDGET_MS);
+                }, budgetMs);
                 p.stdout.on('data', (data) => {
                     buf += data.toString();
                     const lines = buf.split('\n');
@@ -162,10 +162,13 @@ async function handleSearchProfiles(req, res) {
                 p.on('error', () => resolveTP([]));
             });
             
+            // Dynamic budget: be more generous for short queries (like "jack")
+            const targetedBudget = (searchString && searchString.length <= 4) ? 4000 : TARGETED_TIME_BUDGET_MS;
+
             // Kick off targeted passes in parallel for exact name/display_name matches
             const targetedPromises = [
-                runTargetedPass(buildExactPattern('name', searchString)),
-                runTargetedPass(buildExactPattern('display_name', searchString))
+                runTargetedPass(buildExactLiteral('name', searchString), targetedBudget),
+                runTargetedPass(buildExactLiteral('display_name', searchString), targetedBudget)
             ];
             
             // Use grep to pre-filter before JSON parsing for much better performance
