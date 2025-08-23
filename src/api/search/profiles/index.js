@@ -12,6 +12,34 @@
 const { spawn } = require('child_process');
 const nostrTools = require('nostr-tools');
 
+// Module-scope cache and performance constants to persist across requests
+const searchCache = new Map();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const MAX_RESULTS = 60; // Limit results for performance
+const MAX_GREP_LINES = 200; // Maximum matching lines grep will return before exiting
+const TIME_BUDGET_MS = 2500; // Hard time budget for search process
+
+function getCachedSearch(searchString) {
+    const cached = searchCache.get(searchString.toLowerCase());
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        console.log(`Cache hit for search: ${searchString}`);
+        return cached.results;
+    }
+    return null;
+}
+
+function setCachedSearch(searchString, results) {
+    searchCache.set(searchString.toLowerCase(), {
+        results,
+        timestamp: Date.now()
+    });
+    // Simple LRU-ish eviction
+    if (searchCache.size > 200) {
+        const oldestKey = searchCache.keys().next().value;
+        searchCache.delete(oldestKey);
+    }
+}
+
 /**
  * Search profiles
  * @param {Object} req - Express request object
@@ -68,35 +96,7 @@ async function handleSearchProfiles(req, res) {
         }
     }
 
-    // Cache for search results
-    const searchCache = new Map();
-    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-    const MAX_RESULTS = 200; // Limit results for performance
-    const MAX_GREP_LINES = 500; // Limit grep output lines
-
-    // Function to get cached search results
-    function getCachedSearch(searchString) {
-        const cached = searchCache.get(searchString.toLowerCase());
-        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-            console.log(`Cache hit for search: ${searchString}`);
-            return cached.results;
-        }
-        return null;
-    }
-
-    // Function to cache search results
-    function setCachedSearch(searchString, results) {
-        searchCache.set(searchString.toLowerCase(), {
-            results,
-            timestamp: Date.now()
-        });
-        
-        // Clean up old cache entries to prevent memory leaks
-        if (searchCache.size > 100) {
-            const oldestKey = searchCache.keys().next().value;
-            searchCache.delete(oldestKey);
-        }
-    }
+    
 
     // Optimized function to return list of pubkeys whose kind 0 events contain the search strings
     function getAllMatchingKind0Profiles(searchString) {
@@ -112,10 +112,10 @@ async function handleSearchProfiles(req, res) {
             
             // Use grep to pre-filter before JSON parsing for much better performance
             // This reduces the data we need to process by orders of magnitude
-            const escapedSearchString = searchString.replace(/["'\\]/g, '\\$&');
+            const escapedSearchString = searchString.replace(/["'\\$`]/g, '\\$&');
             const args = [
                 'bash', '-c', 
-                `strfry scan '{"kinds":[0]}' | grep -i "${escapedSearchString}" | head -${MAX_GREP_LINES}`
+                `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF -m ${MAX_GREP_LINES} "${escapedSearchString}"`
             ];
             
             const grepProcess = spawn('sudo', args);
@@ -123,6 +123,14 @@ async function handleSearchProfiles(req, res) {
             const pubkeys = [];
             const seenPubkeys = new Set(); // Deduplicate pubkeys
             let processedLines = 0;
+            
+            // Enforce a hard time budget to keep latency low
+            const budgetTimer = setTimeout(() => {
+                if (!grepProcess.killed) {
+                    console.log(`Time budget ${TIME_BUDGET_MS}ms exceeded; returning partial results: ${pubkeys.length}`);
+                    try { grepProcess.kill('SIGTERM'); } catch (e) { /* noop */ }
+                }
+            }, TIME_BUDGET_MS);
             
             grepProcess.stdout.on('data', (data) => {
                 buffer += data.toString();
@@ -158,6 +166,7 @@ async function handleSearchProfiles(req, res) {
             });
             
             grepProcess.on('close', (code) => {
+                clearTimeout(budgetTimer);
                 // Process any remaining buffered line
                 if (buffer.trim() && pubkeys.length < MAX_RESULTS) {
                     try {
