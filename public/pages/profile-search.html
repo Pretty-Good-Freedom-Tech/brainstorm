@@ -187,9 +187,8 @@
                 </div>
             </div>
 
-            <div id="keywordComingSoon" class="coming-soon" style="display: none;">
-                <!-- Keyword search info will be shown here until API is implemented -->
-            </div>
+            <div id="keywordStatus" class="coming-soon" style="display: none;"></div>
+            <div id="keywordResults" class="search-results" style="display: none;"></div>
 
             <div class="search-sections">
                 <div class="search-section">
@@ -274,41 +273,147 @@
             return div.innerHTML;
         }
 
-        // Keyword search (stub until API exists)
+        // Keyword search via SSE streaming
         const keywordInputEl = document.getElementById('keywordSearchInput');
         const keywordBtnEl = document.getElementById('keywordSearchButton');
+        let keywordES = null;
+        const keywordStatusEl = document.getElementById('keywordStatus');
+        const keywordResultsEl = document.getElementById('keywordResults');
+
+        function resetKeywordUI() {
+            // Clear results and show containers
+            keywordResultsEl.innerHTML = '';
+            keywordResultsEl.style.display = 'block';
+            keywordStatusEl.style.display = 'block';
+            // Hide other sections
+            const r1 = document.getElementById('searchResultsPubkey');
+            const r2 = document.getElementById('searchResultsProfileCard');
+            if (r1) r1.style.display = 'none';
+            if (r2) r2.style.display = 'none';
+        }
+
+        function setKeywordStatus(html) {
+            keywordStatusEl.innerHTML = html;
+        }
+
+        function truncate(str, head = 8, tail = 4) {
+            if (!str || str.length <= head + tail + 3) return str || '';
+            return `${str.slice(0, head)}...${str.slice(-tail)}`;
+        }
+
+        function createProfileCard(pubkey, content) {
+            const name = content?.name || 'Unknown';
+            const displayName = content?.display_name || content?.displayName || name;
+            const picture = content?.picture || '/control/img/default-avatar.svg';
+            const about = content?.about ? escapeHTML(content.about) : '';
+            const handle = name ? `@${escapeHTML(name)}` : '';
+            const pkShort = truncate(pubkey);
+            return `
+                <div class="profile-card">
+                    <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
+                        <div class="profile-image">
+                            <img src="${picture}" alt="${escapeHTML(displayName)}" onerror="this.src='/control/img/default-avatar.svg'">
+                        </div>
+                        <div class="profile-info">
+                            <h3 class="profile-name">${escapeHTML(displayName)}</h3>
+                            <p class="profile-handle">${handle}</p>
+                            <p class="profile-npub">${pkShort}</p>
+                            ${about ? `<p class="profile-about">${about}</p>` : ''}
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+
+        async function appendProfileResult(pubkey) {
+            try {
+                const resp = await fetch(`/api/get-kind0?pubkey=${pubkey}`);
+                const data = await resp.json();
+                if (!data.success || !data.data) return;
+                const event = data.data;
+                const content = JSON.parse(event.content || '{}');
+                const cardHTML = createProfileCard(pubkey, content);
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = cardHTML;
+                keywordResultsEl.appendChild(wrapper.firstElementChild);
+            } catch (_) {
+                // ignore failures for individual profiles
+            }
+        }
+
+        function startKeywordStream(q) {
+            if (keywordES) { try { keywordES.close(); } catch (_) {} keywordES = null; }
+            resetKeywordUI();
+            const safeQ = escapeHTML(q);
+            setKeywordStatus(`
+                <h2>Searching...</h2>
+                <p>Query: <strong>${safeQ}</strong></p>
+                <p>Streaming results. Initial phase returns quickly; exhaustive phase may add more.</p>
+            `);
+
+            const seen = new Set();
+            const url = `/api/search/profiles/stream?searchType=kind0&searchString=${encodeURIComponent(q)}`;
+            const es = new EventSource(url);
+            keywordES = es;
+
+            es.addEventListener('start', (e) => {
+                // Optional: could update status
+            });
+
+            es.addEventListener('result', async (e) => {
+                try {
+                    const payload = JSON.parse(e.data || '{}');
+                    const pk = payload.pubkey;
+                    if (!pk || seen.has(pk)) return;
+                    seen.add(pk);
+                    await appendProfileResult(pk);
+                } catch (_) { /* ignore */ }
+            });
+
+            es.addEventListener('phase', (e) => {
+                try {
+                    const p = JSON.parse(e.data || '{}');
+                    if (p.phase === 'initial_done') {
+                        setKeywordStatus(`
+                            <h2>Initial results loaded</h2>
+                            <p>Found ${p.count || 0} so far. Continuing exhaustive scan...</p>
+                        `);
+                    }
+                } catch (_) { /* ignore */ }
+            });
+
+            es.addEventListener('done', (e) => {
+                try {
+                    const d = JSON.parse(e.data || '{}');
+                    setKeywordStatus(`
+                        <h2>Done</h2>
+                        <p>Total results: <strong>${d.total || 0}</strong>. Reason: ${escapeHTML(String(d.reason || 'complete'))}</p>
+                    `);
+                } catch (_) {
+                    setKeywordStatus('<h2>Done</h2>');
+                }
+                try { es.close(); } catch (_) {}
+                keywordES = null;
+            });
+
+            es.addEventListener('error', () => {
+                setKeywordStatus('<h2>Error</h2><p>Stream error occurred. Please retry.</p>');
+                try { es.close(); } catch (_) {}
+                keywordES = null;
+            });
+        }
+
         if (keywordBtnEl && keywordInputEl) {
-            const showComingSoon = (q) => {
-                const el = document.getElementById('keywordComingSoon');
-                const safeQ = escapeHTML(q);
-                el.innerHTML = `
-                    <h2>Keyword Search Coming Soon</h2>
-                    <p>We'll search local strfry Kind 0 profiles by <strong>name</strong>, <strong>display_name</strong>, and <strong>about</strong>.</p>
-                    <p><strong>Your query:</strong> ${safeQ}</p>
-                    <p style="margin-top: 0.5rem;">Planned endpoint:</p>
-                    <code style="display:inline-block; padding:6px 8px; background:rgba(255,255,255,0.2); border-radius:6px;">
-                        /api/search/profiles?searchType=keyword&query=${encodeURIComponent(q)}
-                    </code>
-                `;
-                el.style.display = 'block';
-                // Hide old results for clarity
-                const r1 = document.getElementById('searchResultsPubkey');
-                const r2 = document.getElementById('searchResultsProfileCard');
-                if (r1) r1.style.display = 'none';
-                if (r2) r2.style.display = 'none';
-            };
             keywordBtnEl.addEventListener('click', () => {
                 const q = keywordInputEl.value.trim();
-                if (!q) {
-                    alert('Please enter keywords to search');
-                    return;
-                }
-                showComingSoon(q);
+                if (!q) { alert('Please enter keywords to search'); return; }
+                startKeywordStream(q);
             });
-            // Enter to search
             keywordInputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    keywordBtnEl.click();
+                    const q = keywordInputEl.value.trim();
+                    if (!q) { alert('Please enter keywords to search'); return; }
+                    startKeywordStream(q);
                 }
             });
         }
