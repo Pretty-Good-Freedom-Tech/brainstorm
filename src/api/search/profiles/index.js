@@ -162,6 +162,84 @@ async function handleSearchProfiles(req, res) {
                 p.on('error', () => resolveTP([]));
             });
             
+            // Exhaustive targeted helpers (no -m, no time budget)
+            const regexEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const buildExactRegex = (field, value) => {
+                const v = regexEscape(value);
+                return `\\\"${field}\\\"[[:space:]]*:[[:space:]]*\\\"${v}\\\"`;
+            };
+            const runExhaustiveTargetedRegex = (pattern) => new Promise((resolveTP) => {
+                const singleQuoted = `'${pattern.replace(/'/g, `"'"'`)}'`;
+                const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iE ${singleQuoted}`;
+                const p = spawn('sudo', ['bash', '-c', cmd]);
+                let buf = '';
+                const outPubkeys = [];
+                const localSeen = new Set();
+                p.stdout.on('data', (data) => {
+                    buf += data.toString();
+                    const lines = buf.split('\n');
+                    buf = lines.pop();
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const evt = JSON.parse(line);
+                            if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                                localSeen.add(evt.pubkey);
+                                outPubkeys.push(evt.pubkey);
+                            }
+                        } catch (_) { /* skip */ }
+                    }
+                });
+                p.on('close', () => {
+                    if (buf.trim()) {
+                        try {
+                            const evt = JSON.parse(buf);
+                            if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                                outPubkeys.push(evt.pubkey);
+                            }
+                        } catch (_) { /* skip */ }
+                    }
+                    resolveTP(outPubkeys);
+                });
+                p.on('error', () => resolveTP([]));
+            });
+            const buildExactValueLiteral = (value) => `\\\"${escapeForEventContent(value)}\\\"`;
+            const runExhaustiveFixedLiteral = (literal) => new Promise((resolveTP) => {
+                const singleQuoted = `'${literal.replace(/'/g, `"'"'`)}'`;
+                const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF ${singleQuoted}`;
+                const p = spawn('sudo', ['bash', '-c', cmd]);
+                let buf = '';
+                const outPubkeys = [];
+                const localSeen = new Set();
+                p.stdout.on('data', (data) => {
+                    buf += data.toString();
+                    const lines = buf.split('\n');
+                    buf = lines.pop();
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const evt = JSON.parse(line);
+                            if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                                localSeen.add(evt.pubkey);
+                                outPubkeys.push(evt.pubkey);
+                            }
+                        } catch (_) { /* skip */ }
+                    }
+                });
+                p.on('close', () => {
+                    if (buf.trim()) {
+                        try {
+                            const evt = JSON.parse(buf);
+                            if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                                outPubkeys.push(evt.pubkey);
+                            }
+                        } catch (_) { /* skip */ }
+                    }
+                    resolveTP(outPubkeys);
+                });
+                p.on('error', () => resolveTP([]));
+            });
+            
             // Dynamic budget: be more generous for short queries (like "jack")
             const targetedBudget = (searchString && searchString.length <= 4) ? 4000 : TARGETED_TIME_BUDGET_MS;
 
@@ -184,12 +262,15 @@ async function handleSearchProfiles(req, res) {
             const pubkeys = [];
             const seenPubkeys = new Set(); // Deduplicate pubkeys
             let processedLines = 0;
+            let earlyTerminated = false;
+            let timeBudgetExceeded = false;
             
             // Enforce a hard time budget to keep latency low
             const budgetTimer = setTimeout(() => {
                 if (!grepProcess.killed) {
                     console.log(`Time budget ${TIME_BUDGET_MS}ms exceeded; returning partial results: ${pubkeys.length}`);
                     try { grepProcess.kill('SIGTERM'); } catch (e) { /* noop */ }
+                    timeBudgetExceeded = true;
                 }
             }, TIME_BUDGET_MS);
             
@@ -206,6 +287,7 @@ async function handleSearchProfiles(req, res) {
                     if (pubkeys.length >= MAX_RESULTS) {
                         console.log(`Early termination: reached ${MAX_RESULTS} results`);
                         grepProcess.kill('SIGTERM');
+                        earlyTerminated = true;
                         break;
                     }
                     
@@ -240,9 +322,9 @@ async function handleSearchProfiles(req, res) {
                     }
                 }
                 
-                // Merge with targeted exact-match results before returning
+                // Merge with targeted exact-match results; if none, run exhaustive fallback
                 Promise.all(targetedPromises)
-                    .then((tpArrays) => {
+                    .then(async (tpArrays) => {
                         const boosted = [];
                         const boostSet = new Set();
                         for (const arr of tpArrays) {
@@ -252,6 +334,45 @@ async function handleSearchProfiles(req, res) {
                                     boosted.push(pk);
                                 }
                             }
+                        }
+                        // If no boosted results, attempt exhaustive targeted fallback (guaranteed full scan)
+                        if (boosted.length === 0 && searchString && searchString.length > 0) {
+                            console.log(`No targeted boost hits; starting exhaustive targeted scan for: ${searchString}`);
+                            try {
+                                // Extend request timeout for exhaustive scan (up to 10 minutes)
+                                if (req && res && typeof req.setTimeout === 'function' && typeof res.setTimeout === 'function') {
+                                    req.setTimeout(600000);
+                                    res.setTimeout(600000);
+                                }
+                            } catch (_) {}
+
+                            const exStart = Date.now();
+                            const exPatterns = [
+                                buildExactRegex('name', searchString),
+                                buildExactRegex('display_name', searchString)
+                            ];
+                            const exArrays = await Promise.all(exPatterns.map(runExhaustiveTargetedRegex));
+                            for (const arr of exArrays) {
+                                for (const pk of arr) {
+                                    if (!boostSet.has(pk)) {
+                                        boostSet.add(pk);
+                                        boosted.push(pk);
+                                    }
+                                }
+                            }
+                            // As last resort, value-only exact literal across entire dataset
+                            if (boosted.length === 0) {
+                                const valLiteral = buildExactValueLiteral(searchString);
+                                const valArr = await runExhaustiveFixedLiteral(valLiteral);
+                                for (const pk of valArr) {
+                                    if (!boostSet.has(pk)) {
+                                        boostSet.add(pk);
+                                        boosted.push(pk);
+                                    }
+                                }
+                            }
+                            const exDur = Date.now() - exStart;
+                            console.log(`Exhaustive targeted scan done in ${exDur}ms. Found ${boosted.length} boosted pubkeys.`);
                         }
                         // Combine boosted first, then broad results sans duplicates
                         const finalList = [];
@@ -266,7 +387,7 @@ async function handleSearchProfiles(req, res) {
 
                         const endTime = Date.now();
                         const duration = endTime - startTime;
-                        console.log(`Optimized search completed in ${duration}ms. Processed ${processedLines} lines. Boosted: ${boosted.length}. Total returned: ${finalList.length}`);
+                        console.log(`Optimized search completed in ${duration}ms. Processed ${processedLines} lines. Boosted: ${boosted.length}. Total returned: ${finalList.length}. EarlyTerminated=${earlyTerminated} TimeBudgetExceeded=${timeBudgetExceeded}`);
 
                         // Cache and return
                         setCachedSearch(searchString, finalList);
