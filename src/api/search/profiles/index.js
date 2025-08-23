@@ -18,6 +18,8 @@ const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 const MAX_RESULTS = 60; // Limit results for performance
 const MAX_GREP_LINES = 200; // Maximum matching lines grep will return before exiting
 const TIME_BUDGET_MS = 2500; // Hard time budget for search process
+const TARGETED_GREP_LIMIT = 6; // Small targeted pass limit per field
+const TARGETED_TIME_BUDGET_MS = 1500; // Time budget for exact-match boost
 
 function getCachedSearch(searchString) {
     const cached = searchCache.get(searchString.toLowerCase());
@@ -110,6 +112,62 @@ async function handleSearchProfiles(req, res) {
             console.log(`Starting optimized search for: ${searchString}`);
             const startTime = Date.now();
             
+            // Helpers for targeted exact-match boost
+            const regexEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const buildExactPattern = (field, value) => {
+                // Match escaped JSON within event content: \"field\"\s*:\s*\"value\"
+                const v = regexEscape(value);
+                return `\\\"${field}\\\"[[:space:]]*:[[:space:]]*\\\"${v}\\\"`;
+            };
+            const runTargetedPass = (pattern) => new Promise((resolveTP) => {
+                // Use single quotes to preserve backslashes; escape any single quotes in pattern
+                const singleQuoted = `'${pattern.replace(/'/g, `'"'"'`)}'`;
+                const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iE -m ${TARGETED_GREP_LIMIT} ${singleQuoted}`;
+                const p = spawn('sudo', ['bash', '-c', cmd]);
+                let buf = '';
+                const outPubkeys = [];
+                const localSeen = new Set();
+                const timer = setTimeout(() => {
+                    if (!p.killed) {
+                        try { p.kill('SIGTERM'); } catch (_) {}
+                    }
+                }, TARGETED_TIME_BUDGET_MS);
+                p.stdout.on('data', (data) => {
+                    buf += data.toString();
+                    const lines = buf.split('\n');
+                    buf = lines.pop();
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const evt = JSON.parse(line);
+                            if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                                localSeen.add(evt.pubkey);
+                                outPubkeys.push(evt.pubkey);
+                            }
+                        } catch (_) { /* skip */ }
+                    }
+                });
+                p.on('close', () => {
+                    clearTimeout(timer);
+                    if (buf.trim()) {
+                        try {
+                            const evt = JSON.parse(buf);
+                            if (evt && evt.pubkey && !localSeen.has(evt.pubkey)) {
+                                outPubkeys.push(evt.pubkey);
+                            }
+                        } catch (_) { /* skip */ }
+                    }
+                    resolveTP(outPubkeys);
+                });
+                p.on('error', () => resolveTP([]));
+            });
+            
+            // Kick off targeted passes in parallel for exact name/display_name matches
+            const targetedPromises = [
+                runTargetedPass(buildExactPattern('name', searchString)),
+                runTargetedPass(buildExactPattern('display_name', searchString))
+            ];
+            
             // Use grep to pre-filter before JSON parsing for much better performance
             // This reduces the data we need to process by orders of magnitude
             const escapedSearchString = searchString.replace(/["'\\$`]/g, '\\$&');
@@ -179,14 +237,46 @@ async function handleSearchProfiles(req, res) {
                     }
                 }
                 
-                const endTime = Date.now();
-                const duration = endTime - startTime;
-                console.log(`Optimized search completed in ${duration}ms. Processed ${processedLines} lines, found ${pubkeys.length} unique pubkeys`);
-                
-                // Cache the results
-                setCachedSearch(searchString, pubkeys);
-                
-                resolve(pubkeys);
+                // Merge with targeted exact-match results before returning
+                Promise.all(targetedPromises)
+                    .then((tpArrays) => {
+                        const boosted = [];
+                        const boostSet = new Set();
+                        for (const arr of tpArrays) {
+                            for (const pk of arr) {
+                                if (!boostSet.has(pk)) {
+                                    boostSet.add(pk);
+                                    boosted.push(pk);
+                                }
+                            }
+                        }
+                        // Combine boosted first, then broad results sans duplicates
+                        const finalList = [];
+                        for (const pk of boosted) {
+                            if (finalList.length >= MAX_RESULTS) break;
+                            finalList.push(pk);
+                        }
+                        for (const pk of pubkeys) {
+                            if (finalList.length >= MAX_RESULTS) break;
+                            if (!boostSet.has(pk)) finalList.push(pk);
+                        }
+
+                        const endTime = Date.now();
+                        const duration = endTime - startTime;
+                        console.log(`Optimized search completed in ${duration}ms. Processed ${processedLines} lines. Boosted: ${boosted.length}. Total returned: ${finalList.length}`);
+
+                        // Cache and return
+                        setCachedSearch(searchString, finalList);
+                        resolve(finalList);
+                    })
+                    .catch(() => {
+                        // On any error in targeted passes, return broad results
+                        const endTime = Date.now();
+                        const duration = endTime - startTime;
+                        console.log(`Optimized search (no boost) completed in ${duration}ms. Processed ${processedLines} lines, found ${pubkeys.length} unique pubkeys`);
+                        setCachedSearch(searchString, pubkeys);
+                        resolve(pubkeys);
+                    });
             });
             
             grepProcess.on('error', (error) => {
