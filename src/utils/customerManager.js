@@ -198,6 +198,7 @@ class CustomerManager {
             // Prepare customer data
             const newCustomer = {
                 id: nextId,
+                display_name: customerData.display_name || customerData.name,
                 status: customerData.status || 'active',
                 directory: customerData.directory || customerData.name,
                 name: customerData.name,

@@ -73,6 +73,7 @@ async function handleAddNewCustomer(req, res) {
         // Create customer data with defaults
         const customerData = {
             name: customerName,
+            display_name: customerName,
             pubkey: pubkey,
             status: 'active',
             directory: customerName,
@@ -105,6 +106,7 @@ async function handleAddNewCustomer(req, res) {
             message: 'Customer created successfully',
             customer: {
                 id: newCustomer.id,
+                display_name: newCustomer.display_name,
                 name: newCustomer.name,
                 pubkey: newCustomer.pubkey,
                 npub: npub,
