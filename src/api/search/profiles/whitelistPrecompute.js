@@ -164,12 +164,45 @@ async function handlePrecomputeWhitelistMaps(req, res) {
   }
 }
 
+// Read-only status endpoint: returns current in-memory precomputed maps without refreshing
+async function handlePrecomputeWhitelistStatus(req, res) {
+  try {
+    const now = Date.now();
+    const observerFilter = (req.query.observerPubkey || '').toLowerCase();
+    const observers = [];
+    for (const [observerPubkey, entry] of precomputed.entries()) {
+      if (observerFilter && observerPubkey !== observerFilter) continue;
+      const ts = entry && typeof entry.ts === 'number' ? entry.ts : 0;
+      const ageMs = ts ? now - ts : null;
+      observers.push({
+        observerPubkey,
+        size: entry && entry.set ? entry.set.size : 0,
+        ts,
+        ageMs,
+        fresh: isFresh(entry),
+        metricsCount: entry && entry.metricsByPubkey ? Object.keys(entry.metricsByPubkey).length : 0
+      });
+    }
+    res.json({
+      success: true,
+      checkedAt: now,
+      ttlMs: PRECOMPUTE_TTL_MS,
+      inFlight: Array.from(inFlight.keys()),
+      observers
+    });
+  } catch (error) {
+    console.error('Precompute Status API error:', error);
+    res.status(500).json({ success: false, error: error.message || String(error) });
+  }
+}
+
 module.exports = {
   PRECOMPUTE_TTL_MS,
   getPrecomputedForObserver,
   refreshWhitelistMapForObserver,
   refreshAllWhitelistMaps,
   handlePrecomputeWhitelistMaps,
+  handlePrecomputeWhitelistStatus,
   // Expose raw map for introspection if needed
   _precomputed: precomputed
 };
