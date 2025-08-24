@@ -92,18 +92,23 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
     const session = driver.session();
 
     const cypher = observerPubkey === 'owner'
-      ? `MATCH (u:NostrUser) WHERE u.pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.pubkey AS pubkey, u.influence AS influence, coalesce(u.verifiedFollowerCount, 0) AS verifiedFollowerCount, coalesce(u.verifiedMuterCount, 0) AS verifiedMuterCount, coalesce(u.verifiedReporterCount, 0) AS verifiedReporterCount ORDER BY verifiedFollowerCount DESC`
-      : `MATCH (u:NostrUserWotMetricsCard {observer_pubkey: $observer}) WHERE u.observee_pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.observee_pubkey AS pubkey, u.influence AS influence, coalesce(u.verifiedFollowerCount, 0) AS verifiedFollowerCount, coalesce(u.verifiedMuterCount, 0) AS verifiedMuterCount, coalesce(u.verifiedReporterCount, 0) AS verifiedReporterCount ORDER BY verifiedFollowerCount DESC`;
+      ? `MATCH (u:NostrUser) WHERE u.pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.pubkey AS pubkey, u.influence AS influence, toFloat(coalesce(u.verifiedFollowerCount, 0)) AS verifiedFollowerCount, coalesce(u.verifiedMuterCount, 0) AS verifiedMuterCount, coalesce(u.verifiedReporterCount, 0) AS verifiedReporterCount ORDER BY verifiedFollowerCount DESC`
+      : `MATCH (u:NostrUserWotMetricsCard {observer_pubkey: $observer}) WHERE u.observee_pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.observee_pubkey AS pubkey, u.influence AS influence, toFloat(coalesce(u.verifiedFollowerCount, 0)) AS verifiedFollowerCount, coalesce(u.verifiedMuterCount, 0) AS verifiedMuterCount, coalesce(u.verifiedReporterCount, 0) AS verifiedReporterCount ORDER BY verifiedFollowerCount DESC`;
 
     const result = await session.run(cypher, { observer: observerPubkey });
+    const scoreByPubkey = {};
     const set = new Set(result.records.map(r => {
       const v = r.get('pubkey');
-      return typeof v === 'string' ? v.toLowerCase() : v;
+      const k = typeof v === 'string' ? v.toLowerCase() : v;
+      const vf = r.get('verifiedFollowerCount');
+      const numVf = typeof vf === 'number' ? vf : Number(vf || 0);
+      scoreByPubkey[k] = numVf;
+      return k;
     }));
     await session.close();
     await driver.close();
 
-    whitelistCache.neo4j.set(observerPubkey, { set, ts: now });
+    whitelistCache.neo4j.set(observerPubkey, { set, ts: now, scoreByPubkey });
     return set;
   } catch (err) {
     console.error('KeywordSearch: failed to load whitelist from Neo4j:', err && err.message || err);
@@ -349,21 +354,36 @@ async function handleKeywordSearchProfiles(req, res) {
       return res.json({ success: true, message: `${note} (failOpen=true)`, counts: { beforeFilter: allPubkeys.length, afterFilter: Math.min(allPubkeys.length, limit), whitelistSize: whitelistSet ? whitelistSet.size : 0 }, pubkeys: allPubkeys.slice(0, limit) });
     }
 
-    const filtered = [];
+    const filteredAll = [];
     for (const pk of allPubkeys) {
       const pkLower = typeof pk === 'string' ? pk.toLowerCase() : pk;
       if (whitelistSet.has(pkLower)) {
-        filtered.push(pk);
-        if (filtered.length >= limit) break;
+        filteredAll.push(pk);
       }
     }
+
+    // If using Neo4j whitelist, sort by verifiedFollowerCount desc before applying limit
+    let ordered = filteredAll;
+    if (source === 'neo4j') {
+      const cachedWL = whitelistCache.neo4j.get(observerPubkey);
+      const vfMap = (cachedWL && cachedWL.scoreByPubkey) || {};
+      ordered = filteredAll.slice().sort((a, b) => {
+        const al = typeof a === 'string' ? a.toLowerCase() : a;
+        const bl = typeof b === 'string' ? b.toLowerCase() : b;
+        const av = typeof vfMap[al] === 'number' ? vfMap[al] : Number(vfMap[al] || 0);
+        const bv = typeof vfMap[bl] === 'number' ? vfMap[bl] : Number(vfMap[bl] || 0);
+        if (bv !== av) return bv - av;
+        return 0;
+      });
+    }
+    const limited = ordered.slice(0, limit);
 
     return res.json({
       success: true,
       message: 'trust-filtered keyword search results',
       query: { searchString, source, observerPubkey, limit },
-      counts: { beforeFilter: allPubkeys.length, afterFilter: filtered.length, whitelistSize: whitelistSet.size },
-      pubkeys: filtered
+      counts: { beforeFilter: allPubkeys.length, afterFilter: limited.length, whitelistSize: whitelistSet.size },
+      pubkeys: limited
     });
   } catch (error) {
     console.error('KeywordSearch: handler error:', error);

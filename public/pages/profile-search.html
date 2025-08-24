@@ -438,7 +438,7 @@
             `;
         }
 
-        async function appendProfileResult(pubkey, opts = {}) {
+        async function appendProfileResult(pubkey, opts = {}, targetEl = null) {
             try {
                 const src = (opts && opts.source) ? opts.source : ((sourceSel && sourceSel.value) || 'neo4j');
                 const obs = (opts && opts.observer) ? opts.observer : ((observerInput && observerInput.value && observerInput.value.trim()) || 'owner');
@@ -455,9 +455,13 @@
                 const content = JSON.parse(event.content || '{}');
                 const scores = (scoresData && scoresData.success && scoresData.data && scoresData.data.profileData) ? scoresData.data.profileData : {};
                 const cardHTML = createProfileCard(pubkey, content, scores);
-                const wrapper = document.createElement('div');
-                wrapper.innerHTML = cardHTML;
-                keywordResultsEl.appendChild(wrapper.firstElementChild);
+                if (targetEl) {
+                    targetEl.innerHTML = cardHTML;
+                } else {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = cardHTML;
+                    keywordResultsEl.appendChild(wrapper.firstElementChild);
+                }
             } catch (_) {
                 // ignore failures for individual profiles
             }
@@ -560,6 +564,12 @@
                     <p>Whitelist size: <strong>${wsize}</strong></p>
                 `);
                 const pubs = Array.isArray(data.pubkeys) ? data.pubkeys : [];
+                // Pre-create slots to preserve order while fetching concurrently
+                const slots = pubs.map(() => {
+                    const slot = document.createElement('div');
+                    keywordResultsEl.appendChild(slot);
+                    return slot;
+                });
                 // Fetch cards concurrently with a small concurrency cap
                 const concurrency = Math.min(8, pubs.length);
                 const workers = [];
@@ -570,7 +580,7 @@
                             const i = idx++;
                             if (i >= pubs.length) break;
                             const pk = pubs[i];
-                            await appendProfileResult(pk, { source, observer });
+                            await appendProfileResult(pk, { source, observer }, slots[i]);
                         }
                     })());
                 }
