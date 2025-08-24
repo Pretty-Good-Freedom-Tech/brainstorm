@@ -111,15 +111,9 @@ TODO: 24 Aug 2025: profile-search.html page and its associated api
 4. option to search name and display_name without about; see if faster results
 4. Improve UI: remove Legend; show info as popup over scores in profile cards
 
-TODO: 25 Aug 2025: revamp navbars
-1. Create guest navbar: 
-- single about page
-- profile search page as main page
-- profiles page
-- grapevine-curated reports page
-2. Create a FAQ navbar.
-3. Owner navbar
-4. Customer navbar
-5. Deprecated pages navbar
+TODO: 24 Aug 2025: revamp navbars
+1. add customers import/export feature for owner on manage-customers page
+- export all customers, all customer prefs, and all customer relay nsecs, as an encrypted folder of files. (or one json file per customer, or one large json file)
+- import feature; options to overwrite all existing customer (delete all current customers) or overwrite individually (only overwrite customers that are already in current customer database); default is NOT to overwrite any existing customers.
 
 
