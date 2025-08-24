@@ -43,7 +43,7 @@ function loadNavbar(classification) {
             navbarPath = '/components/header/navbars/nav_owner.html';
             break;
         default:
-            navbarPath = '/components/header/navbars/nav2.html';
+            navbarPath = '/components/header/navbars/nav_basic_content.html';
             break;
     }
 
@@ -56,7 +56,7 @@ function loadNavbar(classification) {
         || currentPath === '/control/index.html'
         || currentPath === '/sign-up.html'
     ) {
-        navbarPath = '/components/header/navbars/nav_sparse.html';
+        navbarPath = '/components/header/navbars/nav_basic_content.html';
     }  
     /*
     if (
@@ -396,6 +396,7 @@ function highlightCurrentPage() {
         '/nip85-control-panel.html': '/nip85',
         '/nip87.html': '/nip87',
         '/about.html': '/about',
+        '/about-trusted-assertions.html': '/about-trusted-assertions',
         '/reconciliation.html': '/reconciliation',
         '/profiles.html': '/profiles',
         '/profile.html': '/profile',
