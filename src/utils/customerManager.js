@@ -292,6 +292,81 @@ class CustomerManager {
     /**
      * Change customer status (activate/deactivate)
      * @param {string} pubkey - Customer's public key
+     * @param {string} newDisplayName - New display name
+     * @returns {Object} Status change result
+     */
+    async changeCustomerDisplayName(pubkey, newDisplayName) {
+        if (!pubkey) {
+            throw new Error('Pubkey is required');
+        }
+
+        if (!newDisplayName) {
+            throw new Error('New display name is required');
+        }
+
+        const release = await lockfile.lock(this.customersFile, { 
+            retries: 3, 
+            minTimeout: 100,
+            maxTimeout: this.lockTimeout 
+        });
+
+        try {
+            const allCustomers = await this.getAllCustomers();
+            let customerToUpdate = null;
+            let customerName = null;
+
+            // Find customer by pubkey
+            for (const [name, customer] of Object.entries(allCustomers.customers)) {
+                if (customer.pubkey === pubkey) {
+                    customerToUpdate = customer;
+                    customerName = name;
+                    break;
+                }
+            }
+
+            if (!customerToUpdate) {
+                throw new Error(`Customer with pubkey ${pubkey} not found`);
+            }
+
+            const oldDisplayName = customerToUpdate.display_name;
+            if (oldDisplayName === newDisplayName) {
+                return {
+                    success: true,
+                    message: `Customer ${customerName} is already ${newDisplayName}`,
+                    customer: customerToUpdate,
+                    statusChanged: false
+                };
+            }
+
+            // Update the status
+            customerToUpdate.display_name = newDisplayName;
+            customerToUpdate.lastModified = new Date().toISOString();
+
+            // Write back to file
+            await this.writeCustomersFile(allCustomers);
+
+            // Clear cache
+            this.cache.clear();
+
+            console.log(`Changed customer ${customerName} display name from ${oldDisplayName} to ${newDisplayName}`);
+
+            return {
+                success: true,
+                message: `Customer ${customerName} display name changed from ${oldDisplayName} to ${newDisplayName}`,
+                customer: customerToUpdate,
+                statusChanged: true,
+                oldDisplayName: oldDisplayName,
+                newDisplayName: newDisplayName
+            };
+
+        } finally {
+            await release();
+        }
+    }
+
+    /**
+     * Change customer status (activate/deactivate)
+     * @param {string} pubkey - Customer's public key
      * @param {string} newStatus - New status ('active' or 'inactive')
      * @returns {Object} Status change result
      */

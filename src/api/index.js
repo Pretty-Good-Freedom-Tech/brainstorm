@@ -299,6 +299,9 @@ function register(app) {
     // Change Customer Status endpoint; owner-only status change (activate/deactivate)
     app.post('/api/change-customer-status', customers.handleChangeCustomerStatus);
 
+    // Update Customer Display Name endpoint; owner-only display name change
+    app.post('/api/update-customer-display-name', customers.handleUpdateCustomerDisplayName);
+
     // Recently Active Pubkeys endpoint
     app.get('/api/get-recently-active-pubkeys', handleGetRecentlyActivePubkeys);
     
