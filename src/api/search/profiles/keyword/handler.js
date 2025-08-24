@@ -42,18 +42,30 @@ const whitelistCache = {
 
 // --- Whitelist Loading ---
 async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {}) {
+  const wlStart = Date.now();
   if (source !== 'neo4j') {
     // Prefer precomputed in-memory whitelist map (built from Neo4j) for file source
     try {
       const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
       const pre = getPrecomputedForObserver(observerNorm, { maxAgeMs: PRECOMPUTE_TTL_MS });
       if (pre && pre.set && pre.set.size > 0) {
+        // annotate debug info on the Set object (non-enumerable in JSON usage)
+        pre.set._wlSource = observerNorm === 'owner' ? 'precomputed:owner' : 'precomputed:observer';
+        pre.set._wlLoadMs = Date.now() - wlStart;
+        pre.set._wlPreTs = pre.ts;
+        pre.set._wlPreAgeMs = Date.now() - pre.ts;
+        pre.set._wlMetricsCount = pre.metricsByPubkey ? Object.keys(pre.metricsByPubkey).length : 0;
         return pre.set;
       }
       // If not fresh, attempt to refresh from Neo4j synchronously as a fallback
       try {
         const refreshed = await refreshWhitelistMapForObserver(observerNorm, { force: true });
         if (refreshed && refreshed.set && refreshed.set.size > 0) {
+          refreshed.set._wlSource = observerNorm === 'owner' ? 'precomputeRefresh:owner' : 'precomputeRefresh:observer';
+          refreshed.set._wlLoadMs = Date.now() - wlStart;
+          refreshed.set._wlPreTs = refreshed.ts;
+          refreshed.set._wlPreAgeMs = Date.now() - refreshed.ts;
+          refreshed.set._wlMetricsCount = refreshed.metricsByPubkey ? Object.keys(refreshed.metricsByPubkey).length : 0;
           return refreshed.set;
         }
       } catch (e) {
@@ -67,12 +79,22 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
     try {
       const ownerPre = getPrecomputedForObserver('owner', { maxAgeMs: PRECOMPUTE_TTL_MS });
       if (ownerPre && ownerPre.set && ownerPre.set.size > 0) {
+        ownerPre.set._wlSource = 'precomputed:owner';
+        ownerPre.set._wlLoadMs = Date.now() - wlStart;
+        ownerPre.set._wlPreTs = ownerPre.ts;
+        ownerPre.set._wlPreAgeMs = Date.now() - ownerPre.ts;
+        ownerPre.set._wlMetricsCount = ownerPre.metricsByPubkey ? Object.keys(ownerPre.metricsByPubkey).length : 0;
         return ownerPre.set;
       }
       // Attempt a synchronous refresh for owner as a last resort before file
       try {
         const ownerRefreshed = await refreshWhitelistMapForObserver('owner', { force: true });
         if (ownerRefreshed && ownerRefreshed.set && ownerRefreshed.set.size > 0) {
+          ownerRefreshed.set._wlSource = 'precomputeRefresh:owner';
+          ownerRefreshed.set._wlLoadMs = Date.now() - wlStart;
+          ownerRefreshed.set._wlPreTs = ownerRefreshed.ts;
+          ownerRefreshed.set._wlPreAgeMs = Date.now() - ownerRefreshed.ts;
+          ownerRefreshed.set._wlMetricsCount = ownerRefreshed.metricsByPubkey ? Object.keys(ownerRefreshed.metricsByPubkey).length : 0;
           return ownerRefreshed.set;
         }
       } catch (_) {
@@ -114,6 +136,9 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
         set = new Set();
       }
       whitelistCache.file = { set, ts: now, mtimeMs: stats.mtimeMs };
+      set._wlSource = 'file:disk';
+      set._wlLoadMs = Date.now() - wlStart;
+      set._wlMetricsCount = 0;
       return set;
     } catch (err) {
       console.error('KeywordSearch: failed to load whitelist file:', err && err.message || err);
@@ -159,6 +184,9 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
     await driver.close();
 
     whitelistCache.neo4j.set(observerPubkey, { set, ts: now, scoreByPubkey, metricsByPubkey });
+    set._wlSource = 'neo4j:direct';
+    set._wlLoadMs = Date.now() - wlStart;
+    set._wlMetricsCount = Object.keys(metricsByPubkey).length;
     return set;
   } catch (err) {
     console.error('KeywordSearch: failed to load whitelist from Neo4j:', err && err.message || err);
@@ -355,6 +383,13 @@ function getAllMatchingKind0Profiles(searchString) {
 
         searchCache.set(key, { results: finalList, ts: Date.now() });
         const duration = Date.now() - startTime;
+        // annotate debug info on array object for handler to surface when debug=true
+        try {
+          finalList._searchMs = duration;
+          finalList._processedLines = processedLines;
+          finalList._earlyTerminated = earlyTerminated;
+          finalList._timeBudgetExceeded = timeBudgetExceeded;
+        } catch (_) {}
         console.log(`Keyword optimized search completed in ${duration}ms. Processed ${processedLines} lines. Final=${finalList.length}. EarlyTerminated=${earlyTerminated} TimeBudgetExceeded=${timeBudgetExceeded}`);
         resolve(finalList);
       } catch (e) {
@@ -379,6 +414,9 @@ async function handleKeywordSearchProfiles(req, res) {
     const source = (req.query.source || 'file').toLowerCase(); // 'file' | 'neo4j'
     const observerPubkey = req.query.observerPubkey || 'owner';
     const failOpen = String(req.query.failOpen || 'false').toLowerCase() === 'true';
+    const debug = String(req.query.debug || 'false').toLowerCase() === 'true';
+
+    const reqStart = Date.now();
 
     if (!searchString) {
       return res.status(400).json({ success: false, error: 'Missing searchString' });
@@ -405,15 +443,19 @@ async function handleKeywordSearchProfiles(req, res) {
     }
 
     const filteredAll = [];
+    const filterStart = Date.now();
     for (const pk of allPubkeys) {
       const pkLower = typeof pk === 'string' ? pk.toLowerCase() : pk;
       if (whitelistSet.has(pkLower)) {
         filteredAll.push(pk);
       }
     }
+    const filterMs = Date.now() - filterStart;
 
     // Sort by verifiedFollowerCount desc when possible before applying limit
     let ordered = filteredAll;
+    let sortMs = 0;
+    const sortStart = Date.now();
     if (source === 'neo4j') {
       const cachedWL = whitelistCache.neo4j.get(observerPubkey);
       const vfMap = (cachedWL && cachedWL.scoreByPubkey) || {};
@@ -444,6 +486,7 @@ async function handleKeywordSearchProfiles(req, res) {
       });
     }
   }
+  sortMs = Date.now() - sortStart;
   const limited = ordered.slice(0, limit);
 
     // Include inline scores when using Neo4j source to avoid N+1 score requests from the frontend
@@ -458,14 +501,37 @@ async function handleKeywordSearchProfiles(req, res) {
       });
     }
 
-    return res.json({
+    const totalMs = Date.now() - reqStart;
+    const base = {
       success: true,
       message: 'trust-filtered keyword search results',
       query: { searchString, source, observerPubkey, limit },
       counts: { beforeFilter: allPubkeys.length, afterFilter: limited.length, whitelistSize: whitelistSet.size },
       pubkeys: limited,
       ...(profiles ? { profiles } : {})
-    });
+    };
+    if (debug) {
+      base.debug = {
+        totalMs,
+        kind0Search: {
+          ms: (allPubkeys && typeof allPubkeys._searchMs === 'number') ? allPubkeys._searchMs : null,
+          processedLines: allPubkeys && allPubkeys._processedLines,
+          earlyTerminated: allPubkeys && allPubkeys._earlyTerminated,
+          timeBudgetExceeded: allPubkeys && allPubkeys._timeBudgetExceeded
+        },
+        whitelist: {
+          source: whitelistSet && whitelistSet._wlSource,
+          loadMs: whitelistSet && whitelistSet._wlLoadMs,
+          size: whitelistSet ? whitelistSet.size : 0,
+          preTs: whitelistSet && whitelistSet._wlPreTs,
+          preAgeMs: whitelistSet && whitelistSet._wlPreAgeMs,
+          metricsCount: whitelistSet && whitelistSet._wlMetricsCount
+        },
+        filterMs,
+        sortMs
+      };
+    }
+    return res.json(base);
   } catch (error) {
     console.error('KeywordSearch: handler error:', error);
     return res.status(500).json({ success: false, error: error.message || String(error) });
