@@ -25,10 +25,10 @@ const { getNeo4jConnection } = require('../../../../utils/config');
 // --- Performance constants (aligned with legacy optimized search) ---
 const SEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 const WHITELIST_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const MAX_RESULTS = 60;
+const MAX_RESULTS = 500;
 const MAX_GREP_LINES = 200;
 const TIME_BUDGET_MS = 2500;
-const TARGETED_GREP_LIMIT = 6;
+const TARGETED_GREP_LIMIT = 50;
 const TARGETED_TIME_BUDGET_MS = 1500;
 const EXHAUSTIVE_BUDGET_MS = 30000;
 
@@ -92,8 +92,8 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
     const session = driver.session();
 
     const cypher = observerPubkey === 'owner'
-      ? `MATCH (u:NostrUser) WHERE u.pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.pubkey AS pubkey`
-      : `MATCH (u:NostrUserWotMetricsCard {observer_pubkey: $observer}) WHERE u.observee_pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.observee_pubkey AS pubkey`;
+      ? `MATCH (u:NostrUser) WHERE u.pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.pubkey AS pubkey, u.influence AS influence, coalesce(u.verifiedFollowerCount, 0) AS verifiedFollowerCount, coalesce(u.verifiedMuterCount, 0) AS verifiedMuterCount, coalesce(u.verifiedReporterCount, 0) AS verifiedReporterCount ORDER BY verifiedFollowerCount DESC`
+      : `MATCH (u:NostrUserWotMetricsCard {observer_pubkey: $observer}) WHERE u.observee_pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.observee_pubkey AS pubkey, u.influence AS influence, coalesce(u.verifiedFollowerCount, 0) AS verifiedFollowerCount, coalesce(u.verifiedMuterCount, 0) AS verifiedMuterCount, coalesce(u.verifiedReporterCount, 0) AS verifiedReporterCount ORDER BY verifiedFollowerCount DESC`;
 
     const result = await session.run(cypher, { observer: observerPubkey });
     const set = new Set(result.records.map(r => {

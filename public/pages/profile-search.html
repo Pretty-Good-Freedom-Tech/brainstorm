@@ -165,6 +165,46 @@
                 font-size: 1.5rem;
             }
         }
+        /* Score badges */
+        .score-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem 0.6rem;
+            margin-top: 0.5rem;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.85rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #374151;
+            line-height: 1.2;
+        }
+        .badge .label { opacity: 0.85; }
+        .badge .value { font-weight: 600; }
+        .badge.grape { border-color: #c4b5fd; background: #f5f3ff; color: #5b21b6; }
+        .badge.followers { border-color: #a7f3d0; background: #ecfdf5; color: #065f46; }
+        .badge.muters { border-color: #d1d5db; background: #f3f4f6; color: #4b5563; }
+        .badge.reporters { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+        .profile-card.warning-card { border: 2px solid #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.08); }
+
+        /* Legend */
+        .score-legend {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            margin: 0.75rem 0 1rem 0;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+        .score-legend .legend-title { font-weight: 700; margin-bottom: 0.4rem; color: #111827; }
+        .score-legend ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+        .score-legend li { margin: 0.2rem 0; }
     </style>
     <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
@@ -205,6 +245,7 @@
             </div>
 
             <div id="keywordStatus" class="coming-soon" style="display: none;"></div>
+            <div id="scoreLegend" class="score-legend" style="display: none;"></div>
             <div id="keywordResults" class="search-results" style="display: none;"></div>
 
             <div class="search-sections">
@@ -252,7 +293,7 @@
                         const event = result.data;
                         const content = JSON.parse(event.content);
                         // Extract profile details
-                        const picture = content.picture || '/control/img/default-avatar.svg';
+                        const picture = content.picture || '/img/default-avatar.svg';
                         const name = content.name || 'Unknown';
                         const displayName = content.display_name || content.displayName || name;
                         // Display the profile card
@@ -262,7 +303,7 @@
                             <div class="profile-card">
                                 <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
                                     <div class="profile-image">
-                                        <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/control/img/default-avatar.svg'">
+                                        <img src="${content.picture}" alt="${content.display_name || content.name}" onerror="this.src='/img/default-avatar.svg'">
                                     </div>
                                     <div class="profile-info">
                                         <h3 class="profile-name">${displayName}</h3>
@@ -299,6 +340,7 @@
         const sourceSel = document.getElementById('whitelistSource');
         const observerWrapper = document.getElementById('observerPubkeyWrapper');
         const observerInput = document.getElementById('observerPubkeyInput');
+        const scoreLegendEl = document.getElementById('scoreLegend');
 
         // Initialize trust options UI
         if (observerInput && !observerInput.value) observerInput.value = 'owner';
@@ -314,6 +356,7 @@
             keywordResultsEl.innerHTML = '';
             keywordResultsEl.style.display = 'block';
             keywordStatusEl.style.display = 'block';
+            if (scoreLegendEl) scoreLegendEl.style.display = 'none';
             // Hide other sections
             const r1 = document.getElementById('searchResultsPubkey');
             const r2 = document.getElementById('searchResultsProfileCard');
@@ -330,38 +373,88 @@
             return `${str.slice(0, head)}...${str.slice(-tail)}`;
         }
 
-        function createProfileCard(pubkey, content) {
+        function formatNum(n) {
+            try { return Number(n).toLocaleString(); } catch (_) { return n; }
+        }
+
+        function formatInfluence(v) {
+            try { const num = Number(v); return num > 0 ? num.toFixed(2) : '—'; } catch (_) { return '—'; }
+        }
+
+        function createScoreBadges(scores = {}) {
+            const influence = Number(scores.influence || 0);
+            const vFollowers = Number(scores.verifiedFollowerCount || 0);
+            const vMuters = Number(scores.verifiedMuterCount || 0);
+            const vReporters = Number(scores.verifiedReporterCount || 0);
+
+            const parts = [];
+            // Always show GrapeRank
+            parts.push(`<span class="badge grape" title="GrapeRank (influence)"><span class="label">🍇 Rank</span> <span class="value">${formatInfluence(influence)}</span></span>`);
+            if (vFollowers > 0) parts.push(`<span class="badge followers" title="Verified followers"><span class="label">👥🍇</span> <span class="value">${formatNum(vFollowers)}</span></span>`);
+            if (vMuters > 0) parts.push(`<span class="badge muters" title="Verified muters"><span class="label">🔇</span> <span class="value">${formatNum(vMuters)}</span></span>`);
+            if (vReporters > 0) parts.push(`<span class="badge reporters" title="Verified reporters"><span class="label">🚩</span> <span class="value">${formatNum(vReporters)}</span></span>`);
+            return parts.length ? `<div class="score-badges">${parts.join('')}</div>` : '';
+        }
+
+        function renderLegend() {
+            if (!scoreLegendEl) return;
+            scoreLegendEl.innerHTML = `
+                <div class="legend-title">Legend</div>
+                <ul>
+                    <li>🍇 Rank: Overall influence score (GrapeRank). Higher is better.</li>
+                    <li>👥🍇 Verified Followers: Followers who are trusted by your selected source.</li>
+                    <li>🔇 Muters: Number of trusted users who muted this profile (shown only if > 0).</li>
+                    <li>🚩 Reporters: Number of trusted users who reported this profile (≥ 2 shows a red warning).</li>
+                </ul>
+            `;
+            scoreLegendEl.style.display = 'block';
+        }
+
+        function createProfileCard(pubkey, content, scores = {}) {
             const name = content?.name || 'Unknown';
             const displayName = content?.display_name || content?.displayName || name;
-            const picture = content?.picture || '/control/img/default-avatar.svg';
+            const picture = content?.picture || '/img/default-avatar.svg';
             const about = content?.about ? escapeHTML(content.about) : '';
             const handle = name ? `@${escapeHTML(name)}` : '';
             const pkShort = truncate(pubkey);
+            const vReporters = Number(scores?.verifiedReporterCount || 0);
+            const warn = vReporters >= 2;
+            const badges = createScoreBadges(scores);
             return `
-                <div class="profile-card">
+                <div class="profile-card${warn ? ' warning-card' : ''}">
                     <a href="/profile.html?pubkey=${pubkey}" target="_blank" class="profile-link">
                         <div class="profile-image">
-                            <img src="${picture}" alt="${escapeHTML(displayName)}" onerror="this.src='/control/img/default-avatar.svg'">
+                            <img src="${picture}" alt="${escapeHTML(displayName)}" onerror="this.src='/img/default-avatar.svg'">
                         </div>
                         <div class="profile-info">
                             <h3 class="profile-name">${escapeHTML(displayName)}</h3>
                             <p class="profile-handle">${handle}</p>
                             <p class="profile-npub">${pkShort}</p>
                             ${about ? `<p class="profile-about">${about}</p>` : ''}
+                            ${badges}
                         </div>
                     </a>
                 </div>
             `;
         }
 
-        async function appendProfileResult(pubkey) {
+        async function appendProfileResult(pubkey, opts = {}) {
             try {
-                const resp = await fetch(`/api/get-kind0?pubkey=${pubkey}`);
-                const data = await resp.json();
-                if (!data.success || !data.data) return;
-                const event = data.data;
+                const src = (opts && opts.source) ? opts.source : ((sourceSel && sourceSel.value) || 'neo4j');
+                const obs = (opts && opts.observer) ? opts.observer : ((observerInput && observerInput.value && observerInput.value.trim()) || 'owner');
+                const scoreUrl = `/api/get-profile-scores?pubkey=${pubkey}` + (src === 'neo4j' ? `&observerPubkey=${encodeURIComponent(obs)}` : '');
+
+                const [kind0Resp, scoresResp] = await Promise.all([
+                    fetch(`/api/get-kind0?pubkey=${pubkey}`),
+                    fetch(scoreUrl)
+                ]);
+
+                const [kind0Data, scoresData] = await Promise.all([kind0Resp.json(), scoresResp.json()]);
+                if (!kind0Data.success || !kind0Data.data) return;
+                const event = kind0Data.data;
                 const content = JSON.parse(event.content || '{}');
-                const cardHTML = createProfileCard(pubkey, content);
+                const scores = (scoresData && scoresData.success && scoresData.data && scoresData.data.profileData) ? scoresData.data.profileData : {};
+                const cardHTML = createProfileCard(pubkey, content, scores);
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = cardHTML;
                 keywordResultsEl.appendChild(wrapper.firstElementChild);
@@ -467,9 +560,22 @@
                     <p>Whitelist size: <strong>${wsize}</strong></p>
                 `);
                 const pubs = Array.isArray(data.pubkeys) ? data.pubkeys : [];
-                for (const pk of pubs) {
-                    await appendProfileResult(pk);
+                // Fetch cards concurrently with a small concurrency cap
+                const concurrency = Math.min(8, pubs.length);
+                const workers = [];
+                let idx = 0;
+                for (let w = 0; w < concurrency; w++) {
+                    workers.push((async () => {
+                        while (true) {
+                            const i = idx++;
+                            if (i >= pubs.length) break;
+                            const pk = pubs[i];
+                            await appendProfileResult(pk, { source, observer });
+                        }
+                    })());
                 }
+                await Promise.all(workers);
+                if (pubs.length > 0) { renderLegend(); } else { if (scoreLegendEl) scoreLegendEl.style.display = 'none'; }
                 if (pubs.length === 0) {
                     setKeywordStatus(`
                         <h2>No trusted matches</h2>
