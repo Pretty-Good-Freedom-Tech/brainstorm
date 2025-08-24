@@ -442,18 +442,29 @@
             try {
                 const src = (opts && opts.source) ? opts.source : ((sourceSel && sourceSel.value) || 'neo4j');
                 const obs = (opts && opts.observer) ? opts.observer : ((observerInput && observerInput.value && observerInput.value.trim()) || 'owner');
-                const scoreUrl = `/api/get-profile-scores?pubkey=${pubkey}` + (src === 'neo4j' ? `&observerPubkey=${encodeURIComponent(obs)}` : '');
+                const preloaded = opts && (opts.scores || opts.preloadedScores);
 
-                const [kind0Resp, scoresResp] = await Promise.all([
-                    fetch(`/api/get-kind0?pubkey=${pubkey}`),
-                    fetch(scoreUrl)
-                ]);
-
-                const [kind0Data, scoresData] = await Promise.all([kind0Resp.json(), scoresResp.json()]);
+                // Always fetch kind0; use inline scores if provided to avoid extra network calls
+                const kind0Resp = await fetch(`/api/get-kind0?pubkey=${pubkey}`);
+                const kind0Data = await kind0Resp.json();
                 if (!kind0Data.success || !kind0Data.data) return;
                 const event = kind0Data.data;
                 const content = JSON.parse(event.content || '{}');
-                const scores = (scoresData && scoresData.success && scoresData.data && scoresData.data.profileData) ? scoresData.data.profileData : {};
+
+                let scores = {};
+                if (preloaded) {
+                    scores = preloaded;
+                } else {
+                    const scoreUrl = `/api/get-profile-scores?pubkey=${pubkey}` + (src === 'neo4j' ? `&observerPubkey=${encodeURIComponent(obs)}` : '');
+                    try {
+                        const scoresResp = await fetch(scoreUrl);
+                        const scoresData = await scoresResp.json();
+                        scores = (scoresData && scoresData.success && scoresData.data && scoresData.data.profileData) ? scoresData.data.profileData : {};
+                    } catch (_) {
+                        scores = {};
+                    }
+                }
+
                 const cardHTML = createProfileCard(pubkey, content, scores);
                 if (targetEl) {
                     targetEl.innerHTML = cardHTML;
@@ -564,6 +575,9 @@
                     <p>Whitelist size: <strong>${wsize}</strong></p>
                 `);
                 const pubs = Array.isArray(data.pubkeys) ? data.pubkeys : [];
+                // Inline scores map (only present for Neo4j source)
+                const inlineProfiles = Array.isArray(data.profiles) ? data.profiles : null;
+                const scoresMap = inlineProfiles ? new Map(inlineProfiles.map(p => [String(p.pubkey).toLowerCase(), p.scores || {}])) : null;
                 // Pre-create slots to preserve order while fetching concurrently
                 const slots = pubs.map(() => {
                     const slot = document.createElement('div');
@@ -580,7 +594,8 @@
                             const i = idx++;
                             if (i >= pubs.length) break;
                             const pk = pubs[i];
-                            await appendProfileResult(pk, { source, observer }, slots[i]);
+                            const pre = scoresMap ? scoresMap.get(String(pk).toLowerCase()) : undefined;
+                            await appendProfileResult(pk, { source, observer, preloadedScores: pre }, slots[i]);
                         }
                     })());
                 }

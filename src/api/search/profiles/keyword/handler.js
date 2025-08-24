@@ -97,18 +97,28 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
 
     const result = await session.run(cypher, { observer: observerPubkey });
     const scoreByPubkey = {};
-    const set = new Set(result.records.map(r => {
+    const metricsByPubkey = {};
+    const setVals = [];
+    for (const r of result.records) {
       const v = r.get('pubkey');
       const k = typeof v === 'string' ? v.toLowerCase() : v;
+      const influence = r.get('influence');
       const vf = r.get('verifiedFollowerCount');
+      const vm = r.get('verifiedMuterCount');
+      const vr = r.get('verifiedReporterCount');
+      const numInfluence = typeof influence === 'number' ? influence : Number(influence || 0);
       const numVf = typeof vf === 'number' ? vf : Number(vf || 0);
+      const numVm = typeof vm === 'number' ? vm : Number(vm || 0);
+      const numVr = typeof vr === 'number' ? vr : Number(vr || 0);
       scoreByPubkey[k] = numVf;
-      return k;
-    }));
+      metricsByPubkey[k] = { influence: numInfluence, verifiedFollowerCount: numVf, verifiedMuterCount: numVm, verifiedReporterCount: numVr };
+      setVals.push(k);
+    }
+    const set = new Set(setVals);
     await session.close();
     await driver.close();
 
-    whitelistCache.neo4j.set(observerPubkey, { set, ts: now, scoreByPubkey });
+    whitelistCache.neo4j.set(observerPubkey, { set, ts: now, scoreByPubkey, metricsByPubkey });
     return set;
   } catch (err) {
     console.error('KeywordSearch: failed to load whitelist from Neo4j:', err && err.message || err);
@@ -378,12 +388,25 @@ async function handleKeywordSearchProfiles(req, res) {
     }
     const limited = ordered.slice(0, limit);
 
+    // Include inline scores when using Neo4j source to avoid N+1 score requests from the frontend
+    let profiles = null;
+    if (source === 'neo4j') {
+      const cachedWL = whitelistCache.neo4j.get(observerPubkey);
+      const metricsMap = (cachedWL && cachedWL.metricsByPubkey) || {};
+      profiles = limited.map((pk) => {
+        const key = typeof pk === 'string' ? pk.toLowerCase() : pk;
+        const s = metricsMap[key] || { influence: 0, verifiedFollowerCount: 0, verifiedMuterCount: 0, verifiedReporterCount: 0 };
+        return { pubkey: pk, scores: s };
+      });
+    }
+
     return res.json({
       success: true,
       message: 'trust-filtered keyword search results',
       query: { searchString, source, observerPubkey, limit },
       counts: { beforeFilter: allPubkeys.length, afterFilter: limited.length, whitelistSize: whitelistSet.size },
-      pubkeys: limited
+      pubkeys: limited,
+      ...(profiles ? { profiles } : {})
     });
   } catch (error) {
     console.error('KeywordSearch: handler error:', error);
