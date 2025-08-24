@@ -1,0 +1,352 @@
+/**
+ * Trust-Filtered Keyword Search for Profiles
+ * Endpoint: /api/search/profiles/keyword
+ *
+ * Performs an optimized keyword search over kind0 events (via strfry + grep)
+ * and filters the resulting pubkeys against a whitelist.
+ *
+ * Whitelist sources:
+ * - File (default): /usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json
+ * - Neo4j (optional): pass source=neo4j&observerPubkey=<pubkey|owner>
+ *
+ * Query params:
+ * - searchString (required): keyword to search in kind0 content
+ * - limit (optional): cap results after filtering (default 60)
+ * - source (optional): 'file' (default) or 'neo4j' for whitelist source
+ * - observerPubkey (optional): used when source=neo4j, default 'owner'
+ * - failOpen (optional): if true and whitelist missing, return unfiltered results (default false)
+ */
+
+const fs = require('fs');
+const { spawn } = require('child_process');
+const neo4j = require('neo4j-driver');
+const { getNeo4jConnection } = require('../../../../utils/config');
+
+// --- Performance constants (aligned with legacy optimized search) ---
+const SEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const WHITELIST_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const MAX_RESULTS = 60;
+const MAX_GREP_LINES = 200;
+const TIME_BUDGET_MS = 2500;
+const TARGETED_GREP_LIMIT = 6;
+const TARGETED_TIME_BUDGET_MS = 1500;
+const EXHAUSTIVE_BUDGET_MS = 30000;
+
+// --- Caches ---
+const searchCache = new Map(); // key: searchString.toLowerCase(), val: { results, ts }
+const whitelistCache = {
+  file: { set: null, ts: 0, mtimeMs: 0 },
+  neo4j: new Map() // key: observerPubkey, val: { set, ts }
+};
+
+// --- Whitelist Loading ---
+async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {}) {
+  if (source !== 'neo4j') {
+    const whitelistPath = '/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json';
+    try {
+      const stats = fs.existsSync(whitelistPath) ? fs.statSync(whitelistPath) : null;
+      const now = Date.now();
+      if (
+        whitelistCache.file.set &&
+        now - whitelistCache.file.ts < WHITELIST_CACHE_TTL &&
+        stats && stats.mtimeMs === whitelistCache.file.mtimeMs
+      ) {
+        return whitelistCache.file.set;
+      }
+      if (!stats) {
+        return null; // file not present
+      }
+      const content = fs.readFileSync(whitelistPath, 'utf8');
+      const json = JSON.parse(content);
+      const set = new Set(Object.keys(json));
+      whitelistCache.file = { set, ts: now, mtimeMs: stats.mtimeMs };
+      return set;
+    } catch (err) {
+      console.error('KeywordSearch: failed to load whitelist file:', err && err.message || err);
+      return null;
+    }
+  }
+
+  // Neo4j-backed whitelist
+  try {
+    const now = Date.now();
+    const cached = whitelistCache.neo4j.get(observerPubkey);
+    if (cached && now - cached.ts < WHITELIST_CACHE_TTL) return cached.set;
+
+    const { uri, user, password } = getNeo4jConnection();
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+    const session = driver.session();
+
+    const cypher = observerPubkey === 'owner'
+      ? `MATCH (u:NostrUser) WHERE u.pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.pubkey AS pubkey`
+      : `MATCH (u:NostrUserWotMetricsCard {observer_pubkey: $observer}) WHERE u.observee_pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.observee_pubkey AS pubkey`;
+
+    const result = await session.run(cypher, { observer: observerPubkey });
+    const set = new Set(result.records.map(r => r.get('pubkey')));
+    await session.close();
+    await driver.close();
+
+    whitelistCache.neo4j.set(observerPubkey, { set, ts: now });
+    return set;
+  } catch (err) {
+    console.error('KeywordSearch: failed to load whitelist from Neo4j:', err && err.message || err);
+    return null;
+  }
+}
+
+// --- Optimized Kind0 Search (non-streaming) ---
+function getAllMatchingKind0Profiles(searchString) {
+  return new Promise((resolve, reject) => {
+    if (!searchString || !searchString.trim()) return resolve([]);
+
+    // Cache lookup
+    const key = searchString.toLowerCase();
+    const cached = searchCache.get(key);
+    if (cached && Date.now() - cached.ts < SEARCH_CACHE_TTL) {
+      return resolve(cached.results);
+    }
+
+    const startTime = Date.now();
+    const escapeForEventContent = (s) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const buildExactLiteral = (field, value) => `\\\"${field}\\\":\\\"${escapeForEventContent(value)}\\\"`;
+    const regexEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const buildExactRegex = (field, value) => `\\\"${field}\\\"[[:space:]]*:[[:space:]]*\\\"${regexEscape(value)}\\\"`;
+    const buildExactValueLiteral = (value) => `\\\"${escapeForEventContent(value)}\\\"`;
+
+    const runTargetedPass = (literal, budgetMs) => new Promise((resolveTP) => {
+      const singleQuoted = `'${literal.replace(/'/g, `"'"'`)}'`;
+      const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF -m ${TARGETED_GREP_LIMIT} ${singleQuoted}`;
+      const p = spawn('sudo', ['bash', '-c', cmd]);
+      let buf = '';
+      const out = [];
+      const seen = new Set();
+      const timer = setTimeout(() => { try { if (!p.killed) p.kill('SIGTERM'); } catch (_) {} }, budgetMs);
+      p.stdout.on('data', (d) => {
+        buf += d.toString();
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const evt = JSON.parse(line);
+            if (evt && evt.pubkey && !seen.has(evt.pubkey)) { seen.add(evt.pubkey); out.push(evt.pubkey); }
+          } catch (_) {}
+        }
+      });
+      p.on('close', () => {
+        clearTimeout(timer);
+        if (buf.trim()) {
+          try { const evt = JSON.parse(buf); if (evt && evt.pubkey && !seen.has(evt.pubkey)) out.push(evt.pubkey); } catch (_) {}
+        }
+        resolveTP(out);
+      });
+      p.on('error', () => resolveTP([]));
+    });
+
+    const runExhaustiveTargetedRegex = (pattern, budgetMs) => new Promise((resolveTP) => {
+      if (typeof budgetMs === 'number' && budgetMs <= 0) return resolveTP([]);
+      const singleQuoted = `'${pattern.replace(/'/g, `"'"'`)}'`;
+      const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iE ${singleQuoted}`;
+      const p = spawn('sudo', ['bash', '-c', cmd]);
+      let buf = '';
+      const out = [];
+      const seen = new Set();
+      const timer = typeof budgetMs === 'number' ? setTimeout(() => { try { if (!p.killed) p.kill('SIGTERM'); } catch (_) {} }, budgetMs) : null;
+      p.stdout.on('data', (d) => {
+        buf += d.toString();
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try { const evt = JSON.parse(line); if (evt && evt.pubkey && !seen.has(evt.pubkey)) { seen.add(evt.pubkey); out.push(evt.pubkey); } } catch (_) {}
+        }
+      });
+      p.on('close', () => {
+        if (timer) clearTimeout(timer);
+        if (buf.trim()) { try { const evt = JSON.parse(buf); if (evt && evt.pubkey && !seen.has(evt.pubkey)) out.push(evt.pubkey); } catch (_) {} }
+        resolveTP(out);
+      });
+      p.on('error', () => resolveTP([]));
+    });
+
+    const runExhaustiveFixedLiteral = (literal, budgetMs) => new Promise((resolveTP) => {
+      if (typeof budgetMs === 'number' && budgetMs <= 0) return resolveTP([]);
+      const singleQuoted = `'${literal.replace(/'/g, `"'"'`)}'`;
+      const cmd = `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF ${singleQuoted}`;
+      const p = spawn('sudo', ['bash', '-c', cmd]);
+      let buf = '';
+      const out = [];
+      const seen = new Set();
+      const timer = typeof budgetMs === 'number' ? setTimeout(() => { try { if (!p.killed) p.kill('SIGTERM'); } catch (_) {} }, budgetMs) : null;
+      p.stdout.on('data', (d) => {
+        buf += d.toString();
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try { const evt = JSON.parse(line); if (evt && evt.pubkey && !seen.has(evt.pubkey)) { seen.add(evt.pubkey); out.push(evt.pubkey); } } catch (_) {}
+        }
+      });
+      p.on('close', () => {
+        if (timer) clearTimeout(timer);
+        if (buf.trim()) { try { const evt = JSON.parse(buf); if (evt && evt.pubkey && !seen.has(evt.pubkey)) out.push(evt.pubkey); } catch (_) {} }
+        resolveTP(out);
+      });
+      p.on('error', () => resolveTP([]));
+    });
+
+    // Targeted passes with dynamic budget for short queries
+    const targetedBudget = (searchString && searchString.length <= 4) ? 4000 : TARGETED_TIME_BUDGET_MS;
+    const tpPromises = [
+      runTargetedPass(buildExactLiteral('name', searchString), targetedBudget),
+      runTargetedPass(buildExactLiteral('display_name', searchString), targetedBudget)
+    ];
+
+    // Broad prefilter via grep to reduce JSON parsing
+    const escapedSearchString = searchString.replace(/["'\\$`]/g, '\\$&');
+    const cmdArgs = ['bash', '-c', `LC_ALL=C strfry scan '{"kinds":[0]}' | LC_ALL=C grep -iF -m ${MAX_GREP_LINES} "${escapedSearchString}"`];
+    const p = spawn('sudo', cmdArgs);
+
+    let buffer = '';
+    const pubkeys = [];
+    const seen = new Set();
+    let processedLines = 0;
+    let earlyTerminated = false;
+    let timeBudgetExceeded = false;
+
+    const budgetTimer = setTimeout(() => {
+      if (!p.killed) {
+        try { p.kill('SIGTERM'); } catch (_) {}
+        timeBudgetExceeded = true;
+      }
+    }, TIME_BUDGET_MS);
+
+    p.stdout.on('data', (data) => {
+      buffer += data.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        processedLines++;
+        if (pubkeys.length >= MAX_RESULTS) {
+          try { p.kill('SIGTERM'); } catch (_) {}
+          earlyTerminated = true;
+          break;
+        }
+        try {
+          const evt = JSON.parse(line);
+          if (evt && evt.pubkey && !seen.has(evt.pubkey)) { seen.add(evt.pubkey); pubkeys.push(evt.pubkey); }
+        } catch (_) {}
+      }
+    });
+
+    p.stderr.on('data', (d) => {
+      console.error(`Keyword optimized search error: ${d}`);
+    });
+
+    p.on('close', async () => {
+      clearTimeout(budgetTimer);
+      if (buffer.trim() && pubkeys.length < MAX_RESULTS) {
+        try { const evt = JSON.parse(buffer); if (evt && evt.pubkey && !seen.has(evt.pubkey)) pubkeys.push(evt.pubkey); } catch (_) {}
+      }
+
+      try {
+        const tpArrays = await Promise.all(tpPromises);
+        const boosted = [];
+        const boostSet = new Set();
+        for (const arr of tpArrays) {
+          for (const pk of arr) { if (!boostSet.has(pk)) { boostSet.add(pk); boosted.push(pk); } }
+        }
+
+        // Exhaustive pass within a fixed budget
+        if (searchString && searchString.length > 0) {
+          const deadline = Date.now() + EXHAUSTIVE_BUDGET_MS;
+          const patterns = [
+            buildExactRegex('name', searchString),
+            buildExactRegex('display_name', searchString)
+          ];
+          const remainForRegex = Math.max(1, deadline - Date.now());
+          const exArrays = await Promise.all(patterns.map((p) => runExhaustiveTargetedRegex(p, remainForRegex)));
+          let added = 0;
+          for (const arr of exArrays) for (const pk of arr) if (!boostSet.has(pk)) { boostSet.add(pk); boosted.push(pk); added++; }
+          const remain = Math.max(0, deadline - Date.now());
+          if (added === 0 && remain > 0) {
+            const valLiteral = buildExactValueLiteral(searchString);
+            const valArr = await runExhaustiveFixedLiteral(valLiteral, remain);
+            for (const pk of valArr) if (!boostSet.has(pk)) { boostSet.add(pk); boosted.push(pk); }
+          }
+        }
+
+        const finalList = [];
+        for (const pk of boosted) { if (finalList.length >= MAX_RESULTS) break; finalList.push(pk); }
+        for (const pk of pubkeys) { if (finalList.length >= MAX_RESULTS) break; if (!finalList.includes(pk)) finalList.push(pk); }
+
+        searchCache.set(key, { results: finalList, ts: Date.now() });
+        const duration = Date.now() - startTime;
+        console.log(`Keyword optimized search completed in ${duration}ms. Processed ${processedLines} lines. Final=${finalList.length}. EarlyTerminated=${earlyTerminated} TimeBudgetExceeded=${timeBudgetExceeded}`);
+        resolve(finalList);
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+    p.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
+// --- HTTP Handler ---
+async function handleKeywordSearchProfiles(req, res) {
+  try {
+    req.setTimeout(180000);
+    res.setTimeout(180000);
+
+    const searchString = req.query.searchString || req.query.q;
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit || `${MAX_RESULTS}`, 10) || MAX_RESULTS, MAX_RESULTS));
+    const source = (req.query.source || 'file').toLowerCase(); // 'file' | 'neo4j'
+    const observerPubkey = req.query.observerPubkey || 'owner';
+    const failOpen = String(req.query.failOpen || 'false').toLowerCase() === 'true';
+
+    if (!searchString) {
+      return res.status(400).json({ success: false, error: 'Missing searchString' });
+    }
+
+    const [allPubkeys, whitelistSet] = await Promise.all([
+      getAllMatchingKind0Profiles(searchString),
+      loadWhitelist({ source, observerPubkey })
+    ]);
+
+    if (!whitelistSet) {
+      const note = source === 'file' ? 'Whitelist file missing or unreadable' : 'Whitelist query to Neo4j failed';
+      if (!failOpen) {
+        return res.json({ success: true, message: note, counts: { beforeFilter: allPubkeys.length, afterFilter: 0 }, pubkeys: [] });
+      }
+      // Fail-open mode: return unfiltered results (capped)
+      return res.json({ success: true, message: `${note} (failOpen=true)`, counts: { beforeFilter: allPubkeys.length, afterFilter: Math.min(allPubkeys.length, limit) }, pubkeys: allPubkeys.slice(0, limit) });
+    }
+
+    const filtered = [];
+    for (const pk of allPubkeys) {
+      if (whitelistSet.has(pk)) {
+        filtered.push(pk);
+        if (filtered.length >= limit) break;
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: 'trust-filtered keyword search results',
+      query: { searchString, source, observerPubkey, limit },
+      counts: { beforeFilter: allPubkeys.length, afterFilter: filtered.length },
+      pubkeys: filtered
+    });
+  } catch (error) {
+    console.error('KeywordSearch: handler error:', error);
+    return res.status(500).json({ success: false, error: error.message || String(error) });
+  }
+}
+
+module.exports = {
+  handleKeywordSearchProfiles
+};
