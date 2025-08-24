@@ -200,49 +200,6 @@ else
     emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
     echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
-    oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
-        --arg customer_name "$CUSTOMER_NAME" \
-        --arg parent_task "updateAllScoresForSingleCustomer" \
-        --argjson child_order 2 \
-        --arg algorithm "personalized_pagerank" \
-        --arg category "algorithms" \
-        --argjson structured_logging true \
-        ' {
-            "customer_id": $customer_id,
-            "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
-            "parent_task": $parent_task,
-            "child_order": $child_order,
-            "algorithm": $algorithm,
-            "category": $category,
-            "structured_logging": $structured_logging
-        }')
-    emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
-else
-    oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
-        --arg customer_name "$CUSTOMER_NAME" \
-        --arg parent_task "updateAllScoresForSingleCustomer" \
-        --argjson child_order 2 \
-        --arg algorithm "personalized_pagerank" \
-        --arg category "algorithms" \
-        --argjson structured_logging true \
-        ' {
-            "customer_id": $customer_id,
-            "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
-            "parent_task": $parent_task,
-            "child_order": $child_order,
-            "algorithm": $algorithm,
-            "category": $category,
-            "structured_logging": $structured_logging
-        }')
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
-    echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
-fi
 
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh"
 echo "$(date): Continuing calculateAllScores; starting personalizedGrapeRank.sh" >> "$LOG_FILE"
@@ -311,49 +268,6 @@ else
         "category": $category,
         "structured_logging": $structured_logging
     }')
-    emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
-    echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
-fi    
-    oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
-    --arg customer_name "$CUSTOMER_NAME" \
-    --arg parent_task "updateAllScoresForSingleCustomer" \
-    --argjson child_order 3 \
-    --arg algorithm "personalized_graperank" \
-    --arg category "algorithms" \
-    --argjson structured_logging true \
-    ' {
-        "customer_id": $customer_id,
-        "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
-        "parent_task": $parent_task,
-        "child_order": $child_order,
-        "algorithm": $algorithm,
-        "category": $category,
-        "structured_logging": $structured_logging
-    }')
-    emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"   
-else
-    oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
-        --arg customer_name "$CUSTOMER_NAME" \
-        --arg parent_task "updateAllScoresForSingleCustomer" \
-        --argjson child_order 3 \
-        --arg algorithm "personalized_graperank" \
-        --arg category "algorithms" \
-        --argjson structured_logging true \
-        ' {
-            "customer_id": $customer_id,
-            "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
-            "parent_task": $parent_task,
-            "child_order": $child_order,
-            "algorithm": $algorithm,
-            "category": $category,
-            "structured_logging": $structured_logging
-        }')
     emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
     echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
 fi
