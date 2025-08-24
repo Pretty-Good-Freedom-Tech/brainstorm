@@ -76,6 +76,10 @@
                                 <span id="customerId" class="data-value">-</span>
                             </div>
                             <div class="data-row">
+                                <span class="data-label">Customer Name:</span>
+                                <span id="customerName" class="data-value">-</span>
+                            </div>
+                            <div class="data-row">
                                 <span class="data-label">Status:</span>
                                 <span id="customerStatusDetail" class="data-value">-</span>
                             </div>
@@ -767,6 +771,7 @@
             
             // Populate customer details
             document.getElementById('customerId').textContent = customerData.id || '-';
+            document.getElementById('customerName').textContent = customerData.name || '-';
             document.getElementById('customerStatusDetail').textContent = customerData.status || '-';
             document.getElementById('customerDirectory').textContent = customerData.directory || '-';
             document.getElementById('customerPubkey').textContent = customerData.pubkey || '-';

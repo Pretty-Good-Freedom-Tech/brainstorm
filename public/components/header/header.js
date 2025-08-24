@@ -57,6 +57,14 @@ function loadNavbar(classification) {
         || currentPath === '/sign-up.html'
     ) {
         navbarPath = '/components/header/navbars/nav_basic_content.html';
+    }
+
+    if (
+        currentPath === '/profile-search.html'
+        || currentPath === '/profiles.html'
+        || currentPath === '/nip56.html'
+    ) {
+        navbarPath = '/components/header/navbars/nav_basic_content.html';
     }  
     /*
     if (
