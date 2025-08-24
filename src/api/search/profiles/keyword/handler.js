@@ -58,7 +58,21 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
       }
       const content = fs.readFileSync(whitelistPath, 'utf8');
       const json = JSON.parse(content);
-      const set = new Set(Object.keys(json));
+      let set;
+      if (Array.isArray(json)) {
+        // Support array form: ["pubkey1", "pubkey2", ...]
+        set = new Set(json.map(pk => typeof pk === 'string' ? pk.toLowerCase() : pk));
+      } else if (json && typeof json === 'object') {
+        // Support map form: { "pubkey1": true, ... } (default)
+        // Also support nested { pubkeys: [ ... ] }
+        if (Array.isArray(json.pubkeys)) {
+          set = new Set(json.pubkeys.map(pk => typeof pk === 'string' ? pk.toLowerCase() : pk));
+        } else {
+          set = new Set(Object.keys(json).map(pk => typeof pk === 'string' ? pk.toLowerCase() : pk));
+        }
+      } else {
+        set = new Set();
+      }
       whitelistCache.file = { set, ts: now, mtimeMs: stats.mtimeMs };
       return set;
     } catch (err) {
@@ -82,7 +96,10 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
       : `MATCH (u:NostrUserWotMetricsCard {observer_pubkey: $observer}) WHERE u.observee_pubkey IS NOT NULL AND u.influence > 0.01 RETURN u.observee_pubkey AS pubkey`;
 
     const result = await session.run(cypher, { observer: observerPubkey });
-    const set = new Set(result.records.map(r => r.get('pubkey')));
+    const set = new Set(result.records.map(r => {
+      const v = r.get('pubkey');
+      return typeof v === 'string' ? v.toLowerCase() : v;
+    }));
     await session.close();
     await driver.close();
 
@@ -317,18 +334,25 @@ async function handleKeywordSearchProfiles(req, res) {
       loadWhitelist({ source, observerPubkey })
     ]);
 
-    if (!whitelistSet) {
-      const note = source === 'file' ? 'Whitelist file missing or unreadable' : 'Whitelist query to Neo4j failed';
+    const missingOrEmpty = (!whitelistSet) || (whitelistSet && whitelistSet.size === 0);
+    if (missingOrEmpty) {
+      let note;
+      if (!whitelistSet) {
+        note = source === 'file' ? 'Whitelist file missing or unreadable' : 'Whitelist query to Neo4j failed';
+      } else {
+        note = source === 'file' ? 'Whitelist file is empty' : 'Whitelist from Neo4j is empty';
+      }
       if (!failOpen) {
-        return res.json({ success: true, message: note, counts: { beforeFilter: allPubkeys.length, afterFilter: 0 }, pubkeys: [] });
+        return res.json({ success: true, message: note, counts: { beforeFilter: allPubkeys.length, afterFilter: 0, whitelistSize: whitelistSet ? whitelistSet.size : 0 }, pubkeys: [] });
       }
       // Fail-open mode: return unfiltered results (capped)
-      return res.json({ success: true, message: `${note} (failOpen=true)`, counts: { beforeFilter: allPubkeys.length, afterFilter: Math.min(allPubkeys.length, limit) }, pubkeys: allPubkeys.slice(0, limit) });
+      return res.json({ success: true, message: `${note} (failOpen=true)`, counts: { beforeFilter: allPubkeys.length, afterFilter: Math.min(allPubkeys.length, limit), whitelistSize: whitelistSet ? whitelistSet.size : 0 }, pubkeys: allPubkeys.slice(0, limit) });
     }
 
     const filtered = [];
     for (const pk of allPubkeys) {
-      if (whitelistSet.has(pk)) {
+      const pkLower = typeof pk === 'string' ? pk.toLowerCase() : pk;
+      if (whitelistSet.has(pkLower)) {
         filtered.push(pk);
         if (filtered.length >= limit) break;
       }
@@ -338,7 +362,7 @@ async function handleKeywordSearchProfiles(req, res) {
       success: true,
       message: 'trust-filtered keyword search results',
       query: { searchString, source, observerPubkey, limit },
-      counts: { beforeFilter: allPubkeys.length, afterFilter: filtered.length },
+      counts: { beforeFilter: allPubkeys.length, afterFilter: filtered.length, whitelistSize: whitelistSet.size },
       pubkeys: filtered
     });
   } catch (error) {
