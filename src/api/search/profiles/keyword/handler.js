@@ -13,7 +13,7 @@
  * - searchString (required): keyword to search in kind0 content
  * - limit (optional): cap results after filtering (default 60)
  * - source (optional): 'file' (default) or 'neo4j' for whitelist source
- * - observerPubkey (optional): used when source=neo4j, default 'owner'
+ * - observerPubkey (optional): used for both sources; selects which precomputed map/observer to use (default 'owner')
  * - failOpen (optional): if true and whitelist missing, return unfiltered results (default false)
  */
 
@@ -61,6 +61,25 @@ async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {})
       }
     } catch (e) {
       console.warn('KeywordSearch: precompute access failed, falling back to file whitelist:', e && e.message || e);
+    }
+
+    // Fallback to owner precomputed map if observer-specific map unavailable
+    try {
+      const ownerPre = getPrecomputedForObserver('owner', { maxAgeMs: PRECOMPUTE_TTL_MS });
+      if (ownerPre && ownerPre.set && ownerPre.set.size > 0) {
+        return ownerPre.set;
+      }
+      // Attempt a synchronous refresh for owner as a last resort before file
+      try {
+        const ownerRefreshed = await refreshWhitelistMapForObserver('owner', { force: true });
+        if (ownerRefreshed && ownerRefreshed.set && ownerRefreshed.set.size > 0) {
+          return ownerRefreshed.set;
+        }
+      } catch (_) {
+        // ignore and fall through to file
+      }
+    } catch (_) {
+      // ignore and fall through to file
     }
 
     const whitelistPath = '/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json';
@@ -407,22 +426,25 @@ async function handleKeywordSearchProfiles(req, res) {
         return 0;
       });
     } else {
-      // source === 'file': use precomputed map if available to improve ordering
-      const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
-      const pre = getPrecomputedForObserver(observerNorm);
-      const vfMap = (pre && pre.scoreByPubkey) || null;
-      if (vfMap) {
-        ordered = filteredAll.slice().sort((a, b) => {
-          const al = typeof a === 'string' ? a.toLowerCase() : a;
-          const bl = typeof b === 'string' ? b.toLowerCase() : b;
-          const av = typeof vfMap[al] === 'number' ? vfMap[al] : Number(vfMap[al] || 0);
-          const bv = typeof vfMap[bl] === 'number' ? vfMap[bl] : Number(vfMap[bl] || 0);
-          if (bv !== av) return bv - av;
-          return 0;
-        });
-      }
+    // source === 'file': use precomputed map if available to improve ordering
+    const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
+    let pre = getPrecomputedForObserver(observerNorm);
+    if ((!pre || !pre.scoreByPubkey) && observerNorm !== 'owner') {
+      pre = getPrecomputedForObserver('owner');
     }
-    const limited = ordered.slice(0, limit);
+    const vfMap = (pre && pre.scoreByPubkey) || null;
+    if (vfMap) {
+      ordered = filteredAll.slice().sort((a, b) => {
+        const al = typeof a === 'string' ? a.toLowerCase() : a;
+        const bl = typeof b === 'string' ? b.toLowerCase() : b;
+        const av = typeof vfMap[al] === 'number' ? vfMap[al] : Number(vfMap[al] || 0);
+        const bv = typeof vfMap[bl] === 'number' ? vfMap[bl] : Number(vfMap[bl] || 0);
+        if (bv !== av) return bv - av;
+        return 0;
+      });
+    }
+  }
+  const limited = ordered.slice(0, limit);
 
     // Include inline scores when using Neo4j source to avoid N+1 score requests from the frontend
     let profiles = null;

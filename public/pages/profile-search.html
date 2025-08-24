@@ -344,11 +344,9 @@
 
         // Initialize trust options UI
         if (observerInput && !observerInput.value) observerInput.value = 'owner';
-        if (sourceSel && observerWrapper) {
-            observerWrapper.style.display = (sourceSel.value === 'neo4j') ? 'inline-block' : 'none';
-            sourceSel.addEventListener('change', () => {
-                observerWrapper.style.display = (sourceSel.value === 'neo4j') ? 'inline-block' : 'none';
-            });
+        // Keep observer visible for both sources; no toggling based on source
+        if (observerWrapper) {
+            observerWrapper.style.display = 'inline-block';
         }
 
         function resetKeywordUI() {
@@ -455,7 +453,8 @@
                 if (preloaded) {
                     scores = preloaded;
                 } else {
-                    const scoreUrl = `/api/get-profile-scores?pubkey=${pubkey}` + (src === 'neo4j' ? `&observerPubkey=${encodeURIComponent(obs)}` : '');
+                    // Always include observer so backend can fetch metrics for the selected observer (owner default)
+                    const scoreUrl = `/api/get-profile-scores?pubkey=${pubkey}&observerPubkey=${encodeURIComponent(obs || 'owner')}`;
                     try {
                         const scoresResp = await fetch(scoreUrl);
                         const scoresData = await scoresResp.json();
@@ -549,13 +548,14 @@
             params.set('searchString', q);
             params.set('source', source);
             params.set('limit', '60');
-            if (source === 'neo4j') params.set('observerPubkey', observer || 'owner');
+            // Always include observerPubkey so backend can select appropriate cache/fallback
+            params.set('observerPubkey', observer || 'owner');
 
             const safeQ = escapeHTML(q);
             setKeywordStatus(`
                 <h2>Searching...</h2>
                 <p>Query: <strong>${safeQ}</strong></p>
-                <p>Trust source: <strong>${escapeHTML(source)}</strong>${source === 'neo4j' ? `, Observer: <strong>${escapeHTML(observer || 'owner')}</strong>` : ''}</p>
+                <p>Trust source: <strong>${escapeHTML(source)}</strong>, Observer: <strong>${escapeHTML(observer || 'owner')}</strong></p>
             `);
 
             try {
