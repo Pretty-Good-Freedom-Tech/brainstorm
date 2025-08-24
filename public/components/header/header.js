@@ -6,73 +6,16 @@
  * Usage: <script src="/control/components/header/header-bundle.js"></script>
  */
 
-// Flag to track if constraints have been checked already
-let constraintsChecked = false;
-
-/**
- * Check if Neo4j constraints and indexes are set up, and trigger setup if not
- */
-function checkNeo4jConstraints() {
-    // Prevent multiple checks
-    if (constraintsChecked) {
-        console.log('Neo4j constraints check already performed, skipping...');
-        return;
-    }
-    
-    console.log('Checking Neo4j constraints and indexes status...');
-    constraintsChecked = true;
-    
-    // First check if constraints have been created
-    fetch('/api/status/neo4j-constraints')
-        .then(response => response.json())
-        .then(data => {
-            console.log('Neo4j constraints status:', data);
-            
-            if (data && data.constraintsTimestamp === 0) {
-                console.log('Neo4j constraints and indexes have not been set up, initiating setup...');
-                setupNeo4jConstraints();
-            } else {
-                console.log('Neo4j constraints and indexes are already set up.');
-            }
-        })
-        .catch(error => {
-            console.error('Error checking Neo4j constraints status:', error);
-        });
-}
-
-/**
- * Set up Neo4j constraints and indexes
- */
-function setupNeo4jConstraints() {
-    console.log('Setting up Neo4j constraints and indexes...');
-    
-    fetch('/api/neo4j-setup-constraints-and-indexes', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({})
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Neo4j constraints setup response:', data);
-        if (data.success) {
-            console.log('Neo4j constraints and indexes have been set up successfully!');
-        } else {
-            console.error('Error setting up Neo4j constraints and indexes: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error setting up Neo4j constraints:', error);
-        alert('Error setting up Neo4j constraints and indexes: ' + error.message);
-    });
-}
-
 /**
  * Load the appropriate navbar based on the current page
  * nav1.html is the default for specific pages and nav2.html for everything else
+ * UPDATE August 2025:
+ * nav_visitor: someone who is not signed in
+ * nav_guest: signed in, but not customer or owner
+ * nav_customer: signed in & is customer
+ * nav_owner: signed in & is owner
  */
-function loadNavbar() {
+function loadNavbar(classification) {
     const navbarContainer = document.getElementById('navbar-container');
     if (!navbarContainer) {
         console.error('Navbar container not found');
@@ -86,6 +29,25 @@ function loadNavbar() {
     // Choose which navbar to load - nav1.html for index and about, nav2.html for everything else
     let navbarPath = '/components/header/navbars/nav2.html';
 
+    switch (classification) {
+        case 'visitor':
+            navbarPath = '/components/header/navbars/nav_visitor.html';
+            break;
+        case 'guest':
+            navbarPath = '/components/header/navbars/nav_guest.html';
+            break;
+        case 'customer':
+            navbarPath = '/components/header/navbars/nav_customer.html';
+            break;
+        case 'owner':
+            navbarPath = '/components/header/navbars/nav_owner.html';
+            break;
+        default:
+            navbarPath = '/components/header/navbars/nav2.html';
+            break;
+    }   
+
+    /*
     if (
         currentPath === '/home.html' 
         || currentPath === '/nip85.html' 
@@ -159,6 +121,7 @@ function loadNavbar() {
     ) {
         navbarPath = '/components/header/navbars/customers.html';
     }
+    */
   
     // First fetch the Neo4j Browser URL
     fetch('/api/status')
@@ -255,6 +218,8 @@ function addUserClassificationIndicator(classification, customerName) {
             indicator.style.color = 'white';
             indicator.title = 'You are a guest';
             break;
+        case 'unauthenticated':
+            break;
         default:
             return; // Don't add indicator for unknown classifications
     }
@@ -279,17 +244,17 @@ function initializeHeader() {
     const relayLink = document.getElementById('relayLink');
     const logoutLink = document.getElementById('logoutLink');
 
-    // Load the appropriate navbar
-    loadNavbar();
-
-    // Check Neo4j constraints and indexes
-    // Aug 2025: managed by task explorer
-    // checkNeo4jConstraints();
-
     // Check authentication status and user classification
     fetch('/api/auth/user-classification')
         .then(response => response.json())
         .then(data => {
+            if (data && data.success && data.classification) {
+                // Load the appropriate navbar
+                loadNavbar(data.classification);
+            } else {
+                // Load the default navbar
+                loadNavbar('unauthenticated');
+            }
             if (data && data.success && data.classification !== 'unauthenticated') {
                 // User is authenticated
                 if (userInfo) { userInfo.style.display = 'flex' }

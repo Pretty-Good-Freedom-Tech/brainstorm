@@ -101,13 +101,15 @@ TODO 11 Aug 2025:
 - who processAllTasks use so many if sude commands? Why did script seem to pause in reconciliation?
 - taskQueueManager and relayed tasks still need to incorporate structured logging
 
-
 TODO: 24 Aug 2025: profile-search.html page and its associated api
-1. when searching via file: stop using the whitelist in strfry/plugin folder. Instead, use the strategy we discussed in detail earlier. Run cypher query and store results in memory as a map. Design this map for search.
-2. Consider also including kind 0 profile data in that map. This should make file search much more performant.
-3. handleKeywordSearchProfiles: stop using multiple rounds of search. Just do one round and return results.
-4. Improve UI: Tweak which profiles have red border. Remove about data from profile cards, or truncate long ones.
-5. option to search name and display_name without about; see if faster results
+ - /api/search/profiles/keyword/precompute-whitelist-maps?force=true
+ - /api/search/profiles/keyword/precompute-whitelist-maps/status
+ - api/search/profiles/keyword?searchString=jack&source=file&limit=60&observerPubkey=owner
+1. Review handleKeywordSearchProfiles search api. I suspect it may perform multiple redundant passes: Targeted passes, Broad prefilter, runExhaustiveTargetedRegex, runExhaustiveFixedLiteral, maybe more. Plan: do only one pass. Make sure search proceeds from high influence to low. Set limits on number of results. Implement button on front end to show more results or show hidden results. Goal: make search faster and more performant. It may be easier just to rewrite handleKeywordSearchProfiles from scratch after 
+2. Create new POST precompute-kind0-maps endpoints, modelled after precompute-whitelist-maps api endpoionts, that makes a list of all pubkeys that are whitelisted on ANY list (see precompute-whitelist-maps/status endpoint for how to access this list); query strfry for all kind 0 data; for whitelisted pubkeys, obtain name, display_name, and about; create a new map that will live in memory. Use this map, if available, whenever doing keyword search. When doing keyword search, there should now be no need to query strfry or neo4j (when using source=file option), because all relevant data will be in memory. Goal: make profile search much more performant.
+3. Improve UI: Tweak which profiles have red border. Remove about data from profile cards, or truncate long ones.
+4. option to search name and display_name without about; see if faster results
+4. Improve UI: remove Legend; show info as popup over scores in profile cards
 
 TODO: 25 Aug 2025: revamp navbars
 1. Create guest navbar: 
