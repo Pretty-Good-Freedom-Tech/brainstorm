@@ -77,7 +77,16 @@
                             </div>
                             <div class="data-row">
                                 <span class="data-label">Customer Display Name:</span>
-                                <span id="customerDisplayName" class="data-value">-</span>
+                                <div class="data-value" id="customerDisplayNameCell" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <span id="customerDisplayName">-</span>
+                                    <button id="editDisplayNameBtn" class="btn btn-sm btn-outline" onclick="startEditDisplayName()">✏️ Edit</button>
+                                    <div id="editDisplayNameControls" style="display:none; align-items:center; gap:6px;">
+                                        <input type="text" id="displayNameInput" maxlength="100" placeholder="Enter display name" onkeydown="handleDisplayNameKeydown(event)">
+                                        <button id="saveDisplayNameBtn" class="btn btn-sm btn-primary" onclick="saveDisplayNameEdit()">💾 Save</button>
+                                        <button id="cancelDisplayNameBtn" class="btn btn-sm btn-secondary" onclick="cancelEditDisplayName()">❌ Cancel</button>
+                                    </div>
+                                    <small id="displayNameError" style="color:#c00; display:none; margin-left:4px;"></small>
+                                </div>
                             </div>
                             <div class="data-row">
                                 <span class="data-label">Status:</span>
@@ -1340,6 +1349,127 @@
                 activateBtn.disabled = false;
                 deactivateBtn.disabled = true;
                 deactivateBtn.textContent = '⏸️ Already Inactive';
+            }
+        }
+        
+        // Inline Edit: Customer Display Name
+        function setDisplayNameEditMode(isEditing) {
+            const editBtn = document.getElementById('editDisplayNameBtn');
+            const controls = document.getElementById('editDisplayNameControls');
+            const input = document.getElementById('displayNameInput');
+            const errorEl = document.getElementById('displayNameError');
+            if (!editBtn || !controls || !input) return;
+            errorEl && (errorEl.style.display = 'none', errorEl.textContent = '');
+            if (isEditing) {
+                editBtn.style.display = 'none';
+                controls.style.display = 'flex';
+                input.value = (customerData && customerData.display_name) ? customerData.display_name : '';
+                setTimeout(() => input.focus(), 0);
+            } else {
+                editBtn.style.display = 'inline-block';
+                controls.style.display = 'none';
+            }
+        }
+        
+        function startEditDisplayName() {
+            if (userClassification !== 'owner') {
+                alert('Only the owner can edit the customer display name.');
+                return;
+            }
+            setDisplayNameEditMode(true);
+        }
+        
+        function cancelEditDisplayName() {
+            setDisplayNameEditMode(false);
+        }
+        
+        function handleDisplayNameKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                saveDisplayNameEdit();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                cancelEditDisplayName();
+            }
+        }
+        
+        function validateDisplayName(value) {
+            const v = (value || '').trim();
+            if (!v) return 'Display name cannot be empty';
+            if (v.length > 100) return 'Display name must be 100 characters or fewer';
+            return '';
+        }
+        
+        function updateDisplayNameUI() {
+            const nameEl = document.getElementById('customerDisplayName');
+            const headerEl = document.getElementById('customerName');
+            const newName = (customerData && customerData.display_name) ? customerData.display_name : '-';
+            if (nameEl) nameEl.textContent = newName;
+            // Update header only if profileData does not provide a name
+            if (headerEl && !(profileData && profileData.name)) {
+                headerEl.textContent = newName === '-' ? (customerData?.name || 'Unknown Customer') : newName;
+            }
+        }
+        
+        async function saveDisplayNameEdit() {
+            const input = document.getElementById('displayNameInput');
+            const errorEl = document.getElementById('displayNameError');
+            const saveBtn = document.getElementById('saveDisplayNameBtn');
+            if (!input || !saveBtn) return;
+            const validationError = validateDisplayName(input.value);
+            if (validationError) {
+                if (errorEl) {
+                    errorEl.textContent = `❌ ${validationError}`;
+                    errorEl.style.display = 'inline';
+                } else {
+                    alert(validationError);
+                }
+                return;
+            }
+            if (!customerPubkey) {
+                alert('Missing customer pubkey.');
+                return;
+            }
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+            try {
+                const response = await fetch('/api/update-customer-display-name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pubkey: customerPubkey, newDisplayName: input.value.trim() })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    // Update local data and UI
+                    if (result.data && result.data.customer) {
+                        customerData = result.data.customer;
+                    } else if (customerData) {
+                        customerData.display_name = input.value.trim();
+                    }
+                    updateDisplayNameUI();
+                    setDisplayNameEditMode(false);
+                    alert(`✅ ${result.message || 'Display name updated.'}`);
+                } else {
+                    const msg = result.error || 'Failed to update display name';
+                    if (errorEl) {
+                        errorEl.textContent = `❌ ${msg}`;
+                        errorEl.style.display = 'inline';
+                    } else {
+                        alert(`❌ ${msg}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating display name:', error);
+                if (errorEl) {
+                    errorEl.textContent = `❌ Network error: ${error.message}`;
+                    errorEl.style.display = 'inline';
+                } else {
+                    alert(`❌ Network error: ${error.message}`);
+                }
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
             }
         }
         

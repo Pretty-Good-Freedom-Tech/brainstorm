@@ -6,7 +6,7 @@
  * Owner-only endpoint for updating customer display names
  */
 
-const CustomerManager = require('../../../utils/customerManager');
+const CustomerManager = require('../../../utils/customerManager.js');
 
 /**
  * Handle adding a new customer
