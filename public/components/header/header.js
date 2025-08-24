@@ -30,8 +30,8 @@ function loadNavbar(classification) {
     let navbarPath = '/components/header/navbars/nav2.html';
 
     switch (classification) {
-        case 'visitor':
-            navbarPath = '/components/header/navbars/nav_visitor.html';
+        case 'unauthenticated':
+            navbarPath = '/components/header/navbars/nav_unauthenticated.html';
             break;
         case 'guest':
             navbarPath = '/components/header/navbars/nav_guest.html';
@@ -45,8 +45,19 @@ function loadNavbar(classification) {
         default:
             navbarPath = '/components/header/navbars/nav2.html';
             break;
-    }   
+    }
 
+    if (
+        currentPath === ''
+        || currentPath === '/'
+        || currentPath === '/index.html'
+        || currentPath === '/control'
+        || currentPath === '/control/'
+        || currentPath === '/control/index.html'
+        || currentPath === '/sign-up.html'
+    ) {
+        navbarPath = '/components/header/navbars/nav_sparse.html';
+    }  
     /*
     if (
         currentPath === '/home.html' 
@@ -119,7 +130,7 @@ function loadNavbar(classification) {
         || currentPath === '/my-account.html'
         || currentPath === '/create-customer-relays.html'
     ) {
-        navbarPath = '/components/header/navbars/customers.html';
+        navbarPath = '/components/header/navbars/nav_customer.html';
     }
     */
   
