@@ -191,6 +191,17 @@
                     </div>
                     <button id="keywordSearchButton" class="search-button">Search Profiles</button>
                 </div>
+                <div class="trust-options" style="display:flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem;">
+                    <label>Source:
+                        <select id="whitelistSource">
+                            <option value="neo4j" selected>Neo4j</option>
+                            <option value="file">File</option>
+                        </select>
+                    </label>
+                    <label id="observerPubkeyWrapper">Observer:
+                        <input type="text" id="observerPubkeyInput" placeholder="owner or hex pubkey" style="min-width: 320px;">
+                    </label>
+                </div>
             </div>
 
             <div id="keywordStatus" class="coming-soon" style="display: none;"></div>
@@ -285,6 +296,18 @@
         let keywordES = null;
         const keywordStatusEl = document.getElementById('keywordStatus');
         const keywordResultsEl = document.getElementById('keywordResults');
+        const sourceSel = document.getElementById('whitelistSource');
+        const observerWrapper = document.getElementById('observerPubkeyWrapper');
+        const observerInput = document.getElementById('observerPubkeyInput');
+
+        // Initialize trust options UI
+        if (observerInput && !observerInput.value) observerInput.value = 'owner';
+        if (sourceSel && observerWrapper) {
+            observerWrapper.style.display = (sourceSel.value === 'neo4j') ? 'inline-block' : 'none';
+            sourceSel.addEventListener('change', () => {
+                observerWrapper.style.display = (sourceSel.value === 'neo4j') ? 'inline-block' : 'none';
+            });
+        }
 
         function resetKeywordUI() {
             // Clear results and show containers
@@ -409,17 +432,66 @@
             });
         }
 
+        // New non-streaming trust-filtered keyword search
+        async function runKeywordSearch(q) {
+            resetKeywordUI();
+            const source = (sourceSel && sourceSel.value) ? sourceSel.value : 'neo4j';
+            const observer = (observerInput && observerInput.value.trim()) ? observerInput.value.trim() : 'owner';
+            const params = new URLSearchParams();
+            params.set('searchString', q);
+            params.set('source', source);
+            params.set('limit', '60');
+            if (source === 'neo4j') params.set('observerPubkey', observer || 'owner');
+
+            const safeQ = escapeHTML(q);
+            setKeywordStatus(`
+                <h2>Searching...</h2>
+                <p>Query: <strong>${safeQ}</strong></p>
+                <p>Trust source: <strong>${escapeHTML(source)}</strong>${source === 'neo4j' ? `, Observer: <strong>${escapeHTML(observer || 'owner')}</strong>` : ''}</p>
+            `);
+
+            try {
+                const resp = await fetch(`/api/search/profiles/keyword?${params.toString()}`);
+                const data = await resp.json();
+                if (!data || !data.success) {
+                    setKeywordStatus('<h2>Error</h2><p>Search failed.</p>');
+                    return;
+                }
+                const before = data.counts?.beforeFilter ?? 0;
+                const after = data.counts?.afterFilter ?? 0;
+                const wsize = data.counts?.whitelistSize ?? 0;
+                setKeywordStatus(`
+                    <h2>Results</h2>
+                    <p>Matches before trust-filter: <strong>${before}</strong></p>
+                    <p>Trusted matches returned: <strong>${after}</strong></p>
+                    <p>Whitelist size: <strong>${wsize}</strong></p>
+                `);
+                const pubs = Array.isArray(data.pubkeys) ? data.pubkeys : [];
+                for (const pk of pubs) {
+                    await appendProfileResult(pk);
+                }
+                if (pubs.length === 0) {
+                    setKeywordStatus(`
+                        <h2>No trusted matches</h2>
+                        <p>Try a different query.${source === 'file' ? ' If using file source, ensure whitelist file exists and is populated.' : ''}</p>
+                    `);
+                }
+            } catch (e) {
+                setKeywordStatus('<h2>Error</h2><p>Network error during search.</p>');
+            }
+        }
+
         if (keywordBtnEl && keywordInputEl) {
             keywordBtnEl.addEventListener('click', () => {
                 const q = keywordInputEl.value.trim();
                 if (!q) { alert('Please enter keywords to search'); return; }
-                startKeywordStream(q);
+                runKeywordSearch(q);
             });
             keywordInputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     const q = keywordInputEl.value.trim();
                     if (!q) { alert('Please enter keywords to search'); return; }
-                    startKeywordStream(q);
+                    runKeywordSearch(q);
                 }
             });
         }
