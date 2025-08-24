@@ -18,6 +18,7 @@ async function handleGetCustomers(req, res) {
             .map(customer => ({
                 id: customer.id,
                 name: customer.name,
+                display_name: customer.display_name,
                 pubkey: customer.pubkey,
                 status: customer.status,
                 comments: customer.comments || '',

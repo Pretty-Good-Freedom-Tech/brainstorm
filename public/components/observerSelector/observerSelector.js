@@ -121,7 +121,7 @@ class ObserverSelector {
             // Create default option if it doesn't exist
             const globalOption = document.createElement('option');
             globalOption.value = 'owner';
-            globalOption.textContent = 'Global (Default)';
+            globalOption.textContent = 'Global (Brainstorm owner)';
             selectElement.appendChild(globalOption);
         }
         
@@ -129,9 +129,10 @@ class ObserverSelector {
         this.customers.forEach(customer => {
             const option = document.createElement('option');
             option.value = customer.pubkey;
-            option.textContent = `${customer.name} (${customer.comments || 'customer'})`;
+            option.textContent = `${customer.display_name}`;
             option.dataset.customerId = customer.id;
             option.dataset.customerName = customer.name;
+            option.dataset.customerDisplayName = customer.display_name;
             selectElement.appendChild(option);
         });
         
@@ -153,6 +154,7 @@ class ObserverSelector {
                     pubkey: this.currentValue,
                     isOwner: this.currentValue === 'owner',
                     customerName: selectedOption?.dataset.customerName || null,
+                    customerDisplayName: selectedOption?.dataset.customerDisplayName || null,
                     customerId: selectedOption?.dataset.customerId || null
                 };
                 
