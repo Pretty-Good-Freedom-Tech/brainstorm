@@ -43,7 +43,7 @@ count_missing_npubs() {
     MATCH (u:NostrUser) 
     WHERE u.pubkey IS NOT NULL 
       AND (u.npub IS NULL OR u.npub = '') 
-      AND u.hops < 20
+      AND u.hops < 100
     RETURN count(u) as missing_count
     "
     
@@ -58,7 +58,7 @@ count_total_users() {
     local count_query="
     MATCH (u:NostrUser) 
     WHERE u.pubkey IS NOT NULL 
-      AND u.hops < 20
+      AND u.hops < 100
     RETURN count(u) as total_count
     "
     

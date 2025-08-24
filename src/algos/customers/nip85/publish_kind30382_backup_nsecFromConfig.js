@@ -100,7 +100,7 @@ async function getUsers() {
       AND u.influence IS NOT NULL
       AND (u.influence > 0.01 OR u.muterInput > 0.1 OR u.reporterInput > 0.1)
       AND u.hops IS NOT NULL 
-      AND u.hops < 20
+      AND u.hops < 100
       AND u.observer_pubkey IS NOT NULL
       AND u.observer_pubkey = '${CUSTOMER_PUBKEY}'
       AND u.observee_pubkey IS NOT NULL

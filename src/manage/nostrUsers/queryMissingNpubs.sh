@@ -58,7 +58,7 @@ CYPHER_QUERY="
 MATCH (u:NostrUser) 
 WHERE u.pubkey IS NOT NULL 
   AND (u.npub IS NULL OR u.npub = '') 
-  AND u.hops < 20
+  AND u.hops < 100
 RETURN u.pubkey as pubkey
 LIMIT 1000
 "

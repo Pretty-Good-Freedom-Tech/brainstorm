@@ -85,7 +85,7 @@ async function getTopUsers() {
       WHERE u.personalizedPageRank IS NOT NULL 
       AND u.influence IS NOT NULL
         AND u.hops IS NOT NULL 
-        AND u.hops < 20
+        AND u.hops < 100
         AND u.pubkey IS NOT NULL
       RETURN u.pubkey AS pubkey, 
              u.personalizedPageRank AS personalizedPageRank, 

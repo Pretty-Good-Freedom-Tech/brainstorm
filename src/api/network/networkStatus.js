@@ -120,7 +120,7 @@ function getNetworkStatus(req, res) {
         // Count total users in follows network (hops < 20)
         promises.push(
             new Promise((resolve) => {
-                const query = `MATCH (n:NostrUser) WHERE n.hops < 20 RETURN count(n) as count`;
+                const query = `MATCH (n:NostrUser) WHERE n.hops < 100 RETURN count(n) as count`;
                 const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
                 exec(command, (error, stdout, stderr) => {
                     if (error) {

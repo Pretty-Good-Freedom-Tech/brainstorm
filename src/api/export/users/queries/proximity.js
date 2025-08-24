@@ -60,7 +60,7 @@ function handleGetNetworkProximity(req, res) {
       
       // Follower relationships
       OPTIONAL MATCH (follower:NostrUser)-[f2:FOLLOWS]->(center)
-      WHERE follower.hops IS NOT NULL AND follower.hops < 20
+      WHERE follower.hops IS NOT NULL AND follower.hops < 100
       WITH center, followingNodes, follower, f2
       ORDER BY follower.influence DESC
       LIMIT toInteger($relationshipLimit)

@@ -110,7 +110,7 @@ fi
 # Step 5: Verify updates
 log_message "Step 5: Verifying updates were successful"
 UPDATED_COUNT=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" \
-    "MATCH (u:NostrUser) WHERE u.npub IS NOT NULL AND u.pubkey IS NOT NULL AND u.hops < 20 RETURN count(u) as total" \
+    "MATCH (u:NostrUser) WHERE u.npub IS NOT NULL AND u.pubkey IS NOT NULL AND u.hops < 100 RETURN count(u) as total" \
     --format plain 2>/dev/null | tail -n 1 | tr -d '"' || echo "0")
 
 log_message "Total NostrUsers with npub property: $UPDATED_COUNT"

@@ -14,25 +14,25 @@ echo "$(date): Continuing calculateImportedGrapeRank ... starting cypher queries
 
 CYPHER0="
 MATCH (user:NostrUser)
-WHERE user.hops < 20
+WHERE user.hops < 100
 RETURN user.pubkey AS ratee_pubkey
 "
 
 CYPHER1="
 MATCH (rater:NostrUser)-[r:FOLLOWS]->(ratee:NostrUser)
-WHERE ratee.hops < 20
+WHERE ratee.hops < 100
 RETURN rater.pubkey AS pk_rater, ratee.pubkey AS pk_ratee
 "
 
 CYPHER2="
 MATCH (rater:NostrUser)-[r:MUTES]->(ratee:NostrUser)
-WHERE ratee.hops < 20
+WHERE ratee.hops < 100
 RETURN rater.pubkey AS pk_rater, ratee.pubkey AS pk_ratee
 "
 
 CYPHER3="
 MATCH (rater:NostrUser)-[r:REPORTS]->(ratee:NostrUser)
-WHERE ratee.hops < 20
+WHERE ratee.hops < 100
 RETURN rater.pubkey AS pk_rater, ratee.pubkey AS pk_ratee
 "
 # Create the base directory structure

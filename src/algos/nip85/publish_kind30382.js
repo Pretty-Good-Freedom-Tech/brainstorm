@@ -97,7 +97,7 @@ async function getUsers(limit = null) {
       WHERE u.personalizedPageRank IS NOT NULL 
       AND u.influence IS NOT NULL
       AND u.hops IS NOT NULL 
-      AND u.hops < 20
+      AND u.hops < 100
       AND u.pubkey IS NOT NULL
       RETURN u.pubkey AS pubkey, 
              u.personalizedPageRank AS personalizedPageRank, 
@@ -107,7 +107,7 @@ async function getUsers(limit = null) {
              u.confidence AS confidence,
              u.input AS input
       ORDER BY u.influence DESC
-      LIMIT 1000
+      LIMIT 10000
     `;
     
     if (limit !== null && !isNaN(parseInt(limit))) {
