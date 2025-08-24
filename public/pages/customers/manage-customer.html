@@ -77,16 +77,16 @@
                             </div>
                             <div class="data-row">
                                 <span class="data-label">Customer Display Name:</span>
-                                <div class="data-value" id="customerDisplayNameCell" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                <span class="data-value" id="customerDisplayNameCell" style="display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                     <span id="customerDisplayName">-</span>
                                     <button id="editDisplayNameBtn" class="btn btn-sm btn-outline" onclick="startEditDisplayName()">✏️ Edit</button>
-                                    <div id="editDisplayNameControls" style="display:none; align-items:center; gap:6px;">
-                                        <input type="text" id="displayNameInput" maxlength="100" placeholder="Enter display name" onkeydown="handleDisplayNameKeydown(event)">
+                                    <div id="editDisplayNameControls" style="display:none; align-items:center; gap:8px;">
+                                        <input id="displayNameInput" type="text" maxlength="100" placeholder="Enter display name" onkeydown="handleDisplayNameKeydown(event)" />
                                         <button id="saveDisplayNameBtn" class="btn btn-sm btn-primary" onclick="saveDisplayNameEdit()">💾 Save</button>
                                         <button id="cancelDisplayNameBtn" class="btn btn-sm btn-secondary" onclick="cancelEditDisplayName()">❌ Cancel</button>
                                     </div>
                                     <small id="displayNameError" style="color:#c00; display:none; margin-left:4px;"></small>
-                                </div>
+                                </span>
                             </div>
                             <div class="data-row">
                                 <span class="data-label">Status:</span>
