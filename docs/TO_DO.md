@@ -100,3 +100,24 @@ TODO 11 Aug 2025:
 - does generateNpubs, the task that's in js, not sh, cause crash?
 - who processAllTasks use so many if sude commands? Why did script seem to pause in reconciliation?
 - taskQueueManager and relayed tasks still need to incorporate structured logging
+
+
+TODO: 24 Aug 2025: profile-search.html page and its associated api
+1. when searching via file: stop using the whitelist in strfry/plugin folder. Instead, use the strategy we discussed in detail earlier. Run cypher query and store results in memory as a map. Design this map for search.
+2. Consider also including kind 0 profile data in that map. This should make file search much more performant.
+3. handleKeywordSearchProfiles: stop using multiple rounds of search. Just do one round and return results.
+4. Improve UI: Tweak which profiles have red border. Remove about data from profile cards, or truncate long ones.
+5. option to search name and display_name without about; see if faster results
+
+TODO: 25 Aug 2025: revamp navbars
+1. Create guest navbar: 
+- single about page
+- profile search page as main page
+- profiles page
+- grapevine-curated reports page
+2. Create a FAQ navbar.
+3. Owner navbar
+4. Customer navbar
+5. Deprecated pages navbar
+
+

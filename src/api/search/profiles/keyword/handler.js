@@ -21,6 +21,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const neo4j = require('neo4j-driver');
 const { getNeo4jConnection } = require('../../../../utils/config');
+const { getPrecomputedForObserver, refreshWhitelistMapForObserver, PRECOMPUTE_TTL_MS } = require('../whitelistPrecompute');
 
 // --- Performance constants (aligned with legacy optimized search) ---
 const SEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
@@ -42,6 +43,26 @@ const whitelistCache = {
 // --- Whitelist Loading ---
 async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {}) {
   if (source !== 'neo4j') {
+    // Prefer precomputed in-memory whitelist map (built from Neo4j) for file source
+    try {
+      const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
+      const pre = getPrecomputedForObserver(observerNorm, { maxAgeMs: PRECOMPUTE_TTL_MS });
+      if (pre && pre.set && pre.set.size > 0) {
+        return pre.set;
+      }
+      // If not fresh, attempt to refresh from Neo4j synchronously as a fallback
+      try {
+        const refreshed = await refreshWhitelistMapForObserver(observerNorm, { force: true });
+        if (refreshed && refreshed.set && refreshed.set.size > 0) {
+          return refreshed.set;
+        }
+      } catch (e) {
+        console.warn('KeywordSearch: precompute refresh failed, falling back to file whitelist:', e && e.message || e);
+      }
+    } catch (e) {
+      console.warn('KeywordSearch: precompute access failed, falling back to file whitelist:', e && e.message || e);
+    }
+
     const whitelistPath = '/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json';
     try {
       const stats = fs.existsSync(whitelistPath) ? fs.statSync(whitelistPath) : null;
@@ -372,7 +393,7 @@ async function handleKeywordSearchProfiles(req, res) {
       }
     }
 
-    // If using Neo4j whitelist, sort by verifiedFollowerCount desc before applying limit
+    // Sort by verifiedFollowerCount desc when possible before applying limit
     let ordered = filteredAll;
     if (source === 'neo4j') {
       const cachedWL = whitelistCache.neo4j.get(observerPubkey);
@@ -385,6 +406,21 @@ async function handleKeywordSearchProfiles(req, res) {
         if (bv !== av) return bv - av;
         return 0;
       });
+    } else {
+      // source === 'file': use precomputed map if available to improve ordering
+      const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
+      const pre = getPrecomputedForObserver(observerNorm);
+      const vfMap = (pre && pre.scoreByPubkey) || null;
+      if (vfMap) {
+        ordered = filteredAll.slice().sort((a, b) => {
+          const al = typeof a === 'string' ? a.toLowerCase() : a;
+          const bl = typeof b === 'string' ? b.toLowerCase() : b;
+          const av = typeof vfMap[al] === 'number' ? vfMap[al] : Number(vfMap[al] || 0);
+          const bv = typeof vfMap[bl] === 'number' ? vfMap[bl] : Number(vfMap[bl] || 0);
+          if (bv !== av) return bv - av;
+          return 0;
+        });
+      }
     }
     const limited = ordered.slice(0, limit);
 
