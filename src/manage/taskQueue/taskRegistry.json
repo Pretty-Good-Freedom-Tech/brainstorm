@@ -355,7 +355,7 @@
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/customers/processAllActiveCustomers.sh",
       "script_relative_path": "algos/customers/processAllActiveCustomers.sh",
       "arguments": {
-        "customer": true
+        "customer": false
       },
       "parent": "processAllTasks",
       "children": [

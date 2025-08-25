@@ -44,36 +44,65 @@ const whitelistCache = {
 async function loadWhitelist({ source = 'file', observerPubkey = 'owner' } = {}) {
   const wlStart = Date.now();
   if (source !== 'neo4j') {
-    // Streamlined precomputed whitelist loading - no synchronous refreshes during request
-    const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
-    
-    // Try observer-specific precomputed map first
-    let pre = getPrecomputedForObserver(observerNorm, { maxAgeMs: PRECOMPUTE_TTL_MS });
-    let sourceLabel = observerNorm === 'owner' ? 'precomputed:owner' : 'precomputed:observer';
-    
-    // Fallback to owner precomputed map if observer-specific unavailable
-    if (!pre || !pre.set || pre.set.size === 0) {
-      if (observerNorm !== 'owner') {
-        pre = getPrecomputedForObserver('owner', { maxAgeMs: PRECOMPUTE_TTL_MS });
-        sourceLabel = 'precomputed:owner-fallback';
+    // Prefer precomputed in-memory whitelist map (built from Neo4j) for file source
+    try {
+      const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
+      const pre = getPrecomputedForObserver(observerNorm, { maxAgeMs: PRECOMPUTE_TTL_MS });
+      if (pre && pre.set && pre.set.size > 0) {
+        // annotate debug info on the Set object (non-enumerable in JSON usage)
+        pre.set._wlSource = observerNorm === 'owner' ? 'precomputed:owner' : 'precomputed:observer';
+        pre.set._wlLoadMs = Date.now() - wlStart;
+        pre.set._wlPreTs = pre.ts;
+        pre.set._wlPreAgeMs = Date.now() - pre.ts;
+        pre.set._wlMetricsCount = pre.metricsByPubkey ? Object.keys(pre.metricsByPubkey).length : 0;
+        return pre.set;
       }
+      // If not fresh, attempt to refresh from Neo4j synchronously as a fallback
+      try {
+        const refreshed = await refreshWhitelistMapForObserver(observerNorm, { force: true });
+        if (refreshed && refreshed.set && refreshed.set.size > 0) {
+          refreshed.set._wlSource = observerNorm === 'owner' ? 'precomputeRefresh:owner' : 'precomputeRefresh:observer';
+          refreshed.set._wlLoadMs = Date.now() - wlStart;
+          refreshed.set._wlPreTs = refreshed.ts;
+          refreshed.set._wlPreAgeMs = Date.now() - refreshed.ts;
+          refreshed.set._wlMetricsCount = refreshed.metricsByPubkey ? Object.keys(refreshed.metricsByPubkey).length : 0;
+          return refreshed.set;
+        }
+      } catch (e) {
+        console.warn('KeywordSearch: precompute refresh failed, falling back to file whitelist:', e && e.message || e);
+      }
+    } catch (e) {
+      console.warn('KeywordSearch: precompute access failed, falling back to file whitelist:', e && e.message || e);
     }
-    
-    // Return precomputed data if available
-    if (pre && pre.set && pre.set.size > 0) {
-      pre.set._wlSource = sourceLabel;
-      pre.set._wlLoadMs = Date.now() - wlStart;
-      pre.set._wlPreTs = pre.ts;
-      pre.set._wlPreAgeMs = Date.now() - pre.ts;
-      pre.set._wlMetricsCount = pre.metricsByPubkey ? Object.keys(pre.metricsByPubkey).length : 0;
-      return pre.set;
+
+    // Fallback to owner precomputed map if observer-specific map unavailable
+    try {
+      const ownerPre = getPrecomputedForObserver('owner', { maxAgeMs: PRECOMPUTE_TTL_MS });
+      if (ownerPre && ownerPre.set && ownerPre.set.size > 0) {
+        ownerPre.set._wlSource = 'precomputed:owner';
+        ownerPre.set._wlLoadMs = Date.now() - wlStart;
+        ownerPre.set._wlPreTs = ownerPre.ts;
+        ownerPre.set._wlPreAgeMs = Date.now() - ownerPre.ts;
+        ownerPre.set._wlMetricsCount = ownerPre.metricsByPubkey ? Object.keys(ownerPre.metricsByPubkey).length : 0;
+        return ownerPre.set;
+      }
+      // Attempt a synchronous refresh for owner as a last resort before file
+      try {
+        const ownerRefreshed = await refreshWhitelistMapForObserver('owner', { force: true });
+        if (ownerRefreshed && ownerRefreshed.set && ownerRefreshed.set.size > 0) {
+          ownerRefreshed.set._wlSource = 'precomputeRefresh:owner';
+          ownerRefreshed.set._wlLoadMs = Date.now() - wlStart;
+          ownerRefreshed.set._wlPreTs = ownerRefreshed.ts;
+          ownerRefreshed.set._wlPreAgeMs = Date.now() - ownerRefreshed.ts;
+          ownerRefreshed.set._wlMetricsCount = ownerRefreshed.metricsByPubkey ? Object.keys(ownerRefreshed.metricsByPubkey).length : 0;
+          return ownerRefreshed.set;
+        }
+      } catch (_) {
+        // ignore and fall through to file
+      }
+    } catch (_) {
+      // ignore and fall through to file
     }
-    
-    // Schedule async refresh for next request (non-blocking)
-    if (observerNorm !== 'owner') {
-      refreshWhitelistMapForObserver(observerNorm, { force: false }).catch(() => {});
-    }
-    refreshWhitelistMapForObserver('owner', { force: false }).catch(() => {});
 
     const whitelistPath = '/usr/local/lib/strfry/plugins/data/whitelist_pubkeys.json';
     try {
@@ -413,53 +442,62 @@ async function handleKeywordSearchProfiles(req, res) {
       return res.json({ success: true, message: `${note} (failOpen=true)`, counts: { beforeFilter: allPubkeys.length, afterFilter: Math.min(allPubkeys.length, limit), whitelistSize: whitelistSet ? whitelistSet.size : 0 }, pubkeys: allPubkeys.slice(0, limit) });
     }
 
-    // Combined filter + sort with cached normalization
+    const filteredAll = [];
     const filterStart = Date.now();
-    const pubkeyData = []; // { original, normalized, score }
-    
-    // Get score map once
-    let vfMap = null;
-    if (source === 'neo4j') {
-      const cachedWL = whitelistCache.neo4j.get(observerPubkey);
-      vfMap = (cachedWL && cachedWL.scoreByPubkey) || {};
-    } else {
-      // source === 'file': use precomputed map if available
-      const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
-      let pre = getPrecomputedForObserver(observerNorm);
-      if ((!pre || !pre.scoreByPubkey) && observerNorm !== 'owner') {
-        pre = getPrecomputedForObserver('owner');
-      }
-      vfMap = (pre && pre.scoreByPubkey) || null;
-    }
-    
-    // Single pass: normalize, filter, and prepare for sorting
     for (const pk of allPubkeys) {
       const pkLower = typeof pk === 'string' ? pk.toLowerCase() : pk;
       if (whitelistSet.has(pkLower)) {
-        const score = vfMap ? (typeof vfMap[pkLower] === 'number' ? vfMap[pkLower] : Number(vfMap[pkLower] || 0)) : 0;
-        pubkeyData.push({ original: pk, normalized: pkLower, score });
+        filteredAll.push(pk);
       }
     }
-    
-    // Sort by score if we have score data
-    if (vfMap) {
-      pubkeyData.sort((a, b) => b.score - a.score);
-    }
-    
     const filterMs = Date.now() - filterStart;
-    const sortMs = 0; // Combined with filter
-    const limited = pubkeyData.slice(0, limit).map(item => item.original);
+
+    // Sort by verifiedFollowerCount desc when possible before applying limit
+    let ordered = filteredAll;
+    let sortMs = 0;
+    const sortStart = Date.now();
+    if (source === 'neo4j') {
+      const cachedWL = whitelistCache.neo4j.get(observerPubkey);
+      const vfMap = (cachedWL && cachedWL.scoreByPubkey) || {};
+      ordered = filteredAll.slice().sort((a, b) => {
+        const al = typeof a === 'string' ? a.toLowerCase() : a;
+        const bl = typeof b === 'string' ? b.toLowerCase() : b;
+        const av = typeof vfMap[al] === 'number' ? vfMap[al] : Number(vfMap[al] || 0);
+        const bv = typeof vfMap[bl] === 'number' ? vfMap[bl] : Number(vfMap[bl] || 0);
+        if (bv !== av) return bv - av;
+        return 0;
+      });
+    } else {
+    // source === 'file': use precomputed map if available to improve ordering
+    const observerNorm = (observerPubkey && observerPubkey !== 'owner') ? String(observerPubkey).toLowerCase() : 'owner';
+    let pre = getPrecomputedForObserver(observerNorm);
+    if ((!pre || !pre.scoreByPubkey) && observerNorm !== 'owner') {
+      pre = getPrecomputedForObserver('owner');
+    }
+    const vfMap = (pre && pre.scoreByPubkey) || null;
+    if (vfMap) {
+      ordered = filteredAll.slice().sort((a, b) => {
+        const al = typeof a === 'string' ? a.toLowerCase() : a;
+        const bl = typeof b === 'string' ? b.toLowerCase() : b;
+        const av = typeof vfMap[al] === 'number' ? vfMap[al] : Number(vfMap[al] || 0);
+        const bv = typeof vfMap[bl] === 'number' ? vfMap[bl] : Number(vfMap[bl] || 0);
+        if (bv !== av) return bv - av;
+        return 0;
+      });
+    }
+  }
+  sortMs = Date.now() - sortStart;
+  const limited = ordered.slice(0, limit);
 
     // Include inline scores when using Neo4j source to avoid N+1 score requests from the frontend
     let profiles = null;
     if (source === 'neo4j') {
       const cachedWL = whitelistCache.neo4j.get(observerPubkey);
       const metricsMap = (cachedWL && cachedWL.metricsByPubkey) || {};
-      // Use already-normalized keys from pubkeyData to avoid repeated toLowerCase()
-      const limitedData = pubkeyData.slice(0, limit);
-      profiles = limitedData.map((item) => {
-        const s = metricsMap[item.normalized] || { influence: 0, verifiedFollowerCount: 0, verifiedMuterCount: 0, verifiedReporterCount: 0 };
-        return { pubkey: item.original, scores: s };
+      profiles = limited.map((pk) => {
+        const key = typeof pk === 'string' ? pk.toLowerCase() : pk;
+        const s = metricsMap[key] || { influence: 0, verifiedFollowerCount: 0, verifiedMuterCount: 0, verifiedReporterCount: 0 };
+        return { pubkey: pk, scores: s };
       });
     }
 
