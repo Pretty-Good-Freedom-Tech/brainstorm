@@ -107,6 +107,10 @@ TODO: 24 Aug 2025: profile-search.html page and its associated api
  - api/search/profiles/keyword?searchString=jack&source=file&limit=60&observerPubkey=owner
 1. Review handleKeywordSearchProfiles search api. I suspect it may perform multiple redundant passes: Targeted passes, Broad prefilter, runExhaustiveTargetedRegex, runExhaustiveFixedLiteral, maybe more. Plan: do only one pass. Make sure search proceeds from high influence to low. Set limits on number of results. Implement button on front end to show more results or show hidden results. Goal: make search faster and more performant. It may be easier just to rewrite handleKeywordSearchProfiles from scratch after 
 2. Create new POST precompute-kind0-maps endpoints, modelled after precompute-whitelist-maps api endpoionts, that makes a list of all pubkeys that are whitelisted on ANY list (see precompute-whitelist-maps/status endpoint for how to access this list); query strfry for all kind 0 data; for whitelisted pubkeys, obtain name, display_name, and about; create a new map that will live in memory. Use this map, if available, whenever doing keyword search. When doing keyword search, there should now be no need to query strfry or neo4j (when using source=file option), because all relevant data will be in memory. Goal: make profile search much more performant.
+BASIC FUNCTIONALITY:
+1. Replace Observer pubkey field with observerSelector - adapt from components
+2. set up service to recalculate data in cache periodically: /api/search/profiles/keyword/precompute-whitelist-maps?force=true
+IMPROVE UI
 3. Improve UI: Tweak which profiles have red border. Remove about data from profile cards, or truncate long ones.
 4. option to search name and display_name without about; see if faster results
 4. Improve UI: remove Legend; show info as popup over scores in profile cards

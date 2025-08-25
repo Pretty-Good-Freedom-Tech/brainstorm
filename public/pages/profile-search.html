@@ -414,7 +414,14 @@
             const handle = name ? `@${escapeHTML(name)}` : '';
             const pkShort = truncate(pubkey);
             const vReporters = Number(scores?.verifiedReporterCount || 0);
-            const warn = vReporters >= 2;
+            const vFollowers = Number(scores?.verifiedFollowerCount || 0);
+            const vMuters = Number(scores?.verifiedMuterCount || 0);
+
+            // Calculate effectiveReporterCount with correction factor for high follower count
+            const correctionFactor = Math.round((vFollowers / 500) * 10) / 10; // Round to 1 decimal place
+            const effectiveReporterCount = Math.max(0, vReporters - correctionFactor);
+
+            const warn = effectiveReporterCount >= 2;
             const badges = createScoreBadges(scores);
             return `
                 <div class="profile-card${warn ? ' warning-card' : ''}">
@@ -551,7 +558,7 @@
 
             const safeQ = escapeHTML(q);
             setKeywordStatus(`
-                <h2>Searching...</h2>
+                <h2>Searching... (typically takes up to about 12 seconds)</h2>
                 <p>Query: <strong>${safeQ}</strong></p>
                 <p>Trust source: <strong>${escapeHTML(source)}</strong>, Observer: <strong>${escapeHTML(observer || 'owner')}</strong></p>
             `);

@@ -1,0 +1,13 @@
+[Unit]
+Description=Process all routine tasks periodically
+# After=network.target neo4j.service
+
+[Timer]
+# Run every 30 minutes
+Unit=precomputeWhitelistForSearchMaps.service
+OnBootSec=5min
+OnUnitActiveSec=30min
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

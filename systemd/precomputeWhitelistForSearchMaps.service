@@ -1,0 +1,20 @@
+[Unit]
+Description=Precompute whitelist for search maps
+After=network.target neo4j.service
+# Trigger this api endpoint:
+# /api/search/profiles/keyword/precompute-whitelist-maps?force=true
+
+[Service]
+Type=simple
+User=brainstorm
+EnvironmentFile=/etc/brainstorm.conf
+ExecStart=/usr/local/lib/node_modules/brainstorm/src/manage/search/precomputeWhitelistMaps.sh
+Restart=on-failure
+RestartSec=30
+# Set resource limits to prevent excessive resource usage
+CPUQuota=70%
+# Add additional security measures
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
