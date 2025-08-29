@@ -123,6 +123,66 @@
   color: #6b7280; /* gray-500 */
 }
 
+/* Backup preview panel */
+.backup-preview {
+  margin-top: 1.5rem;
+}
+
+.backup-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.backup-preview-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937; /* gray-800 */
+  margin: 0;
+}
+
+.btn-toggle {
+  appearance: none;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-toggle:hover {
+  border-color: #9ca3af; /* gray-400 */
+  background: #f9fafb; /* gray-50 */
+}
+
+.btn-toggle:focus {
+  outline: none;
+  border-color: #3b82f6; /* blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.backup-panel {
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 10px;
+  background: #0b1020; /* dark bg for code */
+  padding: 12px;
+}
+
+.code-block {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9rem;
+  color: #e5e7eb; /* gray-200 */
+  white-space: pre;
+  overflow: auto;
+  max-height: 420px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .backup-mode-toggle {

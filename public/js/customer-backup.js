@@ -47,6 +47,41 @@
         console.error('Error loading customers', err);
       }
     }
+    
+    // --- Backup JSON preview helpers ---
+    function renderBackupJson(data) {
+      const pre = qs('backupJsonPre');
+      if (!pre) return;
+      try {
+        const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        pre.textContent = text;
+      } catch (e) {
+        pre.textContent = '/* Failed to render JSON */';
+      }
+    }
+    
+    function toggleBackupPanel(forceOpen) {
+      const panel = qs('backupPanel');
+      const btn = qs('backupPanelToggle');
+      if (!panel || !btn) return;
+      const shouldOpen = (forceOpen !== undefined) ? !!forceOpen : panel.hasAttribute('hidden');
+      if (shouldOpen) {
+        panel.removeAttribute('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+        btn.textContent = 'Hide';
+      } else {
+        panel.setAttribute('hidden', '');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = 'Show';
+      }
+    }
+    
+    // Expose a simple API to set backup JSON from elsewhere
+    window.setBackupJson = function(data, autoOpen = true) {
+      renderBackupJson(data);
+      if (autoOpen) toggleBackupPanel(true);
+    };
+    
     function init(){
       const all = document.getElementById('backup-all');
       const one = document.getElementById('backup-one');
@@ -56,6 +91,12 @@
       setSelectorVisibility(one && one.checked ? 'one' : 'all');
       // load customers if visible
       if (one && one.checked) populateCustomerSelect();
+      
+      // Wire backup panel toggle
+      const toggleBtn = qs('backupPanelToggle');
+      if (toggleBtn) toggleBtn.addEventListener('click', () => toggleBackupPanel());
+      // Ensure default closed state and button text
+      toggleBackupPanel(false);
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
