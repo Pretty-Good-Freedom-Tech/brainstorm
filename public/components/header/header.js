@@ -437,7 +437,8 @@ function highlightCurrentPage() {
         '/neo4j-resource-config.html': '/neo4j-resource-config',
         '/neo4j-control-panel.html': '/neo4j-control-panel',
         '/add-new-customer.html': '/add-new-customer',
-        '/customer-import-export.html': '/customer-import-export',
+        '/customer-backup.html': '/customer-backup',
+        '/customer-restore.html': '/customer-restore',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
