@@ -1,1 +1,156 @@
 @import "./common.css";
+
+/* Backup Mode Toggle Styles */
+.backup-mode-toggle {
+  margin: 2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggle-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.toggle-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: #f7f7f9;
+  border-radius: 28px;
+  padding: 4px;
+  border: 2px solid #e6e6ef;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.toggle-container:hover {
+  border-color: #4c8bf7;
+}
+
+/* Hide native radios */
+.toggle-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-option {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 22px;
+  transition: color 0.25s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #6b7280; /* gray-500 */
+  z-index: 2;
+  position: relative;
+  white-space: nowrap;
+}
+
+/* When a radio is checked, its adjacent label gets active text color */
+.toggle-input:checked + .toggle-option {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Animated slider pill sitting behind the active option */
+.toggle-slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  width: calc(50% - 4px);
+  background: linear-gradient(135deg, #2f80ed 0%, #1c64f2 100%);
+  border-radius: 22px;
+  transition: transform 0.25s ease;
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(28, 100, 242, 0.25);
+}
+
+/* Position for first (All Customers) */
+#backup-all:checked ~ .toggle-slider {
+  transform: translateX(0);
+}
+
+/* Position for second (One Customer) */
+#backup-one:checked ~ .toggle-slider {
+  transform: translateX(100%);
+}
+
+/* Ensure the container has two equal segments */
+.toggle-container .toggle-option:first-of-type,
+.toggle-container .toggle-option:last-of-type {
+  min-width: 160px;
+  text-align: center;
+}
+
+/* Selector row styles */
+.selection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 1rem 0 0.5rem;
+}
+
+.selector-label {
+  min-width: 150px;
+  font-weight: 600;
+  color: #374151; /* gray-700 */
+}
+
+.selector-input {
+  flex: 1;
+  max-width: 420px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827; /* gray-900 */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.selector-input:focus {
+  outline: none;
+  border-color: #3b82f6; /* blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.selector-status {
+  font-size: 0.9rem;
+  color: #6b7280; /* gray-500 */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .backup-mode-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .toggle-option {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  .toggle-container .toggle-option:first-of-type,
+  .toggle-container .toggle-option:last-of-type {
+    min-width: 140px;
+  }
+
+  /* Stack selector row on small screens */
+  .selection-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .selector-label {
+    min-width: auto;
+    margin-bottom: 2px;
+  }
+  .selector-input {
+    width: 100%;
+    max-width: 100%;
+  }
+}
