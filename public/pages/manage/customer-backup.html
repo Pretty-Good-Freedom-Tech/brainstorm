@@ -41,13 +41,30 @@
       
             <p>Backup your customer data.</p>
 
+            <!-- Action Row: options + trigger -->
+            <div class="selection-row" id="backupActionRow">
+                <label class="selector-label" for="includeSecureKeys">Options:</label>
+                <div>
+                    <label style="display:inline-flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="includeSecureKeys">
+                        <span>Include secure keys manifest</span>
+                    </label>
+                </div>
+                <button id="generateBackupBtn" class="btn-toggle" style="margin-left:auto;">Generate Backup</button>
+                <span id="backupActionStatus" class="selector-status" role="status"></span>
+            </div>
+
             <!-- Backup JSON Preview (hidden by default) -->
             <div class="backup-preview">
                 <div class="backup-preview-header">
                     <h2 class="backup-preview-title">Backup JSON</h2>
-                    <button id="backupPanelToggle" class="btn-toggle" aria-expanded="false" aria-controls="backupPanel">
-                        Show
-                    </button>
+                    <div class="actions" style="display:flex; align-items:center; gap:8px;">
+                        <button id="copyBackupJsonBtn" class="btn-toggle" type="button">Copy</button>
+                        <button id="downloadBackupJsonBtn" class="btn-toggle" type="button">Download</button>
+                        <button id="backupPanelToggle" class="btn-toggle" aria-expanded="false" aria-controls="backupPanel" type="button">
+                            Show
+                        </button>
+                    </div>
                 </div>
                 <div id="backupPanel" class="backup-panel" hidden>
                     <pre id="backupJsonPre" class="code-block" aria-live="polite">/* JSON will appear here after a backup is generated */</pre>

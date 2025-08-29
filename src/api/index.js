@@ -289,6 +289,9 @@ function register(app) {
     
     // Process All Active Customers endpoint; creates all scores for all active customers
     app.post('/api/process-all-active-customers', customers.handleProcessAllActiveCustomers);
+
+    // Backup Customers endpoint; owner-only backup of all or single customer data
+    app.post('/api/backup-customers', customers.handleBackupCustomers);
     
     // Add New Customer endpoint; owner-only complete customer creation
     app.post('/api/add-new-customer', customers.handleAddNewCustomer);

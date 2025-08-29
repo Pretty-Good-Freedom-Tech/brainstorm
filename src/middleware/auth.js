@@ -316,7 +316,8 @@ function authMiddleware(req, res, next) {
             '/change-customer-status',
             '/service-management/control',
             '/add-new-customer',
-            '/update-customer-display-name'
+            '/update-customer-display-name',
+            '/backup-customers'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -367,7 +368,8 @@ function authMiddleware(req, res, next) {
             '/change-customer-status',
             '/service-management/control',
             '/add-new-customer',
-            '/update-customer-display-name'
+            '/update-customer-display-name',
+            '/backup-customers'
         ];
         
         // Check if the current path is a write endpoint
