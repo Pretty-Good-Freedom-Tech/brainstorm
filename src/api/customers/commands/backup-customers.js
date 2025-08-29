@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const archiver = require('archiver');
 const CustomerManager = require('../../../utils/customerManager.js');
 
 function defaultBackupBaseDir() {
@@ -114,6 +115,27 @@ async function handleBackupCustomers(req, res) {
       }
 
       fs.writeFileSync(path.join(backupPath, 'backup-manifest.json'), JSON.stringify(manifest, null, 2));
+
+      // If requested, compress the backup directory to a .zip archive
+      if (compress) {
+        const zipPath = `${backupPath}.zip`;
+        await new Promise((resolve, reject) => {
+          const output = fs.createWriteStream(zipPath);
+          const archive = archiver('zip', { zlib: { level: 9 } });
+
+          output.on('close', resolve);
+          output.on('error', reject);
+          archive.on('error', reject);
+
+          archive.pipe(output);
+          archive.directory(backupPath, false);
+          archive.finalize();
+        });
+
+        try { fs.rmSync(backupPath, { recursive: true, force: true }); } catch (_) { /* non-fatal */ }
+
+        return res.json({ success: true, backupPath: zipPath, manifest });
+      }
 
       return res.json({ success: true, backupPath, manifest });
     }

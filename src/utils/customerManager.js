@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const lockfile = require('proper-lockfile');
+const archiver = require('archiver');
 
 /**
  * CustomerManager - Centralized customer data management for Brainstorm
@@ -867,6 +868,39 @@ class CustomerManager {
             // Write backup manifest
             const manifestPath = path.join(backupPath, 'backup-manifest.json');
             fs.writeFileSync(manifestPath, JSON.stringify(backupManifest, null, 2));
+
+            // If requested, compress the entire backup directory into a .zip
+            if (compress) {
+                const zipPath = `${backupPath}.zip`;
+                await new Promise((resolve, reject) => {
+                    const output = fs.createWriteStream(zipPath);
+                    const archive = archiver('zip', { zlib: { level: 9 } });
+
+                    output.on('close', resolve);
+                    output.on('error', reject);
+                    archive.on('error', reject);
+
+                    archive.pipe(output);
+                    archive.directory(backupPath, false);
+                    archive.finalize();
+                });
+
+                // Remove the uncompressed directory after successful compression
+                try {
+                    fs.rmSync(backupPath, { recursive: true, force: true });
+                } catch (e) {
+                    console.warn(`Warning: Failed to remove temp backup directory '${backupPath}': ${e.message}`);
+                }
+
+                console.log(`Customer data backed up to: ${zipPath}`);
+                console.log(`Backed up ${backupManifest.files.length} items (compressed)`);
+
+                return {
+                    success: true,
+                    backupPath: zipPath,
+                    manifest: backupManifest
+                };
+            }
 
             console.log(`Customer data backed up to: ${backupPath}`);
             console.log(`Backed up ${backupManifest.files.length} items`);

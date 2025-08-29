@@ -168,7 +168,8 @@
             setActionStatus('Generating backup...');
             const mode = getSelectedMode();
             const includeSecureKeys = !!(qs('includeSecureKeys') && qs('includeSecureKeys').checked);
-            const payload = { mode, includeSecureKeys, compress: false };
+            const compress = !!(qs('compressBackup') && qs('compressBackup').checked);
+            const payload = { mode, includeSecureKeys, compress };
             if (mode === 'one') {
               const select = qs('customerSelect');
               const val = select && select.value;
