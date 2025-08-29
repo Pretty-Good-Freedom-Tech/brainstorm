@@ -1,6 +1,7 @@
 const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
+const nostrTools = require('nostr-tools');
 
 /**
  * Secure Key Storage System for Brainstorm
@@ -109,11 +110,66 @@ class SecureKeyStorage {
      * Store relay keys securely
      */
     async storeRelayKeys(customerPubkey, keys) {
+        // Normalize inputs and derive any missing fields from nsec/privkey
+        if (!keys || typeof keys !== 'object') {
+            throw new Error('keys object is required');
+        }
+
+        let privBytes = null;     // Uint8Array | Buffer
+        let privHex = null;       // string (hex)
+        let nsecStr = keys.nsec || null; // may be undefined/null
+        let pubHex = keys.pubkey || null; // 64-char hex
+        let npubStr = keys.npub || null;  // npub1...
+
+        try {
+            // Determine private key bytes from either nsec or privkey
+            if (keys.privkey) {
+                const pk = String(keys.privkey);
+                if (pk.startsWith('nsec')) {
+                    // Some callers may mistakenly pass nsec as privkey
+                    const decoded = nostrTools.nip19.decode(pk);
+                    privBytes = decoded.data;
+                } else if (/^[0-9a-fA-F]{64}$/.test(pk)) {
+                    privHex = pk.toLowerCase();
+                    privBytes = Buffer.from(privHex, 'hex');
+                }
+            }
+
+            if (!privBytes && nsecStr) {
+                const n = String(nsecStr);
+                if (n.startsWith('nsec')) {
+                    const decoded = nostrTools.nip19.decode(n);
+                    privBytes = decoded.data;
+                } else if (/^[0-9a-fA-F]{64}$/.test(n)) {
+                    privHex = n.toLowerCase();
+                    privBytes = Buffer.from(privHex, 'hex');
+                    // Ensure nsec string form too
+                    nsecStr = nostrTools.nip19.nsecEncode(privBytes);
+                }
+            }
+
+            // If we have private key bytes, ensure we fill all derived fields
+            if (privBytes) {
+                if (!privHex) privHex = Buffer.from(privBytes).toString('hex');
+                if (!nsecStr) nsecStr = nostrTools.nip19.nsecEncode(privBytes);
+                if (!pubHex) pubHex = nostrTools.getPublicKey(privBytes);
+                if (!npubStr && pubHex) npubStr = nostrTools.nip19.npubEncode(pubHex);
+            }
+
+            // Final validation — at minimum we must have an nsec or privkey
+            if (!nsecStr && !privHex) {
+                throw new Error('Missing nsec/privkey. Provide at least one to store relay keys.');
+            }
+        } catch (e) {
+            console.error(`Failed to normalize relay keys for ${customerPubkey}: ${e.message}`);
+            throw e;
+        }
+
         const keyData = {
-            pubkey: keys.pubkey,
-            npub: keys.npub,
-            privkey: this.encrypt(keys.privkey),
-            nsec: this.encrypt(keys.nsec),
+            pubkey: pubHex || keys.pubkey || null,
+            npub: npubStr || keys.npub || null,
+            privkey: this.encrypt(privHex || String(keys.privkey || '')),
+            nsec: this.encrypt(nsecStr || String(keys.nsec || '')),
             createdAt: new Date().toISOString()
         };
         

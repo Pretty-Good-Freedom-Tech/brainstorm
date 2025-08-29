@@ -1036,6 +1036,66 @@ class CustomerManager {
                 }
             }
 
+            // Restore secure relay keys (if a manifest is present) for customers actually restored
+            try {
+                const secureKeysManifestPath = path.join(backupPath, 'secure-keys-manifest.json');
+                if (fs.existsSync(secureKeysManifestPath)) {
+                    const manifestJson = JSON.parse(fs.readFileSync(secureKeysManifestPath, 'utf8'));
+                    const entries = Array.isArray(manifestJson.customers) ? manifestJson.customers : [];
+                    
+                    // Determine which customers from the backup were actually merged (added/updated)
+                    const eligibleNames = (merge && mergeResult)
+                        ? new Set([...(Array.isArray(mergeResult.added) ? mergeResult.added : []), ...(Array.isArray(mergeResult.updated) ? mergeResult.updated : [])])
+                        : null;
+                    
+                    // Build set of eligible pubkeys based on customers.json content
+                    const eligiblePubkeys = new Set();
+                    try {
+                        const backupCustomers = JSON.parse(fs.readFileSync(backupCustomersFile, 'utf8'));
+                        for (const [name, c] of Object.entries(backupCustomers.customers || {})) {
+                            if ((!eligibleNames || eligibleNames.has(name)) && c && c.pubkey) {
+                                eligiblePubkeys.add(c.pubkey);
+                            }
+                        }
+                    } catch (_) { /* ignore */ }
+                    
+                    // Store keys only for eligible customers
+                    if (entries.length > 0 && eligiblePubkeys.size > 0) {
+                        const { SecureKeyStorage } = require('./secureKeyStorage');
+                        const secureStorage = new SecureKeyStorage();
+                        let storedCount = 0;
+                        for (const item of entries) {
+                            try {
+                                const customerPubkey = item.customer_pubkey || item.pubkey;
+                                if (!customerPubkey || !eligiblePubkeys.has(customerPubkey)) continue;
+                                
+                                const nsec = item.relay_nsec || item.relay_nsec || null;
+                                const payload = {
+                                    nsec,
+                                    pubkey: item.relay_pubkey || null,
+                                    npub: item.relay_npub || null
+                                };
+                                
+                                if (payload.nsec) {
+                                    await secureStorage.storeRelayKeys(customerPubkey, payload);
+                                    storedCount++;
+                                } else {
+                                    console.warn(`[restore] secure-keys-manifest entry for ${customerPubkey} missing nsec; skipping`);
+                                }
+                            } catch (e) {
+                                console.error(`[restore] Failed to store secure keys for manifest entry: ${e.message}`);
+                            }
+                        }
+                        if (storedCount > 0) {
+                            restoredItems.push('secure-keys-manifest.json');
+                            console.log(`[restore] Stored secure relay keys for ${storedCount} customer(s)`);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`[restore] Error processing secure-keys-manifest.json: ${e.message}`);
+            }
+
             // Clear cache after restore
             this.cache.clear();
 

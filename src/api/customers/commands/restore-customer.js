@@ -94,12 +94,45 @@ async function handleRestoreCustomer(req, res) {
       }
       await cmForCopy.copyDirectory(sourceDir, destDir);
 
+      // If present in the set, include a filtered secure-keys-manifest.json for just this customer
+      let wroteSecureKeysManifest = false;
+      try {
+        const srcKeysPath = path.join(realSetDir, 'secure-keys-manifest.json');
+        if (fs.existsSync(srcKeysPath)) {
+          const src = JSON.parse(fs.readFileSync(srcKeysPath, 'utf8'));
+          const arr = Array.isArray(src.customers) ? src.customers : [];
+          const match = arr.find(item => item && (item.customer_pubkey === customer.pubkey || item.pubkey === customer.pubkey));
+          if (match && (match.relay_nsec)) {
+            const filteredManifest = {
+              schemaVersion: src.schemaVersion || '1.1',
+              timestamp: new Date().toISOString(),
+              keyFiles: Array.isArray(src.keyFiles) ? src.keyFiles : [],
+              customers: [
+                {
+                  name: entryName,
+                  id: customer.id,
+                  customer_pubkey: customer.pubkey,
+                  relay_pubkey: match.relay_pubkey || null,
+                  relay_npub: match.relay_npub || null,
+                  relay_nsec: match.relay_nsec
+                }
+              ],
+              note: 'Filtered for single-customer restore'
+            };
+            fs.writeFileSync(path.join(tmpDir, 'secure-keys-manifest.json'), JSON.stringify(filteredManifest, null, 2));
+            wroteSecureKeysManifest = true;
+          }
+        }
+      } catch (e) {
+        console.log(`\u26a0\ufe0f Failed to prepare filtered secure-keys-manifest.json: ${e.message}`);
+      }
+
       // Create minimal backup-manifest.json expected by restoreCustomerData
       const manifest = {
         timestamp: new Date().toISOString(),
         version: '1.0',
-        includeSecureKeys: false,
-        files: ['customers.json', customer.directory]
+        includeSecureKeys: wroteSecureKeysManifest,
+        files: wroteSecureKeysManifest ? ['customers.json', customer.directory, 'secure-keys-manifest.json'] : ['customers.json', customer.directory]
       };
       fs.writeFileSync(path.join(tmpDir, 'backup-manifest.json'), JSON.stringify(manifest, null, 2));
 
