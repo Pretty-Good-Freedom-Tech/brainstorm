@@ -66,6 +66,10 @@ function loadNavbar(classification) {
     ) {
         navbarPath = '/components/header/navbars/nav_basic_content.html';
     }  
+
+    if (currentPath === '/about.html' || currentPath === '/about-trusted-assertions.html') {
+        navbarPath = '/components/header/navbars/nav_info.html';
+    }
     /*
     if (
         currentPath === '/home.html' 
@@ -433,6 +437,7 @@ function highlightCurrentPage() {
         '/neo4j-resource-config.html': '/neo4j-resource-config',
         '/neo4j-control-panel.html': '/neo4j-control-panel',
         '/add-new-customer.html': '/add-new-customer',
+        '/customer-import-export.html': '/customer-import-export',
 
         '/control/overview.html': '/control/overview',
         '/control/index.html': '/control/index',
