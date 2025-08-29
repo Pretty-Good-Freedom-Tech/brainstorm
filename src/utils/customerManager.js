@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const lockfile = require('proper-lockfile');
 const archiver = require('archiver');
+const { getCustomerRelayKeys } = require('./customerRelayKeys.js');
 
 /**
  * CustomerManager - Centralized customer data management for Brainstorm
@@ -835,22 +836,39 @@ class CustomerManager {
                 }
             }
 
-            // Optionally backup secure keys (metadata only, not actual keys)
+            // Optionally include secure keys manifest with relay nsec per customer
             if (includeSecureKeys) {
                 const secureKeysPath = '/var/lib/brainstorm/secure-keys';
                 try {
                     if (fs.existsSync(secureKeysPath)) {
-                        // Test if we can read the directory
                         const keyFiles = fs.readdirSync(secureKeysPath);
                         const secureKeysBackupPath = path.join(backupPath, 'secure-keys-manifest.json');
+                        const customersWithKeys = [];
+                        for (const [name, customer] of Object.entries(allCustomers.customers)) {
+                            try {
+                                const relayKeys = await getCustomerRelayKeys(customer.pubkey);
+                                if (relayKeys && relayKeys.nsec) {
+                                    customersWithKeys.push({
+                                        name,
+                                        id: customer.id,
+                                        pubkey: customer.pubkey,
+                                        npub: relayKeys.npub || '',
+                                        nsec: relayKeys.nsec
+                                    });
+                                }
+                            } catch (e) {
+                                console.log(`⚠️ Failed to read relay keys for ${name}: ${e.message}`);
+                            }
+                        }
                         const keyManifest = {
                             timestamp: new Date().toISOString(),
                             keyFiles: keyFiles.filter(f => f.endsWith('.enc')),
-                            note: 'Actual keys must be backed up separately with proper security'
+                            customers: customersWithKeys,
+                            note: 'Includes sensitive relay secrets (nsec). Handle and store securely.'
                         };
                         fs.writeFileSync(secureKeysBackupPath, JSON.stringify(keyManifest, null, 2));
                         backupManifest.files.push('secure-keys-manifest.json');
-                        console.log('✅ Secure keys manifest included in backup');
+                        console.log('✅ Secure keys manifest (with nsec) included in backup');
                     } else {
                         console.log('⚠️ Secure keys directory not found, skipping');
                     }

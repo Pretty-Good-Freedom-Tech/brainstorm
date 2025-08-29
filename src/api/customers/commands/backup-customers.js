@@ -11,6 +11,7 @@ const path = require('path');
 const os = require('os');
 const archiver = require('archiver');
 const CustomerManager = require('../../../utils/customerManager.js');
+const { getCustomerRelayKeys } = require('../../../utils/customerRelayKeys.js');
 
 function defaultBackupBaseDir() {
   // Prefer a system directory owned by the service
@@ -100,10 +101,26 @@ async function handleBackupCustomers(req, res) {
           if (fs.existsSync(secureKeysPath)) {
             const keyFiles = fs.readdirSync(secureKeysPath);
             const secureKeysBackupPath = path.join(backupPath, 'secure-keys-manifest.json');
+            let customers = [];
+            try {
+              const relayKeys = await getCustomerRelayKeys(customer.pubkey);
+              if (relayKeys && relayKeys.nsec) {
+                customers.push({
+                  name: entryName,
+                  id: customer.id,
+                  pubkey: customer.pubkey,
+                  npub: relayKeys.npub || '',
+                  nsec: relayKeys.nsec
+                });
+              }
+            } catch (e) {
+              console.log(`\u26a0\ufe0f Failed to read relay keys for ${entryName}: ${e.message}`);
+            }
             const keyManifest = {
               timestamp: new Date().toISOString(),
               keyFiles: keyFiles.filter(f => f.endsWith('.enc')),
-              note: 'Actual keys must be backed up separately with proper security'
+              customers,
+              note: 'Includes sensitive relay secrets (nsec). Handle and store securely.'
             };
             fs.writeFileSync(secureKeysBackupPath, JSON.stringify(keyManifest, null, 2));
             manifest.files.push('secure-keys-manifest.json');
