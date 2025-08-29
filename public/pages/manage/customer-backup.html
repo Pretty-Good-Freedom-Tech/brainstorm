@@ -16,6 +16,21 @@
     <div class="page-content">
         <div class="container">
             <h1>Customer Backup</h1>
+            
+            <!-- Backup Mode Toggle -->
+            <div class="backup-mode-toggle">
+                <label class="toggle-label">Backup Mode:</label>
+                <div class="toggle-container">
+                    <input type="radio" id="backup-all" name="backup-mode" value="all" class="toggle-input">
+                    <label for="backup-all" class="toggle-option">All Customers</label>
+                    
+                    <input type="radio" id="backup-one" name="backup-mode" value="one" class="toggle-input" checked>
+                    <label for="backup-one" class="toggle-option">One Customer at a Time</label>
+                    
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+            
             <p>Backup your customer data.</p>
         </div>
     </div>
