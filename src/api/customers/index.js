@@ -7,6 +7,8 @@ const { handleProcessAllActiveCustomers } = require('./commands/process-all-acti
 const { handleCreateAllCustomerRelays } = require('./commands/create-all-customer-relays.js');
 const { handleUpdateCustomerDisplayName } = require('./commands/update-customer-display-name.js');
 const { handleBackupCustomers } = require('./commands/backup-customers.js');
+const { handleListBackups } = require('./queries/list-backups.js');
+const { handleDownloadBackup } = require('./queries/download-backup.js');
 const { handleGetCustomers } = require('./getCustomers.js');
 const { handleDeleteCustomer } = require('./deleteCustomer.js');
 const { handleChangeCustomerStatus } = require('./changeCustomerStatus.js');
@@ -21,6 +23,8 @@ module.exports = {
     handleGetCustomers,
     handleGetCustomer,
     handleGetCustomerRelayKeys,
+    handleListBackups,
+    handleDownloadBackup,
     
     // Commands (write operations)
     handleProcessAllActiveCustomers,

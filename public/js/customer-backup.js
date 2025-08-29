@@ -48,39 +48,57 @@
       }
     }
     
-    // --- Backup JSON preview helpers ---
-    function renderBackupJson(data) {
-      const pre = qs('backupJsonPre');
-      if (!pre) return;
+    // --- Backups listing helpers ---
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes)) return '';
+      const units = ['B','KB','MB','GB','TB'];
+      let i = 0; let n = bytes;
+      while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+      return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
+    }
+
+    async function fetchBackups() {
+      const container = qs('backupsContainer');
+      const empty = qs('backupsEmpty');
+      const baseDirEl = qs('backupsBaseDir');
+      if (container) container.innerHTML = '';
+      if (empty) empty.hidden = true;
       try {
-        const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-        pre.textContent = text;
-      } catch (e) {
-        pre.textContent = '/* Failed to render JSON */';
+        const res = await fetch('/api/backups');
+        const data = await res.json();
+        if (!res.ok || !data || data.success === false) throw new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
+        if (baseDirEl) baseDirEl.textContent = data.baseDir || '';
+        const files = Array.isArray(data.files) ? data.files : [];
+        if (!files.length) {
+          if (empty) empty.hidden = false;
+          return;
+        }
+        for (const f of files) {
+          const card = document.createElement('div');
+          card.className = 'backup-card';
+          const name = document.createElement('div');
+          name.className = 'backup-name';
+          name.textContent = f.name;
+          const meta = document.createElement('div');
+          meta.className = 'backup-meta';
+          meta.textContent = `${formatBytes(f.size)} • ${new Date(f.mtimeMs || Date.now()).toLocaleString()}`;
+          const actions = document.createElement('div');
+          actions.className = 'backup-actions';
+          const a = document.createElement('a');
+          a.className = 'btn-toggle';
+          a.href = `/api/backups/download?file=${encodeURIComponent(f.name)}`;
+          a.textContent = 'Download';
+          actions.appendChild(a);
+          card.appendChild(name);
+          card.appendChild(meta);
+          card.appendChild(actions);
+          if (container) container.appendChild(card);
+        }
+      } catch (err) {
+        console.error('Failed to load backups', err);
+        if (empty) { empty.textContent = 'Failed to load backups'; empty.hidden = false; }
       }
     }
-    
-    function toggleBackupPanel(forceOpen) {
-      const panel = qs('backupPanel');
-      const btn = qs('backupPanelToggle');
-      if (!panel || !btn) return;
-      const shouldOpen = (forceOpen !== undefined) ? !!forceOpen : panel.hasAttribute('hidden');
-      if (shouldOpen) {
-        panel.removeAttribute('hidden');
-        btn.setAttribute('aria-expanded', 'true');
-        btn.textContent = 'Hide';
-      } else {
-        panel.setAttribute('hidden', '');
-        btn.setAttribute('aria-expanded', 'false');
-        btn.textContent = 'Show';
-      }
-    }
-    
-    // Expose a simple API to set backup JSON from elsewhere
-    window.setBackupJson = function(data, autoOpen = true) {
-      renderBackupJson(data);
-      if (autoOpen) toggleBackupPanel(true);
-    };
 
     // --- Helpers for actions ---
     function setActionStatus(msg, isError = false) {
@@ -111,32 +129,6 @@
       }
       return data;
     }
-
-    function copyBackupJson() {
-      const pre = qs('backupJsonPre');
-      if (!pre) return;
-      const text = pre.textContent || '';
-      if (!text.trim()) return;
-      navigator.clipboard.writeText(text).catch(() => {/* ignore */});
-      setActionStatus('Copied JSON to clipboard');
-    }
-
-    function downloadBackupJson() {
-      const pre = qs('backupJsonPre');
-      if (!pre) return;
-      const text = pre.textContent || '';
-      if (!text.trim()) return;
-      const blob = new Blob([text], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `backup-manifest-${Date.now()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      setActionStatus('Downloaded JSON');
-    }
     
     function init(){
       const all = document.getElementById('backup-all');
@@ -154,11 +146,9 @@
       // load customers if visible
       if (one && one.checked) populateCustomerSelect();
       
-      // Wire backup panel toggle
-      const toggleBtn = qs('backupPanelToggle');
-      if (toggleBtn) toggleBtn.addEventListener('click', () => toggleBackupPanel());
-      // Ensure default closed state and button text
-      toggleBackupPanel(false);
+      // Wire backups refresh
+      const refreshBtn = qs('refreshBackupsBtn');
+      if (refreshBtn) refreshBtn.addEventListener('click', fetchBackups);
 
       // Wire Generate Backup action
       const genBtn = qs('generateBackupBtn');
@@ -181,14 +171,9 @@
               if (/^[0-9a-fA-F]{64}$/.test(val)) payload.pubkey = val; else payload.name = val;
             }
             const data = await callBackupApi(payload);
-            // Display manifest only, as requested
-            if (data && data.manifest) {
-              window.setBackupJson(data.manifest, true);
-              setActionStatus(`Backup complete${data.backupPath ? `: ${data.backupPath}` : ''}`);
-            } else {
-              window.setBackupJson(data, true);
-              setActionStatus('Backup complete');
-            }
+            setActionStatus(`Backup complete${data.backupPath ? `: ${data.backupPath}` : ''}`);
+            // Refresh available backups (especially when compressed)
+            fetchBackups();
           } catch (err) {
             console.error('Backup failed', err);
             setActionStatus(`Backup failed: ${err.message || err}`, true);
@@ -196,11 +181,8 @@
         });
       }
 
-      // Wire Copy / Download
-      const copyBtn = qs('copyBackupJsonBtn');
-      if (copyBtn) copyBtn.addEventListener('click', copyBackupJson);
-      const dlBtn = qs('downloadBackupJsonBtn');
-      if (dlBtn) dlBtn.addEventListener('click', downloadBackupJson);
+      // Initial backups load
+      fetchBackups();
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);

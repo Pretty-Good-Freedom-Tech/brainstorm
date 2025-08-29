@@ -58,21 +58,17 @@
                 <span id="backupActionStatus" class="selector-status" role="status"></span>
             </div>
 
-            <!-- Backup JSON Preview (hidden by default) -->
-            <div class="backup-preview">
-                <div class="backup-preview-header">
-                    <h2 class="backup-preview-title">Backup JSON</h2>
+            <!-- Available Backups -->
+            <div class="backup-list">
+                <div class="backup-list-header">
+                    <h2 class="backup-list-title">Available Backups (.zip)</h2>
                     <div class="actions" style="display:flex; align-items:center; gap:8px;">
-                        <button id="copyBackupJsonBtn" class="btn-toggle" type="button">Copy</button>
-                        <button id="downloadBackupJsonBtn" class="btn-toggle" type="button">Download</button>
-                        <button id="backupPanelToggle" class="btn-toggle" aria-expanded="false" aria-controls="backupPanel" type="button">
-                            Show
-                        </button>
+                        <button id="refreshBackupsBtn" class="btn-toggle" type="button">Refresh</button>
                     </div>
                 </div>
-                <div id="backupPanel" class="backup-panel" hidden>
-                    <pre id="backupJsonPre" class="code-block" aria-live="polite">/* JSON will appear here after a backup is generated */</pre>
-                </div>
+                <div class="backup-base-dir">Location: <code id="backupsBaseDir"></code></div>
+                <div id="backupsContainer" class="backups-grid" aria-live="polite"></div>
+                <div id="backupsEmpty" class="selector-status" hidden>No .zip backups found.</div>
             </div>
         </div>
     </div>

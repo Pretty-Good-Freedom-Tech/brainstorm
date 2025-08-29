@@ -292,6 +292,9 @@ function register(app) {
 
     // Backup Customers endpoint; owner-only backup of all or single customer data
     app.post('/api/backup-customers', customers.handleBackupCustomers);
+    // Backups listing and download endpoints
+    app.get('/api/backups', customers.handleListBackups);
+    app.get('/api/backups/download', customers.handleDownloadBackup);
     
     // Add New Customer endpoint; owner-only complete customer creation
     app.post('/api/add-new-customer', customers.handleAddNewCustomer);
