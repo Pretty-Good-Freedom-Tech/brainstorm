@@ -296,6 +296,10 @@ function register(app) {
     app.get('/api/backups', customers.handleListBackups);
     app.get('/api/backups/download', customers.handleDownloadBackup);
     
+    // Restore upload and listing endpoints
+    app.post('/api/restore/upload', customers.handleRestoreUpload);
+    app.get('/api/restore/sets', customers.handleListRestoreSets);
+    
     // Add New Customer endpoint; owner-only complete customer creation
     app.post('/api/add-new-customer', customers.handleAddNewCustomer);
     

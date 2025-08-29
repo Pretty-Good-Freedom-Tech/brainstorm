@@ -16,7 +16,50 @@
     <div class="page-content">
         <div class="container">
             <h1>Customer Restore</h1>
-            <p>Restore your customer data.</p>
+            <p>Upload a backup .zip, we will extract it into a restore set, and list customers available for restoration.</p>
+
+            <!-- Upload Section -->
+            <section class="restore-section">
+                <h2 class="section-title">Upload Backup (.zip)</h2>
+                <p class="section-subtitle">Drop a .zip here or choose a file. Only .zip files are accepted.</p>
+
+                <div id="restoreDropzone" class="dropzone" aria-label="Upload area">
+                    <div class="dropzone-content">
+                        <div class="dropzone-icon">⬆️</div>
+                        <div>
+                            <div class="dropzone-title">Drag & drop backup .zip</div>
+                            <div class="dropzone-subtitle">or</div>
+                            <label class="btn-primary">
+                                <input id="restoreFileInput" type="file" accept=".zip" hidden>
+                                Choose file
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upload-actions">
+                    <button id="restoreUploadBtn" class="btn-primary" disabled>Upload and Extract</button>
+                    <span id="restoreUploadFilename" class="muted"></span>
+                </div>
+                <div id="restoreUploadStatus" class="status-line"></div>
+            </section>
+
+            <!-- Extracted Restore Sets -->
+            <section class="restore-section">
+                <div class="section-header">
+                    <h2 class="section-title">Extracted Restore Sets</h2>
+                    <div class="header-actions">
+                        <button id="restoreSetsRefreshBtn" class="btn-secondary">Refresh</button>
+                    </div>
+                </div>
+                <div id="restoreSetsBaseDir" class="base-dir muted"></div>
+
+                <div id="restoreEmptyState" class="empty-state" hidden>
+                    <p>No restore sets found yet. Upload a backup .zip to get started.</p>
+                </div>
+
+                <div id="restoreSetsContainer" class="sets-grid"></div>
+            </section>
         </div>
     </div>
 
