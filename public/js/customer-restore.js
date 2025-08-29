@@ -50,6 +50,26 @@
       els.status.textContent = msg || '';
     }
 
+    async function restoreCustomer(setName, pubkey, overwrite) {
+      try {
+        setStatus('info', `${overwrite ? 'Overwriting' : 'Restoring'} customer…`);
+        const resp = await fetch('/api/restore/customer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ setName, pubkey, overwrite: !!overwrite })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || !data.success) {
+          throw new Error(data.error || `Restore failed (${resp.status})`);
+        }
+        setStatus('success', `Restore completed: ${data.result?.restored?.length || 0} items restored, ${data.result?.skipped?.length || 0} skipped.`);
+        await loadRestoreSets(false);
+      } catch (e) {
+        setStatus('error', e.message || 'Failed to restore customer.');
+      }
+    }
+
     function setSelectedFile(file) {
       selectedFile = file;
       if (selectedFile) {
@@ -231,6 +251,42 @@
               </div>
             </div>
           `;
+
+          // Actions: Restore / Overwrite
+          const actions = document.createElement('div');
+          actions.className = 'customer-actions';
+          const restoreBtn = document.createElement('button');
+          restoreBtn.className = 'btn-primary btn-sm';
+          restoreBtn.textContent = existing && existing.exists ? 'Restore (no overwrite)' : 'Restore';
+          restoreBtn.addEventListener('click', async () => {
+            restoreBtn.disabled = true;
+            try {
+              await restoreCustomer(s.name, pub, false);
+            } finally {
+              restoreBtn.disabled = false;
+            }
+          });
+          actions.appendChild(restoreBtn);
+
+          if (existing && existing.exists) {
+            const overwriteBtn = document.createElement('button');
+            overwriteBtn.className = 'btn-danger btn-sm';
+            overwriteBtn.textContent = 'Overwrite';
+            overwriteBtn.title = 'Overwrite will replace existing customer files. This action cannot be undone.';
+            overwriteBtn.addEventListener('click', async () => {
+              const ok = window.confirm('Overwrite will replace existing customer files for this pubkey. This cannot be undone. Proceed?');
+              if (!ok) return;
+              overwriteBtn.disabled = true;
+              try {
+                await restoreCustomer(s.name, pub, true);
+              } finally {
+                overwriteBtn.disabled = false;
+              }
+            });
+            actions.appendChild(overwriteBtn);
+          }
+
+          cust.appendChild(actions);
           grid.appendChild(cust);
         });
 

@@ -88,6 +88,40 @@
   background: #e3e9f2;
 }
 
+/* Danger button */
+.btn-danger {
+  display: inline-block;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #e74c3c;
+  color: #fff;
+  transition: background 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+.btn-danger:hover {
+  background: #d0453b;
+}
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Small button size */
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 0.86rem;
+}
+
+/* Customer action row */
+.customer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
 /* Status */
 .status-line {
   min-height: 20px;

@@ -321,7 +321,8 @@ function authMiddleware(req, res, next) {
             '/backups',
             '/backups/download',
             '/restore/upload',
-            '/restore/sets'
+            '/restore/sets',
+            '/restore/customer'
         ];
         
         // Check if this endpoint requires owner authentication
@@ -377,7 +378,8 @@ function authMiddleware(req, res, next) {
             '/backups',
             '/backups/download',
             '/restore/upload',
-            '/restore/sets'
+            '/restore/sets',
+            '/restore/customer'
         ];
         
         // Check if the current path is a write endpoint

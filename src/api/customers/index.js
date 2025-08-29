@@ -17,6 +17,7 @@ const { handleChangeCustomerStatus } = require('./changeCustomerStatus.js');
 const { handleGetCustomerRelayKeys } = require('./queries/get-customer-relay-keys.js');
 const { handleGetCustomer } = require('./getCustomer.js');
 const { handleAddNewCustomer } = require('./commands/add-new-customer.js');
+const { handleRestoreCustomer } = require('./commands/restore-customer.js');
 
 // Export handlers directly - this allows the central router 
 // to register endpoints without creating multiple routers
@@ -37,5 +38,6 @@ module.exports = {
     handleAddNewCustomer,
     handleUpdateCustomerDisplayName,
     handleBackupCustomers,
-    handleRestoreUpload
+    handleRestoreUpload,
+    handleRestoreCustomer
 };
