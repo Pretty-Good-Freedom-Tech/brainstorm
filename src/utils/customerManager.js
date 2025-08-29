@@ -967,30 +967,71 @@ class CustomerManager {
 
             const restoredItems = [];
             const skippedItems = [];
+            let mergeResult = null;
 
             // Restore customers.json
             const backupCustomersFile = path.join(backupPath, 'customers.json');
             if (fs.existsSync(backupCustomersFile)) {
                 if (merge) {
-                    await this.mergeCustomersFile(backupCustomersFile, overwrite);
+                    mergeResult = await this.mergeCustomersFile(backupCustomersFile, overwrite);
                 } else {
-                    fs.copyFileSync(backupCustomersFile, this.customersFile);
+                    // Non-merge path: write atomically with lock
+                    const data = JSON.parse(fs.readFileSync(backupCustomersFile, 'utf8'));
+                    const release = await lockfile.lock(this.customersFile, {
+                        retries: 3,
+                        minTimeout: 100,
+                        maxTimeout: this.lockTimeout
+                    });
+                    try {
+                        await this.writeCustomersFile(data);
+                        this.cache.clear();
+                    } finally {
+                        await release();
+                    }
                 }
                 restoredItems.push('customers.json');
+
+                // If we merged, include a summary entry in the restored items for visibility
+                if (merge && mergeResult) {
+                    console.log('[restore] customers.json merge summary:', JSON.stringify(mergeResult));
+                }
             }
 
-            // Restore customer directories
-            const backupCustomers = JSON.parse(fs.readFileSync(backupCustomersFile, 'utf8'));
-            for (const [name, customer] of Object.entries(backupCustomers.customers)) {
-                const backupDir = path.join(backupPath, customer.directory);
-                const targetDir = path.join(this.customersDir, customer.directory);
-                
-                if (fs.existsSync(backupDir)) {
-                    if (!fs.existsSync(targetDir) || overwrite) {
-                        await this.copyDirectory(backupDir, targetDir);
-                        restoredItems.push(customer.directory);
-                    } else {
-                        skippedItems.push(`${customer.directory} (already exists)`);
+            // Restore customer directories (only if customers.json is present)
+            if (fs.existsSync(backupCustomersFile)) {
+                const backupCustomers = JSON.parse(fs.readFileSync(backupCustomersFile, 'utf8'));
+                let eligibleNames = null;
+                if (merge && mergeResult) {
+                    const added = Array.isArray(mergeResult.added) ? mergeResult.added : [];
+                    const updated = Array.isArray(mergeResult.updated) ? mergeResult.updated : [];
+                    eligibleNames = new Set([...added, ...updated]);
+                }
+
+                for (const [name, customer] of Object.entries(backupCustomers.customers)) {
+                    try {
+                        // Only copy directories for customers that were actually merged (added or updated)
+                        if (eligibleNames && !eligibleNames.has(name)) {
+                            skippedItems.push(`${customer.directory} (skipped - merge did not add/update this customer)`);
+                            continue;
+                        }
+
+                        const backupDir = path.join(backupPath, customer.directory);
+                        const targetDir = path.join(this.customersDir, customer.directory);
+                        
+                        if (!fs.existsSync(backupDir)) {
+                            skippedItems.push(`${customer.directory} (missing in restore set)`);
+                            continue;
+                        }
+
+                        if (!fs.existsSync(targetDir) || overwrite) {
+                            await this.copyDirectory(backupDir, targetDir);
+                            restoredItems.push(customer.directory);
+                        } else {
+                            skippedItems.push(`${customer.directory} (already exists)`);
+                        }
+                    } catch (e) {
+                        console.error(`[restore] Error copying directory for ${name}: ${e.message}`);
+                        skippedItems.push(`${customer.directory} (error: ${e.message})`);
                     }
                 }
             }
@@ -1083,27 +1124,140 @@ class CustomerManager {
     }
 
     /**
-     * Merge customers.json files
+     * Merge customers.json files with locking, unique ID enforcement, and comments update
+     * - Ensures no ID collisions with existing customers
+     * - Sets comments to "Added via restore interface" for added/updated customers
+     * - Returns a detailed merge summary for logging/UX
      */
     async mergeCustomersFile(backupCustomersFile, overwrite = false) {
         const backupCustomers = JSON.parse(fs.readFileSync(backupCustomersFile, 'utf8'));
-        const currentCustomers = await this.getAllCustomers();
-        
-        let merged = false;
-        
-        for (const [name, customer] of Object.entries(backupCustomers.customers)) {
-            if (!currentCustomers.customers[name] || overwrite) {
-                currentCustomers.customers[name] = customer;
-                merged = true;
+
+        const release = await lockfile.lock(this.customersFile, {
+            retries: 3,
+            minTimeout: 100,
+            maxTimeout: this.lockTimeout
+        });
+
+        const result = {
+            merged: false,
+            added: [],
+            updated: [],
+            skipped: [], // array of { name, reason }
+            reassignedIds: [], // array of { name, oldId, newId }
+            commentsUpdated: [],
+            errors: []
+        };
+
+        try {
+            const currentCustomers = await this.getAllCustomers();
+
+            // Build sets/maps for quick checks
+            const existingIds = new Set();
+            const pubkeyToName = new Map();
+            let maxId = -1;
+
+            for (const [existingName, existingCustomer] of Object.entries(currentCustomers.customers)) {
+                if (typeof existingCustomer.id === 'number') {
+                    existingIds.add(existingCustomer.id);
+                    if (existingCustomer.id > maxId) maxId = existingCustomer.id;
+                }
+                if (existingCustomer.pubkey) {
+                    pubkeyToName.set(existingCustomer.pubkey, existingName);
+                }
             }
+
+            const getNextId = () => {
+                maxId = maxId + 1;
+                existingIds.add(maxId);
+                return maxId;
+            };
+
+            // Iterate backup customers and merge with rules
+            for (const [name, customer] of Object.entries(backupCustomers.customers || {})) {
+                try {
+                    // Prepare normalized payload (ensure name present before validation)
+                    const payload = { ...customer };
+                    payload.name = name;
+                    payload.display_name = payload.display_name || name;
+                    payload.directory = payload.directory || name;
+                    payload.comments = 'Added via restore interface';
+
+                    // Validate normalized payload
+                    this.validateSingleCustomer(payload);
+
+                    const existingByName = currentCustomers.customers[name];
+                    const otherNameWithPubkey = pubkeyToName.get(payload.pubkey);
+
+                    // If another customer already has this pubkey under a different name, avoid creating duplicates
+                    if (!existingByName && otherNameWithPubkey && otherNameWithPubkey !== name) {
+                        const reason = `pubkey exists as '${otherNameWithPubkey}'`;
+                        console.warn(`[restore] Skipping customer '${name}': ${reason}`);
+                        result.skipped.push({ name, reason });
+                        continue;
+                    }
+
+                    if (existingByName) {
+                        if (!overwrite) {
+                            const reason = 'name exists and overwrite=false';
+                            console.warn(`[restore] Skipping customer '${name}': ${reason}`);
+                            result.skipped.push({ name, reason });
+                            continue;
+                        }
+
+                        // Preserve existing ID to avoid conflicts
+                        const oldId = existingByName.id;
+                        if (typeof oldId === 'number') {
+                            payload.id = oldId;
+                        } else {
+                            // Assign a new ID if existing has no numeric id
+                            const newId = getNextId();
+                            payload.id = newId;
+                            result.reassignedIds.push({ name, oldId: oldId ?? null, newId });
+                        }
+
+                        // Perform update
+                        currentCustomers.customers[name] = payload;
+                        result.updated.push(name);
+                        result.commentsUpdated.push(name);
+                        result.merged = true;
+                        console.log(`[restore] Updated customer '${name}' (ID ${payload.id})`);
+                    } else {
+                        // Assign unique ID
+                        let desiredId = payload.id;
+                        if (typeof desiredId !== 'number' || existingIds.has(desiredId)) {
+                            const newId = getNextId();
+                            if (typeof desiredId === 'number') {
+                                result.reassignedIds.push({ name, oldId: desiredId, newId });
+                            }
+                            desiredId = newId;
+                        }
+                        payload.id = desiredId;
+
+                        // Insert new
+                        currentCustomers.customers[name] = payload;
+                        existingIds.add(payload.id);
+                        if (payload.id > maxId) maxId = payload.id;
+                        pubkeyToName.set(payload.pubkey, name);
+                        result.added.push(name);
+                        result.commentsUpdated.push(name);
+                        result.merged = true;
+                        console.log(`[restore] Added customer '${name}' (ID ${payload.id})`);
+                    }
+                } catch (e) {
+                    console.error(`[restore] Error merging customer '${name}': ${e.message}`);
+                    result.errors.push(`merge ${name}: ${e.message}`);
+                }
+            }
+
+            if (result.merged) {
+                await this.writeCustomersFile(currentCustomers);
+                this.cache.clear();
+            }
+
+            return result;
+        } finally {
+            await release();
         }
-        
-        if (merged) {
-            await this.writeCustomersFile(currentCustomers);
-            this.cache.clear();
-        }
-        
-        return merged;
     }
 
     /**

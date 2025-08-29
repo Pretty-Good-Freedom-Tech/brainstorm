@@ -326,12 +326,23 @@ function authMiddleware(req, res, next) {
         ];
         
         // Check if this endpoint requires owner authentication
-        const isOwnerEndpoint = ownerOnlyEndpoints.some(endpoint => 
+        const isOwnerPostEndpoint = ownerOnlyEndpoints.some(endpoint => 
             req.path.includes(endpoint) && req.method === 'POST'
+        );
+
+        // Owner-only GET endpoints (sensitive reads)
+        const ownerOnlyGetEndpoints = [
+            '/backups',
+            '/backups/download',
+            '/restore/sets',
+            '/get-customer-relay-keys'
+        ];
+        const isOwnerGetEndpoint = ownerOnlyGetEndpoints.some(endpoint => 
+            req.path.includes(endpoint) && req.method === 'GET'
         );
         
         // If this is an owner-only endpoint, verify owner status
-        if (isOwnerEndpoint && !isOwner(req)) {
+        if ((isOwnerPostEndpoint || isOwnerGetEndpoint) && !isOwner(req)) {
             return res.status(403).json({ 
                 error: 'Admin authentication required. Only the system owner can perform this action.'
             });
@@ -386,8 +397,19 @@ function authMiddleware(req, res, next) {
         const isWriteEndpoint = writeEndpoints.some(endpoint => 
             req.path.includes(endpoint) && (req.method === 'POST' || req.path.includes('?action=enable') || req.path.includes('?action=disable'))
         );
+
+        // Sensitive GET endpoints that also require authentication
+        const protectedGetEndpoints = [
+            '/backups',
+            '/backups/download',
+            '/restore/sets',
+            '/get-customer-relay-keys'
+        ];
+        const isProtectedGetEndpoint = protectedGetEndpoints.some(endpoint => 
+            req.path.includes(endpoint) && req.method === 'GET'
+        );
         
-        if (isWriteEndpoint) {
+        if (isWriteEndpoint || isProtectedGetEndpoint) {
             return res.status(401).json({ error: 'Authentication required for this action' });
         }
         
