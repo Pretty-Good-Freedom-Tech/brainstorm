@@ -131,6 +131,94 @@
   gap: 6px;
 }
 
+/* Customer detail cards */
+.customer-card {
+  background: #f8fafc;
+  border: 1px solid #e6e9ee;
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 260px;
+  flex: 1 1 280px;
+}
+
+.customer-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.customer-card .pill-name {
+  font-weight: 600;
+}
+
+.customer-card .pill-sub {
+  font-size: 0.82rem;
+}
+
+/* Relay status badges */
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #d0d7e2;
+  background: #eef2f7;
+  color: #2c3e50;
+}
+
+.badge-match {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-color: #a5d6a7;
+}
+
+.badge-mismatch {
+  background: #ffebee;
+  color: #b71c1c;
+  border-color: #ef9a9a;
+}
+
+.badge-missing {
+  background: #fff8e1;
+  color: #6a4f00;
+  border-color: #ffe082;
+}
+
+.customer-card-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .customer-card-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 0.9rem;
+}
+
+.kv-label {
+  color: #666;
+}
+
+.kv-value {
+  text-align: right;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
 .customer-pill {
   border: 1px solid #e6e9ee;
   background: #f8fafc;
