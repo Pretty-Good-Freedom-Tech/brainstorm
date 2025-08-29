@@ -108,15 +108,17 @@ async function handleBackupCustomers(req, res) {
                 customers.push({
                   name: entryName,
                   id: customer.id,
-                  pubkey: customer.pubkey,
-                  npub: relayKeys.npub || '',
-                  nsec: relayKeys.nsec
+                  customer_pubkey: customer.pubkey,
+                  relay_pubkey: relayKeys.pubkey || null,
+                  relay_npub: relayKeys.npub || '',
+                  relay_nsec: relayKeys.nsec
                 });
               }
             } catch (e) {
               console.log(`\u26a0\ufe0f Failed to read relay keys for ${entryName}: ${e.message}`);
             }
             const keyManifest = {
+              schemaVersion: '1.1',
               timestamp: new Date().toISOString(),
               keyFiles: keyFiles.filter(f => f.endsWith('.enc')),
               customers,

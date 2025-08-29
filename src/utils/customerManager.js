@@ -851,9 +851,10 @@ class CustomerManager {
                                     customersWithKeys.push({
                                         name,
                                         id: customer.id,
-                                        pubkey: customer.pubkey,
-                                        npub: relayKeys.npub || '',
-                                        nsec: relayKeys.nsec
+                                        customer_pubkey: customer.pubkey,
+                                        relay_pubkey: relayKeys.pubkey || null,
+                                        relay_npub: relayKeys.npub || '',
+                                        relay_nsec: relayKeys.nsec
                                     });
                                 }
                             } catch (e) {
@@ -861,6 +862,7 @@ class CustomerManager {
                             }
                         }
                         const keyManifest = {
+                            schemaVersion: '1.1',
                             timestamp: new Date().toISOString(),
                             keyFiles: keyFiles.filter(f => f.endsWith('.enc')),
                             customers: customersWithKeys,
