@@ -1,1 +1,149 @@
 @import "./common.css";
+
+/* Page sections */
+.restore-section {
+  margin: 24px 0;
+}
+
+.section-title {
+  margin: 0 0 6px 0;
+}
+
+.section-subtitle {
+  margin: 0 0 16px 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed #3498db;
+  border-radius: 10px;
+  background: #f9fbff;
+  padding: 28px;
+  text-align: center;
+  transition: background 120ms ease, border-color 120ms ease;
+  cursor: pointer;
+}
+
+.dropzone.dragover {
+  background: #eef6ff;
+  border-color: #1d6fa5;
+}
+
+.dropzone-content {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+}
+
+.dropzone-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+/* Actions */
+.upload-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.muted {
+  color: #666;
+  font-size: 0.92rem;
+}
+
+/* Buttons (scoped, light) */
+.btn-primary,
+.btn-secondary {
+  display: inline-block;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: #fff;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-secondary {
+  background: #eef2f7;
+  color: #2c3e50;
+}
+
+.btn-secondary:hover {
+  background: #e3e9f2;
+}
+
+/* Status */
+.status-line {
+  min-height: 20px;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+.status-success { color: #2e7d32; }
+.status-error   { color: #c62828; }
+.status-info    { color: #1565c0; }
+
+/* Sets grid */
+.sets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.set-card {
+  background: #fff;
+  border: 1px solid #e6e9ee;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.set-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.05rem;
+}
+
+.set-meta {
+  margin-bottom: 8px;
+}
+
+/* Customers list */
+.customers-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.customer-pill {
+  border: 1px solid #e6e9ee;
+  background: #f8fafc;
+  color: #2c3e50;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+
+.customer-pill .pill-name {
+  font-weight: 600;
+}
+
+.customer-pill .pill-sub {
+  font-size: 0.82rem;
+}
