@@ -1,6 +1,8 @@
 /**
  * Get Customer Relay Keys - Owner Only
  * 
+ * /api/get-customer-relay-keys?pubkey=<customer-pubkey>
+ * 
  * Returns relay keys for a specific customer (owner access only)
  */
 

@@ -1,6 +1,7 @@
 /**
  * Relay Configuration Queries
  * Handles retrieval of relay configuration information
+ * /api/relay-config
  */
 
 const { getConfigFromFile } = require('../../../../utils/config');

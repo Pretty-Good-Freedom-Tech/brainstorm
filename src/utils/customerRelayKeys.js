@@ -66,6 +66,9 @@ async function createSingleCustomerRelay(customer_pubkey, customer_id, customer_
         await secureStorage.storeRelayKeys(customer_pubkey, keys);
         console.log(`Securely stored private relay keys for customer: ${customer_name}`);
 
+        /*
+        // TODO: deprecating storage of customer data, including relay npub and pubkey, in brainstorm.conf
+        // Will remove calculating and writing newBrainstormConfString in a future release
         // Create public configuration string for brainstorm.conf (no private keys)
         const newBrainstormConfString = `
 #################### CUSTOMER id: ${customer_id} ####################
@@ -84,6 +87,7 @@ export CUSTOMER_${customer_pubkey}_RELAY_NPUB='${keys.npub}'
         
         console.log(`Writing public relay keys for customer ${customer_name} to brainstorm.conf`);
         fs.writeFileSync('/etc/brainstorm.conf', newBrainstormConf);
+        */
 
         console.log(`Successfully created relay keys for customer: ${customer_name}`);
         return keys;
@@ -116,28 +120,43 @@ function customerHasRelayKeys(customer_pubkey) {
 async function getCustomerRelayKeys(customer_pubkey) {
     try {
         const brainstormConf = getBrainstormConfFile();
+
+        // customer relay keys
+        let privkey = null;
+        let nsec = null;
+        let pubkey = null;
+        let npub = null;
         
+        /*
         // Extract public keys from brainstorm.conf
+        // NOTE: deprecating storage of customer data, including relay npub and pubkey, in brainstorm.conf
+        // Instead, relay keys are stored securely in secure storage (below)
+        // TODO: remove this code in a future release
         const pubkeyMatch = brainstormConf.match(new RegExp(`CUSTOMER_${customer_pubkey}_RELAY_PUBKEY='([^']+)'`));
         const npubMatch = brainstormConf.match(new RegExp(`CUSTOMER_${customer_pubkey}_RELAY_NPUB='([^']+)'`));
         
         // Check if public keys exist in brainstorm.conf
         if (!pubkeyMatch || !npubMatch) {
             console.log(`Public keys not found in brainstorm.conf for customer: ${customer_pubkey.substring(0, 8)}...`);
-            return null;
+            pubkey = null;
+            npub = null;
+        } else {
+            pubkey = pubkeyMatch[1];
+            npub = npubMatch[1];
         }
+        // TODO: deprecating down to here - remove in a future release
+        */
         
-        // Get private keys from secure storage
+        // Get private keys from secure storage; this will replace the use of brainstormConf
         const secureStorage = new SecureKeyStorage();
-        
-        let privkey = null;
-        let nsec = null;
         
         try {
             const secureKeys = await secureStorage.getRelayKeys(customer_pubkey);
             if (secureKeys) {
                 privkey = secureKeys.privkey;
                 nsec = secureKeys.nsec;
+                pubkey = secureKeys.pubkey;
+                npub = secureKeys.npub;
                 console.log(`Private keys retrieved from secure storage for customer: ${customer_pubkey.substring(0, 8)}...`);
             } else {
                 console.log(`Private keys not found in secure storage for customer: ${customer_pubkey.substring(0, 8)}...`);
@@ -149,8 +168,8 @@ async function getCustomerRelayKeys(customer_pubkey) {
         
         // Return combined keys (public from conf, private from secure storage)
         return {
-            pubkey: pubkeyMatch[1],
-            npub: npubMatch[1],
+            pubkey: pubkey,
+            npub: npub,
             privkey: privkey,
             nsec: nsec
         };
