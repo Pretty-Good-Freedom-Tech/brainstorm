@@ -24,7 +24,6 @@ function loadNavbar(classification) {
     
     // Get the current page path
     const currentPath = window.location.pathname;
-    console.log('Loading navbar for path:', currentPath);
     
     // Choose which navbar to load - nav1.html for index and about, nav2.html for everything else
     let navbarPath = '/components/header/navbars/nav2.html';
@@ -393,7 +392,6 @@ function logout() {
 function highlightCurrentPage() {
     // Get the current path
     const currentPath = window.location.pathname;
-    console.log('Highlighting current page for path:', currentPath);
     
     // All navbar items - the "components-header-*" classes are dynamically added
     // We need to find all anchor tags in the navbar
@@ -478,9 +476,7 @@ function highlightCurrentPage() {
         }
     }
     
-    if (matchingPrefix) {
-        console.log('Matching prefix for highlighting:', matchingPrefix + '.html');
-        
+    if (matchingPrefix) {        
         // Check each navbar item and highlight if it matches
         navItems.forEach(item => {
             if (item.href.includes(matchingPrefix + '.html')) {
