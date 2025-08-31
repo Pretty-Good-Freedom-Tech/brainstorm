@@ -440,38 +440,50 @@ async function main() {
         }
       }
       
-      // Publish events in this batch to the relay
+      // Publish events in this batch to all NIP-85 relays
       for (const event of batchEvents) {
+        // Parse the relay URLs array if it's a string
+        let relayUrls;
         try {
-          console.log(`Publishing event ${event.id} to primary relay: ${primaryRelayUrl}`);
-          const result = await publishEventToRelay(event, primaryRelayUrl);
-          
-          batchPublishResults.push({
-            eventId: event.id,
-            userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
-            relayUrl: primaryRelayUrl,
-            success: result.success,
-            message: result.message
-          });
-          
-          if (result.success) {
-            successCount++;
-          } else {
+          relayUrls = typeof nip85RelayUrls === 'string' ? JSON.parse(nip85RelayUrls) : nip85RelayUrls;
+        } catch (error) {
+          console.error('Error parsing nip85RelayUrls:', error);
+          relayUrls = [primaryRelayUrl]; // Fallback to primary relay
+        }
+        
+        // Publish to each relay sequentially
+        for (const relayUrl of relayUrls) {
+          try {
+            console.log(`Publishing event ${event.id} to relay: ${relayUrl}`);
+            const result = await publishEventToRelay(event, relayUrl);
+            
+            batchPublishResults.push({
+              eventId: event.id,
+              userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
+              relayUrl: relayUrl,
+              success: result.success,
+              message: result.message
+            });
+            
+            if (result.success) {
+              successCount++;
+            } else {
+              failureCount++;
+            }
+          } catch (error) {
+            console.error(`Error publishing event ${event.id} to ${relayUrl}:`, error);
+            execSync(`echo "$(date): Error publishing event ${event.id} to ${relayUrl}: ${error.message}" >> ${LOG_FILE}`);
+            
+            batchPublishResults.push({
+              eventId: event.id,
+              userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
+              relayUrl: relayUrl,
+              success: false,
+              message: error.message
+            });
+            
             failureCount++;
           }
-        } catch (error) {
-          console.error(`Error publishing event ${event.id}:`, error);
-          execSync(`echo "$(date): Error publishing event ${event.id}: ${error.message}" >> ${LOG_FILE}`);
-          
-          batchPublishResults.push({
-            eventId: event.id,
-            userPubkey: event.tags.find(tag => tag[0] === 'd')?.[1] || 'unknown',
-            relayUrl: primaryRelayUrl,
-            success: false,
-            message: error.message
-          });
-          
-          failureCount++;
         }
       }
       
