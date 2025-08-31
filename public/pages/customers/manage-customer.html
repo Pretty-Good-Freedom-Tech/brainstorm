@@ -760,7 +760,7 @@
         
         function populateCustomerData() {
             // Update page title
-            const displayName = profileData?.name || customerData.name || 'Unknown Customer';
+            const displayName = profileData?.name || customerData.display_name || 'Unknown Customer';
             
             // Populate profile header
             const avatar = profileData?.picture || '/img/default-avatar.png';
@@ -779,7 +779,7 @@
             statusElement.className = `customer-status status-${customerData.status}`;
             
             // Populate customer details
-            document.getElementById('customerId').textContent = customerData.id || '-';
+            document.getElementById('customerId').textContent = customerData.id !== undefined && customerData.id !== null ? customerData.id : '-';
             document.getElementById('customerDisplayName').textContent = customerData.display_name || '-';
             document.getElementById('customerStatusDetail').textContent = customerData.status || '-';
             document.getElementById('customerDirectory').textContent = customerData.directory || '-';

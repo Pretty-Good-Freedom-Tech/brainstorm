@@ -38,11 +38,14 @@ const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
 const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
+const kind30382_limit = getConfigFromFile('BRAINSTORM_30382_LIMIT', '1000');
+const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', ["wss://nip85.grapevine.world", "wss://nip85.nostr1.com"]);
 
 // Log initial setup
 console.log(`Continuing publishNip85; begin publish_kind30382 for customer ${CUSTOMER_PUBKEY} ${CUSTOMER_ID} ${CUSTOMER_NAME}`);
 console.log(`Using relay URL: ${relayUrl}`);
 console.log(`Neo4j URI: ${neo4jUri}`);
+console.log(`Kind 30382 limit: ${kind30382_limit}`);
 execSync(`echo "$(date): Continuing publishNip85; begin publish_kind30382 for customer ${CUSTOMER_PUBKEY} ${CUSTOMER_ID} ${CUSTOMER_NAME}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Using relay URL: ${relayUrl}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${LOG_FILE}`);
@@ -88,7 +91,7 @@ async function getUsers() {
              u.verifiedMuterCount AS verifiedMuterCount,
              u.verifiedReporterCount AS verifiedReporterCount
       ORDER BY u.influence DESC
-      LIMIT 10000
+      LIMIT ${kind30382_limit}
     `;    
     const result = await session.run(query);
     

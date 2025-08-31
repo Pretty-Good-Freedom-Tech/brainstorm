@@ -688,7 +688,7 @@
                 // Show loading state
                 showAuthorsState('loading');
                 
-                console.log('[about-nip85] Loading NIP-85 authors...');
+                console.log('[about-trusted-assertions] Loading NIP-85 authors...');
                 
                 // Fetch all Kind 10040 authors
                 const authorsResponse = await fetch('/api/get-all-10040-authors');
@@ -698,7 +698,7 @@
                     throw new Error(authorsData.message || 'Failed to load authors');
                 }
                 
-                console.log('[about-nip85] Authors loaded:', authorsData.data);
+                console.log('[about-trusted-assertions] Authors loaded:', authorsData.data);
                 
                 // Display stats
                 displayAuthorsStats(authorsData.data);
@@ -710,7 +710,7 @@
                 showAuthorsState('content');
                 
             } catch (error) {
-                console.error('[about-nip85] Error loading authors:', error);
+                console.error('[about-trusted-assertions] Error loading authors:', error);
                 authorsState.errorMessage.textContent = error.message;
                 showAuthorsState('error');
             }
@@ -741,7 +741,7 @@
         }
         
         async function loadAuthorsProfiles(authors) {
-            console.log('[about-nip85] Loading profiles for', authors.length, 'authors');
+            console.log('[about-trusted-assertions] Loading profiles for', authors.length, 'authors');
             
             const authorCards = [];
             
@@ -756,7 +756,7 @@
                     if (result.status === 'fulfilled') {
                         authorCards.push(result.value);
                     } else {
-                        console.error('[about-nip85] Failed to load author:', batch[index], result.reason);
+                        console.error('[about-trusted-assertions] Failed to load author:', batch[index], result.reason);
                         // Create fallback card for failed loads
                         authorCards.push(createFallbackAuthorCard(batch[index]));
                     }
@@ -791,7 +791,7 @@
                 return createAuthorCard(pubkey, profileData, nip85Data, npubData);
                 
             } catch (error) {
-                console.error('[about-nip85] Error loading data for author:', pubkey, error);
+                console.error('[about-trusted-assertions] Error loading data for author:', pubkey, error);
                 throw error;
             }
         }

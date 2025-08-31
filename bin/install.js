@@ -374,8 +374,12 @@ async function createBrainstormConfigFile() {
     return;
   }
   
-  let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultFriendRelays;
+  let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultFriendRelays, defaultNip85Relays;
   let relayPubkey, relayNsec, relayNpub, relayPrivkey;
+
+  const hardcodedFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+  const hardcodedNip85Relays = '["wss://nip85.grapevine.world", "wss://nip85.nostr1.com", "wss://nip85.nostr.band"]';
+  const hardcodedWotRelays = '["wss://wot.brainstorm.social"]';
   
   if (isUpdateMode) {
     // In update mode, use environment variables set from the backup
@@ -394,7 +398,9 @@ async function createBrainstormConfigFile() {
     relayNpub = getConfigFromFile('BRAINSTORM_RELAY_NPUB') || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
     relayUrl = process.env.BRAINSTORM_RELAY_URL || '';
-    defaultFriendRelays = process.env.BRAINSTORM_DEFAULT_FRIEND_RELAYS || '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    defaultFriendRelays = process.env.BRAINSTORM_DEFAULT_FRIEND_RELAYS || hardcodedFriendRelays;
+    defaultNip85Relays = process.env.BRAINSTORM_DEFAULT_NIP85_RELAYS || hardcodedNip85Relays;
+    defaultWotRelays = process.env.BRAINSTORM_DEFAULT_WOT_RELAYS || hardcodedWotRelays;
     
     // Log what we found
     console.log(`Found domain name: ${domainName || 'Not found'}`);
@@ -407,8 +413,10 @@ async function createBrainstormConfigFile() {
       console.log('Will ask for missing values...');
     }
   } else {
-    // Fresh installation, ask for values or use defaults
-    defaultFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
+    // Fresh installation, ask for values or use hardcoded defaults
+    defaultFriendRelays = hardcodedFriendRelays;
+    defaultNip85Relays = hardcodedNip85Relays;
+    defaultWotRelays = hardcodedWotRelays;
     
     // Set default values if using default config
     if (useEmptyConfig) {
@@ -503,8 +511,23 @@ export STRFRY_PLUGINS_DATA
 export BRAINSTORM_LOG_DIR
 export BRAINSTORM_BASE_DIR
 
+# default WoT relays
+export BRAINSTORM_DEFAULT_WOT_RELAYS='${defaultWotRelays}'
+# TODO: allow owner to edit BRAINSTORM_WOT_RELAYS (and allow customers to customize?)
+export BRAINSTORM_WOT_RELAYS='${defaultWotRelays}'
+
+# default nip85 mirror relays; kinds 10040 and 3038x (currently only 30382 supported) events
+export BRAINSTORM_DEFAULT_NIP85_RELAYS='${defaultNip85Relays}'
+# TODO: allow owner to edit BRAINSTORM_NIP85_RELAYS (and allow customers to customize?)
+export BRAINSTORM_NIP85_RELAYS='${defaultNip85Relays}'
+
 # default friend relays
 export BRAINSTORM_DEFAULT_FRIEND_RELAYS='${defaultFriendRelays}'
+# TODO: allow owner to edit BRAINSTORM_FRIEND_RELAYS (and allow customers to customize?)
+export BRAINSTORM_FRIEND_RELAYS='${defaultFriendRelays}'
+
+# NIP-85 configuration
+export BRAINSTORM_30382_LIMIT="1000"
 
 # Performance tuning
 export BRAINSTORM_BATCH_SIZE="100"
