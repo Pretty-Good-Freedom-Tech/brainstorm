@@ -31,9 +31,14 @@ const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', ["wss://nip8
 console.log(`Using relay URL: ${relayUrl}`);
 console.log(`Relay private key available: ${relayNsec ? 'Yes' : 'No'}`);
 console.log(`Neo4j URI: ${neo4jUri}`);
+console.log(`Kind 30382 limit: ${kind30382_limit}`);
+console.log(`NIP-85 relay URLs: ${JSON.stringify(nip85RelayUrls)}`);
+
 execSync(`echo "$(date): Using relay URL: ${relayUrl}" >> ${logDir}/publishNip85.log`);
 execSync(`echo "$(date): Relay private key available: ${relayNsec ? 'Yes' : 'No'}" >> ${logDir}/publishNip85.log`);
 execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${logDir}/publishNip85.log`);
+execSync(`echo "$(date): Kind 30382 limit: ${kind30382_limit}" >> ${logDir}/publishNip85.log`);
+execSync(`echo "$(date): NIP-85 relay URLs: ${JSON.stringify(nip85RelayUrls)}" >> ${logDir}/publishNip85.log`);
 
 // Fallback relay URL if the main one is not configured
 const fallbackRelays = [
@@ -109,7 +114,7 @@ async function getUsers(limit = null) {
              u.confidence AS confidence,
              u.input AS input
       ORDER BY u.influence DESC
-      LIMIT ${kind30382_limit}
+      LIMIT 3
     `;
     
     if (limit !== null && !isNaN(parseInt(limit))) {

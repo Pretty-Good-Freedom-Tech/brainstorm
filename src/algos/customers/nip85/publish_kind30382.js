@@ -46,9 +46,13 @@ console.log(`Continuing publishNip85; begin publish_kind30382 for customer ${CUS
 console.log(`Using relay URL: ${relayUrl}`);
 console.log(`Neo4j URI: ${neo4jUri}`);
 console.log(`Kind 30382 limit: ${kind30382_limit}`);
+console.log(`NIP-85 relay URLs: ${JSON.stringify(nip85RelayUrls)}`);
+
 execSync(`echo "$(date): Continuing publishNip85; begin publish_kind30382 for customer ${CUSTOMER_PUBKEY} ${CUSTOMER_ID} ${CUSTOMER_NAME}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Using relay URL: ${relayUrl}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${LOG_FILE}`);
+execSync(`echo "$(date): Kind 30382 limit: ${kind30382_limit}" >> ${LOG_FILE}`);
+execSync(`echo "$(date): NIP-85 relay URLs: ${JSON.stringify(nip85RelayUrls)}" >> ${LOG_FILE}`);
 
 // Use fallback relay if the main one is not configured
 let primaryRelayUrl = relayUrl;
@@ -91,7 +95,7 @@ async function getUsers() {
              u.verifiedMuterCount AS verifiedMuterCount,
              u.verifiedReporterCount AS verifiedReporterCount
       ORDER BY u.influence DESC
-      LIMIT ${kind30382_limit}
+      LIMIT 3
     `;    
     const result = await session.run(query);
     
@@ -197,8 +201,9 @@ function createEvent(relayPubkey, relayPrivateKey, userPubkey, personalizedPageR
 // Function to publish an event to the relay via WebSocket
 function publishEventToRelay(event, targetRelayUrl = relayUrl) {
   return new Promise((resolve, reject) => {
-    console.log(`Publishing event ${event.id.substring(0, 8)}... to ${targetRelayUrl}`);
-    
+    // console.log(`Publishing event ${event.id.substring(0, 8)}... to ${targetRelayUrl}`);
+    execSync(`echo "$(date): Publishing event ${event.id.substring(0, 8)}... to ${targetRelayUrl}" >> ${LOG_FILE}`);
+
     let resolved = false;
     let timeout;
     
@@ -236,7 +241,7 @@ function publishEventToRelay(event, targetRelayUrl = relayUrl) {
               resolved = true;
               clearTimeout(timeout);
               ws.close();
-              console.log(`Event ${event.id.substring(0, 8)}... published successfully to ${targetRelayUrl}`);
+              execSync(`echo "$(date): Event ${event.id.substring(0, 8)}... published successfully to ${targetRelayUrl}" >> ${LOG_FILE}`);
               resolve({
                 success: true,
                 message: `Event ${event.id.substring(0, 8)}... published successfully`,
@@ -250,7 +255,7 @@ function publishEventToRelay(event, targetRelayUrl = relayUrl) {
               resolved = true;
               clearTimeout(timeout);
               ws.close();
-              console.log(`Error publishing event to ${targetRelayUrl}: ${message[1]}`);
+              execSync(`echo "$(date): Error publishing event to ${targetRelayUrl}: ${message[1]}" >> ${LOG_FILE}`);
               resolve({
                 success: false,
                 message: `Error: ${message[1]}`,
@@ -280,7 +285,7 @@ function publishEventToRelay(event, targetRelayUrl = relayUrl) {
         if (!resolved) {
           resolved = true;
           clearTimeout(timeout);
-          console.log(`Connection closed with ${targetRelayUrl} before receiving confirmation`);
+          execSync(`echo "$(date): Connection closed with ${targetRelayUrl} before receiving confirmation" >> ${LOG_FILE}`);
           resolve({
             success: false,
             message: 'Connection closed before receiving confirmation',
@@ -292,7 +297,7 @@ function publishEventToRelay(event, targetRelayUrl = relayUrl) {
       if (!resolved) {
         resolved = true;
         clearTimeout(timeout);
-        console.error(`Error connecting to ${targetRelayUrl}:`, error.message);
+        execSync(`echo "$(date): Error connecting to ${targetRelayUrl}: ${error.message}" >> ${LOG_FILE}`);
         resolve({
           success: false,
           message: `Error connecting: ${error.message}`,
