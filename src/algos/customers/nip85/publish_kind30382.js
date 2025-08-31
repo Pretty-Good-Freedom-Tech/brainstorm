@@ -39,7 +39,7 @@ const neo4jUri = getConfigFromFile('NEO4J_URI', 'bolt://localhost:7687');
 const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
 const kind30382_limit = getConfigFromFile('BRAINSTORM_30382_LIMIT', '1000');
-const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', '["wss://nip85.grapevine.world", "wss://nip85.nostr1.com"]');
+const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', "wss://nip85.grapevine.world,wss://nip85.nostr1.com")
 
 // Log initial setup
 console.log(`Continuing publishNip85; begin publish_kind30382 for customer ${CUSTOMER_PUBKEY} ${CUSTOMER_ID} ${CUSTOMER_NAME}`);
@@ -450,7 +450,8 @@ async function main() {
         // Parse the relay URLs array if it's a string
         let relayUrls;
         try {
-          relayUrls = typeof nip85RelayUrls === 'string' ? JSON.parse(nip85RelayUrls) : nip85RelayUrls;
+          // nip85RelayUrls is expected to be a string of comma-separated URLs
+          relayUrls = nip85RelayUrls.split(',').map(url => url.trim());
         } catch (error) {
           console.error('Error parsing nip85RelayUrls:', error);
           relayUrls = [primaryRelayUrl]; // Fallback to primary relay

@@ -377,9 +377,9 @@ async function createBrainstormConfigFile() {
   let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultFriendRelays, defaultNip85Relays;
   let relayPubkey, relayNsec, relayNpub, relayPrivkey;
 
-  const hardcodedFriendRelays = '["wss://relay.hasenpfeffr.com", "wss://profiles.nostr1.com", "wss://relay.nostr.band", "wss://relay.damus.io", "wss://relay.primal.net"]';
-  const hardcodedNip85Relays = '["wss://nip85.grapevine.world", "wss://nip85.nostr1.com", "wss://nip85.nostr.band"]';
-  const hardcodedWotRelays = '["wss://wot.brainstorm.social"]';
+  const hardcodedFriendRelays = "wss://relay.hasenpfeffr.com,wss://profiles.nostr1.com,wss://relay.nostr.band,wss://relay.damus.io,wss://relay.primal.net";
+  const hardcodedNip85Relays = "wss://nip85.grapevine.world,wss://nip85.nostr1.com,wss://nip85.nostr.band";
+  const hardcodedWotRelays = "wss://wot.brainstorm.social";
   
   if (isUpdateMode) {
     // In update mode, use environment variables set from the backup
