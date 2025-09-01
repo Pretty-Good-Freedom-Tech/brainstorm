@@ -14,10 +14,10 @@ const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../src/utils/config');
 
 // Get relay configuration
-// changing user home relay url to nip85.brainstorm.world
-// may place this relay in brainstorm.conf
+// changing user home relay url to BRAINSTORM_NIP85_HOME_RELAY
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
-const nip85HomeRelay = "wss://nip85.brainstorm.world"
+const nip85HomeRelay = getConfigFromFile('BRAINSTORM_NIP85_HOME_RELAY', relayUrl);
+// const nip85HomeRelay = "wss://nip85.brainstorm.world"
 let relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
 
 // get customer pubkey if one is provided as an argument

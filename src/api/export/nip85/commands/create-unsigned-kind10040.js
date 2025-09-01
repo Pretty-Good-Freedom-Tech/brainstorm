@@ -1,6 +1,8 @@
 /**
  * Create Unsigned Kind 10040 Event
  * 
+ * /api/create-unsigned-kind10040
+ * 
  * Creates an unsigned Kind 10040 event template for NIP-85 trusted assertions
  * that can be signed by the user using NIP-07 browser extension
  */
@@ -37,6 +39,8 @@ async function handleCreateUnsignedKind10040(req, res) {
         
         // Get relay configuration
         const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
+        const nip85HomeRelay = getConfigFromFile('BRAINSTORM_NIP85_HOME_RELAY', relayUrl);
+        // const nip85HomeRelay = "wss://nip85.brainstorm.world"
         
         if (!relayUrl) {
             return res.status(500).json({
@@ -67,52 +71,52 @@ async function handleCreateUnsignedKind10040(req, res) {
                 [
                     "30382:rank",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:personalizedGrapeRank_influence",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:personalizedGrapeRank_average",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:personalizedGrapeRank_confidence",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:personalizedGrapeRank_input",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:personalizedPageRank",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:verifiedFollowersCount",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:verifiedMutersCount",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:verifiedReportersCount",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ],
                 [
                     "30382:hops",
                     relayPubkey,
-                    relayUrl
+                    nip85HomeRelay
                 ]
             ]
         };

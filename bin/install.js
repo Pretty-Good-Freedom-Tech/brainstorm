@@ -527,6 +527,9 @@ export BRAINSTORM_DEFAULT_NIP85_RELAYS='${defaultNip85Relays}'
 # TODO: allow owner to edit BRAINSTORM_NIP85_RELAYS (and allow customers to customize?)
 export BRAINSTORM_NIP85_RELAYS='${defaultNip85Relays}'
 
+export BRAINSTORM_DEFAULT_NIP85_HOME_RELAY='wss://nip85.brainstorm.world'
+export BRAINSTORM_NIP85_HOME_RELAY='wss://nip85.brainstorm.world'
+
 # default popular general purpose relays
 export BRAINSTORM_DEFAULT_POPULAR_GENERAL_PURPOSE_RELAYS='${defaultPopularGeneralPurposeRelays}'
 # TODO: allow owner to edit BRAINSTORM_POPULAR_GENERAL_PURPOSE_RELAYS (and allow customers to customize?)
