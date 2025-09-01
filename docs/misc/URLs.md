@@ -29,8 +29,15 @@ dcosl.com
 dcosl.com
 pgf.tech
 
-username.brainstorm.social, e.g. straycat.brainstorm.social
+<username>.brainstorm.social, e.g. straycat.brainstorm.social
+
+****** WoT relays ******
 wot.brainstorm.social
+
+****** nip85 relays ******
+nip85.nostr1.com (relay.tools)
+nip85.brainstorm.world (digital ocean)
+nip85.grapevine.network (digital ocean)
 
 ********* experimental ************
 
@@ -41,10 +48,8 @@ relayXX.hasenpfeffr.com
 
 ***** CONSIDERING: *****
 
-nip85.grapevine.network
 nip85.brainstorm.world
 nip85.brainstorm.social
-nip85.nostr1.com
 
 wot.grapevine.network
 
@@ -53,6 +58,7 @@ wot.grapevine.network
 ****************************************
 
 brainstorm
+.build ($49)
 .gm
 .online ($400)
 .band ($30)
@@ -79,6 +85,7 @@ graperank
 .ninja
 
 grapevine
+.build ($49)
 .tech ($699)
 .world ($4800)
 .band ($29)
@@ -92,11 +99,17 @@ tapestry
 .blue, .gold, .green
 .casa
 
-****************************************
-********** COULD GET ALL THREE *********
-****************************************
+*************************************************************************
+********** COULD GET ALL THREE: BRAINSTORM, GRAPEVINE, TAPESTRY *********
+*************************************************************************
 
 .world ($5100)
 .band 
 .blue, .gold, .green
 .casa
+
+*******************************************************
+********** COULD GET BRAINSTORM and GRAPEVINE *********
+*******************************************************
+
+.build ($100)

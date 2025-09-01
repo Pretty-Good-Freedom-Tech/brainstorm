@@ -374,12 +374,18 @@ async function createBrainstormConfigFile() {
     return;
   }
   
-  let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultFriendRelays, defaultNip85Relays;
+  let domainName, ownerPubkey, neo4jPassword, relayUrl, defaultPopularGeneralPurposeRelays, defaultNip85Relays;
   let relayPubkey, relayNsec, relayNpub, relayPrivkey;
 
-  const hardcodedFriendRelays = "wss://relay.hasenpfeffr.com,wss://profiles.nostr1.com,wss://relay.nostr.band,wss://relay.damus.io,wss://relay.primal.net";
-  const hardcodedNip85Relays = "wss://nip85.grapevine.world,wss://nip85.nostr1.com,wss://nip85.nostr.band";
-  const hardcodedWotRelays = "wss://wot.brainstorm.social";
+  // Hardcoded relays
+  // Popular General Purpose: for publishing 10040 notes, which we want to be widespread
+  const hardcodedPopularGeneralPurposeRelays = "wss://relay.nostr.band,wss://relay.damus.io,wss://relay.primal.net";
+  // NIP85: for publishing 3038x notes, which we want to be focused into specialty relays
+  // could add nip85.nostr.band but not sure if it accepts externally generated 3038x events
+  // NOTE: 10040 notes will be sent to NIP-85 in addition to Pop Gen Purpose relays
+  const hardcodedNip85Relays = "wss://nip85.brainstorm.world,wss://nip85.grapevine.network,wss://nip85.nostr1.com";
+  // WoT relays: to download WoT data including kinds 0, 3, 1984, and 10000
+  const hardcodedWotRelays = "wss://wot.brainstorm.social,wss://relay.hasenpfeffr.com,wss://profiles.nostr1.com";
   
   if (isUpdateMode) {
     // In update mode, use environment variables set from the backup
@@ -398,7 +404,7 @@ async function createBrainstormConfigFile() {
     relayNpub = getConfigFromFile('BRAINSTORM_RELAY_NPUB') || '';
     neo4jPassword = process.env.NEO4J_PASSWORD || 'neo4j';
     relayUrl = process.env.BRAINSTORM_RELAY_URL || '';
-    defaultFriendRelays = process.env.BRAINSTORM_DEFAULT_FRIEND_RELAYS || hardcodedFriendRelays;
+    defaultPopularGeneralPurposeRelays = process.env.BRAINSTORM_DEFAULT_POPULAR_GENERAL_PURPOSE_RELAYS || hardcodedPopularGeneralPurposeRelays;
     defaultNip85Relays = process.env.BRAINSTORM_DEFAULT_NIP85_RELAYS || hardcodedNip85Relays;
     defaultWotRelays = process.env.BRAINSTORM_DEFAULT_WOT_RELAYS || hardcodedWotRelays;
     
@@ -414,7 +420,7 @@ async function createBrainstormConfigFile() {
     }
   } else {
     // Fresh installation, ask for values or use hardcoded defaults
-    defaultFriendRelays = hardcodedFriendRelays;
+    defaultPopularGeneralPurposeRelays = hardcodedPopularGeneralPurposeRelays;
     defaultNip85Relays = hardcodedNip85Relays;
     defaultWotRelays = hardcodedWotRelays;
     
@@ -521,13 +527,13 @@ export BRAINSTORM_DEFAULT_NIP85_RELAYS='${defaultNip85Relays}'
 # TODO: allow owner to edit BRAINSTORM_NIP85_RELAYS (and allow customers to customize?)
 export BRAINSTORM_NIP85_RELAYS='${defaultNip85Relays}'
 
-# default friend relays
-export BRAINSTORM_DEFAULT_FRIEND_RELAYS='${defaultFriendRelays}'
-# TODO: allow owner to edit BRAINSTORM_FRIEND_RELAYS (and allow customers to customize?)
-export BRAINSTORM_FRIEND_RELAYS='${defaultFriendRelays}'
+# default popular general purpose relays
+export BRAINSTORM_DEFAULT_POPULAR_GENERAL_PURPOSE_RELAYS='${defaultPopularGeneralPurposeRelays}'
+# TODO: allow owner to edit BRAINSTORM_POPULAR_GENERAL_PURPOSE_RELAYS (and allow customers to customize?)
+export BRAINSTORM_POPULAR_GENERAL_PURPOSE_RELAYS='${defaultPopularGeneralPurposeRelays}'
 
 # NIP-85 configuration
-export BRAINSTORM_30382_LIMIT="1000"
+export BRAINSTORM_30382_LIMIT="10"
 
 # Performance tuning
 export BRAINSTORM_BATCH_SIZE="100"

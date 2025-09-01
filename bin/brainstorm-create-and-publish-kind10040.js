@@ -20,11 +20,20 @@ const nostrTools = require('nostr-tools');
 const { getConfigFromFile } = require('../src/utils/config');
 
 // Get relay configuration
-const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
+const brainstormRelayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
 const ownerPubkey = getConfigFromFile('BRAINSTORM_OWNER_PUBKEY', '');
+const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', "wss://nip85.brainstorm.world,wss://nip85.grapevine.network,wss://nip85.nostr1.com")
+const popularGeneralPurposeRelayUrls = getConfigFromFile('BRAINSTORM_POPULAR_GENERAL_PURPOSE_RELAYS', "wss://relay.nostr.band,wss://relay.damus.io,wss://relay.primal.net")
 
-if (!relayUrl) {
-  console.error('Error: Relay URL not found in configuration');
+const aBrainstormRelayUrl = [brainstormRelayUrl];
+const aNip85RelayUrls = nip85RelayUrls.split(',').map(url => url.trim());
+const aPopularGeneralPurposeRelayUrls = popularGeneralPurposeRelayUrls.split(',').map(url => url.trim());
+
+// publish kind 10040 everywhere: this Brainstorm instance, NIP-85 relays, and popular general purpose relays
+const aRelayUrls = [...aBrainstormRelayUrl, ...aNip85RelayUrls, ...aPopularGeneralPurposeRelayUrls];
+
+if (!aRelayUrls.length) {
+  console.error('Error: Relay URLs not found in configuration');
   process.exit(1);
 }
 
@@ -108,49 +117,27 @@ async function publishKind10040() {
     console.log('Event details:');
     console.log(JSON.stringify(event, null, 2));
 
-    // Publish the event to the relay
-    console.log(`Publishing event to relay: ${relayUrl}`);
-    const publishResult = await publishEventToRelay(event, relayUrl);
-    
-    if (publishResult.success) {
-      console.log('✅ Event published successfully!');
-      console.log(`Event ID: ${event.id}`);
-      
-      // Save the published event to a file for record keeping
-      const dataDir = '/var/lib/brainstorm/data';
-      const publishedDir = path.join(dataDir, 'published');
-      
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-      
-      if (!fs.existsSync(publishedDir)) {
-        fs.mkdirSync(publishedDir, { recursive: true });
-      }
-      
-      const timestamp = Date.now();
-      const userIdentifier = customerPubkey ? customerPubkey.substring(0, 8) : event.pubkey.substring(0, 8);
-      const filename = `kind10040_${userIdentifier}_${timestamp}.json`;
-      const filePath = path.join(publishedDir, filename);
-      
-      fs.writeFileSync(filePath, JSON.stringify(event, null, 2));
-      console.log(`Event saved to ${filePath}`);
-      
-      // Clean up the temporary signed event file if it was in a temp location
-      if (eventFile.includes('/tmp/') || eventFile.includes('temp')) {
-        try {
-          fs.unlinkSync(eventFile);
-          console.log(`Cleaned up temporary file: ${eventFile}`);
-        } catch (cleanupError) {
-          console.warn(`Could not clean up temporary file: ${cleanupError.message}`);
+    // Publish to each relay sequentially
+    // Initialize counters
+    let successCount = 0;
+    let failureCount = 0;
+    for (const relayUrl of aRelayUrls) {
+      try {
+        console.log(`Publishing event to relay: ${relayUrl}`);
+        const result = await publishEventToRelay(event, relayUrl);
+        if (result.success) {
+          console.log(`✅ Event ${event.id} published successfully to ${relayUrl}.`);
+          successCount++;
+        } else {
+          console.error(`❌ Failed to publish event ${event.id} to ${relayUrl}: ${result.message}`);
+          failureCount++;
         }
+      } catch (error) {
+        console.error(`Error publishing event ${event.id} to ${relayUrl}:`, error);
+        failureCount++;
       }
-      
-    } else {
-      console.error('❌ Failed to publish event:', publishResult.message);
-      process.exit(1);
     }
-    
+    console.log(`Published event ${event.id} to ${successCount} relays, failed to publish to ${failureCount} relays.`);
   } catch (error) {
     console.error('Error publishing Kind 10040 event:', error);
     process.exit(1);

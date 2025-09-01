@@ -1,6 +1,8 @@
 /**
  * Publish Signed Kind 10040 Event
  * 
+ * /api/publish-signed-kind10040
+ * 
  * Publishes an already-signed Kind 10040 event for NIP-85 trusted assertions
  * The event must be signed by the user using NIP-07 browser extension
  */

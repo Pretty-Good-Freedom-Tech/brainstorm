@@ -25,7 +25,7 @@ const neo4jUser = getConfigFromFile('NEO4J_USER', 'neo4j');
 const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
 const logDir = getConfigFromFile('BRAINSTORM_LOG_DIR', '/var/log/brainstorm');
 const kind30382_limit = getConfigFromFile('BRAINSTORM_30382_LIMIT', '1000');
-const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', "wss://nip85.grapevine.world,wss://nip85.nostr1.com")
+const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', "wss://nip85.brainstorm.world,wss://nip85.grapevine.network,wss://nip85.nostr1.com")
 
 // Log relay configuration for debugging
 console.log(`Using relay URL: ${relayUrl}`);
@@ -114,7 +114,7 @@ async function getUsers(limit = null) {
              u.confidence AS confidence,
              u.input AS input
       ORDER BY u.influence DESC
-      LIMIT 3
+      LIMIT ${kind30382_limit}
     `;
     
     if (limit !== null && !isNaN(parseInt(limit))) {

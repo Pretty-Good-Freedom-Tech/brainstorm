@@ -6,7 +6,7 @@ set -o pipefail # Fail if any pipeline command fails
 # following the Trusted Assertions protocol (NIP-85)
 
 # Source the configuration file
-source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, BRAINSTORM_NIP85_DIR, BRAINSTORM_RELAY_URL, BRAINSTORM_DEFAULT_FRIEND_RELAYS
+source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, BRAINSTORM_NIP85_DIR, BRAINSTORM_RELAY_URL
 
 # Source structured logging utilities
 source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"

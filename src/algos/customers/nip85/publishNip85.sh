@@ -7,7 +7,7 @@
 # sudo bash publishNip85.sh 53dab47395542b4df9c9d5b32934403b751f0a882e69bb8dd8a660df3a95f02d 11 customer_53dab473_mdugjpdy
 
 # Source the configuration file
-source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, BRAINSTORM_MODULE_ALGOS_DIR, BRAINSTORM_RELAY_URL, BRAINSTORM_DEFAULT_FRIEND_RELAYS
+source /etc/brainstorm.conf # BRAINSTORM_LOG_DIR, BRAINSTORM_MODULE_ALGOS_DIR, BRAINSTORM_RELAY_URL
 
 # Source structured logging utility
 source /usr/local/lib/node_modules/brainstorm/src/utils/structuredLogging.sh
