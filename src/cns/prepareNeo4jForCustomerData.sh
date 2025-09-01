@@ -36,129 +36,169 @@ fi
 # Get customer_id
 CUSTOMER_ID="$2"
 
+# Get log directory
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
+
+# Create log directory if it doesn't exist; chown to brainstorm user
+mkdir -p "$LOG_DIR"
+sudo chown brainstorm:brainstorm "$LOG_DIR"
+
+# Log file
+LOG_FILE="$LOG_DIR/prepareNeo4jForCustomerData.log"
+
+touch ${LOG_FILE}
+sudo chown brainstorm:brainstorm ${LOG_FILE}
+
 # TODO: check if CUSTOMER_ID and CUSTOMER_PUBKEY are valid
 
 echo "$(date): Starting prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
-echo "$(date): Starting prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/prepareNeo4jForCustomerData.log
+echo "$(date): Starting prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${LOG_FILE}
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-    "message": "Starting Neo4j customer data preparation",
-    "task_type": "customer_preparation",
-    "database": "neo4j",
-    "operation": "wot_metrics_setup",
-    "child_scripts": 2,
-    "category": "maintenance",
-    "scope": "customer",
-    "parent_task": "processCustomer"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg message "Starting prepareNeo4jForCustomerData" \
+    --arg task_type "customer_preparation" \
+    --arg database "neo4j" \
+    --arg category "maintenance" \
+    --arg scope "customer" \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "message": $message,
+        "task_type": $task_type,
+        "database": $database,
+        "category": $category,
+        "scope": $scope
+    }')
+emit_task_event "TASK_START" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Emit structured event for first child script
-emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-    "message": "Starting SetOfNostrUserWotMetricsCards setup",
-    "phase": "metrics_cards_setup",
-    "step": "sets_of_metrics_cards",
-    "child_script": "addSetsOfMetricsCards.sh",
-    "database": "neo4j",
-    "operation": "general_setup"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg message "Starting SetOfNostrUserWotMetricsCards setup" \
+    --arg phase "metrics_cards_setup" \
+    --arg step "sets_of_metrics_cards" \
+    --arg child_script "addSetsOfMetricsCards.sh" \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "message": $message,
+        "phase": $phase,
+        "step": $step,
+        "child_script": $child_script
+    }')
+emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Add SetOfNostrUserWotMetricsCards nodes to the neo4j database. This does not require customer_id or customer_pubkey.
 if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addSetsOfMetricsCards.sh; then
     # Emit structured event for first child script success
-    emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-        "message": "SetOfNostrUserWotMetricsCards setup completed successfully",
-        "phase": "metrics_cards_setup",
-        "step": "sets_of_metrics_cards_complete",
-        "child_script": "addSetsOfMetricsCards.sh",
-        "status": "success",
-        "database": "neo4j"
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg message "SetOfNostrUserWotMetricsCards setup completed successfully" \
+        --arg phase "metrics_cards_setup" \
+        --arg step "sets_of_metrics_cards_complete" \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "message": $message,
+            "phase": $phase,
+            "step": $step
+        }')
+    emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
     # Emit structured event for first child script failure
-    emit_task_event "TASK_ERROR" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-        "message": "SetOfNostrUserWotMetricsCards setup failed",
-        "status": "failed",
-        "task_type": "customer_preparation",
-        "child_script": "addSetsOfMetricsCards.sh",
-        "error_reason": "child_script_failure",
-        "database": "neo4j",
-        "category": "maintenance",
-        "scope": "customer",
-        "parent_task": "processCustomer"
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg message "SetOfNostrUserWotMetricsCards setup failed" \
+        --arg phase "metrics_cards_setup" \
+        --arg step "sets_of_metrics_cards_failed" \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "message": $message,
+            "phase": $phase,
+            "step": $step
+        }')
+    emit_task_event "TASK_ERROR" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
     exit 1
 fi
 
 echo "$(date): Continuing prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
-echo "$(date): Continuing prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/prepareNeo4jForCustomerData.log
+echo "$(date): Continuing prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${LOG_FILE}
 
 # Emit structured event for second child script
-emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-    "message": "Starting customer-specific NostrUserWotMetricsCard setup",
-    "phase": "metrics_cards_setup",
-    "step": "customer_metrics_cards",
-    "child_script": "addMetricsCards.sh",
-    "database": "neo4j",
-    "operation": "customer_specific_setup"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg message "Starting customer-specific NostrUserWotMetricsCard setup" \
+    --arg phase "metrics_cards_setup" \
+    --arg step "customer_specific_metrics_cards" \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "message": $message,
+        "phase": $phase,
+        "step": $step
+    }')
+emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Add NostrUserWotMetricsCard nodes to the neo4j database for the given customer
 if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addMetricsCards.sh $CUSTOMER_PUBKEY $CUSTOMER_ID; then
     # Emit structured event for second child script success
-    emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-        "message": "Customer-specific NostrUserWotMetricsCard setup completed successfully",
-        "phase": "metrics_cards_setup",
-        "step": "customer_metrics_cards_complete",
-        "child_script": "addMetricsCards.sh",
-        "status": "success",
-        "database": "neo4j"
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg message "Customer-specific NostrUserWotMetricsCard setup completed successfully" \
+        --arg phase "metrics_cards_setup" \
+        --arg step "customer_metrics_cards_complete" \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "message": $message,
+            "phase": $phase,
+            "step": $step
+        }')
+    emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
     # Emit structured event for second child script failure
-    emit_task_event "TASK_ERROR" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-        "customer_id": "'$CUSTOMER_ID'",
-        "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-        "message": "Customer-specific NostrUserWotMetricsCard setup failed",
-        "status": "failed",
-        "task_type": "customer_preparation",
-        "child_script": "addMetricsCards.sh",
-        "error_reason": "child_script_failure",
-        "database": "neo4j",
-        "category": "maintenance",
-        "scope": "customer",
-        "parent_task": "processCustomer"
-    }'
+    oMetadata=$(jq -n \
+        --argjson customer_id "$CUSTOMER_ID" \
+        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg message "Customer-specific NostrUserWotMetricsCard setup failed" \
+        --arg phase "metrics_cards_setup" \
+        --arg step "customer_metrics_cards_failed" \
+        ' {
+            "customer_id": $customer_id,
+            "customer_pubkey": $customer_pubkey,
+            "message": $message,
+            "phase": $phase,
+            "step": $step
+        }')
+    emit_task_event "TASK_ERROR" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
     exit 1
 fi
 
 # Emit structured event for successful completion
-emit_task_event "TASK_END" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" '{
-    "customer_id": "'$CUSTOMER_ID'",
-    "customer_pubkey": "'$CUSTOMER_PUBKEY'",
-    "message": "Neo4j customer data preparation completed successfully",
-    "status": "success",
-    "task_type": "customer_preparation",
-    "database": "neo4j",
-    "child_scripts_completed": 2,
-    "operations_completed": ["sets_of_metrics_cards", "customer_metrics_cards"],
-    "category": "maintenance",
-    "scope": "customer",
-    "parent_task": "processCustomer"
-}'
+oMetadata=$(jq -n \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg message "Neo4j customer data preparation completed successfully" \
+    --arg phase "customer_preparation" \
+    --arg step "customer_preparation_complete" \
+    ' {
+        "customer_id": $customer_id,
+        "customer_pubkey": $customer_pubkey,
+        "message": $message,
+        "phase": $phase,
+        "step": $step
+    }')
+emit_task_event "TASK_END" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 echo "$(date): Finished prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
-echo "$(date): Finished prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/prepareNeo4jForCustomerData.log
+echo "$(date): Finished prepareNeo4jForCustomerData for customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> ${LOG_FILE}
 

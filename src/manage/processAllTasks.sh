@@ -26,6 +26,7 @@ sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/processAllTasks.log
 
 # wrapper function which employs legacy log system; 
 # will eventually get rid of this wrapper and just run launchChildTask directly
+# OR may modify this to use structured logging; CHILD_TASK_START and CHILD_TASK_END
 launch_child_task() {
     local task_name="$1"
     local parent_task_name="$2"
@@ -154,6 +155,15 @@ launch_child_task "processNpubsUpToMaxNumBlocks" "processAllTasks" "" ""
 
 sleep 5
 
+#################### updateAllScoresForOwner: start  ##############
+# Child Task 6: Update All Scores For Owner
+launch_child_task "updateAllScoresForOwner" "processAllTasks" "" ""
+#################### updateAllScoresForOwner: complete  ##############
+
+sleep 5
+
+: <<'COMMENT_BLOCK'
+# Replacing next block of child tasks with updateAllScoresForOwner
 #################### calculateOwnerHops: start  ##############
 # Child Task 6: Calculate Owner Hops
 launch_child_task "calculateOwnerHops" "processAllTasks" "" ""
@@ -202,6 +212,7 @@ sleep 5
 # Child Task 6: Export Owner Kind 30382
 launch_child_task "exportOwnerKind30382" "processAllTasks" "" ""
 #################### exportOwnerKind30382: complete  ##############
+COMMENT_BLOCK
 
 sleep 5
 

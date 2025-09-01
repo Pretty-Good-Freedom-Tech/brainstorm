@@ -183,25 +183,43 @@ log_message "Finished processAllActiveCustomers"
 
 # Emit structured event for task completion
 if [ $failed_count -gt 0 ]; then
-    emit_task_event "TASK_END" "processAllActiveCustomers" "" '{
-        "status": "partial_success",
-        "total_customers": '$customer_count',
-        "successful_customers": '$processed_count',
-        "failed_customers": '$failed_count',
-        "orchestrator_type": "customer_iteration",
-        "message": "Completed processing all active customers with some failures",
-        "success_rate": "'$(echo "scale=2; $processed_count * 100 / $customer_count" | bc)'"
-    }'
+    oMetadata=$(jq -n \
+        --arg status "partial_success" \
+        --argjson total_customers "$customer_count" \
+        --argjson successful_customers "$processed_count" \
+        --argjson failed_customers "$failed_count" \
+        --arg orchestrator_type "customer_iteration" \
+        --arg message "Completed processing all active customers with some failures" \
+        --argjson success_rate "'$(echo "scale=2; $processed_count * 100 / $customer_count" | bc)'" \
+        '{
+            "status": $status,
+            "total_customers": $total_customers,
+            "successful_customers": $successful_customers,
+            "failed_customers": $failed_customers,
+            "orchestrator_type": $orchestrator_type,
+            "message": $message,
+            "success_rate": $success_rate
+        }')
+    emit_task_event "TASK_END" "processAllActiveCustomers" "" "$oMetadata"
     exit 1
 else
-    emit_task_event "TASK_END" "processAllActiveCustomers" "" '{
-        "status": "success",
-        "total_customers": '$customer_count',
-        "successful_customers": '$processed_count',
-        "failed_customers": '$failed_count',
-        "orchestrator_type": "customer_iteration",
-        "message": "Successfully completed processing all active customers",
-        "success_rate": "100.00"
-    }'
+    oMetadata=$(jq -n \
+        --arg status "success" \
+        --argjson total_customers "$customer_count" \
+        --argjson successful_customers "$processed_count" \
+        --argjson failed_customers "$failed_count" \
+        --arg orchestrator_type "customer_iteration" \
+        --arg message "Successfully completed processing all active customers" \
+        --arg success_rate "100.00" \
+        '{
+            "status": $status,
+            "total_customers": $total_customers,
+            "successful_customers": $successful_customers,
+            "failed_customers": $failed_customers,
+            "orchestrator_type": $orchestrator_type,
+            "message": $message,
+            "success_rate": $success_rate
+        }')
+    emit_task_event "TASK_END" "processAllActiveCustomers" "" "$oMetadata"
     exit 0
 fi

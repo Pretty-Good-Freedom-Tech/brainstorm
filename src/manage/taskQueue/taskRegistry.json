@@ -75,13 +75,7 @@
         "callBatchTransferIfNeeded",
         "reconciliation",
         "processNpubsUpToMaxNumBlocks",
-        "calculateOwnerHops",
-        "calculateOwnerPageRank",
-        "calculateOwnerGrapeRank",
-        "processOwnerFollowsMutesReports",
-        "calculateReportScores",
-        "exportWhitelist",
-        "exportOwnerKind30382",
+        "updateAllScoresForOwner",
         "processAllActiveCustomers"
       ],
       "priority": "high",
@@ -265,6 +259,35 @@
       "notes": "Phase 2 structured events implemented - emits TASK_START, PROGRESS (initialization, relay_sync phases), and TASK_END with comprehensive metadata about relay synchronization, filter kinds, and sync status."
     },
 
+    "callBatchTransfer": {
+      "name": "Call Batch Transfer",
+      "categories": ["network"],
+      "description": "Executes batch data transfer operations",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/manage/batchTransfer/callBatchTransfer.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/manage/batchTransfer/callBatchTransfer.sh",
+      "script_relative_path": "manage/batchTransfer/callBatchTransfer.sh",
+      "arguments": false,
+      "scope": "system",
+      "priority": "medium",
+      "frequency": "as-needed",
+      "status": "active",
+      "structuredLogging": true,
+      "options": {
+        "completion": {
+          "failure": {
+            "timeout": {
+              "comments": "3600000 = 1 hour",
+              "duration": 3600000,
+              "forceKill": false
+            }
+          }
+        }
+      },
+      "notes": "Phase 2 structured events implemented - emits TASK_START, PROGRESS events for decision and execution phases (transfer needed/skipped), and TASK_END with execution status"
+    },
+
     "callBatchTransferIfNeeded": {
       "name": "Call Batch Transfer If Needed",
       "categories": ["network"],
@@ -280,19 +303,8 @@
       "priority": "medium",
       "frequency": "daily",
       "status": "active",
-      "structuredLogging": true,
-      "options": {
-        "completion": {
-          "failure": {
-            "timeout": {
-              "comments": "3600000 = 1 hour",
-              "duration": 3600000,
-              "forceKill": false
-            }
-          }
-        }
-      },
-      "notes": "Phase 2 structured events implemented - emits TASK_START, PROGRESS events for decision and execution phases (transfer needed/skipped), and TASK_END with execution status"
+      "structuredLogging": false,
+      "notes": "Phase 2 structured events not yet implemented"
     },
 
     "reconciliation": {
@@ -420,6 +432,35 @@
       "notes":"Phase 2 structured logging implemented with comprehensive Neo4j customer preparation events: TASK_START, child script orchestration (addSetsOfMetricsCards.sh and addMetricsCards.sh), individual child script success/failure tracking, and TASK_END with detailed operation completion metadata."
     },
 
+    "updateAllScoresForOwner": {
+      "name": "Update All Scores For Owner",
+      "categories": ["owner", "algorithms"],
+      "description": "Updates all trust scores for the owner",
+      "scripts": [
+        "$BRAINSTORM_MODULE_SRC_DIR/algos/updateAllScoresForOwner.sh"
+      ],
+      "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/updateAllScoresForOwner.sh",
+      "script_relative_path": "algos/updateAllScoresForOwner.sh",
+      "parent": "processAllTasks",
+      "children": [
+        "calculateOwnerHops",
+        "calculateOwnerPageRank",
+        "calculateOwnerGrapeRank",
+        "processOwnerFollowsMutesReports",
+        "calculateReportScores",
+        "exportWhitelist",
+        "exportOwnerKind30382"
+      ],
+      "scope": "owner",
+      "priority": "high",
+      "status": "active",
+      "timeout": "4 hours",
+      "retries": 3,
+      "structuredLogging": true,
+      "options":{},
+      "notes":"Phase 2 structured events implemented - emits TASK_START/END, CHILD_TASK_START/END/ERROR for all 5 child tasks"
+    },
+
     "updateAllScoresForSingleCustomer": {
       "name": "Update All Scores For Single Customer",
       "categories": ["customer", "algorithms"],
@@ -462,7 +503,7 @@
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
       "script_relative_path": "algos/personalizedGrapeRank/calculatePersonalizedGrapeRankController.sh",
       "arguments": false,
-      "parent": "processAllTasks",
+      "parent": "updateAllScoresForOwner",
       "scope": "owner",
       "priority": "medium",
       "frequency": "daily",
@@ -508,7 +549,7 @@
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/calculatePersonalizedPageRank.sh",
       "script_relative_path": "algos/calculatePersonalizedPageRank.sh",
       "arguments": false,
-      "parent": "processAllTasks",
+      "parent": "updateAllScoresForOwner",
       "scope": "owner",
       "priority": "medium",
       "frequency": "daily",
@@ -552,7 +593,7 @@
       "script_relative_path": "algos/calculateHops.sh",
       "enforcedTimeout": 600000,
       "arguments": false,
-      "parent": "processAllTasks",
+      "parent": "updateAllScoresForOwner",
       "scope": "owner",
       "priority": "low",
       "frequency": "weekly",
@@ -762,7 +803,7 @@
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/follows-mutes-reports/processFollowsMutesReports.sh",
       "script_relative_path": "algos/follows-mutes-reports/processFollowsMutesReports.sh",
       "arguments": false,
-      "parent": "processAllTasks",
+      "parent": "updateAllScoresForOwner",
       "scope": "owner",
       "priority": "medium",
       "frequency": "daily",
@@ -782,7 +823,7 @@
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/reports/calculateReportScores.sh",
       "script_relative_path": "algos/reports/calculateReportScores.sh",
       "arguments": false,
-      "parent": "processAllTasks",
+      "parent": "updateAllScoresForOwner",
       "scope": "owner",
       "priority": "medium",
       "frequency": "daily",
@@ -802,7 +843,7 @@
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/exportWhitelist.sh",
       "script_relative_path": "algos/exportWhitelist.sh",
       "arguments": false,
-      "parent": "processAllTasks",
+      "parent": "updateAllScoresForOwner",
       "scope": "owner",
       "priority": "low",
       "frequency": "daily",
@@ -822,7 +863,7 @@
       "script": "$BRAINSTORM_MODULE_SRC_DIR/algos/nip85/publishNip85.sh",
       "script_relative_path": "algos/nip85/publishNip85.sh",
       "arguments": false,
-      "parent": "processAllTasks",
+      "parent": "updateAllScoresForOwner",
       "scope": "owner",
       "priority": "low",
       "frequency": "daily",

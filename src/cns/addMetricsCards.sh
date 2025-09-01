@@ -24,89 +24,40 @@ fi
 # Get customer_id
 CUSTOMER_ID="$2"
 
-# Batch size for ID-based processing
-BATCH_SIZE=50000
+# Get log directory
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
 
-# Query to get the min and max node IDs to determine batching range
-# Using elementId() instead of deprecated id() function
-# Removed WHERE NOT clause since MERGE handles create-if-not-exists
-CYPHER_GET_RANGE="MATCH (s:SetOfNostrUserWotMetricsCards)
-WHERE NOT (s)-[:SPECIFIC_INSTANCE]->(:NostrUserWotMetricsCard {observer_pubkey: '$CUSTOMER_PUBKEY'})
-WITH toInteger(split(elementId(s), ':')[2]) AS numericId
-RETURN min(numericId) as minId, max(numericId) as maxId"
+# Create log directory if it doesn't exist; chown to brainstorm user
+mkdir -p "$LOG_DIR"
+sudo chown brainstorm:brainstorm "$LOG_DIR"
 
-# Batch query: Create NostrUserWotMetricsCard for nodes in ID range
-# Using elementId() instead of deprecated id() function
-# Removed WHERE NOT clause since MERGE handles create-if-not-exists and constraint prevents duplicates
-CYPHER_CREATE_BATCH="MATCH (s:SetOfNostrUserWotMetricsCards)
-WHERE toInteger(split(elementId(s), ':')[2]) >= \$minId 
-  AND toInteger(split(elementId(s), ':')[2]) < \$maxId
-MERGE (s) -[:SPECIFIC_INSTANCE]-> (c:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
-SET c.observer_pubkey = '$CUSTOMER_PUBKEY', c.observee_pubkey = s.observee_pubkey
-RETURN count(c) as numCards"
+# Log file
+LOG_FILE="$LOG_DIR/addMetricsCards.log"
+
+touch ${LOG_FILE}
+sudo chown brainstorm:brainstorm ${LOG_FILE}
+
+CYPHER1="MATCH (s:SetOfNostrUserWotMetricsCards)
+WHERE NOT (s) -[:SPECIFIC_INSTANCE]-> (:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
+LIMIT 100000
+MERGE (s) -[:SPECIFIC_INSTANCE]-> (c:NostrUserWotMetricsCard {observer_pubkey: '$CUSTOMER_PUBKEY', customer_id: $CUSTOMER_ID})
+SET c.observee_pubkey = s.observee_pubkey
+RETURN count(c) as numCrds"
 
 echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID"
-echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
+echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID" >> ${LOG_FILE}
 
-# Get the ID range of nodes that need cards
-echo "$(date): Getting ID range for batching"
-echo "$(date): Getting ID range for batching" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-
-rangeResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_GET_RANGE")
-rangeData=$(echo "$rangeResults" | tail -n +2 | grep -v '^$')
-
-if [[ -z "$rangeData" ]]; then
-    echo "$(date): No cards need to be created for customer_id $CUSTOMER_ID"
-    echo "$(date): No cards need to be created for customer_id $CUSTOMER_ID" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-    exit 0
-fi
-
-# Parse min and max IDs (cypher-shell returns comma-separated values)
-minId=$(echo "$rangeData" | cut -d',' -f1 | tr -d ' ')
-maxId=$(echo "$rangeData" | cut -d',' -f2 | tr -d ' ')
-
-# Check if minId or maxId are null (no cards need to be created)
-if [[ "$minId" == "null" ]] || [[ "$maxId" == "null" ]] || [[ -z "$minId" ]] || [[ -z "$maxId" ]]; then
-    echo "$(date): No cards need to be created for customer_id $CUSTOMER_ID (minId=$minId, maxId=$maxId)"
-    echo "$(date): No cards need to be created for customer_id $CUSTOMER_ID (minId=$minId, maxId=$maxId)" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-    exit 0
-fi
-
-echo "$(date): Processing nodes with IDs from $minId to $maxId"
-echo "$(date): Processing nodes with IDs from $minId to $maxId" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-
-# Process in ID-based batches
-totalCards=0
-currentId=$minId
-batchNum=1
-
-while [[ "$currentId" -le "$maxId" ]]; do
-    nextId=$((currentId + BATCH_SIZE))
-    
-    echo "$(date): Processing batch $batchNum (IDs $currentId to $((nextId-1)))"
-    echo "$(date): Processing batch $batchNum (IDs $currentId to $((nextId-1)))" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-    
-    # Create cards for this ID range
-    batchResult=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" \
-        -P "minId=>$currentId" -P "maxId=>$nextId" "$CYPHER_CREATE_BATCH")
-    
-    # Extract count from result
-    batchCount="${batchResult:9}"
-    if [[ "$batchCount" =~ ^[0-9]+$ ]]; then
-        totalCards=$((totalCards + batchCount))
-        echo "$(date): Batch $batchNum: Created $batchCount cards (Total: $totalCards)"
-        echo "$(date): Batch $batchNum: Created $batchCount cards (Total: $totalCards)" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-    else
-        echo "$(date): Batch $batchNum: No valid count returned"
-        echo "$(date): Batch $batchNum: No valid count returned" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
-    fi
-    
-    currentId=$nextId
-    batchNum=$((batchNum + 1))
-    
-    # Small delay to avoid overwhelming Neo4j
-    sleep 0.5
+# Iterate CYPHER1 until numCrds is zero or for a maximum of 20 iterations
+numCrds=1
+iterations=1
+while [[ "$numCrds" -gt 0 ]] && [[ "$iterations" -lt 20 ]]; do
+    cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
+    numCrds="${cypherResults:8}"
+    echo "$(date): numCrds = $numCrds"
+    echo "$(date): numCrds = $numCrds" >> ${LOG_FILE}
+    sleep 1
+    ((iterations++))
 done
 
-echo "$(date): Completed addMetricsCards for customer_id $CUSTOMER_ID. Total cards created: $totalCards"
-echo "$(date): Completed addMetricsCards for customer_id $CUSTOMER_ID. Total cards created: $totalCards" >> ${BRAINSTORM_LOG_DIR}/addMetricsCards.log
+echo "$(date): Finished addMetricsCards for customer_id $CUSTOMER_ID"
+echo "$(date): Finished addMetricsCards for customer_id $CUSTOMER_ID" >> ${LOG_FILE}

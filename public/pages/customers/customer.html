@@ -613,7 +613,7 @@
                 
                 <!-- New Comprehensive NIP-85 Status Panel -->
                 <div id="newNip85Panel" class="nip85-panel">
-                    <h3>🎆 NIP-85 Status Overview</h3>
+                    <h3>🎆 Trusted Assertions</h3>
                     
                     <div id="newNip85Loading" class="nip85-loading">
                         <div class="loader"></div>
@@ -665,7 +665,7 @@
                     
                     <!-- Missing Kind 10040 Status -->
                     <div id="newNip85Missing" class="status-card info" style="display: none;">
-                        <h4>📝 Complete Your NIP-85 Setup</h4>
+                        <h4>📝 Enable Trusted Attestations (NIP-85)</h4>
                         <p>To get the most out of Brainstorm and make your personalized trust scores available to the wider Nostr world, we recommend publishing your Kind 10040 event.</p>
                         <div id="newNip85MissingDetails" class="nip85-details"></div>
                         <div class="button-group">
@@ -726,11 +726,6 @@
                         <h4>❌ Error Loading Kind 30382 Events</h4>
                         <p id="kind30382ErrorMessage">Unable to load Kind 30382 event information.</p>
                     </div>
-                </div>
-
-                
-                <div class="action-buttons">
-                    <a href="/about.html" class="btn btn-secondary">Back to About</a>
                 </div>
             </div>
             
@@ -816,8 +811,8 @@
                     <span class="detail-value">${customerData.id !== undefined && customerData.id !== null ? customerData.id : 'N/A'}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Name:</span>
-                    <span class="detail-value">${customerData.name || 'N/A'}</span>
+                    <span class="detail-label">Brainstorm Display Name:</span>
+                    <span class="detail-value">${customerData.display_name || 'N/A'}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Status:</span>

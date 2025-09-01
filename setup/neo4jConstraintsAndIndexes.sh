@@ -5,7 +5,6 @@ set -o pipefail # Fail if any pipeline command fails
 # Brainstorm Neo4j Constraints and Indexes Setup
 # This script sets up the necessary constraints and indexes for the Brainstorm project
 
-
 source /etc/brainstorm.conf
 
 # Source structured logging utilities

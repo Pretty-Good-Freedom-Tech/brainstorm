@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e          # Exit immediately on command failure
+set -o pipefail # Fail if any pipeline command fails
 
 # example commands:
 # straycat.brainstorm.social
@@ -51,6 +53,20 @@ sudo chown brainstorm:brainstorm ${LOG_FILE}
 # Log start time (legacy format for backward compatibility)
 echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID"
 echo "$(date): Starting processCustomer for customer_name $CUSTOMER_NAME customer_pubkey $CUSTOMER_PUBKEY and customer_id $CUSTOMER_ID" >> "$LOG_FILE"
+
+# Emit structured event for task start
+oMetadata=$(jq -n \
+    --arg message "Starting processing of customer" \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --argjson customer_name "$CUSTOMER_NAME" \
+    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+    '{
+        "message": $message, 
+        "customer_id": $customer_id, 
+        "customer_name": $customer_name, 
+        "customer_pubkey": $customer_pubkey
+    }')
+emit_task_event "TASK_START" "processCustomer" "" "$oMetadata"
 
 # Start structured task timer and emit structured event
 TASK_TIMER=$(start_task_timer "processCustomer" "$CUSTOMER_PUBKEY" '{"customerId":"'$CUSTOMER_ID'","customerName":"'$CUSTOMER_NAME'"}')
@@ -162,3 +178,17 @@ echo "$(date): Finished processCustomer for customer_name $CUSTOMER_NAME custome
 
 # End structured task timer and emit completion event
 end_task_timer "processCustomer" "$CUSTOMER_PUBKEY" "0" "$TASK_TIMER" '{"customerId":"'$CUSTOMER_ID'","customerName":"'$CUSTOMER_NAME'"}'
+
+# Emit structured event for task end
+oMetadata=$(jq -n \
+    --arg message "Finished processing of customer" \
+    --argjson customer_id "$CUSTOMER_ID" \
+    --argjson customer_name "$CUSTOMER_NAME" \
+    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
+    '{
+        "message": $message, 
+        "customer_id": $customer_id, 
+        "customer_name": $customer_name, 
+        "customer_pubkey": $customer_pubkey
+    }')
+emit_task_event "TASK_END" "processCustomer" "" "$oMetadata"

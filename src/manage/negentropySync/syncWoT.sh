@@ -20,12 +20,18 @@ filter_kinds=(0 3 1984 10000 30000 38000 38172 38173)
 # TODO: use relays and filter_kinds throughout this script
 
 # Emit structured event for task start
-emit_task_event "TASK_START" "syncWoT" "system" '{
-    "description": "Web of Trust data synchronization from relays",
-    "target_relays": ["wot.brainstorm.social", "profiles.nostr1.com", "relay.hasenpfeffr.com"],
-    "filter_kinds": [0, 3, 1984, 10000, 30000, 38000, 38172, 38173],
-    "sync_direction": "down"
-}'
+oMetadata=$(jq -n \
+    --arg description "Web of Trust data synchronization from relays" \
+    --argjson target_relays "$relays" \
+    --argjson target_filter_kinds "$filter_kinds" \
+    --arg sync_direction "down" \
+    '{
+        "description": $description,
+        "target_relays": $target_relays,
+        "target_filter_kinds": $target_filter_kinds,
+        "sync_direction": $sync_direction
+    }')
+emit_task_event "TASK_START" "syncWoT" "system" "$oMetadata"
 
 echo "$(date): Starting syncWoT"
 echo "$(date): Starting syncWoT" >> ${BRAINSTORM_LOG_DIR}/syncWoT.log
