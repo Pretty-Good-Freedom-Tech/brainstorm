@@ -12,17 +12,20 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# Get customer_pubkey
-CUSTOMER_PUBKEY="$1"
-
-# Check if CUSTOMER_ID is provided
-if [ -z "$2" ]; then
-    echo "Usage: $0 <customer_pubkey> <customer_id>"
+# Check if customer_pubkey, customer_id, and customer_name are provided
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+    echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
     exit 1
 fi
 
+# Get customer_pubkey
+CUSTOMER_PUBKEY="$1"
+
 # Get customer_id
 CUSTOMER_ID="$2"
+
+# Get customer_name
+CUSTOMER_NAME="$3"  
 
 # Get log directory
 LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
@@ -37,20 +40,23 @@ LOG_FILE="$LOG_DIR/addMetricsCards.log"
 touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
+CYPHER_LIMIT=10000
+MAX_ITERATIONS=50
+
 CYPHER1="MATCH (s:SetOfNostrUserWotMetricsCards)
 WHERE NOT (s) -[:SPECIFIC_INSTANCE]-> (:NostrUserWotMetricsCard {customer_id: $CUSTOMER_ID})
-LIMIT 100000
+LIMIT $CYPHER_LIMIT
 MERGE (s) -[:SPECIFIC_INSTANCE]-> (c:NostrUserWotMetricsCard {observer_pubkey: '$CUSTOMER_PUBKEY', customer_id: $CUSTOMER_ID})
 SET c.observee_pubkey = s.observee_pubkey
 RETURN count(c) as numCrds"
 
-echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID"
-echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID" >> ${LOG_FILE}
+echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID with customer_pubkey $CUSTOMER_PUBKEY"
+echo "$(date): Starting addMetricsCards for customer_id $CUSTOMER_ID with customer_pubkey $CUSTOMER_PUBKEY" >> ${LOG_FILE}
 
-# Iterate CYPHER1 until numCrds is zero or for a maximum of 20 iterations
+# Iterate CYPHER1 until numCrds is zero or for a maximum of MAX_ITERATIONS iterations
 numCrds=1
 iterations=1
-while [[ "$numCrds" -gt 0 ]] && [[ "$iterations" -lt 20 ]]; do
+while [[ "$numCrds" -gt 0 ]] && [[ "$iterations" -lt "$MAX_ITERATIONS" ]]; do
     cypherResults=$(sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER1")
     numCrds="${cypherResults:8}"
     echo "$(date): numCrds = $numCrds"
@@ -59,5 +65,5 @@ while [[ "$numCrds" -gt 0 ]] && [[ "$iterations" -lt 20 ]]; do
     ((iterations++))
 done
 
-echo "$(date): Finished addMetricsCards for customer_id $CUSTOMER_ID"
-echo "$(date): Finished addMetricsCards for customer_id $CUSTOMER_ID" >> ${LOG_FILE}
+echo "$(date): Finished addMetricsCards for customer_id $CUSTOMER_ID with customer_pubkey $CUSTOMER_PUBKEY"
+echo "$(date): Finished addMetricsCards for customer_id $CUSTOMER_ID with customer_pubkey $CUSTOMER_PUBKEY" >> ${LOG_FILE}

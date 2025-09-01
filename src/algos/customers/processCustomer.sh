@@ -22,7 +22,7 @@ SCRIPTS_DIR="$BRAINSTORM_MODULE_ALGOS_DIR/customers/"
 
 CUSTOMERS_DIR="/var/lib/brainstorm/customers"
 
-# Check if customer_pubkey is provided
+# Check if customer_pubkey, customer_id, and customer_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
     exit 1

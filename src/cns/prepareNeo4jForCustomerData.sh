@@ -18,23 +18,20 @@ source /etc/brainstorm.conf # NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, BRAINSTORM_
 # Source structured logging utilities
 source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
 
-# Check if CUSTOMER_PUBKEY is provided
-if [ -z "$1" ]; then
-    echo "Usage: $0 <customer_pubkey> <customer_id>"
+# Check if customer_pubkey, customer_id, and customer_name are provided
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+    echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
     exit 1
 fi
 
 # Get customer_pubkey
 CUSTOMER_PUBKEY="$1"
 
-# Check if CUSTOMER_ID is provided
-if [ -z "$2" ]; then
-    echo "Usage: $0 <customer_pubkey> <customer_id>"
-    exit 1
-fi
-
 # Get customer_id
 CUSTOMER_ID="$2"
+
+# Get customer_name
+CUSTOMER_NAME="$3"  
 
 # Get log directory
 LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
@@ -148,7 +145,7 @@ oMetadata=$(jq -n \
 emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Add NostrUserWotMetricsCard nodes to the neo4j database for the given customer
-if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addMetricsCards.sh $CUSTOMER_PUBKEY $CUSTOMER_ID; then
+if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addMetricsCards.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_NAME; then
     # Emit structured event for second child script success
     oMetadata=$(jq -n \
         --argjson customer_id "$CUSTOMER_ID" \
