@@ -38,6 +38,7 @@ async function handleCreateUnsignedKind10040(req, res) {
         console.log(`Creating unsigned Kind 10040 event for customer: ${customerPubkey.substring(0, 8)}...`);
         
         // Get relay configuration
+        // TODO: allow owner to specify whether to use BRAINSTORM_RELAY_URL or BRAINSTORM_NIP85_HOME_RELAY
         const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
         const nip85HomeRelay = getConfigFromFile('BRAINSTORM_NIP85_HOME_RELAY', relayUrl);
         // const nip85HomeRelay = "wss://nip85.brainstorm.world"

@@ -794,9 +794,12 @@
                     })
                 });
                 
+                console.log('About to publish result')
                 const publishResult = await publishResponse.json();
+                console.log('Published result', publishResult)
                 
                 if (publishResult.success) {
+                    console.log('Kind 10040 event published successfully')
                     // Success - hide prompt and show success message
                     document.getElementById('kind10040NotPublished').style.display = 'none';
                     document.getElementById('kind10040Published').style.display = 'block';

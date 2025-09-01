@@ -120,4 +120,7 @@ TODO: 24 Aug 2025: revamp navbars
 - export all customers, all customer prefs, and all customer relay nsecs, as an encrypted folder of files. (or one json file per customer, or one large json file)
 - import feature; options to overwrite all existing customer (delete all current customers) or overwrite individually (only overwrite customers that are already in current customer database); default is NOT to overwrite any existing customers.
 
-
+TODO: 31 AUG 2025
+Publishing kind 10040 and 30382 events
+1. Make sure the customer can publish and/or re-publish kind 10040 events from customer page
+2. Allow owner to decice whether to use BRAINSTORM_RELAY_URL or BRAINSTORM_NIP85_HOME_RELAY in 10040 events.

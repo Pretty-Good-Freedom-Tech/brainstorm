@@ -11,7 +11,9 @@ touch ${BRAINSTORM_LOG_DIR}/syncWoT.log
 sudo chown brainstorm:brainstorm ${BRAINSTORM_LOG_DIR}/syncWoT.log
 
 # make array of relays
-relays=("relay.hasenpfeffr.com" "wot.brainstorm.social" "profiles.nostr1.com")
+# TODO: fetch these relays from brainstorm.conf
+# relays=("relay.hasenpfeffr.com" "wot.brainstorm.social" "profiles.nostr1.com")
+relays=("wot.brainstorm.social")
 # relays=("relay.hasenpfeffr.com")
 # make array of filtek kinds
 filter_kinds=(0 3 1984 10000 30000 38000 38172 38173)
