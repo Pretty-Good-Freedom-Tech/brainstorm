@@ -14,7 +14,10 @@ const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../src/utils/config');
 
 // Get relay configuration
+// changing user home relay url to nip85.brainstorm.world
+// may place this relay in brainstorm.conf
 const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
+const nip85HomeRelay = "wss://nip85.brainstorm.world"
 let relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
 
 // get customer pubkey if one is provided as an argument
@@ -39,52 +42,52 @@ const event = {
     [
       "30382:rank",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:personalizedGrapeRank_influence",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:personalizedGrapeRank_average",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:personalizedGrapeRank_confidence",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:personalizedGrapeRank_input",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:personalizedPageRank",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:verifiedFollowersCount",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:verifiedMutersCount",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:verifiedReportersCount",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ],
     [
       "30382:hops",
       relayPubkey,
-      relayUrl
+      nip85HomeRelay
     ]
   ]
 };

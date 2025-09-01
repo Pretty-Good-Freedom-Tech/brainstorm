@@ -79,6 +79,8 @@ brainstorm
 .zip
 .boo
 .day
+.cloud ($6149)
+.space ($3888)
 
 graperank
 .world
@@ -104,7 +106,7 @@ tapestry
 *************************************************************************
 
 .world ($5100)
-.band 
+.band ($90)
 .blue, .gold, .green
 .casa
 
