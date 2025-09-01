@@ -10,9 +10,9 @@ source "$CONFIG_FILE" # BRAINSTORM_LOG_DIR
 # Source structured logging utility
 source "$BRAINSTORM_MODULE_BASE_DIR/src/utils/structuredLogging.sh"
 
-# Check if customer_pubkey, customer_id, and customer_name are provided
+# Check if customer_pubkey, customer_id, and customer_directory_name are provided
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-    echo "Usage: $0 <customer_pubkey> <customer_id> <customer_name>"
+    echo "Usage: $0 <customer_pubkey> <customer_id> <customer_directory_name>"
     exit 1
 fi
 
@@ -22,11 +22,11 @@ CUSTOMER_PUBKEY="$1"
 # Get customer_id
 CUSTOMER_ID="$2"
 
-# Get customer_name
-CUSTOMER_NAME="$3"
+# Get customer_directory_name
+CUSTOMER_DIRECTORY_NAME="$3"
 
 # Get log directory
-LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_DIRECTORY_NAME"
 
 # Create log directory if it doesn't exist; chown to brainstorm:brainstorm
 mkdir -p "$LOG_DIR"
@@ -38,14 +38,14 @@ touch ${LOG_FILE}
 sudo chown brainstorm:brainstorm ${LOG_FILE}
 
 # Log start time
-echo "$(date): Starting updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
-echo "$(date): Starting updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
+echo "$(date): Starting updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_directory_name $CUSTOMER_DIRECTORY_NAME"
+echo "$(date): Starting updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_directory_name $CUSTOMER_DIRECTORY_NAME" >> "$LOG_FILE"
 
 # Emit structured event for task start
 oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg description "Updates all trust scores for a single customer" \
     --argjson child_tasks 5 \
     --arg scope "customer_specific" \
@@ -53,7 +53,7 @@ oMetadata=$(jq -n \
     '{
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "description": $description,
         "child_tasks": $child_tasks,
         "scope": $scope,
@@ -66,9 +66,9 @@ echo "$(date): Continuing updateAllScoresForSingleCustomer; starting calculateHo
 
 # Emit structured event for child task start
 oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 1 \
     --arg algorithm "hop_calculation" \
@@ -76,7 +76,7 @@ oMetadata=$(jq -n \
     '{
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -85,11 +85,11 @@ oMetadata=$(jq -n \
 emit_task_event "CHILD_TASK_START" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run calculateHops.sh
-if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_DIRECTORY_NAME"; then
     oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-        --argjson customer_name "$CUSTOMER_NAME" \
+        --arg customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
         --arg parent_task "updateAllScoresForSingleCustomer" \
         --argjson child_order 1 \
         --arg algorithm "hop_calculation" \
@@ -98,7 +98,7 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_
         ' {
             "customer_id": $customer_id,
             "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
+            "customer_directory_name": $customer_directory_name,
             "parent_task": $parent_task,
             "child_order": $child_order,
             "algorithm": $algorithm,
@@ -108,9 +108,9 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/calculateHops.sh "$CUSTOMER_
     emit_task_event "CHILD_TASK_END" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
     oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-        --argjson customer_name "$CUSTOMER_NAME" \
+        --arg customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
         --arg parent_task "updateAllScoresForSingleCustomer" \
         --argjson child_order 1 \
         --arg algorithm "hop_calculation" \
@@ -119,7 +119,7 @@ else
         ' {
             "customer_id": $customer_id,
             "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
+            "customer_directory_name": $customer_directory_name,
             "parent_task": $parent_task,
             "child_order": $child_order,
             "algorithm": $algorithm,
@@ -127,7 +127,7 @@ else
             "structured_logging": $structured_logging
         }')
     emit_task_event "CHILD_TASK_ERROR" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$oMetadata"
-    echo "$(date): ERROR: calculateHops.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+    echo "$(date): ERROR: calculateHops.sh failed for customer $CUSTOMER_DIRECTORY_NAME" >> "$LOG_FILE"
 fi
 
 echo "$(date): Continuing updateAllScoresForSingleCustomer; starting personalizedPageRank.sh"
@@ -135,9 +135,9 @@ echo "$(date): Continuing updateAllScoresForSingleCustomer; starting personalize
 
 # Emit structured event for child task start
 oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 2 \
     --arg algorithm "personalized_pagerank" \
@@ -146,7 +146,7 @@ oMetadata=$(jq -n \
     '{
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -156,11 +156,11 @@ oMetadata=$(jq -n \
 emit_task_event "CHILD_TASK_START" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run personalizedPageRank.sh
-if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_DIRECTORY_NAME"; then
     oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-        --argjson customer_name "$CUSTOMER_NAME" \
+        --arg customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
         --arg parent_task "updateAllScoresForSingleCustomer" \
         --argjson child_order 2 \
         --arg algorithm "personalized_pagerank" \
@@ -169,7 +169,7 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CU
         ' {
             "customer_id": $customer_id,
             "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
+            "customer_directory_name": $customer_directory_name,
             "parent_task": $parent_task,
             "child_order": $child_order,
             "algorithm": $algorithm,
@@ -179,9 +179,9 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedPageRank.sh "$CU
     emit_task_event "CHILD_TASK_END" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
     oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-        --argjson customer_name "$CUSTOMER_NAME" \
+        --arg customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
         --arg parent_task "updateAllScoresForSingleCustomer" \
         --argjson child_order 2 \
         --arg algorithm "personalized_pagerank" \
@@ -190,7 +190,7 @@ else
         ' {
             "customer_id": $customer_id,
             "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
+            "customer_directory_name": $customer_directory_name,
             "parent_task": $parent_task,
             "child_order": $child_order,
             "algorithm": $algorithm,
@@ -198,7 +198,7 @@ else
             "structured_logging": $structured_logging
         }')
     emit_task_event "CHILD_TASK_ERROR" "calculateCustomerPageRank" "$CUSTOMER_PUBKEY" "$oMetadata"
-    echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+    echo "$(date): ERROR: personalizedPageRank.sh failed for customer $CUSTOMER_DIRECTORY_NAME" >> "$LOG_FILE"
 fi
 
 echo "$(date): Continuing updateAllScoresForSingleCustomer; starting personalizedGrapeRank.sh"
@@ -206,9 +206,9 @@ echo "$(date): Continuing updateAllScoresForSingleCustomer; starting personalize
 
 # Emit structured event for child task start
 oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 3 \
     --arg algorithm "personalized_graperank" \
@@ -217,7 +217,7 @@ oMetadata=$(jq -n \
     '{
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -227,11 +227,11 @@ oMetadata=$(jq -n \
 emit_task_event "CHILD_TASK_START" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run personalizedGrapeRank.sh
-if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/personalizedGrapeRank.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_DIRECTORY_NAME"; then
     oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 3 \
     --arg algorithm "personalized_graperank" \
@@ -240,7 +240,7 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/person
     ' {
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -250,9 +250,9 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/personalizedGrapeRank/person
     emit_task_event "CHILD_TASK_END" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
     oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 3 \
     --arg algorithm "personalized_graperank" \
@@ -261,7 +261,7 @@ else
     ' {
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -269,7 +269,7 @@ else
         "structured_logging": $structured_logging
     }')
     emit_task_event "CHILD_TASK_ERROR" "calculateCustomerGrapeRank" "$CUSTOMER_PUBKEY" "$oMetadata"
-    echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+    echo "$(date): ERROR: personalizedGrapeRank.sh failed for customer $CUSTOMER_DIRECTORY_NAME" >> "$LOG_FILE"
 fi
 
 echo "$(date): Continuing updateAllScoresForSingleCustomer; starting processFollowsMutesReports.sh"
@@ -277,9 +277,9 @@ echo "$(date): Continuing updateAllScoresForSingleCustomer; starting processFoll
 
 # Emit structured event for child task start
 oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 4 \
     --arg algorithm "follows_mutes_reports" \
@@ -288,7 +288,7 @@ oMetadata=$(jq -n \
     '{
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -298,11 +298,11 @@ oMetadata=$(jq -n \
 emit_task_event "CHILD_TASK_START" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Run processFollowsMutesReports.sh
-if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFollowsMutesReports.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/processFollowsMutesReports.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_DIRECTORY_NAME"; then
     oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 4 \
     --arg algorithm "follows_mutes_reports" \
@@ -311,7 +311,7 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/proces
     ' {
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -321,9 +321,9 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/follows-mutes-reports/proces
     emit_task_event "CHILD_TASK_END" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
     oMetadata=$(jq -n \
-        --argjson customer_id "$CUSTOMER_ID" \
-        --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-        --argjson customer_name "$CUSTOMER_NAME" \
+        --arg customer_id "$CUSTOMER_ID" \
+        --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+        --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
         --arg parent_task "updateAllScoresForSingleCustomer" \
         --argjson child_order 4 \
         --arg algorithm "follows_mutes_reports" \
@@ -332,7 +332,7 @@ else
         ' {
             "customer_id": $customer_id,
             "customer_pubkey": $customer_pubkey,
-            "customer_name": $customer_name,
+            "customer_directory_name": $customer_directory_name,
             "parent_task": $parent_task,
             "child_order": $child_order,
             "algorithm": $algorithm,
@@ -340,7 +340,7 @@ else
             "structured_logging": $structured_logging
         }')
     emit_task_event "CHILD_TASK_ERROR" "processCustomerFollowsMutesReports" "$CUSTOMER_PUBKEY" "$oMetadata"
-    echo "$(date): ERROR: processFollowsMutesReports.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+    echo "$(date): ERROR: processFollowsMutesReports.sh failed for customer $CUSTOMER_DIRECTORY_NAME" >> "$LOG_FILE"
 fi
 
 # TODO:
@@ -353,9 +353,9 @@ echo "$(date): Continuing updateAllScoresForSingleCustomer; starting publishNip8
 
 # Emit structured event for child task start
 oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 5 \
     --arg algorithm "nip85_export" \
@@ -364,7 +364,7 @@ oMetadata=$(jq -n \
     ' {
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -374,11 +374,11 @@ oMetadata=$(jq -n \
 emit_task_event "CHILD_TASK_START" "exportCustomerKind30382" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # generate nip-85 exports
-if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_NAME"; then
+if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUSTOMER_PUBKEY" "$CUSTOMER_ID" "$CUSTOMER_DIRECTORY_NAME"; then
     oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 5 \
     --arg algorithm "nip85_export" \
@@ -387,7 +387,7 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUST
     ' {
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -397,9 +397,9 @@ if sudo bash $BRAINSTORM_MODULE_ALGOS_DIR/customers/nip85/publishNip85.sh "$CUST
     emit_task_event "CHILD_TASK_END" "exportCustomerKind30382" "$CUSTOMER_PUBKEY" "$oMetadata"
 else
     oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_order 5 \
     --arg algorithm "nip85_export" \
@@ -408,7 +408,7 @@ else
     ' {
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_order": $child_order,
         "algorithm": $algorithm,
@@ -416,18 +416,18 @@ else
         "structured_logging": $structured_logging
     }')
     emit_task_event "CHILD_TASK_ERROR" "exportCustomerKind30382" "$CUSTOMER_PUBKEY" "$oMetadata"
-    echo "$(date): ERROR: publishNip85.sh failed for customer $CUSTOMER_NAME" >> "$LOG_FILE"
+    echo "$(date): ERROR: publishNip85.sh failed for customer $CUSTOMER_DIRECTORY_NAME" >> "$LOG_FILE"
 fi
 
 # Log end time
-echo "$(date): Finished updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME"
-echo "$(date): Finished updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_name $CUSTOMER_NAME" >> "$LOG_FILE"
+echo "$(date): Finished updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_directory_name $CUSTOMER_DIRECTORY_NAME"
+echo "$(date): Finished updateAllScoresForSingleCustomer for customer $CUSTOMER_ID and customer_pubkey $CUSTOMER_PUBKEY and customer_directory_name $CUSTOMER_DIRECTORY_NAME" >> "$LOG_FILE"
 
 # Emit structured event for task completion
 oMetadata=$(jq -n \
-    --argjson customer_id "$CUSTOMER_ID" \
-    --argjson customer_pubkey "$CUSTOMER_PUBKEY" \
-    --argjson customer_name "$CUSTOMER_NAME" \
+    --arg customer_id "$CUSTOMER_ID" \
+    --arg customer_pubkey "$CUSTOMER_PUBKEY" \
+    --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg parent_task "updateAllScoresForSingleCustomer" \
     --argjson child_tasks_completed 5 \
     --arg description "Updates all trust scores for a single customer" \
@@ -439,7 +439,7 @@ oMetadata=$(jq -n \
     ' {
         "customer_id": $customer_id,
         "customer_pubkey": $customer_pubkey,
-        "customer_name": $customer_name,
+        "customer_directory_name": $customer_directory_name,
         "parent_task": $parent_task,
         "child_tasks_completed": $child_tasks_completed,
         "description": $description,

@@ -25,10 +25,10 @@ CUSTOMER_PUBKEY="$1"
 CUSTOMER_ID="$2"
 
 # Get customer_name
-CUSTOMER_NAME="$3"  
+CUSTOMER_DIRECTORY_NAME="$3"  
 
 # Get log directory
-LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_NAME"
+LOG_DIR="$BRAINSTORM_LOG_DIR/customers/$CUSTOMER_DIRECTORY_NAME"
 
 # Create log directory if it doesn't exist; chown to brainstorm user
 mkdir -p "$LOG_DIR"
