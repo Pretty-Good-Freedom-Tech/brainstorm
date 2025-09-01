@@ -124,3 +124,5 @@ TODO: 31 AUG 2025
 Publishing kind 10040 and 30382 events
 1. Make sure the customer can publish and/or re-publish kind 10040 events from customer page
 2. Allow owner to decice whether to use BRAINSTORM_RELAY_URL or BRAINSTORM_NIP85_HOME_RELAY in 10040 events.
+3. Review src/api/export/nip85/commands/create-unsigned-kind10040.js to see where 10040 note is stored /var/lib/brainstorm/data/tmp and make sure it gets deleted after publishing which I think is done by bin/brainstorm-create-and-publish-kind10040.js
+4. Remove any kind10040 and kind 30382 scripts that are deprecated; consolidate if needed
