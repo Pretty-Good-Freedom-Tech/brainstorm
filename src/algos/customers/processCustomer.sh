@@ -57,7 +57,7 @@ echo "$(date): Starting processCustomer for customer_directory_name $CUSTOMER_DI
 # Emit structured event for task start
 oMetadata=$(jq -n \
     --arg message "Starting processing of customer" \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     '{
@@ -182,7 +182,7 @@ end_task_timer "processCustomer" "$CUSTOMER_PUBKEY" "0" "$TASK_TIMER" '{"custome
 # Emit structured event for task end
 oMetadata=$(jq -n \
     --arg message "Finished processing of customer" \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_directory_name "$CUSTOMER_DIRECTORY_NAME" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     '{

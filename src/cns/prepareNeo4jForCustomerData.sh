@@ -53,7 +53,7 @@ echo "$(date): Starting prepareNeo4jForCustomerData for customer_pubkey $CUSTOME
 
 # Emit structured event for task start
 oMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg message "Starting prepareNeo4jForCustomerData" \
     --arg task_type "customer_preparation" \
@@ -73,7 +73,7 @@ emit_task_event "TASK_START" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$
 
 # Emit structured event for first child script
 oMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg message "Starting SetOfNostrUserWotMetricsCards setup" \
     --arg phase "metrics_cards_setup" \
@@ -93,7 +93,7 @@ emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oM
 if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addSetsOfMetricsCards.sh; then
     # Emit structured event for first child script success
     oMetadata=$(jq -n \
-        --arg customer_id "$CUSTOMER_ID" \
+        --argjson customer_id "$CUSTOMER_ID" \
         --arg customer_pubkey "$CUSTOMER_PUBKEY" \
         --arg message "SetOfNostrUserWotMetricsCards setup completed successfully" \
         --arg phase "metrics_cards_setup" \
@@ -109,7 +109,7 @@ if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addSetsOfMetricsCards.sh; then
 else
     # Emit structured event for first child script failure
     oMetadata=$(jq -n \
-        --arg customer_id "$CUSTOMER_ID" \
+        --argjson customer_id "$CUSTOMER_ID" \
         --arg customer_pubkey "$CUSTOMER_PUBKEY" \
         --arg message "SetOfNostrUserWotMetricsCards setup failed" \
         --arg phase "metrics_cards_setup" \
@@ -130,7 +130,7 @@ echo "$(date): Continuing prepareNeo4jForCustomerData for customer_pubkey $CUSTO
 
 # Emit structured event for second child script
 oMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg message "Starting customer-specific NostrUserWotMetricsCard setup" \
     --arg phase "metrics_cards_setup" \
@@ -148,7 +148,7 @@ emit_task_event "PROGRESS" "prepareNeo4jForCustomerData" "$CUSTOMER_PUBKEY" "$oM
 if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addMetricsCards.sh $CUSTOMER_PUBKEY $CUSTOMER_ID $CUSTOMER_DIRECTORY_NAME; then
     # Emit structured event for second child script success
     oMetadata=$(jq -n \
-        --arg customer_id "$CUSTOMER_ID" \
+        --argjson customer_id "$CUSTOMER_ID" \
         --arg customer_pubkey "$CUSTOMER_PUBKEY" \
         --arg message "Customer-specific NostrUserWotMetricsCard setup completed successfully" \
         --arg phase "metrics_cards_setup" \
@@ -164,7 +164,7 @@ if sudo bash $BRAINSTORM_MODULE_BASE_DIR/src/cns/addMetricsCards.sh $CUSTOMER_PU
 else
     # Emit structured event for second child script failure
     oMetadata=$(jq -n \
-        --arg customer_id "$CUSTOMER_ID" \
+        --argjson customer_id "$CUSTOMER_ID" \
         --arg customer_pubkey "$CUSTOMER_PUBKEY" \
         --arg message "Customer-specific NostrUserWotMetricsCard setup failed" \
         --arg phase "metrics_cards_setup" \
@@ -182,7 +182,7 @@ fi
 
 # Emit structured event for successful completion
 oMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg message "Neo4j customer data preparation completed successfully" \
     --arg phase "customer_preparation" \

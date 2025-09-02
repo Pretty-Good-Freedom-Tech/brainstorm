@@ -48,7 +48,7 @@ echo "$(date): Starting calculateHops" >> ${LOG_FILE}
 
 # Emit structured event for task start
 startMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg customer_name "$CUSTOMER_NAME" \
     --arg algorithm "customer_hop_distance" \
@@ -62,7 +62,7 @@ emit_task_event "TASK_START" "calculateCustomerHops" "$CUSTOMER_PUBKEY" "$startM
 
 # Initialize hop distances (set all to 999, then customer to 0)
 progressMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_name "$CUSTOMER_NAME" \
     --arg step "initialization" \
     --arg message "Setting initial hop distances" \
@@ -84,7 +84,7 @@ echo "$(date): Continuing calculateHops; numUpdates: $numUpdates numHops: $numHo
 
 # Emit structured event for initial iteration
 progressMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_name "$CUSTOMER_NAME" \
     --arg step "iteration" \
     --argjson hop_level "$numHops" \
@@ -106,7 +106,7 @@ do
     
     # Emit structured event for iteration start
     progressMetadata=$(jq -n \
-        --arg customer_id "$CUSTOMER_ID" \
+        --argjson customer_id "$CUSTOMER_ID" \
         --arg customer_name "$CUSTOMER_NAME" \
         --arg step "iteration" \
         --argjson hop_level "$numHops" \
@@ -128,7 +128,7 @@ do
     
     # Emit structured event for iteration completion
     progressMetadata=$(jq -n \
-        --arg customer_id "$CUSTOMER_ID" \
+        --argjson customer_id "$CUSTOMER_ID" \
         --arg customer_name "$CUSTOMER_NAME" \
         --arg step "iteration_complete" \
         --argjson hop_level "$numHops" \
@@ -162,7 +162,7 @@ fi
 
 # Emit structured event for task completion
 endMetadata=$(jq -n \
-    --arg customer_id "$CUSTOMER_ID" \
+    --argjson customer_id "$CUSTOMER_ID" \
     --arg customer_pubkey "$CUSTOMER_PUBKEY" \
     --arg customer_name "$CUSTOMER_NAME" \
     --arg status "success" \
