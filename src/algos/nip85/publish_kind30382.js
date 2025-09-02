@@ -27,6 +27,21 @@ const logDir = getConfigFromFile('BRAINSTORM_LOG_DIR', '/var/log/brainstorm');
 const kind30382_limit = getConfigFromFile('BRAINSTORM_30382_LIMIT', '1000');
 const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', "wss://nip85.brainstorm.world,wss://nip85.grapevine.network,wss://nip85.nostr1.com")
 
+// Use fallback relay if the main one is not configured
+let primaryRelayUrl = relayUrl;
+
+// Parse the relay URLs array if it's a string
+let relayUrls;
+try {
+  // nip85RelayUrls is expected to be a string of comma-separated URLs
+  relayUrls = nip85RelayUrls.split(',').map(url => url.trim());
+  // also publish to primary relay
+  relayUrls.push(primaryRelayUrl);
+} catch (error) {
+  console.error('Error parsing nip85RelayUrls:', error);
+  relayUrls = [primaryRelayUrl]; // Fallback to primary relay
+}
+
 // Log relay configuration for debugging
 console.log(`Using relay URL: ${relayUrl}`);
 console.log(`Relay private key available: ${relayNsec ? 'Yes' : 'No'}`);
@@ -39,24 +54,6 @@ execSync(`echo "$(date): Relay private key available: ${relayNsec ? 'Yes' : 'No'
 execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${logDir}/publishNip85.log`);
 execSync(`echo "$(date): Kind 30382 limit: ${kind30382_limit}" >> ${logDir}/publishNip85.log`);
 execSync(`echo "$(date): NIP-85 relay URLs: ${nip85RelayUrls}" >> ${logDir}/publishNip85.log`);
-
-// Fallback relay URL if the main one is not configured
-const fallbackRelays = [
-  'wss://relay.hasenpfeffr.com',
-  'wss://profiles.nostr1.com',
-  'wss://relay.nostr.band'
-];
-
-// Use fallback relay if the main one is not configured
-let primaryRelayUrl = relayUrl;
-/*
-// not going to use fallback relays for now
-if (!primaryRelayUrl) {
-  console.log('No relay URL configured in BRAINSTORM_RELAY_URL, using fallback relay');
-  execSync(`echo "$(date): No relay URL configured in BRAINSTORM_RELAY_URL, using fallback relay" >> ${logDir}/publishNip85.log`);
-  primaryRelayUrl = fallbackRelays[0];
-}
-*/
 
 // Convert keys to the format needed by nostr-tools
 let relayPrivateKey = relayNsec;
@@ -413,16 +410,6 @@ async function main() {
       
       // Publish events in this batch to all NIP-85 relays
       for (const event of batchEvents) {
-        // Parse the relay URLs array if it's a string
-        let relayUrls;
-        try {
-          // nip85RelayUrls is expected to be a string of comma-separated URLs
-          relayUrls = nip85RelayUrls.split(',').map(url => url.trim());
-        } catch (error) {
-          console.error('Error parsing nip85RelayUrls:', error);
-          relayUrls = [primaryRelayUrl]; // Fallback to primary relay
-        }
-        
         // Publish to each relay sequentially
         for (const relayUrl of relayUrls) {
           try {

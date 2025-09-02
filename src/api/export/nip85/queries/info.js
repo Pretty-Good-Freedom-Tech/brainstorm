@@ -4,6 +4,9 @@
  * accepts parameter: pubkey
  * If no pubkey is provided, it will use the owner pubkey from config
  * /api/get-kind10040-info?pubkey=...
+ * 
+ * TODO: support looking for 10040 notes and/or 30382 notes in mirror nip85 relays, not local relay
+ * param: nip85MirrorRelayUrl
  */
 
 const { execSync } = require('child_process');
