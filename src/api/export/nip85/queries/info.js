@@ -8,7 +8,7 @@
 
 const { execSync } = require('child_process');
 const { getConfigFromFile } = require('../../../../utils/config');
-
+const { getCustomerRelayKeys } = require('../../../../utils/customerRelayKeys');
 /**
  * Get information about Kind 10040 events
  * @param {Object} req - Express request object
@@ -73,27 +73,29 @@ function handleGetKind10040Info(req, res) {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-function handleGetKind30382Info(req, res) {
+async function handleGetKind30382Info(req, res) {
   try {
     // Get pubkey from request if available
     const customerPubkey = req.query.pubkey;
 
+    console.log(`Fetching relay keys for customer: ${customerPubkey.substring(0, 8)}...`);
+    
     let relayPubkey = null;
-    if (customerPubkey) {
-      relayPubkey = getConfigFromFile(`CUSTOMER_${customerPubkey}_RELAY_PUBKEY`, '');
-    } else {
-      relayPubkey = getConfigFromFile('BRAINSTORM_RELAY_PUBKEY', '');
+    // Get relay keys from secure storage
+    const relayKeys = await getCustomerRelayKeys(customerPubkey);
+    if (relayKeys) {
+      relayPubkey = relayKeys.pubkey;
     }
-    
-    // Get relay url from config
-    const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
-    
+
     if (!relayPubkey) {
       return res.json({
         success: false,
         message: 'Relay pubkey not found in configuration'
       });
     }
+
+    // Get relay url from config
+    const relayUrl = getConfigFromFile('BRAINSTORM_RELAY_URL', '');
     
     // Get count of kind 30382 events
     const strfryScanCountCmd = `sudo strfry scan --count '{"kinds":[30382], "authors":["${relayPubkey}"]}'`;
