@@ -96,7 +96,7 @@ oMetadata=$(jq -n \
         "operation": "publish_events",
         "event_kind": 30382,
         "protocol": "NIP-85"
-}'
+    }')
 emit_task_event "PROGRESS" "exportCustomerKind30382" "$CUSTOMER_PUBKEY" "$oMetadata"
 
 # Publish all kind 30382 events to BRAINSTORM_RELAY_URL

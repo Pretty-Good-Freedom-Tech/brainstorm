@@ -41,6 +41,21 @@ const neo4jPassword = getConfigFromFile('NEO4J_PASSWORD', 'neo4j');
 const kind30382_limit = getConfigFromFile('BRAINSTORM_30382_LIMIT', '1000');
 const nip85RelayUrls = getConfigFromFile('BRAINSTORM_NIP85_RELAYS', "wss://nip85.brainstorm.world,wss://nip85.grapevine.network,wss://nip85.nostr1.com")
 
+// Use fallback relay if the main one is not configured
+let primaryRelayUrl = relayUrl;
+
+// Parse the relay URLs array if it's a string
+let relayUrls;
+try {
+  // nip85RelayUrls is expected to be a string of comma-separated URLs
+  relayUrls = nip85RelayUrls.split(',').map(url => url.trim());
+  // also publish to primary relay
+  relayUrls.push(primaryRelayUrl);
+} catch (error) {
+  console.error('Error parsing nip85RelayUrls:', error);
+  relayUrls = [primaryRelayUrl]; // Fallback to primary relay
+}
+
 // Log initial setup
 console.log(`Continuing publishNip85; begin publish_kind30382 for customer ${CUSTOMER_PUBKEY} ${CUSTOMER_ID} ${CUSTOMER_NAME}`);
 console.log(`Using relay URL: ${relayUrl}`);
@@ -53,9 +68,6 @@ execSync(`echo "$(date): Using relay URL: ${relayUrl}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Neo4j URI: ${neo4jUri}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): Kind 30382 limit: ${kind30382_limit}" >> ${LOG_FILE}`);
 execSync(`echo "$(date): NIP-85 relay URLs: ${nip85RelayUrls}" >> ${LOG_FILE}`);
-
-// Use fallback relay if the main one is not configured
-let primaryRelayUrl = relayUrl;
 
 // Relay key processing will be done inside main() function where we have access to secure storage
 
@@ -447,16 +459,6 @@ async function main() {
       
       // Publish events in this batch to all NIP-85 relays
       for (const event of batchEvents) {
-        // Parse the relay URLs array if it's a string
-        let relayUrls;
-        try {
-          // nip85RelayUrls is expected to be a string of comma-separated URLs
-          relayUrls = nip85RelayUrls.split(',').map(url => url.trim());
-        } catch (error) {
-          console.error('Error parsing nip85RelayUrls:', error);
-          relayUrls = [primaryRelayUrl]; // Fallback to primary relay
-        }
-        
         // Publish to each relay sequentially
         for (const relayUrl of relayUrls) {
           try {
