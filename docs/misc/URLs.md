@@ -11,7 +11,8 @@ grapevine
 .social
 .network
 
-graperank.com
+graperank
+.com
 .tech
 
 hoststr.social
@@ -26,18 +27,31 @@ dcosl.com
 ********** URLS IN USE **********
 ****************************************
 
-dcosl.com
-pgf.tech
-
 <username>.brainstorm.social, e.g. straycat.brainstorm.social
+MIGHT CHANGE TO THIS ONCE OUT OF ALPHA:
+<username>.brainstorm.world
+
+dcosl.com (godaddy)
+pgf.tech (godaddy)
+brainstorm.world (godaddy; nameservers point to digital ocean; DNS records managed on digital ocean)
+grapevine.network (godaddy; nameservers point to digital ocean; DNS records managed on digital ocean)
+tapestry.ninja (godaddy; nameservers point to digital ocean; DNS records managed on digital ocean)
+hasenpfeffr.com (godaddy nameservers; DNS records managed on godaddy)
+graperank.tech (godaddy; AWS PGFT; broken - serves brainstorm.ninja)
+brainstorm.ninja (deprecating; need to retire and/or retask)
 
 ****** WoT relays ******
-wot.brainstorm.social
+wot.brainstorm.social (cloudfodder; digital ocean droplet)
+wot.brainstorm.world (digital ocean - not yet set up)
+wot.grapevine.network (digital ocean - not yet set up)
 
 ****** nip85 relays ******
-nip85.nostr1.com (relay.tools)
+nip85.nostr1.com (relay.tools, straycat)
 nip85.brainstorm.world (digital ocean)
-nip85.grapevine.network (digital ocean)
+nip85.grapevine.network (digital ocean - not yet set up)
+
+relay.tapestry.ninja (digital ocean; ipv4: 137.184.193.97; reserved: 24.144.66.84) (kinds?)
+
 
 ********* experimental ************
 

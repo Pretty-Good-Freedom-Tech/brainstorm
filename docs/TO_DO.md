@@ -129,3 +129,6 @@ Publishing kind 10040 and 30382 events
 5. install.sh: detect local memory and adjust neo4j java heap size accordingly
 6. change how neo4j password is managed; allow owner to change it
 7. Merge src/monitor and src/healthMonitor folders
+
+
+Spread out backup nip85 and WoT relays to different providers - currently all Digital Ocean (managed by me) and relay.tools (also on DO?) - consider vercel, Vultr, AWS, etc
