@@ -1029,7 +1029,7 @@
             const hasRelayKeys = nip85Data.customer?.relayKeys?.pubkey;
             html += `
                 <div class="status-item">
-                    <span class="status-label">Customer Relay Key:</span>
+                    <span class="status-label">Customer Relay Pubkey:</span>
                     <span class="status-value ${hasRelayKeys ? 'success' : 'error'}">
                         ${hasRelayKeys ? '✅ Available' : '❌ Missing'}
                         ${hasRelayKeys ? `<br><small>${formatPubkey(nip85Data.customer.relayKeys.pubkey)}</small>` : ''}
@@ -1062,7 +1062,7 @@
                 if (showMismatch && !nip85Data.kind10040.matches) {
                     html += `
                         <div class="status-item mismatch-details">
-                            <span class="status-label">Event Relay Key:</span>
+                            <span class="status-label">Event Relay Pubkey:</span>
                             <span class="status-value warning">
                                 ${nip85Data.kind10040.relayPubkey ? formatPubkey(nip85Data.kind10040.relayPubkey) : 'Not found'}
                             </span>
@@ -1262,7 +1262,7 @@
                 if (!matchDetails.matches) {
                     html += `
                         <div class="status-item">
-                            <span class="status-label">Customer Relay Key:</span>
+                            <span class="status-label">Customer Relay Pubkey:</span>
                             <span class="status-value info">
                                 ${formatPubkey(matchDetails.customerRelayPubkey)}
                             </span>
