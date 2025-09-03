@@ -240,7 +240,8 @@
                 console.log('[about-trusted-assertions] Loading NIP-85 authors...');
                 
                 // Fetch all Kind 10040 authors
-                const authorsResponse = await fetch('/api/get-all-10040-authors-locally');
+                // const authorsResponse = await fetch('/api/get-all-10040-authors-locally');
+                const authorsResponse = await fetch('/api/get-nip85-participation-overview');
                 const authorsData = await authorsResponse.json();
                 
                 if (!authorsData.success) {

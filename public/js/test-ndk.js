@@ -1,5 +1,5 @@
-// Import NDK from CDN for browser use
-import NDK from "https://cdn.skypack.dev/@nostr-dev-kit/ndk";
+// Use jsdelivr CDN which has better browser compatibility
+import NDK from "https://cdn.jsdelivr.net/npm/@nostr-dev-kit/ndk@2.8.2/+esm";
 
 const relays = [
     "wss://relay.primal.net",

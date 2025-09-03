@@ -27,7 +27,7 @@ import WebSocket from 'ws';
 
 useWebSocketImplementation(WebSocket);
 
-const nip85RelayUrls = ['wss://nip85.brainstorm.world','wss://nip85.nostr1.com','wss://nip85.grapevine.network'];
+const nip85RelayUrls = ['wss://nip85.brainstorm.world','wss://nip85.nostr1.com','wss://nip85.grapevine.network', 'wss://relay.damus.io', 'wss://relay.primal.net', 'wss://relay.nostr.band'];
 
 const ndk = new NDK({ explicitRelayUrls: nip85RelayUrls });
 
