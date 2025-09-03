@@ -29,17 +29,16 @@ useWebSocketImplementation(WebSocket);
 // Import NDK as default export
 const NDK = require('@nostr-dev-kit/ndk').default;
 
-const nip85RelayUrls = ['wss://nip85.brainstorm.world','wss://nip85.nostr1.com','wss://nip85.grapevine.network'];
+const nip85RelayUrls = ["wss://relay.damus.io", "wss://relay.primal.net", "wss://nip85.brainstorm.world", "wss://nip85.nostr1.com", "wss://nip85.grapevine.network"];
 
 async function handleGetNip85ParticipationOverview(req, res) {
     try {
         console.log('Starting NIP-85 participation overview fetch...');
         console.log('Target relays:', nip85RelayUrls);
         
-        // Initialize NDK with debugging
+        // Initialize NDK
         const ndk = new NDK({ 
-            explicitRelayUrls: nip85RelayUrls,
-            debug: true
+            explicitRelayUrls: nip85RelayUrls
         });
         
         // Add relay event listeners for debugging
@@ -64,28 +63,69 @@ async function handleGetNip85ParticipationOverview(req, res) {
         await Promise.race([ndk.connect(), connectTimeout]);
         console.log('✅ NDK connection established');
         
-        // Check connected relays
-        const connectedRelays = Array.from(ndk.pool.relays.values())
-            .filter(relay => relay.connectivity.status === 1)
+        // Wait a moment for relay connections to stabilize
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Check connected relays with correct status check
+        const allRelays = Array.from(ndk.pool.relays.values());
+        console.log('All relay statuses:', allRelays.map(r => ({ url: r.url, status: r.connectivity.status })));
+        
+        const connectedRelays = allRelays
+            .filter(relay => relay.connectivity.status === 1) // 1 = connected
             .map(relay => relay.url);
         console.log(`Connected relays (${connectedRelays.length}):`, connectedRelays);
         
-        if (connectedRelays.length === 0) {
-            throw new Error('No relays connected successfully');
-        }
-        
-        // Fetch events with timeout and detailed logging
+        // Fetch events with enhanced debugging
         console.log('Fetching kind 10040 events...');
         const filter = { kinds: [10040] };
         console.log('Using filter:', JSON.stringify(filter));
         
-        const fetchTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Fetch timeout after 15 seconds')), 15000);
+        // Create a more detailed fetch with progress tracking
+        let fetchCompleted = false;
+        let eventCount = 0;
+        
+        const fetchPromise = new Promise(async (resolve, reject) => {
+            try {
+                console.log('Creating NDK subscription...');
+                const events = new Set();
+                
+                const sub = ndk.subscribe(filter, { closeOnEose: true });
+                
+                sub.on('event', (event) => {
+                    events.add(event);
+                    eventCount++;
+                    console.log(`📥 Received event ${eventCount} from ${event.relay?.url || 'unknown relay'}`);
+                });
+                
+                sub.on('eose', () => {
+                    console.log('📋 End of stored events (EOSE) received');
+                    fetchCompleted = true;
+                    resolve(events);
+                });
+                
+                sub.on('close', () => {
+                    console.log('🔒 Subscription closed');
+                    if (!fetchCompleted) {
+                        resolve(events);
+                    }
+                });
+                
+                console.log('Subscription created, waiting for events...');
+                
+            } catch (error) {
+                console.error('Error in fetch promise:', error);
+                reject(error);
+            }
         });
         
-        const fetchPromise = ndk.fetchEvents(filter);
-        console.log('Fetch promise created, waiting for results...');
+        const fetchTimeout = new Promise((_, reject) => {
+            setTimeout(() => {
+                console.log(`⏰ Fetch timeout after 15 seconds. Events received so far: ${eventCount}`);
+                reject(new Error(`Fetch timeout after 15 seconds. Received ${eventCount} events.`));
+            }, 15000);
+        });
         
+        console.log('Waiting for events or timeout...');
         const kind10040Events = await Promise.race([fetchPromise, fetchTimeout]);
         console.log(`✅ Fetch completed, found ${kind10040Events.size} events`);
         
