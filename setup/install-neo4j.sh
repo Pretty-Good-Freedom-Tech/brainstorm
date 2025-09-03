@@ -114,19 +114,33 @@ update_neo4j_conf() {
   # Commenting out this line because it removes all existing JVM options, including the ones we want to keep
   # sed -i '/^server.jvm.additional=/d' "$NEO4J_CONF"
 
-  echo "# Memory configuration for 32GB server" >> "$NEO4J_CONF"
-  echo "server.memory.heap.initial_size=11700m" >> "$NEO4J_CONF"
-  echo "server.memory.heap.max_size=11700m" >> "$NEO4J_CONF"
-  echo "server.memory.pagecache.size=12000m" >> "$NEO4J_CONF"
-  echo "" >> "$NEO4J_CONF"
+  # determine system memory of current configuration
+  SYSTEM_MEMORY=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+
+  # only do this if system memory is approximately 32GB
+  # check if SYSTEM_MEMORY is between 29GB and 35GB
+  if [ "$SYSTEM_MEMORY" -ge 29000000 ] && [ "$SYSTEM_MEMORY" -le 35000000 ]; then
+    echo "# Memory configuration for 32GB server" >> "$NEO4J_CONF"
+    echo "server.memory.heap.initial_size=11700m" >> "$NEO4J_CONF"
+    echo "server.memory.heap.max_size=11700m" >> "$NEO4J_CONF"
+    echo "server.memory.pagecache.size=12000m" >> "$NEO4J_CONF"
+    echo "" >> "$NEO4J_CONF"
+  fi
+
   echo "# JVM configuration with G1GC tuning" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:+UseG1GC" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:+ExitOnOutOfMemoryError" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:+HeapDumpOnOutOfMemoryError" >> "$NEO4J_CONF"
   echo "server.jvm.additional=-XX:HeapDumpPath=/var/log/neo4j/" >> "$NEO4J_CONF"
-  echo "server.jvm.additional=-XX:G1HeapRegionSize=16m" >> "$NEO4J_CONF"
-  echo "server.jvm.additional=-XX:G1NewSizePercent=20" >> "$NEO4J_CONF"
-  echo "server.jvm.additional=-XX:G1MaxNewSizePercent=40" >> "$NEO4J_CONF"
+
+  # only do this if system memory is approximately 32GB
+  # check if SYSTEM_MEMORY is between 29GB and 35GB
+  if [ "$SYSTEM_MEMORY" -ge 29000000 ] && [ "$SYSTEM_MEMORY" -le 35000000 ]; then
+    echo "server.jvm.additional=-XX:G1HeapRegionSize=16m" >> "$NEO4J_CONF"
+    echo "server.jvm.additional=-XX:G1NewSizePercent=20" >> "$NEO4J_CONF"
+    echo "server.jvm.additional=-XX:G1MaxNewSizePercent=40" >> "$NEO4J_CONF"
+  fi 
+  
   echo "" >> "$NEO4J_CONF"
 
   # enable native memory tracking for debugging
