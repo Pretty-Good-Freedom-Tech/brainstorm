@@ -5,7 +5,7 @@
 
 const CustomerManager = require('../../../../utils/customerManager');
 
-async function handleGetNip85StatusRedo(req, res) {
+async function handleGetNip85ParticipationOverview(req, res) {
     try {
         const { pubkey, returnRawEvents } = req.query;
         
@@ -62,5 +62,5 @@ async function handleGetNip85StatusRedo(req, res) {
 }
 
 module.exports = {
-    handleGetNip85StatusRedo
+    handleGetNip85ParticipationOverview
 };
