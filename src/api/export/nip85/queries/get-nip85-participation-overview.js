@@ -33,20 +33,81 @@ const nip85RelayUrls = ['wss://nip85.brainstorm.world','wss://nip85.nostr1.com',
 
 async function handleGetNip85ParticipationOverview(req, res) {
     try {
-      const ndk = new NDK({ explicitRelayUrls: nip85RelayUrls });
-      await ndk.connect();
-      
-      const kind10040Events = await ndk.fetchEvents({ kinds: [10040] });
-      const authors = kind10040Events.map(event => event.pubkey);
-        return res.status(200).json({
-          success: true, 
-          data: { 
-            kind10040count: kind10040Events.length, 
-            authors
-          }
+        console.log('Starting NIP-85 participation overview fetch...');
+        console.log('Target relays:', nip85RelayUrls);
+        
+        // Initialize NDK with debugging
+        const ndk = new NDK({ 
+            explicitRelayUrls: nip85RelayUrls,
+            debug: true
         });
+        
+        // Add relay event listeners for debugging
+        ndk.pool.on('relay:connect', (relay) => {
+            console.log(`✅ Connected to relay: ${relay.url}`);
+        });
+        
+        ndk.pool.on('relay:disconnect', (relay) => {
+            console.log(`❌ Disconnected from relay: ${relay.url}`);
+        });
+        
+        ndk.pool.on('relay:error', (relay, error) => {
+            console.log(`⚠️ Relay error for ${relay.url}:`, error.message);
+        });
+        
+        // Connect with timeout
+        console.log('Attempting to connect to relays...');
+        const connectTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000);
+        });
+        
+        await Promise.race([ndk.connect(), connectTimeout]);
+        console.log('✅ NDK connection established');
+        
+        // Check connected relays
+        const connectedRelays = Array.from(ndk.pool.relays.values())
+            .filter(relay => relay.connectivity.status === 1)
+            .map(relay => relay.url);
+        console.log(`Connected relays (${connectedRelays.length}):`, connectedRelays);
+        
+        if (connectedRelays.length === 0) {
+            throw new Error('No relays connected successfully');
+        }
+        
+        // Fetch events with timeout and detailed logging
+        console.log('Fetching kind 10040 events...');
+        const filter = { kinds: [10040] };
+        console.log('Using filter:', JSON.stringify(filter));
+        
+        const fetchTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Fetch timeout after 15 seconds')), 15000);
+        });
+        
+        const fetchPromise = ndk.fetchEvents(filter);
+        console.log('Fetch promise created, waiting for results...');
+        
+        const kind10040Events = await Promise.race([fetchPromise, fetchTimeout]);
+        console.log(`✅ Fetch completed, found ${kind10040Events.size} events`);
+        
+        // Convert Set to Array and extract authors
+        const eventArray = Array.from(kind10040Events);
+        const authors = eventArray.map(event => event.pubkey);
+        console.log(`Extracted ${authors.length} unique authors`);
+        
+        return res.status(200).json({
+            success: true, 
+            data: { 
+                kind10040count: eventArray.length, 
+                authors,
+                connectedRelays: connectedRelays.length,
+                relayUrls: connectedRelays
+            },
+            message: `Found ${eventArray.length} Kind 10040 events from ${connectedRelays.length} relays`
+        });
+        
     } catch (error) {
-        console.error('[get-nip85-status] Error:', error);
+        console.error('[get-nip85-participation-overview] Error:', error);
+        console.error('Error stack:', error.stack);
         return res.status(500).json({
             success: false,
             message: 'Internal server error while checking NIP-85 Participation Overview',
