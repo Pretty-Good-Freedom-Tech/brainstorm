@@ -1,4 +1,5 @@
-import NDK from "@nostr-dev-kit/ndk";
+// Import NDK from CDN for browser use
+import NDK from "https://cdn.skypack.dev/@nostr-dev-kit/ndk";
 
 const relays = [
     "wss://relay.primal.net",
