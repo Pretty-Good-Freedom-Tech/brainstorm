@@ -363,13 +363,14 @@
                 : `${pubkey.substring(0, 8)}...${pubkey.substring(56)}`;
             
             // Extract NIP-85 info
-            const kind30382Count = nip85Data.success && nip85Data.data && nip85Data.data.kind30382 
-                ? nip85Data.data.kind30382.count || 0 
-                : 0;
-            
             const hasKind10040 = nip85Data.success && nip85Data.data && nip85Data.data.kind10040 
                 ? nip85Data.data.kind10040.exists 
                 : false;
+            
+            // Extract Verified Follower Count from userData
+            const verifiedFollowerCount = userData && userData.success && userData.data 
+                ? userData.data.verifiedFollowerCount || 0 
+                : 0;
             
             return `
                 <div class="author-card" data-pubkey="${pubkey}">
@@ -388,8 +389,8 @@
                             <div class="stat-label">Kind 10040</div>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value">${kind30382Count.toLocaleString()}</span>
-                            <div class="stat-label">Trusted Assertions</div>
+                            <span class="stat-value">${verifiedFollowerCount.toLocaleString()}</span>
+                            <div class="stat-label">🍇-Verified Followers</div>
                         </div>
                     </div>
                 </div>
@@ -415,7 +416,7 @@
                         </div>
                         <div class="stat-item">
                             <span class="stat-value">-</span>
-                            <div class="stat-label">Trust Scores</div>
+                            <div class="stat-label">🍇-Verified Followers</div>
                         </div>
                     </div>
                 </div>
