@@ -25,7 +25,7 @@ const { NDK } = require('@nostr-dev-kit/ndk');
 
 const nip85RelayUrls = ['wss://nip85.brainstorm.world','wss://nip85.nostr1.com','wss://nip85.grapevine.network'];
 
-async function getNip85ParticipationData() {
+async function getNip85ParticipationData(req, res) {
     try {
       const ndk = new NDK({ explicitRelayUrls: nip85RelayUrls });
       await ndk.connect();
