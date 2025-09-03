@@ -83,27 +83,30 @@ async function handleGetNip85ParticipationOverview(req, res) {
         // Create a more detailed fetch with progress tracking
         let fetchCompleted = false;
         let eventCount = 0;
+        let lastEventTime = Date.now();
+        const events = new Set();
+        let subscription = null;
         
         const fetchPromise = new Promise(async (resolve, reject) => {
             try {
                 console.log('Creating NDK subscription...');
-                const events = new Set();
                 
-                const sub = ndk.subscribe(filter, { closeOnEose: true });
+                subscription = ndk.subscribe(filter, { closeOnEose: true });
                 
-                sub.on('event', (event) => {
+                subscription.on('event', (event) => {
                     events.add(event);
                     eventCount++;
-                    console.log(`📥 Received event ${eventCount} from ${event.relay?.url || 'unknown relay'}`);
+                    lastEventTime = Date.now();
+                    console.log(`📥 Received event ${eventCount} with id ${event.id} from ${event.relay?.url || 'unknown relay'}`);
                 });
                 
-                sub.on('eose', () => {
+                subscription.on('eose', () => {
                     console.log('📋 End of stored events (EOSE) received');
                     fetchCompleted = true;
                     resolve(events);
                 });
                 
-                sub.on('close', () => {
+                subscription.on('close', () => {
                     console.log('🔒 Subscription closed');
                     if (!fetchCompleted) {
                         resolve(events);
@@ -112,16 +115,47 @@ async function handleGetNip85ParticipationOverview(req, res) {
                 
                 console.log('Subscription created, waiting for events...');
                 
+                // Fallback: If no new events for 3 seconds, assume we're done
+                const checkForCompletion = setInterval(() => {
+                    const timeSinceLastEvent = Date.now() - lastEventTime;
+                    if (timeSinceLastEvent > 3000 && eventCount > 0 && !fetchCompleted) {
+                        console.log(`⏱️ No new events for 3 seconds, assuming completion with ${eventCount} events`);
+                        clearInterval(checkForCompletion);
+                        fetchCompleted = true;
+                        if (subscription) {
+                            subscription.stop();
+                        }
+                        resolve(events);
+                    }
+                }, 1000);
+                
+                // Also resolve after 10 seconds regardless (shorter than main timeout)
+                setTimeout(() => {
+                    if (!fetchCompleted) {
+                        console.log(`⏰ 10-second fallback timeout reached with ${eventCount} events`);
+                        clearInterval(checkForCompletion);
+                        fetchCompleted = true;
+                        if (subscription) {
+                            subscription.stop();
+                        }
+                        resolve(events);
+                    }
+                }, 10000);
+                
             } catch (error) {
                 console.error('Error in fetch promise:', error);
                 reject(error);
             }
         });
         
-        const fetchTimeout = new Promise((_, reject) => {
+        const fetchTimeout = new Promise((resolve) => {
             setTimeout(() => {
-                console.log(`⏰ Fetch timeout after 15 seconds. Events received so far: ${eventCount}`);
-                reject(new Error(`Fetch timeout after 15 seconds. Received ${eventCount} events.`));
+                console.log(`⏰ Main timeout after 15 seconds. Returning ${eventCount} events collected so far.`);
+                if (subscription && !fetchCompleted) {
+                    subscription.stop();
+                }
+                // Return events instead of rejecting
+                resolve(events);
             }, 15000);
         });
         
