@@ -1,61 +1,55 @@
 /**
- * API endpoint to get comprehensive NIP-85 status for a customer
- * Uses CustomerManager utility methods for centralized, consistent logic
- */
+ * NIP-85 Participation Data Queries
+ * api endpoint for: /api/get-nip85-participation-data
+ * handler: getNip85ParticipationData
+ * Fetches all available kind 10040 events using nostr-dev-kit (NDK)
+ * 
+ * Returns data in this format: 
+ * 
+ * {
+  "success": true,
+  "data": {
+    "kind10040count": 4,
+    "authors": [
+      "53dab47395542b4df9c9d5b32934403b751f0a882e69bb8dd8a660df3a95f02d",
+      "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
+      "cf961e812466aa5e809ea7d2f1503241dc37902776b4c2751d7d49807731e104",
+      "043df008b847b66bf991dfb696aac68973eccfa4cedfb87173df79a4cf666ea7"
+    ]
+  },
+  "message": "Found 4 unique authors from 4 Kind 10040 events"
+}
+*/
 
-const CustomerManager = require('../../../../utils/customerManager');
+// Set up WebSocket polyfill for Node.js environment
+const WebSocket = require('ws');
+const { useWebSocketImplementation } = require('nostr-tools/pool');
+useWebSocketImplementation(WebSocket);
+
+// Import NDK as default export
+const NDK = require('@nostr-dev-kit/ndk').default;
+
+const nip85RelayUrls = ['wss://nip85.brainstorm.world','wss://nip85.nostr1.com','wss://nip85.grapevine.network'];
 
 async function handleGetNip85ParticipationOverview(req, res) {
     try {
-        const { pubkey, returnRawEvents } = req.query;
-        
-        if (!pubkey) {
-            return res.status(400).json({
-                success: false,
-                message: 'pubkey parameter is required'
-            });
-        }
-        
-        // Validate pubkey format (64 character hex string)
-        if (!/^[a-fA-F0-9]{64}$/.test(pubkey)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid pubkey format. Must be 64 character hex string.'
-            });
-        }
-
-        let includeEvents = false;
-        if (returnRawEvents) {
-            includeEvents = true;
-        }
-        
-        console.log(`[get-nip85-status] Checking NIP-85 status for pubkey: ${pubkey}`);
-        
-        // Use CustomerManager utility to get comprehensive NIP-85 status
-        const customerManager = new CustomerManager();
-        const nip85Status = await customerManager.getNip85Status(pubkey, {
-            includeEvents: includeEvents // Don't include full event data in API response for performance unless requested
+      const ndk = new NDK({ explicitRelayUrls: nip85RelayUrls });
+      await ndk.connect();
+      
+      const kind10040Events = await ndk.fetchEvents({ kinds: [10040] });
+      const authors = kind10040Events.map(event => event.pubkey);
+        return res.status(200).json({
+          success: true, 
+          data: { 
+            kind10040count: kind10040Events.length, 
+            authors
+          }
         });
-        
-        console.log(`[get-nip85-status] NIP-85 status result:`, {
-            isComplete: nip85Status.overall.isComplete,
-            summary: nip85Status.overall.summary,
-            hasRelayKeys: nip85Status.customer.hasRelayKeys,
-            hasKind10040: nip85Status.kind10040.exists,
-            relayKeyMatch: nip85Status.kind10040.matches,
-            kind30382Count: nip85Status.kind30382.count
-        });
-        
-        return res.json({
-            success: true,
-            data: nip85Status
-        });
-        
     } catch (error) {
         console.error('[get-nip85-status] Error:', error);
         return res.status(500).json({
             success: false,
-            message: 'Internal server error while checking NIP-85 status',
+            message: 'Internal server error while checking NIP-85 Participation Overview',
             error: error.message
         });
     }

@@ -14,7 +14,6 @@ const { handleGetKind10040Event } = require('./queries/kind10040');
 const { handleGetKind10040Info, handleGetKind30382Info } = require('./queries/info');
 const { handleGetNip85Status } = require('./queries/get-nip85-status');
 const { handleGetAll10040AuthorsLocally } = require('./queries/get-all-10040-authors-locally');
-const { getNip85ParticipationData } = require('./queries/get-nip85-participation-data.js');
 const { handleGetNip85ParticipationOverview } = require('./queries/get-nip85-participation-overview.js');
 
 // Export handlers directly - this allows the central router 
@@ -36,6 +35,5 @@ module.exports = {
     handleGetKind30382Info,
     handleGetNip85Status,
     handleGetAll10040AuthorsLocally,
-    getNip85ParticipationData,
     handleGetNip85ParticipationOverview
 };

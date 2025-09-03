@@ -19,7 +19,7 @@
   },
   "message": "Found 4 unique authors from 4 Kind 10040 events"
 }
- */
+*/
 
 const { NDK } = require('@nostr-dev-kit/ndk');
 
