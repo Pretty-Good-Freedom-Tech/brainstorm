@@ -171,7 +171,7 @@ async function handleGetNip85ParticipationOverview(req, res) {
         return res.status(200).json({
             success: true, 
             data: { 
-                kind10040count: eventArray.length, 
+                count: eventArray.length, 
                 authors,
                 connectedRelays: connectedRelays.length,
                 relayUrls: connectedRelays

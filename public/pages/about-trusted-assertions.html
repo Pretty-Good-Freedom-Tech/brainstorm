@@ -284,8 +284,7 @@
         
         function displayAuthorsStats(data) {
             const statsHtml = `
-                <strong>📊 ${data.count} NIP-85 Users</strong> are using NIP-85 for personalized web of trust
-                (${data.stats.validEventsProcessed.toLocaleString()} kind 10040 events)
+                <strong>📊 ${data.count} NIP-85 Users</strong> are using NIP-85 for personalized web of trust.
             `;
             authorsState.stats.innerHTML = statsHtml;
         }
