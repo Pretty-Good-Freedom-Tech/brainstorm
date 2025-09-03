@@ -13,7 +13,7 @@
 ## relays
 - wot.grapevine.network (me, digital ocean 8GB/2 Intel vCPU/160GB; ipv4: 138.197.48.204; reserved: 129.212.133.141) **PRIMARY**
 - wot.brainstorm.social (cloudfodder; digital ocean droplet)
-- wot.brainstorm.world (me, digital ocean; TODO: create this instance)
+- wot.brainstorm.world (me, ? digital ocean; TODO: create this instance)
 - relay.hasenpfeffr.com *eventually may deprecate*
 
 ## router (strfry-router.config)
@@ -38,8 +38,8 @@
 
 ## relays
 - nip85.brainstorm.world (digital ocean 8GB/2 Intel vCPU / 160GB; ipv4: 159.203.173.201, reserved: 129.212.133.141) **PRIMARY**
-- nip85.grapevine.network (digital ocean; TODO: create this instance) 
 - nip85.nostr1.com (relay.tools, straycat)
+- nip85.grapevine.network (me, ?digital ocean; TODO: create this instance) 
 
 ## router (strfry-router.config)
 

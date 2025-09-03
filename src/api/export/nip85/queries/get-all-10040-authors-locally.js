@@ -5,14 +5,14 @@
 
 const { execSync } = require('child_process');
 
-async function handleGetAll10040Authors(req, res) {
+async function handleGetAll10040AuthorsLocally(req, res) {
     try {
-        console.log('[get-all-10040-authors] Starting to scan for Kind 10040 events...');
+        console.log('[get-all-10040-authors-locally] Starting to scan for Kind 10040 events...');
         
         // Execute strfry scan command to get all Kind 10040 events
         const strfryCommand = `sudo strfry scan '{"kinds":[10040]}'`;
         
-        console.log('[get-all-10040-authors] Executing command:', strfryCommand);
+        console.log('[get-all-10040-authors-locally] Executing command:', strfryCommand);
         
         let strfryOutput;
         try {
@@ -22,7 +22,7 @@ async function handleGetAll10040Authors(req, res) {
                 timeout: 60000 // 60 second timeout
             });
         } catch (execError) {
-            console.error('[get-all-10040-authors] Error executing strfry command:', execError);
+            console.error('[get-all-10040-authors-locally] Error executing strfry command:', execError);
             return res.status(500).json({
                 success: false,
                 message: 'Failed to execute strfry scan command',
@@ -30,7 +30,7 @@ async function handleGetAll10040Authors(req, res) {
             });
         }
         
-        console.log('[get-all-10040-authors] Strfry command completed, processing output...');
+        console.log('[get-all-10040-authors-locally] Strfry command completed, processing output...');
         
         // Parse the output - each line should be a JSON event
         const lines = strfryOutput.trim().split('\n').filter(line => line.trim());
@@ -47,14 +47,14 @@ async function handleGetAll10040Authors(req, res) {
                     uniqueAuthors.add(event.pubkey);
                     processedEvents++;
                 } else {
-                    console.warn('[get-all-10040-authors] Invalid event format or missing pubkey:', {
+                    console.warn('[get-all-10040-authors-locally] Invalid event format or missing pubkey:', {
                         kind: event.kind,
                         hasPubkey: !!event.pubkey
                     });
                 }
             } catch (parseError) {
                 errorCount++;
-                console.error('[get-all-10040-authors] Error parsing event JSON:', parseError.message);
+                console.error('[get-all-10040-authors-locally] Error parsing event JSON:', parseError.message);
                 // Continue processing other events even if some fail to parse
             }
         }
@@ -62,7 +62,7 @@ async function handleGetAll10040Authors(req, res) {
         // Convert Set to Array for response
         const authorsList = Array.from(uniqueAuthors);
         
-        console.log('[get-all-10040-authors] Processing complete:', {
+        console.log('[get-all-10040-authors-locally] Processing complete:', {
             totalLines: lines.length,
             processedEvents,
             errorCount,
@@ -85,7 +85,7 @@ async function handleGetAll10040Authors(req, res) {
         });
         
     } catch (error) {
-        console.error('[get-all-10040-authors] Unexpected error:', error);
+        console.error('[get-all-10040-authors-locally] Unexpected error:', error);
         res.status(500).json({
             success: false,
             message: 'Internal server error while processing Kind 10040 authors',
@@ -95,5 +95,5 @@ async function handleGetAll10040Authors(req, res) {
 }
 
 module.exports = {
-    handleGetAll10040Authors
+    handleGetAll10040AuthorsLocally
 };
