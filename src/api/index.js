@@ -167,7 +167,8 @@ function register(app) {
     app.get('/api/get-kind30382-info', nip85.handleGetKind30382Info);
     app.get('/api/get-nip85-status', nip85.handleGetNip85Status);
     app.get('/api/get-all-10040-authors-locally', nip85.handleGetAll10040AuthorsLocally);
-    app.get('/api/get-nip85-participation-overview', nip85.handleGetNip85ParticipationOverview);
+    app.get('/api/get-all-10040-authors-externally', nip85.handleGetAll10040AuthorsExternally);
+    app.get('/api/get-30382-count-externally', nip85.handleGet30382CountExternally);
     
     app.get('/api/validate-encoding', nip19.handleValidateEncoding);
 

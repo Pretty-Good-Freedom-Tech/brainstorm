@@ -15,10 +15,17 @@
       "e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f",
       "cf961e812466aa5e809ea7d2f1503241dc37902776b4c2751d7d49807731e104",
       "043df008b847b66bf991dfb696aac68973eccfa4cedfb87173df79a4cf666ea7"
-    ]
+    ],
+    "trustedAssertions": {
+      "<author_pubkey>": { 
+        "trusted_author": "<trusted_author_pubkey>",
+        "trusted_relay": "<trusted_relay_url>"
+      }
+    }
   },
   "message": "Found 4 unique authors from 4 Kind 10040 events"
 }
+?/ TODO: extract trustedAssertions from kind 10040 events from 'rank' trust metric
 */
 
 // Set up WebSocket polyfill for Node.js environment
@@ -31,7 +38,7 @@ const NDK = require('@nostr-dev-kit/ndk').default;
 
 const nip85RelayUrls = ["wss://relay.damus.io", "wss://relay.primal.net", "wss://nip85.brainstorm.world", "wss://nip85.nostr1.com", "wss://nip85.grapevine.network"];
 
-async function handleGetNip85ParticipationOverview(req, res) {
+async function handleGetAll10040AuthorsExternally(req, res) {
     try {
         console.log('Starting NIP-85 participation overview fetch...');
         console.log('Target relays:', nip85RelayUrls);
@@ -57,7 +64,7 @@ async function handleGetNip85ParticipationOverview(req, res) {
         // Connect with timeout
         console.log('Attempting to connect to relays...');
         const connectTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000);
+            setTimeout(() => reject(new Error('Connection timeout after 5 seconds')), 5000);
         });
         
         await Promise.race([ndk.connect(), connectTimeout]);
@@ -172,15 +179,13 @@ async function handleGetNip85ParticipationOverview(req, res) {
             success: true, 
             data: { 
                 count: eventArray.length, 
-                authors,
-                connectedRelays: connectedRelays.length,
-                relayUrls: connectedRelays
+                authors
             },
-            message: `Found ${eventArray.length} Kind 10040 events from ${connectedRelays.length} relays`
+            message: `Found ${eventArray.length} Kind 10040 events.`
         });
         
     } catch (error) {
-        console.error('[get-nip85-participation-overview] Error:', error);
+        console.error('[get-all-10040-authors-externally] Error:', error);
         console.error('Error stack:', error.stack);
         return res.status(500).json({
             success: false,
@@ -191,5 +196,5 @@ async function handleGetNip85ParticipationOverview(req, res) {
 }
 
 module.exports = {
-    handleGetNip85ParticipationOverview
+    handleGetAll10040AuthorsExternally
 };

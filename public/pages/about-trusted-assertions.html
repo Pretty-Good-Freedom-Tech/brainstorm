@@ -241,7 +241,7 @@
                 
                 // Fetch all Kind 10040 authors
                 // const authorsResponse = await fetch('/api/get-all-10040-authors-locally');
-                const authorsResponse = await fetch('/api/get-nip85-participation-overview');
+                const authorsResponse = await fetch('/api/get-all-10040-authors-externally');
                 const authorsData = await authorsResponse.json();
                 
                 if (!authorsData.success) {
@@ -327,17 +327,19 @@
         async function loadAuthorData(pubkey) {
             try {
                 // Load profile, NIP-85 status, and npub in parallel
-                const [profileResponse, nip85Response, npubResponse] = await Promise.all([
+                const [profileResponse, nip85Response, npubResponse, userDataResponse] = await Promise.all([
                     fetch(`/api/get-kind0?pubkey=${pubkey}`),
                     fetch(`/api/get-nip85-status?pubkey=${pubkey}`),
-                    fetch(`/api/get-npub-from-pubkey?pubkey=${pubkey}`)
+                    fetch(`/api/get-npub-from-pubkey?pubkey=${pubkey}`),
+                    fetch(`/api/get-user-data?pubkey=${pubkey}`)
                 ]);
                 
                 const profileData = await profileResponse.json();
                 const nip85Data = await nip85Response.json();
                 const npubData = await npubResponse.json();
+                const userData = await userDataResponse.json();
                 
-                return createAuthorCard(pubkey, profileData, nip85Data, npubData);
+                return createAuthorCard(pubkey, profileData, nip85Data, npubData, userData);
                 
             } catch (error) {
                 console.error('[about-trusted-assertions] Error loading data for author:', pubkey, error);
@@ -345,7 +347,7 @@
             }
         }
         
-        function createAuthorCard(pubkey, profileData, nip85Data, npubData) {
+        function createAuthorCard(pubkey, profileData, nip85Data, npubData, userData) {
             // Extract profile info
             console.log(`profileData: ${JSON.stringify(profileData)}`);
             let profileKind0Event = {}

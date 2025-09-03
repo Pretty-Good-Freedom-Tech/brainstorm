@@ -14,7 +14,8 @@ const { handleGetKind10040Event } = require('./queries/kind10040');
 const { handleGetKind10040Info, handleGetKind30382Info } = require('./queries/info');
 const { handleGetNip85Status } = require('./queries/get-nip85-status');
 const { handleGetAll10040AuthorsLocally } = require('./queries/get-all-10040-authors-locally');
-const { handleGetNip85ParticipationOverview } = require('./queries/get-nip85-participation-overview.js');
+const { handleGetAll10040AuthorsExternally } = require('./queries/get-all-10040-authors-externally.js');
+const { handleGet30382CountExternally } = require('./queries/get-30382-count-externally.js');
 
 // Export handlers directly - this allows the central router 
 // to register endpoints without creating multiple routers
@@ -35,5 +36,6 @@ module.exports = {
     handleGetKind30382Info,
     handleGetNip85Status,
     handleGetAll10040AuthorsLocally,
-    handleGetNip85ParticipationOverview
+    handleGetAll10040AuthorsExternally,
+    handleGet30382CountExternally
 };
