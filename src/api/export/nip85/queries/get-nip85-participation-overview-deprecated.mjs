@@ -31,7 +31,7 @@ const nip85RelayUrls = ['wss://nip85.brainstorm.world','wss://nip85.nostr1.com',
 
 const ndk = new NDK({ explicitRelayUrls: nip85RelayUrls });
 
-async function handleGetNip85ParticipationOverview(req, res) {
+export async function handleGetNip85ParticipationOverview(req, res) {
     try {
       await ndk.connect();
       
