@@ -54,14 +54,14 @@ async function processFile() {
     
     try {
       const oEvent = JSON.parse(line);
-      const pk_follower = oEvent.pubkey;
+      const pk_follower = oEvent.pubkey.toLowerCase();
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
       
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
         if (tag[0] === 'p') {
-          const pk_followee = tag[1];
+          const pk_followee = tag[1].toLowerCase();
           const nextLine = {
             pk_follower,
             pk_followee,

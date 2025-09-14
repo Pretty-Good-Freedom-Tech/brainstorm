@@ -48,9 +48,9 @@
                         </div>
                         <div class="sample-event-content-small">
                             This event identifies the third-party pubkey,
-                            <code>4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71</code>,
+                            <code>1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837</code>,
                             as a trusted provider and publisher of trust scores on behalf of the user:
-                            <code>e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f</code>.
+                            <code>53dab47395542b4df9c9d5b32934403b751f0a882e69bb8dd8a660df3a95f02d</code>.
                             Each Brainstorm user receives a unique pubkey for this purpose.
                         </div>
                         <div class="sample-event-content">
@@ -65,8 +65,8 @@
                             <button class="close-btn" onclick="hideSampleEvent('30382')">&times;</button>
                         </div>
                         <div class="sample-event-content-small">
-                            The d-tag identifies the pubkey being scored (<code>1736906a7265ad0100a8ea3019e1eb3fe1c92ce9602d7d799edbe17d9147826d</code>).
-                            Note that the event author, <code>4cf22476976ba65be0b044c3e6851c535708596a93cf6e8f7a05e5989ea8ad71</code>, matches the pubkey in the kind 10040 event.
+                            The d-tag identifies the pubkey being scored (<code>fffbb9d3d416d7c232621a5929aff65a3edb184a2978abd79b7881201cfbc90a</code>).
+                            Note that the event author, <code>1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837</code>, matches the pubkey in the kind 10040 event.
                         </div>
                         <div class="sample-event-content">
                             <pre id="sample30382Content"></pre>
@@ -94,7 +94,7 @@
             <!-- NIP-85 Authors Showcase -->
             <div class="authors-showcase">
                 <h2>🌟 NIP-85 Adopters</h2>
-                <p>See who's already using NIP-85 to publish personalized trust scores on the Nostr network:</p>
+                <p>See who's already using NIP-85 to access their personalized trust scores on the Nostr network:</p>
                 
                 <div id="authorsLoading" class="loading-state">
                     <div class="loader"></div>
@@ -156,8 +156,61 @@
         const sample10040Event = {"content":"","created_at":1756698812,"id":"66bd2b5b3a3f16d89ce88ec91f7095015c178611ef3916aea8be30049f63be78","kind":10040,"pubkey":"53dab47395542b4df9c9d5b32934403b751f0a882e69bb8dd8a660df3a95f02d","sig":"b0d16315911b3a3a64f3cccacf8e2ca943f808b24c8e10b2dbe027ce113c7dcd7cb22bb81258805fa9af825ed821e1e81b6cca8b9766dedc0cdce75948144393","tags":[["30382:rank","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:personalizedGrapeRank_influence","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:personalizedGrapeRank_average","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:personalizedGrapeRank_confidence","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:personalizedGrapeRank_input","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:personalizedPageRank","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:verifiedFollowersCount","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:verifiedMutersCount","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:verifiedReportersCount","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"],["30382:hops","1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837","wss://nip85.brainstorm.world"]]};
         
         // sample 30382 event
-        const sample30382Event = {"content":"","created_at":1756786920,"id":"f8a344817928fe551dddd1ed1ebf1d5b53f6841deefb643ba2038a7ca7216a5b","kind":30382,"pubkey":"40c49e9da4f39863529825bff4e451d184a0e124ea10ca92719152b7c2b5d377","sig":"826bc1f87420dbfb14d1ca9342b80378efde280d644a28bbfb4a181a86780195960b9dbd656f5ace47c072dafb539b9bcc892ae7b3aa42668ba85b9477ddd12c","tags":[["d","6e1534f56fc9e937e06237c8ba4b5662bcacc4e1a3cfab9c16d89390bec4fca3"],["rank","100"],["hops","2"],["personalizedGrapeRank_influence","0.9999999999999918"],["personalizedGrapeRank_average","1"],["personalizedGrapeRank_confidence","0.9999999999999918"],["personalizedGrapeRank_input","46.79892624443729"],["personalizedPageRank","0.0011619778534084641"],["verifiedFollowerCount","4321"],["verifiedMuterCount","0"],["verifiedReporterCount","0"]]};
-
+        // const sample30382Event = {"content":"","created_at":1756786920,"id":"f8a344817928fe551dddd1ed1ebf1d5b53f6841deefb643ba2038a7ca7216a5b","kind":30382,"pubkey":"40c49e9da4f39863529825bff4e451d184a0e124ea10ca92719152b7c2b5d377","sig":"826bc1f87420dbfb14d1ca9342b80378efde280d644a28bbfb4a181a86780195960b9dbd656f5ace47c072dafb539b9bcc892ae7b3aa42668ba85b9477ddd12c","tags":[["d","6e1534f56fc9e937e06237c8ba4b5662bcacc4e1a3cfab9c16d89390bec4fca3"],["rank","100"],["hops","2"],["personalizedGrapeRank_influence","0.9999999999999918"],["personalizedGrapeRank_average","1"],["personalizedGrapeRank_confidence","0.9999999999999918"],["personalizedGrapeRank_input","46.79892624443729"],["personalizedPageRank","0.0011619778534084641"],["verifiedFollowerCount","4321"],["verifiedMuterCount","0"],["verifiedReporterCount","0"]]};
+const sample30382Event = {
+  "content": "",
+  "created_at": 1757040134,
+  "id": "32f4e4a3542d66fa8f16c633f89de29d7b65be635040990bed6f551e82832713",
+  "kind": 30382,
+  "pubkey": "1b74a50a86757bdfdf35fe7cfe412be485ce0b8fa4c52327f09807cebbb91837",
+  "sig": "8e39c80c754b1063756873776c09c145337918591a79efaa03cf33ac56550a5af9163fbf4499333aebeeaba2b49d46e6f5a181aeda7602fd6e96783b4a57cc2d",
+  "tags": [
+    [
+      "d",
+      "fffbb9d3d416d7c232621a5929aff65a3edb184a2978abd79b7881201cfbc90a"
+    ],
+    [
+      "rank",
+      "0"
+    ],
+    [
+      "hops",
+      "4"
+    ],
+    [
+      "personalizedGrapeRank_influence",
+      "0"
+    ],
+    [
+      "personalizedGrapeRank_average",
+      "-0.09968602534958264"
+    ],
+    [
+      "personalizedGrapeRank_confidence",
+      "0.9999999999999571"
+    ],
+    [
+      "personalizedGrapeRank_input",
+      "44.40895561783494"
+    ],
+    [
+      "personalizedPageRank",
+      "0"
+    ],
+    [
+      "verifiedFollowerCount",
+      "3"
+    ],
+    [
+      "verifiedMuterCount",
+      "124"
+    ],
+    [
+      "verifiedReporterCount",
+      "8"
+    ]
+  ]
+}
         // State management
         const authorsState = {
             loading: document.getElementById('authorsLoading'),
@@ -284,7 +337,7 @@
         
         function displayAuthorsStats(data) {
             const statsHtml = `
-                <strong>📊 ${data.count} NIP-85 Users</strong> are using NIP-85 for personalized web of trust.
+                <strong>📊 These 🍇-Verified Nostr Profiles</strong> are using NIP-85 for personalized web of trust.
             `;
             authorsState.stats.innerHTML = statsHtml;
         }
@@ -349,7 +402,7 @@
         
         function createAuthorCard(pubkey, profileData, nip85Data, npubData, userData) {
             // Extract profile info
-            console.log(`profileData: ${JSON.stringify(profileData)}`);
+            // console.log(`profileData: ${JSON.stringify(profileData)}`);
             let profileKind0Event = {}
             if (profileData.success && profileData.data && profileData.data.content) {
                 profileKind0Event = JSON.parse(profileData.data.content);
@@ -366,12 +419,25 @@
             const hasKind10040 = nip85Data.success && nip85Data.data && nip85Data.data.kind10040 
                 ? nip85Data.data.kind10040.exists 
                 : false;
-            
+
+            if (!hasKind10040) {
+                return null;
+            }
+
             // Extract Verified Follower Count from userData
             const verifiedFollowerCount = userData && userData.success && userData.data 
                 ? userData.data.verifiedFollowerCount || 0 
                 : 0;
-            
+
+            // Extract GrapeRank Score from userData
+            const grapeRankScore = userData && userData.success && userData.data 
+                ? userData.data.influence || 0 
+                : 0;
+
+            if (grapeRankScore < 0.01)  {
+                return null;
+            }
+
             return `
                 <div class="author-card" data-pubkey="${pubkey}">
                     <div class="author-header">

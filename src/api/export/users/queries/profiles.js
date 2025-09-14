@@ -1,6 +1,8 @@
 /**
  * NostrUser Profiles Queries
  * Handles retrieval of NostrUser profiles from Neo4j
+ * 
+ * handles endpoint: /api/get-profiles
  */
 
 const neo4j = require('neo4j-driver');

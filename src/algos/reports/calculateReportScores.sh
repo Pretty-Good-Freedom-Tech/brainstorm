@@ -77,7 +77,7 @@ MATCH (a:NostrUser)-[r:REPORTS {report_type: '$reportType'}]->(u:NostrUser)
 WITH u, SUM(a.influence) AS influenceTotal, COUNT(r) AS totalReportCount
 SET u.nip56_${reportType}_grapeRankScore = influenceTotal, u.nip56_${reportType}_reportCount = totalReportCount
 RETURN COUNT(u) AS numReportedUsers")
-    numReportedUsers="${cypherResults1:11}"
+    numReportedUsers="${cypherResults1:17}"
     echo "$(date): for reportType: $reportType; numReportedUsers: $numReportedUsers"
     echo "$(date): for reportType: $reportType; numReportedUsers: $numReportedUsers" >> ${BRAINSTORM_LOG_DIR}/calculateReportScores.log
 
@@ -87,7 +87,7 @@ WHERE a.influence > 0.1
 WITH u, COUNT(r) AS verifiedReportCount
 SET u.nip56_${reportType}_verifiedReportCount = verifiedReportCount
 RETURN COUNT(u) AS numReportedUsers")
-    numReportedUsers="${cypherResults2:11}"
+    numReportedUsers="${cypherResults2:17}"
 
     # Emit structured event for individual report type completion
     progressMetadata=$(jq -n \

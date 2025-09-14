@@ -378,15 +378,20 @@ async function createBrainstormConfigFile() {
   let relayPubkey, relayNsec, relayNpub, relayPrivkey;
 
   // Hardcoded relays
+  
   // Popular General Purpose: for publishing 10040 notes, which we want to be widespread
   const hardcodedPopularGeneralPurposeRelays = "wss://relay.nostr.band,wss://relay.damus.io,wss://relay.primal.net";
+  
+  // WoT relays: to download WoT data including kinds 0, 3, 1984, and 10000
+  const hardcodedWotRelays = "wss://wot.grapevine.network,wss://wot.brainstorm.social,wss://profiles.nostr1.com,wss://relay.hasenpfeffr.com";
+  // TODO: add wss://wot.brainstorm.world once it is created
+
   // NIP85: for publishing 3038x notes, which we want to be focused into specialty relays
   // could add nip85.nostr.band but not sure if it accepts externally generated 3038x events
   // NOTE: 10040 notes will be sent to NIP-85 in addition to Pop Gen Purpose relays
-  const hardcodedNip85Relays = "wss://nip85.brainstorm.world,wss://nip85.grapevine.network,wss://nip85.nostr1.com";
-  // WoT relays: to download WoT data including kinds 0, 3, 1984, and 10000
-  const hardcodedWotRelays = "wss://wot.brainstorm.social,wss://relay.hasenpfeffr.com,wss://profiles.nostr1.com";
-  
+  const hardcodedNip85Relays = "wss://nip85.brainstorm.world,wss://nip85.nostr1.com";
+  // TODO: add wss://nip85.grapevine.network once it is created
+
   if (isUpdateMode) {
     // In update mode, use environment variables set from the backup
     console.log('Using configuration values from environment variables...');
@@ -561,6 +566,10 @@ export STRFRY_DOMAIN="${domainName}"
 # Owner pubkey for PageRank calculations
 export BRAINSTORM_OWNER_PUBKEY="${ownerPubkey}"
 export BRAINSTORM_OWNER_NPUB="${ownerNpub}"
+
+# For now, manager will have all the powers of the owner to run tasks from the front end.
+# Manager pubkeys as a comma separated list
+export BRAINSTORM_MANAGER_PUBKEYS=""
 
 # Security settings
 export SESSION_SECRET="${sessionSecret}"

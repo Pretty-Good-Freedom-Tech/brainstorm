@@ -132,3 +132,6 @@ Publishing kind 10040 and 30382 events
 
 
 Spread out backup nip85 and WoT relays to different providers - currently all Digital Ocean (managed by me) and relay.tools (also on DO?) - consider vercel, Vultr, AWS, etc
+
+8 Sep 2025
+Make sure to address the situation where pubkeys contain uppercase characters. They should all be stored and compared as fully lowercase.

@@ -75,6 +75,11 @@ async function handleCreateUnsignedKind10040(req, res) {
                     nip85HomeRelay
                 ],
                 [
+                    "30382:followers",
+                    relayPubkey,
+                    nip85HomeRelay
+                ],
+                [
                     "30382:personalizedGrapeRank_influence",
                     relayPubkey,
                     nip85HomeRelay

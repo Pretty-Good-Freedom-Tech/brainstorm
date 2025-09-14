@@ -57,7 +57,7 @@ async function processFile() {
     
     try {
       const oEvent = JSON.parse(line);
-      const pk_rater = oEvent.pubkey;
+      const pk_rater = oEvent.pubkey.toLowerCase();
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
 
@@ -71,7 +71,7 @@ async function processFile() {
         if (tag[0] === 'p') {
           let pk_ratee = ''
           let report_type = 'other'
-          if (tag.length > 1) { pk_ratee = tag[1]; }
+          if (tag.length > 1) { pk_ratee = tag[1].toLowerCase(); }
           if (tag.length > 2) { report_type = tag[2]; }
           if (!report_type) { report_type = 'unspecified'; }
           if (!oReports[pk_rater][report_type]) { oReports[pk_rater][report_type] = {}; }

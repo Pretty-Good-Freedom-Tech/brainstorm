@@ -100,6 +100,7 @@ async function getUsers(limit = null) {
       MATCH (u:NostrUser)
       WHERE u.personalizedPageRank IS NOT NULL 
       AND u.influence IS NOT NULL
+      AND (u.influence > 0.01 OR u.muterInput > 0.1 OR u.reporterInput > 0.1)
       AND u.hops IS NOT NULL 
       AND u.hops < 100
       AND u.pubkey IS NOT NULL
@@ -109,7 +110,10 @@ async function getUsers(limit = null) {
              u.influence AS influence,
              u.average AS average,
              u.confidence AS confidence,
-             u.input AS input
+             u.input AS input,
+             u.verifiedFollowerCount AS verifiedFollowerCount,
+             u.verifiedMuterCount AS verifiedMuterCount,
+             u.verifiedReporterCount AS verifiedReporterCount
       ORDER BY u.influence DESC
       LIMIT ${kind30382_limit}
     `;
@@ -145,7 +149,10 @@ function processUserRecord(record) {
     influence: record.get('influence'),
     average: record.get('average'),
     confidence: record.get('confidence'),
-    input: record.get('input')
+    input: record.get('input'),
+    verifiedFollowerCount: record.get('verifiedFollowerCount'),
+    verifiedMuterCount: record.get('verifiedMuterCount'),
+    verifiedReporterCount: record.get('verifiedReporterCount')
   };
   
   // Ensure all values are defined
@@ -172,12 +179,24 @@ function processUserRecord(record) {
   if (user.input === null || user.input === undefined) {
     user.input = 0;
   }
+
+  if (user.verifiedFollowerCount === null || user.verifiedFollowerCount === undefined) {
+    user.verifiedFollowerCount = 0;
+  }
+
+  if (user.verifiedMuterCount === null || user.verifiedMuterCount === undefined) {
+    user.verifiedMuterCount = 0;
+  }
+
+  if (user.verifiedReporterCount === null || user.verifiedReporterCount === undefined) {
+    user.verifiedReporterCount = 0;
+  }
   
   return user;
 }
 
 // Create and sign a kind 30382 event
-function createEvent(userPubkey, personalizedPageRank, hops, influence, average, confidence, input) {
+function createEvent(userPubkey, personalizedPageRank, hops, influence, average, confidence, input, verifiedFollowerCount, verifiedMuterCount, verifiedReporterCount) {
   // Create the event object
   const rankValue = Math.round(parseFloat(influence) * 100).toString();
   const event = {
@@ -187,12 +206,16 @@ function createEvent(userPubkey, personalizedPageRank, hops, influence, average,
     tags: [
       ['d', userPubkey],
       ['rank', rankValue],
+      ["followers", verifiedFollowerCount ? verifiedFollowerCount.toString() : '0'],
       ['hops', hops.toString()],
       ['personalizedGrapeRank_influence', influence ? influence.toString() : '0'],
       ['personalizedGrapeRank_average', average ? average.toString() : '0'],
       ['personalizedGrapeRank_confidence', confidence ? confidence.toString() : '0'],
       ['personalizedGrapeRank_input', input ? input.toString() : '0'],
-      ["personalizedPageRank", personalizedPageRank ? personalizedPageRank.toString() : '0']
+      ["personalizedPageRank", personalizedPageRank ? personalizedPageRank.toString() : '0'],
+      ["verifiedFollowerCount", verifiedFollowerCount ? verifiedFollowerCount.toString() : '0'],
+      ["verifiedMuterCount", verifiedMuterCount ? verifiedMuterCount.toString() : '0'],
+      ["verifiedReporterCount", verifiedReporterCount ? verifiedReporterCount.toString() : '0']
     ],
     content: ''
   };
@@ -389,7 +412,10 @@ async function main() {
             user.influence,
             user.average,
             user.confidence,
-            user.input
+            user.input,
+            user.verifiedFollowerCount,
+            user.verifiedMuterCount,
+            user.verifiedReporterCount
           );
           
           // Save the event to a file

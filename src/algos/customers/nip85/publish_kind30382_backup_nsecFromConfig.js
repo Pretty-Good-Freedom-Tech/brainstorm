@@ -201,6 +201,7 @@ function createEvent(userPubkey, personalizedPageRank, hops, influence, average,
     tags: [
       ['d', userPubkey],
       ['rank', rankValue],
+      ["followers", verifiedFollowerCount ? verifiedFollowerCount.toString() : '0'],
       ['hops', hops.toString()],
       ['personalizedGrapeRank_influence', influence ? influence.toString() : '0'],
       ['personalizedGrapeRank_average', average ? average.toString() : '0'],

@@ -163,7 +163,15 @@ Upon installation, three systemd services should be running:
 
 ## 5. Setup
 
-After successful installation, go to the Setup page and follow the instructions.
+After successful installation:
+
+1. Populate databases: [Populate Databases](POPULATE_DATABASES.md)
+
+2. Calculate owner scores: [Calculate Owner Scores](CALCULATE_OWNER_SCORES.md)
+
+3. Calculate customer scores: [Calculate Customer Scores](CALCULATE_CUSTOMER_SCORES.md)
+
+Documentation in progress.
 
 ## 6. Troubleshooting
 

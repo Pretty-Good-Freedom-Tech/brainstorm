@@ -3,6 +3,8 @@ const CustomerManager = require('../../utils/customerManager');
 /**
  * Get customers data for observer selector
  * Returns active customers using CustomerManager
+ * 
+ * handles endpoint: /api/get-customers
  */
 async function handleGetCustomers(req, res) {
     try {

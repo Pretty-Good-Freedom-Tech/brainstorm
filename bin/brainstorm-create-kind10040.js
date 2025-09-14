@@ -45,6 +45,11 @@ const event = {
       nip85HomeRelay
     ],
     [
+      "30382:followers",
+      relayPubkey,
+      nip85HomeRelay
+    ],
+    [
       "30382:personalizedGrapeRank_influence",
       relayPubkey,
       nip85HomeRelay

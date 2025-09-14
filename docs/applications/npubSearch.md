@@ -1,6 +1,11 @@
 # Profile (npub) search
 
-Like npub.world, except scores come from Brainstorm (NIP-85 events) rather than the Vertex WoT API
+WoT scores will come from Brainstorm (NIP-85 kind 30382 events).
+
+Competition: 
+- https://npub.world, where trust scores come from personalizedPageRank via Vertex WoT API
+- https://profilestr.com/?search=odell, which has a trust score -- not sure how calculated? not sure if profiles are ordered by that or by follower count
+
 
 ### Search page
 - order results by GrapeRank

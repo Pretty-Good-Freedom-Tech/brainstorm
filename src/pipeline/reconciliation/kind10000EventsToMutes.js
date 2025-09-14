@@ -54,7 +54,7 @@ async function processFile() {
     
     try {
       const oEvent = JSON.parse(line);
-      const pk_rater = oEvent.pubkey;
+      const pk_rater = oEvent.pubkey.toLowerCase();
       const aTags = oEvent.tags;
       const created_at = oEvent.created_at;
       let oTemp = {};
@@ -65,7 +65,7 @@ async function processFile() {
       for (let x = 0; x < aTags.length; x++) {
         const tag = aTags[x];
         if (tag[0] === 'p') {
-          const pk_ratee = tag[1];
+          const pk_ratee = tag[1].toLowerCase();
           const nextLine = {
             pk_rater,
             pk_ratee,
