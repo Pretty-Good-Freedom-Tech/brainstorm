@@ -463,10 +463,10 @@
                         <h3>1. Look for the end-user Kind 10040 Event</h3>
                         <p>Adopters of NIP-85 will have a kind 10040 event.</p>
                         <p>Filter:</p>
-                        <pre>{"kinds":[10040], "authors":[user_pubkey]}</pre>
+                        <pre>{"kinds":[10040], "authors":[observer_pubkey]}</pre>
                         <p>There are three salient pieces of information stored in tags:</p>
                         <ul>
-                            <li>A list of trust metrics. Some will be standardized, like rank or followers, while others may be customized.</li>
+                            <li>A list of trust metrics. Some will be NIP-85-standardized, like `rank` or `followers`, while others may be customized.</li>
                             <li>For each metric, the pubkey of the relay that publishes the metric; 30382_publisher_pubkey. In theory this could be the user pubkey, but in practice this will often not be the case. When a user signs up to Brainstorm, a new customer relay nsec is issued which will publish kind 30382 events periodically on behalf of the customer.</li>
                             <li>For each metric, a relay where the kind 30382 notes can be found; 30382_relay_url. This will be a huge number of notes, so we don't necessarily want all of them to be spread across all the relays of nostr. For Brainstorm, this will be the relay of the brainstorm relay instance, e.g. <code>wss://straycat.brainstorm.social/relay</code>.</li>
                         </ul>
@@ -474,9 +474,9 @@
                     </div>
                     <div class="step">
                         <h3>2. Fetch Trust Scores</h3>
-                        <p>Connect to the referenced relay to fetch Kind 30382 events authored by the referenced pubkey, and extract the personalized trust score(s) of interest.</p>
+                        <p>Connect to the referenced relay to fetch Kind 30382 events authored by the 30382 publisher pubkey, and extract the personalized trust score(s) of interest.</p>
                         <p>The filter should look something like this:</p>
-                        <pre>{"kinds":[30382], "authors":[30382_publisher_pubkey], "#d":[rated_pubkeys]}</pre>
+                        <pre>{"kinds":[30382], "authors":[30382_publisher_pubkey], "#d":[observee_pubkey]}</pre>
                     </div>
                     <div class="step">
                         <h3>3. Apply Trust Metrics</h3>
