@@ -1,5 +1,5 @@
 {
-  "name": "Brainstorm",
+  "name": "brainstorm",
   "version": "0.0.1-alpha",
   "description": "A Personalized Webs of Trust Nostr relay featuring the Grapevine",
   "main": "index.js",
@@ -11,6 +11,9 @@
   },
   "scripts": {
     "test": "node test/test.js",
+    "test:playwright": "playwright test",
+    "test:playwright:ui": "playwright test --ui",
+    "test:playwright:headed": "playwright test --headed",
     "publish": "node --expose-gc --max-old-space-size=4096 bin/publish.js",
     "control-panel": "node bin/control-panel.js",
     "install-brainstorm": "node bin/install.js",
@@ -18,7 +21,10 @@
     "uninstall": "bash bin/uninstall.sh",
     "backup": "node bin/backup.js",
     "restore-from-backup": "node bin/restore-from-backup.js",
-    "dev": "node bin/dev.js"
+    "dev": "node bin/dev.js",
+    "test:deployment": "node bin/test-deployment.js",
+    "test:deployment:smoke": "node bin/test-deployment.js smoke",
+    "test:alert": "node bin/test-alert-webhook.js"
   },
   "repository": {
     "type": "git",
@@ -65,6 +71,9 @@
     "websocket": "^1.0.35",
     "websocket-polyfill": "^0.0.3",
     "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
   },
   "engines": {
     "node": ">=18.0.0"

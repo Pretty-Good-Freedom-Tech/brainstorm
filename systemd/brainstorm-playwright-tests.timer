@@ -1,0 +1,14 @@
+[Unit]
+Description=Run Brainstorm Playwright Tests
+Requires=brainstorm-playwright-tests.service
+
+[Timer]
+# Run tests after deployment updates (5 minutes after system boot)
+OnBootSec=5min
+# Run tests daily at 3 AM to catch regressions
+OnCalendar=*-*-* 03:00:00
+# Run tests after brainstorm-control-panel restarts
+OnUnitActiveSec=brainstorm-control-panel.service
+
+[Install]
+WantedBy=timers.target
