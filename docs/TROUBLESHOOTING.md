@@ -17,4 +17,6 @@ If that doesn't work, try this:
 - Back in `/etc/neo4j/neo4j.conf`...
   - `# dmbs.security.auth_enabled=false` comment this back out.
 - `sudo systemctl restart neo4j`
+- Edit `/etc/brainstorm.conf`, find the `export NEO4J_PASSWORD=` line and update it to whatever you set above.
+- Save this file. No need to restart anything.
 - Try to login again
