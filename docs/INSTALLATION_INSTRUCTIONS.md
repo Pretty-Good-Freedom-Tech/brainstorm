@@ -200,6 +200,8 @@ If you encounter any issues:
 
 3. Check for any error messages in the installation output
 
+Note that the `NEO4J_PASSWORD` variable in `/etc/brainstorm.conf` is set during setup. If you change your neo4j password afterwards, you'll need to manually update this file.
+
 There are some additional troubleshooting ideas in [Troubleshooting](TROUBLESHOOTING.md)
 
 ## 6. Update
