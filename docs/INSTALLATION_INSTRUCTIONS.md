@@ -136,6 +136,8 @@ Now go to `https://localhost`, `https://localhost:7778` or `https://localhost:77
    - Change password after first login to the password that you entered during installation
 3. Access the Brainstorm landing page at: `https://your-domain` or `https://your-domain/index.html`
 
+If these steps don't work for you, see [Troubleshooting](TROUBLESHOOTING.md)
+
 ### At the command line, 
 
 Upon installation, three systemd services should be running:
@@ -198,8 +200,8 @@ If you encounter any issues:
 
 3. Check for any error messages in the installation output
 
+There are some additional troubleshooting ideas in [Troubleshooting](TROUBLESHOOTING.md)
+
 ## 6. Update
 
 To update Brainstorm, see the [update instructions](docs/UPDATE_INSTRUCTIONS.md).
-
-
