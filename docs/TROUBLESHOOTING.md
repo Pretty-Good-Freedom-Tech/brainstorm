@@ -11,6 +11,7 @@ If that doesn't work, try this:
 - `sudo systemctl daemon-reload`
 - `sudo systemctl restart neo4j`
 ` sudo cypher-shell -u neo4j`
+  - (Note: in when dbms auth is enabled, you'll need to enter your neo4j password after the sudo password. for now you shouldn't be prompted for that since it's temporarily disabled in the .conf)
   - At this shell, enter: `ALTER USER neo4j SET PASSWORD 'mynewpasswordhere';`
   - Then: `:exit` (note the colon)
 - Back in `/etc/neo4j/neo4j.conf`...
