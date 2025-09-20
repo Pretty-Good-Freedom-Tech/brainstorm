@@ -41,8 +41,9 @@ Show scores from the perspective of the logged in user, if kind 10040 Trusted As
 
 Intended interpretation: “My Grapevine can state, with (score*100) confidence, that this is a licensed and practicing physician.”
 
-Create one (or more) NIP-58 badges which can be used as signifiers for who is (and is not) a physician. Possible badges to consider:
-- I attest I am a colleague of this physician 
+Create one (or more) [NIP-58](https://github.com/nostr-protocol/nips/blob/master/58.md) badges which can be used as signifiers for who is (and is not) a physician. Possible badges to consider:
+- I self-attest I am a licensed, practicing physician
+- I attest I am a colleague of this physician
 - I attest I have been a patient of this physician
 - I attest I have direct knowledge that this is a licensed and practicing physician
 
