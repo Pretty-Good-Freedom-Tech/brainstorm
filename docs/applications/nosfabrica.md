@@ -14,12 +14,12 @@ Personalized trust metrics are currently being calculated and published accordin
 
 # Step 1: default view
 
-Show scores hardcoded to the perspective of NosFabrica (the default view)
+Show scores personalized to the perspective of NosFabrica ([npub1healthsx3swcgtknff7zwpg8aj2q7h49zecul5rz490f6z2zp59qnfvp8p](https://straycat.brainstorm.social/profile.html?pubkey=be7bf5de068c1d842ed34a7c270507ec940f5ea51671cfd062a95e9d09420d0a)); this will constitute the "default" view
 
 At [straycat.brainstorm.social](https://straycat.brainstorm.social):
 
-1. sign up NosFabrica at an active Brainstorm instance: straycat.brainstorm.social
-2. NosFabrica to activate Trusted Assertions as prompted by Brainstorm (ie sign 10040 note which will point to wss://nip85.brainstorm.world and pk_brainstorm_nosfabrica)
+1. ✅ sign up NosFabrica at an active Brainstorm instance: straycat.brainstorm.social
+2. ✅ NosFabrica to activate Trusted Assertions as prompted by Brainstorm (ie sign 10040 note which will point to wss://nip85.brainstorm.world and pk_brainstorm_nosfabrica)
 3. Brainstorm to calculate NosFabrica’s personalized trust scores
 4. Brainstorm to export NosFabrica’s Trusted Assertions as 30382 notes signed by `pk_brainstorm_nosfabrica` which is generated maintained by Brainstorm instance
 
