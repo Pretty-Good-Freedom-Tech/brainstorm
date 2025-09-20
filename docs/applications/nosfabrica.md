@@ -1,4 +1,4 @@
-Incorporation of NIP-85: Trusted Assertions into NosFabrica
+Incorporation of NIP-85: Trusted Assertions into NosFabrica ecosystem
 =====
 
 ## Motivations
