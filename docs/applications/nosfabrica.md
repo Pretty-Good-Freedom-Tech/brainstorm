@@ -23,7 +23,7 @@ At [straycat.brainstorm.social](https://straycat.brainstorm.social):
 3. Brainstorm to calculate NosFabrica’s personalized trust scores
 4. Brainstorm to export NosFabrica’s Trusted Assertions as 30382 notes signed by `pk_brainstorm_nosfabrica` which is generated maintained by Brainstorm instance
 
-On NosFabrica.com:
+On [Bitcoin Physicians Network](https://bitcoinphysiciansnetwork.org):
 
 For each pubkey: `pk_physician` at NosFabrica:
 1. Fetch the kind 30382 note from `wss://nip85.brainstorm.world` using this filter:
