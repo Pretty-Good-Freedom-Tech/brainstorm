@@ -3,7 +3,7 @@ Incorporation of NIP-85: Trusted Assertions into NosFabrica ecosystem
 
 ## Motivations
 
-1. screen out bad actors from the physician list as viewed on the [Bitcoin Physician Network](https://bitcoinphysiciansnetwork.org) (or some other client related to [NosFabrica](https://nosfabrica.com)?) using standard [NIP-85: Trusted Assertions](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) ([pull request](https://github.com/nostr-protocol/nips/pull/1534)) metrics `rank` and `followers`
+1. screen out bad actors from the physician list as seen on the [Bitcoin Physician Network](https://bitcoinphysiciansnetwork.org) (or some other [NosFabrica](https://nosfabrica.com) project?) using standard [NIP-85: Trusted Assertions](https://github.com/vitorpamplona/nips/blob/user-summaries/85.md) ([pull request](https://github.com/nostr-protocol/nips/pull/1534)) metrics `rank` and `followers`
 2. encourage the use of NIP-85 by other nostr clients
 3. encourage the use of NIP-85 by other third party personalized trust metric providers 
 4. outline a roadmap to develop and incorporate _contextual_ trust metrics relevant to NosFabrica, such as `verified physician`
