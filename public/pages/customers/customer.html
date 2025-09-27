@@ -4,573 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Status - Brainstorm</title>
-    <link rel="stylesheet" href="/control/css/common.css">
+    <link rel="stylesheet" href="/control/css/customer.css">
     <link rel="shortcut icon" href="/control/img/brainstorm010.svg">
     <script src="./components/header/header.js"></script>
     <script src="./components/footer/footer.js"></script>
-    <style>
-        .customer-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .status-card {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .status-card.success {
-            background: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        
-        .status-card.warning {
-            background: #fff3cd;
-            border-color: #ffeaa7;
-            color: #856404;
-        }
-        
-        .status-card.info {
-            background: #d1ecf1;
-            border-color: #bee5eb;
-            color: #0c5460;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-        }
-        
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #007bff;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .user-info {
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        
-        .user-info h3 {
-            margin-top: 0;
-            color: #495057;
-        }
-        
-        .pubkey {
-            font-family: monospace;
-            background: #f8f9fa;
-            padding: 5px 8px;
-            border-radius: 4px;
-            word-break: break-all;
-            font-size: 0.9em;
-        }
-        
-        .action-buttons {
-            margin: 20px 0;
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 5px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: 500;
-            text-align: center;
-            transition: background-color 0.2s;
-        }
-        
-        .btn-primary {
-            background-color: #007bff;
-            color: white;
-            border: 1px solid #007bff;
-        }
-        
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-        
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-            border: 1px solid #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #545b62;
-            border-color: #545b62;
-        }
-        
-        .customer-details {
-            background: #ffffff;
-            border: 1px solid #28a745;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .customer-details h3 {
-            color: #28a745;
-            margin-top: 0;
-        }
-        
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #f8f9fa;
-        }
-        
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        
-        .detail-label {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .detail-value {
-            color: #6c757d;
-        }
-        
-        .nip85-panel {
-            background: #ffffff;
-            border: 1px solid #007bff;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .nip85-panel h3 {
-            color: #007bff;
-            margin-top: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .nip85-status {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
-        
-        .nip85-status.available {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .nip85-status.unavailable {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .event-details {
-            background: #f8f9fa;
-            border-radius: 4px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        
-        .event-id {
-            font-family: monospace;
-            background: #e9ecef;
-            padding: 5px 8px;
-            border-radius: 4px;
-            word-break: break-all;
-            font-size: 0.85em;
-        }
-        
-        .timestamp {
-            color: #6c757d;
-            font-size: 0.9em;
-        }
-        
-        .tags-list {
-            max-height: 200px;
-            overflow-y: auto;
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 10px;
-            margin: 10px 0;
-        }
-        
-        .tag-item {
-            font-family: monospace;
-            font-size: 0.8em;
-            padding: 2px 0;
-            border-bottom: 1px solid #f8f9fa;
-        }
-        
-        .tag-item:last-child {
-            border-bottom: none;
-        }
-        
-        .nip85-loading {
-            text-align: center;
-            padding: 20px;
-            color: #6c757d;
-        }
-        
-        .event-status-section {
-            border-top: 1px solid #dee2e6;
-            margin-top: 20px;
-            padding-top: 20px;
-        }
-        
-        .event-status-section h4 {
-            color: #007bff;
-            margin-bottom: 15px;
-        }
-        
-        .info-container {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .info-row:last-child {
-            margin-bottom: 0;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .info-value {
-            color: #007bff;
-            font-weight: 500;
-        }
-        
-        .event-json {
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 0.85em;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .event-management {
-            border-top: 1px solid #dee2e6;
-            margin-top: 20px;
-            padding-top: 20px;
-        }
-        
-        .event-management h4 {
-            color: #007bff;
-            margin-bottom: 15px;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-        
-        .event-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .event-btn.primary {
-            background: #007bff;
-            color: white;
-        }
-        
-        .event-btn.primary:hover:not(:disabled) {
-            background: #0056b3;
-        }
-        
-        .event-btn.secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .event-btn.secondary:hover:not(:disabled) {
-            background: #545b62;
-        }
-        
-        .event-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .event-preview {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 15px;
-            margin: 15px 0;
-            display: none;
-        }
-        
-        .event-preview h5 {
-            margin-top: 0;
-            color: #495057;
-        }
-        
-        .event-preview pre {
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 0.85em;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        .status-message {
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
-            font-weight: 500;
-        }
-        
-        .status-message.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .status-message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .auth-link {
-            color: #007bff;
-            text-decoration: underline;
-        }
-        
-        /* New NIP-85 Status Panel Styles */
-        .nip85-status-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border-left: 4px solid #dee2e6;
-        }
-        
-        .status-item.mismatch-details {
-            background: #fff3cd;
-            border-left-color: #ffc107;
-        }
-        
-        .status-label {
-            font-weight: 600;
-            color: #495057;
-            flex: 1;
-            margin-right: 15px;
-        }
-        
-        .status-value {
-            text-align: right;
-            font-weight: 500;
-            flex: 1;
-        }
-        
-        .status-value.success {
-            color: #28a745;
-        }
-        
-        .status-value.warning {
-            color: #ffc107;
-        }
-        
-        .status-value.error {
-            color: #dc3545;
-        }
-        
-        .status-value.info {
-            color: #17a2b8;
-        }
-        
-        .status-value small {
-            display: block;
-            font-size: 0.8em;
-            color: #6c757d;
-            margin-top: 4px;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .nip85-details {
-            margin: 15px 0;
-        }
-        
-        .raw-event-container {
-            margin-top: 15px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .raw-event-container h5 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #495057;
-        }
-        
-        .raw-event-container pre {
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 12px;
-            font-size: 0.85em;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .nip85-loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px;
-            color: #6c757d;
-        }
-        
-        .nip85-loading .loader {
-            width: 30px;
-            height: 30px;
-            margin-bottom: 15px;
-        }
-        
-        @media (min-width: 768px) {
-            .nip85-status-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        
-        /* Toggle Button Styles (matching manage-customer.html) */
-        .raw-note-section {
-            margin-top: 15px;
-        }
-        
-        .raw-note-header {
-            margin-bottom: 10px;
-        }
-        
-        .toggle-btn {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 8px 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            color: #495057;
-            transition: all 0.2s ease;
-            width: auto;
-        }
-        
-        .toggle-btn:hover {
-            background: #e9ecef;
-            border-color: #adb5bd;
-        }
-        
-        .toggle-btn.expanded {
-            background: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        
-        .toggle-icon {
-            font-size: 1rem;
-            transition: transform 0.3s ease;
-        }
-        
-        .toggle-btn.expanded .toggle-icon {
-            transform: rotate(180deg);
-        }
-        
-        .raw-note-content {
-            margin-top: 10px;
-        }
-        
-        .raw-note-data {
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 12px;
-            font-size: 0.85em;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 400px;
-            overflow-y: auto;
-            margin: 0;
-            font-family: 'Courier New', monospace;
-        }
-    </style>
 </head>
 <body>
     <!-- Include the header component -->
@@ -638,6 +75,9 @@
                                 <pre id="completeRawNoteData" class="raw-note-data"></pre>
                             </div>
                         </div>
+                        <div class="button-group">
+                            <button id="updateKind10040EventBtn2" class="btn btn-primary">📝 Update Kind 10040 Event</button>
+                        </div>
                     </div>
                     
                     <!-- Relay Key Mismatch Status -->
@@ -646,7 +86,7 @@
                         <p>You have an existing Kind 10040 event, but it references a different relay than your current Brainstorm setup. To make your personalized trust scores available to the wider Nostr world, you should update your Kind 10040 event.</p>
                         <div id="newNip85MismatchDetails" class="nip85-details"></div>
                         <div class="button-group">
-                            <button id="updateKind10040EventBtn" class="btn btn-primary">🔄 Update Kind 10040 Event</button>
+                            <button id="updateKind10040EventBtn1" class="btn btn-primary">🔄 Update Kind 10040 Event</button>
                         </div>
                         
                         <!-- Raw Kind 10040 Note Viewer (hidden by default) -->
@@ -1359,11 +799,143 @@
             }
             
             // Update Kind 10040 Event button
-            const updateBtn = document.getElementById('updateKind10040EventBtn');
-            if (updateBtn) {
-                updateBtn.addEventListener('click', function() {
+            const updateBtn1 = document.getElementById('updateKind10040EventBtn1');
+            if (updateBtn1) {
+                updateBtn1.addEventListener('click', function() {
                     handleNewNip85EventAction(pubkey, 'update');
                 });
+            }
+
+            // Update Kind 10040 Event button
+            const updateBtn2 = document.getElementById('updateKind10040EventBtn2');
+            if (updateBtn2) {
+                updateBtn2.addEventListener('click', function() {
+                    handleNewNip85EventAction(pubkey, 'update');
+                });
+            }
+        }
+        
+        /**
+         * Handle Kind 10040 publishing with NIP-07 signing
+         * @param {string} customerPubkey - The customer's pubkey
+         * @param {string} mode - 'create' for new event, 'update' for relay key mismatch
+         */
+        async function handleCreateAndPublishKind10040(customerPubkey, mode = 'create') {
+            // Determine which buttons to use based on mode
+            let publishBtn;
+            if (mode === 'update') {
+                // Try both update buttons (there are two in the customer.html)
+                publishBtn = document.getElementById('updateKind10040EventBtn1') || document.getElementById('updateKind10040EventBtn2');
+            } else {
+                publishBtn = document.getElementById('publishKind10040EventBtn');
+            }
+            
+            if (!publishBtn) {
+                console.error('Could not find publish button for mode:', mode);
+                showNewNip85Error('Could not find the appropriate button. Please refresh the page.');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = publishBtn.textContent;
+            publishBtn.disabled = true;
+            publishBtn.textContent = mode === 'update' ? '🔄 Updating event...' : '🔄 Creating event...';
+            
+            try {
+                // Step 1: Check for NIP-07 extension
+                if (!window.nostr) {
+                    alert('❌ Nostr browser extension (NIP-07) is required to sign events. Please install a Nostr extension like Alby, nos2x, or Flamingo.');
+                    publishBtn.disabled = false;
+                    publishBtn.textContent = originalText;
+                    return;
+                }
+                
+                // Step 2: Create unsigned Kind 10040 event
+                publishBtn.textContent = '📝 Creating unsigned event...';
+                
+                const createResponse = await fetch('/api/create-unsigned-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                const createResult = await createResponse.json();
+                
+                if (!createResult.success) {
+                    throw new Error(createResult.message || 'Failed to create unsigned event');
+                }
+                
+                const unsignedEvent = createResult.data.unsignedEvent;
+                console.log('Unsigned event created:', unsignedEvent);
+                
+                // Step 3: Sign the event using NIP-07
+                publishBtn.textContent = '✍️ Please sign in your Nostr extension...';
+                
+                let signedEvent;
+                try {
+                    signedEvent = await window.nostr.signEvent(unsignedEvent);
+                    console.log('Event signed successfully:', signedEvent);
+                } catch (signingError) {
+                    console.error('Signing error:', signingError);
+                    throw new Error(`Failed to sign event: ${signingError.message || 'User cancelled or extension error'}`);
+                }
+                
+                // Step 4: Publish the signed event
+                publishBtn.textContent = '📡 Publishing signed event...';
+                
+                const publishResponse = await fetch('/api/publish-signed-kind10040', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        signedEvent: signedEvent,
+                        pubkey: customerPubkey
+                    })
+                });
+                
+                console.log('About to publish result')
+                const publishResult = await publishResponse.json();
+                console.log('Published result', publishResult)
+                
+                if (publishResult.success) {
+                    console.log('Kind 10040 event published successfully')
+                    
+                    // Success - show success message and reload NIP-85 status
+                    publishBtn.textContent = '✅ Success!';
+                    
+                    // Show success alert
+                    alert(`✅ Kind 10040 Event ${mode === 'update' ? 'Updated' : 'Published'}!\n\nEvent ID: ${signedEvent.id}\n\nTrusted Assertions has been ${mode === 'update' ? 'updated' : 'enabled'} for your account! 👏`);
+                    
+                    // Reload NIP-85 status to show updated state
+                    setTimeout(() => {
+                        loadNewNip85Status(customerPubkey);
+                    }, 1000);
+                    
+                } else {
+                    throw new Error(publishResult.message || 'Failed to publish signed event');
+                }
+                
+            } catch (error) {
+                console.error('Error in Kind 10040 flow:', error);
+                
+                let errorMessage = error.message;
+                if (errorMessage.includes('User rejected')) {
+                    errorMessage = 'You cancelled the signing process. Please try again when ready.';
+                } else if (errorMessage.includes('extension')) {
+                    errorMessage = 'Nostr extension error. Please check your extension and try again.';
+                }
+                
+                alert(`❌ ${errorMessage}`);
+                showNewNip85Error(errorMessage);
+                
+                // Restore button state
+                publishBtn.disabled = false;
+                publishBtn.textContent = originalText;
             }
         }
         
@@ -1376,30 +948,8 @@
                     return;
                 }
                 
-                // Use modern two-step Kind 10040 event creation and publishing logic
-                await handleCreateAndPublishKind10040(mode);
-                
-                // Update button text during publishing
-                const button = mode === 'create' ? 
-                    document.getElementById('publishKind10040EventBtn') : 
-                    document.getElementById('updateKind10040EventBtn');
-                    
-                if (button) {
-                    const originalText = button.textContent;
-                    button.textContent = mode === 'create' ? '📝 Creating...' : '🔄 Updating...';
-                    button.disabled = true;
-                    
-                    // Restore button after a delay (the publishKind10040Event function will handle the actual publishing)
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                        // Reload NIP-85 status after publishing
-                        loadNewNip85Status(pubkey);
-                    }, 3000);
-                }
-                
-                // Trigger the existing publish function
-                await publishKind10040Event();
+                // Use the handleCreateAndPublishKind10040 function
+                await handleCreateAndPublishKind10040(pubkey, mode);
                 
             } catch (error) {
                 console.error('Error handling NIP-85 event action:', error);
