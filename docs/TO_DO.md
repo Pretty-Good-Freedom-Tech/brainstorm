@@ -135,3 +135,9 @@ Spread out backup nip85 and WoT relays to different providers - currently all Di
 
 8 Sep 2025
 Make sure to address the situation where pubkeys contain uppercase characters. They should all be stored and compared as fully lowercase.
+
+17 Jan 2026:
+1. Updated script to clean up folders in `/var/lib/brainstorm/algos/personalizedGrapeRank/tmp` at end of GR calculation script, eg `rm -R customer_043df008_mkai00t3`; otherwise we add 2GB of data each time we calculate scores.
+
+18 Feb 2026:
+Need to update script to delete `kind30382_*.json` files from `/var/lib/brainstorm/data/published` after they are published.

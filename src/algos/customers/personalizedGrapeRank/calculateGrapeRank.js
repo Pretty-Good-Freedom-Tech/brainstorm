@@ -47,7 +47,7 @@ const LOG_FILE = path.join(LOG_DIR, 'calculateGrapeRank.log');
 execSync(`touch ${LOG_FILE}`);
 execSync(`sudo chown brainstorm:brainstorm ${LOG_FILE}`);
 
-const TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
+// const TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp';
 const CUSTOMER_TEMP_DIR = '/var/lib/brainstorm/algos/personalizedGrapeRank/tmp/' + CUSTOMER_NAME;
 const MAX_ITERATIONS = 60;
 const CONVERGENCE_THRESHOLD = 0.001; // Threshold for determining convergence; for any iteration, the change in influence score for every profile must be less than this threshold.

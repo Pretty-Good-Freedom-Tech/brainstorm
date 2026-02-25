@@ -19,6 +19,10 @@ https://github.com/MakePrisms/bitcoinmints/issues/26#issuecomment-3271996021
 
 Like nostr.band, except ranking comes from Brainstorm (NIP-85 events) rather than the nostr.band TrustRank
 
+Existing candidate: 
+https://nostrwiki.org
+https://search.dergigi.com
+
 # 4. Polls
 
 Use GrapeRank weights for weighted average of poll results.
@@ -26,8 +30,9 @@ Use GrapeRank weights for weighted average of poll results.
 - Pollerama.fun: https://github.com/abh3po/nostr-polls
 - pollstr.online (website is dead)
 
-# 5. Vinney's app
+# 5. Vinney's apps
 
+https://catallax.network
 https://attestr.app
 
 # 6. Composite NIP-51 Lists
