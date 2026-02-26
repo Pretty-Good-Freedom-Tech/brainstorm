@@ -170,6 +170,7 @@ sudo rm /etc/systemd/system/calculatePersonalizedGrapeRank.service
 ```bash
 # Remove configuration files
 sudo rm /etc/brainstorm.conf
+sudo rm /etc/concept-graph.conf
 sudo rm /etc/blacklist.conf
 sudo rm /etc/whitelist.conf
 sudo rm /etc/graperank.conf

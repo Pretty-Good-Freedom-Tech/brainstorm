@@ -57,6 +57,7 @@ echo "The user can now run sudo commands without being prompted for a password"
 
 # set ownershiup for configuration files 
 sudo chown root:brainstorm /etc/brainstorm.conf
+sudo chown root:brainstorm /etc/concept-graph.conf
 sudo chown root:brainstorm /etc/graperank.conf
 sudo chown root:brainstorm /etc/strfry-router.config
 

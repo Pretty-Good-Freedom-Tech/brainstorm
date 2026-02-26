@@ -124,6 +124,7 @@ systemctl daemon-reload
 log "Removing configuration files..."
 CONFIG_FILES=(
   "/etc/brainstorm.conf"
+  "/etc/concept-graph.conf"
   "/etc/strfry.conf"
   "/etc/strfry-router.config"
   "/etc/graperank.conf"

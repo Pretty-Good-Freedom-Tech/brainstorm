@@ -189,6 +189,7 @@ If you encounter any issues:
 2. Verify the configuration files:
    ```bash
    sudo cat /etc/brainstorm.conf
+   sudo cat /etc/concept-graph.conf
    sudo cat /etc/graperank.conf
    sudo cat /etc/blacklist.conf
    sudo cat /etc/whitelist.conf

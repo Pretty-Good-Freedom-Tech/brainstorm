@@ -32,6 +32,7 @@ const TARGET_FILES = [
   '/etc/strfry.conf',
   '/etc/strfry-router.config',
   '/etc/brainstorm.conf',
+  '/etc/concept-graph.conf',
   '/etc/graperank.conf',
   '/etc/whitelist.conf',
   '/etc/blacklist.conf'

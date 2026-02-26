@@ -1,0 +1,31 @@
+{
+  "neo4jCypherQueryUrl": "https://straycat.brainstorm.social/api/knowledge-graph-query",
+  "trustScoreCutoff": 10,
+  "conceptUUIDs": {
+    "relationship": "39998:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:c15357e6-6665-45cc-8ea5-0320b8026f05",
+    "relationshipType": "39998:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:826fa669-b494-46bd-9326-97b894c70d8b",
+    "nodeType": "39998:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:1276c2c4-8efb-41b1-ae88-11ca61b4e572",
+    "set": "39998:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:6a339361-beef-4013-a916-1723e05a4671",
+    "superset": "39998:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:21cbf5be-c972-4f45-ae09-c57e165e8cf9",
+    "JSONSchema": "39998:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:bba896cc-c190-4e26-a26f-66d678d4ac89",
+    "property": "39998:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:6c6a1f9e-6afc-4283-9798-cd2f68c522a7"
+  },
+  "relationshipTypeUUIDs": {
+    "CLASS_THREAD_INITIATION": "39999:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:24bc3eb6-fd75-4679-a3d7-d0b1a2a62be8",
+    "CLASS_THREAD_PROPAGATION": "39999:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:e65edc7b-5f33-436a-a7b5-c8092da85d18",
+    "CLASS_THREAD_TERMINATION": "39999:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:cad330c4-be50-4fa0-8178-0982078b908a",
+    "IS_A_PROPERTY_OF": "39999:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:9a74ffbd-33c6-456a-a5a9-9711d504e81d",
+    "IS_THE_JSON_SCHEMA_FOR": "39999:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:86ac71be-eab8-4b15-bb17-313b8378d2e5",
+    "ENUMERATES": "39999:e5272de914bd301755c439b88e6959a43c9d2664831f093c51e9c799a16a102f:d0b4f08e-df4a-4131-a75c-e5bd056e4d78"
+  },
+  "aRelays": {
+    "aPopularGeneralPurposeRelays": ["wss://relay.damus.io", "wss://relay.primal.net", "wss://nos.lol", "wss://relay.nostr.band"],
+    "aDListRelays": ["wss://dcosl.brainstorm.world"],
+    "aTrustedAssertionRelays": ["wss://nip85.nostr.band", "wss://nip85.brainstorm.world", "wss://nip85.nostr1.com"],
+    "aTrustedListRelays": ["wss://nip85.brainstorm.world", "wss://dcosl.brainstorm.world"],
+    "aWotRelays": ["wss://wot.grapevine.network"],
+    "aProfileRelays": ["wss://purplepag.es", "wss://profiles.nostr1.com"],
+    "aOutboxRelays": [],
+    "safeModeRelays": ["wss://nip85.brainstorm.world", "wss://dcosl.brainstorm.world", "wss://wot.grapevine.network"]
+  }
+}
