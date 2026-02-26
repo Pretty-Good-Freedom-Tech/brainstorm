@@ -6,6 +6,7 @@
 // Import API modules
 const { getStrfryStatus } = require('./strfry/strfryStatus');
 const { getNeo4jStatus } = require('./neo4j/neo4jStatus');
+const { runQuery } = require('./neo4j/runQuery');
 const { getListStatus } = require('./lists/listStatus');
 const { getRankingStatus } = require('./ranking/rankingStatus');
 const { getNetworkStatus } = require('./network/networkStatus');
@@ -112,6 +113,9 @@ function register(app) {
     // Register new modular endpoints for both paths
     // TODO: might move these to status module 
     app.get('/api/strfry-status', getStrfryStatus);
+
+    // Generic neo4j query endpoint; requires authentication
+    app.post('/api/neo4j/run-query', runQuery);
 
     app.get('/api/list-status', getListStatus);
     

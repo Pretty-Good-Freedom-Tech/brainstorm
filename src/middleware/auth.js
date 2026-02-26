@@ -322,7 +322,8 @@ function authMiddleware(req, res, next) {
             '/backups/download',
             '/restore/upload',
             '/restore/sets',
-            '/restore/customer'
+            '/restore/customer',
+            '/neo4j/run-query'
         ];
         
         // Check if this endpoint requires owner authentication
