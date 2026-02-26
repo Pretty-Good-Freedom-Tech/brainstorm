@@ -6,6 +6,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const { getConfigFromFile } = require('../utils/config');
+const CustomerManager = require('../utils/customerManager');
 
 /**
  * Verify if a pubkey belongs to the system owner
@@ -257,6 +258,34 @@ function isOwner(req) {
            req.session.pubkey === ownerPubkey;
 }
 
+
+/**
+ * Check if a user is authenticated as a customer
+ * @param {Object} req - Express request object
+ * @returns {Promise<boolean>} True if the user is a customer, false otherwise
+ */
+async function isCustomer(req) {
+    // Check basic authentication first
+    if (!req.session || !req.session.authenticated || !req.session.pubkey) {
+        return false;
+    }
+
+    // Check if user is a customer using CustomerManager
+    try {
+        const customerManager = new CustomerManager();
+        await customerManager.initialize();
+        
+        // Get customer by pubkey
+        const customer = await customerManager.getCustomer(req.session.pubkey);
+        
+        return customer && customer.status === 'active';
+    } catch (error) {
+        console.error('Error checking customer status:', error);
+        return false;
+    }
+}
+
+
 /**
  * Authentication middleware
  * Handles three levels of access:
@@ -264,7 +293,7 @@ function isOwner(req) {
  * 2. User authentication - Any authenticated user (some write endpoints)
  * 3. Owner authentication - Only the system owner (administrative endpoints)
  */
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
     // Skip auth for static resources, sign-in page and auth-related endpoints
     if (req.path === '/sign-in.html' || 
         req.path === '/index.html' ||
@@ -281,7 +310,8 @@ function authMiddleware(req, res, next) {
     if (req.session && req.session.authenticated) {
         // TODO: differentiate between owner and customer endpoints
         const customerOrOwnerEndpoints = [
-            '/get-customer'
+            '/get-customer',
+            '/neo4j/run-query'
         ]
         // Define owner-only endpoints (administrative actions)
         const ownerOnlyEndpoints = [
@@ -322,9 +352,17 @@ function authMiddleware(req, res, next) {
             '/backups/download',
             '/restore/upload',
             '/restore/sets',
-            '/restore/customer',
-            '/neo4j/run-query'
+            '/restore/customer'
         ];
+
+        // Check if this endpoint is for customer or owner
+        const isCustomerOrOwnerEndpoint = customerOrOwnerEndpoints.some(endpoint => 
+            req.path.includes(endpoint)
+        );
+        // If this endpoint is for customer or owner AND if the user is authenticated, AND if the user is the owner or a customer allow it
+        if (isCustomerOrOwnerEndpoint && req.session && req.session.authenticated && (isOwner(req) || await isCustomer(req))) {
+            return next();
+        }
         
         // Check if this endpoint requires owner authentication
         const isOwnerPostEndpoint = ownerOnlyEndpoints.some(endpoint => 
