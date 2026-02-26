@@ -355,13 +355,20 @@ async function authMiddleware(req, res, next) {
             '/restore/customer'
         ];
 
-        // Check if this endpoint is for customer or owner
+        // Check if this endpoint is for customer or owner only
         const isCustomerOrOwnerEndpoint = customerOrOwnerEndpoints.some(endpoint => 
             req.path.includes(endpoint)
         );
+
         // If this endpoint is for customer or owner AND if the user is authenticated, AND if the user is the owner or a customer allow it
-        if (isCustomerOrOwnerEndpoint && req.session && req.session.authenticated && (isOwner(req) || await isCustomer(req))) {
-            return next();
+        if (isCustomerOrOwnerEndpoint) {
+            if (req.session && req.session.authenticated && (isOwner(req) || await isCustomer(req))) {
+                return next();
+            } else {
+                return res.status(403).json({ 
+                    error: 'Proper authentication required. Only the system owner or a customer can perform this action.'
+                });
+            }
         }
         
         // Check if this endpoint requires owner authentication
@@ -429,7 +436,8 @@ async function authMiddleware(req, res, next) {
             '/backups/download',
             '/restore/upload',
             '/restore/sets',
-            '/restore/customer'
+            '/restore/customer',
+            '/neo4j/run-query'
         ];
         
         // Check if the current path is a write endpoint

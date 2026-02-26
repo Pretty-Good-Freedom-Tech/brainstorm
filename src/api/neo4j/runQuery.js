@@ -18,25 +18,20 @@ function getNeo4jConnection() {
 
 /**
  * Run a Neo4j query
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
  */
 function runQuery(req, res) {
     console.log('Running Neo4j query...');
+
+    const cypherCommand = decodeURIComponent(req.query.cypher) || '';
     
     // Result object
     const result = {
         success: true,
-        timestamp: Math.floor(Date.now() / 1000),
-        service: { status: 'checking...' },
-        constraints: { status: 'checking...' },
-        indexes: { status: 'checking...' },
-        users: { total: 0 },
-        relationships: {
-            total: 0,
-            recent: 0,
-            follows: 0,
-            reports: 0,
-            mutes: 0
-        }
+        service: { status: 'checking ...' },
+        cypherCommand,
+        cypherResults: ""
     };
     
     // Array to collect promises for parallel execution
@@ -73,160 +68,28 @@ function runQuery(req, res) {
             });
         return;
     }
-    
-    // 2. Check Neo4j constraints
+
+    // 0. Run cypherCommand and return results as cypherResults
     promises.push(
         new Promise((resolve) => {
-            const query = `SHOW CONSTRAINTS`;
+            const query = cypherCommand;
             const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
             exec(command, (error, stdout, stderr) => {
                 if (error) {
-                    result.constraints.status = 'error';
+                    console.error('Error executing cypher command:', error);
+                    result.success = false;
+                    result.error = error.message;
+                    result.cypherResults = "";
                     resolve();
                     return;
                 }
                 
-                // Check if the expected constraint exists
-                if (stdout.includes('UNIQUENESS') && stdout.includes('NostrUser') && stdout.includes('pubkey')) {
-                    result.constraints.status = 'ok';
-                } else {
-                    result.constraints.status = 'missing';
-                }
+                result.cypherResults = stdout;
                 resolve();
             });
         })
     );
-    
-    // 3. Check Neo4j indexes
-    promises.push(
-        new Promise((resolve) => {
-            const query = `SHOW INDEXES`;
-            const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    result.indexes.status = 'error';
-                    resolve();
-                    return;
-                }
-                
-                // Check if the expected indexes exist
-                if (stdout.includes('INDEX')) {
-                    result.indexes.status = 'ok';
-                } else {
-                    result.indexes.status = 'missing';
-                }
-                resolve();
-            });
-        })
-    );
-    
-    // 4. Count NostrUser nodes
-    promises.push(
-        new Promise((resolve) => {
-            const query = `MATCH (n:NostrUser) RETURN count(n) as userCount`;
-            const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Error counting NostrUser nodes:', error);
-                    resolve();
-                    return;
-                }
-                
-                try {
-                    // Parse user count from output
-                    const match = stdout.match(/(\d+)/);
-                    if (match && match[1]) {
-                        result.users.total = parseInt(match[1], 10);
-                    }
-                } catch (e) {
-                    console.error('Error parsing NostrUser count:', e);
-                }
-                resolve();
-            });
-        })
-    );
-    
-    // 5. Count relationships
-    promises.push(
-        new Promise((resolve) => {
-            const query = `MATCH ()-[r]->() RETURN count(r) as relationshipCount`;
-            const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Error counting relationships:', error);
-                    resolve();
-                    return;
-                }
-                
-                try {
-                    // Parse relationship count from output
-                    const match = stdout.match(/(\d+)/);
-                    if (match && match[1]) {
-                        result.relationships.total = parseInt(match[1], 10);
-                    }
-                } catch (e) {
-                    console.error('Error parsing relationship count:', e);
-                }
-                resolve();
-            });
-        })
-    );
-    
-    // 6. Count relationship types
-    ['FOLLOWS', 'REPORTS', 'MUTES'].forEach(relType => {
-        promises.push(
-            new Promise((resolve) => {
-                const query = `MATCH ()-[r:${relType}]->() RETURN count(r) as count`;
-                const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
-                exec(command, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`Error counting ${relType} relationships:`, error);
-                        resolve();
-                        return;
-                    }
-                    
-                    try {
-                        // Parse count from output
-                        const match = stdout.match(/(\d+)/);
-                        if (match && match[1]) {
-                            result.relationships[relType.toLowerCase()] = parseInt(match[1], 10);
-                        }
-                    } catch (e) {
-                        console.error(`Error parsing ${relType} count:`, e);
-                    }
-                    resolve();
-                });
-            })
-        );
-    });
-    
-    // 7. Count recent relationships (past hour)
-    promises.push(
-        new Promise((resolve) => {
-            const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
-            const query = `MATCH ()-[r]->() WHERE r.timestamp >= ${oneHourAgo} RETURN count(r) as recentCount`;
-            const command = `cypher-shell -u ${neo4jUser} -p ${neo4jPassword} "${query}"`;
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Error counting recent relationships:', error);
-                    resolve();
-                    return;
-                }
-                
-                try {
-                    // Parse count from output
-                    const match = stdout.match(/(\d+)/);
-                    if (match && match[1]) {
-                        result.relationships.recent = parseInt(match[1], 10);
-                    }
-                } catch (e) {
-                    console.error('Error parsing recent relationship count:', e);
-                }
-                resolve();
-            });
-        })
-    );
-    
+
     // Execute all promises and return result
     Promise.all(promises)
         .then(() => {

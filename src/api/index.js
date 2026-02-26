@@ -114,9 +114,6 @@ function register(app) {
     // TODO: might move these to status module 
     app.get('/api/strfry-status', getStrfryStatus);
 
-    // Generic neo4j query endpoint; requires authentication
-    app.post('/api/neo4j/run-query', runQuery);
-
     app.get('/api/list-status', getListStatus);
     
     app.get('/api/ranking-status', getRankingStatus);
@@ -230,6 +227,9 @@ function register(app) {
     app.get('/api/calculation-status', status.handleCalculationStatus);
     app.get('/api/status/neo4j-constraints', status.handleGetNeo4jConstraintsStatus);
 
+    // Generic neo4j query endpoint; requires authentication
+    app.get('/api/neo4j/run-query', runQuery);
+    
     // Strfry plugin endpoints - with clearer separation of concerns
     app.get('/api/get-strfry-filteredContent', strfry.handleGetFilteredContentStatus);  // Status query (public)
     app.post('/api/toggle-strfry-filteredContent', strfry.handleToggleStrfryPlugin);  // Toggle command (owner only)
