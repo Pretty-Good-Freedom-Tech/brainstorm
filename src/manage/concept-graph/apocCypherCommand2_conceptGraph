@@ -1,0 +1,9 @@
+// Iterate through all tags to create them and connect them to NostrEvents
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///conceptGraphEventTagsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.id AS id, line.uuid as uuid, line.type AS type, line.value AS value",
+    "MERGE (e:NostrEvent {id: id})
+    MERGE (t:NostrEventTag {uuid: uuid})
+    SET t.type = type, t.value = value
+    MERGE (e)-[:HAS_TAG]->(t)",
+    {batchSize:250, parallel:false, retries:3}
+);

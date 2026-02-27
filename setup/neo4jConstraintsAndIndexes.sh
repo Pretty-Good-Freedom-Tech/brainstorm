@@ -41,6 +41,10 @@ fi
 # Cypher command to set up constraints and indexes
 
 CYPHER_COMMAND="
+CREATE CONSTRAINT nostrEvent_id IF NOT EXISTS FOR (n:NostrEvent) REQUIRE n.id IS UNIQUE;
+
+CREATE CONSTRAINT nostrEventTag_uuid IF NOT EXISTS FOR (n:NostrEventTag) REQUIRE n.uuid IS UNIQUE;
+
 CREATE CONSTRAINT nostrUser_pubkey IF NOT EXISTS FOR (n:NostrUser) REQUIRE n.pubkey IS UNIQUE;
 CREATE INDEX nostrUser_hops IF NOT EXISTS FOR (n:NostrUser) ON (n.hops);
 CREATE INDEX nostrUser_personalizedPageRank IF NOT EXISTS FOR (n:NostrUser) ON (n.personalizedPageRank);

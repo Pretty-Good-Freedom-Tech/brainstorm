@@ -24,11 +24,11 @@ if [ -f "/etc/brainstorm.conf" ]; then
 else
   NEO4J_PASSWORD="neo4j"
   echo "Warning: /etc/brainstorm.conf not found, using default Neo4j password"
-fis
+fi
 
 # For every Event node of kind: 9998 or 39998, add the node label: ListHeader.
 CYPHER_COMMAND1="
-MATCH (listHeader:Event)
+MATCH (listHeader:NostrEvent)
 WHERE listHeader.kind = 9998 or listHeader.kind = 39998
 SET listHeader:ListHeader
 RETURN listHeader;
@@ -37,7 +37,7 @@ RETURN listHeader;
 
 #For every Event node of kind: 9999 or 39999, add the node label: ListItem.
 CYPHER_COMMAND2="
-MATCH (listItem:Event)
+MATCH (listItem:NostrEvent)
 WHERE listItem.kind = 9999 or listItem.kind = 39999
 SET listItem:ListItem
 RETURN listItem;
@@ -47,7 +47,7 @@ RETURN listItem;
 #For each ListHeader and ListItem, add the property: uuid which is either the event id (if kind is 9998 or 9999) or the a-tag of that event (if kind is 39998 or 39999).
 
 CYPHER_COMMAND3="
-MATCH (n:Event)
+MATCH (n:NostrEvent)
 WHERE n.kind = 9998 or n.kind = 9999
 SET n.uuid = n.id
 RETURN n;
@@ -55,7 +55,7 @@ RETURN n;
 "
 
 CYPHER_COMMAND4="
-MATCH (n:Event)-[:TAGGED_WITH]->(tag:Tag {type: 'd'})
+MATCH (n:NostrEvent)-[:HAS_TAG]->(tag:NostrEventTag {type: 'd'})
 WHERE n.kind = 39998 OR n.kind = 39999
 WITH n, n.kind as kind, n.pubkey as pubkey, tag.value as dTag, n.id as eventId
 SET n.aTag = kind + ':' + pubkey + ':' + dTag, n.uuid = kind + ':' + pubkey + ':' + dTag
@@ -66,7 +66,7 @@ RETURN n;
 # For each of the following “canonical” Knowledge Graph node types, add node labels: Set, Superset, JSONSchema, Property, Relationship to every ListItem node that is connected to the relevant z-Tag:
 # Set
 CYPHER_COMMAND5="
-MATCH (listItem:ListItem)-[:TAGGED_WITH]->(:Tag {type: 'z', value: '${UUID_FOR_SETS}'})
+MATCH (listItem:ListItem)-[:HAS_TAG]->(:NostrEventTag {type: 'z', value: '${UUID_FOR_SETS}'})
 SET listItem:Set
 RETURN listItem;
 
@@ -74,7 +74,7 @@ RETURN listItem;
 
 # Superset
 CYPHER_COMMAND6="
-MATCH (listItem:ListItem)-[:TAGGED_WITH]->(:Tag {type: 'z', value: '${UUID_FOR_SUPERSETS}'})
+MATCH (listItem:ListItem)-[:HAS_TAG]->(:NostrEventTag {type: 'z', value: '${UUID_FOR_SUPERSETS}'})
 SET listItem:Superset
 RETURN listItem;
 
@@ -82,14 +82,14 @@ RETURN listItem;
 
 # JSONSchema
 CYPHER_COMMAND7="
-MATCH (listItem:ListItem)-[:TAGGED_WITH]->(:Tag {type: 'z', value: '${UUID_FOR_JSON_SCHEMAS}'})
+MATCH (listItem:ListItem)-[:HAS_TAG]->(:NostrEventTag {type: 'z', value: '${UUID_FOR_JSON_SCHEMAS}'})
 SET listItem:JSONSchema
 RETURN listItem;
 "
 
 # Property
 CYPHER_COMMAND8="
-MATCH (listItem:ListItem)-[:TAGGED_WITH]->(:Tag {type: 'z', value: '${UUID_FOR_PROPERTIES}'})
+MATCH (listItem:ListItem)-[:HAS_TAG]->(:NostrEventTag {type: 'z', value: '${UUID_FOR_PROPERTIES}'})
 SET listItem:Property
 RETURN listItem;
 
@@ -97,7 +97,7 @@ RETURN listItem;
 
 # Relationship
 CYPHER_COMMAND9="
-MATCH (listItem:ListItem)-[:TAGGED_WITH]->(:Tag {type: 'z', value: '${UUID_FOR_RELATIONSHIPS}'})
+MATCH (listItem:ListItem)-[:HAS_TAG]->(:NostrEventTag {type: 'z', value: '${UUID_FOR_RELATIONSHIPS}'})
 SET listItem:Relationship
 RETURN listItem;
 
@@ -106,17 +106,17 @@ RETURN listItem;
 # Add Relationships
 
 CYPHER_COMMAND10="
-MATCH (relationship:ListItem)-[:TAGGED_WITH]->(nodeFrom:Tag {type: "nodeFrom"})
-OPTIONAL MATCH (relationship)-[:TAGGED_WITH]->(nodeTo:Tag {type: "nodeTo"})
-OPTIONAL MATCH (relationship)-[:TAGGED_WITH]->(relationshipType:Tag {type: "relationshipType"})
+MATCH (relationship:ListItem)-[:HAS_TAG]->(nodeFrom:NostrEventTag {type: 'nodeFrom'})
+OPTIONAL MATCH (relationship)-[:HAS_TAG]->(nodeTo:NostrEventTag {type: 'nodeTo'})
+OPTIONAL MATCH (relationship)-[:HAS_TAG]->(relationshipType:NostrEventTag {type: 'relationshipType'})
 
 WITH 
   nodeFrom.value AS uuid_nodeFrom,
   nodeTo.value   AS uuid_nodeTo,
   relationshipType.value AS relType
 
-MERGE (from:Event {uuid: uuid_nodeFrom})
-MERGE (to:Event   {uuid: uuid_nodeTo})
+MERGE (from:NostrEvent {uuid: uuid_nodeFrom})
+MERGE (to:NostrEvent   {uuid: uuid_nodeTo})
 
 FOREACH (ignore IN CASE WHEN relType = 'IS_THE_CONCEPT_FOR'     THEN [1] ELSE [] END |
   MERGE (from)-[:IS_THE_CONCEPT_FOR]->(to)
@@ -146,11 +146,11 @@ RETURN uuid_nodeFrom, relType, uuid_nodeTo;
 CYPHER_COMMAND="${CYPHER_COMMAND1}${CYPHER_COMMAND2}${CYPHER_COMMAND3}${CYPHER_COMMAND4}${CYPHER_COMMAND5}${CYPHER_COMMAND6}${CYPHER_COMMAND7}${CYPHER_COMMAND8}${CYPHER_COMMAND9}${CYPHER_COMMAND10}"
 
 # Run Cypher commands with stored password
+echo "$(date): Running Cypher commands to set up concept graph..."
 echo "$(date): Running Cypher commands to set up concept graph..." >> ${BRAINSTORM_LOG_DIR}/conceptGraphSetup.log
 sudo cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" "$CYPHER_COMMAND" >> ${BRAINSTORM_LOG_DIR}/conceptGraphSetup.log 2>&1
-STORED_PASSWORD_RESULT=$?
 
-
+echo "$(date): Finished conceptGraphSetup - SUCCESS"
 echo "$(date): Finished conceptGraphSetup - SUCCESS" >> ${BRAINSTORM_LOG_DIR}/conceptGraphSetup.log
 exit 0
 

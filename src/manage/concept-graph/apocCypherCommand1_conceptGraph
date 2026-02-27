@@ -1,0 +1,9 @@
+// Iterate through all NostrEvent nodes to create NostrUser and NostrEvent nodes
+CALL apoc.periodic.iterate(
+    "CALL apoc.load.json('file:///conceptGraphEventsToAddToNeo4j.json') YIELD value AS line RETURN DISTINCT line.id AS id, line.pubkey AS pubkey, line.created_at AS created_at, line.kind AS kind",
+    "MERGE (u:NostrUser {pubkey: pubkey})
+    MERGE (e:NostrEvent {id: id})
+    MERGE (u)-[:AUTHORS]->(e)
+    SET e.pubkey = pubkey, e.created_at = created_at, e.kind = kind",
+    {batchSize:250, parallel:false, retries:3}
+);

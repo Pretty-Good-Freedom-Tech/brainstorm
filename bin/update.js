@@ -62,7 +62,8 @@ const repoDir = path.join(userHome, 'brainstorm');
 const configArgs = {
   domainName: null,
   ownerPubkey: null,
-  neo4jPassword: null
+  neo4jPassword: null,
+  branch: null,
 };
 
 // Extract values from command-line arguments
@@ -73,6 +74,8 @@ process.argv.forEach(arg => {
     configArgs.ownerPubkey = arg.split('=')[1];
   } else if (arg.startsWith('--neo4jPassword=')) {
     configArgs.neo4jPassword = arg.split('=')[1];
+  } else if (arg.startsWith('--branch=')) {
+    configArgs.branch = arg.split('=')[1];
   }
 });
 
@@ -152,12 +155,14 @@ function cloneFreshRepo() {
     log(`Creating directory ${repoDir}...`, colors.cyan);
     fs.mkdirSync(repoDir, { recursive: true });
     
+    let branch = configArgs.branch || 'main';
+
     if (username) {
       log(`Setting ownership of directory to ${username}...`, colors.cyan);
       execSync(`chown -R ${username}:${username} "${repoDir}"`, { stdio: 'pipe' });
       
       // Clone as the regular user
-      execSync(`cd "${userHome}" && sudo -u ${username} git clone https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git brainstorm`, {
+      execSync(`cd "${userHome}" && sudo -u ${username} git clone -b ${branch} https://github.com/Pretty-Good-Freedom-Tech/brainstorm.git brainstorm`, {
         stdio: 'inherit'
       });
     } else {
