@@ -228,7 +228,8 @@ function register(app) {
     app.get('/api/status/neo4j-constraints', status.handleGetNeo4jConstraintsStatus);
 
     // Generic neo4j query endpoint; requires authentication
-    app.get('/api/neo4j/run-query', runQuery);
+    // temporarily disabled
+    // app.get('/api/neo4j/run-query', runQuery);
     
     // Strfry plugin endpoints - with clearer separation of concerns
     app.get('/api/get-strfry-filteredContent', strfry.handleGetFilteredContentStatus);  // Status query (public)
